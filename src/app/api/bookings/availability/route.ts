@@ -1,0 +1,130 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { addDays, startOfDay, endOfDay, addMinutes, format, isWeekend } from 'date-fns'
+
+// GET /api/bookings/availability - Get available time slots
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const serviceId = searchParams.get('serviceId')
+    const date = searchParams.get('date')
+    const days = parseInt(searchParams.get('days') || '7')
+
+    if (!serviceId) {
+      return NextResponse.json(
+        { error: 'Service ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Get service details
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId, active: true }
+    })
+
+    if (!service) {
+      return NextResponse.json(
+        { error: 'Service not found' },
+        { status: 404 }
+      )
+    }
+
+    const duration = service.duration || 60 // Default 60 minutes
+    const startDate = date ? new Date(date) : new Date()
+    const endDate = addDays(startDate, days)
+
+    // Get existing bookings in the date range
+    const existingBookings = await prisma.booking.findMany({
+      where: {
+        scheduledAt: {
+          gte: startOfDay(startDate),
+          lte: endOfDay(endDate)
+        },
+        status: {
+          in: ['PENDING', 'CONFIRMED']
+        }
+      },
+      select: {
+        scheduledAt: true,
+        duration: true
+      }
+    })
+
+    // Generate available time slots
+    const availability = []
+    
+    for (let d = 0; d < days; d++) {
+      const currentDate = addDays(startDate, d)
+      
+      // Skip weekends (optional - can be configured)
+      if (isWeekend(currentDate)) {
+        continue
+      }
+
+      const daySlots = []
+      
+      // Business hours: 9 AM to 5 PM
+      const startHour = 9
+      const endHour = 17
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) { // 30-minute intervals
+          const slotStart = new Date(currentDate)
+          slotStart.setHours(hour, minute, 0, 0)
+          
+          const slotEnd = addMinutes(slotStart, duration)
+          
+          // Check if slot end time is within business hours
+          if (slotEnd.getHours() > endHour) {
+            break
+          }
+
+          // Check if slot is in the past
+          if (slotStart < new Date()) {
+            continue
+          }
+
+          // Check for conflicts with existing bookings
+          const hasConflict = existingBookings.some(booking => {
+            const bookingStart = new Date(booking.scheduledAt)
+            const bookingEnd = addMinutes(bookingStart, booking.duration)
+            
+            return (
+              (slotStart >= bookingStart && slotStart < bookingEnd) ||
+              (slotEnd > bookingStart && slotEnd <= bookingEnd) ||
+              (slotStart <= bookingStart && slotEnd >= bookingEnd)
+            )
+          })
+
+          if (!hasConflict) {
+            daySlots.push({
+              start: slotStart.toISOString(),
+              end: slotEnd.toISOString(),
+              available: true
+            })
+          }
+        }
+      }
+
+      if (daySlots.length > 0) {
+        availability.push({
+          date: format(currentDate, 'yyyy-MM-dd'),
+          slots: daySlots
+        })
+      }
+    }
+
+    return NextResponse.json({
+      serviceId,
+      duration,
+      availability
+    })
+  } catch (error) {
+    console.error('Error fetching availability:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch availability' },
+      { status: 500 }
+    )
+  }
+}
+
