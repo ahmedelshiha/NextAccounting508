@@ -1,0 +1,138 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+// GET /api/admin/stats/bookings - Get booking statistics
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
+
+    // Get total bookings count
+    const total = await prisma.booking.count()
+
+    // Get bookings by status
+    const [pending, confirmed, completed, cancelled] = await Promise.all([
+      prisma.booking.count({ where: { status: 'PENDING' } }),
+      prisma.booking.count({ where: { status: 'CONFIRMED' } }),
+      prisma.booking.count({ where: { status: 'COMPLETED' } }),
+      prisma.booking.count({ where: { status: 'CANCELLED' } })
+    ])
+
+    // Get today's bookings
+    const today = await prisma.booking.count({
+      where: {
+        scheduledAt: {
+          gte: startOfToday,
+          lt: endOfToday
+        }
+      }
+    })
+
+    // Get this month's bookings
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const thisMonth = await prisma.booking.count({
+      where: {
+        createdAt: {
+          gte: startOfMonth
+        }
+      }
+    })
+
+    // Get last month's bookings for comparison
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+    const lastMonth = await prisma.booking.count({
+      where: {
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth
+        }
+      }
+    })
+
+    // Calculate growth percentage
+    const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
+
+    // Get revenue statistics
+    const completedBookings = await prisma.booking.findMany({
+      where: { status: 'COMPLETED' },
+      include: {
+        service: {
+          select: { price: true }
+        }
+      }
+    })
+
+    const totalRevenue = completedBookings.reduce((sum, booking) => {
+      return sum + (booking.service.price || 0)
+    }, 0)
+
+    // Get this month's revenue
+    const thisMonthRevenue = completedBookings
+      .filter(booking => booking.createdAt >= startOfMonth)
+      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+
+    // Get last month's revenue
+    const lastMonthRevenue = completedBookings
+      .filter(booking => 
+        booking.createdAt >= startOfLastMonth && 
+        booking.createdAt <= endOfLastMonth
+      )
+      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+
+    const revenueGrowth = lastMonthRevenue > 0 ? 
+      ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
+
+    // Get upcoming bookings (next 7 days)
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const upcoming = await prisma.booking.count({
+      where: {
+        scheduledAt: {
+          gte: now,
+          lte: nextWeek
+        },
+        status: {
+          in: ['PENDING', 'CONFIRMED']
+        }
+      }
+    })
+
+    return NextResponse.json({
+      total,
+      pending,
+      confirmed,
+      completed,
+      cancelled,
+      today,
+      thisMonth,
+      lastMonth,
+      growth: Math.round(growth * 100) / 100,
+      upcoming,
+      revenue: {
+        total: totalRevenue,
+        thisMonth: thisMonthRevenue,
+        lastMonth: lastMonthRevenue,
+        growth: Math.round(revenueGrowth * 100) / 100
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching booking statistics:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch booking statistics' },
+      { status: 500 }
+    )
+  }
+}
+
