@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:legacy": "next dev",
     "build": "next build --turbopack",
+    "build:legacy": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
