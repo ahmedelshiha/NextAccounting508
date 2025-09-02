@@ -8,13 +8,13 @@ export default function HomePage() {
         <p className="text-xl text-gray-600 mb-8">
           Professional accounting services for your business
         </p>
-        <div className="space-x-4">
-          <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors">
+        <div className="flex items-center justify-center gap-4">
+          <a href="/booking" className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors">
             Get Started
-          </button>
-          <button className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-50 transition-colors">
+          </a>
+          <a href="/services" className="border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-50 transition-colors">
             Learn More
-          </button>
+          </a>
         </div>
       </div>
     </div>
