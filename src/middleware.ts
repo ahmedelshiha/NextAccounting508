@@ -45,7 +45,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Allow access to public routes
-        const publicRoutes = ['/', '/about', '/services', '/blog', '/contact', '/booking']
+        const publicRoutes = ['/', '/about', '/services', '/blog', '/contact', '/booking', '/login', '/register']
         const isPublicRoute = publicRoutes.some(route => 
           req.nextUrl.pathname === route || 
           req.nextUrl.pathname.startsWith('/services/') ||
@@ -74,4 +74,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
-
