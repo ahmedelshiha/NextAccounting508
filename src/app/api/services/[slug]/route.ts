@@ -85,7 +85,7 @@ export async function DELETE(
 ) {
   try {
     // Soft delete by setting active to false
-    const service = await prisma.service.update({
+    await prisma.service.update({
       where: { slug: params.slug },
       data: { active: false }
     })
