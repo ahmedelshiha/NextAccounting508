@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
     
     // Only show published posts for non-admin users
@@ -147,4 +148,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
