@@ -71,8 +71,8 @@ export function ServicesSection() {
             Our Professional Services
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Comprehensive accounting solutions designed to help your business thrive. 
-            From bookkeeping to strategic advisory, we've got you covered.
+            Comprehensive accounting solutions designed to help your business thrive.
+            From bookkeeping to strategic advisory, we&apos;ve got you covered.
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export function ServicesSection() {
             Need a Custom Solution?
           </h3>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Every business is unique. Let's discuss how we can tailor our services 
+            Every business is unique. Let&apos;s discuss how we can tailor our services
             to meet your specific accounting and financial needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -150,4 +150,3 @@ export function ServicesSection() {
     </section>
   )
 }
-
