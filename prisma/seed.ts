@@ -1,7 +1,6 @@
 import { PrismaClient, UserRole, BookingStatus } from '@prisma/client'
+import { prisma } from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Starting seed...')
@@ -460,4 +459,3 @@ main()
     await prisma.$disconnect()
     process.exit(1)
   })
-

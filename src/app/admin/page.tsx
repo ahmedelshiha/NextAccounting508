@@ -68,19 +68,17 @@ export default function AdminDashboard() {
     async function fetchDashboardData() {
       try {
         // Fetch dashboard statistics
-        const [bookingsRes, usersRes, postsRes, newsletterRes] = await Promise.all([
-          fetch('/api/admin/stats/bookings'),
-          fetch('/api/admin/stats/users'),
-          fetch('/api/admin/stats/posts'),
-          fetch('/api/newsletter')
+          const statsPromises = await Promise.allSettled([
+          fetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
+          fetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
+          fetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
+          fetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
         ])
 
-        const [bookingsData, usersData, postsData, newsletterData] = await Promise.all([
-          bookingsRes.ok ? bookingsRes.json() : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 },
-          usersRes.ok ? usersRes.json() : { total: 0, clients: 0, staff: 0, newThisMonth: 0 },
-          postsRes.ok ? postsRes.json() : { total: 0, published: 0, drafts: 0 },
-          newsletterRes.ok ? newsletterRes.json() : { total: 0, active: 0 }
-        ])
+        const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
+        const usersData = statsPromises[1].status === 'fulfilled' ? statsPromises[1].value : { total: 0, clients: 0, staff: 0, newThisMonth: 0 }
+        const postsData = statsPromises[2].status === 'fulfilled' ? statsPromises[2].value : { total: 0, published: 0, drafts: 0 }
+        const newsletterData = statsPromises[3].status === 'fulfilled' ? statsPromises[3].value : { total: 0, active: 0 }
 
         setStats({
           bookings: bookingsData,
