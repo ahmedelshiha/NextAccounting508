@@ -4,14 +4,14 @@ interface LogEntry {
   timestamp: string
   level: LogLevel
   message: string
-  context?: Record<string, any>
-  error?: Error
+  context?: Record<string, unknown>
+  error?: { name: string; message: string; stack?: string }
 }
 
 class Logger {
   private isDevelopment = process.env.NODE_ENV === 'development'
   
-  private formatMessage(level: LogLevel, message: string, context?: Record<string, any>, error?: Error): LogEntry {
+  private formatMessage(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level,
@@ -20,12 +20,12 @@ class Logger {
       error: error ? {
         name: error.name,
         message: error.message,
-        stack: error.stack
-      } as any : undefined
+        stack: error.stack || undefined
+      } : undefined
     }
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, any>, error?: Error) {
+  private log(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error) {
     const logEntry = this.formatMessage(level, message, context, error)
     
     if (this.isDevelopment) {
@@ -48,19 +48,19 @@ class Logger {
     }
   }
 
-  debug(message: string, context?: Record<string, any>) {
+  debug(message: string, context?: Record<string, unknown>) {
     this.log('debug', message, context)
   }
 
-  info(message: string, context?: Record<string, any>) {
+  info(message: string, context?: Record<string, unknown>) {
     this.log('info', message, context)
   }
 
-  warn(message: string, context?: Record<string, any>, error?: Error) {
+  warn(message: string, context?: Record<string, unknown>, error?: Error) {
     this.log('warn', message, context, error)
   }
 
-  error(message: string, context?: Record<string, any>, error?: Error) {
+  error(message: string, context?: Record<string, unknown>, error?: Error) {
     this.log('error', message, context, error)
   }
 
@@ -118,7 +118,7 @@ export const logger = new Logger()
 export function withTiming<T>(
   operation: () => Promise<T>,
   logMessage: string,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): Promise<T> {
   const start = Date.now()
   
@@ -136,9 +136,9 @@ export function withTiming<T>(
 }
 
 export function logApiRoute(
-  handler: (req: any, res: any) => Promise<any>
+  handler: (req: { method: string; url: string; user?: { id?: string } }, res: unknown) => Promise<unknown>
 ) {
-  return async (req: any, res: any) => {
+  return async (req: { method: string; url: string; user?: { id?: string } }, res: unknown) => {
     const start = Date.now()
     const { method, url } = req
     
