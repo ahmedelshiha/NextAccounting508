@@ -4,80 +4,53 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
 
-export default function BlogPage() {
-  const featuredPost = {
-    id: '1',
-    slug: '2024-tax-planning-strategies-for-small-businesses',
-    title: '2024 Tax Planning Strategies for Small Businesses',
-    excerpt: 'Discover essential tax planning strategies that can help your small business save money and stay compliant in 2024. Learn about new deductions, credits, and planning opportunities.',
-    content: '',
-    coverImage: '/api/placeholder/800/400',
-    author: 'Sarah Johnson',
-    publishedAt: '2024-01-15',
-    readTime: 8,
-    tags: ['Tax Planning', 'Small Business', 'Strategy'],
-    featured: true,
-    views: 1250
-  }
+export default async function BlogPage() {
+  let featuredPost = null
+  let recentPosts = []
 
-  const recentPosts = [
-    {
-      id: '2',
-      slug: 'understanding-quickbooks-a-complete-guide-for-beginners',
-      title: 'Understanding QuickBooks: A Complete Guide for Beginners',
-      excerpt: 'Master the basics of QuickBooks with our comprehensive guide. Learn how to set up your account, manage transactions, and generate reports.',
-      author: 'Emily Rodriguez',
-      publishedAt: '2024-01-10',
-      readTime: 6,
-      tags: ['QuickBooks', 'Bookkeeping', 'Tutorial'],
-      views: 890
-    },
-    {
-      id: '3',
-      slug: 'year-end-financial-checklist-for-business-owners',
-      title: 'Year-End Financial Checklist for Business Owners',
-      excerpt: 'Ensure your business is ready for year-end with this comprehensive financial checklist. Don\'t miss important deadlines and opportunities.',
-      author: 'Michael Chen',
-      publishedAt: '2024-01-05',
-      readTime: 5,
-      tags: ['Year-End', 'Checklist', 'Business'],
-      views: 1100
-    },
-    {
-      id: '4',
-      slug: 'benefits-of-outsourcing-payroll-management',
-      title: 'The Benefits of Outsourcing Your Payroll Management',
-      excerpt: 'Learn why many businesses are choosing to outsource their payroll and how it can save time, reduce errors, and ensure compliance.',
-      author: 'Sarah Johnson',
-      publishedAt: '2024-01-01',
-      readTime: 7,
-      tags: ['Payroll', 'Outsourcing', 'Business'],
-      views: 750
-    },
-    {
-      id: '5',
-      slug: 'cash-flow-management-tips-for-growing-businesses',
-      title: 'Cash Flow Management Tips for Growing Businesses',
-      excerpt: 'Effective cash flow management is crucial for business growth. Discover proven strategies to improve your cash flow and financial stability.',
-      author: 'Emily Rodriguez',
-      publishedAt: '2023-12-28',
-      readTime: 6,
-      tags: ['Cash Flow', 'Growth', 'Finance'],
-      views: 920
-    },
-    {
-      id: '6',
-      slug: 'common-accounting-mistakes-and-how-to-avoid-them',
-      title: 'Common Accounting Mistakes and How to Avoid Them',
-      excerpt: 'Avoid costly accounting mistakes with our expert guide. Learn about the most common errors and how to prevent them in your business.',
-      author: 'Michael Chen',
-      publishedAt: '2023-12-25',
-      readTime: 5,
-      tags: ['Accounting', 'Mistakes', 'Tips'],
-      views: 680
+  try {
+    featuredPost = await prisma.post.findFirst({
+      where: { published: true, featured: true },
+      include: { author: { select: { name: true, image: true } } },
+      orderBy: { publishedAt: 'desc' }
+    })
+
+    recentPosts = await prisma.post.findMany({
+      where: { published: true },
+      include: { author: { select: { name: true, image: true } } },
+      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+      take: 6
+    })
+
+    if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
+  } catch (error) {
+    console.error('Error fetching posts for blog page:', error)
+
+    featuredPost = {
+      id: '1',
+      slug: '2024-tax-planning-strategies-for-small-businesses',
+      title: '2024 Tax Planning Strategies for Small Businesses',
+      excerpt: 'Discover essential tax planning strategies that can help your small business save money and stay compliant in 2024. Learn about new deductions, credits, and planning opportunities.',
+      content: '',
+      coverImage: '/api/placeholder/800/400',
+      author: { name: 'Sarah Johnson' },
+      publishedAt: '2024-01-15',
+      readTime: 8,
+      tags: ['Tax Planning', 'Small Business', 'Strategy'],
+      featured: true,
+      views: 1250
     }
-  ]
+
+    recentPosts = [
+      { id: '2', slug: 'understanding-quickbooks-a-complete-guide-for-beginners', title: 'Understanding QuickBooks: A Complete Guide for Beginners', excerpt: 'Master the basics of QuickBooks with our comprehensive guide. Learn how to set up your account, manage transactions, and generate reports.', author: { name: 'Emily Rodriguez' }, publishedAt: '2024-01-10', readTime: 6, tags: ['QuickBooks', 'Bookkeeping', 'Tutorial'], views: 890 },
+      { id: '3', slug: 'year-end-financial-checklist-for-business-owners', title: 'Year-End Financial Checklist for Business Owners', excerpt: 'Ensure your business is ready for year-end with this comprehensive financial checklist. Don\'t miss important deadlines and opportunities.', author: { name: 'Michael Chen' }, publishedAt: '2024-01-05', readTime: 5, tags: ['Year-End', 'Checklist', 'Business'], views: 1100 },
+      { id: '4', slug: 'benefits-of-outsourcing-payroll-management', title: 'The Benefits of Outsourcing Your Payroll Management', excerpt: 'Learn why many businesses are choosing to outsource their payroll and how it can save time, reduce errors, and ensure compliance.', author: { name: 'Sarah Johnson' }, publishedAt: '2024-01-01', readTime: 7, tags: ['Payroll', 'Outsourcing', 'Business'], views: 750 },
+      { id: '5', slug: 'cash-flow-management-tips-for-growing-businesses', title: 'Cash Flow Management Tips for Growing Businesses', excerpt: 'Effective cash flow management is crucial for business growth. Discover proven strategies to improve your cash flow and financial stability.', author: { name: 'Emily Rodriguez' }, publishedAt: '2023-12-28', readTime: 6, tags: ['Cash Flow', 'Growth', 'Finance'], views: 920 },
+      { id: '6', slug: 'common-accounting-mistakes-and-how-to-avoid-them', title: 'Common Accounting Mistakes and How to Avoid Them', excerpt: 'Avoid costly accounting mistakes with our expert guide. Learn about the most common errors and how to prevent them in your business.', author: { name: 'Michael Chen' }, publishedAt: '2023-12-25', readTime: 5, tags: ['Accounting', 'Mistakes', 'Tips'], views: 680 }
+    ]
+  }
 
   const categories = [
     { name: 'Tax Planning', count: 12, icon: Calculator },
