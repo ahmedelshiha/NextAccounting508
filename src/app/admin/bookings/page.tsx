@@ -4,14 +4,12 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Mail, 
-  Phone, 
+  Calendar,
+  Clock,
+  Mail,
+  Phone,
   DollarSign,
   Search,
-  Filter,
   Download,
   Eye,
   CheckCircle,
@@ -72,7 +70,6 @@ const statusColors = {
 }
 
 export default function AdminBookingsPage() {
-  const { data: session } = useSession()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -469,4 +466,3 @@ export default function AdminBookingsPage() {
     </div>
   )
 }
-
