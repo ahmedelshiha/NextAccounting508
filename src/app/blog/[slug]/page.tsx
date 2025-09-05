@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
 
 interface Props {
   params: {
@@ -9,30 +8,21 @@ interface Props {
 }
 
 export default async function PostPage({ params }: Props) {
+  // Try find by slug, fallback to id
   let post = await prisma.post.findUnique({
     where: { slug: params.slug },
-    include: {
-      author: {
-        select: { id: true, name: true, image: true }
-      }
-    }
+    include: { author: { select: { id: true, name: true, image: true } } }
   })
 
-  // Fallback: try by id in case links reference id
   if (!post) {
     post = await prisma.post.findUnique({
       where: { id: params.slug },
-      include: {
-        author: {
-          select: { id: true, name: true, image: true }
-        }
-      }
+      include: { author: { select: { id: true, name: true, image: true } } }
     })
   }
 
   if (!post) return notFound()
 
-  // Simple newline -> paragraph conversion for basic rendering
   const contentHtml = post.content
     ? post.content
         .split('\n\n')
