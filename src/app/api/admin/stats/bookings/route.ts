@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/stats/bookings - Get booking statistics
-export async function GET(request: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -135,4 +135,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
