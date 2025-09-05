@@ -4,16 +4,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/posts/[slug] - Get post by slug
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { slug: params.slug }
-    
+    const where: any = { slug }
+
     // Only show published posts for non-admin users
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
       where.published = true
@@ -56,13 +54,11 @@ export async function GET(
 }
 
 // PUT /api/posts/[slug] - Update post (admin/staff only)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -71,7 +67,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    
+
     const {
       title,
       content,
@@ -87,7 +83,7 @@ export async function PUT(
 
     // Check if post exists
     const existingPost = await prisma.post.findUnique({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!existingPost) {
@@ -119,7 +115,7 @@ export async function PUT(
     if (readTime !== undefined) updateData.readTime = readTime ? parseInt(readTime) : null
 
     const post = await prisma.post.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: updateData,
       include: {
         author: {
@@ -143,13 +139,11 @@ export async function PUT(
 }
 
 // DELETE /api/posts/[slug] - Delete post (admin only)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -158,7 +152,7 @@ export async function DELETE(
     }
 
     const post = await prisma.post.delete({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     return NextResponse.json({ message: 'Post deleted successfully' })
