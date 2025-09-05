@@ -1,70 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
-// GET /api/posts - Get blog posts
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const published = searchParams.get('published')
-    const featured = searchParams.get('featured')
-    const tag = searchParams.get('tag')
-    const limit = searchParams.get('limit')
-    const skip = searchParams.get('skip')
-
-    const where: { published?: boolean; featured?: boolean; tags?: { has: string } } = {}
-    
-    // Only show published posts for non-admin users
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
-      where.published = true
-    } else if (published !== null) {
-      where.published = published === 'true'
-    }
-    
-    if (featured === 'true') {
-      where.featured = true
-    }
-    
-    if (tag) {
-      where.tags = {
-        has: tag
-      }
-    }
-
-    const posts = await prisma.post.findMany({
-      where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
-        }
-      },
-      orderBy: [
-        { featured: 'desc' },
-        { publishedAt: 'desc' },
-        { createdAt: 'desc' }
-      ],
-      take: limit ? parseInt(limit) : undefined,
-      skip: skip ? parseInt(skip) : undefined
-    })
-
-    return NextResponse.json(posts)
-  } catch (error) {
-    console.error('Error fetching posts:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch posts' },
-      { status: 500 }
-    )
-  }
-}
-
-// POST /api/posts - Create a new blog post (admin/staff only)
-export async function POST(request: NextRequest) {
+// GET /api/admin/stats/bookings - Get booking statistics
+export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     
@@ -75,74 +15,122 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    
-    const {
-      title,
-      slug,
-      content,
-      excerpt,
-      published = false,
-      featured = false,
-      coverImage,
-      seoTitle,
-      seoDescription,
-      tags = [],
-      readTime
-    } = body
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
 
-    // Basic validation
-    if (!title || !slug || !content) {
-      return NextResponse.json(
-        { error: 'Title, slug, and content are required' },
-        { status: 400 }
-      )
-    }
+    // Get total bookings count
+    const total = await prisma.booking.count()
 
-    // Check if slug already exists
-    const existingPost = await prisma.post.findUnique({
-      where: { slug }
-    })
+    // Get bookings by status
+    const [pending, confirmed, completed, cancelled] = await Promise.all([
+      prisma.booking.count({ where: { status: 'PENDING' } }),
+      prisma.booking.count({ where: { status: 'CONFIRMED' } }),
+      prisma.booking.count({ where: { status: 'COMPLETED' } }),
+      prisma.booking.count({ where: { status: 'CANCELLED' } })
+    ])
 
-    if (existingPost) {
-      return NextResponse.json(
-        { error: 'Post with this slug already exists' },
-        { status: 400 }
-      )
-    }
-
-    const post = await prisma.post.create({
-      data: {
-        title,
-        slug,
-        content,
-        excerpt,
-        published,
-        featured,
-        coverImage,
-        seoTitle,
-        seoDescription,
-        tags,
-        readTime: readTime ? parseInt(readTime) : null,
-        authorId: session.user.id,
-        publishedAt: published ? new Date() : null
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
+    // Get today's bookings
+    const today = await prisma.booking.count({
+      where: {
+        scheduledAt: {
+          gte: startOfToday,
+          lt: endOfToday
         }
       }
     })
 
-    return NextResponse.json(post, { status: 201 })
+    // Get this month's bookings
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const thisMonth = await prisma.booking.count({
+      where: {
+        createdAt: {
+          gte: startOfMonth
+        }
+      }
+    })
+
+    // Get last month's bookings for comparison
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
+    const lastMonth = await prisma.booking.count({
+      where: {
+        createdAt: {
+          gte: startOfLastMonth,
+          lte: endOfLastMonth
+        }
+      }
+    })
+
+    // Calculate growth percentage
+    const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
+
+    // Get revenue statistics
+    const completedBookings = await prisma.booking.findMany({
+      where: { status: 'COMPLETED' },
+      include: {
+        service: {
+          select: { price: true }
+        }
+      }
+    })
+
+    const totalRevenue = completedBookings.reduce((sum, booking) => {
+      return sum + (booking.service.price || 0)
+    }, 0)
+
+    // Get this month's revenue
+    const thisMonthRevenue = completedBookings
+      .filter(booking => booking.createdAt >= startOfMonth)
+      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+
+    // Get last month's revenue
+    const lastMonthRevenue = completedBookings
+      .filter(booking => 
+        booking.createdAt >= startOfLastMonth && 
+        booking.createdAt <= endOfLastMonth
+      )
+      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+
+    const revenueGrowth = lastMonthRevenue > 0 ? 
+      ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
+
+    // Get upcoming bookings (next 7 days)
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const upcoming = await prisma.booking.count({
+      where: {
+        scheduledAt: {
+          gte: now,
+          lte: nextWeek
+        },
+        status: {
+          in: ['PENDING', 'CONFIRMED']
+        }
+      }
+    })
+
+    return NextResponse.json({
+      total,
+      pending,
+      confirmed,
+      completed,
+      cancelled,
+      today,
+      thisMonth,
+      lastMonth,
+      growth: Math.round(growth * 100) / 100,
+      upcoming,
+      revenue: {
+        total: totalRevenue,
+        thisMonth: thisMonthRevenue,
+        lastMonth: lastMonthRevenue,
+        growth: Math.round(revenueGrowth * 100) / 100
+      }
+    })
   } catch (error) {
-    console.error('Error creating post:', error)
+    console.error('Error fetching booking statistics:', error)
     return NextResponse.json(
-      { error: 'Failed to create post' },
+      { error: 'Failed to fetch booking statistics' },
       { status: 500 }
     )
   }
