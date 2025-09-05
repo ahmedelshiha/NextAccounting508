@@ -108,6 +108,7 @@ export async function PUT(
     }
 
     // Prepare update data based on user role
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {}
 
     if (isAdminOrStaff) {
@@ -197,7 +198,7 @@ export async function DELETE(
     }
 
     // Update status to CANCELLED instead of deleting
-    const cancelledBooking = await prisma.booking.update({
+    await prisma.booking.update({
       where: { id: params.id },
       data: { status: 'CANCELLED' }
     })
@@ -211,4 +212,3 @@ export async function DELETE(
     )
   }
 }
-
