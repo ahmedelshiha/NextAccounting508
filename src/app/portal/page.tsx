@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Calendar, Clock, DollarSign, FileText, Plus, Eye } from 'lucide-react'
@@ -35,7 +36,7 @@ export default function PortalPage() {
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const response = await fetch('/api/bookings')
+        const response = await apiFetch('/api/bookings')
         if (response.ok) {
           const data = await response.json()
           setBookings(data)
