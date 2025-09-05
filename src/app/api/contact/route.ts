@@ -34,18 +34,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Save to database
-    const submission = await prisma.contactSubmission.create({
-      data: {
-        name,
-        email,
-        phone,
-        company,
-        subject,
-        message,
-        source
-      }
-    })
+    // Save to database (graceful fallback if DB is down)
+    let submission
+    try {
+      submission = await prisma.contactSubmission.create({
+        data: {
+          name,
+          email,
+          phone,
+          company,
+          subject,
+          message,
+          source
+        }
+      })
+    } catch (dbError) {
+      console.error('Database unavailable, continuing without saving submission:', dbError)
+      submission = null
+    }
 
     // Send notification email to admin
     try {
