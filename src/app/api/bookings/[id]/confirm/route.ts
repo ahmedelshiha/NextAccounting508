@@ -7,9 +7,10 @@ import { sendBookingConfirmation } from '@/lib/email'
 // POST /api/bookings/[id]/confirm - Confirm booking and send email
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
@@ -29,7 +30,7 @@ export async function POST(
 
     // Get booking with related data
     const booking = await prisma.booking.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         client: {
           select: {
@@ -57,7 +58,7 @@ export async function POST(
 
     // Update booking status to confirmed
     const updatedBooking = await prisma.booking.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         status: 'CONFIRMED',
         confirmed: true,
@@ -111,4 +112,3 @@ export async function POST(
     )
   }
 }
-
