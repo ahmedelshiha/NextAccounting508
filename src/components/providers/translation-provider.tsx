@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { useEffect, useState, ReactNode } from 'react'
 import { Locale, defaultLocale, loadTranslations, detectLocale, TranslationContext } from '@/lib/i18n'
 
 interface TranslationProviderProps {
@@ -80,4 +80,3 @@ export function TranslationProvider({ children, initialLocale }: TranslationProv
     </TranslationContext.Provider>
   )
 }
-

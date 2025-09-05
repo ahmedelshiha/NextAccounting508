@@ -89,7 +89,7 @@ export function TestimonialsSection() {
             What Our Clients Say
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Don't just take our word for it. Here's what business owners say about 
+            Don&apos;t just take our word for it. Here&apos;s what business owners say about
             working with our accounting team.
           </p>
         </div>
@@ -113,7 +113,7 @@ export function TestimonialsSection() {
 
                 {/* Testimonial Content */}
                 <blockquote className="text-xl sm:text-2xl text-gray-700 leading-relaxed mb-8 italic">
-                  "{testimonials[currentIndex].content}"
+                  &ldquo;{testimonials[currentIndex].content}&rdquo;
                 </blockquote>
 
                 {/* Author */}
@@ -192,4 +192,3 @@ export function TestimonialsSection() {
     </section>
   )
 }
-

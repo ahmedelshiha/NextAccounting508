@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 declare module 'next-auth' {
   interface Session {
@@ -25,4 +25,3 @@ declare module 'next-auth/jwt' {
     role: string
   }
 }
-

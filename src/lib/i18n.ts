@@ -73,7 +73,7 @@ export async function loadTranslations(locale: Locale): Promise<Record<string, s
   try {
     const translations = await import(`@/locales/${locale}.json`)
     return translations.default
-  } catch (error) {
+  } catch {
     console.warn(`Failed to load translations for locale: ${locale}`)
     return {}
   }

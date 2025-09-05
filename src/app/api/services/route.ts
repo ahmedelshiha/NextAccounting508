@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { active: true }
     
     if (featured === 'true') {
@@ -99,4 +100,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

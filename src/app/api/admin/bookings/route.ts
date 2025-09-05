@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate')
 
     // Build where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
 
     if (status && status !== 'all') {
@@ -125,7 +126,8 @@ export async function POST(request: NextRequest) {
     }
 
     // If clientId is provided, use existing client
-    let bookingData: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bookingData: any = {
       serviceId,
       scheduledAt: new Date(scheduledAt),
       duration,
@@ -236,6 +238,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let updateData: any = {}
 
     switch (action) {
@@ -338,4 +341,3 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
-

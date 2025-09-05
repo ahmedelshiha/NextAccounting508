@@ -44,7 +44,7 @@ export default function LoginPage() {
           router.push('/portal')
         }
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
@@ -185,7 +185,7 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="text-center text-sm text-gray-600">
           <p>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium">
               Sign up for free
             </Link>
