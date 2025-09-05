@@ -4,13 +4,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/bookings/[id] - Get booking by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -19,7 +17,7 @@ export async function GET(
     }
 
     const booking = await prisma.booking.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         client: {
           select: {
@@ -67,13 +65,11 @@ export async function GET(
 }
 
 // PUT /api/bookings/[id] - Update booking
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -86,7 +82,7 @@ export async function PUT(
 
     // Get existing booking to check permissions
     const existingBooking = await prisma.booking.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingBooking) {
@@ -128,7 +124,7 @@ export async function PUT(
     }
 
     const booking = await prisma.booking.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         client: {
@@ -161,13 +157,11 @@ export async function PUT(
 }
 
 // DELETE /api/bookings/[id] - Cancel booking
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -176,7 +170,7 @@ export async function DELETE(
     }
 
     const booking = await prisma.booking.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!booking) {
@@ -199,7 +193,7 @@ export async function DELETE(
 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: 'CANCELLED' }
     })
 
