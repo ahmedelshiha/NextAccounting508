@@ -31,9 +31,21 @@ export function BlogSection() {
         if (response.ok) {
           const data = await response.json()
           setPosts(data)
+        } else {
+          // fallback to static posts when API fails
+          setPosts([
+            { id: '1', title: '2024 Tax Planning Strategies for Small Businesses', slug: '2024-tax-planning', excerpt: 'Discover essential tax planning strategies...', publishedAt: '2024-01-15', readTime: 8, tags: ['Tax Planning','Small Business'], author: { name: 'Sarah Johnson' } },
+            { id: '2', title: 'Understanding QuickBooks: A Complete Guide', slug: 'quickbooks-guide', excerpt: 'Master the basics of QuickBooks...', publishedAt: '2024-01-10', readTime: 6, tags: ['QuickBooks'], author: { name: 'Emily Rodriguez' } },
+            { id: '3', title: 'Year-End Financial Checklist for Business Owners', slug: 'year-end-checklist', excerpt: 'Ensure your business is ready for year-end...', publishedAt: '2024-01-05', readTime: 5, tags: ['Year-End'], author: { name: 'Michael Chen' } }
+          ])
         }
       } catch (error) {
         console.error('Error fetching posts:', error)
+        setPosts([
+          { id: '1', title: '2024 Tax Planning Strategies for Small Businesses', slug: '2024-tax-planning', excerpt: 'Discover essential tax planning strategies...', publishedAt: '2024-01-15', readTime: 8, tags: ['Tax Planning','Small Business'], author: { name: 'Sarah Johnson' } },
+          { id: '2', title: 'Understanding QuickBooks: A Complete Guide', slug: 'quickbooks-guide', excerpt: 'Master the basics of QuickBooks...', publishedAt: '2024-01-10', readTime: 6, tags: ['QuickBooks'], author: { name: 'Emily Rodriguez' } },
+          { id: '3', title: 'Year-End Financial Checklist for Business Owners', slug: 'year-end-checklist', excerpt: 'Ensure your business is ready for year-end...', publishedAt: '2024-01-05', readTime: 5, tags: ['Year-End'], author: { name: 'Michael Chen' } }
+        ])
       } finally {
         setLoading(false)
       }
@@ -193,4 +205,3 @@ export function BlogSection() {
     </section>
   )
 }
-
