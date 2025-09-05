@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/email/test - Get email test options
-export async function GET(request: NextRequest) {
+export async function GET(_: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -180,4 +180,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
