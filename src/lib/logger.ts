@@ -104,7 +104,7 @@ class Logger {
     }
   }
 
-  securityEvent(event: string, details: Record<string, any>, severity: 'low' | 'medium' | 'high' = 'medium') {
+  securityEvent(event: string, details: Record<string, unknown>, severity: 'low' | 'medium' | 'high' = 'medium') {
     this.warn('Security Event', { event, severity, ...details })
   }
 
