@@ -8,6 +8,7 @@ import Link from 'next/link'
 export default function BlogPage() {
   const featuredPost = {
     id: '1',
+    slug: '2024-tax-planning-strategies-for-small-businesses',
     title: '2024 Tax Planning Strategies for Small Businesses',
     excerpt: 'Discover essential tax planning strategies that can help your small business save money and stay compliant in 2024. Learn about new deductions, credits, and planning opportunities.',
     content: '',
@@ -23,6 +24,7 @@ export default function BlogPage() {
   const recentPosts = [
     {
       id: '2',
+      slug: 'understanding-quickbooks-a-complete-guide-for-beginners',
       title: 'Understanding QuickBooks: A Complete Guide for Beginners',
       excerpt: 'Master the basics of QuickBooks with our comprehensive guide. Learn how to set up your account, manage transactions, and generate reports.',
       author: 'Emily Rodriguez',
@@ -33,6 +35,7 @@ export default function BlogPage() {
     },
     {
       id: '3',
+      slug: 'year-end-financial-checklist-for-business-owners',
       title: 'Year-End Financial Checklist for Business Owners',
       excerpt: 'Ensure your business is ready for year-end with this comprehensive financial checklist. Don\'t miss important deadlines and opportunities.',
       author: 'Michael Chen',
@@ -43,6 +46,7 @@ export default function BlogPage() {
     },
     {
       id: '4',
+      slug: 'benefits-of-outsourcing-payroll-management',
       title: 'The Benefits of Outsourcing Your Payroll Management',
       excerpt: 'Learn why many businesses are choosing to outsource their payroll and how it can save time, reduce errors, and ensure compliance.',
       author: 'Sarah Johnson',
@@ -53,6 +57,7 @@ export default function BlogPage() {
     },
     {
       id: '5',
+      slug: 'cash-flow-management-tips-for-growing-businesses',
       title: 'Cash Flow Management Tips for Growing Businesses',
       excerpt: 'Effective cash flow management is crucial for business growth. Discover proven strategies to improve your cash flow and financial stability.',
       author: 'Emily Rodriguez',
@@ -63,6 +68,7 @@ export default function BlogPage() {
     },
     {
       id: '6',
+      slug: 'common-accounting-mistakes-and-how-to-avoid-them',
       title: 'Common Accounting Mistakes and How to Avoid Them',
       excerpt: 'Avoid costly accounting mistakes with our expert guide. Learn about the most common errors and how to prevent them in your business.',
       author: 'Michael Chen',
@@ -150,7 +156,7 @@ export default function BlogPage() {
                       ))}
                     </div>
                     <Button asChild>
-                      <Link href={`/blog/${featuredPost.id}`}>Read More</Link>
+                      <Link href={`/blog/${featuredPost.slug}`}>Read More</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -161,7 +167,7 @@ export default function BlogPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Articles</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {recentPosts.map((post) => (
-                  <Card key={post.id} className="h-full">
+                  <Card key={post.slug} className="h-full">
                     <CardHeader>
                       <div className="flex items-center space-x-4 text-sm text-gray-500 mb-2">
                         <div className="flex items-center space-x-1">
@@ -174,7 +180,7 @@ export default function BlogPage() {
                         </div>
                       </div>
                       <CardTitle className="text-lg leading-tight">
-                        <Link href={`/blog/${post.id}`} className="hover:text-blue-600 transition-colors">
+                        <Link href={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
                           {post.title}
                         </Link>
                       </CardTitle>
@@ -282,13 +288,13 @@ export default function BlogPage() {
               <CardContent>
                 <div className="space-y-4">
                   {recentPosts.slice(0, 3).map((post, index) => (
-                    <div key={post.id} className="flex items-start space-x-3">
+                    <div key={post.slug} className="flex items-start space-x-3">
                       <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm">
                         {index + 1}
                       </div>
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/blog/${post.id}`}
+                          href={`/blog/${post.slug}`}
                           className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2"
                         >
                           {post.title}
