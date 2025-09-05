@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { 
@@ -69,10 +70,10 @@ export default function AdminDashboard() {
       try {
         // Fetch dashboard statistics
           const statsPromises = await Promise.allSettled([
-          fetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
-          fetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
-          fetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
-          fetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
+          apiFetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
         ])
 
         const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
@@ -97,7 +98,7 @@ export default function AdminDashboard() {
         })
 
         // Fetch recent bookings
-        const recentBookingsRes = await fetch('/api/bookings?limit=5')
+        const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
         if (recentBookingsRes.ok) {
           const recentBookingsData = await recentBookingsRes.json()
           setRecentBookings(recentBookingsData)
