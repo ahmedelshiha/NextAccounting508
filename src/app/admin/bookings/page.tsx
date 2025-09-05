@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { 
@@ -82,7 +83,7 @@ export default function AdminBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch('/api/admin/bookings')
+      const response = await apiFetch('/api/admin/bookings')
       if (response.ok) {
         const data = await response.json()
         setBookings(data)
@@ -96,7 +97,7 @@ export default function AdminBookingsPage() {
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +116,7 @@ export default function AdminBookingsPage() {
 
   const handleConfirmBooking = async (bookingId: string) => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/confirm`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}/confirm`, {
         method: 'POST',
       })
 
