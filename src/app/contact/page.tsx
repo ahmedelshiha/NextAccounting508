@@ -132,7 +132,7 @@ export default function ContactPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="name">Full Name *</nLabel>
+                      <Label htmlFor="name">Full Name *</Label>
                       <Input
                         id="name"
                         type="text"
@@ -143,7 +143,7 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="email">Email Address *</nLabel>
+                      <Label htmlFor="email">Email Address *</Label>
                       <Input
                         id="email"
                         type="email"
@@ -157,7 +157,7 @@ export default function ContactPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="phone">Phone Number</nLabel>
+                      <Label htmlFor="phone">Phone Number</Label>
                       <Input
                         id="phone"
                         type="tel"
@@ -167,7 +167,7 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="company">Company Name</nLabel>
+                      <Label htmlFor="company">Company Name</Label>
                       <Input
                         id="company"
                         type="text"
@@ -179,7 +179,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="subject">Service Interest</nLabel>
+                    <Label htmlFor="subject">Service Interest</Label>
                     <Select onValueChange={(value) => handleInputChange('subject', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a service you're interested in" />
@@ -195,7 +195,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="message">Message *</nLabel>
+                    <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
                       required
