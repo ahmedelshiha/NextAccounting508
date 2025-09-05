@@ -34,10 +34,8 @@ export default withAuth(
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    // Protect booking routes (require authentication)
-    if (isBookingPage && !isAuth) {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
+    // Allow booking page access without authentication (guest can view)
+    // API will still enforce authentication where required
 
     return NextResponse.next()
   },
@@ -45,7 +43,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Allow access to public routes
-        const publicRoutes = ['/', '/about', '/services', '/blog', '/contact']
+        const publicRoutes = ['/', '/about', '/services', '/blog', '/contact', '/booking']
         const isPublicRoute = publicRoutes.some(route => 
           req.nextUrl.pathname === route || 
           req.nextUrl.pathname.startsWith('/services/') ||
@@ -74,4 +72,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
-
