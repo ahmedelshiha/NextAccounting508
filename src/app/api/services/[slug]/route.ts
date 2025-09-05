@@ -2,14 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/services/[slug] - Get service by slug
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await context.params
     const service = await prisma.service.findUnique({
       where: {
-        slug: params.slug,
+        slug,
         active: true
       }
     })
@@ -32,10 +30,8 @@ export async function GET(
 }
 
 // PUT /api/services/[slug] - Update service (admin only)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+  const { slug } = await context.params
   try {
     const body = await request.json()
     
@@ -53,7 +49,7 @@ export async function PUT(
     } = body
 
     const updated = await prisma.service.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: {
         ...(name && { name }),
         ...(description && { description }),
@@ -79,14 +75,12 @@ export async function PUT(
 }
 
 // DELETE /api/services/[slug] - Delete service (admin only)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await context.params
     // Soft delete by setting active to false
     await prisma.service.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: { active: false }
     })
 

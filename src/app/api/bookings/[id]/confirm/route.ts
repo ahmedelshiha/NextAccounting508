@@ -7,12 +7,12 @@ import { sendBookingConfirmation } from '@/lib/email'
 // POST /api/bookings/[id]/confirm - Confirm booking and send email
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = context.params
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -30,7 +30,7 @@ export async function POST(
 
     // Get booking with related data
     const booking = await prisma.booking.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         client: {
           select: {
@@ -58,7 +58,7 @@ export async function POST(
 
     // Update booking status to confirmed
     const updatedBooking = await prisma.booking.update({
-      where: { id: id },
+      where: { id },
       data: {
         status: 'CONFIRMED',
         confirmed: true,
@@ -97,7 +97,6 @@ export async function POST(
       })
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError)
-      // Don't fail the request if email fails, but log it
     }
 
     return NextResponse.json({
