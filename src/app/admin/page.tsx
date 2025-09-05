@@ -168,7 +168,7 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <p className="text-gray-600 mt-2">
-            Welcome back, {session?.user?.name}! Here's what's happening with your business.
+            Welcome back, {session?.user?.name}! Here&apos;s what&apos;s happening with your business.
           </p>
         </div>
 
@@ -416,4 +416,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-
