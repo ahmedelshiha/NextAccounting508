@@ -4,9 +4,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/posts/[slug] - Get post by slug
-export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export async function GET(request: NextRequest, context: { params: { slug: string } }) {
   try {
-    const { slug } = await context.params
+    const { slug } = context.params
     const session = await getServerSession(authOptions)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,9 +54,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
 }
 
 // PUT /api/posts/[slug] - Update post (admin/staff only)
-export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export async function PUT(request: NextRequest, context: { params: { slug: string } }) {
   try {
-    const { slug } = await context.params
+    const { slug } = context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
@@ -139,9 +139,9 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
 }
 
 // DELETE /api/posts/[slug] - Delete post (admin only)
-export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export async function DELETE(request: NextRequest, context: { params: { slug: string } }) {
   try {
-    const { slug } = await context.params
+    const { slug } = context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user || session.user.role !== 'ADMIN') {
