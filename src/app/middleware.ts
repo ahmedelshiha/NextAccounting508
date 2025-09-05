@@ -9,7 +9,6 @@ export default withAuth(
                       req.nextUrl.pathname.startsWith('/register')
     const isAdminPage = req.nextUrl.pathname.startsWith('/admin')
     const isPortalPage = req.nextUrl.pathname.startsWith('/portal')
-    const isBookingPage = req.nextUrl.pathname.startsWith('/booking')
 
     // Redirect authenticated users away from auth pages
     if (isAuthPage && isAuth) {
