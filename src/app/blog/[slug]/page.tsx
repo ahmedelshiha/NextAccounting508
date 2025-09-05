@@ -8,15 +8,18 @@ interface Props {
 }
 
 export default async function PostPage({ params }: Props) {
+  // Await params before using properties (Next.js app router requirement)
+  const { slug } = await params
+
   // Try find by slug, fallback to id
   let post = await prisma.post.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: { author: { select: { id: true, name: true, image: true } } }
   })
 
   if (!post) {
     post = await prisma.post.findUnique({
-      where: { id: params.slug },
+      where: { id: slug },
       include: { author: { select: { id: true, name: true, image: true } } }
     })
   }
@@ -61,8 +64,9 @@ export default async function PostPage({ params }: Props) {
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props) {
-  let post = await prisma.post.findUnique({ where: { slug: params.slug } })
-  if (!post) post = await prisma.post.findUnique({ where: { id: params.slug } })
+  const { slug } = await params
+  let post = await prisma.post.findUnique({ where: { slug } })
+  if (!post) post = await prisma.post.findUnique({ where: { id: slug } })
   if (!post) return {}
 
   return {
