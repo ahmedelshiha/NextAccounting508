@@ -11,6 +11,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions)
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { slug: params.slug }
     
     // Only show published posts for non-admin users
@@ -97,6 +98,7 @@ export async function PUT(
     }
 
     // Prepare update data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {}
     
     if (title !== undefined) updateData.title = title
@@ -168,4 +170,3 @@ export async function DELETE(
     )
   }
 }
-
