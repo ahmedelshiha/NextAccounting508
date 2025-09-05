@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -41,7 +42,7 @@ export default function RegisterPage() {
 
     try {
       // Register user
-      const registerResponse = await fetch('/api/auth/register', {
+      const registerResponse = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
