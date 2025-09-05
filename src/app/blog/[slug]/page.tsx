@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 
 interface Props {
   params: {
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export default async function PostPage({ params }: Props) {
-  const post = await prisma.post.findUnique({
+  let post = await prisma.post.findUnique({
     where: { slug: params.slug },
     include: {
       author: {
@@ -16,6 +17,18 @@ export default async function PostPage({ params }: Props) {
       }
     }
   })
+
+  // Fallback: try by id in case links reference id
+  if (!post) {
+    post = await prisma.post.findUnique({
+      where: { id: params.slug },
+      include: {
+        author: {
+          select: { id: true, name: true, image: true }
+        }
+      }
+    })
+  }
 
   if (!post) return notFound()
 
@@ -58,7 +71,8 @@ export default async function PostPage({ params }: Props) {
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props) {
-  const post = await prisma.post.findUnique({ where: { slug: params.slug } })
+  let post = await prisma.post.findUnique({ where: { slug: params.slug } })
+  if (!post) post = await prisma.post.findUnique({ where: { id: params.slug } })
   if (!post) return {}
 
   return {
