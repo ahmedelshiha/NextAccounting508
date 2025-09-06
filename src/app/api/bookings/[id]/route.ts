@@ -4,9 +4,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/bookings/[id] - Get booking by ID
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -65,9 +65,9 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 }
 
 // PUT /api/bookings/[id] - Update booking
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -157,9 +157,9 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 }
 
 // DELETE /api/bookings/[id] - Cancel booking
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
