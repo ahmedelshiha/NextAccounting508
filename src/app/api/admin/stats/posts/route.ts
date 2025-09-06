@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     }>
 
     // Get author details for the grouped data
-    const authorIds = postsByAuthor.map(item => item.authorId)
+    const authorIds = postsByAuthor.map(item => item.authorId).filter((id): id is string => !!id)
     const authors = (await prisma.user.findMany({
       where: {
         id: {
