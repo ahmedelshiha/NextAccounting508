@@ -5,9 +5,24 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
 
+type BlogPost = {
+  id: string
+  slug: string
+  title: string
+  excerpt?: string
+  content?: string
+  coverImage?: string
+  author?: { name?: string; image?: string }
+  publishedAt?: string | Date
+  readTime?: number
+  tags: string[]
+  featured?: boolean
+  views?: number
+}
+
 export default async function BlogPage() {
-  let featuredPost: any = null
-  let recentPosts: any[] = []
+  let featuredPost: BlogPost | null = null
+  let recentPosts: BlogPost[] = []
 
   try {
     const [featuredRes, recentRes] = await Promise.all([
