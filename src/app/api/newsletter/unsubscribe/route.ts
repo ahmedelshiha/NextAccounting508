@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!subscription.active) {
+    if (!subscription.subscribed) {
       return NextResponse.json(
         { message: 'Email is already unsubscribed' },
         { status: 200 }
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     await prisma.newsletter.update({
       where: { email },
       data: {
-        active: false,
-        unsubscribedAt: new Date()
+        subscribed: false,
+        updatedAt: new Date()
       }
     })
 
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (!subscription.active) {
+    if (!subscription.subscribed) {
       return NextResponse.json({
         message: 'Email is already unsubscribed',
         email,
@@ -121,8 +121,8 @@ export async function GET(request: NextRequest) {
     await prisma.newsletter.update({
       where: { email },
       data: {
-        active: false,
-        unsubscribedAt: new Date()
+        subscribed: false,
+        updatedAt: new Date()
       }
     })
 

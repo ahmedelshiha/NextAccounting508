@@ -81,8 +81,8 @@ export async function cleanupOldData() {
     // Delete old unsubscribed newsletter subscriptions
     const deletedSubscriptions = await prisma.newsletter.deleteMany({
       where: {
-        active: false,
-        unsubscribedAt: {
+        subscribed: false,
+        updatedAt: {
           lt: sixMonthsAgo
         }
       }
@@ -176,7 +176,7 @@ export async function generateMonthlyReports() {
 
     const newsletterSubscriptionsCount = await prisma.newsletter.count({
       where: {
-        subscribedAt: {
+        createdAt: {
           gte: startOfMonth,
           lte: endOfMonth
         }
@@ -217,14 +217,14 @@ export async function runScheduledTasks() {
     // Send booking reminders (daily at 9 AM)
     results.tasks.bookingReminders = await sendBookingReminders()
   } catch (error) {
-    results.tasks.bookingReminders = { error: error.message }
+    results.tasks.bookingReminders = { error: (error as Error).message }
   }
 
   try {
     // Update booking statuses (daily at midnight)
     results.tasks.bookingStatuses = await updateBookingStatuses()
   } catch (error) {
-    results.tasks.bookingStatuses = { error: error.message }
+    results.tasks.bookingStatuses = { error: (error as Error).message }
   }
 
   try {
@@ -234,7 +234,7 @@ export async function runScheduledTasks() {
       results.tasks.cleanup = await cleanupOldData()
     }
   } catch (error) {
-    results.tasks.cleanup = { error: error.message }
+    results.tasks.cleanup = { error: (error as Error).message }
   }
 
   try {
@@ -244,7 +244,7 @@ export async function runScheduledTasks() {
       results.tasks.monthlyReport = await generateMonthlyReports()
     }
   } catch (error) {
-    results.tasks.monthlyReport = { error: error.message }
+    results.tasks.monthlyReport = { error: (error as Error).message }
   }
 
   console.log('Scheduled tasks completed:', results)

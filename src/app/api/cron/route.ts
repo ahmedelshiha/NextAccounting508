@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false,
         error: 'Failed to run scheduled tasks',
-        details: error.message 
+        details: (error as Error).message
       },
       { status: 500 }
     )
@@ -126,4 +126,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

@@ -1,4 +1,4 @@
-import type { Decimal } from '@prisma/client'
+import type { Decimal } from '@prisma/client/runtime/library'
 
 export type DecimalLike = Decimal | number | string | null | undefined
 

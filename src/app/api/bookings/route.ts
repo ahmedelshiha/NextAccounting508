@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       // Cast incoming status string to BookingStatus enum
-      where.status = status as unknown as BookingStatus
+      where.status = status as BookingStatus
     }
 
     const bookings = await prisma.booking.findMany({
