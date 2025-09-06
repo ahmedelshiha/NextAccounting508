@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import { BookingStatus } from '@prisma/client'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/bookings/[id] - Get booking by ID
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Check permissions - clients can only see their own bookings
-    if (session.user.role === 'CLIENT' && booking.clientId !== session.user.id) {
+    if (session?.user?.role === 'CLIENT' && booking.clientId !== session?.user?.id) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -93,8 +94,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Check permissions
-    const isOwner = existingBooking.clientId === session.user.id
-    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(session.user.role)
+    const isOwner = existingBooking.clientId === session?.user?.id
+    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(session?.user?.role ?? '')
 
     if (!isOwner && !isAdminOrStaff) {
       return NextResponse.json(
@@ -109,7 +110,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
-      if (status) updateData.status = status
+      if (status) updateData.status = status as unknown as BookingStatus
       if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt)
       if (adminNotes !== undefined) updateData.adminNotes = adminNotes
       if (confirmed !== undefined) updateData.confirmed = confirmed
@@ -181,8 +182,8 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     }
 
     // Check permissions
-    const isOwner = booking.clientId === session.user.id
-    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(session.user.role)
+    const isOwner = booking.clientId === session?.user?.id
+    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(session?.user?.role ?? '')
 
     if (!isOwner && !isAdminOrStaff) {
       return NextResponse.json(
@@ -194,7 +195,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
       where: { id },
-      data: { status: 'CANCELLED' }
+      data: { status: BookingStatus.CANCELLED }
     })
 
     return NextResponse.json({ message: 'Booking cancelled successfully' })

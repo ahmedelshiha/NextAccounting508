@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { apiFetch } from '@/lib/api'
 import Link from 'next/link'
 import { 
   Calendar,
@@ -82,7 +82,7 @@ export default function AdminBookingsPage() {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch('/api/admin/bookings')
+      const response = await apiFetch('/api/admin/bookings')
       if (response.ok) {
         const data = await response.json()
         setBookings(data)
@@ -96,7 +96,7 @@ export default function AdminBookingsPage() {
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export default function AdminBookingsPage() {
 
   const handleConfirmBooking = async (bookingId: string) => {
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/confirm`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}/confirm`, {
         method: 'POST',
       })
 
@@ -292,7 +292,7 @@ export default function AdminBookingsPage() {
                     {formatCurrency(
                       bookings
                         .filter(b => b.status === 'COMPLETED')
-                        .reduce((sum, b) => sum + (b.service.price || 0), 0)
+                        .reduce((sum, b) => sum + (b.service?.price ? Number(b.service.price.toString()) : 0), 0)
                     )}
                   </p>
                 </div>
@@ -409,7 +409,7 @@ export default function AdminBookingsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {booking.service.price ? formatCurrency(booking.service.price) : '-'}
+                        {booking.service?.price ? formatCurrency(Number(booking.service.price.toString())) : '-'}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

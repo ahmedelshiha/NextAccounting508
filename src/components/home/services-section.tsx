@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api'
 import { ArrowRight, Calculator, FileText, Users, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,7 +30,7 @@ export function ServicesSection() {
   useEffect(() => {
     async function fetchServices() {
       try {
-        const response = await fetch('/api/services?featured=true')
+        const response = await apiFetch('/api/services?featured=true')
         if (response.ok) {
           const data = await response.json()
           setServices(data)

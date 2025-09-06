@@ -236,14 +236,13 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    let updateData: { status?: string; confirmed?: boolean; confirmedAt?: Date } = {}
+    let updateData: { status?: string; confirmed?: boolean } = {}
 
     switch (action) {
       case 'confirm':
         updateData = {
           status: 'CONFIRMED',
-          confirmed: true,
-          confirmedAt: new Date()
+          confirmed: true
         }
         break
       
@@ -338,4 +337,3 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
-

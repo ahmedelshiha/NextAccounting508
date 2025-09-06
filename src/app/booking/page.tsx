@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,37 @@ interface TimeSlot {
   available: boolean
 }
 
+const sampleServices: Service[] = [
+  {
+    id: '1',
+    name: 'Free Consultation',
+    description: 'Initial consultation to discuss your accounting needs',
+    price: 0,
+    duration: 30
+  },
+  {
+    id: '2',
+    name: 'Tax Preparation Consultation',
+    description: 'Discuss your tax situation and preparation needs',
+    price: 150,
+    duration: 60
+  },
+  {
+    id: '3',
+    name: 'Bookkeeping Setup',
+    description: 'Set up your bookkeeping system and processes',
+    price: 200,
+    duration: 90
+  },
+  {
+    id: '4',
+    name: 'Business Advisory Session',
+    description: 'Strategic financial planning and business advice',
+    price: 250,
+    duration: 60
+  }
+]
+
 export default function BookingPage() {
   const { data: session } = useSession()
   const [currentStep, setCurrentStep] = useState(1)
@@ -33,7 +65,7 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState('')
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     clientName: session?.user?.name || '',
     clientEmail: session?.user?.email || '',
@@ -41,42 +73,11 @@ export default function BookingPage() {
     notes: ''
   })
 
-  const sampleServices: Service[] = [
-    {
-      id: '1',
-      name: 'Free Consultation',
-      description: 'Initial consultation to discuss your accounting needs',
-      price: 0,
-      duration: 30
-    },
-    {
-      id: '2',
-      name: 'Tax Preparation Consultation',
-      description: 'Discuss your tax situation and preparation needs',
-      price: 150,
-      duration: 60
-    },
-    {
-      id: '3',
-      name: 'Bookkeeping Setup',
-      description: 'Set up your bookkeeping system and processes',
-      price: 200,
-      duration: 90
-    },
-    {
-      id: '4',
-      name: 'Business Advisory Session',
-      description: 'Strategic financial planning and business advice',
-      price: 250,
-      duration: 60
-    }
-  ]
-
-  const generateTimeSlots = (date: string): TimeSlot[] => {
+  const generateTimeSlots = (): TimeSlot[] => {
     const slots: TimeSlot[] = []
     const startHour = 9
     const endHour = 17
-    
+
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
@@ -86,7 +87,7 @@ export default function BookingPage() {
         })
       }
     }
-    
+
     return slots
   }
 
@@ -96,7 +97,7 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (selectedDate) {
-      setTimeSlots(generateTimeSlots(selectedDate))
+      setTimeSlots(generateTimeSlots())
     }
   }, [selectedDate])
 
@@ -128,7 +129,7 @@ export default function BookingPage() {
         clientPhone: formData.clientPhone
       }
 
-      const response = await fetch('/api/bookings', {
+      const response = await apiFetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,6 +145,7 @@ export default function BookingPage() {
         toast.error(error.error || 'Failed to submit booking')
       }
     } catch (error) {
+      console.error('Booking submission error:', error)
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)

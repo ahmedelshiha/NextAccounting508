@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
+import { sumDecimals } from '@/lib/decimal-utils'
 
 // GET /api/admin/stats/bookings - Get booking statistics
-export async function GET(_: NextRequest) {
+export async function GET(request: NextRequest) {
+  void request
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -24,10 +27,10 @@ export async function GET(_: NextRequest) {
 
     // Get bookings by status
     const [pending, confirmed, completed, cancelled] = await Promise.all([
-      prisma.booking.count({ where: { status: 'PENDING' } }),
-      prisma.booking.count({ where: { status: 'CONFIRMED' } }),
-      prisma.booking.count({ where: { status: 'COMPLETED' } }),
-      prisma.booking.count({ where: { status: 'CANCELLED' } })
+      prisma.booking.count({ where: { status: BookingStatus.PENDING } }),
+      prisma.booking.count({ where: { status: BookingStatus.CONFIRMED } }),
+      prisma.booking.count({ where: { status: BookingStatus.COMPLETED } }),
+      prisma.booking.count({ where: { status: BookingStatus.CANCELLED } })
     ])
 
     // Get today's bookings
@@ -67,7 +70,7 @@ export async function GET(_: NextRequest) {
 
     // Get revenue statistics
     const completedBookings = await prisma.booking.findMany({
-      where: { status: 'COMPLETED' },
+      where: { status: BookingStatus.COMPLETED },
       include: {
         service: {
           select: { price: true }
@@ -75,24 +78,26 @@ export async function GET(_: NextRequest) {
       }
     })
 
-    const totalRevenue = completedBookings.reduce((sum, booking) => {
-      return sum + (booking.service.price || 0)
-    }, 0)
+    // Use shared decimal utilities to convert and sum prices
+    const priceValues = completedBookings.map(b => b?.service?.price)
+
+    const totalRevenue = sumDecimals(priceValues)
 
     // Get this month's revenue
-    const thisMonthRevenue = completedBookings
-      .filter(booking => booking.createdAt >= startOfMonth)
-      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+    const thisMonthRevenue = sumDecimals(
+      completedBookings
+        .filter(booking => booking.createdAt >= startOfMonth)
+        .map(b => b?.service?.price)
+    )
 
     // Get last month's revenue
-    const lastMonthRevenue = completedBookings
-      .filter(booking => 
-        booking.createdAt >= startOfLastMonth && 
-        booking.createdAt <= endOfLastMonth
-      )
-      .reduce((sum, booking) => sum + (booking.service.price || 0), 0)
+    const lastMonthRevenue = sumDecimals(
+      completedBookings
+        .filter(booking => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
+        .map(b => b?.service?.price)
+    )
 
-    const revenueGrowth = lastMonthRevenue > 0 ? 
+    const revenueGrowth = lastMonthRevenue > 0 ?
       ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
 
     // Get upcoming bookings (next 7 days)
@@ -104,7 +109,7 @@ export async function GET(_: NextRequest) {
           lte: nextWeek
         },
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })

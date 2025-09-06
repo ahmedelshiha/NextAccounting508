@@ -77,7 +77,7 @@ export function Navigation() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
-                      <span>{session.user.name || session.user.email}</span>
+                      <span>{session?.user?.name || session?.user?.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -87,7 +87,7 @@ export function Navigation() {
                         My Bookings
                       </Link>
                     </DropdownMenuItem>
-                    {(session.user.role === 'ADMIN' || session.user.role === 'STAFF') && (
+                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
@@ -161,7 +161,7 @@ export function Navigation() {
                 {session ? (
                   <div className="space-y-2">
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      Signed in as {session.user.name || session.user.email}
+                      Signed in as {session?.user?.name || session?.user?.email}
                     </div>
                     <Link
                       href="/portal"
@@ -170,7 +170,7 @@ export function Navigation() {
                     >
                       My Bookings
                     </Link>
-                    {(session.user.role === 'ADMIN' || session.user.role === 'STAFF') && (
+                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <Link
                         href="/admin"
                         className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
@@ -222,4 +222,3 @@ export function Navigation() {
     </header>
   )
 }
-

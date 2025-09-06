@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find and deactivate subscription
-    const subscription = await prisma.newsletterSubscription.findUnique({
+    const subscription = await prisma.newsletter.findUnique({
       where: { email }
     })
 
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Deactivate subscription
-    await prisma.newsletterSubscription.update({
+    await prisma.newsletter.update({
       where: { email },
       data: {
         active: false,
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find subscription
-    const subscription = await prisma.newsletterSubscription.findUnique({
+    const subscription = await prisma.newsletter.findUnique({
       where: { email }
     })
 
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Deactivate subscription
-    await prisma.newsletterSubscription.update({
+    await prisma.newsletter.update({
       where: { email },
       data: {
         active: false,
@@ -139,4 +139,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

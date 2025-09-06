@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
 
 // GET /api/admin/bookings - Get all bookings for admin
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -28,7 +29,8 @@ export async function GET(request: NextRequest) {
     const where: any = {}
 
     if (status && status !== 'all') {
-      where.status = status
+      // Cast incoming status string to BookingStatus enum
+      where.status = status as unknown as BookingStatus
     }
 
     if (search) {
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
       scheduledAt: new Date(scheduledAt),
       duration,
       notes,
-      status: 'CONFIRMED' // Admin bookings are automatically confirmed
+      status: BookingStatus.CONFIRMED // Admin bookings are automatically confirmed
     }
 
     if (clientId) {
@@ -170,7 +172,7 @@ export async function POST(request: NextRequest) {
       where: {
         scheduledAt: new Date(scheduledAt),
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })
@@ -221,7 +223,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -244,21 +246,20 @@ export async function PATCH(request: NextRequest) {
     switch (action) {
       case 'confirm':
         updateData = {
-          status: 'CONFIRMED',
-          confirmed: true,
-          confirmedAt: new Date()
+          status: BookingStatus.CONFIRMED,
+          confirmed: true
         }
         break
       
       case 'cancel':
         updateData = {
-          status: 'CANCELLED'
+          status: BookingStatus.CANCELLED
         }
         break
       
       case 'complete':
         updateData = {
-          status: 'COMPLETED'
+          status: BookingStatus.COMPLETED
         }
         break
       
@@ -303,7 +304,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 }

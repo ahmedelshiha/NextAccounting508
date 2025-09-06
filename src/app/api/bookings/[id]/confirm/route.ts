@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import { BookingStatus } from '@prisma/client'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendBookingConfirmation } from '@/lib/email'
 
 // POST /api/bookings/[id]/confirm - Confirm booking and send email
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
@@ -21,7 +22,7 @@ export async function POST(
     }
 
     // Only admin/staff can confirm bookings
-    if (!['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -60,9 +61,8 @@ export async function POST(
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
-        status: 'CONFIRMED',
-        confirmed: true,
-        confirmedAt: new Date()
+        status: BookingStatus.CONFIRMED,
+        confirmed: true
       },
       include: {
         client: {

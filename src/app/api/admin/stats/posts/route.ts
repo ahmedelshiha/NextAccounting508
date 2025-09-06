@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 // GET /api/admin/stats/posts - Get blog post statistics
-export async function GET(_: NextRequest) {
+export async function GET(request: NextRequest) {
+  void request
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

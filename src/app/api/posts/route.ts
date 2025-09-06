@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/posts - Get blog posts
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     
     // Only show published posts for non-admin users
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       where.published = true
     } else if (published !== null) {
       where.published = published === 'true'
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         seoDescription,
         tags,
         readTime: readTime ? parseInt(readTime) : null,
-        authorId: session.user.id,
+        authorId: session?.user?.id,
         publishedAt: published ? new Date() : null
       },
       include: {

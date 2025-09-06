@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
+import { BookingStatus } from '@prisma/client'
 
 // Send booking reminders for appointments tomorrow
 export async function sendBookingReminders() {
@@ -16,7 +17,7 @@ export async function sendBookingReminders() {
           gte: startOfTomorrow,
           lte: endOfTomorrow
         },
-        status: 'CONFIRMED',
+        status: BookingStatus.CONFIRMED,
         reminderSent: false
       },
       include: {
@@ -78,7 +79,7 @@ export async function cleanupOldData() {
     const sixMonthsAgo = addDays(new Date(), -180)
     
     // Delete old unsubscribed newsletter subscriptions
-    const deletedSubscriptions = await prisma.newsletterSubscription.deleteMany({
+    const deletedSubscriptions = await prisma.newsletter.deleteMany({
       where: {
         active: false,
         unsubscribedAt: {
@@ -120,10 +121,10 @@ export async function updateBookingStatuses() {
         scheduledAt: {
           lt: now
         },
-        status: 'CONFIRMED'
+        status: BookingStatus.CONFIRMED
       },
       data: {
-        status: 'COMPLETED'
+        status: BookingStatus.COMPLETED
       }
     })
 
@@ -173,7 +174,7 @@ export async function generateMonthlyReports() {
       }
     })
 
-    const newsletterSubscriptionsCount = await prisma.newsletterSubscription.count({
+    const newsletterSubscriptionsCount = await prisma.newsletter.count({
       where: {
         subscribedAt: {
           gte: startOfMonth,
@@ -249,4 +250,3 @@ export async function runScheduledTasks() {
   console.log('Scheduled tasks completed:', results)
   return results
 }
-

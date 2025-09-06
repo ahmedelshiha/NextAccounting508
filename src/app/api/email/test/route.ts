@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendEmail, sendBookingConfirmation, sendBookingReminder } from '@/lib/email'
 
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
     
     // Only allow admins to test emails
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -126,11 +126,12 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/email/test - Get email test options
-export async function GET(_: NextRequest) {
+export async function GET(request: NextRequest) {
+  void request
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

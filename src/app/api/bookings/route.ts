@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import { BookingStatus } from '@prisma/client'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
 // GET /api/bookings - Get bookings (filtered by user role)
@@ -23,8 +24,8 @@ export async function GET(request: NextRequest) {
     const where: any = {}
 
     // If user is CLIENT, only show their bookings
-    if (session.user.role === 'CLIENT') {
-      where.clientId = session.user.id
+    if (session?.user?.role === 'CLIENT') {
+      where.clientId = session?.user?.id
     }
     // If user is ADMIN or STAFF, they can see all bookings or filter by userId
     else if (userId) {
@@ -32,7 +33,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) {
-      where.status = status
+      // Cast incoming status string to BookingStatus enum
+      where.status = status as unknown as BookingStatus
     }
 
     const bookings = await prisma.booking.findMany({
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
           }
         },
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })
@@ -143,7 +145,7 @@ export async function POST(request: NextRequest) {
 
     const booking = await prisma.booking.create({
       data: {
-        clientId: session.user.id,
+        clientId: session?.user?.id,
         serviceId,
         scheduledAt: scheduledDate,
         duration,
@@ -151,7 +153,7 @@ export async function POST(request: NextRequest) {
         clientName,
         clientEmail,
         clientPhone,
-        status: 'PENDING'
+        status: BookingStatus.PENDING
       },
       include: {
         service: {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,7 +27,7 @@ export default function ContactPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await apiFetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,6 +49,7 @@ export default function ContactPage() {
         toast.error('Failed to send message. Please try again.')
       }
     } catch (error) {
+      console.error('Contact form submission error:', error)
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
