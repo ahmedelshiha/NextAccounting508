@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
 
 // GET /api/admin/bookings - Get all bookings for admin
 export async function GET(request: NextRequest) {
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
       scheduledAt: new Date(scheduledAt),
       duration,
       notes,
-      status: 'CONFIRMED' // Admin bookings are automatically confirmed
+      status: BookingStatus.CONFIRMED // Admin bookings are automatically confirmed
     }
 
     if (clientId) {
@@ -170,7 +171,7 @@ export async function POST(request: NextRequest) {
       where: {
         scheduledAt: new Date(scheduledAt),
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })
@@ -244,20 +245,20 @@ export async function PATCH(request: NextRequest) {
     switch (action) {
       case 'confirm':
         updateData = {
-          status: 'CONFIRMED',
+          status: BookingStatus.CONFIRMED,
           confirmed: true
         }
         break
       
       case 'cancel':
         updateData = {
-          status: 'CANCELLED'
+          status: BookingStatus.CANCELLED
         }
         break
       
       case 'complete':
         updateData = {
-          status: 'COMPLETED'
+          status: BookingStatus.COMPLETED
         }
         break
       
