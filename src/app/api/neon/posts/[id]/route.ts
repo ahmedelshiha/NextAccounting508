@@ -26,8 +26,8 @@ export type PostRow = {
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
-    const rows = await sql<PostRow[]>`SELECT * FROM "Post" WHERE id = ${id} LIMIT 1`
-    const post = rows[0] ?? null
+    const rows = (await sql`SELECT * FROM "Post" WHERE id = ${id} LIMIT 1`) as unknown as PostRow[]
+    const post: PostRow | null = rows[0] ?? null
     return NextResponse.json(post)
   } catch (error) {
     console.error('Neon GET /api/neon/posts/[id] error:', error)
