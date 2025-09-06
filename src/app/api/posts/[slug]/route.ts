@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       )
     }
 
-    const post = await prisma.post.delete({
+    await prisma.post.delete({
       where: { slug }
     })
 
