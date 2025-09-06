@@ -94,8 +94,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     }
 
     // Prepare update data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {}
+    const updateData: Partial<import('@prisma/client').Prisma.PostUpdateInput> = {}
     
     if (title !== undefined) updateData.title = title
     if (content !== undefined) updateData.content = content
