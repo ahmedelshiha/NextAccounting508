@@ -6,5 +6,8 @@ const nextConfig = {
   images: {
     domains: ["localhost", "mydomain.com"],
   },
-};
-module.exports = nextConfig;
+  experimental: {
+    turbo: true,
+  },
+}
+module.exports = nextConfig
