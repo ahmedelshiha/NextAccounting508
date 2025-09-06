@@ -6,4 +6,4 @@ async function main() {
   console.log('DB posts:', posts.map((p: Post) => ({ id: p.id, slug: p.slug, title: p.title, published: p.published })))
 }
 
-main().catch(e => { console.error(e); process.exit(1) })
+main().catch((e: unknown) => { console.error(e); process.exit(1) })
