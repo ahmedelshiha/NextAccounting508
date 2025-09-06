@@ -27,28 +27,32 @@ export default async function BlogPage() {
   let featuredPost: BlogPost | null = null
   let recentPosts: BlogPost[] = []
 
-  try {
-    const [featured, recents] = await Promise.all([
-      prisma.post.findFirst({
-        where: { published: true, featured: true },
-        include: { author: { select: { name: true, image: true } } },
-        orderBy: { publishedAt: 'desc' },
-      }),
-      prisma.post.findMany({
-        where: { published: true },
-        include: { author: { select: { name: true, image: true } } },
-        orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
-        take: 6,
-      }),
-    ])
+  const hasDb = !!process.env.DATABASE_URL
 
-    featuredPost = (featured ?? null) as unknown as BlogPost | null
-    recentPosts = recents as unknown as BlogPost[]
+  if (hasDb) {
+    try {
+      const [featured, recents] = await Promise.all([
+        prisma.post.findFirst({
+          where: { published: true, featured: true },
+          include: { author: { select: { name: true, image: true } } },
+          orderBy: { publishedAt: 'desc' },
+        }),
+        prisma.post.findMany({
+          where: { published: true },
+          include: { author: { select: { name: true, image: true } } },
+          orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+          take: 6,
+        }),
+      ])
 
-    if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
-  } catch (error) {
-    console.error('Error fetching posts for blog page:', error)
+      featuredPost = (featured ?? null) as unknown as BlogPost | null
+      recentPosts = recents as unknown as BlogPost[]
 
+      if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
+    } catch (error) {
+      console.error('Error fetching posts for blog page:', error)
+    }
+  } else {
     featuredPost = {
       id: '1',
       slug: '2024-tax-planning-strategies-for-small-businesses',
