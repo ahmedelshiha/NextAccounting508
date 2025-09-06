@@ -76,41 +76,26 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Helper to safely convert Prisma Decimal (or other) to number
-    const decimalToNumber = (value: unknown): number => {
-      if (value === null || value === undefined) return 0
-      try {
-        // If Prisma Decimal with toNumber()
-        const anyVal = value as any
-        if (anyVal && typeof anyVal.toNumber === 'function') {
-          const n = anyVal.toNumber()
-          return Number.isFinite(n) ? n : 0
-        }
-        // Fallback to Number conversion
-        const n = Number(value)
-        return Number.isFinite(n) ? n : 0
-      } catch (e) {
-        console.error('Invalid decimal value encountered:', value, e)
-        return 0
-      }
-    }
+    // Use shared decimal utilities to convert and sum prices
+    import { decimalToNumber as _decimalToNumber, sumDecimals } from '@/lib/decimal-utils'
 
-    const totalRevenue = completedBookings.reduce((sum, booking) => {
-      return sum + decimalToNumber(booking?.service?.price)
-    }, 0)
+    const priceValues = completedBookings.map(b => b?.service?.price)
+
+    const totalRevenue = sumDecimals(priceValues)
 
     // Get this month's revenue
-    const thisMonthRevenue = completedBookings
-      .filter(booking => booking.createdAt >= startOfMonth)
-      .reduce((sum, booking) => sum + decimalToNumber(booking?.service?.price), 0)
+    const thisMonthRevenue = sumDecimals(
+      completedBookings
+        .filter(booking => booking.createdAt >= startOfMonth)
+        .map(b => b?.service?.price)
+    )
 
     // Get last month's revenue
-    const lastMonthRevenue = completedBookings
-      .filter(booking =>
-        booking.createdAt >= startOfLastMonth &&
-        booking.createdAt <= endOfLastMonth
-      )
-      .reduce((sum, booking) => sum + decimalToNumber(booking?.service?.price), 0)
+    const lastMonthRevenue = sumDecimals(
+      completedBookings
+        .filter(booking => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
+        .map(b => b?.service?.price)
+    )
 
     const revenueGrowth = lastMonthRevenue > 0 ?
       ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
