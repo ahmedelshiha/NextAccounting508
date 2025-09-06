@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -109,7 +110,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
-      if (status) updateData.status = status
+      if (status) updateData.status = status as unknown as BookingStatus
       if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt)
       if (adminNotes !== undefined) updateData.adminNotes = adminNotes
       if (confirmed !== undefined) updateData.confirmed = confirmed
@@ -194,7 +195,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
       where: { id },
-      data: { status: 'CANCELLED' }
+      data: { status: BookingStatus.CANCELLED }
     })
 
     return NextResponse.json({ message: 'Booking cancelled successfully' })

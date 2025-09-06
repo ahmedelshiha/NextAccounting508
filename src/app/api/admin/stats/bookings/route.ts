@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
 import { sumDecimals } from '@/lib/decimal-utils'
 
 // GET /api/admin/stats/bookings - Get booking statistics
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
 
     // Get bookings by status
     const [pending, confirmed, completed, cancelled] = await Promise.all([
-      prisma.booking.count({ where: { status: 'PENDING' } }),
-      prisma.booking.count({ where: { status: 'CONFIRMED' } }),
-      prisma.booking.count({ where: { status: 'COMPLETED' } }),
-      prisma.booking.count({ where: { status: 'CANCELLED' } })
+      prisma.booking.count({ where: { status: BookingStatus.PENDING } }),
+      prisma.booking.count({ where: { status: BookingStatus.CONFIRMED } }),
+      prisma.booking.count({ where: { status: BookingStatus.COMPLETED } }),
+      prisma.booking.count({ where: { status: BookingStatus.CANCELLED } })
     ])
 
     // Get today's bookings
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     // Get revenue statistics
     const completedBookings = await prisma.booking.findMany({
-      where: { status: 'COMPLETED' },
+      where: { status: BookingStatus.COMPLETED },
       include: {
         service: {
           select: { price: true }
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
           lte: nextWeek
         },
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })

@@ -33,6 +33,8 @@ export default async function PostPage({ params }: Props) {
         .join('')
     : ''
 
+  const displayDate = post.publishedAt ?? post.createdAt ?? new Date()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -42,7 +44,7 @@ export default async function PostPage({ params }: Props) {
             <div className="text-sm text-gray-500 flex items-center gap-4">
               <span>{post.author?.name || 'Author'}</span>
               <span>•</span>
-              <span>{new Date(post.publishedAt || post.createdAt).toLocaleDateString()}</span>
+              <span>{new Date(displayDate).toLocaleDateString()}</span>
               <span>•</span>
               <span>{post.readTime ? `${post.readTime} min read` : ''}</span>
             </div>

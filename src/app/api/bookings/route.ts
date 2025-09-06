@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -32,7 +33,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) {
-      where.status = status
+      // Cast incoming status string to BookingStatus enum
+      where.status = status as unknown as BookingStatus
     }
 
     const bookings = await prisma.booking.findMany({
@@ -129,7 +131,7 @@ export async function POST(request: NextRequest) {
           }
         },
         status: {
-          in: ['PENDING', 'CONFIRMED']
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
         }
       }
     })
@@ -151,7 +153,7 @@ export async function POST(request: NextRequest) {
         clientName,
         clientEmail,
         clientPhone,
-        status: 'PENDING'
+        status: BookingStatus.PENDING
       },
       include: {
         service: {
