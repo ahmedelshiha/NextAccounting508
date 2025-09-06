@@ -36,6 +36,26 @@ export default async () => {
     const dbOk = dbRes.ok
     const emailOk = emailRes.ok
 
+    // Read bodies for error messages
+    const [dbText, emailText] = await Promise.all([
+      dbRes.ok ? Promise.resolve('ok') : dbRes.text().catch(() => 'error'),
+      emailRes.ok ? Promise.resolve('ok') : emailRes.text().catch(() => 'error'),
+    ])
+
+    // Log results to HealthLog via API
+    await Promise.all([
+      fetch(`${origin}/api/health/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service: 'db', status: dbOk ? 'ok' : 'error', message: dbOk ? null : dbText }),
+      }),
+      fetch(`${origin}/api/health/logs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service: 'email', status: emailOk ? 'ok' : 'error', message: emailOk ? null : emailText }),
+      }),
+    ])
+
     if (!dbOk || !emailOk) {
       await notify(`Health check failed: DB=${dbOk}, EMAIL=${emailOk}`)
     }
