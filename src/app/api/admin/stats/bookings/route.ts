@@ -88,15 +88,15 @@ export async function GET(request: NextRequest) {
     // Get this month's revenue
     const thisMonthRevenue = sumDecimals(
       completedBookings
-        .filter(booking => booking.createdAt >= startOfMonth)
-        .map(b => b?.service?.price)
+        .filter((booking) => booking.createdAt >= startOfMonth)
+        .map((b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike)
     )
 
     // Get last month's revenue
     const lastMonthRevenue = sumDecimals(
       completedBookings
-        .filter(booking => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
-        .map(b => b?.service?.price)
+        .filter((booking) => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
+        .map((b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike)
     )
 
     const revenueGrowth = lastMonthRevenue > 0 ?
