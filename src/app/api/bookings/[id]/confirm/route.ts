@@ -61,8 +61,7 @@ export async function POST(
       where: { id },
       data: {
         status: 'CONFIRMED',
-        confirmed: true,
-        confirmedAt: new Date()
+        confirmed: true
       },
       include: {
         client: {
