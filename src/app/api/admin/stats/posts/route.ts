@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/admin/stats/posts - Get blog post statistics
 export async function GET(request: NextRequest) {
