@@ -151,7 +151,7 @@ export default async function BlogPage() {
                         </div>
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{new Date(post.publishedAt).toLocaleDateString()}</span>
+                          <span>{post.publishedAt ? new Date(post.publishedAt as unknown as string | Date).toLocaleDateString() : ''}</span>
                         </div>
                       </div>
                       <CardTitle className="text-lg leading-tight">

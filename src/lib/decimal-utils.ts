@@ -1,8 +1,6 @@
 import type { Decimal } from '@prisma/client/runtime/library'
 
-import type { Decimal } from '@prisma/client/runtime/library'
-
-export type DecimalLike = Decimal | number | string | null | undefined
+export type DecimalLike = number | string | { toNumber?: () => number } | null | undefined
 
 /**
  * Safely convert a Prisma Decimal (or number/string) to a JS number.
@@ -48,7 +46,7 @@ export function decimalToNumber(value: DecimalLike): number {
  * Sum an array of DecimalLike values, returning a number.
  */
 export function sumDecimals(values: DecimalLike[]): number {
-  return values.reduce((acc, v) => acc + decimalToNumber(v), 0)
+  return values.reduce<number>((acc, v) => acc + decimalToNumber(v), 0)
 }
 
 /**
