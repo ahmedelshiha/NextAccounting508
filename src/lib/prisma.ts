@@ -1,36 +1,18 @@
 import { PrismaClient } from '@prisma/client'
 
-// Ensure a single PrismaClient instance across hot reloads in dev
-declare global {
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined
-}
+const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
-export function ensureDatabaseUrl(): void {
-  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.length === 0) {
-    const msg =
-      'DATABASE_URL is not set. Prisma cannot connect. Set it in your environment (e.g., Netlify build settings).'
-    if (process.env.NODE_ENV === 'production') {
-      console.error(msg)
-    } else {
-      console.warn(msg)
-    }
-    throw new Error(msg)
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  })
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+export function ensureDatabaseUrl(): string {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('❌ DATABASE_URL is not set. Define it in Netlify environment variables.')
   }
+  return process.env.DATABASE_URL
 }
-
-function getPrismaClient(): PrismaClient {
-  ensureDatabaseUrl()
-
-  if (global.prisma) return global.prisma
-
-  const client = new PrismaClient()
-
-  if (process.env.NODE_ENV !== 'production') {
-    global.prisma = client
-  }
-
-  return client
-}
-
-export const prisma = getPrismaClient()
