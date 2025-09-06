@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole, BookingStatus } from '@prisma/client'
-import { prisma } from '../src/lib/prisma'
+import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 async function main() {

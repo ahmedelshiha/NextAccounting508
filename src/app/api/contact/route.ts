@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 
 // POST /api/contact - Submit contact form

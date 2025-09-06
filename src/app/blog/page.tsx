@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 export const revalidate = 60
 

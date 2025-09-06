@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { addDays, startOfDay, endOfDay, addMinutes, format, isWeekend } from 'date-fns'
 
 // GET /api/bookings/availability - Get available time slots
@@ -127,4 +127,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
