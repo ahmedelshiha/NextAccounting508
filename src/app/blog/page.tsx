@@ -122,7 +122,7 @@ export default async function BlogPage() {
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
-                      {featuredPost?.tags?.map((tag) => (
+                      {featuredPost?.tags?.map((tag: string) => (
                         <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
@@ -165,7 +165,7 @@ export default async function BlogPage() {
                       </p>
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap gap-1">
-                          {post.tags.slice(0, 2).map((tag) => (
+                          {post.tags.slice(0, 2).map((tag: string) => (
                             <Badge key={tag} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
@@ -222,7 +222,7 @@ export default async function BlogPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {popularTags.map((tag) => (
+                  {popularTags.map((tag: string) => (
                     <Badge
                       key={tag}
                       variant="outline"
