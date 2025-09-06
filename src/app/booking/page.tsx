@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -128,7 +129,7 @@ export default function BookingPage() {
         clientPhone: formData.clientPhone
       }
 
-      const response = await fetch('/api/bookings', {
+      const response = await apiFetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
