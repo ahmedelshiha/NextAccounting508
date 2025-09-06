@@ -13,9 +13,11 @@ function createFallbackPrisma() {
     new Proxy(
       {},
       {
-        get() {
-          // Return common Prisma-like methods with safe defaults
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        get(_target: any, prop: string) {
           return async () => {
+            if (prop === 'findMany') return []
+            if (prop === 'count') return 0
             return null
           }
         },
