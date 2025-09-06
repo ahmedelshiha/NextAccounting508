@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma'
 export const revalidate = 60
 
 export async function BlogSection() {
-  const hasDb = !!(process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL)
+  const hasDb = !!process.env.NETLIFY_DATABASE_URL
   let posts: Array<{
     id: string
     title: string

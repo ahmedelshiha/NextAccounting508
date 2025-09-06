@@ -4,7 +4,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-const hasDb = Boolean(process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL)
+const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
 
 // Lightweight fallback demo users when no DB is configured
 const demoUsers = [
