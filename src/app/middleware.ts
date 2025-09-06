@@ -1,8 +1,8 @@
 import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 
 export default withAuth(
-  function middleware(req: any) {
+  function middleware(req: NextRequest) {
     const token = req.nextauth.token
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
