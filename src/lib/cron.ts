@@ -78,7 +78,7 @@ export async function cleanupOldData() {
     const sixMonthsAgo = addDays(new Date(), -180)
     
     // Delete old unsubscribed newsletter subscriptions
-    const deletedSubscriptions = await prisma.newsletterSubscription.deleteMany({
+    const deletedSubscriptions = await prisma.newsletter.deleteMany({
       where: {
         active: false,
         unsubscribedAt: {
