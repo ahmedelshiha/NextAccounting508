@@ -1,5 +1,3 @@
-import type { Decimal } from '@prisma/client/runtime/library'
-
 export type DecimalLike = number | string | { toNumber?: () => number } | null | undefined
 
 /**

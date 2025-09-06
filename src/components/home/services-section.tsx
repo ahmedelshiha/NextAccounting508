@@ -35,7 +35,7 @@ export function ServicesSection() {
           let data: unknown = null
           try {
             data = await response.json()
-          } catch (_) {
+          } catch {
             data = null
           }
 
@@ -85,7 +85,7 @@ export function ServicesSection() {
             <div className="h-6 bg-gray-200 animate-pulse rounded w-96 mx-auto"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(4)].map((_unused, i) => (
               <div key={i} className="bg-gray-100 animate-pulse rounded-lg h-64"></div>
             ))}
           </div>

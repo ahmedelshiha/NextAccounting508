@@ -6,28 +6,53 @@ import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 60
+
+type BlogPost = {
+  id: string
+  slug: string
+  title: string
+  excerpt?: string
+  content?: string
+  coverImage?: string
+  author?: { name?: string; image?: string }
+  publishedAt?: string | Date
+  readTime?: number
+  tags: string[]
+  featured?: boolean
+  views?: number
+}
+
 export default async function BlogPage() {
-  let featuredPost = null
-  let recentPosts = []
+  let featuredPost: BlogPost | null = null
+  let recentPosts: BlogPost[] = []
 
-  try {
-    featuredPost = await prisma.post.findFirst({
-      where: { published: true, featured: true },
-      include: { author: { select: { name: true, image: true } } },
-      orderBy: { publishedAt: 'desc' }
-    })
+  const hasDb = !!process.env.DATABASE_URL
 
-    recentPosts = await prisma.post.findMany({
-      where: { published: true },
-      include: { author: { select: { name: true, image: true } } },
-      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
-      take: 6
-    })
+  if (hasDb) {
+    try {
+      const [featured, recents] = await Promise.all([
+        prisma.post.findFirst({
+          where: { published: true, featured: true },
+          include: { author: { select: { name: true, image: true } } },
+          orderBy: { publishedAt: 'desc' },
+        }),
+        prisma.post.findMany({
+          where: { published: true },
+          include: { author: { select: { name: true, image: true } } },
+          orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+          take: 6,
+        }),
+      ])
 
-    if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
-  } catch (error) {
-    console.error('Error fetching posts for blog page:', error)
+      featuredPost = (featured ?? null) as unknown as BlogPost | null
+      recentPosts = recents as unknown as BlogPost[]
 
+      if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
+    } catch (error) {
+      console.error('Error fetching posts for blog page:', error)
+    }
+  } else {
     featuredPost = {
       id: '1',
       slug: '2024-tax-planning-strategies-for-small-businesses',
@@ -108,7 +133,7 @@ export default async function BlogPage() {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{featuredPost?.publishedAt ? new Date(featuredPost.publishedAt).toLocaleDateString() : ''}</span>
+                      <span>{featuredPost?.publishedAt ? new Date(featuredPost.publishedAt as unknown as string | Date).toLocaleDateString() : ''}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
@@ -123,7 +148,7 @@ export default async function BlogPage() {
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
-                      {featuredPost?.tags?.map((tag) => (
+                      {featuredPost?.tags?.map((tag: string) => (
                         <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
@@ -166,7 +191,7 @@ export default async function BlogPage() {
                       </p>
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap gap-1">
-                          {post.tags.slice(0, 2).map((tag) => (
+                          {post.tags.slice(0, 2).map((tag: string) => (
                             <Badge key={tag} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
@@ -223,7 +248,7 @@ export default async function BlogPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {popularTags.map((tag) => (
+                  {popularTags.map((tag: string) => (
                     <Badge
                       key={tag}
                       variant="outline"
