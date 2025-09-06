@@ -93,7 +93,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Check permissions
-    const isOwner = existingBooking.clientId === session.user.id
+    const isOwner = existingBooking.clientId === session?.user?.id
     const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(session.user.role)
 
     if (!isOwner && !isAdminOrStaff) {
