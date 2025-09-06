@@ -198,3 +198,12 @@ enum BookingStatus {
   CANCELLED
   NO_SHOW
 }
+
+// Health monitoring logs
+model HealthLog {
+  id        String   @id @default(cuid())
+  service   String
+  status    String
+  message   String?
+  checkedAt DateTime @default(now())
+}
