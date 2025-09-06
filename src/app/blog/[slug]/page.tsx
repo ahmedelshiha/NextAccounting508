@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 
 interface Props {
   params: {
@@ -52,7 +53,7 @@ export default async function PostPage({ params }: Props) {
 
           {post.coverImage && (
             <div className="mb-6">
-              <img src={post.coverImage} alt={post.title} className="w-full h-64 object-cover rounded" />
+              <Image src={post.coverImage} alt={post.title} width={1200} height={400} className="w-full h-64 object-cover rounded" />
             </div>
           )}
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/services - Get all active services
 export async function GET(request: NextRequest) {
@@ -8,8 +9,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { active: true }
+    const where: Prisma.ServiceWhereInput = { active: true }
     
     if (featured === 'true') {
       where.featured = true

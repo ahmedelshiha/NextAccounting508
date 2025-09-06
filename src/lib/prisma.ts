@@ -13,9 +13,10 @@ function createFallbackPrisma() {
     new Proxy(
       {},
       {
-        get() {
-          // Return common Prisma-like methods with safe defaults
+        get(_target: unknown, prop: string) {
           return async () => {
+            if (prop === 'findMany') return []
+            if (prop === 'count') return 0
             return null
           }
         },

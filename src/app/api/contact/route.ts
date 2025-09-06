@@ -118,8 +118,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {}
+    const where: import('@prisma/client').Prisma.ContactSubmissionWhereInput = {}
     
     if (responded !== null) {
       where.responded = responded === 'true'

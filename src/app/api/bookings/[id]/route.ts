@@ -105,8 +105,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Prepare update data based on user role
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {}
+    const updateData: Partial<import('@prisma/client').Prisma.BookingUpdateInput> = {}
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything

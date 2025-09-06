@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { prisma } from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
 import { BookingStatus } from '@prisma/client'
@@ -211,7 +210,7 @@ export async function runScheduledTasks() {
   
   const results = {
     timestamp: new Date(),
-    tasks: {}
+    tasks: {} as Record<string, unknown>
   }
 
   try {

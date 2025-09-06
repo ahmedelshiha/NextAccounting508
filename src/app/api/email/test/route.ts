@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    const mockFlag = !!(result && typeof (result as any) === 'object' && 'mock' in (result as any) && (result as any).mock)
+    const mockFlag = !!(result && typeof result === 'object' && 'mock' in (result as Record<string, unknown>) && (result as Record<string, unknown>).mock)
     return NextResponse.json({
       message: `Test email sent successfully to ${email}`,
       type,
