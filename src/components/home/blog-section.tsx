@@ -23,16 +23,29 @@ async function getPosts(): Promise<Post[]> {
     if (!res.ok) throw new Error('Failed to fetch posts')
     const data = await res.json()
     if (!Array.isArray(data)) return []
-    return data.map((p: any) => ({
-      id: p.id,
-      title: p.title,
-      slug: p.slug,
-      excerpt: p.excerpt || '',
-      publishedAt: p.publishedAt || p.createdAt,
-      readTime: p.readTime ?? null,
-      tags: p.tags || [],
-      author: { name: p.author?.name || 'Author', image: p.author?.image || undefined },
-    })) as Post[]
+    return (data as unknown[]).map((p) => {
+      const obj = p as {
+        id: string
+        title: string
+        slug: string
+        excerpt?: string
+        publishedAt?: string
+        createdAt?: string
+        readTime?: number | null
+        tags?: string[]
+        author?: { name?: string; image?: string }
+      }
+      return {
+        id: obj.id,
+        title: obj.title,
+        slug: obj.slug,
+        excerpt: obj.excerpt || '',
+        publishedAt: obj.publishedAt || obj.createdAt || '',
+        readTime: obj.readTime ?? null,
+        tags: obj.tags || [],
+        author: { name: obj.author?.name || 'Author', image: obj.author?.image || undefined },
+      } as Post
+    }) as Post[]
   } catch (err) {
     console.error('Error fetching posts:', err)
     return []
