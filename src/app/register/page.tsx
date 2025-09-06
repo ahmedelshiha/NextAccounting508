@@ -79,6 +79,7 @@ export default function RegisterPage() {
         router.push('/portal')
       }
     } catch (error) {
+      console.error('Registration error:', error)
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
