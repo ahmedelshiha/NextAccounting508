@@ -145,6 +145,7 @@ export default function BookingPage() {
         toast.error(error.error || 'Failed to submit booking')
       }
     } catch (error) {
+      console.error('Booking submission error:', error)
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
