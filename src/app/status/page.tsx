@@ -37,7 +37,7 @@ export default function StatusPage() {
       setEmailOk(emailRes.ok)
       const logsJson = logsRes.ok ? await logsRes.json() : []
       setLogs(Array.isArray(logsJson) ? logsJson : [])
-    } catch (_err) {
+    } catch {
       setDbOk(false)
       setEmailOk(false)
     } finally {
