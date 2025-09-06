@@ -41,7 +41,7 @@ interface DashboardStats {
   }
   newsletter: {
     total: number
-    active: number
+    subscribed: number
     newThisMonth: number
   }
   revenue: {
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
           posts: postsData,
           newsletter: {
             total: newsletterData.total || 0,
-            active: newsletterData.active || 0,
+            subscribed: newsletterData.subscribed || 0,
             newThisMonth: 0 // Would need additional API endpoint
           },
           revenue: {
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
               <Mail className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats?.newsletter.active || 0}</div>
+              <div className="text-2xl font-bold">{stats?.newsletter.subscribed || 0}</div>
               <p className="text-xs text-gray-600">
                 Active subscribers
               </p>
