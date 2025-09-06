@@ -6,13 +6,11 @@
     "node": "18.x"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "prebuild": "npm run db:generate",
-    "build": "npm run db:generate && npm run typecheck || true && next build --turbopack",
+    "dev": "next dev",
+    "build": "prisma generate && tsc --noEmit && next build --turbopack",
     "typecheck": "tsc --noEmit",
     "start": "next start",
-    "lint": "eslint",
-    "postinstall": "npm run db:generate",
+    "lint": "eslint . --ext .js,.ts,.tsx --fix",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -60,8 +58,5 @@
     "tsx": "^4.20.5",
     "tw-animate-css": "^1.3.7",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }

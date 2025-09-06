@@ -34,7 +34,7 @@ export function decimalToNumber(value: DecimalLike): number {
 
   // Fallback: try numeric coercion
   try {
-    const n = Number(value as unknown as any)
+    const n = Number(value as unknown as number | string)
     return Number.isFinite(n) ? n : 0
   } catch (err) {
     console.error('decimalToNumber: invalid value', value, err)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/posts - Get blog posts
 export async function GET(request: NextRequest) {
@@ -13,8 +14,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {}
+    const where: Prisma.PostWhereInput = {}
     
     // Only show published posts for non-admin users
     const session = await getServerSession(authOptions)

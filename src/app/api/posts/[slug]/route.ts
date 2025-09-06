@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/posts/[slug] - Get post by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
@@ -9,15 +10,14 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     const { slug } = await context.params
     const session = await getServerSession(authOptions)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { slug }
+    const where: Prisma.PostWhereInput = { slug }
 
     // Only show published posts for non-admin users
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       where.published = true
     }
 
-    const post = await prisma.post.findUnique({
+    const post = await prisma.post.findFirst({
       where,
       include: {
         author: {

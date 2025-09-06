@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { BookingStatus } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/admin/bookings - Get all bookings for admin
 export async function GET(request: NextRequest) {
@@ -25,8 +26,7 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate')
 
     // Build where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {}
+    const where: Prisma.BookingWhereInput = {}
 
     if (status && status !== 'all') {
       // Cast incoming status string to BookingStatus enum
@@ -128,8 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If clientId is provided, use existing client
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bookingData: any = {
+    const bookingData: Prisma.BookingCreateInput = {
       serviceId,
       scheduledAt: new Date(scheduledAt),
       duration,
@@ -240,8 +239,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let updateData: any = {}
+    let updateData: Prisma.BookingUpdateManyMutationInput = {}
 
     switch (action) {
       case 'confirm':

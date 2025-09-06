@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/bookings - Get bookings (filtered by user role)
 export async function GET(request: NextRequest) {
@@ -20,8 +21,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const userId = searchParams.get('userId')
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {}
+    const where: Prisma.BookingWhereInput = {}
 
     // If user is CLIENT, only show their bookings
     if (session?.user?.role === 'CLIENT') {
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify service exists and get duration
-    const service = await prisma.service.findUnique({
+    const service = await prisma.service.findFirst({
       where: { id: serviceId, active: true }
     })
 

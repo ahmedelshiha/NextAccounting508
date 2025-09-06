@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendEmail, sendBookingConfirmation, sendBookingReminder } from '@/lib/email'
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
         )
     }
 
-    const mockFlag = !!(result && typeof (result as any) === 'object' && 'mock' in (result as any) && (result as any).mock)
+    const mockFlag = !!(result && typeof result === 'object' && 'mock' in (result as Record<string, unknown>) && (result as Record<string, unknown>).mock)
     return NextResponse.json({
       message: `Test email sent successfully to ${email}`,
       type,
