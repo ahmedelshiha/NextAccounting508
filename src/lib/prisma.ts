@@ -1,48 +1,36 @@
 import { PrismaClient } from '@prisma/client'
 
-const globalForPrisma = globalThis as unknown as {
-  prisma?: PrismaClient
+// Ensure a single PrismaClient instance across hot reloads in dev
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined
 }
 
-function createFallbackPrisma() {
-  console.warn(
-    'DATABASE_URL is not set — using a fallback in-memory Prisma stub. Database queries will return empty/default values.'
-  )
-
-  const modelHandler = () =>
-    new Proxy(
-      {},
-      {
-        get(_target: unknown, prop: string) {
-          return async () => {
-            if (prop === 'findMany') return []
-            if (prop === 'count') return 0
-            return null
-          }
-        },
-      }
-    )
-
-  const root = new Proxy(
-    {},
-    {
-      get(_target, _prop) {
-        // Provide basic $ methods used by Prisma
-        if (_prop === '$connect' || _prop === '$disconnect' || _prop === '$on') {
-          return async () => {}
-        }
-        // For any model access, return the model proxy
-        return modelHandler()
-      },
+export function ensureDatabaseUrl(): void {
+  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.length === 0) {
+    const msg =
+      'DATABASE_URL is not set. Prisma cannot connect. Set it in your environment (e.g., Netlify build settings).'
+    if (process.env.NODE_ENV === 'production') {
+      console.error(msg)
+    } else {
+      console.warn(msg)
     }
-  )
-
-  return root as unknown as PrismaClient
+    throw new Error(msg)
+  }
 }
 
-export const prisma: PrismaClient =
-  process.env.DATABASE_URL && process.env.DATABASE_URL.length > 0
-    ? (globalForPrisma.prisma ?? new PrismaClient({ log: ['query'] }))
-    : (globalForPrisma.prisma ?? createFallbackPrisma())
+function getPrismaClient(): PrismaClient {
+  ensureDatabaseUrl()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+  if (global.prisma) return global.prisma
+
+  const client = new PrismaClient()
+
+  if (process.env.NODE_ENV !== 'production') {
+    global.prisma = client
+  }
+
+  return client
+}
+
+export const prisma = getPrismaClient()
