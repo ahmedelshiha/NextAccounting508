@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
 
     // Create the booking
     const booking = await prisma.booking.create({
-      data: bookingData,
+      data: bookingData as Prisma.BookingUncheckedCreateInput,
       include: {
         client: {
           select: {
