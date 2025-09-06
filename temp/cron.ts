@@ -174,7 +174,7 @@ export async function generateMonthlyReports() {
       }
     })
 
-    const newsletterSubscriptionsCount = await prisma.newsletterSubscription.count({
+    const newsletterSubscriptionsCount = await prisma.newsletter.count({
       where: {
         subscribedAt: {
           gte: startOfMonth,
