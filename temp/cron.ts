@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
+import { BookingStatus } from '@prisma/client'
 
 // Send booking reminders for appointments tomorrow
 export async function sendBookingReminders() {
@@ -249,4 +250,3 @@ export async function runScheduledTasks() {
   console.log('Scheduled tasks completed:', results)
   return results
 }
-
