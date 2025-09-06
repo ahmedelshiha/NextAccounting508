@@ -32,8 +32,25 @@ export function ServicesSection() {
       try {
         const response = await apiFetch('/api/services?featured=true')
         if (response.ok) {
-          const data = await response.json()
-          setServices(data)
+          let data: unknown = null
+          try {
+            data = await response.json()
+          } catch (_) {
+            data = null
+          }
+
+          if (Array.isArray(data)) {
+            setServices(data as Service[])
+          } else if (data && typeof data === 'object' && Array.isArray((data as { services?: unknown }).services)) {
+            setServices(((data as { services: Service[] }).services))
+          } else {
+            setServices([
+              { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
+              { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
+              { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
+              { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true }
+            ])
+          }
         } else {
           // fallback to static featured services when API fails
           setServices([
