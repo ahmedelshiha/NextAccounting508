@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     const where: any = { slug }
 
     // Only show published posts for non-admin users
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       where.published = true
     }
 
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     const { slug } = await context.params
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -144,7 +144,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     const { slug } = await context.params
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
+    if (!session?.user || session.user?.role ?? '' !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
