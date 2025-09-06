@@ -79,10 +79,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Get posts by author
+    // Group posts by author with count, ordered by count desc
     const postsByAuthor = (await prisma.post.groupBy({
       by: ['authorId'],
       _count: { id: true },
-      orderBy: { _count: { id: 'desc' } }
+      orderBy: [{ _count: { id: 'desc' } }]
     })) as Array<{ authorId: string | null; _count: { id: number } }>
 
     // Get author details for the grouped data
