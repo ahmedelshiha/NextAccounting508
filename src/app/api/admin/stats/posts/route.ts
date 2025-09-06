@@ -84,8 +84,9 @@ export async function GET(request: NextRequest) {
     const postsByAuthor = await prisma.post.groupBy({
       by: ['authorId'],
       _count: { id: true },
-      orderBy: [{ _count: { id: 'desc' } }] as Prisma.PostOrderByWithAggregationInput[],
     })
+
+    postsByAuthor.sort((a, b) => b._count.id - a._count.id)
 
     // Get author details for the grouped data
     const authorIds = postsByAuthor.map(item => item.authorId).filter((id): id is string => !!id)
