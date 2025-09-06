@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 
@@ -12,20 +11,10 @@ export default async function PostPage({ params }: Props) {
   // Await params before using properties (Next.js app router requirement)
   const { slug } = await params
 
-  // Try find by slug, fallback to id
-  let post = await prisma.post.findUnique({
-    where: { slug },
-    include: { author: { select: { id: true, name: true, image: true } } }
-  })
-
-  if (!post) {
-    post = await prisma.post.findUnique({
-      where: { id: slug },
-      include: { author: { select: { id: true, name: true, image: true } } }
-    })
-  }
-
-  if (!post) return notFound()
+  const res = await fetch(`/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+  if (!res.ok) return notFound()
+  const post = await res.json()
+  if (!post || post.error) return notFound()
 
   const contentHtml = post.content
     ? post.content
@@ -68,9 +57,10 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  let post = await prisma.post.findUnique({ where: { slug } })
-  if (!post) post = await prisma.post.findUnique({ where: { id: slug } })
-  if (!post) return {}
+  const res = await fetch(`/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+  if (!res.ok) return {}
+  const post = await res.json()
+  if (!post || post.error) return {}
 
   return {
     title: post.seoTitle || post.title,

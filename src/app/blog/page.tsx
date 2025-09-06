@@ -4,25 +4,24 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
 
 export default async function BlogPage() {
-  let featuredPost = null
-  let recentPosts = []
+  let featuredPost: any = null
+  let recentPosts: any[] = []
 
   try {
-    featuredPost = await prisma.post.findFirst({
-      where: { published: true, featured: true },
-      include: { author: { select: { name: true, image: true } } },
-      orderBy: { publishedAt: 'desc' }
-    })
+    const [featuredRes, recentRes] = await Promise.all([
+      fetch('/api/posts?published=true&featured=true&limit=1', { cache: 'no-store' }),
+      fetch('/api/posts?published=true&limit=6', { cache: 'no-store' }),
+    ])
 
-    recentPosts = await prisma.post.findMany({
-      where: { published: true },
-      include: { author: { select: { name: true, image: true } } },
-      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
-      take: 6
-    })
+    const [featuredList, recentList] = await Promise.all([
+      featuredRes.ok ? featuredRes.json() : [],
+      recentRes.ok ? recentRes.json() : [],
+    ])
+
+    featuredPost = Array.isArray(featuredList) && featuredList.length > 0 ? featuredList[0] : null
+    recentPosts = Array.isArray(recentList) ? recentList : []
 
     if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
   } catch (error) {
