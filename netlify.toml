@@ -1,0 +1,91 @@
+# Netlify configuration for Accounting Firm (Next.js 15.5.2 with Turbopack)
+# NOTE: Do not commit secrets. Set DATABASE_URL, NEXTAUTH_SECRET and NEXTAUTH_URL in the Netlify site settings (Environment) UI.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+  # Recommended to disable Next telemetry in CI
+  environment = { NODE_VERSION = "18", NEXT_TELEMETRY_DISABLED = "1" }
+
+# Ensure previews and production use Node 18
+[context.production.environment]
+  NODE_VERSION = "18"
+
+[context.deploy-preview.environment]
+  NODE_VERSION = "18"
+
+[context.branch-deploy.environment]
+  NODE_VERSION = "18"
+
+# Functions configuration (Netlify Functions used by @netlify/plugin-nextjs)
+[functions]
+  # Plugin will place Next serverless functions here
+  directory = ".netlify/functions"
+  node_bundler = "esbuild"
+  # If your server code imports heavy packages like Prisma at build-time, list them here
+  external_node_modules = ["@prisma/client", "prisma"]
+
+# Redirects
+#  - Route Netlify serverless functions for API endpoints
+#  - The Next plugin normally handles routing, but these rules provide safe fallbacks
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = false
+
+# Auth redirects commonly used by next-auth flows (adjust to your domain)
+[[redirects]]
+  from = "/api/auth/callback*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = false
+
+# Catch-all to ensure Next's server function handles dynamic routes (plugin usually handles this)
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/next"
+  status = 200
+  force = false
+
+# Security & CORS headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    X-XSS-Protection = "1; mode=block"
+
+# Build optimization hints
+[build.environment]
+  # Tell Netlify to use the same Node version used locally. Set real values in Netlify UI for secrets.
+  DATABASE_URL = ""
+  NEXTAUTH_SECRET = ""
+  NEXTAUTH_URL = ""
+  # Increase build verbosity if you need to debug (uncomment during troubleshooting)
+  # CI = "true"
+
+# Optional: control caching behaviour for improved rebuild times
+[cache]
+  # Cache node_modules and .next/cache between builds
+  paths = ["node_modules/**", ".next/cache/**"]
+
+# Optional: plugin configuration (the Netlify UI also manages these)
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# NOTES:
+# - Set DATABASE_URL, NEXTAUTH_SECRET and NEXTAUTH_URL in Netlify site settings (Build & deploy -> Environment).
+# - Netlify's Next plugin will automatically handle building and routing. These rules are safe fallbacks.
+# - Avoid committing secrets to the repo. Use the Netlify UI or API to set secrets for production.
