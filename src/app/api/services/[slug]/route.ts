@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 // GET /api/services/[slug] - Get service by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
-    const { slug } = context.params
+    const { slug } = await context.params
     const service = await prisma.service.findUnique({
       where: {
         slug,
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
 
 // PUT /api/services/[slug] - Update service (admin only)
 export async function PUT(request: NextRequest, context: { params: { slug: string } }) {
-  const { slug } = context.params
+  const { slug } = await context.params
   try {
     const body = await request.json()
     
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest, context: { params: { slug: strin
 // DELETE /api/services/[slug] - Delete service (admin only)
 export async function DELETE(request: NextRequest, context: { params: { slug: string } }) {
   try {
-    const { slug } = context.params
+    const { slug } = await context.params
     // Soft delete by setting active to false
     await prisma.service.update({
       where: { slug },
