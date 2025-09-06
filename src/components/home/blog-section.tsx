@@ -2,12 +2,12 @@ import Link from 'next/link'
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 export const revalidate = 60
 
 export async function BlogSection() {
-  const hasDb = !!process.env.DATABASE_URL
+  const hasDb = !!(process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL)
   let posts: Array<{
     id: string
     title: string

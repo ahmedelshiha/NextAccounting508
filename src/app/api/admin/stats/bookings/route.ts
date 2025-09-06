@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { BookingStatus } from '@prisma/client'
 import { sumDecimals } from '@/lib/decimal-utils'
 
@@ -69,32 +69,34 @@ export async function GET(request: NextRequest) {
     const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
 
     // Get revenue statistics
-    const completedBookings = await prisma.booking.findMany({
+    const completedBookings = (await prisma.booking.findMany({
       where: { status: BookingStatus.COMPLETED },
       include: {
         service: {
           select: { price: true }
         }
       }
-    })
+    })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
 
     // Use shared decimal utilities to convert and sum prices
-    const priceValues = completedBookings.map(b => b?.service?.price)
+    const priceValues = completedBookings.map(
+      (b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike
+    )
 
     const totalRevenue = sumDecimals(priceValues)
 
     // Get this month's revenue
     const thisMonthRevenue = sumDecimals(
       completedBookings
-        .filter(booking => booking.createdAt >= startOfMonth)
-        .map(b => b?.service?.price)
+        .filter((booking) => booking.createdAt >= startOfMonth)
+        .map((b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike)
     )
 
     // Get last month's revenue
     const lastMonthRevenue = sumDecimals(
       completedBookings
-        .filter(booking => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
-        .map(b => b?.service?.price)
+        .filter((booking) => booking.createdAt >= startOfLastMonth && booking.createdAt <= endOfLastMonth)
+        .map((b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike)
     )
 
     const revenueGrowth = lastMonthRevenue > 0 ?

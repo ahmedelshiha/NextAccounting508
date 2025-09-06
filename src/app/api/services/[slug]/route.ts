@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 // GET /api/services/[slug] - Get service by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {

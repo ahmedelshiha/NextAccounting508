@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole, BookingStatus } from '@prisma/client'
-import { prisma } from '../src/lib/prisma'
+import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 async function main() {
@@ -454,7 +454,7 @@ main()
   .then(async () => {
     await prisma.$disconnect()
   })
-  .catch(async (e) => {
+  .catch(async (e: unknown) => {
     console.error(e)
     await prisma.$disconnect()
     process.exit(1)

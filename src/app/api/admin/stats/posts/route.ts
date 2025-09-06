@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 // GET /api/admin/stats/posts - Get blog post statistics
 export async function GET(request: NextRequest) {
@@ -79,21 +79,17 @@ export async function GET(request: NextRequest) {
     })
 
     // Get posts by author
+    // Group posts by author with count, ordered by count desc (cast orderBy for Prisma v6)
     const postsByAuthor = await prisma.post.groupBy({
       by: ['authorId'],
-      _count: {
-        id: true
-      },
-      orderBy: {
-        _count: {
-          id: 'desc'
-        }
-      }
+      _count: { id: true },
     })
 
+    postsByAuthor.sort((a, b) => b._count.id - a._count.id)
+
     // Get author details for the grouped data
-    const authorIds = postsByAuthor.map(item => item.authorId)
-    const authors = await prisma.user.findMany({
+    const authorIds = postsByAuthor.map(item => item.authorId).filter((id): id is string => !!id)
+    const authors = (await prisma.user.findMany({
       where: {
         id: {
           in: authorIds
@@ -104,7 +100,7 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true
       }
-    })
+    })) as Array<{ id: string; name: string | null; email: string }>
 
     const postsByAuthorWithDetails = postsByAuthor.map(item => {
       const author = authors.find(a => a.id === item.authorId)
@@ -137,14 +133,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get posts by category/tags (if you have categories)
-    const postsByCategory = await prisma.post.findMany({
-      where: {
-        published: true
-      },
-      select: {
-        tags: true
-      }
-    })
+    const postsByCategory = (await prisma.post.findMany({
+      where: { published: true },
+      select: { tags: true }
+    })) as Array<{ tags: string[] | null }>
 
     // Count posts by tag
     const tagCounts: Record<string, number> = {}

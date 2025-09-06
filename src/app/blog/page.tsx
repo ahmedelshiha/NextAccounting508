@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 export const revalidate = 60
 
@@ -27,7 +27,7 @@ export default async function BlogPage() {
   let featuredPost: BlogPost | null = null
   let recentPosts: BlogPost[] = []
 
-  const hasDb = !!process.env.DATABASE_URL
+  const hasDb = !!(process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL)
 
   if (hasDb) {
     try {

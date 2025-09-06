@@ -1,17 +1,41 @@
 import { PrismaClient } from "@prisma/client";
 
-let dbUrl = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL;
-
-if (!dbUrl) {
-  throw new Error("❌ DATABASE_URL is not set. Check Netlify environment variables.");
+declare global {
+  var __prisma__: PrismaClient | undefined;
 }
 
-if (dbUrl.startsWith("neon://")) {
+let dbUrl = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL || "";
+
+if (dbUrl && dbUrl.startsWith("neon://")) {
   dbUrl = dbUrl.replace("neon://", "postgresql://");
 }
 
-const prisma = new PrismaClient({
-  datasources: { db: { url: dbUrl } },
-});
+function createClient(url: string) {
+  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+}
+
+// Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
+const prisma: PrismaClient = (() => {
+  if (typeof global !== "undefined" && global.__prisma__) return global.__prisma__;
+
+  const client = dbUrl
+    ? createClient(dbUrl)
+    : (new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(
+              "Database is not configured. Set DATABASE_URL or NETLIFY_DATABASE_URL to enable DB features."
+            );
+          },
+        }
+      ) as unknown as PrismaClient);
+
+  if (process.env.NODE_ENV !== "production") {
+    global.__prisma__ = client;
+  }
+
+  return client;
+})();
 
 export default prisma;
