@@ -97,7 +97,7 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (selectedDate) {
-      setTimeSlots(generateTimeSlots(selectedDate))
+      setTimeSlots(generateTimeSlots())
     }
   }, [selectedDate])
 
