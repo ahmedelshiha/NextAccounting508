@@ -69,14 +69,14 @@ export async function GET(request: NextRequest) {
     const growth = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : 0
 
     // Get revenue statistics
-    const completedBookings = await prisma.booking.findMany({
+    const completedBookings = (await prisma.booking.findMany({
       where: { status: BookingStatus.COMPLETED },
       include: {
         service: {
           select: { price: true }
         }
       }
-    })
+    })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
 
     // Use shared decimal utilities to convert and sum prices
     const priceValues = completedBookings.map(b => b?.service?.price)
