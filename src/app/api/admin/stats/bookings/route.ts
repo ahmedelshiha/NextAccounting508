@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { decimalToNumber, sumDecimals, formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 // GET /api/admin/stats/bookings - Get booking statistics
 export async function GET(request: NextRequest) {
