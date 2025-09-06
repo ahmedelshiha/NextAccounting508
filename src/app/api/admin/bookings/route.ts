@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If clientId is provided, use existing client
-    const bookingData: Prisma.BookingCreateInput = {
+    const bookingData: Prisma.BookingUncheckedCreateInput = {
       serviceId,
       scheduledAt: new Date(scheduledAt),
       duration,
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       }
 
       bookingData.clientId = clientId
-      bookingData.clientName = client.name
+      bookingData.clientName = client.name ?? ''
       bookingData.clientEmail = client.email
     } else {
       // Create booking without registered client
