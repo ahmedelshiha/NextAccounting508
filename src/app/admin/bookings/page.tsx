@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { 
   Calendar,
