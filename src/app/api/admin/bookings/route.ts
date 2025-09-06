@@ -245,8 +245,7 @@ export async function PATCH(request: NextRequest) {
       case 'confirm':
         updateData = {
           status: 'CONFIRMED',
-          confirmed: true,
-          confirmedAt: new Date()
+          confirmed: true
         }
         break
       
