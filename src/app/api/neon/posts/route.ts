@@ -34,15 +34,15 @@ export async function GET(request: NextRequest) {
     const published = publishedParam === null ? null : publishedParam === 'true'
     const featured = featuredParam === null ? null : featuredParam === 'true'
 
-    let rows: PostRow[] = []
+    let rows: PostRow[] = [] as PostRow[]
     if (published !== null && featured !== null) {
-      rows = await sql<PostRow[]>`SELECT * FROM "Post" WHERE published = ${published} AND featured = ${featured} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`
+      rows = (await sql`SELECT * FROM "Post" WHERE published = ${published} AND featured = ${featured} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`) as unknown as PostRow[]
     } else if (published !== null) {
-      rows = await sql<PostRow[]>`SELECT * FROM "Post" WHERE published = ${published} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`
+      rows = (await sql`SELECT * FROM "Post" WHERE published = ${published} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`) as unknown as PostRow[]
     } else if (featured !== null) {
-      rows = await sql<PostRow[]>`SELECT * FROM "Post" WHERE featured = ${featured} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`
+      rows = (await sql`SELECT * FROM "Post" WHERE featured = ${featured} ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`) as unknown as PostRow[]
     } else {
-      rows = await sql<PostRow[]>`SELECT * FROM "Post" ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`
+      rows = (await sql`SELECT * FROM "Post" ORDER BY "publishedAt" DESC NULLS LAST LIMIT ${limit}`) as unknown as PostRow[]
     }
 
     return NextResponse.json(rows)
