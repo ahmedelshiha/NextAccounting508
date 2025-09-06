@@ -2,7 +2,7 @@ import { withAuth } from 'next-auth/middleware'
 import { NextResponse } from 'next/server'
 
 export default withAuth(
-  function middleware(req) {
+  function middleware(req: any) {
     const token = req.nextauth.token
     const isAuth = !!token
     const isAuthPage = req.nextUrl.pathname.startsWith('/login') || 
@@ -40,10 +40,10 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
+      authorized: ({ token, req }: { token: any; req: any }) => {
         // Allow access to public routes
         const publicRoutes = ['/', '/about', '/services', '/blog', '/contact', '/booking']
-        const isPublicRoute = publicRoutes.some(route => 
+        const isPublicRoute = publicRoutes.some((route) => 
           req.nextUrl.pathname === route || 
           req.nextUrl.pathname.startsWith('/services/') ||
           req.nextUrl.pathname.startsWith('/blog/')
