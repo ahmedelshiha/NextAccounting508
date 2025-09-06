@@ -40,7 +40,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }: { token: any; req: any }) => {
+      authorized: ({ token, req }: { token: { role?: string } | null; req: NextRequest }) => {
         // Allow access to public routes
         const publicRoutes = ['/', '/about', '/services', '/blog', '/contact', '/booking']
         const isPublicRoute = publicRoutes.some((route) => 
