@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { email, name, source } = validatedData
 
     // Check if email is already subscribed
-    const existingSubscription = await prisma.newsletterSubscription.findUnique({
+    const existingSubscription = await prisma.newsletter.findUnique({
       where: { email }
     })
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         )
       } else {
         // Reactivate subscription
-        await prisma.newsletterSubscription.update({
+        await prisma.newsletter.update({
           where: { email },
           data: {
             active: true,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Create new subscription
-      await prisma.newsletterSubscription.create({
+      await prisma.newsletter.create({
         data: {
           email,
           name,
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
       where.active = active === 'true'
     }
 
-    const subscriptions = await prisma.newsletterSubscription.findMany({
+    const subscriptions = await prisma.newsletter.findMany({
       where,
       orderBy: {
         subscribedAt: 'desc'
@@ -147,12 +147,12 @@ export async function GET(request: NextRequest) {
       skip: skip ? parseInt(skip) : undefined
     })
 
-    const total = await prisma.newsletterSubscription.count({ where })
+    const total = await prisma.newsletter.count({ where })
 
     return NextResponse.json({
       subscriptions,
       total,
-      active: await prisma.newsletterSubscription.count({
+      active: await prisma.newsletter.count({
         where: { active: true }
       })
     })
