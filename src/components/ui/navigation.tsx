@@ -77,7 +77,7 @@ export function Navigation() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
-                      <span>{session.user.name || session.user.email}</span>
+                      <span>{session?.user?.name || session?.user?.email}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -222,4 +222,3 @@ export function Navigation() {
     </header>
   )
 }
-
