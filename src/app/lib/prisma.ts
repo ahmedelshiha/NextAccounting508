@@ -6,7 +6,6 @@ if (!dbUrl) {
   throw new Error("❌ DATABASE_URL is not set. Check Netlify environment variables.");
 }
 
-// Normalize Neon’s URL (neon:// → postgresql://)
 if (dbUrl.startsWith("neon://")) {
   dbUrl = dbUrl.replace("neon://", "postgresql://");
 }
