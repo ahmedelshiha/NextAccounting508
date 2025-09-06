@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     // If clientId is provided, use existing client
-    const bookingData: Prisma.BookingUncheckedCreateInput = {
+    const bookingData: Partial<Prisma.BookingUncheckedCreateInput> = {
       serviceId,
       scheduledAt: new Date(scheduledAt),
       duration,
