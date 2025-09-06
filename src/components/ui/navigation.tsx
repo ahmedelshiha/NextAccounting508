@@ -161,7 +161,7 @@ export function Navigation() {
                 {session ? (
                   <div className="space-y-2">
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      Signed in as {session.user.name || session.user.email}
+                      Signed in as {session?.user?.name || session?.user?.email}
                     </div>
                     <Link
                       href="/portal"
