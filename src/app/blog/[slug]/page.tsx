@@ -19,7 +19,7 @@ export default async function PostPage({ params }: Props) {
   const contentHtml = post.content
     ? post.content
         .split('\n\n')
-        .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+        .map((p: string) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
         .join('')
     : ''
 
