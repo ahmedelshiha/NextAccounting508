@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Test email error:', error)
     return NextResponse.json(
-      { error: 'Failed to send test email', details: error.message },
+      { error: 'Failed to send test email', details: (error as Error).message },
       { status: 500 }
     )
   }
