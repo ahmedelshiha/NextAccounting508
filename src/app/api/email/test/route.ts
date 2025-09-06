@@ -111,10 +111,11 @@ export async function POST(request: NextRequest) {
         )
     }
 
+    const mockFlag = !!(result && typeof (result as any) === 'object' && 'mock' in (result as any) && (result as any).mock)
     return NextResponse.json({
       message: `Test email sent successfully to ${email}`,
       type,
-      result: result.mock ? 'Email logged to console (no SendGrid configured)' : 'Email sent via SendGrid'
+      result: mockFlag ? 'Email logged to console (no SendGrid configured)' : 'Email sent via SendGrid'
     })
   } catch (error) {
     console.error('Test email error:', error)
