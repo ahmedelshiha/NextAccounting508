@@ -1,1 +1,1 @@
-export { prisma } from '@/lib/prisma'
+export { prisma, ensureDatabaseUrl } from '@/lib/prisma'
