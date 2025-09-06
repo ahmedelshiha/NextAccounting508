@@ -79,17 +79,11 @@ export async function GET(request: NextRequest) {
     })
 
     // Get posts by author
-    const postsByAuthor = await prisma.post.groupBy({
+    const postsByAuthor = (await prisma.post.groupBy({
       by: ['authorId'],
-      _count: {
-        id: true
-      },
-      orderBy: {
-        _count: {
-          id: 'desc'
-        }
-      }
-    })
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } }
+    })) as Array<{ authorId: string | null; _count: { id: number } }>
 
     // Get author details for the grouped data
     const authorIds = postsByAuthor.map(item => item.authorId)
@@ -137,14 +131,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get posts by category/tags (if you have categories)
-    const postsByCategory = await prisma.post.findMany({
-      where: {
-        published: true
-      },
-      select: {
-        tags: true
-      }
-    })
+    const postsByCategory = (await prisma.post.findMany({
+      where: { published: true },
+      select: { tags: true }
+    })) as Array<{ tags: string[] | null }>
 
     // Count posts by tag
     const tagCounts: Record<string, number> = {}
