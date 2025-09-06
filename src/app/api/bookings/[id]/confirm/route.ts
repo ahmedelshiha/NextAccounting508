@@ -7,10 +7,10 @@ import { sendBookingConfirmation } from '@/lib/email'
 // POST /api/bookings/[id]/confirm - Confirm booking and send email
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params
+    const { id } = await context.params
     const session = await getServerSession(authOptions)
 
     if (!session?.user) {
