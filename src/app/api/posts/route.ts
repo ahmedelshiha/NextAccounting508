@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         seoDescription,
         tags,
         readTime: readTime ? parseInt(readTime) : null,
-        authorId: session.user.id,
+        authorId: session?.user?.id,
         publishedAt: published ? new Date() : null
       },
       include: {
