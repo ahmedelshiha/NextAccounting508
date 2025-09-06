@@ -292,7 +292,7 @@ export default function AdminBookingsPage() {
                     {formatCurrency(
                       bookings
                         .filter(b => b.status === 'COMPLETED')
-                        .reduce((sum, b) => sum + (b.service.price || 0), 0)
+                        .reduce((sum, b) => sum + (b.service?.price ? Number(b.service.price.toString()) : 0), 0)
                     )}
                   </p>
                 </div>
@@ -409,7 +409,7 @@ export default function AdminBookingsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {booking.service.price ? formatCurrency(booking.service.price) : '-'}
+                        {booking.service?.price ? formatCurrency(Number(booking.service.price.toString())) : '-'}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
