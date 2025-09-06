@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Check permissions - clients can only see their own bookings
-    if (session.user.role === 'CLIENT' && booking.clientId !== session.user.id) {
+    if (session?.user?.role === 'CLIENT' && booking.clientId !== session?.user?.id) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
