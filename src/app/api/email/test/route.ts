@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendEmail, sendBookingConfirmation, sendBookingReminder } from '@/lib/email'
