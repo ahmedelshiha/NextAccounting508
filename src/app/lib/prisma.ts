@@ -1,8 +1,18 @@
-export { prisma } from '@/lib/prisma'
+import { PrismaClient } from "@prisma/client";
 
-export function ensureDatabaseUrl() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('❌ DATABASE_URL is not set. Define it in Netlify environment variables.')
-  }
-  return process.env.DATABASE_URL
+let dbUrl = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL;
+
+if (!dbUrl) {
+  throw new Error("❌ DATABASE_URL is not set. Check Netlify env.");
 }
+
+// Fix Neon’s URL scheme if needed
+if (dbUrl.startsWith("neon://")) {
+  dbUrl = dbUrl.replace("neon://", "postgresql://");
+}
+
+const prisma = new PrismaClient({
+  datasources: { db: { url: dbUrl } },
+});
+
+export default prisma;
