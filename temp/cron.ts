@@ -124,7 +124,7 @@ export async function updateBookingStatuses() {
         status: 'CONFIRMED'
       },
       data: {
-        status: 'COMPLETED'
+        status: BookingStatus.COMPLETED
       }
     })
 
