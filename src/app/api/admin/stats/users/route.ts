@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get users with most bookings
-    const topUsers = await prisma.user.findMany({
+    const topUsers = (await prisma.user.findMany({
       where: {
         role: 'CLIENT'
       },
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         }
       },
       take: 5
-    })
+    })) as Array<import('@prisma/client').User & { _count: { bookings: number } }>
 
     return NextResponse.json({
       total,
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       growth: Math.round(growth * 100) / 100,
       activeUsers: usersWithRecentBookings,
       registrationTrends,
-      topUsers: topUsers.map(user => ({
+      topUsers: topUsers.map((user) => ({
         id: user.id,
         name: user.name,
         email: user.email,
