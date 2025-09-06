@@ -79,7 +79,9 @@ export async function GET(request: NextRequest) {
     })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
 
     // Use shared decimal utilities to convert and sum prices
-    const priceValues = completedBookings.map(b => b?.service?.price)
+    const priceValues = completedBookings.map(
+      (b) => b?.service?.price as import('@/lib/decimal-utils').DecimalLike
+    )
 
     const totalRevenue = sumDecimals(priceValues)
 
