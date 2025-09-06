@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, User, Search, TrendingUp, FileText, Calculator } from 'lucide-react'
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+
+export const revalidate = 60
 
 type BlogPost = {
   id: string
@@ -25,18 +28,22 @@ export default async function BlogPage() {
   let recentPosts: BlogPost[] = []
 
   try {
-    const [featuredRes, recentRes] = await Promise.all([
-      fetch('/api/posts?published=true&featured=true&limit=1', { cache: 'no-store' }),
-      fetch('/api/posts?published=true&limit=6', { cache: 'no-store' }),
+    const [featured, recents] = await Promise.all([
+      prisma.post.findFirst({
+        where: { published: true, featured: true },
+        include: { author: { select: { name: true, image: true } } },
+        orderBy: { publishedAt: 'desc' },
+      }),
+      prisma.post.findMany({
+        where: { published: true },
+        include: { author: { select: { name: true, image: true } } },
+        orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+        take: 6,
+      }),
     ])
 
-    const [featuredList, recentList] = await Promise.all([
-      featuredRes.ok ? featuredRes.json() : [],
-      recentRes.ok ? recentRes.json() : [],
-    ])
-
-    featuredPost = Array.isArray(featuredList) && featuredList.length > 0 ? featuredList[0] : null
-    recentPosts = Array.isArray(recentList) ? recentList : []
+    featuredPost = (featured ?? null) as unknown as BlogPost | null
+    recentPosts = recents as unknown as BlogPost[]
 
     if (!featuredPost && recentPosts.length > 0) featuredPost = recentPosts[0]
   } catch (error) {
@@ -122,7 +129,7 @@ export default async function BlogPage() {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{featuredPost?.publishedAt ? new Date(featuredPost.publishedAt).toLocaleDateString() : ''}</span>
+                      <span>{featuredPost?.publishedAt ? new Date(featuredPost.publishedAt as unknown as string | Date).toLocaleDateString() : ''}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
