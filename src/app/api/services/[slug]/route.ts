@@ -30,7 +30,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
 }
 
 // PUT /api/services/[slug] - Update service (admin only)
-export async function PUT(request: NextRequest, context: { params: { slug: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params
   try {
     const body = await request.json()
@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest, context: { params: { slug: strin
 }
 
 // DELETE /api/services/[slug] - Delete service (admin only)
-export async function DELETE(request: NextRequest, context: { params: { slug: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params
     // Soft delete by setting active to false
