@@ -92,7 +92,7 @@ export async function POST(
         clientEmail: updatedBooking.clientEmail,
         service: {
           name: updatedBooking.service.name,
-          price: updatedBooking.service.price
+          price: updatedBooking.service.price ? Number(updatedBooking.service.price) : 0
         }
       })
     } catch (emailError) {

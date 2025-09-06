@@ -144,7 +144,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     const { slug } = await context.params
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || session.user?.role ?? '' !== 'ADMIN') {
+    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

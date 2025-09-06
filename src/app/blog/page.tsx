@@ -99,6 +99,7 @@ export default async function BlogPage() {
                 <div className="aspect-video bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
                   <FileText className="h-16 w-16 text-white" />
                 </div>
+{featuredPost && (
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
                     <div className="flex items-center space-x-1">
@@ -107,32 +108,33 @@ export default async function BlogPage() {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(featuredPost.publishedAt).toLocaleDateString()}</span>
+                      <span>{featuredPost?.publishedAt ? new Date(featuredPost.publishedAt).toLocaleDateString() : ''}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
-                      <span>{featuredPost.readTime} min read</span>
+                      <span>{featuredPost?.readTime ?? 0} min read</span>
                     </div>
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                    {featuredPost.title}
+                    {featuredPost?.title}
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    {featuredPost.excerpt}
+                    {featuredPost?.excerpt}
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-2">
-                      {featuredPost.tags.map((tag) => (
+                      {featuredPost?.tags?.map((tag) => (
                         <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
                       ))}
                     </div>
                     <Button asChild>
-                      <Link href={`/blog/${featuredPost.slug}`}>Read More</Link>
+                      <Link href={`/blog/${featuredPost?.slug}`}>Read More</Link>
                     </Button>
                   </div>
                 </CardContent>
+              )}
               </Card>
             </div>
 

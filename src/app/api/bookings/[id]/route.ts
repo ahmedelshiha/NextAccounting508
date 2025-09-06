@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
-      if (status) updateData.status = status as unknown as BookingStatus
+      if (status) updateData.status = status as BookingStatus
       if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt)
       if (adminNotes !== undefined) updateData.adminNotes = adminNotes
       if (confirmed !== undefined) updateData.confirmed = confirmed

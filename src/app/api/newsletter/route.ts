@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingSubscription) {
-      if (existingSubscription.active) {
+      if (existingSubscription.subscribed) {
         return NextResponse.json(
           { message: 'Email is already subscribed to our newsletter' },
           { status: 200 }
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
         await prisma.newsletter.update({
           where: { email },
           data: {
-            active: true,
-            subscribedAt: new Date(),
+            subscribed: true,
+            updatedAt: new Date(),
             source
           }
         })
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
           email,
           name,
           source,
-          active: true
+          subscribed: true
         }
       })
     }
@@ -127,21 +127,21 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const active = searchParams.get('active')
+    const subscribed = searchParams.get('subscribed')
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {}
-    
-    if (active !== null) {
-      where.active = active === 'true'
+
+    if (subscribed !== null) {
+      where.subscribed = subscribed === 'true'
     }
 
     const subscriptions = await prisma.newsletter.findMany({
       where,
       orderBy: {
-        subscribedAt: 'desc'
+        createdAt: 'desc'
       },
       take: limit ? parseInt(limit) : undefined,
       skip: skip ? parseInt(skip) : undefined
@@ -152,8 +152,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       subscriptions,
       total,
-      active: await prisma.newsletter.count({
-        where: { active: true }
+      subscribed: await prisma.newsletter.count({
+        where: { subscribed: true }
       })
     })
   } catch (error) {
