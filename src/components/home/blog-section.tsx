@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { prisma } from '@/lib/prisma'
 
 interface Post {
   id: string
@@ -18,40 +17,32 @@ interface Post {
   }
 }
 
-export async function BlogSection() {
-  let posts: Post[] = []
-
+async function getPosts(): Promise<Post[]> {
   try {
-    const dbPosts = await prisma.post.findMany({
-      where: { published: true },
-      include: { author: { select: { name: true, image: true } } },
-      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
-      take: 3
-    })
+    const res = await fetch('/api/posts?published=true&limit=3', { cache: 'no-store' })
+    if (!res.ok) throw new Error('Failed to fetch posts')
+    const data = await res.json()
+    if (!Array.isArray(data)) return []
+    return data.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt || '',
+      publishedAt: p.publishedAt || p.createdAt,
+      readTime: p.readTime ?? null,
+      tags: p.tags || [],
+      author: { name: p.author?.name || 'Author', image: p.author?.image || undefined },
+    })) as Post[]
+  } catch (err) {
+    console.error('Error fetching posts:', err)
+    return []
+  }
+}
 
-    const list = Array.isArray(dbPosts) ? dbPosts : []
+export async function BlogSection() {
+  let posts: Post[] = await getPosts()
 
-    if (list.length === 0) {
-      posts = [
-        { id: '1', title: '2024 Tax Planning Strategies for Small Businesses', slug: '2024-tax-planning', excerpt: 'Discover essential tax planning strategies...', publishedAt: '2024-01-15', readTime: 8, tags: ['Tax Planning','Small Business'], author: { name: 'Sarah Johnson' } },
-        { id: '2', title: 'Understanding QuickBooks: A Complete Guide', slug: 'quickbooks-guide', excerpt: 'Master the basics of QuickBooks...', publishedAt: '2024-01-10', readTime: 6, tags: ['QuickBooks'], author: { name: 'Emily Rodriguez' } },
-        { id: '3', title: 'Year-End Financial Checklist for Business Owners', slug: 'year-end-checklist', excerpt: 'Ensure your business is ready for year-end...', publishedAt: '2024-01-05', readTime: 5, tags: ['Year-End'], author: { name: 'Michael Chen' } }
-      ]
-    } else {
-      posts = list.map((p) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        excerpt: p.excerpt || '',
-        publishedAt: p.publishedAt ? p.publishedAt.toISOString() : p.createdAt.toISOString(),
-        readTime: p.readTime ?? null,
-        tags: p.tags || [],
-        author: { name: p.author?.name || 'Author', image: p.author?.image || undefined }
-      }))
-    }
-  } catch (error) {
-    console.error('Error fetching posts on server:', error)
-    // Fallback static posts
+  if (posts.length === 0) {
     posts = [
       { id: '1', title: '2024 Tax Planning Strategies for Small Businesses', slug: '2024-tax-planning', excerpt: 'Discover essential tax planning strategies...', publishedAt: '2024-01-15', readTime: 8, tags: ['Tax Planning','Small Business'], author: { name: 'Sarah Johnson' } },
       { id: '2', title: 'Understanding QuickBooks: A Complete Guide', slug: 'quickbooks-guide', excerpt: 'Master the basics of QuickBooks...', publishedAt: '2024-01-10', readTime: 6, tags: ['QuickBooks'], author: { name: 'Emily Rodriguez' } },
