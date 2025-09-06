@@ -87,7 +87,7 @@ export function Navigation() {
                         My Bookings
                       </Link>
                     </DropdownMenuItem>
-                    {(session.user.role === 'ADMIN' || session.user.role === 'STAFF') && (
+                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
@@ -170,7 +170,7 @@ export function Navigation() {
                     >
                       My Bookings
                     </Link>
-                    {(session.user.role === 'ADMIN' || session.user.role === 'STAFF') && (
+                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <Link
                         href="/admin"
                         className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
