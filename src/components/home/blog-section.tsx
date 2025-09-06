@@ -7,12 +7,8 @@ import { prisma } from '@/lib/prisma'
 export const revalidate = 60
 
 export async function BlogSection() {
-  let posts = await prisma.post.findMany({
-    where: { published: true, featured: true },
-    include: { author: { select: { name: true, image: true } } },
-    orderBy: { createdAt: 'desc' },
-    take: 3,
-  }) as Array<{
+  const hasDb = !!process.env.DATABASE_URL
+  let posts: Array<{
     id: string
     title: string
     slug: string
@@ -22,7 +18,28 @@ export async function BlogSection() {
     readTime: number | null
     tags: string[]
     author: { name: string | null; image: string | null } | null
-  }>
+  }> = []
+
+  if (hasDb) {
+    try {
+      posts = (await prisma.post.findMany({
+        where: { published: true, featured: true },
+        include: { author: { select: { name: true, image: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+      })) as Array<{
+        id: string
+        title: string
+        slug: string
+        excerpt: string | null
+        publishedAt: Date | null
+        createdAt: Date
+        readTime: number | null
+        tags: string[]
+        author: { name: string | null; image: string | null } | null
+      }>
+    } catch {}
+  }
 
   if (posts.length === 0) {
     posts = [
