@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // If user is CLIENT, only show their bookings
     if (session?.user?.role === 'CLIENT') {
-      where.clientId = session.user.id
+      where.clientId = session?.user?.id
     }
     // If user is ADMIN or STAFF, they can see all bookings or filter by userId
     else if (userId) {
