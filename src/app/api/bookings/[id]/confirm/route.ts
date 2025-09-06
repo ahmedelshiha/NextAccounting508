@@ -21,7 +21,7 @@ export async function POST(
     }
 
     // Only admin/staff can confirm bookings
-    if (!['ADMIN', 'STAFF'].includes(session.user.role)) {
+    if (!['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
