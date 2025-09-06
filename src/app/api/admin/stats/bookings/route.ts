@@ -78,8 +78,6 @@ export async function GET(request: NextRequest) {
     })
 
     // Use shared decimal utilities to convert and sum prices
-    import { decimalToNumber as _decimalToNumber, sumDecimals } from '@/lib/decimal-utils'
-
     const priceValues = completedBookings.map(b => b?.service?.price)
 
     const totalRevenue = sumDecimals(priceValues)
