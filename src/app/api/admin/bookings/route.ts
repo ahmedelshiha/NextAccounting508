@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
     const where: any = {}
 
     if (status && status !== 'all') {
-      where.status = status
+      // Cast incoming status string to BookingStatus enum
+      where.status = status as unknown as BookingStatus
     }
 
     if (search) {
