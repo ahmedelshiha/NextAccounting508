@@ -162,7 +162,7 @@ export default function AdminBookingsPage() {
     const matchesSearch =
       booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service?.name?.toLowerCase().includes(searchTerm.toLowerCase()) === true
+      (booking.service?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
 
