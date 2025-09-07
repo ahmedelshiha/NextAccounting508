@@ -171,7 +171,7 @@ export async function BlogSection() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+              className="flex-1 px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white shadow"
             />
             <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8">
               Subscribe
