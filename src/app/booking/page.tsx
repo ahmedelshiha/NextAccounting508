@@ -68,14 +68,17 @@ export default function BookingPage() {
       try {
         const res = await apiFetch('/api/services')
         if (res.ok) {
-          const data = await res.json()
-          const mapped: Service[] = data.map((s: any) => ({
-            id: s.id,
-            name: s.name,
-            description: s.shortDesc || s.description,
-            price: s.price ?? 0,
-            duration: s.duration ?? 60,
-          }))
+          type ApiService = { id: string; name: string; shortDesc?: string | null; description: string; price?: number | null; duration?: number | null }
+          const data = (await res.json()) as ApiService[]
+          const mapped: Service[] = Array.isArray(data)
+            ? data.map((s) => ({
+                id: s.id,
+                name: s.name,
+                description: s.shortDesc || s.description,
+                price: s.price ?? 0,
+                duration: s.duration ?? 60,
+              }))
+            : []
           setServices(mapped)
         } else {
           setServices(sampleServices)
@@ -93,8 +96,13 @@ export default function BookingPage() {
       try {
         const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1`)
         if (res.ok) {
-          const data = await res.json()
-          const slots: TimeSlot[] = (data[0]?.slots || []).map((s: any) => ({ time: new Date(s.start).toTimeString().slice(0,5), available: s.available !== false }))
+          type AvailabilityDay = { date: string; slots: { start: string; available?: boolean }[] }
+          const data = (await res.json()) as AvailabilityDay[]
+          const day = Array.isArray(data) ? data[0] : undefined
+          const slots: TimeSlot[] = (day?.slots || []).map((s) => ({
+            time: new Date(s.start).toTimeString().slice(0, 5),
+            available: s.available !== false,
+          }))
           setTimeSlots(slots)
           return
         }
