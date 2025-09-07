@@ -85,7 +85,12 @@ export default function AdminBookingsPage() {
       const response = await apiFetch('/api/admin/bookings')
       if (response.ok) {
         const data = await response.json()
-        setBookings(data)
+        const items = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.bookings)
+          ? data.bookings
+          : []
+        setBookings(items)
       }
     } catch (error) {
       console.error('Error fetching bookings:', error)
