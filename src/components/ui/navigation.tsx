@@ -36,6 +36,7 @@ export function Navigation() {
 
   return (
     <header className="bg-white shadow-sm border-b">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -126,12 +127,15 @@ export function Navigation() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6" aria-hidden />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6" aria-hidden />
               )}
             </Button>
           </div>
@@ -139,7 +143,7 @@ export function Navigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
+          <div id="mobile-navigation" className="md:hidden" role="region" aria-label="Mobile navigation">
             <div className="space-y-1 pb-3 pt-2">
               {navigation.map((item) => (
                 <Link
