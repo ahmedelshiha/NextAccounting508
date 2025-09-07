@@ -13,34 +13,68 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
 
-const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Services', href: '/services' },
-  { name: 'Blog', href: '/blog' },
-  { name: 'Contact', href: '/contact' },
-]
+const navData: Record<string, { navigation: { name: string; href: string }[]; cta: string; signIn: string }> = {
+  EN: {
+    navigation: [
+      { name: 'Home', href: '/en/' },
+      { name: 'About', href: '/en/about' },
+      { name: 'Services', href: '/en/services' },
+      { name: 'Blog', href: '/en/blog' },
+      { name: 'Contact', href: '/en/contact' },
+    ],
+    cta: 'Book Consultation',
+    signIn: 'Sign In',
+  },
+  AR: {
+    navigation: [
+      { name: 'الرئيسية', href: '/ar/' },
+      { name: 'حول', href: '/ar/about' },
+      { name: 'الخدمات', href: '/ar/services' },
+      { name: 'المدونة', href: '/ar/blog' },
+      { name: 'اتصل بنا', href: '/ar/contact' },
+    ],
+    cta: 'احجز استشارة',
+    signIn: 'تسجيل الدخول',
+  },
+  HI: {
+    navigation: [
+      { name: 'होम', href: '/hi/' },
+      { name: 'हमारे बारे में', href: '/hi/about' },
+      { name: 'सेवाएं', href: '/hi/services' },
+      { name: 'ब्लॉग', href: '/hi/blog' },
+      { name: 'संपर्क', href: '/hi/contact' },
+    ],
+    cta: 'परामर्श बुक करें',
+    signIn: 'साइन इन',
+  },
+}
 
-export function Navigation() {
+export function Navigation({ locale = 'EN' }: { locale?: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const pathname = usePathname()
+  const pathname = usePathname() || '/'
   const { data: session, status } = useSession()
 
+  const data = navData[locale] || navData.EN
+
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/'
+    if (href === '/en/' || href === '/ar/' || href === '/hi/') {
+      return pathname === href || pathname === href.replace(/\/$/, '')
     }
-    return pathname.startsWith(href)
+    return pathname.startsWith(href.replace(/\/$/, ''))
   }
+
+  const desktopNavClasses = locale === 'AR' ? 'hidden md:flex md:items-center md:space-x-8 md:flex-row-reverse' : 'hidden md:flex md:items-center md:space-x-8'
+  const authGroupClasses = locale === 'AR' ? 'hidden md:flex md:items-center md:space-x-4 md:flex-row-reverse' : 'hidden md:flex md:items-center md:space-x-4'
 
   return (
     <header className="bg-white shadow-sm border-b">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
+          <div className={locale === 'AR' ? 'flex items-center space-x-0 md:flex-row-reverse' : 'flex items-center'}>
+            <Link href={data.navigation[0].href} className={locale === 'AR' ? 'flex items-center space-x-2 md:flex-row-reverse' : 'flex items-center space-x-2'}>
               <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AF</span>
               </div>
@@ -51,8 +85,8 @@ export function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
-            {navigation.map((item) => (
+          <div className={desktopNavClasses}>
+            {data.navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -68,11 +102,12 @@ export function Navigation() {
           </div>
 
           {/* Desktop Auth & CTA */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          <div className={authGroupClasses}>
+            <LanguageSwitcher />
             {status === 'loading' ? (
               <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
             ) : session ? (
-              <div className="flex items-center space-x-4">
+              <div className={locale === 'AR' ? 'flex items-center space-x-4 md:flex-row-reverse' : 'flex items-center space-x-4'}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2">
@@ -82,16 +117,16 @@ export function Navigation() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem asChild>
-                      <Link href="/portal" className="flex items-center">
+                      <Link href={`/${locale.toLowerCase()}/portal`} className="flex items-center">
                         <Calendar className="mr-2 h-4 w-4" />
-                        My Bookings
+                        {locale === 'AR' ? 'حجوزاتي' : locale === 'HI' ? 'मेरी बुकिंग' : 'My Bookings'}
                       </Link>
                     </DropdownMenuItem>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <DropdownMenuItem asChild>
-                        <Link href="/admin" className="flex items-center">
+                        <Link href={`/${locale.toLowerCase()}/admin`} className="flex items-center">
                           <Settings className="mr-2 h-4 w-4" />
-                          Admin Panel
+                          {locale === 'AR' ? 'لوحة المشرف' : locale === 'HI' ? 'एडमिन पैनल' : 'Admin Panel'}
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -101,21 +136,21 @@ export function Navigation() {
                       className="flex items-center text-red-600"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
+                      {locale === 'AR' ? 'تسجيل الخروج' : locale === 'HI' ? 'साइन आउट' : 'Sign Out'}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button asChild>
-                  <Link href="/booking">Book Consultation</Link>
+                  <Link href={`/${locale.toLowerCase()}/booking`}>{data.cta}</Link>
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className={locale === 'AR' ? 'flex items-center space-x-4 md:flex-row-reverse' : 'flex items-center space-x-4'}>
                 <Button variant="ghost" asChild>
-                  <Link href="/login">Sign In</Link>
+                  <Link href={`/${locale.toLowerCase()}/login`}>{data.signIn}</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/booking">Book Consultation</Link>
+                  <Link href={`/${locale.toLowerCase()}/booking`}>{data.cta}</Link>
                 </Button>
               </div>
             )}
@@ -141,7 +176,7 @@ export function Navigation() {
         {mobileMenuOpen && (
           <div className="md:hidden">
             <div className="space-y-1 pb-3 pt-2">
-              {navigation.map((item) => (
+              {data.navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -155,28 +190,31 @@ export function Navigation() {
                   {item.name}
                 </Link>
               ))}
-              
+
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200">
+                <div className="px-3 py-2">
+                  <LanguageSwitcher />
+                </div>
                 {session ? (
                   <div className="space-y-2">
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      Signed in as {session?.user?.name || session?.user?.email}
+                      {locale === 'AR' ? 'مسجل الدخول باسم ' : locale === 'HI' ? 'Signed in as ' : 'Signed in as '}{session?.user?.name || session?.user?.email}
                     </div>
                     <Link
-                      href="/portal"
+                      href={`/${locale.toLowerCase()}/portal`}
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      My Bookings
+                      {locale === 'AR' ? 'حجوزاتي' : locale === 'HI' ? '���ेरी बुकिंग' : 'My Bookings'}
                     </Link>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <Link
-                        href="/admin"
+                        href={`/${locale.toLowerCase()}/admin`}
                         className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Admin Panel
+                        {locale === 'AR' ? 'لوحة المشرف' : locale === 'HI' ? 'एडमिन पैनल' : 'Admin Panel'}
                       </Link>
                     )}
                     <button
@@ -186,31 +224,31 @@ export function Navigation() {
                       }}
                       className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md"
                     >
-                      Sign Out
+                      {locale === 'AR' ? 'تسجيل الخروج' : locale === 'HI' ? 'साइन आउट' : 'Sign Out'}
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Link
-                      href="/login"
+                      href={`/${locale.toLowerCase()}/login`}
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Sign In
+                      {data.signIn}
                     </Link>
                     <Link
-                      href="/register"
+                      href={`/${locale.toLowerCase()}/register`}
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Sign Up
+                      {locale === 'AR' ? 'اشتراك' : locale === 'HI' ? 'साइन अप' : 'Sign Up'}
                     </Link>
                   </div>
                 )}
                 <div className="pt-2">
                   <Button asChild className="w-full">
-                    <Link href="/booking" onClick={() => setMobileMenuOpen(false)}>
-                      Book Consultation
+                    <Link href={`/${locale.toLowerCase()}/booking`} onClick={() => setMobileMenuOpen(false)}>
+                      {data.cta}
                     </Link>
                   </Button>
                 </div>
