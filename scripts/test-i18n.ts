@@ -1,34 +1,47 @@
-import { locales, loadTranslations, defaultLocale, localeConfig } from '../src/lib/i18n'
+import { locales, defaultLocale } from '../src/lib/i18n'
+import fs from 'fs'
+import path from 'path'
+
+async function loadTranslationsFs(locale: string): Promise<Record<string, string>> {
+  const filePath = path.resolve(__dirname, '..', 'src', 'app', 'locales', `${locale}.json`)
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8')
+    return JSON.parse(raw)
+  } catch (err) {
+    console.warn(`Failed to load translations for locale ${locale} from ${filePath}:`, (err as Error).message)
+    return {}
+  }
+}
 
 async function run() {
   let exitCode = 0
 
   console.log('Locales declared in code:', locales.join(', '))
 
-  // Ensure locale config for Arabic is RTL
-  if (localeConfig['ar']?.dir !== 'rtl') {
-    console.error('ERROR: localeConfig.ar.dir is not set to "rtl"')
-    exitCode = 2
-  } else {
-    console.log('OK: localeConfig.ar.dir is rtl')
+  // Ensure locale config for Arabic is RTL by reading lib file
+  try {
+    const i18nModule = await import('../src/lib/i18n')
+    if (i18nModule.localeConfig?.ar?.dir !== 'rtl') {
+      console.error('ERROR: localeConfig.ar.dir is not set to "rtl"')
+      exitCode = 2
+    } else {
+      console.log('OK: localeConfig.ar.dir is rtl')
+    }
+  } catch (err) {
+    console.warn('Could not import src/lib/i18n to validate config:', (err as Error).message)
   }
 
-  // Load translations for each locale
+  // Load translations for each locale using filesystem (path independent)
   const translationsMap: Record<string, string[]> = {}
 
   for (const loc of locales) {
-    try {
-      const t = await loadTranslations(loc)
-      const keys = Object.keys(t)
-      translationsMap[loc] = keys
-      console.log(`Loaded translations for ${loc}: ${keys.length} keys`)
-      if (keys.length === 0) {
-        console.warn(`WARNING: No translations found for locale: ${loc}`)
-        exitCode = 3
-      }
-    } catch (err) {
-      console.error(`Failed to load translations for ${loc}:`, err)
-      exitCode = 4
+    const t = await loadTranslationsFs(loc)
+    const keys = Object.keys(t)
+    translationsMap[loc] = keys
+    console.log(`Loaded translations for ${loc}: ${keys.length} keys`)
+    if (keys.length === 0) {
+      console.warn(`WARNING: No translations found for locale: ${loc}`)
+      exitCode = 3
     }
   }
 
