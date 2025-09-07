@@ -4,7 +4,7 @@ declare global {
   var __prisma__: PrismaClient | undefined;
 }
 
-let dbUrl = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL || "";
+let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
 
 if (dbUrl && dbUrl.startsWith("neon://")) {
   dbUrl = dbUrl.replace("neon://", "postgresql://");
@@ -25,7 +25,7 @@ const prisma: PrismaClient = (() => {
         {
           get() {
             throw new Error(
-              "Database is not configured. Set DATABASE_URL or NETLIFY_DATABASE_URL to enable DB features."
+              "Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features."
             );
           },
         }

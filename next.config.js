@@ -6,6 +6,8 @@ const nextConfig = {
   images: {
     domains: ["localhost", "mydomain.com"],
   },
+  // Allow Builder preview domain to access dev resources like /_next/* during development
+  allowedDevOrigins: ["*.projects.builder.codes"],
   turbopack: {},
 }
 module.exports = nextConfig

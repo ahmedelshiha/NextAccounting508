@@ -435,8 +435,20 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   ]
 
   for (const subscriber of newsletterSubscribers) {
-    await prisma.newsletter.create({
-      data: subscriber,
+    await prisma.newsletter.upsert({
+      where: { email: subscriber.email },
+      update: {
+        subscribed: true,
+        name: subscriber.name ?? undefined,
+        source: subscriber.source,
+        updatedAt: new Date(),
+      },
+      create: {
+        email: subscriber.email,
+        name: subscriber.name ?? null,
+        source: subscriber.source,
+        subscribed: true,
+      },
     })
   }
 
