@@ -120,3 +120,56 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* RTL helper styles */
+.rtl {
+  direction: rtl;
+}
+
+/* Text alignment helpers */
+.rtl .text-left {
+  text-align: right !important;
+}
+.rtl .text-right {
+  text-align: left !important;
+}
+
+/* Margin helpers (flip left/right) */
+.rtl .ml-auto {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+.rtl .mr-auto {
+  margin-right: 0 !important;
+  margin-left: auto !important;
+}
+
+/* Icon and chevron flips for RTL */
+.rtl .icon-chevron-right,
+.rtl .icon-arrow-right,
+.rtl .icon-chevron {
+  transform: scaleX(-1);
+}
+
+/* Utility: reverse flex direction where layout needs mirroring */
+.rtl .flex-row {
+  flex-direction: row-reverse !important;
+}
+.rtl .flex-row-reverse {
+  flex-direction: row !important;
+}
+
+/* Dropdown/menus positioning fallback */
+.rtl .dropdown-menu,
+.rtl .dropdown-content {
+  left: auto !important;
+  right: 0 !important;
+}
+
+/* Form input direction for Arabic */
+.rtl input,
+.rtl textarea,
+.rtl select {
+  direction: rtl;
+  text-align: right;
+}
