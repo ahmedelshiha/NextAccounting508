@@ -97,7 +97,7 @@ export function Footer() {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-gray-300 hover:text-white transition-colors"
+                      className="text-gray-200 hover:text-white transition-colors"
                     >
                       {item.name}
                     </Link>
@@ -116,7 +116,7 @@ export function Footer() {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-gray-300 hover:text-white transition-colors"
+                      className="text-gray-200 hover:text-white transition-colors"
                     >
                       {item.name}
                     </Link>
@@ -135,7 +135,7 @@ export function Footer() {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-gray-300 hover:text-white transition-colors"
+                      className="text-gray-200 hover:text-white transition-colors"
                     >
                       {item.name}
                     </Link>
@@ -208,4 +208,3 @@ export function Footer() {
     </footer>
   )
 }
-
