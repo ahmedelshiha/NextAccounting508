@@ -3,30 +3,100 @@ import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-const navigation = {
-  services: [
-    { name: 'Bookkeeping', href: '/services/bookkeeping' },
-    { name: 'Tax Preparation', href: '/services/tax-preparation' },
-    { name: 'Payroll Management', href: '/services/payroll' },
-    { name: 'CFO Advisory', href: '/services/cfo-advisory' },
-  ],
-  company: [
-    { name: 'About Us', href: '/about' },
-    { name: 'Our Team', href: '/about#team' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Contact', href: '/contact' },
-  ],
-  resources: [
-    { name: 'Blog', href: '/blog' },
-    { name: 'Tax Calendar', href: '/resources/tax-calendar' },
-    { name: 'Financial Tools', href: '/resources/tools' },
-    { name: 'FAQ', href: '/faq' },
-  ],
-  legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
-  ],
+const navTranslations: Record<string, any> = {
+  EN: {
+    companyTitle: 'Accounting Firm',
+    description: 'Professional accounting services for growing businesses. We help you manage your finances so you can focus on what you do best.',
+    stayUpdated: 'Stay Updated',
+    newsletterText: 'Get the latest tax tips and financial insights delivered to your inbox.',
+    subscribe: 'Subscribe',
+    copyright: `© ${new Date().getFullYear()} Accounting Firm. All rights reserved.`,
+    services: [
+      { name: 'Bookkeeping', href: '/en/services/bookkeeping' },
+      { name: 'Tax Preparation', href: '/en/services/tax-preparation' },
+      { name: 'Payroll Management', href: '/en/services/payroll' },
+      { name: 'CFO Advisory', href: '/en/services/cfo-advisory' },
+    ],
+    company: [
+      { name: 'About Us', href: '/en/about' },
+      { name: 'Our Team', href: '/en/about#team' },
+      { name: 'Careers', href: '/en/careers' },
+      { name: 'Contact', href: '/en/contact' },
+    ],
+    resources: [
+      { name: 'Blog', href: '/en/blog' },
+      { name: 'Tax Calendar', href: '/en/resources/tax-calendar' },
+      { name: 'Financial Tools', href: '/en/resources/tools' },
+      { name: 'FAQ', href: '/en/faq' },
+    ],
+    legal: [
+      { name: 'Privacy Policy', href: '/en/privacy' },
+      { name: 'Terms of Service', href: '/en/terms' },
+      { name: 'Cookie Policy', href: '/en/cookies' },
+    ],
+  },
+  AR: {
+    companyTitle: 'شركة المحاسبة',
+    description: 'خدمات محاسبية مهنية للشركات النامية. نحن نساعدك على إدارة أموالك حتى تتمكن من التركيز على ما تفعله بشكل أفضل.',
+    stayUpdated: 'ابق محدثًا',
+    newsletterText: 'احصل على أحدث نصائح الضرائب والرؤى المالية مباشرة في بريدك الإلكتروني.',
+    subscribe: 'اشترك',
+    copyright: `© ${new Date().getFullYear()} شركة المحاسبة. جميع الحقوق محفوظة.`,
+    services: [
+      { name: 'مسك الدفاتر', href: '/ar/services/bookkeeping' },
+      { name: 'إعداد الضرائب', href: '/ar/services/tax-preparation' },
+      { name: 'كشوف المرتبات', href: '/ar/services/payroll' },
+      { name: 'استشارات المدير المالي', href: '/ar/services/cfo-advisory' },
+    ],
+    company: [
+      { name: 'معلومات عنا', href: '/ar/about' },
+      { name: 'فريقنا', href: '/ar/about#team' },
+      { name: 'الوظائف', href: '/ar/careers' },
+      { name: 'اتصل', href: '/ar/contact' },
+    ],
+    resources: [
+      { name: 'المدونة', href: '/ar/blog' },
+      { name: 'تقويم الضرائب', href: '/ar/resources/tax-calendar' },
+      { name: 'أدوات مالية', href: '/ar/resources/tools' },
+      { name: 'الأسئلة الشائعة', href: '/ar/faq' },
+    ],
+    legal: [
+      { name: 'سياسة الخصوصية', href: '/ar/privacy' },
+      { name: 'شروط الخدمة', href: '/ar/terms' },
+      { name: 'سياسة ملفات تعريف الارتباط', href: '/ar/cookies' },
+    ],
+  },
+  HI: {
+    companyTitle: 'Accounting Firm',
+    description: 'बढ़ते व्यवसायों के लिए पेशेवर ले���ांकन सेवाएँ। हम आपकी वित्तीय स्थिति को प्रबंधित करने में मदद करते हैं ताकि आप अपने काम पर ध्यान केंद्रित कर सकें।',
+    stayUpdated: 'अपडेट रहें',
+    newsletterText: 'अपना ईमेल दर्ज करें और नवीनतम कर सुझाव और वित्तीय अंतर्दृष्टि प्राप्त करें।',
+    subscribe: 'सब्सक्राइब',
+    copyright: `© ${new Date().getFullYear()} अकाउंटिंग फर्म। सभी अधिकार सुरक्षित।`,
+    services: [
+      { name: 'बुककीपिंग', href: '/hi/services/bookkeeping' },
+      { name: 'कर तैयारी', href: '/hi/services/tax-preparation' },
+      { name: 'पेरोल', href: '/hi/services/payroll' },
+      { name: 'सीएफओ सलाहकार', href: '/hi/services/cfo-advisory' },
+    ],
+    company: [
+      { name: 'हमारे बारे में', href: '/hi/about' },
+      { name: 'हमारी टीम', href: '/hi/about#team' },
+      { name: 'करियर', href: '/hi/careers' },
+      { name: 'संपर्क', href: '/hi/contact' },
+    ],
+    resources: [
+      { name: 'ब्लॉग', href: '/hi/blog' },
+      { name: 'टैक्स कैलेंडर', href: '/hi/resources/tax-calendar' },
+      { name: 'वित्तीय उपकरण', href: '/hi/resources/tools' },
+      { name: 'सामान्य प्रश्न', href: '/hi/faq' },
+    ],
+    legal: [
+      { name: 'गोपनीयता नीति', href: '/hi/privacy' },
+      { name: 'सेवा की शर्तें', href: '/hi/terms' },
+      { name: 'कूकी नीति', href: '/hi/cookies' },
+    ],
+  },
 }
 
 const socialLinks = [
@@ -63,10 +133,10 @@ export function Footer() {
                 <span className="text-xl font-bold">Accounting Firm</span>
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
-                Professional accounting services for growing businesses. We help you 
+                Professional accounting services for growing businesses. We help you
                 manage your finances so you can focus on what you do best.
               </p>
-              
+
               {/* Contact Info */}
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
@@ -208,4 +278,3 @@ export function Footer() {
     </footer>
   )
 }
-
