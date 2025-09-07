@@ -1,8 +1,5 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { apiFetch } from '@/lib/api'
+import prisma from '@/lib/prisma'
 import { ArrowRight, Calculator, FileText, Users, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,79 +16,45 @@ interface Service {
   name: string
   slug: string
   shortDesc: string
-  price: number
+  price: number | null
   featured: boolean
 }
 
-export function ServicesSection() {
-  const [services, setServices] = useState<Service[]>([])
-  const [loading, setLoading] = useState(true)
+export async function ServicesSection() {
+  const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-  useEffect(() => {
-    async function fetchServices() {
-      try {
-        const response = await apiFetch('/api/services?featured=true')
-        if (response.ok) {
-          let data: unknown = null
-          try {
-            data = await response.json()
-          } catch {
-            data = null
-          }
+  let services: Service[] = []
 
-          if (Array.isArray(data)) {
-            setServices(data as Service[])
-          } else if (data && typeof data === 'object' && Array.isArray((data as { services?: unknown }).services)) {
-            setServices(((data as { services: Service[] }).services))
-          } else {
-            setServices([
-              { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
-              { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
-              { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
-              { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true }
-            ])
-          }
-        } else {
-          // fallback to static featured services when API fails
-          setServices([
-            { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
-            { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
-            { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
-            { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true }
-          ])
-        }
-      } catch (error) {
-        console.error('Error fetching services:', error)
-        setServices([
-          { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
-          { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
-          { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
-          { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true }
-        ])
-      } finally {
-        setLoading(false)
-      }
+  if (hasDb) {
+    try {
+      services = (await prisma.service.findMany({
+        where: { active: true, featured: true },
+        orderBy: [
+          { featured: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          shortDesc: true,
+          price: true,
+          featured: true,
+        },
+        take: 8,
+      })) as Service[]
+    } catch {
+      services = []
     }
+  }
 
-    fetchServices()
-  }, [])
-
-  if (loading) {
-    return (
-      <section className="py-12 sm:py-16 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <div className="h-8 bg-gray-200 animate-pulse rounded w-64 mx-auto mb-4"></div>
-            <div className="h-6 bg-gray-200 animate-pulse rounded w-96 mx-auto"></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[...Array(4)].map((_unused, i) => (
-              <div key={i} className="bg-gray-100 animate-pulse rounded-lg h-64"></div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
+  if (services.length === 0) {
+    services = [
+      { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
+      { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
+      { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
+      { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true }
+    ]
   }
 
   return (
@@ -112,7 +75,7 @@ export function ServicesSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {services.map((service) => {
             const IconComponent = serviceIcons[service.name as keyof typeof serviceIcons] || Calculator
-            
+
             return (
               <Card 
                 key={service.id} 
@@ -130,8 +93,7 @@ export function ServicesSection() {
                   <CardDescription className="text-gray-600 mb-4 leading-relaxed">
                     {service.shortDesc}
                   </CardDescription>
-                  
-                  {service.price && (
+                  {typeof service.price === 'number' && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
                         ${service.price}
@@ -139,7 +101,6 @@ export function ServicesSection() {
                       <span className="text-gray-600">/month</span>
                     </div>
                   )}
-
                   <Button 
                     variant="outline" 
                     className="w-full group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all"
@@ -182,3 +143,5 @@ export function ServicesSection() {
     </section>
   )
 }
+
+export const revalidate = 60
