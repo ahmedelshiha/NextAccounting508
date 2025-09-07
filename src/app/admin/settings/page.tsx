@@ -4,7 +4,7 @@ import { Settings } from 'lucide-react'
 
 export default function AdminSettingsPage() {
   const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
-  const hasNextAuth = Boolean(process.env.NEXTAUTH_URL && process.env.NEXTAUTH_SECRET)
+  const _hasNextAuth = Boolean(process.env.NEXTAUTH_URL && process.env.NEXTAUTH_SECRET)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
