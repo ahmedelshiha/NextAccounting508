@@ -58,10 +58,10 @@ export async function BlogSection() {
   }
 
   return (
-    <section className="py-16 sm:py-24 bg-white">
+    <section className="py-12 sm:py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Latest Insights & Tips
           </h2>
@@ -72,14 +72,14 @@ export async function BlogSection() {
         </div>
 
         {/* Blog Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {posts.map((post) => (
             <Card
               key={post.id}
               className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg overflow-hidden"
             >
               {/* Featured Image Placeholder */}
-              <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
+              <div className="h-40 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
                 <div className="absolute inset-0 bg-blue-600 opacity-10 group-hover:opacity-20 transition-opacity"></div>
                 <div className="absolute bottom-4 left-4">
                   {post.tags.slice(0, 2).map((tag: string) => (
@@ -159,7 +159,7 @@ export async function BlogSection() {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="mt-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 sm:p-12 text-center text-white">
+        <div className="mt-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 sm:p-8 text-center text-white">
           <h3 className="text-2xl sm:text-3xl font-bold mb-4">
             Stay Updated with Tax & Financial Tips
           </h3>
@@ -171,7 +171,7 @@ export async function BlogSection() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+              className="flex-1 px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white shadow"
             />
             <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8">
               Subscribe

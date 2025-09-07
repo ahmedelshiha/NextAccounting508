@@ -24,6 +24,7 @@ export default function AdminServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Create form state
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
@@ -32,9 +33,19 @@ export default function AdminServicesPage() {
   const [duration, setDuration] = useState('')
   const [featured, setFeatured] = useState(false)
 
+  // Edit form state
+  const [selected, setSelected] = useState<Service | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editShortDesc, setEditShortDesc] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editPrice, setEditPrice] = useState('')
+  const [editDuration, setEditDuration] = useState('')
+  const [editFeatured, setEditFeatured] = useState(false)
+  const [editActive, setEditActive] = useState(true)
+
   async function load() {
     try {
-      const res = await apiFetch('/api/services')
+      const res = await apiFetch('/api/admin/services')
       if (res.ok) setServices(await res.json())
     } finally { setLoading(false) }
   }
@@ -66,6 +77,49 @@ export default function AdminServicesPage() {
     }
   }
 
+  const selectService = (s: Service) => {
+    setSelected(s)
+    setEditName(s.name)
+    setEditShortDesc(s.shortDesc || '')
+    setEditDescription(s.description || '')
+    setEditPrice(typeof s.price === 'number' ? String(s.price) : s.price ? String(s.price) : '')
+    setEditDuration(s.duration ? String(s.duration) : '')
+    setEditFeatured(!!s.featured)
+    setEditActive(!!s.active)
+  }
+
+  const saveEdits = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selected) return
+    const res = await apiFetch(`/api/services/${encodeURIComponent(selected.slug)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: editName,
+        description: editDescription,
+        shortDesc: editShortDesc,
+        price: editPrice ? Number(editPrice) : null,
+        duration: editDuration ? Number(editDuration) : null,
+        featured: editFeatured,
+        active: editActive,
+      })
+    })
+    if (res.ok) {
+      setSelected(null)
+      load()
+    }
+  }
+
+  const toggleActive = async () => {
+    if (!selected) return
+    const res = await apiFetch(`/api/services/${encodeURIComponent(selected.slug)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !selected.active })
+    })
+    if (res.ok) load()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,7 +132,7 @@ export default function AdminServicesPage() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Existing Services</CardTitle>
-              <CardDescription>Active offerings</CardDescription>
+              <CardDescription>Click a service to edit or toggle status</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -88,7 +142,11 @@ export default function AdminServicesPage() {
               ) : services.length ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {services.map(s => (
-                    <div key={s.id} className="p-4 border rounded-lg bg-white">
+                    <button
+                      key={s.id}
+                      onClick={() => selectService(s)}
+                      className={`text-left p-4 border rounded-lg bg-white transition focus:outline-none ${selected?.id === s.id ? 'ring-2 ring-blue-500 border-blue-300' : ''}`}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <div className="font-medium text-gray-900">{s.name}</div>
                         <div className="space-x-2">
@@ -98,7 +156,7 @@ export default function AdminServicesPage() {
                       </div>
                       <div className="text-sm text-gray-600 truncate">/{s.slug}</div>
                       {s.shortDesc && <div className="text-sm text-gray-600 mt-1 line-clamp-2">{s.shortDesc}</div>}
-                    </div>
+                    </button>
                   ))}
                 </div>
               ) : (
@@ -109,43 +167,88 @@ export default function AdminServicesPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Create Service</CardTitle>
-              <CardDescription>Add a new service</CardDescription>
+              <CardTitle>{selected ? 'Edit Service' : 'Create Service'}</CardTitle>
+              <CardDescription>{selected ? `Editing /${selected.slug}` : 'Add a new service'}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={createService} className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-700">Name</label>
-                  <Input value={name} onChange={e => setName(e.target.value)} required />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">Slug</label>
-                  <Input value={slug} onChange={e => setSlug(e.target.value)} required />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">Short Description</label>
-                  <Input value={shortDesc} onChange={e => setShortDesc(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-700">Description</label>
-                  <Textarea value={description} onChange={e => setDescription(e.target.value)} required />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              {selected ? (
+                <form onSubmit={saveEdits} className="space-y-4">
                   <div>
-                    <label className="text-sm text-gray-700">Price (USD)</label>
-                    <Input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} />
+                    <label className="text-sm text-gray-700">Name</label>
+                    <Input value={editName} onChange={e => setEditName(e.target.value)} required />
                   </div>
                   <div>
-                    <label className="text-sm text-gray-700">Duration (min)</label>
-                    <Input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
+                    <label className="text-sm text-gray-700">Slug</label>
+                    <Input value={selected.slug} disabled />
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input id="featured" type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)} />
-                  <label htmlFor="featured" className="text-sm text-gray-700">Featured</label>
-                </div>
-                <Button type="submit" className="w-full">Create</Button>
-              </form>
+                  <div>
+                    <label className="text-sm text-gray-700">Short Description</label>
+                    <Input value={editShortDesc} onChange={e => setEditShortDesc(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Description</label>
+                    <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-700">Price (USD)</label>
+                      <Input type="number" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">Duration (min)</label>
+                      <Input type="number" value={editDuration} onChange={e => setEditDuration(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input id="edit-featured" type="checkbox" checked={editFeatured} onChange={e => setEditFeatured(e.target.checked)} />
+                      <label htmlFor="edit-featured" className="text-sm text-gray-700">Featured</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input id="edit-active" type="checkbox" checked={editActive} onChange={e => setEditActive(e.target.checked)} />
+                      <label htmlFor="edit-active" className="text-sm text-gray-700">Active</label>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button type="submit" className="w-full">Save Changes</Button>
+                    <Button type="button" variant="outline" className="w-full" onClick={() => setSelected(null)}>Cancel</Button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={createService} className="space-y-4">
+                  <div>
+                    <label className="text-sm text-gray-700">Name</label>
+                    <Input value={name} onChange={e => setName(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Slug</label>
+                    <Input value={slug} onChange={e => setSlug(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Short Description</label>
+                    <Input value={shortDesc} onChange={e => setShortDesc(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Description</label>
+                    <Textarea value={description} onChange={e => setDescription(e.target.value)} required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-700">Price (USD)</label>
+                      <Input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">Duration (min)</label>
+                      <Input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="featured" type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)} />
+                    <label htmlFor="featured" className="text-sm text-gray-700">Featured</label>
+                  </div>
+                  <Button type="submit" className="w-full">Create</Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </div>

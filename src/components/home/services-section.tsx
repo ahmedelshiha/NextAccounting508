@@ -78,9 +78,9 @@ export function ServicesSection() {
 
   if (loading) {
     return (
-      <section className="py-16 sm:py-24 bg-white">
+      <section className="py-12 sm:py-16 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <div className="h-8 bg-gray-200 animate-pulse rounded w-64 mx-auto mb-4"></div>
             <div className="h-6 bg-gray-200 animate-pulse rounded w-96 mx-auto"></div>
           </div>
@@ -95,10 +95,10 @@ export function ServicesSection() {
   }
 
   return (
-    <section className="py-16 sm:py-24 bg-white">
+    <section className="py-12 sm:py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Our Professional Services
           </h2>
@@ -109,7 +109,7 @@ export function ServicesSection() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {services.map((service) => {
             const IconComponent = serviceIcons[service.name as keyof typeof serviceIcons] || Calculator
             
@@ -157,7 +157,7 @@ export function ServicesSection() {
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-8 sm:p-12">
+        <div className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 sm:p-8">
           <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
             Need a Custom Solution?
           </h3>

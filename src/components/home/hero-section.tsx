@@ -20,7 +20,7 @@ const stats = [
 
 export function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-16 sm:py-24">
+    <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 sm:py-16">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
@@ -35,20 +35,20 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4">
               Stress-free accounting for{' '}
               <span className="text-blue-600">growing businesses</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl text-gray-600 mb-6 leading-relaxed">
               Focus on what you do best while we handle your books, taxes, and 
               financial strategy. Professional accounting services tailored to 
               your business needs.
             </p>
 
             {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-center space-x-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -58,7 +58,7 @@ export function HeroSection() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Button size="lg" asChild className="group">
                 <Link href="/booking">
                   Book Free Consultation
@@ -73,7 +73,7 @@ export function HeroSection() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
                   <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-1">
@@ -87,7 +87,7 @@ export function HeroSection() {
 
           {/* Image/Visual */}
           <div className="relative">
-            <div className="relative bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
+            <div className="relative bg-white rounded-2xl shadow-2xl p-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
               {/* Mock Dashboard */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -147,4 +147,3 @@ export function HeroSection() {
     </section>
   )
 }
-

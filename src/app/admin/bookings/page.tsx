@@ -85,7 +85,12 @@ export default function AdminBookingsPage() {
       const response = await apiFetch('/api/admin/bookings')
       if (response.ok) {
         const data = await response.json()
-        setBookings(data)
+        const items = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.bookings)
+          ? data.bookings
+          : []
+        setBookings(items)
       }
     } catch (error) {
       console.error('Error fetching bookings:', error)
@@ -154,10 +159,10 @@ export default function AdminBookingsPage() {
 
   // Filter bookings based on search and filters
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
+    const matchesSearch =
       booking.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.service.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (booking.service?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
 
@@ -183,7 +188,7 @@ export default function AdminBookingsPage() {
         booking.clientName,
         booking.clientEmail,
         booking.clientPhone || '',
-        booking.service.name,
+        booking.service?.name || '',
         formatDate(booking.scheduledAt),
         formatTime(booking.scheduledAt),
         `${booking.duration} min`,
@@ -389,7 +394,7 @@ export default function AdminBookingsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">{booking.service.name}</div>
+                        <div className="font-medium">{booking.service?.name ?? '-'}</div>
                       </TableCell>
                       <TableCell>
                         <div>
@@ -404,7 +409,7 @@ export default function AdminBookingsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusColors[booking.status as keyof typeof statusColors]}>
+                        <Badge className={statusColors[booking.status as keyof typeof statusColors] ?? 'bg-gray-100 text-gray-800'}>
                           {booking.status}
                         </Badge>
                       </TableCell>
