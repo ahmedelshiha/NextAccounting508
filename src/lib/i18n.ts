@@ -17,7 +17,7 @@ export const localeConfig = {
   },
   ar: {
     name: 'Arabic',
-    nativeName: 'العرب��ة',
+    nativeName: 'العربية',
     dir: 'rtl',
     flag: '🇸🇦'
   },
