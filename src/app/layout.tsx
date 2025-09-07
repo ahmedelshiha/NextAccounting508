@@ -26,6 +26,9 @@ export default function RootLayout({
 }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.example.com'
 
+  const locales = ['en','ar','hi']
+  const defaultLocale = 'en'
+
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
@@ -62,7 +65,10 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="canonical" href={siteUrl} />
-        <link rel="alternate" hrefLang="en" href={siteUrl} />
+        {locales.map((loc) => (
+          <link key={loc} rel="alternate" hrefLang={loc} href={`${siteUrl}${loc === defaultLocale ? '' : `/${loc}`}`} />
+        ))}
+        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
         <meta name="robots" content="index,follow" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       </head>
