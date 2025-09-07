@@ -188,7 +188,7 @@ export default function AdminPostsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             {filtered.map(p => (
-              <button key={p.id} onClick={() => selectPost(p)} className={`text-left rounded-lg border bg-white overflow-hidden transition focus:outline-none ${selected?.id === p.id ? 'ring-2 ring-purple-500 border-purple-300' : ''}`}>
+              <div key={p.id} onClick={() => selectPost(p)} className={`cursor-pointer text-left rounded-lg border bg-white overflow-hidden transition focus:outline-none ${selected?.id === p.id ? 'ring-2 ring-purple-500 border-purple-300' : ''}`}>
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg line-clamp-2">{p.title}</CardTitle>
@@ -206,7 +206,7 @@ export default function AdminPostsPage() {
                           <Badge className="bg-blue-100 text-blue-800">Featured</Badge>
                         )}
                       </div>
-                      <Button asChild size="sm" variant="outline">
+                      <Button asChild size="sm" variant="outline" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/blog/${p.slug}`}>
                           <Eye className="h-4 w-4 mr-1" /> View
                         </Link>
@@ -214,7 +214,7 @@ export default function AdminPostsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </button>
+              </div>
             ))}
             {filtered.length === 0 && (
               <div className="text-gray-500">No posts found.</div>
