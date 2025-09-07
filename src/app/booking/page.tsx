@@ -26,36 +26,7 @@ interface TimeSlot {
   available: boolean
 }
 
-const sampleServices: Service[] = [
-  {
-    id: '1',
-    name: 'Free Consultation',
-    description: 'Initial consultation to discuss your accounting needs',
-    price: 0,
-    duration: 30
-  },
-  {
-    id: '2',
-    name: 'Tax Preparation Consultation',
-    description: 'Discuss your tax situation and preparation needs',
-    price: 150,
-    duration: 60
-  },
-  {
-    id: '3',
-    name: 'Bookkeeping Setup',
-    description: 'Set up your bookkeeping system and processes',
-    price: 200,
-    duration: 90
-  },
-  {
-    id: '4',
-    name: 'Business Advisory Session',
-    description: 'Strategic financial planning and business advice',
-    price: 250,
-    duration: 60
-  }
-]
+const sampleServices: Service[] = []
 
 export default function BookingPage() {
   const { data: session } = useSession()
@@ -93,14 +64,45 @@ export default function BookingPage() {
   }
 
   useEffect(() => {
-    setServices(sampleServices)
+    async function loadServices() {
+      try {
+        const res = await apiFetch('/api/services')
+        if (res.ok) {
+          const data = await res.json()
+          const mapped: Service[] = data.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            description: s.shortDesc || s.description,
+            price: s.price ?? 0,
+            duration: s.duration ?? 60,
+          }))
+          setServices(mapped)
+        } else {
+          setServices(sampleServices)
+        }
+      } catch {
+        setServices(sampleServices)
+      }
+    }
+    loadServices()
   }, [])
 
   useEffect(() => {
-    if (selectedDate) {
+    async function loadAvailability() {
+      if (!selectedService || !selectedDate) return
+      try {
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1`)
+        if (res.ok) {
+          const data = await res.json()
+          const slots: TimeSlot[] = (data[0]?.slots || []).map((s: any) => ({ time: new Date(s.start).toTimeString().slice(0,5), available: s.available !== false }))
+          setTimeSlots(slots)
+          return
+        }
+      } catch {}
       setTimeSlots(generateTimeSlots())
     }
-  }, [selectedDate])
+    loadAvailability()
+  }, [selectedDate, selectedService])
 
   const handleServiceSelect = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId)
