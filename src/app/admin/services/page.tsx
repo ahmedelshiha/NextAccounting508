@@ -24,6 +24,7 @@ export default function AdminServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Create form state
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
@@ -32,9 +33,19 @@ export default function AdminServicesPage() {
   const [duration, setDuration] = useState('')
   const [featured, setFeatured] = useState(false)
 
+  // Edit form state
+  const [selected, setSelected] = useState<Service | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editShortDesc, setEditShortDesc] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editPrice, setEditPrice] = useState('')
+  const [editDuration, setEditDuration] = useState('')
+  const [editFeatured, setEditFeatured] = useState(false)
+  const [editActive, setEditActive] = useState(true)
+
   async function load() {
     try {
-      const res = await apiFetch('/api/services')
+      const res = await apiFetch('/api/admin/services')
       if (res.ok) setServices(await res.json())
     } finally { setLoading(false) }
   }
@@ -64,6 +75,49 @@ export default function AdminServicesPage() {
       setName(''); setSlug(''); setDescription(''); setShortDesc(''); setPrice(''); setDuration(''); setFeatured(false)
       load()
     }
+  }
+
+  const selectService = (s: Service) => {
+    setSelected(s)
+    setEditName(s.name)
+    setEditShortDesc(s.shortDesc || '')
+    setEditDescription(s.description || '')
+    setEditPrice(typeof s.price === 'number' ? String(s.price) : s.price ? String(s.price) : '')
+    setEditDuration(s.duration ? String(s.duration) : '')
+    setEditFeatured(!!s.featured)
+    setEditActive(!!s.active)
+  }
+
+  const saveEdits = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selected) return
+    const res = await apiFetch(`/api/services/${encodeURIComponent(selected.slug)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: editName,
+        description: editDescription,
+        shortDesc: editShortDesc,
+        price: editPrice ? Number(editPrice) : null,
+        duration: editDuration ? Number(editDuration) : null,
+        featured: editFeatured,
+        active: editActive,
+      })
+    })
+    if (res.ok) {
+      setSelected(null)
+      load()
+    }
+  }
+
+  const toggleActive = async () => {
+    if (!selected) return
+    const res = await apiFetch(`/api/services/${encodeURIComponent(selected.slug)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active: !selected.active })
+    })
+    if (res.ok) load()
   }
 
   return (
