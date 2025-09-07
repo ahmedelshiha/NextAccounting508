@@ -143,4 +143,17 @@
     z-index: 9999;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
+
+  /* Larger tap targets on touch devices */
+  @media (pointer: coarse) {
+    a, button, input[type="button"], input[type="submit"], .icon-button {
+      min-width: 48px;
+      min-height: 48px;
+      padding: 0.5rem;
+    }
+
+    /* Slightly increase contrast for smaller text on dark backgrounds */
+    .text-gray-300 { color: #e5e7eb; } /* ensure legible on dark backgrounds */
+    .text-gray-600 { color: #4b5563; }
+  }
 }
