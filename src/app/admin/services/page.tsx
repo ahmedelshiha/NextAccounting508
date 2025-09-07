@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
