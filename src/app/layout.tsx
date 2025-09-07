@@ -24,8 +24,48 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.example.com'
+
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": siteUrl + "#organization",
+        "name": "Accounting Firm",
+        "url": siteUrl,
+        "logo": siteUrl + "/logo.png",
+        "sameAs": [
+          "https://facebook.com/accountingfirm",
+          "https://twitter.com/accountingfirm",
+          "https://linkedin.com/company/accountingfirm"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": siteUrl + "#website",
+        "url": siteUrl,
+        "name": "Accounting Firm",
+        "publisher": { "@id": siteUrl + "#organization" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": siteUrl + "#breadcrumbs",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl }
+        ]
+      }
+    ]
+  })
+
   return (
     <html lang="en">
+      <head>
+        <link rel="canonical" href={siteUrl} />
+        <link rel="alternate" hrefLang="en" href={siteUrl} />
+        <meta name="robots" content="index,follow" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      </head>
       <body className={inter.className}>
         <ClientLayout>
           {children}
