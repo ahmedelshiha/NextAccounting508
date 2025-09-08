@@ -21,6 +21,7 @@ interface Service {
 }
 
 export async function ServicesSection() {
+  console.time('ServicesSection')
   const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
   let services: Service[] = []
