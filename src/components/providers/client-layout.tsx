@@ -49,7 +49,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         // Final fallback
         el.setAttribute('aria-label', 'Icon button')
         el.dataset['a11yAdded'] = 'true'
-      } catch (e) {
+      } catch {
         // ignore
       }
     })
