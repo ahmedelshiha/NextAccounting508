@@ -27,7 +27,7 @@ export async function ServicesSection() {
 
   if (hasDb) {
     try {
-      services = (await prisma.service.findMany({
+      const dbServices = await prisma.service.findMany({
         where: { active: true, featured: true },
         orderBy: [
           { featured: 'desc' },
@@ -42,6 +42,15 @@ export async function ServicesSection() {
           featured: true,
         },
         take: 8,
+      })
+
+      services = dbServices.map((s) => ({
+        id: String(s.id),
+        name: String(s.name),
+        slug: String(s.slug),
+        shortDesc: String(s.shortDesc),
+        price: s.price == null ? null : (typeof (s as any).toNumber === 'function' ? (s as any).toNumber() : Number(s.price)),
+        featured: Boolean(s.featured),
       })) as Service[]
     } catch {
       services = []
