@@ -31,10 +31,10 @@ export async function ServicesSection() {
     // Prisma Decimal objects often expose a toNumber() method
     if (typeof p === 'object' && p !== null) {
       const maybe = p as Record<string, unknown>
-      const toNumber = maybe['toNumber'] || (maybe as any).toNumber
+      const toNumber = maybe['toNumber']
       if (typeof toNumber === 'function') {
         try {
-          return (toNumber as () => number)()
+          return (toNumber as unknown as () => number)()
         } catch {
           // ignore and fallback
         }
