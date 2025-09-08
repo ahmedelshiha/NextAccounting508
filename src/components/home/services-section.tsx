@@ -25,6 +25,31 @@ export async function ServicesSection() {
 
   let services: Service[] = []
 
+  // Normalize potential Prisma Decimal values safely without using `any`
+  function normalizePrice(p: unknown): number | null {
+    if (p == null) return null
+    // Prisma Decimal objects often expose a toNumber() method
+    if (typeof p === 'object\' && p !== null' in (p as Record<string, unknown>)) {
+      const maybe = p as Record<string, unknown>
+      const toNumber = maybe['toNumber']
+      if (typeof toNumber === 'function') {
+        try {
+          return (toNumber as () => number)()
+        } catch {
+          // ignore and fallback
+        }
+      }
+    }
+
+    if (typeof p === 'number') return p
+    if (typeof p === 'string') {
+      const n = Number(p)
+      return Number.isFinite(n) ? n : null
+    }
+
+    return null
+  }
+
   if (hasDb) {
     try {
       const dbServices = await prisma.service.findMany({
@@ -49,7 +74,7 @@ export async function ServicesSection() {
         name: String(s.name),
         slug: String(s.slug),
         shortDesc: String(s.shortDesc),
-        price: s.price == null ? null : (typeof (s as any).toNumber === 'function' ? (s as any).toNumber() : Number(s.price)),
+        price: normalizePrice((s as unknown as { price?: unknown }).price),
         featured: Boolean(s.featured),
       })) as Service[]
     } catch {
