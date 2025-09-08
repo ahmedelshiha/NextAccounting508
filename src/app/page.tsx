@@ -1,7 +1,12 @@
+import dynamic from 'next/dynamic'
 import { HeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
-import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { BlogSection } from '@/components/home/blog-section'
+
+const TestimonialsSection = dynamic(
+  () => import('@/components/home/testimonials-section').then((mod) => mod.TestimonialsSection),
+  { ssr: false, loading: () => <div aria-hidden className="py-12 sm:py-16 bg-gray-50"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">Loading testimonials...</div></div> }
+)
 
 export default function HomePage() {
   return (
