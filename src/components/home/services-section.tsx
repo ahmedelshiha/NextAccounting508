@@ -29,9 +29,9 @@ export async function ServicesSection() {
   function normalizePrice(p: unknown): number | null {
     if (p == null) return null
     // Prisma Decimal objects often expose a toNumber() method
-    if (typeof p === 'object\' && p !== null' in (p as Record<string, unknown>)) {
+    if (typeof p === 'object' && p !== null) {
       const maybe = p as Record<string, unknown>
-      const toNumber = maybe['toNumber']
+      const toNumber = maybe['toNumber'] || (maybe as any).toNumber
       if (typeof toNumber === 'function') {
         try {
           return (toNumber as () => number)()
