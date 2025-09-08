@@ -92,6 +92,7 @@ export async function ServicesSection() {
     ]
   }
 
+  console.timeEnd('ServicesSection')
   return (
     <section className="py-12 sm:py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
