@@ -1,22 +1,15 @@
-'use client'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { usePermissions } from '@/lib/use-permissions'
+import { RefreshCw, Download, Save, Star, ToggleRight } from 'lucide-react'
 
 type Currency = { code: string; name: string; symbol?: string | null; decimals: number; active: boolean; isDefault: boolean; lastRate?: number | null }
-type PriceOverride = { id: number; entity: string; entityId: string; currencyCode: string; priceCents: number; note?: string | null }
 
 export default function CurrencyManager() {
   const perms = usePermissions()
   const [currencies, setCurrencies] = useState<Currency[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-
-  // override state
-  const [entity, setEntity] = useState<'services' | 'products'>('services')
-  const [entityId, setEntityId] = useState('')
-  const [overrides, setOverrides] = useState<PriceOverride[]>([])
-  const [overrideLoading, setOverrideLoading] = useState(false)
   const [selectedDefault, setSelectedDefault] = useState<string | null>(null)
 
   async function load() {
@@ -27,7 +20,8 @@ export default function CurrencyManager() {
       setCurrencies(json)
       const def = json.find((c: Currency) => c.isDefault)
       setSelectedDefault(def?.code ?? null)
-    } catch {
+    } catch (e) {
+      console.error('load currencies error', e)
       setMessage('Failed to load currencies')
     }
   }
@@ -45,7 +39,8 @@ export default function CurrencyManager() {
       } else {
         toast.error('Failed to refresh rates')
       }
-    } catch {
+    } catch (e) {
+      console.error('refreshRates error', e)
       toast.error('Failed to refresh rates')
     }
     setLoading(false)
@@ -61,7 +56,8 @@ export default function CurrencyManager() {
       if (!res.ok) throw new Error('Failed')
       toast.success(`Saved ${code}`)
       await load()
-    } catch {
+    } catch (e) {
+      console.error('saveCurrency error', e)
       toast.error(`Failed to save ${code}`)
     }
     setLoading(false)
@@ -74,7 +70,8 @@ export default function CurrencyManager() {
       if (!res.ok) throw new Error('Failed')
       toast.success('Default currency updated')
       await load()
-    } catch {
+    } catch (e) {
+      console.error('setDefault error', e)
       toast.error('Failed to set default')
     }
     setLoading(false)
@@ -87,136 +84,126 @@ export default function CurrencyManager() {
       if (!res.ok) throw new Error('Failed')
       toast.success('Updated')
       await load()
-    } catch {
+    } catch (e) {
+      console.error('saveToggleActive error', e)
       toast.error('Failed to update')
     }
     setLoading(false)
   }
 
-  // overrides
-  async function loadOverrides() {
-    if (!entityId) return
-    setOverrideLoading(true)
-    try {
-      const res = await fetch(`/api/admin/currencies/overrides?entity=${encodeURIComponent(entity)}&id=${encodeURIComponent(entityId)}`)
-      if (!res.ok) throw new Error('Failed')
-      const json = await res.json()
-      setOverrides(json)
-    } catch {
-      toast.error('Failed to load overrides')
-    }
-    setOverrideLoading(false)
-  }
-
-  function formatAmountFromCents(cents: number, decimals = 2) { return (cents/100).toFixed(decimals) }
-  function parseAmountToCents(amountStr: string, _decimals = 2) { const n = Number(amountStr); if (Number.isNaN(n)) return 0; return Math.round(n * 100) }
-
-  async function saveOverride(id: number | null, currencyCode: string, priceStr: string, note?: string) {
-    if (!entityId) { toast.error('Missing entity id'); return }
-    const priceCents = parseAmountToCents(priceStr)
-    try {
-      const res = await fetch('/api/admin/currencies/overrides', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ entity, entityId, currencyCode, priceCents, note }) })
-      if (!res.ok) throw new Error('Failed')
-      toast.success('Saved override')
-      await loadOverrides()
-    } catch {
-      toast.error('Failed to save override')
-    }
-  }
-
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold">Manage Currencies</h2>
-          <p className="text-sm text-gray-600">Edit currencies, set default, refresh rates, and manage per-entity price overrides.</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="btn btn-primary" onClick={refreshRates} disabled={loading}>Refresh rates</button>
-          <button className="btn" onClick={() => { window.location.href = '/api/admin/currencies/export' }}>Export CSV</button>
-        </div>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Table (takes two-thirds) */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-md font-medium">Currency list</h3>
+            <div className="flex items-center gap-2">
+              <button className="btn btn-sm flex items-center gap-2" onClick={refreshRates} disabled={loading} aria-label="Refresh rates">
+                <RefreshCw className="h-4 w-4" />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button className="btn btn-sm flex items-center gap-2" onClick={() => { window.location.href = '/api/admin/currencies/export' }} aria-label="Export CSV">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <div className="space-y-2 max-h-[480px] overflow-auto">
-            {currencies.map((c) => (
-              <div key={c.code} className="flex items-center justify-between p-3 border rounded">
-                <div className="flex-1 pr-4">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">{c.name} <span className="text-xs text-gray-500">({c.code})</span></div>
-                    <div className="text-xs text-gray-500">{c.isDefault ? 'Default' : ''}</div>
-                  </div>
-                  <div className="mt-2 grid grid-cols-3 gap-2 items-center">
-                    <div>
-                      <label className="text-xs text-gray-600">Symbol</label>
-                      <input className="block w-full border rounded px-2 py-1 text-sm" value={c.symbol ?? ''} onChange={(e) => setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, symbol: e.target.value } : x))} />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-600">Decimals</label>
-                      <input type="number" className="block w-full border rounded px-2 py-1 text-sm" value={c.decimals} onChange={(e) => setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, decimals: Number(e.target.value) || 0 } : x))} />
-                    </div>
-                    <div className="flex items-end space-x-2">
-                      <label className="text-xs text-gray-600">Active</label>
-                      <input type="checkbox" checked={c.active} onChange={(e) => setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, active: e.target.checked } : x))} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <input type="radio" name="defaultCurrency" checked={selectedDefault === c.code} onChange={() => setSelectedDefault(c.code)} />
-                    <button className="btn btn-sm" onClick={() => setDefault(c.code)} disabled={loading || selectedDefault !== c.code}>{selectedDefault === c.code ? 'Set Default' : 'Select'}</button>
-                  </div>
-                  <div>
-                    <button className="btn btn-ghost btn-sm" onClick={() => saveCurrency(c.code)} disabled={loading}>Save</button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          {message && <div className="mb-4 text-sm text-red-600">{message}</div>}
+
+          <div className="overflow-auto rounded border">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Code</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Symbol</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Decimals</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Last Rate</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Active</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Default</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {currencies.map((c) => (
+                  <tr key={c.code} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{c.code}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{c.name}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <input
+                        className="w-24 border rounded px-2 py-1 text-sm"
+                        value={c.symbol ?? ''}
+                        onChange={(e) => setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, symbol: e.target.value } : x))}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm w-24">
+                      <input
+                        type="number"
+                        className="w-20 border rounded px-2 py-1 text-sm"
+                        value={c.decimals}
+                        onChange={(e) => setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, decimals: Number(e.target.value) || 0 } : x))}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{c.lastRate != null ? c.lastRate.toFixed(4) : '-'}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        className={`inline-flex items-center gap-2 px-2 py-1 rounded ${c.active ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'}`}
+                        onClick={() => { saveToggleActive(c.code, !c.active); setCurrencies(prev => prev.map(x => x.code === c.code ? { ...x, active: !x.active } : x)) }}
+                        aria-pressed={c.active}
+                        aria-label={c.active ? 'Deactivate' : 'Activate'}
+                      >
+                        <ToggleRight className="h-4 w-4" />
+                        <span className="hidden sm:inline text-xs">{c.active ? 'Active' : 'Inactive'}</span>
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <button className="btn btn-ghost btn-sm flex items-center gap-2" onClick={() => { setSelectedDefault(c.code); setDefault(c.code) }} aria-label="Set default">
+                          <Star className={`h-4 w-4 ${c.isDefault ? 'text-yellow-500' : 'text-gray-400'}`} />
+                          <span className="hidden sm:inline text-xs">{c.isDefault ? 'Default' : 'Set'}</span>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right">
+                      <div className="flex justify-end gap-2">
+                        <button className="btn btn-ghost btn-sm flex items-center gap-2" onClick={() => saveCurrency(c.code)} disabled={loading} aria-label={`Save ${c.code}`}>
+                          <Save className="h-4 w-4" />
+                          <span className="hidden sm:inline">Save</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <div>
-          {perms.canManagePriceOverrides && (
-            <div>
-              <h3 className="text-md font-medium mb-2">Per-entity Price Overrides</h3>
-              <div className="flex items-center gap-2 mb-3">
-                <select value={entity} onChange={(e) => setEntity(e.target.value as 'services' | 'products')} className="border rounded px-2 py-1 text-sm">
-                  <option value="services">Service</option>
-                  <option value="products">Product</option>
-                </select>
-                <input placeholder="Entity ID" value={entityId} onChange={(e) => setEntityId(e.target.value)} className="border rounded px-2 py-1 text-sm" />
-                <button className="btn btn-sm" onClick={loadOverrides} disabled={overrideLoading}>Load Overrides</button>
-              </div>
-
-              <div className="space-y-2 max-h-[420px] overflow-auto">
-                {overrides.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between p-2 border rounded">
-                    <div>
-                      <div className="font-medium">{o.currencyCode}</div>
-                      <div className="text-xs text-gray-600">{o.note ?? ''}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input defaultValue={formatAmountFromCents(o.priceCents)} className="border rounded px-2 py-1 text-sm w-28" id={`price-${o.id}`} />
-                      <button className="btn btn-sm" onClick={() => { const el = document.getElementById(`price-${o.id}`) as HTMLInputElement | null; if (!el) return; saveOverride(o.id, o.currencyCode, el.value, o.note ?? '') }}>Save</button>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="pt-2">
-                  <div className="text-sm text-gray-700 mb-2">Create / Update Override</div>
-                  <div className="grid grid-cols-3 gap-2 items-center">
-                    <select id="new-currency" className="border rounded px-2 py-1 text-sm">
-                      {currencies.map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
-                    </select>
-                    <input id="new-price" placeholder="Amount" className="border rounded px-2 py-1 text-sm" />
-                    <button className="btn btn-sm" onClick={() => { const curEl = document.getElementById('new-currency') as HTMLSelectElement | null; const priceEl = document.getElementById('new-price') as HTMLInputElement | null; if (!curEl || !priceEl) return; saveOverride(null, curEl.value, priceEl.value) }}>Save Override</button>
-                  </div>
-                </div>
-              </div>
+        {/* Right: Actions & Info (one-third) */}
+        <aside className="lg:col-span-1">
+          <div className="p-4 border rounded mb-4">
+            <h4 className="font-medium mb-2">Actions</h4>
+            <div className="flex flex-col gap-2">
+              <button className="btn w-full flex items-center justify-center gap-2" onClick={refreshRates} disabled={loading}>
+                <RefreshCw className="h-4 w-4" /> Refresh rates
+              </button>
+              <button className="btn w-full flex items-center justify-center gap-2" onClick={() => { window.location.href = '/api/admin/currencies/export' }}>
+                <Download className="h-4 w-4" /> Export CSV
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+
+          <div className="p-4 border rounded">
+            <h4 className="font-medium mb-2">Legend</h4>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li className="flex items-center gap-2"><Save className="h-4 w-4 text-gray-500" /> Save changes</li>
+              <li className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> Default currency</li>
+              <li className="flex items-center gap-2"><ToggleRight className="h-4 w-4 text-green-500" /> Active / Inactive</li>
+            </ul>
+          </div>
+        </aside>
       </div>
     </div>
   )
