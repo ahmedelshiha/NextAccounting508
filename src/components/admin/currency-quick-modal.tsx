@@ -66,7 +66,7 @@ export default function CurrencyQuickModal() {
       if (!res.ok) throw new Error('Failed to save')
       toast.success(`Saved ${code}`)
       await load()
-    } catch (e) {
+    } catch {
       toast.error(`Failed to save ${code}`)
     }
     setLoading(false)
