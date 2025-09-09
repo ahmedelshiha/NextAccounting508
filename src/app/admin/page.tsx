@@ -104,7 +104,7 @@ export default function AdminDashboard() {
 
         setDbHealthy(dbCheckOk)
 
-        const analytics = statsPromises[5].status === 'fulfilled' ? (statsPromises[5] as PromiseFulfilledResult<any>).value : null
+        const analyticsData = statsPromises[5].status === 'fulfilled' ? (statsPromises[5] as PromiseFulfilledResult<unknown>).value as AdminAnalytics : null
 
         setStats({
           bookings: bookingsData,
