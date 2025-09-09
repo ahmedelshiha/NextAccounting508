@@ -29,8 +29,7 @@ export default async function ServicePage({ params }: PageProps) {
   const { slug } = params
 
   try {
-    const { isDatabaseHealthy } = await import('@/lib/db-health')
-    const hasDb = await isDatabaseHealthy(600)
+    const hasDb = !!(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
     let service = null
 
     if (hasDb) {
