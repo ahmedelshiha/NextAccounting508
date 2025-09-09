@@ -21,6 +21,9 @@ const rolePermissions: Record<Role, Permission[]> = {
     'manage_posts',
     'manage_services',
     'manage_newsletter',
+    'view_currencies',
+    'manage_currencies',
+    'manage_price_overrides',
   ],
   STAFF: [
     'view_dashboard',
@@ -29,6 +32,7 @@ const rolePermissions: Record<Role, Permission[]> = {
     'manage_posts',
     'manage_services',
     'manage_newsletter',
+    'view_currencies',
   ],
   CLIENT: ['view_dashboard'],
 }
