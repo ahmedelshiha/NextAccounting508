@@ -29,6 +29,7 @@ interface Service {
 export function ServicesSection() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+  const { currency } = useCurrency()
 
   useEffect(() => {
     async function fetchServices() {
