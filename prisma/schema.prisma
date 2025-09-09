@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This Prisma schema file (prisma/schema.prisma) is managed by Prisma. Learn more: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -15,7 +14,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String?   // For credential auth
+  password      String?
   image         String?
   role          UserRole  @default(CLIENT)
   emailVerified DateTime?
@@ -27,6 +26,7 @@ model User {
   sessions Session[]
   posts    Post[]
   bookings Booking[]
+  tasks    Task[]
 
   @@map("users")
 }
@@ -86,7 +86,7 @@ model Post {
   seoTitle    String?
   seoDescription String?
   tags        String[]
-  readTime    Int?        // in minutes
+  readTime    Int?
   views       Int         @default(0)
   authorId    String
   createdAt   DateTime    @default(now())
@@ -105,11 +105,11 @@ model Service {
   name        String
   slug        String    @unique
   description String    @db.Text
-  shortDesc   String?   // For cards/previews
-  features    String[]  // Array of features/deliverables
-  price       Decimal?  // Starting price
-  duration    Int?      // Duration in minutes for booking
-  category    String?   // e.g., "Tax", "Bookkeeping", "Advisory"
+  shortDesc   String?
+  features    String[]
+  price       Decimal?
+  duration    Int?
+  category    String?
   active      Boolean   @default(true)
   featured    Boolean   @default(false)
   image       String?
@@ -128,23 +128,15 @@ model Booking {
   clientId    String
   serviceId   String
   status      BookingStatus @default(PENDING)
-  
-  // Booking details
   scheduledAt DateTime
-  duration    Int           // Duration in minutes
+  duration    Int
   notes       String?       @db.Text
-  
-  // Client information (for non-registered users)
   clientName  String
   clientEmail String
   clientPhone String?
-  
-  // Internal notes and management
   adminNotes  String?       @db.Text
   confirmed   Boolean       @default(false)
   reminderSent Boolean      @default(false)
-  
-  // Timestamps
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -164,7 +156,7 @@ model ContactSubmission {
   company     String?
   subject     String?
   message     String   @db.Text
-  source      String?  // Where they came from
+  source      String?
   responded   Boolean  @default(false)
   createdAt   DateTime @default(now())
 
@@ -177,14 +169,35 @@ model Newsletter {
   email       String   @unique
   name        String?
   subscribed  Boolean  @default(true)
-  source      String?  // Where they subscribed from
+  source      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("newsletter")
 }
 
-// Enums
+// Health monitoring logs
+model HealthLog {
+  id        String   @id @default(cuid())
+  service   String
+  status    String
+  message   String?
+  checkedAt DateTime @default(now())
+}
+
+// Admin task tracking for ops
+model Task {
+  id        String       @id @default(cuid())
+  title     String
+  dueAt     DateTime?
+  priority  TaskPriority @default(MEDIUM)
+  status    TaskStatus   @default(OPEN)
+  assigneeId String?
+  assignee  User?        @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
 enum UserRole {
   CLIENT
   ADMIN
@@ -199,11 +212,14 @@ enum BookingStatus {
   NO_SHOW
 }
 
-// Health monitoring logs
-model HealthLog {
-  id        String   @id @default(cuid())
-  service   String
-  status    String
-  message   String?
-  checkedAt DateTime @default(now())
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
 }
