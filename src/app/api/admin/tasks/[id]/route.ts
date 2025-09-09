@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { taskUpdateSchema } from '@/lib/validation'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 // PATCH /api/admin/tasks/[id]
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
