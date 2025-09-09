@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 
 // GET /api/admin/currencies - list all currencies
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !hasPermission(session.user.role, 'view_currencies')) {
