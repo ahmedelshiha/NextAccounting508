@@ -110,7 +110,9 @@ export default async function ServicePage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900">{service.name}</h1>
-            {service.price && <div className="text-lg text-blue-600 mt-2">Starting at ${service.price}</div>}
+            {service.price && (
+              <div className="text-lg text-blue-600 mt-2">Starting at {formatCurrencyFromDecimal(service.price)}</div>
+            )}
             <p className="mt-4 text-gray-600">{service.shortDesc || service.description}</p>
           </div>
 
