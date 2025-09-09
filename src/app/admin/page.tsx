@@ -399,6 +399,17 @@ export default function AdminDashboard() {
                     </Link>
                   </Button>
                 )}
+                {perms.canManageCurrencies && (
+                  <div className="h-auto p-4 flex flex-col items-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {/* Quick modal for changing default currency */}
+                    {/* We'll load the modal component client-side */}
+                    <React.Suspense fallback={<Button variant="outline">Quick Change Currency</Button>}>
+                      {/* @ts-expect-error Async server component import */}
+                      <CurrencyQuickModal />
+                    </React.Suspense>
+                  </div>
+                )}
                 {perms.canManageNewsletter && (
                   <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
                     <Link href="/admin/newsletter">
