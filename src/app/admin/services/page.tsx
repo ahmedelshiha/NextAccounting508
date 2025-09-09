@@ -25,6 +25,7 @@ interface Service {
 export default function AdminServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+  const { currency, setCurrency } = useCurrency()
 
   // Create form state
   const [name, setName] = useState('')
