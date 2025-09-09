@@ -28,17 +28,21 @@ interface DashboardStats {
     confirmed: number
     completed: number
     today: number
+    thisMonth?: number
+    lastMonth?: number
   }
   users: {
     total: number
     clients: number
     staff: number
     newThisMonth: number
+    registrationTrends?: Array<{ month: string; count: number }>
   }
   posts: {
     total: number
     published: number
     drafts: number
+    publishingTrends?: Array<{ month: string; count: number }>
   }
   newsletter: {
     total: number
@@ -309,6 +313,38 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Trends */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Trends (last 6 months)</CardTitle>
+            <CardDescription>Users and content publishing</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">User Registrations</div>
+                <div className="h-24 flex items-end gap-2">
+                  {(stats?.users.registrationTrends || []).map((p) => {
+                    const max = Math.max(...(stats?.users.registrationTrends || []).map(x => x.count), 1)
+                    const height = Math.max(4, Math.round((p.count / max) * 96))
+                    return <div key={p.month} className="bg-blue-500/70 rounded" style={{ height, width: 12 }} title={`${p.month}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Posts Published</div>
+                <div className="h-24 flex items-end gap-2">
+                  {(stats?.posts.publishingTrends || []).map((p) => {
+                    const max = Math.max(...(stats?.posts.publishingTrends || []).map(x => x.count), 1)
+                    const height = Math.max(4, Math.round((p.count / max) * 96))
+                    return <div key={p.month} className="bg-purple-500/70 rounded" style={{ height, width: 12 }} title={`${p.month}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
