@@ -135,7 +135,7 @@ export function ServicesSection() {
                   {service.price && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
-                        ${service.price}
+                        {formatCurrencyFromDecimal(service.price)}
                       </span>
                       <span className="text-gray-600">/month</span>
                     </div>
