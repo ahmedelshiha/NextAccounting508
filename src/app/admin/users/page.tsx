@@ -87,6 +87,51 @@ export default function AdminUsersPage() {
           </Card>
         </div>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>User Directory</CardTitle>
+            <CardDescription>Search and manage user roles</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-3 mb-4">
+              <Input placeholder="Search by name or email" value={q} onChange={e => setQ(e.target.value)} />
+              <select className="border rounded px-2 py-2 text-sm" value={roleFilter} onChange={e => setRoleFilter(e.target.value as any)}>
+                <option value="all">All Roles</option>
+                <option value="ADMIN">Admins</option>
+                <option value="STAFF">Staff</option>
+                <option value="CLIENT">Clients</option>
+              </select>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-gray-600">
+                    <th className="py-2">Name</th>
+                    <th className="py-2">Email</th>
+                    <th className="py-2">Role</th>
+                    <th className="py-2">Joined</th>
+                    <th className="py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.id} className="border-t">
+                      <td className="py-2">{u.name || 'Unnamed'}</td>
+                      <td className="py-2">{u.email}</td>
+                      <td className="py-2"><span className="inline-block px-2 py-1 rounded bg-gray-100 text-gray-800 text-xs">{u.role}</span></td>
+                      <td className="py-2">{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="py-2"><UserRoleActions id={u.id} current={u.role || 'CLIENT'} onUpdated={() => { /* refresh */ setQ(x => x) }} /></td>
+                    </tr>
+                  ))}
+                  {users.length === 0 && (
+                    <tr><td colSpan={5} className="text-gray-500 py-6 text-center">No users found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Top Clients by Bookings</CardTitle>
