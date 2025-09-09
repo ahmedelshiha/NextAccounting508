@@ -29,7 +29,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       } else {
         setMessage('Failed to refresh rates')
       }
-    } catch (_e) {
+    } catch {
       setMessage('Failed to refresh rates')
     }
     setLoading(false)
