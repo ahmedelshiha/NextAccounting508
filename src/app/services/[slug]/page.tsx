@@ -188,7 +188,7 @@ export async function generateStaticParams() {
   try {
     const services = await prisma.service.findMany({ where: { active: true }, select: { slug: true } })
     if (services && services.length > 0) return services.map((s) => ({ slug: s.slug }))
-  } catch (_error) {
+  } catch {
     // ignore and fallback to default slugs
   }
 
