@@ -109,7 +109,23 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(service, { status: 201 })
+    // Optional currency overrides
+    if (service && body?.prices && typeof body.prices === 'object') {
+      const overrides = body.prices as Record<string, number | null>
+      const entries = Object.entries(overrides).filter(([,_v]) => _v !== null && _v !== undefined)
+      if (entries.length) {
+        await prisma.$transaction(entries.map(([code, amt]) =>
+          prisma.servicePrice.upsert({
+            where: { serviceId_currency: { serviceId: service.id, currency: code as any } },
+            create: { serviceId: service.id, currency: code as any, amount: parseFloat(String(amt)) },
+            update: { amount: parseFloat(String(amt)) }
+          })
+        ))
+      }
+    }
+
+    const created = await prisma.service.findUnique({ where: { id: service.id }, include: { prices: true } })
+    return NextResponse.json(created, { status: 201 })
   } catch (error) {
     console.error('Error creating service:', error)
     return NextResponse.json(
