@@ -53,6 +53,7 @@ This document summarizes all admin-related enhancements implemented in this iter
 - NextAuth warnings remain visible in dev logs until `NEXTAUTH_URL` and `NEXTAUTH_SECRET` are set.
 
 ## Build & Lint Fixes (Netlify)
+- Fixed Next.js 15 route handler typing: dynamic API routes must use context: { params: Promise<...> } and await it. Updated `src/app/api/admin/users/[id]/route.ts` accordingly; other dynamic routes already followed this signature.
 - Resolved TypeScript/ESLint errors (no-explicit-any, unused vars) that caused Netlify build to fail.
 - Admin Dashboard (`src/app/admin/page.tsx`):
   - Removed window globals and any usage; added typed analytics state with interfaces `AnalyticsDailyPoint`, `AnalyticsRevenueByService`, `AdminAnalytics`.
