@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import NewsletterForm from '@/components/ui/newsletter-form'
 
 export default function CareersPage() {
   return (
