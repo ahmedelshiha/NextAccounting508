@@ -58,7 +58,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       const res = await fetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ isDefault: true }) })
       if (res.ok) await load()
       else setMessage('Failed to set default')
-    } catch (_e) {
+    } catch {
       setMessage('Failed to set default')
     }
     setLoading(false)
