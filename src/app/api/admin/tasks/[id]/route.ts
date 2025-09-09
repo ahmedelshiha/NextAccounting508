@@ -14,13 +14,23 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const { id } = await context.params
-    const body = await request.json().catch(() => ({}))
+
+    const ip = getClientIp(request as unknown as Request)
+    if (!rateLimit(`tasks:update:${ip}`, 60, 60_000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
+    const json = await request.json().catch(() => ({}))
+    const parsed = taskUpdateSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
 
     const data: import('@prisma/client').Prisma.TaskUpdateInput = {}
-    if (body.title !== undefined) data.title = String(body.title)
-    if (body.status !== undefined) data.status = body.status
-    if (body.priority !== undefined) data.priority = body.priority
-    if (body.dueAt !== undefined) data.dueAt = body.dueAt ? new Date(body.dueAt) : null
+    if (parsed.data.title !== undefined) data.title = parsed.data.title
+    if (parsed.data.status !== undefined) data.status = parsed.data.status
+    if (parsed.data.priority !== undefined) data.priority = parsed.data.priority
+    if (parsed.data.dueAt !== undefined) data.dueAt = parsed.data.dueAt ? new Date(parsed.data.dueAt) : null
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
