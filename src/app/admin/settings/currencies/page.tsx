@@ -1,6 +1,6 @@
-import dynamic from 'next/dynamic'
+'use client'
 
-const CurrencyManager = dynamic(() => import('@/components/admin/currency-manager'), { ssr: false })
+import CurrencyManager from '@/components/admin/currency-manager'
 
 export default function Page() {
   return (
