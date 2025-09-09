@@ -26,6 +26,10 @@ This document summarizes all admin-related enhancements implemented in this iter
   - Update user role: `PATCH /api/admin/users/[id]` (Admin-only, RBAC-enforced).
 - Advanced Analytics
   - `GET /api/admin/analytics?range=7d|14d|30d|90d|1y`: parameterized analytics. Returns daily bookings for range, revenue by service within range, average lead time within range, and top services in range.
+- Tasks
+  - `GET /api/admin/tasks` list, `POST /api/admin/tasks` create, `PATCH /api/admin/tasks/[id]` update (ADMIN/STAFF). DB-less fallbacks for GET.
+- Exports
+  - `GET /api/admin/export?entity=users|bookings|services|audits&format=csv` returns CSV with Content-Disposition for download.
 - Stats (existing, now used by dashboard)
   - Bookings: `src/app/api/admin/stats/bookings/route.ts`
   - Users: `src/app/api/admin/stats/users/route.ts`
@@ -43,6 +47,8 @@ This document summarizes all admin-related enhancements implemented in this iter
   - Unified time-range selector (7d, 14d, 30d, 90d, 1y) that drives analytics.
     - Recent Admin Activity feed (reads latest `AUDIT` logs via `/api/health/logs?service=AUDIT&limit=5`).
   - Quick Actions gated by permissions.
+  - Upcoming Tasks card powered by `/api/admin/tasks` with loading skeletons and priority/status badges.
+  - Header export shortcut for Users CSV via `/api/admin/export?entity=users&format=csv`.
 - Users (`src/app/admin/users/page.tsx`)
   - User list with role update select (RBAC-gated; uses new APIs).
   - Recent Admin Activity (reads latest `AUDIT` logs from `/api/health/logs`).
