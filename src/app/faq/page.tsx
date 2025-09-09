@@ -122,11 +122,6 @@ export default function FAQPage() {
           </aside>
         </section>
 
-        <div className="text-center mt-12">
-          <Link href="/" className="text-sm text-blue-600 hover:underline">
-            Return home
-          </Link>
-        </div>
       </main>
     </div>
   )
