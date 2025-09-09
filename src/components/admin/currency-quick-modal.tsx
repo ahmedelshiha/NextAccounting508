@@ -95,7 +95,7 @@ export default function CurrencyQuickModal() {
     return (cents / 100).toFixed(decimals)
   }
 
-  function parseAmountToCents(amountStr: string, decimals = 2) {
+  function parseAmountToCents(amountStr: string, _decimals = 2) {
     const n = Number(amountStr)
     if (Number.isNaN(n)) return 0
     return Math.round(n * 100)
