@@ -65,6 +65,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
   const [loading, setLoading] = useState(true)
+  const [systemStatus, setSystemStatus] = useState<{ db: 'Healthy' | 'Issue'; email: 'Configured' | 'Mock/Unconfigured' }>({ db: 'Issue', email: 'Mock/Unconfigured' })
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -381,26 +382,30 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    {systemStatus.db === 'Healthy' ? (
+                      <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
+                    )}
                     <span className="text-sm">Database Connection</span>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                  <Badge className={systemStatus.db === 'Healthy' ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>{systemStatus.db}</Badge>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    {process.env.SENDGRID_API_KEY ? (
+                    {systemStatus.email === 'Configured' ? (
                       <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                     ) : (
                       <AlertCircle className="h-5 w-5 text-yellow-500 mr-2" />
                     )}
                     <span className="text-sm">Email Service</span>
                   </div>
-                  <Badge className={process.env.SENDGRID_API_KEY ? 
-                    "bg-green-100 text-green-800" : 
+                  <Badge className={systemStatus.email === 'Configured' ?
+                    "bg-green-100 text-green-800" :
                     "bg-yellow-100 text-yellow-800"
                   }>
-                    {process.env.SENDGRID_API_KEY ? 'Configured' : 'Mock Mode'}
+                    {systemStatus.email}
                   </Badge>
                 </div>
 
