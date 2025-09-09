@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest) {
     ]
 
     const summary = {
-      overall: db.status === 'healthy' && email.status !== 'unavailable' && auth.status !== 'unavailable' ? 'operational' : 'degraded',
+      overall: db.status === 'healthy' && email.status === 'healthy' && auth.status === 'healthy' ? 'operational' : 'degraded',
       timestamp: new Date().toISOString(),
     }
 

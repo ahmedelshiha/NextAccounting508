@@ -3,10 +3,16 @@ const buckets = new Map<string, Bucket>()
 
 export function getClientIp(req: Request): string {
   try {
-    // @ts-expect-error NextRequest has ip
-    const ip = (req as any).ip as string | undefined
-    const hdr = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim()
-    return ip || hdr || 'anonymous'
+    const anyReq = req as any
+    const ip = (anyReq?.ip as string | undefined) || anyReq?.socket?.remoteAddress
+    const hdr =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      req.headers.get('x-nf-client-connection-ip') ||
+      req.headers.get('cf-connecting-ip') ||
+      ''
+    const first = hdr.split(',')[0]?.trim()
+    return ip || first || 'anonymous'
   } catch {
     return 'anonymous'
   }
