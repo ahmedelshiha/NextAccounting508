@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
+import { usePermissions } from '@/lib/use-permissions'
 
 interface UserStats {
   total: number
@@ -20,6 +21,7 @@ interface UserStats {
 export default function AdminUsersPage() {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const perms = usePermissions()
   const [users, setUsers] = useState<Array<{ id: string; name: string | null; email: string; role: 'ADMIN'|'STAFF'|'CLIENT'; createdAt: string }>>([])
   const [usersLoading, setUsersLoading] = useState(true)
   const [audits, setAudits] = useState<Array<{ id: string; message: string; checkedAt: string }>>([])
@@ -173,16 +175,18 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
-                      <Select value={u.role} onValueChange={(val) => updateRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
-                        <SelectTrigger className="w-36">
-                          <SelectValue placeholder="Change role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CLIENT">Client</SelectItem>
-                          <SelectItem value="STAFF">Staff</SelectItem>
-                          <SelectItem value="ADMIN">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      {perms.canManageUsers && (
+                        <Select value={u.role} onValueChange={(val) => updateRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
+                          <SelectTrigger className="w-36">
+                            <SelectValue placeholder="Change role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CLIENT">Client</SelectItem>
+                            <SelectItem value="STAFF">Staff</SelectItem>
+                            <SelectItem value="ADMIN">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -190,7 +194,9 @@ export default function AdminUsersPage() {
             ) : (
               <div className="text-gray-500">No users found.</div>
             )}
-            <div className="mt-4 text-xs text-gray-500">Role changes require Admin privileges.</div>
+            {perms.canManageUsers && (
+              <div className="mt-4 text-xs text-gray-500">Role changes require Admin privileges.</div>
+            )}
           </CardContent>
         </Card>
       </div>
