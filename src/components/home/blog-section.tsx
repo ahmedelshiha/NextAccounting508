@@ -6,10 +6,9 @@ import prisma from '@/lib/prisma'
 
 export const revalidate = 60
 
-import { isDatabaseHealthy } from '@/lib/db-health'
 
 export async function BlogSection() {
-  const hasDb = await isDatabaseHealthy(600)
+  const hasDb = !!(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
   let posts: Array<{
     id: string
     title: string
