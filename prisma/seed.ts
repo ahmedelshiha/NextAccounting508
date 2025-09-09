@@ -454,6 +454,38 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('✅ Newsletter subscribers created')
 
+  // Seed default currencies
+  const currencies = [
+    { code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2, active: true, isDefault: true },
+    { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ', decimals: 2, active: false, isDefault: false },
+    { code: 'SAR', name: 'Saudi Riyal', symbol: '﷼', decimals: 2, active: false, isDefault: false },
+    { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', decimals: 2, active: false, isDefault: false },
+  ]
+
+  for (const cur of currencies) {
+    await prisma.currency.upsert({
+      where: { code: cur.code },
+      update: {
+        name: cur.name,
+        symbol: cur.symbol,
+        decimals: cur.decimals,
+        active: cur.active,
+        isDefault: cur.isDefault,
+        updatedAt: new Date(),
+      },
+      create: cur as any,
+    })
+  }
+
+  // Insert a baseline USD->USD exchange rate
+  await prisma.exchangeRate.upsert({
+    where: { id: 1 },
+    update: { rate: 1.0, source: 'seed', fetchedAt: new Date(), ttlSeconds: 86400 },
+    create: { base: 'USD', target: 'USD', rate: 1.0, source: 'seed', ttlSeconds: 86400 },
+  })
+
+  console.log('✅ Currencies & baseline exchange rates created')
+
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
