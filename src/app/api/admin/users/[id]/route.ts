@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { hasPermission } from '@/lib/rbac'
+import { logAudit } from '@/lib/audit'
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
-    if (!session?.user || role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized - Admin only' }, { status: 401 })
+    if (!session?.user || !hasPermission(role, 'manage_users')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
@@ -28,6 +30,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       where: { id },
       data: { role: newRole },
       select: { id: true, name: true, email: true, role: true, createdAt: true }
+    })
+
+    await logAudit({
+      action: 'user.role.update',
+      actorId: session.user.id,
+      targetId: id,
+      details: { from: role, to: newRole }
     })
 
     return NextResponse.json({ user: updated })
