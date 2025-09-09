@@ -1,7 +1,5 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import NewsletterForm from '@/components/ui/newsletter-form'
 
 const navigation = {
