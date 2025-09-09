@@ -268,6 +268,11 @@ export default function AdminServicesPage() {
                       <Input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
                     </div>
                   </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Image URL</label>
+                    <Input value={image} onChange={e => setImage(e.target.value)} placeholder="https://..." />
+                    {image ? (<img src={image} alt="Service preview" className="mt-2 h-24 w-full object-cover rounded" />) : null}
+                  </div>
                   <div className="flex items-center gap-2">
                     <input id="featured" type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)} />
                     <label htmlFor="featured" className="text-sm text-gray-700">Featured</label>
