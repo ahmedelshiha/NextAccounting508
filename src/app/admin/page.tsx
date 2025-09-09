@@ -67,6 +67,7 @@ interface RecentBooking {
 
 export default function AdminDashboard() {
   const { data: session } = useSession()
+  const perms = usePermissions()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
   const [loading, setLoading] = useState(true)
