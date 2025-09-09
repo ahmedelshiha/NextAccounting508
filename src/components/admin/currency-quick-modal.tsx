@@ -85,7 +85,7 @@ export default function CurrencyQuickModal() {
       if (!res.ok) throw new Error('Failed')
       const json = await res.json()
       setOverrides(json)
-    } catch (e) {
+    } catch {
       toast.error('Failed to load overrides')
     }
     setOverrideLoading(false)
