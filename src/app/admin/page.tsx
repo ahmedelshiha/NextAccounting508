@@ -400,9 +400,12 @@ export default function AdminDashboard() {
                   </Button>
                 )}
                 {perms.canManageCurrencies && (
-                  <div className="h-auto p-4 flex flex-col items-center">
-                    <CurrencyQuickModal />
-                  </div>
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/settings/currencies">
+                      <DollarSign className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Currencies</span>
+                    </Link>
+                  </Button>
                 )}
                 {perms.canManageNewsletter && (
                   <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
