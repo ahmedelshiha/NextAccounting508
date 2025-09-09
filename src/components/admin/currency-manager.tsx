@@ -81,7 +81,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
     <div className="admin-currencies">
       <div className="controls flex gap-2 mb-4">
         <button className="btn btn-primary" onClick={refreshRates} disabled={loading}>Refresh rates</button>
-        <a className="btn" href="/api/admin/currencies/export">Export CSV</a>
+        <button className="btn" onClick={() => { window.location.href = '/api/admin/currencies/export' }}>Export CSV</button>
       </div>
 
       {message && <div className="mb-4 text-sm text-muted">{message}</div>}
