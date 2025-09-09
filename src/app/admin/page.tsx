@@ -81,6 +81,7 @@ export default function AdminDashboard() {
           apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/db-check').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/admin/analytics').then(res => res.ok ? res.json() : Promise.reject(res)),
         ])
 
         const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
@@ -90,6 +91,8 @@ export default function AdminDashboard() {
         const dbCheckOk = statsPromises[4].status === 'fulfilled'
 
         setDbHealthy(dbCheckOk)
+
+        const analytics = statsPromises[5].status === 'fulfilled' ? (statsPromises[5] as PromiseFulfilledResult<any>).value : null
 
         setStats({
           bookings: bookingsData,
@@ -106,6 +109,8 @@ export default function AdminDashboard() {
             growth: Number(bookingsData?.revenue?.growth ?? bookingsData?.growth ?? 0),
           }
         })
+
+        ;(window as any).__adminAnalytics__ = analytics
 
         // Fetch recent bookings
         const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
@@ -341,6 +346,50 @@ export default function AdminDashboard() {
                     return <div key={p.month} className="bg-purple-500/70 rounded" style={{ height, width: 12 }} title={`${p.month}: ${p.count}`} />
                   })}
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Advanced Analytics */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Advanced Analytics</CardTitle>
+            <CardDescription>Bookings and revenue insights</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <div className="text-sm font-medium text-gray-800 mb-2">Daily Bookings (14d)</div>
+                <div className="h-24 flex items-end gap-1">
+                  {((window as any).__adminAnalytics__?.dailyBookings || []).map((p: any, i: number) => {
+                    const max = Math.max(...((window as any).__adminAnalytics__?.dailyBookings || []).map((x: any) => x.count), 1)
+                    const height = Math.max(4, Math.round((p.count / max) * 96))
+                    return <div key={p.date || i} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date || i}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Avg Lead Time</div>
+                <div className="text-3xl font-bold text-gray-900">{((window as any).__adminAnalytics__?.avgLeadTimeDays || 0).toFixed(1)}<span className="text-sm text-gray-600 ml-1">days</span></div>
+              </div>
+            </div>
+            <div className="mt-6">
+              <div className="text-sm font-medium text-gray-800 mb-2">Revenue by Service</div>
+              <div className="space-y-2">
+                {((window as any).__adminAnalytics__?.revenueByService || []).map((r: any) => {
+                  const max = Math.max(...((window as any).__adminAnalytics__?.revenueByService || []).map((x: any) => x.amount), 1)
+                  const width = Math.max(4, Math.round((r.amount / max) * 100))
+                  return (
+                    <div key={r.service} className="flex items-center gap-2">
+                      <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
+                      <div className="flex-1 bg-gray-100 rounded h-3">
+                        <div className="h-3 bg-green-500/70 rounded" style={{ width: `${width}%` }} />
+                      </div>
+                      <div className="w-24 text-right text-sm text-gray-600">{formatCurrency(r.amount)}</div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </CardContent>
