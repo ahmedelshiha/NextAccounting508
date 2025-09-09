@@ -393,10 +393,11 @@ export default function AdminDashboard() {
               <div className="md:col-span-2">
                 <div className="text-sm font-medium text-gray-800 mb-2">Daily Bookings (14d)</div>
                 <div className="h-24 flex items-end gap-1">
-                  {((window as any).__adminAnalytics__?.dailyBookings || []).map((p: any, i: number) => {
-                    const max = Math.max(...((window as any).__adminAnalytics__?.dailyBookings || []).map((x: any) => x.count), 1)
-                    const height = Math.max(4, Math.round((p.count / max) * 96))
-                    return <div key={p.date || i} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date || i}: ${p.count}`} />
+                  {(analytics?.dailyBookings || []).map((p: AnalyticsDailyPoint, i: number) => {
+                    const rows = analytics?.dailyBookings || []
+                    const max = Math.max(...rows.map((x) => x.count), 1)
+                    const height = Math.max(4, Math.round(((p.count ?? 0) / max) * 96))
+                    return <div key={p.date ?? String(i)} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date ?? i}: ${p.count}`} />
                   })}
                 </div>
               </div>
