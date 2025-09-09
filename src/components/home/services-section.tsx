@@ -30,7 +30,7 @@ export function ServicesSection() {
   useEffect(() => {
     async function fetchServices() {
       try {
-        const response = await apiFetch('/api/services?featured=true')
+        const response = await apiFetch('/api/services')
         if (response.ok) {
           let data: unknown = null
           try {
