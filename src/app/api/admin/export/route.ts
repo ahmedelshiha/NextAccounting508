@@ -11,7 +11,7 @@ function toCsv(rows: Record<string, unknown>[]) {
     return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
   }
   const lines = [headers.join(',')]
-  for (const r of rows) lines.push(headers.map(h => escape((r as any)[h])).join(','))
+  for (const r of rows) lines.push(headers.map(h => escape((r as Record<string, unknown>)[h])).join(','))
   return lines.join('\n')
 }
 
@@ -41,7 +41,18 @@ export async function GET(request: NextRequest) {
       rows = bookings.map(b => ({ id: b.id, clientName: b.client?.name, clientEmail: b.client?.email, service: b.service?.name, status: b.status, scheduledAt: b.scheduledAt.toISOString(), duration: b.duration }))
     } else if (entity === 'services') {
       const services = await prisma.service.findMany({ select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
-      rows = services.map(s => ({ id: s.id, name: s.name, slug: s.slug, price: (s.price as any)?.toString?.() ?? '', active: s.active, category: s.category ?? '' }))
+      rows = services.map(s => {
+        const priceUnknown = s.price as unknown
+        let priceStr = ''
+        if (priceUnknown != null) {
+          if (typeof priceUnknown === 'string' || typeof priceUnknown === 'number') {
+            priceStr = String(priceUnknown)
+          } else if (typeof (priceUnknown as { toString?: () => string }).toString === 'function') {
+            priceStr = (priceUnknown as { toString: () => string }).toString()
+          }
+        }
+        return { id: s.id, name: s.name, slug: s.slug, price: priceStr, active: s.active, category: s.category ?? '' }
+      })
     } else if (entity === 'audits') {
       const logs = await prisma.healthLog.findMany({ where: { service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
       rows = logs.map(l => ({ id: l.id, checkedAt: l.checkedAt.toISOString(), service: l.service, status: l.status, message: l.message ?? '' }))
