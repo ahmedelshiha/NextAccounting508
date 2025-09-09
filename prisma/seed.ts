@@ -473,7 +473,7 @@ Effective cash flow management requires ongoing attention and planning. Regular 
         isDefault: cur.isDefault,
         updatedAt: new Date(),
       },
-      create: cur as any,
+      create: { code: cur.code, name: cur.name, symbol: cur.symbol ?? null, decimals: cur.decimals, active: cur.active, isDefault: cur.isDefault },
     })
   }
 
