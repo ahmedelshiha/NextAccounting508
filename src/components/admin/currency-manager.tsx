@@ -29,7 +29,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       } else {
         setMessage('Failed to refresh rates')
       }
-    } catch (e) {
+    } catch (_e) {
       setMessage('Failed to refresh rates')
     }
     setLoading(false)
@@ -45,7 +45,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       } else {
         setMessage('Failed to update')
       }
-    } catch (e) {
+    } catch (_e) {
       setMessage('Failed to update')
     }
     setLoading(false)
@@ -58,7 +58,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       const res = await fetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ isDefault: true }) })
       if (res.ok) await load()
       else setMessage('Failed to set default')
-    } catch (e) {
+    } catch (_e) {
       setMessage('Failed to set default')
     }
     setLoading(false)
