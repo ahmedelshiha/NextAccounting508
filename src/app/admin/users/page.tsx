@@ -27,14 +27,21 @@ export default function AdminUsersPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await apiFetch('/api/admin/stats/users')
-        if (res.ok) setStats(await res.json())
+        const [statsRes, usersRes] = await Promise.all([
+          apiFetch('/api/admin/stats/users'),
+          apiFetch(`/api/admin/users?limit=50${q ? `&q=${encodeURIComponent(q)}` : ''}${roleFilter !== 'all' ? `&role=${roleFilter}` : ''}`)
+        ])
+        if (statsRes.ok) setStats(await statsRes.json())
+        if (usersRes.ok) {
+          const data = await usersRes.json()
+          setUsers(data.users || [])
+        }
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, [])
+  }, [q, roleFilter])
 
   if (loading) {
     return (
