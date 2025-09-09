@@ -31,7 +31,7 @@ export default function CurrencyQuickModal() {
       setCurrencies(json.map((c: Currency) => ({ ...c })))
       const def = json.find((c: Currency) => c.isDefault)
       setSelected(def?.code ?? null)
-    } catch (e) {
+    } catch {
       setError('Failed to load currencies')
     }
   }
