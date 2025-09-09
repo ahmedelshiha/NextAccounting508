@@ -65,22 +65,27 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
   const [loading, setLoading] = useState(true)
+  const [dbHealthy, setDbHealthy] = useState<boolean | null>(null)
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
         // Fetch dashboard statistics
-          const statsPromises = await Promise.allSettled([
+        const statsPromises = await Promise.allSettled([
           apiFetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
-          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
+          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/db-check').then(res => res.ok ? res.json() : Promise.reject(res)),
         ])
 
         const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
         const usersData = statsPromises[1].status === 'fulfilled' ? statsPromises[1].value : { total: 0, clients: 0, staff: 0, newThisMonth: 0 }
         const postsData = statsPromises[2].status === 'fulfilled' ? statsPromises[2].value : { total: 0, published: 0, drafts: 0 }
         const newsletterData = statsPromises[3].status === 'fulfilled' ? statsPromises[3].value : { total: 0, active: 0 }
+        const dbCheckOk = statsPromises[4].status === 'fulfilled'
+
+        setDbHealthy(dbCheckOk)
 
         setStats({
           bookings: bookingsData,
@@ -89,12 +94,12 @@ export default function AdminDashboard() {
           newsletter: {
             total: newsletterData.total || 0,
             subscribed: newsletterData.subscribed || 0,
-            newThisMonth: 0 // Would need additional API endpoint
+            newThisMonth: 0
           },
           revenue: {
-            thisMonth: 15750, // Mock data
-            lastMonth: 12300,
-            growth: 28.0
+            thisMonth: Number(bookingsData?.revenue?.thisMonth ?? 0),
+            lastMonth: Number(bookingsData?.revenue?.lastMonth ?? 0),
+            growth: Number(bookingsData?.revenue?.growth ?? bookingsData?.growth ?? 0),
           }
         })
 
@@ -364,10 +369,10 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    {(dbHealthy ? <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> : <AlertCircle className="h-5 w-5 text-red-500 mr-2" />)}
                     <span className="text-sm">Database Connection</span>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                  <Badge className={dbHealthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{dbHealthy ? 'Healthy' : 'Unavailable'}</Badge>
                 </div>
                 
                 <div className="flex items-center justify-between">
