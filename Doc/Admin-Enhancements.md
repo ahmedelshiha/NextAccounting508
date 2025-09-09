@@ -94,8 +94,8 @@ This document summarizes all admin-related enhancements implemented in this iter
 ## Future Enhancements (Recommended)
 
 ### Security and Compliance
-- Add request validation (zod) for all admin APIs (users/bookings/posts/services/newsletter).
-- Add rate limiting and origin checks for sensitive endpoints.
+- Request validation (zod) added for user role updates and tasks APIs.
+- Basic in-memory rate limiting added to role updates and tasks APIs. Origin checks TBD.
 - Expand auditing to dedicated `AuditLog` model (actor, target, action, IP, UA, metadata). Add retention & export.
 - Add 2FA for Admin accounts; optional SSO.
 
