@@ -138,7 +138,12 @@ export function ServicesSection() {
                   {service.price && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
-                        {formatCurrencyFromDecimal(service.price)}
+                        {(() => {
+                          const sAny = service as any
+                          const override = Array.isArray(sAny.prices) ? sAny.prices.find((p: any) => p.currency === currency) : null
+                          if (override?.amount) return formatMoney(Number(override.amount), currency)
+                          return currency === 'USD' ? formatCurrencyFromDecimal(service.price) : formatMoney(convertFromUSD(Number(service.price), currency), currency)
+                        })()}
                       </span>
                       <span className="text-gray-600">/month</span>
                     </div>
