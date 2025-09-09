@@ -22,6 +22,54 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { usePermissions } from '@/lib/use-permissions'
 
+function UpcomingTasks() {
+  const [tasks, setTasks] = useState<Array<{ id: string; title: string; dueAt: string | null; priority: 'LOW' | 'MEDIUM' | 'HIGH'; status: 'OPEN' | 'IN_PROGRESS' | 'DONE' }>>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await apiFetch('/api/admin/tasks?limit=5')
+        if (res.ok) {
+          const data = await res.json()
+          setTasks(Array.isArray(data) ? data : [])
+        }
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(4)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-8" />))}
+      </div>
+    )
+  }
+
+  const getPriorityBadge = (p: 'LOW'|'MEDIUM'|'HIGH') => p === 'HIGH' ? 'bg-red-100 text-red-800' : p === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+
+  return (
+    <div className="space-y-3">
+      {tasks.length ? tasks.map(t => (
+        <div key={t.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div>
+            <div className="text-sm font-medium text-gray-900 truncate max-w-[220px]">{t.title}</div>
+            {t.dueAt && <div className="text-xs text-gray-500">Due {new Date(t.dueAt).toLocaleDateString()}</div>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge className={getPriorityBadge(t.priority)}>{t.priority}</Badge>
+            <Badge className="bg-gray-100 text-gray-800">{t.status}</Badge>
+          </div>
+        </div>
+      )) : (
+        <div className="text-gray-500 text-sm">No tasks.</div>
+      )}
+    </div>
+  )
+}
+
 interface DashboardStats {
   bookings: {
     total: number
@@ -210,6 +258,11 @@ export default function AdminDashboard() {
                 <option value="90d">Last 90 days</option>
                 <option value="1y">Last year</option>
               </select>
+              {perms.canManageUsers && (
+                <a href="/api/admin/export?entity=users&format=csv" className="inline-flex items-center border border-gray-200 rounded px-3 py-1 text-sm text-gray-700 hover:bg-gray-50">
+                  Export Users CSV
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -574,6 +627,17 @@ export default function AdminDashboard() {
                   </Link>
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Tasks */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming Tasks</CardTitle>
+              <CardDescription>Action items requiring attention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UpcomingTasks />
             </CardContent>
           </Card>
         </div>
