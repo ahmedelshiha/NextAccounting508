@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api'
 import { ArrowRight, Calculator, FileText, Users, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 const serviceIcons = {
   'Bookkeeping': Calculator,
