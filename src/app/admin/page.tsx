@@ -122,7 +122,7 @@ export default function AdminDashboard() {
           }
         })
 
-        ;(window as any).__adminAnalytics__ = analytics
+        setAnalytics(analyticsData)
 
         // Fetch recent bookings
         const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
