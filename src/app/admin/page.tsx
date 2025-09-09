@@ -79,13 +79,16 @@ export default function AdminDashboard() {
   const perms = usePermissions()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
+  const [recentAudits, setRecentAudits] = useState<Array<{ id: string; message: string; checkedAt: string }>>([])
   const [loading, setLoading] = useState(true)
   const [dbHealthy, setDbHealthy] = useState<boolean | null>(null)
   const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null)
+  const [timeRange, setTimeRange] = useState<'7d'|'14d'|'30d'|'90d'|'1y'>('14d')
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
+        const analyticsUrl = `/api/admin/analytics?range=${encodeURIComponent(timeRange)}`
         // Fetch dashboard statistics
         const statsPromises = await Promise.allSettled([
           apiFetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
@@ -93,7 +96,8 @@ export default function AdminDashboard() {
           apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/db-check').then(res => res.ok ? res.json() : Promise.reject(res)),
-          apiFetch('/api/admin/analytics').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch(analyticsUrl).then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/health/logs?service=AUDIT&limit=5').then(res => res.ok ? res.json() : Promise.reject(res)),
         ])
 
         const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
@@ -105,6 +109,7 @@ export default function AdminDashboard() {
         setDbHealthy(dbCheckOk)
 
         const analyticsData = statsPromises[5].status === 'fulfilled' ? (statsPromises[5] as PromiseFulfilledResult<unknown>).value as AdminAnalytics : null
+        const auditsData = statsPromises[6].status === 'fulfilled' ? (statsPromises[6] as PromiseFulfilledResult<unknown>).value as Array<{ id: string; message: string; checkedAt: string }> : []
 
         setStats({
           bookings: bookingsData,
@@ -123,6 +128,7 @@ export default function AdminDashboard() {
         })
 
         setAnalytics(analyticsData)
+        setRecentAudits(Array.isArray(auditsData) ? auditsData : [])
 
         // Fetch recent bookings
         const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
@@ -140,7 +146,7 @@ export default function AdminDashboard() {
     if (session?.user) {
       fetchDashboardData()
     }
-  }, [session])
+  }, [session, timeRange])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -190,12 +196,22 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Welcome back, {session?.user?.name}! Here&apos;s what&apos;s happening with your business.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">Welcome back, {session?.user?.name}! Here&apos;s what&apos;s happening with your business.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label htmlFor="time-range" className="text-sm text-gray-600">Range</label>
+              <select id="time-range" value={timeRange} onChange={(e) => setTimeRange(e.target.value as typeof timeRange)} className="border border-gray-200 rounded px-2 py-1 text-sm">
+                <option value="7d">Last 7 days</option>
+                <option value="14d">Last 14 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+                <option value="1y">Last year</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -391,7 +407,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
-                <div className="text-sm font-medium text-gray-800 mb-2">Daily Bookings (14d)</div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Daily Bookings ({timeRange})</div>
                 <div className="h-24 flex items-end gap-1">
                   {(analytics?.dailyBookings || []).map((p: AnalyticsDailyPoint, i: number) => {
                     const rows = analytics?.dailyBookings || []
@@ -406,23 +422,48 @@ export default function AdminDashboard() {
                 <div className="text-3xl font-bold text-gray-900">{(analytics?.avgLeadTimeDays ?? 0).toFixed(1)}<span className="text-sm text-gray-600 ml-1">days</span></div>
               </div>
             </div>
-            <div className="mt-6">
-              <div className="text-sm font-medium text-gray-800 mb-2">Revenue by Service</div>
-              <div className="space-y-2">
-                {(analytics?.revenueByService || []).map((r: AnalyticsRevenueByService) => {
-                  const rows = analytics?.revenueByService || []
-                  const max = Math.max(...rows.map((x) => x.amount), 1)
-                  const width = Math.max(4, Math.round(((r.amount ?? 0) / max) * 100))
-                  return (
-                    <div key={r.service} className="flex items-center gap-2">
-                      <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
-                      <div className="flex-1 bg-gray-100 rounded h-3">
-                        <div className="h-3 bg-green-500/70 rounded" style={{ width: `${width}%` }} />
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Revenue by Service</div>
+                <div className="space-y-2">
+                  {(analytics?.revenueByService || []).map((r: AnalyticsRevenueByService) => {
+                    const rows = analytics?.revenueByService || []
+                    const max = Math.max(...rows.map((x) => x.amount), 1)
+                    const width = Math.max(4, Math.round(((r.amount ?? 0) / max) * 100))
+                    return (
+                      <div key={r.service} className="flex items-center gap-2">
+                        <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
+                        <div className="flex-1 bg-gray-100 rounded h-3">
+                          <div className="h-3 bg-green-500/70 rounded" style={{ width: `${width}%` }} />
+                        </div>
+                        <div className="w-24 text-right text-sm text-gray-600">{formatCurrency(r.amount)}</div>
                       </div>
-                      <div className="w-24 text-right text-sm text-gray-600">{formatCurrency(r.amount)}</div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Service Distribution</div>
+                {(() => {
+                  const rows = analytics?.revenueByService || []
+                  const total = rows.reduce((sum, r) => sum + (r.amount || 0), 0)
+                  return (
+                    <div className="space-y-2">
+                      {rows.map((r) => {
+                        const pct = total > 0 ? Math.round(((r.amount || 0) / total) * 100) : 0
+                        return (
+                          <div key={r.service} className="flex items-center gap-2">
+                            <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
+                            <div className="flex-1 bg-gray-100 rounded h-3">
+                              <div className="h-3 bg-blue-500/70 rounded" style={{ width: `${pct}%` }} />
+                            </div>
+                            <div className="w-12 text-right text-sm text-gray-600">{pct}%</div>
+                          </div>
+                        )
+                      })}
                     </div>
                   )
-                })}
+                })()}
               </div>
             </div>
           </CardContent>
@@ -430,9 +471,9 @@ export default function AdminDashboard() {
         )}
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Bookings */}
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Recent Bookings</CardTitle>
               <CardDescription>
@@ -493,7 +534,7 @@ export default function AdminDashboard() {
                   </div>
                   <Badge className={dbHealthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{dbHealthy ? 'Healthy' : 'Unavailable'}</Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {process.env.SENDGRID_API_KEY ? (
@@ -503,8 +544,8 @@ export default function AdminDashboard() {
                     )}
                     <span className="text-sm">Email Service</span>
                   </div>
-                  <Badge className={process.env.SENDGRID_API_KEY ? 
-                    "bg-green-100 text-green-800" : 
+                  <Badge className={process.env.SENDGRID_API_KEY ?
+                    "bg-green-100 text-green-800" :
                     "bg-yellow-100 text-yellow-800"
                   }>
                     {process.env.SENDGRID_API_KEY ? 'Configured' : 'Mock Mode'}
@@ -536,6 +577,38 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Admin Activity */}
+        {perms.canManageUsers && (
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle>Recent Admin Activity</CardTitle>
+              <CardDescription>Latest audit events</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {recentAudits.length ? (
+                <div className="divide-y divide-gray-100">
+                  {recentAudits.map(a => {
+                    type AuditMessage = { action?: string; targetId?: string; details?: unknown }
+                    let parsed: AuditMessage = {}
+                    try { parsed = JSON.parse(a.message) as AuditMessage } catch { parsed = {} }
+                    return (
+                      <div key={a.id} className="py-3 text-sm text-gray-700 flex items-center justify-between">
+                        <div className="truncate mr-4">
+                          <span className="font-medium text-gray-900">{parsed.action || 'action'}</span>
+                          {parsed.targetId && <span className="ml-2 text-gray-500">target: {parsed.targetId}</span>}
+                        </div>
+                        <div className="text-xs text-gray-500">{new Date(a.checkedAt).toLocaleString()}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-gray-500">No recent admin activity.</div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
