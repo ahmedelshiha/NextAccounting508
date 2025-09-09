@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
 
     const services = await prisma.service.findMany({
       where,
+      include: { prices: true },
       orderBy: [
         { featured: 'desc' },
         { createdAt: 'desc' }
