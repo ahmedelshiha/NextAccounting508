@@ -185,6 +185,51 @@ model HealthLog {
   checkedAt DateTime @default(now())
 }
 
+// Currency models for multi-currency support
+model Currency {
+  code        String   @id
+  name        String
+  symbol      String?
+  decimals    Int      @default(2)
+  active      Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  rates       ExchangeRate[]
+  overrides   PriceOverride[]
+}
+
+model ExchangeRate {
+  id         Int      @id @default(autoincrement())
+  base       String
+  target     String
+  rate       Float
+  source     String?
+  fetchedAt  DateTime @default(now())
+  ttlSeconds Int?
+
+  // relation to Currency (target)
+  currency   Currency @relation(fields: [target], references: [code])
+
+  @@index([base, target])
+}
+
+model PriceOverride {
+  id           Int      @id @default(autoincrement())
+  entity       String
+  entityId     String
+  currencyCode String
+  priceCents   Int
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // relation to Currency
+  currency     Currency @relation(fields: [currencyCode], references: [code])
+
+  @@index([entity, entityId, currencyCode])
+}
+
 // Admin task tracking for ops
 model Task {
   id        String       @id @default(cuid())
