@@ -108,6 +108,7 @@ export default function AdminServicesPage() {
         duration: editDuration ? Number(editDuration) : null,
         featured: editFeatured,
         active: editActive,
+        image: editImage || null,
       })
     })
     if (res.ok) {
