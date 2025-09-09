@@ -111,12 +111,12 @@ export function ServicesSection() {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {services.map((service) => {
+          {services.slice(0, 4).map((service) => {
             const IconComponent = serviceIcons[service.name as keyof typeof serviceIcons] || Calculator
-            
+
             return (
-              <Card 
-                key={service.id} 
+              <Card
+                key={service.id}
                 className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 shadow-lg"
               >
                 <CardHeader className="text-center pb-4">

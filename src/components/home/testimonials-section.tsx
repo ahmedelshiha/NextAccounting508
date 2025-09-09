@@ -81,53 +81,53 @@ export function TestimonialsSection() {
   }
 
   return (
-    <section className="py-12 sm:py-16 bg-gray-50">
+    <section className="py-8 sm:py-10 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             What Our Clients Say
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-base text-gray-600 max-w-2xl mx-auto">
             Don&apos;t just take our word for it. Here&apos;s what business owners say about
             working with our accounting team.
           </p>
         </div>
 
         {/* Testimonials Carousel */}
-        <div className="relative max-w-4xl mx-auto">
-          <Card className="border-0 shadow-xl">
-            <CardContent className="p-6 sm:p-8">
+        <div className="relative max-w-3xl mx-auto">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4 sm:p-6">
               <div className="text-center">
                 {/* Quote Icon */}
-                <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-                  <Quote className="h-8 w-8 text-blue-600" />
+                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <Quote className="h-6 w-6 text-blue-600" />
                 </div>
 
                 {/* Stars */}
-                <div className="flex justify-center space-x-1 mb-6">
+                <div className="flex justify-center space-x-1 mb-4">
                   {[...Array(testimonials[currentIndex].rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                   ))}
                 </div>
 
                 {/* Testimonial Content */}
-                <blockquote className="text-xl sm:text-2xl text-gray-700 leading-relaxed mb-8 italic">
+                <blockquote className="text-lg text-gray-700 leading-relaxed mb-6 italic max-w-2xl mx-auto">
                   &ldquo;{testimonials[currentIndex].content}&rdquo;
                 </blockquote>
 
                 {/* Author */}
-                <div className="flex items-center justify-center space-x-4">
-                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold text-lg">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-600 font-semibold text-sm">
                       {testimonials[currentIndex].name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-gray-900">
+                    <div className="font-medium text-gray-900">
                       {testimonials[currentIndex].name}
                     </div>
-                    <div className="text-gray-600">
+                    <div className="text-sm text-gray-600">
                       {testimonials[currentIndex].title}
                     </div>
                   </div>
@@ -140,23 +140,23 @@ export function TestimonialsSection() {
           <Button
             variant="outline"
             size="icon"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg hover:bg-gray-50"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white shadow hover:bg-gray-50"
             onClick={goToPrevious}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg hover:bg-gray-50"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white shadow hover:bg-gray-50"
             onClick={goToNext}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
 
           {/* Dots Indicator */}
-          <div className="flex justify-center space-x-2 mt-6">
+          <div className="flex justify-center space-x-2 mt-4">
             {testimonials.map((_, index) => (
               <button
                 key={index}
@@ -170,22 +170,22 @@ export function TestimonialsSection() {
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div>
-            <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-            <div className="text-gray-600">Happy Clients</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">500+</div>
+            <div className="text-sm text-gray-600">Happy Clients</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-blue-600 mb-2">99%</div>
-            <div className="text-gray-600">Satisfaction Rate</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">99%</div>
+            <div className="text-sm text-gray-600">Satisfaction Rate</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-blue-600 mb-2">15+</div>
-            <div className="text-gray-600">Years Experience</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">15+</div>
+            <div className="text-sm text-gray-600">Years Experience</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-blue-600 mb-2">24/7</div>
-            <div className="text-gray-600">Support Available</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">24/7</div>
+            <div className="text-sm text-gray-600">Support Available</div>
           </div>
         </div>
       </div>
