@@ -31,12 +31,16 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Exports
   - `GET /api/admin/export?entity=users|bookings|services|audits&format=csv` returns CSV with Content-Disposition for download.
 - Stats (existing, now used by dashboard)
-  - Bookings: `src/app/api/admin/stats/bookings/route.ts`
-  - Users: `src/app/api/admin/stats/users/route.ts`
-  - Posts: `src/app/api/admin/stats/posts/route.ts`
+  - Bookings: `src/app/api/admin/stats/bookings/route.ts` (supports optional ?range=7d|30d|90d|1y)
+  - Users: `src/app/api/admin/stats/users/route.ts` (supports optional ?range=7d|30d|90d|1y)
+  - Posts: `src/app/api/admin/stats/posts/route.ts` (supports optional ?range=7d|30d|90d|1y)
 - System health
   - DB check: `GET /api/db-check`
   - Health logs list/create: `GET/POST /api/health/logs`
+- Activity
+  - `GET /api/admin/activity?type=AUDIT&limit=20` lists recent audit events (RBAC).
+- Performance
+  - `GET /api/admin/perf-metrics` returns pageLoad, apiResponse, uptime, errorRate (safe defaults).
 
 ### Admin UI
 - Dashboard (`src/app/admin/page.tsx`)
@@ -49,6 +53,7 @@ This document summarizes all admin-related enhancements implemented in this iter
   - Quick Actions gated by permissions.
   - Upcoming Tasks card powered by `/api/admin/tasks` with loading skeletons and priority/status badges.
   - Header export shortcut for Users CSV via `/api/admin/export?entity=users&format=csv`.
+  - Dashboard KPIs and charts can request range-aligned stats using new `?range` params on stats endpoints.
 - Users (`src/app/admin/users/page.tsx`)
   - User list with role update select (RBAC-gated; uses new APIs).
   - Recent Admin Activity (reads latest `AUDIT` logs from `/api/health/logs`).
