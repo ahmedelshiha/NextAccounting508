@@ -157,3 +157,46 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Verify RBAC by testing with CLIENT/STAFF/ADMIN accounts.
 - Review audit log flow and retention.
 - Validate analytics numbers against DB.
+
+
+---
+
+## New features identified in attached EnhancedAdminDashboard component
+The attached React component (`EnhancedAdminDashboard`) contains UI/features not explicitly documented above. Consider adding these as planned enhancements or immediate improvements:
+
+- Alerts panel
+  - Unread system alerts card with bell icon and per-alert summaries; supports unread filtering and prominent display.
+
+- Client-side refresh and export actions in the header
+  - A dedicated Refresh action that triggers a client-side refetch and a generic Export button for quick CSV/asset export from the dashboard header.
+
+- Conversion & no-show KPIs
+  - Explicit conversion rate and no-show rate KPI cards (with percentage formatting) alongside standard booking metrics.
+
+- Service performance bars with revenue
+  - Per-service horizontal bars showing bookings and revenue along with percent-width visualizations derived from total bookings.
+
+- Recent activity feed (UI-focused)
+  - Inline recent activity items with icons, short descriptions, and relative timestamps (booking confirmed, new user, post published).
+
+- Expanded System Monitoring metrics
+  - Additional system metrics surfaced on the dashboard UI: `lastBackup`, `storageUsed`, and `apiCalls` alongside uptime/response/error rate.
+
+- Top Clients card
+  - Ranked top clients list showing bookings and revenue per client, suitable for quick export or drill-down.
+
+- Quick Actions grid with icons
+  - Quick access tiles for common admin actions (New Booking, Add User, New Post, Send Campaign, Analytics, Settings).
+
+Actionable recommendations
+- Add API endpoints where missing to support system metrics (apiCalls, storageUsed, lastBackup) or compute them from existing telemetry.
+- Add server-side export endpoints (if not present) to back the Export button; reuse `GET /api/admin/export` with new entity parameters if needed.
+- Wire the Alerts UI to `GET /api/health/logs?service=ALERTS` or a similar health logs resource; add filters for read/unread.
+- Implement client-side refresh hooks (SWR or React Query) for consistent fetching and background revalidation.
+- Consider adding small lightweight chart components or CSS-only bars for service performance; keep dynamic imports for larger chart libs.
+
+If you want, I can:
+- Wire these UI pieces to real endpoints (implement missing API routes) and add server-side export support.
+- Add client-side retry/recovery for chunk load failures (I already added a global handler to auto-reload on chunk load errors).
+
+Which follow-up should I prioritize? (1) Wire alerts/top-clients to real APIs, (2) Add server-side exports, (3) Implement service performance caching and charts, (4) Other — specify.
