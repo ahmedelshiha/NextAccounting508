@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       await logAudit({ action: 'price_override:update', actorId: session.user.id, targetId: String(existing.id), details: { before: existing, after: saved } })
     } else {
       saved = await prisma.priceOverride.create({ data: { entity, entityId, currencyCode, priceCents, note } })
-      await logAudit({ action: 'price_override:create', actorId: session.user.id, targetId: String(saved.id), details: saved as any })
+      await logAudit({ action: 'price_override:create', actorId: session.user.id, targetId: String(saved.id), details: saved })
     }
 
     return NextResponse.json(saved)
