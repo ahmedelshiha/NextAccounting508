@@ -57,50 +57,6 @@ export default function FAQPage() {
         Skip to FAQ
       </a>
 
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Link href="/" className="text-xl font-bold text-blue-600">
-                Accounting Firm
-              </Link>
-            </div>
-
-            <nav className="hidden md:flex space-x-6" aria-label="Primary">
-              <Link href="/" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-                Home
-              </Link>
-              <Link href="/services" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-                Services
-              </Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-                About
-              </Link>
-              <Link href="/faq" className="text-blue-600 text-sm font-medium border-b-2 border-blue-600">
-                FAQ
-              </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-blue-600 text-sm font-medium">
-                Contact
-              </Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <select className="bg-transparent text-sm text-gray-700 border-none focus:ring-0 cursor-pointer">
-                <option value="en">EN</option>
-                <option value="ar">العربية</option>
-                <option value="hi">हिन्दी</option>
-              </select>
-
-              <Link
-                href="/booking"
-                className="hidden sm:inline-block bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                Book Consultation
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
 
       <main id="faq-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
