@@ -49,7 +49,7 @@ export default function CurrencyQuickModal() {
       toast.success('Default currency updated')
       await load()
       setOpen(false)
-    } catch (e) {
+    } catch {
       setError('Failed to set default')
       toast.error('Failed to set default currency')
     }
