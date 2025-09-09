@@ -41,6 +41,8 @@ This document summarizes all admin-related enhancements implemented in this iter
   - `GET /api/admin/activity?type=AUDIT&limit=20` lists recent audit events (RBAC).
 - Performance
   - `GET /api/admin/perf-metrics` returns pageLoad, apiResponse, uptime, errorRate (safe defaults).
+- System Health Rollup
+  - `GET /api/admin/system/health` aggregates DB/email/auth/external API status with an overall summary.
 
 ### Admin UI
 - Dashboard (`src/app/admin/page.tsx`)
