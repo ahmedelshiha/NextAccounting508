@@ -429,36 +429,30 @@ Multi-currency support is now available: currencies can be added/activated, a de
 
 ---
 
-### Admin UI — Quick Change Modal (Dashboard quick action)
-- Added a client-side Quick Change Currency modal accessible from the Admin Dashboard Quick Actions (visible to users with `manage_currencies`).
-- File: `src/components/admin/currency-quick-modal.tsx` — a lightweight dialog that:
-  - Lists currencies with editable fields (symbol, decimals, active).
-  - Allows selecting and setting the default currency without leaving the dashboard.
-  - Saves individual currency edits (PATCH `/api/admin/currencies/[code]`).
-  - Shows confirmation toasts using `sonner` for success/error feedback.
-- Dashboard integration: `src/app/admin/page.tsx` — added quick action button that opens the modal and exposes it only to users with the appropriate permission.
-- Permissions: `usePermissions` exposes `canManageCurrencies` and `canManagePriceOverrides` to gate access.
+### Admin UI — Manage Currencies (single consolidated page)
+- Consolidated UI: removed the separate dashboard quick modal and implemented a single comprehensive client-side manager component: `src/components/admin/currency-manager.tsx`.
+- The Manage Currencies page (`/admin/settings/currencies`) now renders the client manager dynamically (client-only) at `src/app/admin/settings/currencies/page.tsx` and provides the full feature set in one place.
 
-### Per-entity Price Override UI (in modal)
-- The Quick Change modal now includes per-entity price override management (visible to users with `manage_price_overrides`):
-  - Select entity type (`services` | `products`) and enter an entity ID.
-  - Load existing overrides using `GET /api/admin/currencies/overrides?entity=...&id=...`.
-  - Edit existing overrides (price) and save via `POST /api/admin/currencies/overrides`.
-  - Create new overrides for the selected entity and currency.
-- Files: `src/components/admin/currency-quick-modal.tsx`, `src/app/api/admin/currencies/overrides/route.ts` (existing endpoint used).
-- UX notes: price inputs accept human-readable amounts (e.g., `100.00`) and are converted to cents server-side.
+Features (single page)
+- Edit currency metadata: symbol, decimals, active flag, and save (PATCH `/api/admin/currencies/[code]`).
+- Set default currency directly from the list (PATCH). Selecting a default clears previous default automatically.
+- Refresh exchange rates (POST `/api/admin/currencies/refresh`) and export CSV (GET `/api/admin/currencies/export`).
+- Per-entity price overrides: load, edit, and create overrides via `GET /api/admin/currencies/overrides` and `POST /api/admin/currencies/overrides`.
+- User feedback: success/error toasts via `sonner` for all save/refresh operations.
 
-### Unified Manage Currencies page
-- The Manage Currencies page (`/admin/settings/currencies`) now hosts the complete, single-pane management experience:
-  - Client-side comprehensive manager: `src/components/admin/currency-quick-modal.tsx` (dynamic import, client-only). This dialog provides full editing (symbol, decimals, active), set-default, save, and per-entity override management.
-  - Server-rendered reference table: `src/app/admin/settings/currencies/page.tsx` renders a read-only table with current currencies and last fetched rates to provide immediate server-state visibility alongside the client editor.
-  - The client modal is gated by permissions (`manage_currencies` / `manage_price_overrides`) via `src/lib/use-permissions.ts`.
-  - Quick action integration: Dashboard quick actions link to this page and also provide a separate quick modal on the dashboard for faster edits (`src/app/admin/page.tsx`).
+Files changed
+- Added/updated: `src/components/admin/currency-manager.tsx` (full client manager)
+- Updated: `src/app/admin/settings/currencies/page.tsx` (loads client manager dynamically)
+- Removed: `src/components/admin/currency-quick-modal.tsx` (functionality migrated)
+- Dashboard: `src/app/admin/page.tsx` now links to the unified Manage Currencies page from Quick Actions instead of opening a separate modal.
+
+Permissions & audit
+- Access gated by permissions exposed in `usePermissions`: `canManageCurrencies` and `canManagePriceOverrides`.
+- All changes that require auditing (price overrides, default changes, refresh failures) use `src/lib/audit.ts` to record events.
 
 Notes & behavior
-- All edits (PATCH) are sent to `PATCH /api/admin/currencies/[code]` and are audited where appropriate.
-- Per-entity overrides use `GET /api/admin/currencies/overrides` and `POST /api/admin/currencies/overrides`.
-- The server render table is intentionally read-only; the modal is the canonical editor. We can make the table editable or add optimistic UI updates as a follow-up.
+- The client manager fetches live state from the APIs and is the canonical editor. There is no separate server-rendered editor; server-side seeds remain for initial data.
+- We kept API contracts unchanged: `PATCH /api/admin/currencies/[code]` for updates, `POST /api/admin/currencies/refresh` to refresh rates, and the overrides endpoints.
 
 If you want, I can also:
 - Add automated unit tests and a GitHub Actions workflow to run them, or
