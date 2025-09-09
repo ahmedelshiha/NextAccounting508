@@ -22,6 +22,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState<Array<{ id: string; name: string | null; email: string; role: 'ADMIN'|'STAFF'|'CLIENT'; createdAt: string }>>([])
   const [usersLoading, setUsersLoading] = useState(true)
+  const [audits, setAudits] = useState<Array<{ id: string; message: string; checkedAt: string }>>([])
+  const [auditsLoading, setAuditsLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
@@ -48,6 +50,21 @@ export default function AdminUsersPage() {
       }
     }
     loadUsers()
+  }, [])
+
+  useEffect(() => {
+    async function loadAudits() {
+      try {
+        const res = await apiFetch('/api/health/logs?service=AUDIT&limit=10')
+        if (res.ok) {
+          const data = await res.json()
+          setAudits(Array.isArray(data) ? data : [])
+        }
+      } finally {
+        setAuditsLoading(false)
+      }
+    }
+    loadAudits()
   }, [])
 
   const updateRole = async (userId: string, role: 'ADMIN'|'STAFF'|'CLIENT') => {
