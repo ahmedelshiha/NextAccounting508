@@ -173,7 +173,7 @@ export default function PortalPage() {
                         {booking.service.price && (
                           <div className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            ${booking.service.price}
+                            {formatCurrencyFromDecimal(booking.service.price)}
                           </div>
                         )}
                       </div>
