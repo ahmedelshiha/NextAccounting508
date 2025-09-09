@@ -7,7 +7,6 @@ import { sumDecimals } from '@/lib/decimal-utils'
 
 // GET /api/admin/stats/bookings - Get booking statistics
 export async function GET(request: NextRequest) {
-  void request
   try {
     const session = await getServerSession(authOptions)
     
