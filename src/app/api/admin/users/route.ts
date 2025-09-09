@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH /api/admin/users - Bulk update roles
+// PATCH /api/admin/users - Bulk update roles or default currency
 export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -55,15 +55,32 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userIds, role } = body || {}
-    if (!Array.isArray(userIds) || userIds.length === 0 || !['ADMIN', 'STAFF', 'CLIENT'].includes(role)) {
-      return NextResponse.json({ error: 'userIds and valid role are required' }, { status: 400 })
+    const { userIds, role, defaultCurrency } = body || {}
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return NextResponse.json({ error: 'userIds is required' }, { status: 400 })
     }
 
-    const result = await prisma.user.updateMany({ where: { id: { in: userIds } }, data: { role } })
+    const data: any = {}
+    if (role) {
+      if (!['ADMIN', 'STAFF', 'CLIENT'].includes(role)) {
+        return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+      }
+      data.role = role
+    }
+    if (defaultCurrency) {
+      if (!['USD', 'SAR', 'AED', 'EGP'].includes(defaultCurrency)) {
+        return NextResponse.json({ error: 'Invalid currency' }, { status: 400 })
+      }
+      data.defaultCurrency = defaultCurrency
+    }
+    if (!Object.keys(data).length) {
+      return NextResponse.json({ error: 'No updates provided' }, { status: 400 })
+    }
+
+    const result = await prisma.user.updateMany({ where: { id: { in: userIds } }, data })
     return NextResponse.json({ updated: result.count })
   } catch (error) {
-    console.error('Error updating user roles:', error)
+    console.error('Error updating users:', error)
     return NextResponse.json({ error: 'Failed to update users' }, { status: 500 })
   }
 }
