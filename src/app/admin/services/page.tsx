@@ -176,6 +176,14 @@ export default function AdminServicesPage() {
             <CardHeader>
               <CardTitle>{selected ? 'Edit Service' : 'Create Service'}</CardTitle>
               <CardDescription>{selected ? `Editing /${selected.slug}` : 'Add a new service'}</CardDescription>
+              <div className="mt-2">
+                <label className="text-xs text-gray-600 mr-2">Currency preview</label>
+                <select className="border rounded px-2 py-1 text-sm" value={currency} onChange={e => setCurrency(e.target.value as any)}>
+                  {SUPPORTED_CURRENCIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
             </CardHeader>
             <CardContent>
               {selected ? (
