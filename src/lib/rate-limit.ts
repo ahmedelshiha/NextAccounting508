@@ -1,101 +1,31 @@
-import { NextRequest } from 'next/server'
+type Bucket = { tokens: number; last: number }
+const buckets = new Map<string, Bucket>()
 
-interface RateLimitOptions {
-  windowMs: number
-  maxRequests: number
-  keyGenerator?: (req: NextRequest) => string
-}
-
-interface RateLimitStore {
-  [key: string]: {
-    count: number
-    resetTime: number
+export function getClientIp(req: Request): string {
+  try {
+    // @ts-expect-error NextRequest has ip
+    const ip = (req as any).ip as string | undefined
+    const hdr = (req.headers.get('x-forwarded-for') || '').split(',')[0]?.trim()
+    return ip || hdr || 'anonymous'
+  } catch {
+    return 'anonymous'
   }
 }
 
-const store: RateLimitStore = {}
-
-setInterval(() => {
+export function rateLimit(key: string, limit = 20, windowMs = 60_000): boolean {
   const now = Date.now()
-  Object.keys(store).forEach(key => {
-    if (store[key].resetTime < now) {
-      delete store[key]
-    }
-  })
-}, 5 * 60 * 1000)
-
-export function rateLimit(options: RateLimitOptions) {
-  const { windowMs, maxRequests, keyGenerator } = options
-
-  return function rateLimitMiddleware(req: NextRequest) {
-    const key = keyGenerator ? keyGenerator(req) : getClientIP(req)
-    
-    const now = Date.now()
-
-    if (!store[key] || store[key].resetTime < now) {
-      store[key] = {
-        count: 0,
-        resetTime: now + windowMs
-      }
-    }
-
-    if (store[key].resetTime > now) {
-      store[key].count++
-      
-      if (store[key].count > maxRequests) {
-        const resetTime = Math.ceil((store[key].resetTime - now) / 1000)
-        return {
-          success: false as const,
-          limit: maxRequests,
-          remaining: 0,
-          resetTime,
-          error: `Too many requests. Try again in ${resetTime} seconds.`
-        }
-      }
-    }
-
-    return {
-      success: true as const,
-      limit: maxRequests,
-      remaining: Math.max(0, maxRequests - store[key].count),
-      resetTime: Math.ceil((store[key].resetTime - now) / 1000)
-    }
+  const bucket = buckets.get(key) || { tokens: limit, last: now }
+  const elapsed = now - bucket.last
+  const refill = Math.floor(elapsed / windowMs) * limit
+  if (refill > 0) {
+    bucket.tokens = Math.min(limit, bucket.tokens + refill)
+    bucket.last = now
   }
+  if (bucket.tokens <= 0) {
+    buckets.set(key, bucket)
+    return false
+  }
+  bucket.tokens -= 1
+  buckets.set(key, bucket)
+  return true
 }
-
-function getClientIP(req: NextRequest): string {
-  const forwarded = req.headers.get('x-forwarded-for')
-  const realIP = req.headers.get('x-real-ip')
-  const cfConnectingIP = req.headers.get('cf-connecting-ip')
-  
-  if (forwarded) {
-    return forwarded.split(',')[0].trim()
-  }
-  if (realIP) {
-    return realIP
-  }
-  if (cfConnectingIP) {
-    return cfConnectingIP
-  }
-  return 'unknown'
-}
-
-export const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  maxRequests: 5
-})
-
-export const apiRateLimit = rateLimit({
-  windowMs: 60 * 1000,
-  maxRequests: 100
-})
-
-export const contactRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  maxRequests: 3
-})
-
-export const bookingRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  maxRequests: 10
-})

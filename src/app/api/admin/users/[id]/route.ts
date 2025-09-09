@@ -4,8 +4,10 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { logAudit } from '@/lib/audit'
+import { roleUpdateSchema } from '@/lib/validation'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
@@ -18,13 +20,20 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
     }
 
-    const id = params.id
-    const body = await request.json().catch(() => ({}))
-    const { role: newRole } = body || {}
+    const { id } = await context.params
 
-    if (!newRole || !['ADMIN', 'STAFF', 'CLIENT'].includes(newRole)) {
-      return NextResponse.json({ error: 'Invalid or missing role' }, { status: 400 })
+    // Rate limit role updates by client IP
+    const ip = getClientIp(request as unknown as Request)
+    if (!rateLimit(`role:${ip}`, 20, 60_000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
+
+    const json = await request.json().catch(() => ({}))
+    const parsed = roleUpdateSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+    const newRole = parsed.data.role
 
     const updated = await prisma.user.update({
       where: { id },

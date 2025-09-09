@@ -25,14 +25,24 @@ This document summarizes all admin-related enhancements implemented in this iter
   - List users: `GET /api/admin/users` with DB-less fallback.
   - Update user role: `PATCH /api/admin/users/[id]` (Admin-only, RBAC-enforced).
 - Advanced Analytics
-  - `GET /api/admin/analytics`: daily bookings (14 days), revenue by service, average lead time, top services.
+  - `GET /api/admin/analytics?range=7d|14d|30d|90d|1y`: parameterized analytics. Returns daily bookings for range, revenue by service within range, average lead time within range, and top services in range.
+- Tasks
+  - `GET /api/admin/tasks` list, `POST /api/admin/tasks` create, `PATCH /api/admin/tasks/[id]` update (ADMIN/STAFF). DB-less fallbacks for GET.
+- Exports
+  - `GET /api/admin/export?entity=users|bookings|services|audits&format=csv` returns CSV with Content-Disposition for download.
 - Stats (existing, now used by dashboard)
-  - Bookings: `src/app/api/admin/stats/bookings/route.ts`
-  - Users: `src/app/api/admin/stats/users/route.ts`
-  - Posts: `src/app/api/admin/stats/posts/route.ts`
+  - Bookings: `src/app/api/admin/stats/bookings/route.ts` (supports optional ?range=7d|30d|90d|1y)
+  - Users: `src/app/api/admin/stats/users/route.ts` (supports optional ?range=7d|30d|90d|1y)
+  - Posts: `src/app/api/admin/stats/posts/route.ts` (supports optional ?range=7d|30d|90d|1y)
 - System health
   - DB check: `GET /api/db-check`
   - Health logs list/create: `GET/POST /api/health/logs`
+- Activity
+  - `GET /api/admin/activity?type=AUDIT&limit=20` lists recent audit events (RBAC).
+- Performance
+  - `GET /api/admin/perf-metrics` returns pageLoad, apiResponse, uptime, errorRate (safe defaults).
+- System Health Rollup
+  - `GET /api/admin/system/health` aggregates DB/email/auth/external API status with an overall summary.
 
 ### Admin UI
 - Dashboard (`src/app/admin/page.tsx`)
@@ -40,7 +50,12 @@ This document summarizes all admin-related enhancements implemented in this iter
   - Live DB health indicator via `/api/db-check`.
   - Trends (last 6 months): user registrations and posts published (bar mini-charts; no new deps).
   - Advanced Analytics section (guarded by permission) using `/api/admin/analytics`.
+  - Unified time-range selector (7d, 14d, 30d, 90d, 1y) that drives analytics.
+    - Recent Admin Activity feed (reads latest `AUDIT` logs via `/api/health/logs?service=AUDIT&limit=5`).
   - Quick Actions gated by permissions.
+  - Upcoming Tasks card powered by `/api/admin/tasks` with loading skeletons and priority/status badges.
+  - Header export shortcut for Users CSV via `/api/admin/export?entity=users&format=csv`.
+  - Dashboard KPIs and charts can request range-aligned stats using new `?range` params on stats endpoints.
 - Users (`src/app/admin/users/page.tsx`)
   - User list with role update select (RBAC-gated; uses new APIs).
   - Recent Admin Activity (reads latest `AUDIT` logs from `/api/health/logs`).
@@ -53,7 +68,11 @@ This document summarizes all admin-related enhancements implemented in this iter
 - NextAuth warnings remain visible in dev logs until `NEXTAUTH_URL` and `NEXTAUTH_SECRET` are set.
 
 ## Build & Lint Fixes (Netlify)
+- Fixed Next.js 15 route handler typing: dynamic API routes must use context: { params: Promise<...> } and await it. Updated `src/app/api/admin/users/[id]/route.ts` accordingly; other dynamic routes already followed this signature.
+- Fixed NextAuth server handler import bug: added missing `import NextAuth from 'next-auth'` and removed duplicate import in `src/app/api/auth/[...nextauth]/route.ts` to resolve `[next-auth][error][CLIENT_FETCH_ERROR]` and TS2300 duplicate identifier errors.
 - Resolved TypeScript/ESLint errors (no-explicit-any, unused vars) that caused Netlify build to fail.
+  - Removed `any` from `/api/admin/export` CSV generation and price serialization.
+  - Removed unused catch binding in `src/app/services/[slug]/page.tsx`.
 - Admin Dashboard (`src/app/admin/page.tsx`):
   - Removed window globals and any usage; added typed analytics state with interfaces `AnalyticsDailyPoint`, `AnalyticsRevenueByService`, `AdminAnalytics`.
   - Updated charts to use typed React state instead of `(window as any)`; removed all `any` in mapping logic.
@@ -77,8 +96,8 @@ This document summarizes all admin-related enhancements implemented in this iter
 ## Future Enhancements (Recommended)
 
 ### Security and Compliance
-- Add request validation (zod) for all admin APIs (users/bookings/posts/services/newsletter).
-- Add rate limiting and origin checks for sensitive endpoints.
+- Request validation (zod) added for user role updates and tasks APIs.
+- Basic in-memory rate limiting added to role updates and tasks APIs. Origin checks TBD.
 - Expand auditing to dedicated `AuditLog` model (actor, target, action, IP, UA, metadata). Add retention & export.
 - Add 2FA for Admin accounts; optional SSO.
 
@@ -93,6 +112,24 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Revenue and booking cohorts; customer LTV; funnel from lead to booking; post performance by tag/author.
 - Caching (SWR) with background revalidation; add indexes/migrations for queries listed in schema.
 - Optional chart library integration for richer visuals (keep bundle small).
+
+### Admin Dashboard (Enhanced)
+- Export actions (CSV/PDF) for analytics, users, bookings, services, and audits with server-side generation and client download UI.
+- KPI cards backed by real data: monthly revenue, active clients, task completion rate, and system health sourced from stats endpoints and `/api/db-check`.
+- Charts: combined revenue vs bookings (bar+line), client growth (bar), and service distribution (donut). Use a lightweight chart lib or dynamic imports to keep bundle small.
+- Upcoming tasks widget: integrate with Linear (via MCP) or introduce a `Task` model (title, due date, priority, status, assignee).
+- Performance tab: page load time, API response, uptime, and error rate with trend deltas; ingest from Lighthouse reports, Sentry metrics, and Netlify build data.
+- System tab: DB/API/external API/security status plus quick actions (DB backup, test email, view logs, open config) gated by RBAC.
+- Live updates via polling or Server-Sent Events; SWR cache with background revalidation and optimistic UI for quick actions.
+- Full i18n and accessibility for all labels, tooltips, and badges; responsive layouts for mobile.
+
+### Admin APIs to support dashboard
+- `GET /api/admin/analytics/service-distribution?range=...` (percent by service).
+- `GET /api/admin/activity?type=&limit=...` (recent activity from audits).
+- `GET/POST /api/admin/tasks`, `PATCH /api/admin/tasks/[id]` (CRUD for upcoming tasks).
+- `GET /api/admin/perf-metrics?range=...` (Lighthouse, Sentry aggregates).
+- `GET /api/admin/system/health` (DB/API/external/security rollup).
+- `GET /api/admin/export?entity=users|bookings|services|audits&format=csv|pdf` (server-side export).
 
 ### Operations & Observability
 - Add Sentry for error monitoring (via MCP); performance tracing on critical endpoints.

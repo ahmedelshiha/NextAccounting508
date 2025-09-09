@@ -7,7 +7,6 @@ import { sumDecimals } from '@/lib/decimal-utils'
 
 // GET /api/admin/stats/bookings - Get booking statistics
 export async function GET(request: NextRequest) {
-  void request
   try {
     const session = await getServerSession(authOptions)
     
@@ -17,6 +16,10 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    const { searchParams } = new URL(request.url)
+    const rangeParam = (searchParams.get('range') || '').toLowerCase()
+    const days = rangeParam === '7d' ? 7 : rangeParam === '30d' ? 30 : rangeParam === '90d' ? 90 : rangeParam === '1y' ? 365 : 0
 
     const now = new Date()
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -116,6 +119,32 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Optional ranged stats
+    let ranged: { range?: string; bookings?: number; revenue?: number; growth?: number } = {}
+    if (days > 0) {
+      const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      const prevStart = new Date(start.getTime() - days * 24 * 60 * 60 * 1000)
+
+      const bookingsInRange = await prisma.booking.count({ where: { createdAt: { gte: start } } })
+      const bookingsPrevRange = await prisma.booking.count({ where: { createdAt: { gte: prevStart, lt: start } } })
+
+      const completedInRange = (await prisma.booking.findMany({
+        where: { status: BookingStatus.COMPLETED, createdAt: { gte: start } },
+        include: { service: { select: { price: true } } }
+      })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
+      const revenueInRange = sumDecimals(completedInRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
+
+      const completedPrevRange = (await prisma.booking.findMany({
+        where: { status: BookingStatus.COMPLETED, createdAt: { gte: prevStart, lt: start } },
+        include: { service: { select: { price: true } } }
+      })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
+      const revenuePrevRange = sumDecimals(completedPrevRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
+
+      const growthRange = bookingsPrevRange > 0 ? ((bookingsInRange - bookingsPrevRange) / bookingsPrevRange) * 100 : 0
+
+      ranged = { range: rangeParam, bookings: bookingsInRange, revenue: revenueInRange, growth: Math.round(growthRange * 100) / 100 }
+    }
+
     return NextResponse.json({
       total,
       pending,
@@ -132,7 +161,8 @@ export async function GET(request: NextRequest) {
         thisMonth: thisMonthRevenue,
         lastMonth: lastMonthRevenue,
         growth: Math.round(revenueGrowth * 100) / 100
-      }
+      },
+      range: ranged
     })
   } catch (error) {
     console.error('Error fetching booking statistics:', error)
