@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma'
 
 // GET /api/admin/stats/users - Get user statistics
 export async function GET(request: NextRequest) {
-  void request
   try {
     const session = await getServerSession(authOptions)
     
@@ -15,6 +14,10 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    const { searchParams } = new URL(request.url)
+    const rangeParam = (searchParams.get('range') || '').toLowerCase()
+    const days = rangeParam === '7d' ? 7 : rangeParam === '30d' ? 30 : rangeParam === '90d' ? 90 : rangeParam === '1y' ? 365 : 0
 
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -110,6 +113,16 @@ export async function GET(request: NextRequest) {
       take: 5
     })) as Array<import('@prisma/client').User & { _count: { bookings: number } }>
 
+    let ranged: { range?: string; newUsers?: number; growth?: number } = {}
+    if (days > 0) {
+      const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+      const prevStart = new Date(start.getTime() - days * 24 * 60 * 60 * 1000)
+      const inRange = await prisma.user.count({ where: { createdAt: { gte: start } } })
+      const prevRange = await prisma.user.count({ where: { createdAt: { gte: prevStart, lt: start } } })
+      const growthRange = prevRange > 0 ? ((inRange - prevRange) / prevRange) * 100 : 0
+      ranged = { range: rangeParam, newUsers: inRange, growth: Math.round(growthRange * 100) / 100 }
+    }
+
     return NextResponse.json({
       total,
       clients,
@@ -126,7 +139,8 @@ export async function GET(request: NextRequest) {
         email: user.email,
         bookingsCount: user._count.bookings,
         createdAt: user.createdAt
-      }))
+      })),
+      range: ranged
     })
   } catch (error) {
     console.error('Error fetching user statistics:', error)
