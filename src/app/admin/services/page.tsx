@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Settings } from 'lucide-react'
+import { useCurrency } from '@/components/providers/currency-provider'
+import { SUPPORTED_CURRENCIES, convertFromUSD, formatMoney } from '@/lib/currency'
 
 interface Service {
   id: string
