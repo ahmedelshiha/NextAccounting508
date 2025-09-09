@@ -62,7 +62,7 @@ This document summarizes all admin-related enhancements implemented in this iter
 
 ## Build & Lint Fixes (Netlify)
 - Fixed Next.js 15 route handler typing: dynamic API routes must use context: { params: Promise<...> } and await it. Updated `src/app/api/admin/users/[id]/route.ts` accordingly; other dynamic routes already followed this signature.
-- Fixed NextAuth server handler import bug: added missing `import NextAuth from 'next-auth'` to `src/app/api/auth/[...nextauth]/route.ts` to resolve `[next-auth][error][CLIENT_FETCH_ERROR] Failed to fetch [object Object]` errors.
+- Fixed NextAuth server handler import bug: added missing `import NextAuth from 'next-auth'` and removed duplicate import in `src/app/api/auth/[...nextauth]/route.ts` to resolve `[next-auth][error][CLIENT_FETCH_ERROR]` and TS2300 duplicate identifier errors.
 - Resolved TypeScript/ESLint errors (no-explicit-any, unused vars) that caused Netlify build to fail.
 - Admin Dashboard (`src/app/admin/page.tsx`):
   - Removed window globals and any usage; added typed analytics state with interfaces `AnalyticsDailyPoint`, `AnalyticsRevenueByService`, `AdminAnalytics`.
