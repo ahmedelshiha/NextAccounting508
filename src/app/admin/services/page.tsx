@@ -35,6 +35,7 @@ export default function AdminServicesPage() {
   const [price, setPrice] = useState('')
   const [duration, setDuration] = useState('')
   const [featured, setFeatured] = useState(false)
+  const [image, setImage] = useState('')
 
   // Edit form state
   const [selected, setSelected] = useState<Service | null>(null)
@@ -45,6 +46,7 @@ export default function AdminServicesPage() {
   const [editDuration, setEditDuration] = useState('')
   const [editFeatured, setEditFeatured] = useState(false)
   const [editActive, setEditActive] = useState(true)
+  const [editImage, setEditImage] = useState('')
 
   async function load() {
     try {
@@ -89,6 +91,7 @@ export default function AdminServicesPage() {
     setEditDuration(s.duration ? String(s.duration) : '')
     setEditFeatured(!!s.featured)
     setEditActive(!!s.active)
+    setEditImage((s as any).image || '')
   }
 
   const saveEdits = async (e: React.FormEvent) => {
