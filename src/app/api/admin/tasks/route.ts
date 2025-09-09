@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { taskCreateSchema } from '@/lib/validation'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 // GET /api/admin/tasks?limit=10
 export async function GET(request: NextRequest) {
@@ -45,12 +47,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const title = String(body?.title || '').trim()
-    const dueAt = body?.dueAt ? new Date(body.dueAt) : null
-    const priority = (body?.priority || 'MEDIUM') as import('@prisma/client').TaskPriority
+    const ip = getClientIp(request as unknown as Request)
+    if (!rateLimit(`tasks:create:${ip}`, 30, 60_000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
 
-    if (!title) return NextResponse.json({ error: 'Title is required' }, { status: 400 })
+    const json = await request.json().catch(() => ({}))
+    const parsed = taskCreateSchema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+
+    const title = parsed.data.title
+    const dueAt = parsed.data.dueAt ? new Date(parsed.data.dueAt) : null
+    const priority = (parsed.data.priority || 'MEDIUM') as import('@prisma/client').TaskPriority
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
