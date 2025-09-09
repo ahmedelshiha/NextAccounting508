@@ -11,6 +11,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ c
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const params = await context.params
     const code = params.code.toUpperCase()
     const body = await request.json()
 
