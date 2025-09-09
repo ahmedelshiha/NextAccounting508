@@ -27,8 +27,82 @@ export default async function ServicePage({ params }: PageProps) {
   const { slug } = params
 
   try {
-    const service = await prisma.service.findUnique({ where: { slug } })
-    if (!service) return notFound()
+    const hasDb = !!process.env.NETLIFY_DATABASE_URL || !!process.env.DATABASE_URL
+    let service = null
+
+    if (hasDb) {
+      service = await prisma.service.findUnique({ where: { slug } })
+    }
+
+    // Fallback static services if DB missing or service not found
+    const fallbackServices = {
+      'bookkeeping': {
+        slug: 'bookkeeping',
+        name: 'Professional Bookkeeping',
+        shortDesc: 'Comprehensive bookkeeping services to keep your financial records accurate and up-to-date.',
+        description: 'Comprehensive bookkeeping services to keep your financial records accurate and up-to-date.',
+        features: [
+          'Monthly financial statements',
+          'Accounts payable/receivable management',
+          'Bank reconciliation',
+          'Expense categorization',
+          'QuickBooks setup and maintenance',
+          'Monthly financial review calls'
+        ],
+        price: 299
+      },
+      'tax-preparation': {
+        slug: 'tax-preparation',
+        name: 'Tax Preparation & Planning',
+        shortDesc: 'Expert tax preparation and strategic planning to minimize your tax liability.',
+        description: 'Expert tax preparation and strategic planning to minimize your tax liability.',
+        features: [
+          'Individual and business tax returns',
+          'Tax planning consultations',
+          'IRS representation',
+          'Quarterly estimated tax payments',
+          'Multi-state tax filing',
+          'Tax audit support'
+        ],
+        price: 450
+      },
+      'payroll': {
+        slug: 'payroll',
+        name: 'Payroll Management',
+        shortDesc: 'Complete payroll processing and compliance management for your business.',
+        description: 'Complete payroll processing and compliance management for your business.',
+        features: [
+          'Bi-weekly or monthly payroll processing',
+          'Direct deposit setup',
+          'Tax withholding and filing',
+          'Employee self-service portal',
+          'Workers compensation reporting',
+          'Year-end W-2 and 1099 processing'
+        ],
+        price: 199
+      },
+      'cfo-advisory': {
+        slug: 'cfo-advisory',
+        name: 'CFO Advisory Services',
+        shortDesc: 'Strategic financial guidance to help your business grow and thrive.',
+        description: 'Strategic financial guidance to help your business grow and thrive.',
+        features: [
+          'Financial strategy development',
+          'Cash flow management',
+          'Budget planning and analysis',
+          'KPI dashboard creation',
+          'Investor relations support',
+          'Monthly executive reports'
+        ],
+        price: 1200
+      }
+    }
+
+    if (!service) {
+      const fallback = (fallbackServices as any)[slug]
+      if (!fallback) return notFound()
+      service = fallback as any
+    }
 
     return (
       <div className="min-h-screen bg-gray-50">
