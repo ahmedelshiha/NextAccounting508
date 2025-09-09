@@ -67,11 +67,6 @@ export default function FAQPage() {
             Answers to common questions about our services, pricing, and processes. If you can&apos;t find
             what you&apos;re looking for, please get in touch.
           </p>
-          <div className="mt-6">
-            <Button asChild>
-              <Link href="/contact">Contact Support</Link>
-            </Button>
-          </div>
         </div>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
