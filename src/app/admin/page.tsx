@@ -81,6 +81,7 @@ export default function AdminDashboard() {
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
   const [loading, setLoading] = useState(true)
   const [dbHealthy, setDbHealthy] = useState<boolean | null>(null)
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null)
 
   useEffect(() => {
     async function fetchDashboardData() {
