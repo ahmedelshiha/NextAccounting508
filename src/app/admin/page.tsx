@@ -403,7 +403,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <div className="text-sm font-medium text-gray-800 mb-2">Avg Lead Time</div>
-                <div className="text-3xl font-bold text-gray-900">{((window as any).__adminAnalytics__?.avgLeadTimeDays || 0).toFixed(1)}<span className="text-sm text-gray-600 ml-1">days</span></div>
+                <div className="text-3xl font-bold text-gray-900">{(analytics?.avgLeadTimeDays ?? 0).toFixed(1)}<span className="text-sm text-gray-600 ml-1">days</span></div>
               </div>
             </div>
             <div className="mt-6">
