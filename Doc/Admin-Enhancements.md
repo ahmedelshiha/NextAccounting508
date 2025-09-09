@@ -1,143 +1,378 @@
-# Admin Enhancements Documentation
+# Admin Enhancements -- Release Notes & Reference
 
-This document summarizes all admin-related enhancements implemented in this iteration and outlines recommended future improvements.
+This document summarizes all **admin-related enhancements** delivered in
+this iteration, along with hotfixes, environment requirements, and
+recommended next steps.
 
-## Implemented Enhancements
+------------------------------------------------------------------------
 
-### Security, RBAC, and Auditing
-- Granular RBAC utilities
-  - File: `src/lib/rbac.ts`
-  - Permissions: `view_analytics`, `manage_users`, `manage_bookings`, `manage_posts`, `manage_services`, `manage_newsletter`.
-  - Enforced in admin APIs (users, bookings).
-- Audit logging
-  - File: `src/lib/audit.ts` (persists to `HealthLog` table with service="AUDIT"; logs to console if DB is absent).
-  - Integrated in:
-    - Role changes: `src/app/api/admin/users/[id]/route.ts`
-    - Bookings create/bulk update/delete: `src/app/api/admin/bookings/route.ts`
-- Client-side permission gating
-  - Hook: `src/lib/use-permissions.ts`
-  - Gated UI:
-    - Dashboard quick actions and Advanced Analytics card: `src/app/admin/page.tsx`
-    - Role controls on Users page: `src/app/admin/users/page.tsx`
+## 🚀 Summary (Quick Reference)
 
-### Admin APIs
-- Users
-  - List users: `GET /api/admin/users` with DB-less fallback.
-  - Update user role: `PATCH /api/admin/users/[id]` (Admin-only, RBAC-enforced).
-- Advanced Analytics
-  - `GET /api/admin/analytics?range=7d|14d|30d|90d|1y`: parameterized analytics. Returns daily bookings for range, revenue by service within range, average lead time within range, and top services in range.
-- Tasks
-  - `GET /api/admin/tasks` list, `POST /api/admin/tasks` create, `PATCH /api/admin/tasks/[id]` update (ADMIN/STAFF). DB-less fallbacks for GET.
-- Exports
-  - `GET /api/admin/export?entity=users|bookings|services|audits&format=csv` returns CSV with Content-Disposition for download.
-- Stats (existing, now used by dashboard)
-  - Bookings: `src/app/api/admin/stats/bookings/route.ts` (supports optional ?range=7d|30d|90d|1y)
-  - Users: `src/app/api/admin/stats/users/route.ts` (supports optional ?range=7d|30d|90d|1y)
-  - Posts: `src/app/api/admin/stats/posts/route.ts` (supports optional ?range=7d|30d|90d|1y)
-- System health
-  - DB check: `GET /api/db-check`
-  - Health logs list/create: `GET/POST /api/health/logs`
-- Activity
-  - `GET /api/admin/activity?type=AUDIT&limit=20` lists recent audit events (RBAC).
-- Performance
-  - `GET /api/admin/perf-metrics` returns pageLoad, apiResponse, uptime, errorRate (safe defaults).
-- System Health Rollup
-  - `GET /api/admin/system/health` aggregates DB/email/auth/external API status with an overall summary.
+  -------------------------------------------------------------------------------------
+  Area            Feature / Change                   Status     Key Files
+  --------------- ---------------------------------- ---------- -----------------------
+  **Security**    RBAC utilities, audit logging      ✅ Done    `src/lib/rbac.ts`,
+                                                                `src/lib/audit.ts`
+
+  **APIs**        Users, Analytics, Tasks, Exports,  ✅ Done    `src/app/api/admin/*`
+                  Stats, Health, Perf Metrics                   
+
+  **UI**          Dashboard, Users, Audits pages     ✅ Done    `src/app/admin/*`
+
+  **Stability**   Chunk-load recovery, lint/TS fixes ✅ Hotfix  `client-layout.tsx`,
+                                                                `rate-limit.ts`
+
+  **Build**       Fixed Next.js 15 route typings,    ✅ Fixed   Multiple
+                  NextAuth import bug, ESLint                   
+                  cleanup                                       
+
+  **Ops**         DB-less fallbacks, Prisma safe     ✅ Done    `prisma.ts`
+                  disable                                       
+  -------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## ✅ Implemented Enhancements
+
+### Security, RBAC & Auditing
+
+-   **Granular RBAC**
+    -   File: `src/lib/rbac.ts`
+    -   Permissions: `view_analytics`, `manage_users`,
+        `manage_bookings`, `manage_posts`, `manage_services`,
+        `manage_newsletter`.
+    -   Enforced in admin APIs (users, bookings).
+-   **Audit Logging**
+    -   File: `src/lib/audit.ts` → persists to `HealthLog`
+        (service=\`AUDIT\`) or logs to console if DB absent.
+    -   Integrated in:
+        -   User role changes → `src/app/api/admin/users/[id]/route.ts`
+        -   Bookings create/bulk update/delete →
+            `src/app/api/admin/bookings/route.ts`
+-   **Client-side Permission Gating**
+    -   Hook: `src/lib/use-permissions.ts`
+    -   Applied in Dashboard quick actions, Advanced Analytics, and User
+        role controls.
+
+------------------------------------------------------------------------
+
+### Admin APIs (New / Updated)
+
+  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  Endpoint                            Description                        Params                      Returns
+  ----------------------------------- ---------------------------------- --------------------------- -----------------------------------------------------------------------
+  `GET /api/admin/users`              List users (DB fallback if absent) --                          `[User]`
+
+  `PATCH /api/admin/users/[id]`       Update user role                   `{ role }`                  `{ success }`
+
+  `GET /api/admin/analytics`          Analytics (range-based)            `range=7d|14d|30d|90d|1y`   `{ dailyBookings[], revenueByService[], avgLeadTime, topServices[] }`
+
+  `GET/POST/PATCH /api/admin/tasks`   List/create/update tasks           --                          `[Task]`
+
+  `GET /api/admin/export`             Export CSV                         `entity, format=csv`        `text/csv`
+                                      (users/bookings/services/audits)                               
+
+  `GET /api/admin/stats/*`            Stats for bookings/users/posts     `?range=7d|30d|90d|1y`      `{ count, trend }`
+
+  `GET /api/db-check`                 DB health check                    --                          `{ status }`
+
+  `GET/POST /api/health/logs`         System/audit logs                  --                          `[HealthLog]`
+
+  `GET /api/admin/activity`           Recent activity                    `type=AUDIT, limit`         `[Audit]`
+
+  `GET /api/admin/perf-metrics`       Perf snapshot                      --                          `{ pageLoad, apiResponse, uptime, errorRate }`
+
+  `GET /api/admin/system/health`      Aggregated system rollup           --                          `{ db, email, auth, external, summary }`
+  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------
 
 ### Admin UI
-- Dashboard (`src/app/admin/page.tsx`)
-  - Revenue uses real values from bookings stats.
-  - Live DB health indicator via `/api/db-check`.
-  - Trends (last 6 months): user registrations and posts published (bar mini-charts; no new deps).
-  - Advanced Analytics section (guarded by permission) using `/api/admin/analytics`.
-  - Unified time-range selector (7d, 14d, 30d, 90d, 1y) that drives analytics.
-    - Recent Admin Activity feed (reads latest `AUDIT` logs via `/api/health/logs?service=AUDIT&limit=5`).
-  - Quick Actions gated by permissions.
-  - Upcoming Tasks card powered by `/api/admin/tasks` with loading skeletons and priority/status badges.
-  - Header export shortcut for Users CSV via `/api/admin/export?entity=users&format=csv`.
-  - Dashboard KPIs and charts can request range-aligned stats using new `?range` params on stats endpoints.
-- Users (`src/app/admin/users/page.tsx`)
-  - User list with role update select (RBAC-gated; uses new APIs).
-  - Recent Admin Activity (reads latest `AUDIT` logs from `/api/health/logs`).
-- Audits (`src/app/admin/audits/page.tsx`)
-  - Searchable viewer for recent audit events with refresh.
 
-### Notable Dev Notes
-- DB-less safe fallbacks where possible (newsletter/services/users) to keep app functional without `NETLIFY_DATABASE_URL`.
-- Prisma client safely disabled if DB URL not present (`src/lib/prisma.ts`).
-- NextAuth warnings remain visible in dev logs until `NEXTAUTH_URL` and `NEXTAUTH_SECRET` are set.
+-   **Dashboard (`src/app/admin/page.tsx`)**
+    -   Revenue chart (real booking stats).
+    -   DB health indicator (`/api/db-check`).
+    -   6-month trends: registrations & posts.
+    -   Advanced Analytics (permission-gated).
+    -   Unified time-range selector (7d--1y).
+    -   Admin Activity feed (`/api/health/logs`).
+    -   Upcoming Tasks (API-driven, with skeletons + badges).
+    -   Export shortcut: Users CSV.
+    -   KPIs aligned with `?range` stats.
+-   **Users (`src/app/admin/users/page.tsx`)**
+    -   Role update controls (RBAC enforced).
+    -   Recent Admin Activity feed.
+-   **Audits (`src/app/admin/audits/page.tsx`)**
+    -   Searchable, refreshable audit log viewer.
 
-## Build & Lint Fixes (Netlify)
-- Fixed Next.js 15 route handler typing: dynamic API routes must use context: { params: Promise<...> } and await it. Updated `src/app/api/admin/users/[id]/route.ts` accordingly; other dynamic routes already followed this signature.
-- Fixed NextAuth server handler import bug: added missing `import NextAuth from 'next-auth'` and removed duplicate import in `src/app/api/auth/[...nextauth]/route.ts` to resolve `[next-auth][error][CLIENT_FETCH_ERROR]` and TS2300 duplicate identifier errors.
-- Resolved TypeScript/ESLint errors (no-explicit-any, unused vars) that caused Netlify build to fail.
-  - Removed `any` from `/api/admin/export` CSV generation and price serialization.
-  - Removed unused catch binding in `src/app/services/[slug]/page.tsx`.
-- Admin Dashboard (`src/app/admin/page.tsx`):
-  - Removed window globals and any usage; added typed analytics state with interfaces `AnalyticsDailyPoint`, `AnalyticsRevenueByService`, `AdminAnalytics`.
-  - Updated charts to use typed React state instead of `(window as any)`; removed all `any` in mapping logic.
-- Admin Audits (`src/app/admin/audits/page.tsx`):
-  - Strongly typed audit message parsing with `AuditMessage`; removed `any`.
-- Admin Users (`src/app/admin/users/page.tsx`):
-  - Strongly typed audit parsing with `AuditMessage`; removed `any`.
-  - Removed unused `Button` import.
+------------------------------------------------------------------------
 
-## Recent Hotfixes (TypeScript, ESLint & Client stability)
-These changes were made after build failures on Netlify; they address TypeScript errors, ESLint rules, and runtime chunk-loading instability.
+## 🔧 Build & Lint Fixes (Netlify)
 
-- Global chunk-load recovery (auto-reload):
-  - File: `src/components/providers/client-layout.tsx`
-  - Added a client-side handler for `error` and `unhandledrejection` events that detects chunk load / asset load failures and performs a controlled reload to recover from mismatched server HTML vs static chunks (prevents persistent ChunkLoadError for visitors).
-  - Also removed all explicit `any` usage in the handler and used safe narrowing for error/rejection messages to satisfy ESLint rules.
+-   **Next.js 15**: fixed dynamic route handler typings
+    (`context: { params: Promise<...> }`).
+-   **NextAuth**: resolved duplicate import causing
+    `[next-auth][CLIENT_FETCH_ERROR]`.
+-   **TypeScript/ESLint**:
+    -   Removed `any` from CSV generation, analytics charts, audit
+        parsing.
+    -   Renamed unused vars (`_request`, `_revenuePrevRange`).
+    -   Cleaned imports (removed unused `Button`).
 
-- Health rollup typing fix:
-  - File: `src/app/api/admin/system/health/route.ts`
-  - Fixed summary computation to only compare for `'healthy'` states and removed invalid comparisons that caused TypeScript TS2367 errors.
+------------------------------------------------------------------------
 
-- Rate-limit and IP extraction cleanup:
-  - File: `src/lib/rate-limit.ts`
-  - Removed an unused `@ts-expect-error` directive, replaced usages of `any` with `unknown`/narrowing, and made header checks more robust for proxy headers (x-forwarded-for, x-real-ip, cf-connecting-ip).
+## 🩹 Recent Hotfixes (Stability & TypeScript)
 
-- ESLint unused/explicit-any fixes in API routes:
-  - File: `src/app/api/admin/perf-metrics/route.ts`
-    - Renamed unused `request` param to `_request` to satisfy the rule requiring unused args to start with `_`.
-  - File: `src/app/api/admin/stats/bookings/route.ts`
-    - Renamed `revenuePrevRange` to `_revenuePrevRange` to silence unused variable warnings.
+-   **Chunk-load recovery** (`client-layout.tsx`)\
+    Auto-reload on `error` / `unhandledrejection` → recovers from
+    `ChunkLoadError`.
 
-- General TypeScript and lint grooming across the codebase to remove `any`/unused vars and satisfy the project's ESLint/TS configuration used by the Netlify build.
+-   **System Health typing fix** (`system/health/route.ts`)\
+    Safer enum comparisons → removed TS2367 errors.
 
-## File Changes (Key)
-- New/updated files related to hotfixes:
-  - Updated: `src/components/providers/client-layout.tsx` (chunk-load recovery + lint fixes)
-  - Updated: `src/lib/rate-limit.ts` (removed @ts-expect-error, safer typing)
-  - Updated: `src/app/api/admin/system/health/route.ts` (health summary typing fix)
-  - Updated: `src/app/api/admin/perf-metrics/route.ts` (unused param rename)
-  - Updated: `src/app/api/admin/stats/bookings/route.ts` (unused var rename)
+-   **Rate-limit cleanup** (`rate-limit.ts`)\
+    Stronger IP extraction (proxy headers) + removed `@ts-expect-error`.
 
-- Other previously listed files remain changed from earlier admin work (RBAC, audit, APIs, dashboards).
+-   **General lint grooming**\
+    Removed `any`, unused vars across APIs.
 
-## Environment Variables
-- `NETLIFY_DATABASE_URL`: Postgres connection (Neon recommended). Supports `neon://` and `postgresql://`.
-- `NEXTAUTH_URL`, `NEXTAUTH_SECRET`: Required to remove NextAuth warnings and enable secure sessions.
-- `SENDGRID_API_KEY`: Enables email service to leave mock mode.
-- `CRON_SECRET`: Secures `/api/cron` access.
+------------------------------------------------------------------------
 
-## Redeploy Checklist (after these fixes)
-1. Ensure environment variables (NETLIFY_DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET) are set in Netlify.
-2. Trigger a fresh deploy to ensure server HTML and static chunks match (invalidate CDN cache if possible).
-3. If builds continue failing, run locally:
-   - npm run db:push -- --accept-data-loss
-   - npm run db:seed
-   - npm run typecheck
-   - npm run build
-4. Inspect Netlify logs for specific TS/ESLint errors and add rule exceptions only when necessary.
+## ⚙️ Environment Variables
 
-## Recommended Next Steps
-- Add Sentry (via MCP) to capture runtime errors and chunk load issues from end-users for easier diagnosis.
-- Consider introducing a publish hook or cache-invalidation step in the deploy pipeline to avoid mismatched chunk versions when rolling out changes.
-- Add E2E smoke tests that load key pages after deploy to detect chunk mismatches early.
+  -----------------------------------------------------------------------
+  Variable                              Purpose
+  ------------------------------------- ---------------------------------
+  `NETLIFY_DATABASE_URL`                Postgres connection (Neon
+                                        recommended). Supports `neon://`
+                                        and `postgresql://`.
+
+  `NEXTAUTH_URL` / `NEXTAUTH_SECRET`    Required for NextAuth sessions.
+
+  `SENDGRID_API_KEY`                    Enables email service (mock mode
+                                        off).
+
+  `CRON_SECRET`                         Secures `/api/cron` access.
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## 📝 Redeploy Checklist
+
+-   [ ] Set env vars in Netlify (`DB`, `NEXTAUTH`, `SENDGRID`,
+    `CRON_SECRET`).\
+-   [ ] Trigger fresh deploy & **clear CDN cache** (avoid chunk
+    mismatches).\
+-   [ ] Run locally before deploy:
+    -   `npm run db:push -- --accept-data-loss`\
+    -   `npm run db:seed`\
+    -   `npm run typecheck`\
+    -   `npm run build`\
+-   [ ] Inspect Netlify logs for TS/ESLint errors.\
+-   [ ] Validate:
+    -   RBAC across roles (Client/Staff/Admin)\
+    -   Audit log persistence\
+    -   Analytics values vs DB
+
+------------------------------------------------------------------------
+
+## 🔒 Security Posture (Current vs Planned)
+
+  -----------------------------------------------------------------------
+  Area              Current                    Planned
+  ----------------- -------------------------- --------------------------
+  RBAC              Enforced in APIs + UI      Expand to all admin
+                                               actions
+
+  Audit             Logs persisted (role,      Dedicated model w/
+                    bookings)                  metadata, export
+
+  Rate limiting     Role updates, tasks APIs   Origin/IP checks
+
+  Validation        Basic checks only          Zod schemas for all admin
+                                               APIs
+
+  Auth              NextAuth                   2FA + optional SSO
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+## 📌 Recommended Next Steps
+
+**Near-term (next sprint):** - Add Sentry (via MCP) for error & chunk
+tracking.\
+- Add request validation (zod) + extend rate limiting.\
+- Audit log filters + CSV export.\
+- Publish hook or CDN invalidation in pipeline.
+
+**Long-term:** - Enhanced analytics (LTV, funnels, service
+distribution).\
+- Calendar view + bulk operations for bookings/users.\
+- i18n support across Admin UI.\
+- Full observability (Sentry perf traces, uptime dashboard).\
+- Optional MCP integrations (Neon, Netlify, Builder, Sentry).
+
+------------------------------------------------------------------------
 
 
 ---
 
-If you want, I can open a PR with these changes (the branch already exists) or run a full local build/typecheck and share the output. Which would you like next?
+## 📈 Future Enhancement — Multi-currency Admin Controls (Admin Dashboard)
+
+**Summary:** Add first-class multi-currency support to the platform with admin controls to enable/disable currencies, choose the site's default currency, manage exchange rates (automatic + manual), and provide optional per-item / per-service price overrides. Initial currency set: **USD (base)**, **AED**, **SAR**, **EGP** (expandable).
+
+### Goals
+- Allow site operators to present prices in multiple currencies and choose a default site currency from the Admin UI.
+- Keep canonical prices consistent and auditable (store canonical/base price in DB).
+- Provide accurate, cached exchange rates and a manual override flow for edge cases.
+- Ensure checkout and payment flows handle currency properly (gateway constraints must be verified separately).
+- Provide RBAC and audit logging for currency operations.
+
+### High-level Approach (recommended)
+1. **Canonical pricing strategy (recommended):**
+   - Store canonical prices in a single base currency (USD). All product/service `priceCents` are stored in base currency.
+   - Display converted values on the storefront using the latest cached exchange rate.
+   - Support *optional* per-currency price overrides for services/products where merchants want non-converted prices (e.g., localized pricing, market-specific rounding, promotions).
+
+2. **Exchange rate storage & refresh:**
+   - Fetch exchange rates from a reliable provider (exchangerate.host, Fixer, OpenExchangeRates, etc.) and cache them in DB with `fetchedAt` and `source` metadata.
+   - TTL-based refresh (e.g., refresh daily, configurable). Add a "Refresh now" admin button to trigger a manual refresh.
+   - Fall back to last-known rate or a server-side configurable fallback (e.g., 1.0 for USD→USD) when API is unavailable.
+
+3. **Admin UX:**
+   - New Admin page: **Admin → Settings → Currencies**.
+     - Table: `Currency`, `Code`, `Symbol`, `Active`, `Default?`, `Decimals`, `LastRate`, `Actions` (Toggle Active, Set Default, Edit Rate).
+     - Controls: "Add currency" (add custom code), "Set default currency" radio, "Refresh rates" button, "Export CSV" of rates.
+     - Modal to edit a manual override rate for a currency or add per-product price overrides.
+   - Link from Service/Product editing screens to "Price overrides" tab (show per-currency manual price inputs).
+
+4. **APIs & endpoints (Admin + Public):**
+   - Admin:
+     - `GET /api/admin/currencies` — list currencies + meta (RBAC: view_currencies).
+     - `POST /api/admin/currencies` — add currency (RBAC: manage_currencies).
+     - `PATCH /api/admin/currencies/[code]` — update (active, decimals, symbol, default) (RBAC: manage_currencies).
+     - `POST /api/admin/currencies/refresh` — trigger rates refresh (RBAC: manage_currencies).
+     - `GET /api/admin/currencies/overrides?entity=services|products&id=...` — list per-entity overrides.
+     - `POST /api/admin/currencies/overrides` — create/update override (RBAC: manage_price_overrides).
+   - Public / Client:
+     - `GET /api/currencies` — public list of active currencies + last rates used for client display.
+     - `GET /api/currencies/convert?from=USD&to=EGP&amount=100.00` — conversion helper (optional).
+   - Checkout / server-side charge logic should either:
+     - Convert displayed currency back to base currency for payment processing, **or**
+     - Charge in the customer's currency if payment provider supports that currency (verify provider support).
+
+5. **RBAC & Auditing:**
+   - New permissions: `view_currencies`, `manage_currencies`, `manage_price_overrides`.
+   - All changes (default currency change, activation/deactivation, manual rate edits, overrides) should create an audit log entry via existing `src/lib/audit.ts` (actor, action, target, old/new value).
+
+6. **Data model (Prisma) — example**
+```prisma
+model Currency {
+  code        String   @id // e.g. "USD", "AED"
+  name        String
+  symbol      String?
+  decimals    Int      @default(2)
+  active      Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  rates       ExchangeRate[]
+  overrides   PriceOverride[]
+}
+
+model ExchangeRate {
+  id         Int      @id @default(autoincrement())
+  base       String   // e.g. "USD"
+  target     String   // e.g. "EGP"
+  rate       Float
+  source     String?  // provider name
+  fetchedAt  DateTime @default(now())
+  ttlSeconds Int?     // optional TTL applied when fetched
+  @@index([base, target])
+}
+
+model PriceOverride {
+  id           Int      @id @default(autoincrement())
+  entity       String   // 'service' | 'product' | 'post' (if needed)
+  entityId     Int
+  currencyCode String
+  priceCents   Int
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([entity, entityId, currencyCode])
+}
+```
+
+7. **Environment variables**
+- `EXCHANGE_API_PROVIDER` (e.g. exchangerate.host, fixer)
+- `EXCHANGE_API_KEY` (if required by provider)
+- `EXCHANGE_BASE_CURRENCY` (default `USD`)
+- `EXCHANGE_RATE_TTL_SECONDS` (default `86400`) — how long a fetched rate is considered fresh
+- `CURRENCY_AUTO_REFRESH_CRON` (optional) — cron schedule for automatic refresh
+
+8. **Background refresh / cron job**
+- Add a cron endpoint `/api/cron/refresh-exchange-rates` (protected by `CRON_SECRET`) and/or use scheduled function to refresh rates daily.
+- The refresh job will fetch a batch of required currency rates (base → active targets) and upsert `ExchangeRate` rows.
+
+9. **Checkout & Payment gateway considerations**
+- **Important:** Not all payment providers support every currency. For each provider used (Stripe, PayPal, etc.) verify supported currencies and rounding rules — *this must be verified at integration time*. If gateway doesn't support a currency, convert to base currency server-side before creating the charge; present messaging to customers that charges are made in `USD` (or default currency).
+- Ensure taxes, shipping, and fees are calculated after conversion or use base currency for final math to avoid rounding mismatches.
+
+10. **Formatting & frontend display**
+- Use `Intl.NumberFormat` for currency formatting with locale and currency code: e.g.
+```ts
+new Intl.NumberFormat(locale, { style: 'currency', currency: 'EGP' }).format(amount)
+```
+- When rendering converted prices, show both converted and base currency (optional) with a tooltip: "approx. X USD".
+
+11. **Migration & rollout plan**
+- Add migration with `Currency`, `ExchangeRate`, and `PriceOverride` models.
+- Seed base currencies: USD, AED, SAR, EGP (set USD active + default).
+- Deploy to staging, enable AED/SAR/EGP as inactive by default; run manual tests.
+- Enable auto-refresh in staging and verify rates populate; do end-to-end checkout tests (charge flows).
+- Gradually enable currencies in production after validating gateway support & accounting.
+
+12. **Testing**
+- Unit tests for conversion util (including rounding rules).
+- Integration tests for `/api/currencies` and refresh job with mocked provider responses.
+- E2E flow that simulates a user in AED/SAR/EGP region: price display, checkout, and order record currency fields.
+- Tests for per-entity price overrides behavior (override present → display override; else converted price).
+
+13. **Edge cases & fallbacks**
+- If exchange rate provider fails → use last-known rate and surface a warning banner in Admin "Rates may be stale".
+- If no rate exists for requested conversion → deny override creation and advise admin to refresh rates or enter manual value.
+- Use integer cents for prices to avoid floating point issues. Use `BigInt`/`Decimal` types where necessary on server calculations.
+
+14. **Audit & monitoring**
+- Create audit entries for: default currency change, activate/deactivate currency, manual rate edits, override create/update/delete, background refresh failures.
+- Track refresh job success/failure metrics in perf metrics endpoint or Sentry for alerts.
+
+---
+
+### Quick API spec snippets (examples)
+
+**List currencies (public)**
+```
+GET /api/currencies
+Response:
+[
+  { code: 'USD', name: 'US Dollar', symbol: '$', active: true, isDefault: true, lastRate: 1, decimals: 2 },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£', active: false, lastRate: 30.123, decimals: 2 }
+]
+```
+
+**Admin — Refresh rates (trigger)**
+```
+POST /api/admin/currencies/refresh
+Body: { base: 'USD', targets: ['AED','EGP','SAR'] }
+Auth: Admin (manage_currencies)
+Response: { success: true, updated: [ { target: 'EGP', rate: 30.1, fetchedAt: '...' } ] }
+```
+
+---
+
+## ✅ Add to documentation (this file)
+
+I have drafted the design above as a recommended **Future Enhancement**. If you'd like, I can append this section to the `admin-enhancements.md` file now (and produce a downloadable updated MD and PDF).
+
