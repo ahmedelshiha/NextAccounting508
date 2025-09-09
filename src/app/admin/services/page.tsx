@@ -36,6 +36,9 @@ export default function AdminServicesPage() {
   const [duration, setDuration] = useState('')
   const [featured, setFeatured] = useState(false)
   const [image, setImage] = useState('')
+  const [priceSAR, setPriceSAR] = useState('')
+  const [priceAED, setPriceAED] = useState('')
+  const [priceEGP, setPriceEGP] = useState('')
 
   // Edit form state
   const [selected, setSelected] = useState<Service | null>(null)
@@ -47,6 +50,9 @@ export default function AdminServicesPage() {
   const [editFeatured, setEditFeatured] = useState(false)
   const [editActive, setEditActive] = useState(true)
   const [editImage, setEditImage] = useState('')
+  const [editPriceSAR, setEditPriceSAR] = useState('')
+  const [editPriceAED, setEditPriceAED] = useState('')
+  const [editPriceEGP, setEditPriceEGP] = useState('')
 
   async function load() {
     try {
@@ -74,10 +80,10 @@ export default function AdminServicesPage() {
     const res = await apiFetch('/api/services', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...body, image: image || null })
+      body: JSON.stringify({ ...body, image: image || null, prices: { SAR: priceSAR ? Number(priceSAR) : null, AED: priceAED ? Number(priceAED) : null, EGP: priceEGP ? Number(priceEGP) : null } })
     })
     if (res.ok) {
-      setName(''); setSlug(''); setDescription(''); setShortDesc(''); setPrice(''); setDuration(''); setFeatured(false); setImage('')
+      setName(''); setSlug(''); setDescription(''); setShortDesc(''); setPrice(''); setDuration(''); setFeatured(false); setImage(''); setPriceSAR(''); setPriceAED(''); setPriceEGP('')
       load()
     }
   }
@@ -92,6 +98,10 @@ export default function AdminServicesPage() {
     setEditFeatured(!!s.featured)
     setEditActive(!!s.active)
     setEditImage((s as any).image || '')
+    const prices = (s as any).prices as Array<{ currency: string; amount: number }> | undefined
+    setEditPriceSAR(String(prices?.find(p => p.currency === 'SAR')?.amount ?? ''))
+    setEditPriceAED(String(prices?.find(p => p.currency === 'AED')?.amount ?? ''))
+    setEditPriceEGP(String(prices?.find(p => p.currency === 'EGP')?.amount ?? ''))
   }
 
   const saveEdits = async (e: React.FormEvent) => {
@@ -109,6 +119,11 @@ export default function AdminServicesPage() {
         featured: editFeatured,
         active: editActive,
         image: editImage || null,
+        prices: {
+          SAR: editPriceSAR ? Number(editPriceSAR) : null,
+          AED: editPriceAED ? Number(editPriceAED) : null,
+          EGP: editPriceEGP ? Number(editPriceEGP) : null,
+        }
       })
     })
     if (res.ok) {
@@ -217,6 +232,20 @@ export default function AdminServicesPage() {
                       <Input type="number" value={editDuration} onChange={e => setEditDuration(e.target.value)} />
                     </div>
                   </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-700">SAR Override</label>
+                      <Input type="number" step="0.01" value={editPriceSAR} onChange={e => setEditPriceSAR(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">AED Override</label>
+                      <Input type="number" step="0.01" value={editPriceAED} onChange={e => setEditPriceAED(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">EGP Override</label>
+                      <Input type="number" step="0.01" value={editPriceEGP} onChange={e => setEditPriceEGP(e.target.value)} />
+                    </div>
+                  </div>
                   <div>
                     <label className="text-sm text-gray-700">Image URL</label>
                     <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="https://..." />
@@ -266,6 +295,20 @@ export default function AdminServicesPage() {
                     <div>
                       <label className="text-sm text-gray-700">Duration (min)</label>
                       <Input type="number" value={duration} onChange={e => setDuration(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-700">SAR Override</label>
+                      <Input type="number" step="0.01" value={priceSAR} onChange={e => setPriceSAR(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">AED Override</label>
+                      <Input type="number" step="0.01" value={priceAED} onChange={e => setPriceAED(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-700">EGP Override</label>
+                      <Input type="number" step="0.01" value={priceEGP} onChange={e => setPriceEGP(e.target.value)} />
                     </div>
                   </div>
                   <div>
