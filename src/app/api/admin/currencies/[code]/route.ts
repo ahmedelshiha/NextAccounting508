@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 
-export async function PATCH(request: NextRequest, { params }: { params: { code: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ code: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !hasPermission(session.user.role, 'manage_currencies')) {
