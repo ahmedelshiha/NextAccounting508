@@ -46,7 +46,10 @@ export default function NewsletterForm({ placeholder = 'Enter your email', submi
         const data = await res.json().catch(() => null)
         setError(data?.error || data?.message || 'Failed to subscribe. Please try again later.')
       }
-    } catch (err) {
+    } catch (error) {
+      // Log error in console for debugging
+      // eslint-disable-next-line no-console
+      console.error('Newsletter subscribe error:', error)
       setError('Failed to subscribe. Please try again later.')
     } finally {
       setLoading(false)
