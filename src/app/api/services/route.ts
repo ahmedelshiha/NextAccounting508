@@ -9,8 +9,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')
 
-    const { isDatabaseHealthy } = await import('@/lib/db-health')
-    const hasDb = await isDatabaseHealthy(600)
+    const hasDb = !!(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
 
     if (!hasDb) {
       const fallback = [
