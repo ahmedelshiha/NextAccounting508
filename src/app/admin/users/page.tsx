@@ -214,8 +214,9 @@ export default function AdminUsersPage() {
             ) : audits.length ? (
               <div className="divide-y divide-gray-100">
                 {audits.map(a => {
-                  let parsed: any = {}
-                  try { parsed = JSON.parse(a.message) } catch {}
+                  type AuditMessage = { action?: string; targetId?: string; details?: unknown }
+                  let parsed: AuditMessage = {}
+                  try { parsed = JSON.parse(a.message) as AuditMessage } catch { parsed = {} }
                   return (
                     <div key={a.id} className="py-3 text-sm text-gray-700 flex items-center justify-between">
                       <div className="truncate mr-4">
