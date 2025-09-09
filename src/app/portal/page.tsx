@@ -8,6 +8,7 @@ import { Calendar, Clock, DollarSign, FileText, Plus, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 interface Booking {
   id: string
@@ -172,7 +173,7 @@ export default function PortalPage() {
                         {booking.service.price && (
                           <div className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1" />
-                            ${booking.service.price}
+                            {formatCurrencyFromDecimal(booking.service.price)}
                           </div>
                         )}
                       </div>

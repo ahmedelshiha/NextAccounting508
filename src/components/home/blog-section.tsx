@@ -23,9 +23,12 @@ export async function BlogSection() {
   if (hasDb) {
     try {
       posts = (await prisma.post.findMany({
-        where: { published: true, featured: true },
+        where: { published: true },
         include: { author: { select: { name: true, image: true } } },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          { featured: 'desc' },
+          { createdAt: 'desc' }
+        ],
         take: 3,
       })) as Array<{
         id: string

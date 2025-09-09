@@ -48,6 +48,12 @@ export function TranslationProvider({ children, initialLocale }: TranslationProv
       // Update document direction for RTL languages
       document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr'
       document.documentElement.lang = newLocale
+      // Toggle rtl helper class on body for CSS targeting
+      if (newLocale === 'ar') {
+        document.body.classList.add('rtl')
+      } else {
+        document.body.classList.remove('rtl')
+      }
     }
   }
 
@@ -56,6 +62,12 @@ export function TranslationProvider({ children, initialLocale }: TranslationProv
     if (typeof window !== 'undefined') {
       document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr'
       document.documentElement.lang = locale
+      // Ensure body rtl class is set on initial load
+      if (locale === 'ar') {
+        document.body.classList.add('rtl')
+      } else {
+        document.body.classList.remove('rtl')
+      }
     }
   }, [locale])
 

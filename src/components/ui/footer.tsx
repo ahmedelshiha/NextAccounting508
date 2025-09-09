@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import NewsletterForm from '@/components/ui/newsletter-form'
 
 const navigation = {
   services: [
@@ -152,16 +151,10 @@ export function Footer() {
               <p className="text-gray-300 mb-4">
                 Get the latest tax tips and financial insights delivered to your inbox.
               </p>
-              <form className="flex space-x-2">
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                />
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  Subscribe
-                </Button>
-              </form>
+              {/* Newsletter form wired to /api/newsletter */}
+              <div>
+                <NewsletterForm />
+              </div>
             </div>
           </div>
         </div>
@@ -208,4 +201,3 @@ export function Footer() {
     </footer>
   )
 }
-

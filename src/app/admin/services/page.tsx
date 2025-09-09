@@ -110,7 +110,7 @@ export default function AdminServicesPage() {
     }
   }
 
-  const toggleActive = async () => {
+  const _toggleActive = async () => {
     if (!selected) return
     const res = await apiFetch(`/api/services/${encodeURIComponent(selected.slug)}`, {
       method: 'PUT',

@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api'
 import { ArrowRight, Calculator, FileText, Users, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 const serviceIcons = {
   'Bookkeeping': Calculator,
@@ -30,7 +31,7 @@ export function ServicesSection() {
   useEffect(() => {
     async function fetchServices() {
       try {
-        const response = await apiFetch('/api/services?featured=true')
+        const response = await apiFetch('/api/services')
         if (response.ok) {
           let data: unknown = null
           try {
@@ -134,7 +135,7 @@ export function ServicesSection() {
                   {service.price && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
-                        ${service.price}
+                        {formatCurrencyFromDecimal(service.price)}
                       </span>
                       <span className="text-gray-600">/month</span>
                     </div>
