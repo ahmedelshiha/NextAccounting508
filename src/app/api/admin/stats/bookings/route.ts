@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
         where: { status: BookingStatus.COMPLETED, createdAt: { gte: prevStart, lt: start } },
         include: { service: { select: { price: true } } }
       })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
-      const revenuePrevRange = sumDecimals(completedPrevRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
+      const _revenuePrevRange = sumDecimals(completedPrevRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
 
       const growthRange = bookingsPrevRange > 0 ? ((bookingsInRange - bookingsPrevRange) / bookingsPrevRange) * 100 : 0
 
