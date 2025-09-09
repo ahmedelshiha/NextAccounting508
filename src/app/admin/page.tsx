@@ -21,8 +21,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { usePermissions } from '@/lib/use-permissions'
-import dynamic from 'next/dynamic'
-const CurrencyQuickModal = dynamic(() => import('@/components/admin/currency-quick-modal'), { ssr: false })
 
 function UpcomingTasks() {
   const [tasks, setTasks] = useState<Array<{ id: string; title: string; dueAt: string | null; priority: 'LOW' | 'MEDIUM' | 'HIGH'; status: 'OPEN' | 'IN_PROGRESS' | 'DONE' }>>([])
