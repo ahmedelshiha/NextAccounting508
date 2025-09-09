@@ -57,6 +57,15 @@ interface DashboardStats {
   }
 }
 
+interface AnalyticsDailyPoint { date?: string; day?: number; count: number }
+interface AnalyticsRevenueByService { service: string; amount: number }
+interface AdminAnalytics {
+  dailyBookings: AnalyticsDailyPoint[]
+  revenueByService: AnalyticsRevenueByService[]
+  avgLeadTimeDays: number
+  topServices?: Array<{ service: string; bookings: number }>
+}
+
 interface RecentBooking {
   id: string
   clientName: string
