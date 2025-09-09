@@ -65,8 +65,9 @@ export default function AdminAuditsPage() {
             ) : filtered.length ? (
               <div className="divide-y divide-gray-100">
                 {filtered.map(l => {
-                  let parsed: any = {}
-                  try { parsed = l.message ? JSON.parse(l.message) : {} } catch {}
+                  type AuditMessage = { action?: string; targetId?: string; details?: unknown }
+                  let parsed: AuditMessage = {}
+                  try { parsed = l.message ? (JSON.parse(l.message) as AuditMessage) : {} } catch { parsed = {} }
                   return (
                     <div key={l.id} className="py-3 flex items-center justify-between">
                       <div className="min-w-0 mr-4">
