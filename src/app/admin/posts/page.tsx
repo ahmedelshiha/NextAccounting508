@@ -39,6 +39,7 @@ export default function AdminPostsPage() {
   const [editTags, setEditTags] = useState('')
   const [editFeatured, setEditFeatured] = useState(false)
   const [editPublished, setEditPublished] = useState(false)
+  const [editCoverImage, setEditCoverImage] = useState('')
 
   // Create form state
   const [newTitle, setNewTitle] = useState('')
@@ -48,6 +49,7 @@ export default function AdminPostsPage() {
   const [newTags, setNewTags] = useState('')
   const [newFeatured, setNewFeatured] = useState(false)
   const [newPublished, setNewPublished] = useState(false)
+  const [newCoverImage, setNewCoverImage] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -67,6 +69,7 @@ export default function AdminPostsPage() {
     setEditTags(p.tags?.join(', ') || '')
     setEditFeatured(!!p.featured)
     setEditPublished(!!p.published)
+    setEditCoverImage(p.coverImage || '')
   }
 
   const reload = async () => {
@@ -96,6 +99,7 @@ export default function AdminPostsPage() {
       tags: editTags.split(',').map(t => t.trim()).filter(Boolean),
       featured: editFeatured,
       published: editPublished,
+      coverImage: editCoverImage || null,
     }
     const res = await apiFetch(`/api/posts/${encodeURIComponent(selected.slug)}` ,{
       method: 'PUT',
@@ -128,6 +132,7 @@ export default function AdminPostsPage() {
       tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
       featured: newFeatured,
       published: newPublished,
+      coverImage: newCoverImage || null,
     }
     const res = await apiFetch('/api/posts', {
       method: 'POST',
@@ -135,7 +140,7 @@ export default function AdminPostsPage() {
       body: JSON.stringify(body)
     })
     if (res.ok) {
-      setNewTitle(''); setNewSlug(''); setNewExcerpt(''); setNewContent(''); setNewTags(''); setNewFeatured(false); setNewPublished(false)
+      setNewTitle(''); setNewSlug(''); setNewExcerpt(''); setNewContent(''); setNewTags(''); setNewFeatured(false); setNewPublished(false); setNewCoverImage('')
       reload()
     }
   }
@@ -242,6 +247,13 @@ export default function AdminPostsPage() {
                     <Textarea value={editExcerpt} onChange={e => setEditExcerpt(e.target.value)} />
                   </div>
                   <div>
+                    <label className="text-sm text-gray-700">Cover Image URL</label>
+                    <Input value={editCoverImage} onChange={e => setEditCoverImage(e.target.value)} placeholder="https://..." />
+                    {editCoverImage ? (
+                      <img src={editCoverImage} alt="Cover" className="mt-2 h-28 w-full object-cover rounded" />
+                    ) : null}
+                  </div>
+                  <div>
                     <label className="text-sm text-gray-700">Content</label>
                     <Textarea value={editContent} onChange={e => setEditContent(e.target.value)} required />
                   </div>
@@ -280,6 +292,13 @@ export default function AdminPostsPage() {
                   <div>
                     <label className="text-sm text-gray-700">Excerpt</label>
                     <Textarea value={newExcerpt} onChange={e => setNewExcerpt(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-700">Cover Image URL</label>
+                    <Input value={newCoverImage} onChange={e => setNewCoverImage(e.target.value)} placeholder="https://..." />
+                    {newCoverImage ? (
+                      <img src={newCoverImage} alt="Cover preview" className="mt-2 h-28 w-full object-cover rounded" />
+                    ) : null}
                   </div>
                   <div>
                     <label className="text-sm text-gray-700">Content</label>
