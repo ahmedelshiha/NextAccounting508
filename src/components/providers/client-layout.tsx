@@ -16,8 +16,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     const handleError = (event: ErrorEvent) => {
       try {
-        const err = (event && (event as any).error) || event
-        const message = err?.message || (event && (event as any).message) || ''
+        const evt = event as ErrorEvent & { error?: unknown }
+        const err = evt.error ?? evt
+        let message = ''
+
+        if (typeof err === 'string') message = err
+        else if (err && typeof (err as { message?: unknown }).message === 'string') {
+          message = (err as { message: string }).message
+        } else if (typeof evt.message === 'string') {
+          message = evt.message
+        }
+
         if (/loading chunk|chunkloaderror|loading asset/i.test(String(message))) {
           if (!handled) {
             handled = true
@@ -25,15 +34,26 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             setTimeout(() => window.location.reload(), 800)
           }
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
 
     const handleRejection = (ev: PromiseRejectionEvent) => {
       try {
-        const reason = (ev && (ev as any).reason) || ev
-        const msg = (reason && (reason.message || reason.stack)) || String(reason || '')
+        const evt = ev as PromiseRejectionEvent & { reason?: unknown }
+        const reason = evt.reason ?? evt
+        let msg = ''
+
+        if (typeof reason === 'string') msg = reason
+        else if (reason && typeof (reason as { message?: unknown }).message === 'string') {
+          msg = (reason as { message: string }).message
+        } else if (typeof (reason as { stack?: unknown }).stack === 'string') {
+          msg = (reason as { stack: string }).stack
+        } else {
+          msg = String(reason || '')
+        }
+
         if (/loading chunk|chunkloaderror|cannot find module/i.test(String(msg))) {
           if (!handled) {
             handled = true
@@ -41,7 +61,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             setTimeout(() => window.location.reload(), 800)
           }
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
