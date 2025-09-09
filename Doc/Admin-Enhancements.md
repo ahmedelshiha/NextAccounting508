@@ -429,6 +429,25 @@ Multi-currency support is now available: currencies can be added/activated, a de
 
 ---
 
+### Admin UI — Quick Change Modal (Dashboard quick action)
+- Added a client-side Quick Change Currency modal accessible from the Admin Dashboard Quick Actions (visible to users with `manage_currencies`).
+- File: `src/components/admin/currency-quick-modal.tsx` — a lightweight dialog that:
+  - Lists currencies with editable fields (symbol, decimals, active).
+  - Allows selecting and setting the default currency without leaving the dashboard.
+  - Saves individual currency edits (PATCH `/api/admin/currencies/[code]`).
+  - Shows confirmation toasts using `sonner` for success/error feedback.
+- Dashboard integration: `src/app/admin/page.tsx` — added quick action button that opens the modal and exposes it only to users with the appropriate permission.
+- Permissions: `usePermissions` exposes `canManageCurrencies` and `canManagePriceOverrides` to gate access.
+
+### Per-entity Price Override UI (in modal)
+- The Quick Change modal now includes per-entity price override management (visible to users with `manage_price_overrides`):
+  - Select entity type (`services` | `products`) and enter an entity ID.
+  - Load existing overrides using `GET /api/admin/currencies/overrides?entity=...&id=...`.
+  - Edit existing overrides (price) and save via `POST /api/admin/currencies/overrides`.
+  - Create new overrides for the selected entity and currency.
+- Files: `src/components/admin/currency-quick-modal.tsx`, `src/app/api/admin/currencies/overrides/route.ts` (existing endpoint used).
+- UX notes: price inputs accept human-readable amounts (e.g., `100.00`) and are converted to cents server-side.
+
 If you want, I can also:
 - Add automated unit tests and a GitHub Actions workflow to run them, or
 - Run the DB push & seed here once you connect Neon (click [Open MCP popover](#open-mcp-popover) and connect Neon), then I can execute migration and seed for you.
