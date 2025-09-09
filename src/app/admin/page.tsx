@@ -20,6 +20,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { usePermissions } from '@/lib/use-permissions'
 
 interface DashboardStats {
   bookings: {
@@ -28,17 +29,21 @@ interface DashboardStats {
     confirmed: number
     completed: number
     today: number
+    thisMonth?: number
+    lastMonth?: number
   }
   users: {
     total: number
     clients: number
     staff: number
     newThisMonth: number
+    registrationTrends?: Array<{ month: string; count: number }>
   }
   posts: {
     total: number
     published: number
     drafts: number
+    publishingTrends?: Array<{ month: string; count: number }>
   }
   newsletter: {
     total: number
@@ -52,6 +57,15 @@ interface DashboardStats {
   }
 }
 
+interface AnalyticsDailyPoint { date?: string; day?: number; count: number }
+interface AnalyticsRevenueByService { service: string; amount: number }
+interface AdminAnalytics {
+  dailyBookings: AnalyticsDailyPoint[]
+  revenueByService: AnalyticsRevenueByService[]
+  avgLeadTimeDays: number
+  topServices?: Array<{ service: string; bookings: number }>
+}
+
 interface RecentBooking {
   id: string
   clientName: string
@@ -62,25 +76,35 @@ interface RecentBooking {
 
 export default function AdminDashboard() {
   const { data: session } = useSession()
+  const perms = usePermissions()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([])
   const [loading, setLoading] = useState(true)
+  const [dbHealthy, setDbHealthy] = useState<boolean | null>(null)
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null)
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
         // Fetch dashboard statistics
-          const statsPromises = await Promise.allSettled([
+        const statsPromises = await Promise.allSettled([
           apiFetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
-          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
+          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/db-check').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/admin/analytics').then(res => res.ok ? res.json() : Promise.reject(res)),
         ])
 
         const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
         const usersData = statsPromises[1].status === 'fulfilled' ? statsPromises[1].value : { total: 0, clients: 0, staff: 0, newThisMonth: 0 }
         const postsData = statsPromises[2].status === 'fulfilled' ? statsPromises[2].value : { total: 0, published: 0, drafts: 0 }
         const newsletterData = statsPromises[3].status === 'fulfilled' ? statsPromises[3].value : { total: 0, active: 0 }
+        const dbCheckOk = statsPromises[4].status === 'fulfilled'
+
+        setDbHealthy(dbCheckOk)
+
+        const analyticsData = statsPromises[5].status === 'fulfilled' ? (statsPromises[5] as PromiseFulfilledResult<unknown>).value as AdminAnalytics : null
 
         setStats({
           bookings: bookingsData,
@@ -89,14 +113,16 @@ export default function AdminDashboard() {
           newsletter: {
             total: newsletterData.total || 0,
             subscribed: newsletterData.subscribed || 0,
-            newThisMonth: 0 // Would need additional API endpoint
+            newThisMonth: 0
           },
           revenue: {
-            thisMonth: 15750, // Mock data
-            lastMonth: 12300,
-            growth: 28.0
+            thisMonth: Number(bookingsData?.revenue?.thisMonth ?? 0),
+            lastMonth: Number(bookingsData?.revenue?.lastMonth ?? 0),
+            growth: Number(bookingsData?.revenue?.growth ?? bookingsData?.growth ?? 0),
           }
         })
+
+        setAnalytics(analyticsData)
 
         // Fetch recent bookings
         const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
@@ -264,46 +290,144 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/bookings">
-                    <Calendar className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Bookings</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/users">
-                    <Users className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Users</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/posts">
-                    <FileText className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Posts</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/services">
-                    <Settings className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Services</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/newsletter">
-                    <Mail className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Newsletter</span>
-                  </Link>
-                </Button>
+                {perms.canManageBookings && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/bookings">
+                      <Calendar className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Bookings</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageUsers && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/users">
+                      <Users className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Users</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManagePosts && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/posts">
+                      <FileText className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Posts</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageServices && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/services">
+                      <Settings className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Services</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageNewsletter && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/newsletter">
+                      <Mail className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Newsletter</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
                   <Link href="/admin/settings">
                     <Settings className="h-6 w-6 mb-2" />
                     <span className="text-sm">Settings</span>
                   </Link>
                 </Button>
+                {perms.canManageUsers && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/audits">
+                      <FileText className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Audit Logs</span>
+                    </Link>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Trends */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Trends (last 6 months)</CardTitle>
+            <CardDescription>Users and content publishing</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">User Registrations</div>
+                <div className="h-24 flex items-end gap-2">
+                  {(stats?.users.registrationTrends || []).map((p) => {
+                    const max = Math.max(...(stats?.users.registrationTrends || []).map(x => x.count), 1)
+                    const height = Math.max(4, Math.round((p.count / max) * 96))
+                    return <div key={p.month} className="bg-blue-500/70 rounded" style={{ height, width: 12 }} title={`${p.month}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Posts Published</div>
+                <div className="h-24 flex items-end gap-2">
+                  {(stats?.posts.publishingTrends || []).map((p) => {
+                    const max = Math.max(...(stats?.posts.publishingTrends || []).map(x => x.count), 1)
+                    const height = Math.max(4, Math.round((p.count / max) * 96))
+                    return <div key={p.month} className="bg-purple-500/70 rounded" style={{ height, width: 12 }} title={`${p.month}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Advanced Analytics */}
+        {perms.canViewAnalytics && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Advanced Analytics</CardTitle>
+            <CardDescription>Bookings and revenue insights</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
+                <div className="text-sm font-medium text-gray-800 mb-2">Daily Bookings (14d)</div>
+                <div className="h-24 flex items-end gap-1">
+                  {(analytics?.dailyBookings || []).map((p: AnalyticsDailyPoint, i: number) => {
+                    const rows = analytics?.dailyBookings || []
+                    const max = Math.max(...rows.map((x) => x.count), 1)
+                    const height = Math.max(4, Math.round(((p.count ?? 0) / max) * 96))
+                    return <div key={p.date ?? String(i)} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date ?? i}: ${p.count}`} />
+                  })}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Avg Lead Time</div>
+                <div className="text-3xl font-bold text-gray-900">{(analytics?.avgLeadTimeDays ?? 0).toFixed(1)}<span className="text-sm text-gray-600 ml-1">days</span></div>
+              </div>
+            </div>
+            <div className="mt-6">
+              <div className="text-sm font-medium text-gray-800 mb-2">Revenue by Service</div>
+              <div className="space-y-2">
+                {(analytics?.revenueByService || []).map((r: AnalyticsRevenueByService) => {
+                  const rows = analytics?.revenueByService || []
+                  const max = Math.max(...rows.map((x) => x.amount), 1)
+                  const width = Math.max(4, Math.round(((r.amount ?? 0) / max) * 100))
+                  return (
+                    <div key={r.service} className="flex items-center gap-2">
+                      <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
+                      <div className="flex-1 bg-gray-100 rounded h-3">
+                        <div className="h-3 bg-green-500/70 rounded" style={{ width: `${width}%` }} />
+                      </div>
+                      <div className="w-24 text-right text-sm text-gray-600">{formatCurrency(r.amount)}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        )}
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -364,10 +488,10 @@ export default function AdminDashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                    {(dbHealthy ? <CheckCircle className="h-5 w-5 text-green-500 mr-2" /> : <AlertCircle className="h-5 w-5 text-red-500 mr-2" />)}
                     <span className="text-sm">Database Connection</span>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Healthy</Badge>
+                  <Badge className={dbHealthy ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>{dbHealthy ? 'Healthy' : 'Unavailable'}</Badge>
                 </div>
                 
                 <div className="flex items-center justify-between">

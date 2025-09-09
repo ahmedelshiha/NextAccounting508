@@ -4,6 +4,8 @@ import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { usePermissions } from '@/lib/use-permissions'
 
 interface UserStats {
   total: number
@@ -18,6 +20,11 @@ interface UserStats {
 export default function AdminUsersPage() {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const perms = usePermissions()
+  const [users, setUsers] = useState<Array<{ id: string; name: string | null; email: string; role: 'ADMIN'|'STAFF'|'CLIENT'; createdAt: string }>>([])
+  const [usersLoading, setUsersLoading] = useState(true)
+  const [audits, setAudits] = useState<Array<{ id: string; message: string; checkedAt: string }>>([])
+  const [auditsLoading, setAuditsLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
@@ -30,6 +37,52 @@ export default function AdminUsersPage() {
     }
     load()
   }, [])
+
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        const res = await apiFetch('/api/admin/users')
+        if (res.ok) {
+          const data = await res.json()
+          setUsers(Array.isArray(data?.users) ? data.users : [])
+        }
+      } finally {
+        setUsersLoading(false)
+      }
+    }
+    loadUsers()
+  }, [])
+
+  useEffect(() => {
+    async function loadAudits() {
+      try {
+        const res = await apiFetch('/api/health/logs?service=AUDIT&limit=10')
+        if (res.ok) {
+          const data = await res.json()
+          setAudits(Array.isArray(data) ? data : [])
+        }
+      } finally {
+        setAuditsLoading(false)
+      }
+    }
+    loadAudits()
+  }, [])
+
+  const updateRole = async (userId: string, role: 'ADMIN'|'STAFF'|'CLIENT') => {
+    try {
+      const res = await apiFetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: data.user?.role ?? role } : u))
+      }
+    } catch (e) {
+      console.error('Failed to update role', e)
+    }
+  }
 
   if (loading) {
     return (
@@ -95,6 +148,88 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <div className="text-gray-500 text-sm">No user data available.</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>View users and update roles</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {usersLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-24" />))}
+              </div>
+            ) : users.length ? (
+              <div className="divide-y divide-gray-100">
+                {users.map(u => (
+                  <div key={u.id} className="py-3 flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{u.name || 'Unnamed'}</div>
+                      <div className="text-sm text-gray-600">{u.email}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
+                      {perms.canManageUsers && (
+                        <Select value={u.role} onValueChange={(val) => updateRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
+                          <SelectTrigger className="w-36">
+                            <SelectValue placeholder="Change role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CLIENT">Client</SelectItem>
+                            <SelectItem value="STAFF">Staff</SelectItem>
+                            <SelectItem value="ADMIN">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-500">No users found.</div>
+            )}
+            {perms.canManageUsers && (
+              <div className="mt-4 text-xs text-gray-500">Role changes require Admin privileges.</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Admin Activity</CardTitle>
+            <CardDescription>Latest audit events</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[...Array(4)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-16" />))}
+              </div>
+            ) : audits.length ? (
+              <div className="divide-y divide-gray-100">
+                {audits.map(a => {
+                  type AuditMessage = { action?: string; targetId?: string; details?: unknown }
+                  let parsed: AuditMessage = {}
+                  try { parsed = JSON.parse(a.message) as AuditMessage } catch { parsed = {} }
+                  return (
+                    <div key={a.id} className="py-3 text-sm text-gray-700 flex items-center justify-between">
+                      <div className="truncate mr-4">
+                        <span className="font-medium text-gray-900">{parsed.action || 'action'}</span>
+                        {parsed.targetId && <span className="ml-2 text-gray-500">target: {parsed.targetId}</span>}
+                      </div>
+                      <div className="text-xs text-gray-500">{new Date(a.checkedAt).toLocaleString()}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-gray-500">No audit events.</div>
             )}
           </CardContent>
         </Card>

@@ -4,13 +4,15 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { BookingStatus } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
+import { hasPermission } from '@/lib/rbac'
+import { logAudit } from '@/lib/audit'
 
 // GET /api/admin/bookings - Get all bookings for admin
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -204,6 +206,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    await logAudit({ action: 'booking.create', actorId: session.user.id, targetId: booking.id, details: { serviceId, scheduledAt } })
+
     return NextResponse.json({
       message: 'Booking created successfully',
       booking
@@ -222,7 +226,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -284,6 +288,8 @@ export async function PATCH(request: NextRequest) {
       data: updateData
     })
 
+    await logAudit({ action: `booking.bulk.${action}`, actorId: session.user.id, details: { count: result.count, bookingIds } })
+
     return NextResponse.json({
       message: `Successfully updated ${result.count} bookings`,
       updated: result.count
@@ -302,7 +308,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
+    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 }
@@ -327,6 +333,8 @@ export async function DELETE(request: NextRequest) {
         }
       }
     })
+
+    await logAudit({ action: 'booking.bulk.delete', actorId: session.user.id, details: { count: result.count, bookingIds } })
 
     return NextResponse.json({
       message: `Successfully deleted ${result.count} bookings`,
