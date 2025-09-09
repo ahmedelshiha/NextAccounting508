@@ -99,9 +99,9 @@ export default async function ServicePage({ params }: PageProps) {
     }
 
     if (!service) {
-      const fallback = (fallbackServices as any)[slug]
+      const fallback = (fallbackServices as Record<string, { slug: string; name: string; shortDesc: string; description: string; features: string[]; price: number }>)[slug]
       if (!fallback) return notFound()
-      service = fallback as any
+      service = fallback
     }
 
     return (
