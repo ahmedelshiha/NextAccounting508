@@ -26,35 +26,12 @@ export async function fetchRates(targets: string[], base = BASE_CURRENCY) {
       const updated: { target: string; rate: number; fetchedAt: string }[] = []
 
       for (const r of rates) {
-        await prisma.exchangeRate.upsert({
-          where: {
-            // no unique constraint other than id, use a composite search
-            id: -1,
-          } as any,
-          update: {},
-          create: {
-            base,
-            target: r.target,
-            rate: r.rate,
-            source: 'exchangerate.host',
-            fetchedAt: now,
-            ttlSeconds: TTL_SECONDS,
-          },
-        }).catch(async (e) => {
-          // fallback: try to find existing rate and update
-          await prisma.exchangeRate.upsert({
-            where: {},
-            update: {},
-            create: {
-              base,
-              target: r.target,
-              rate: r.rate,
-              source: 'exchangerate.host',
-              fetchedAt: now,
-              ttlSeconds: TTL_SECONDS,
-            },
-          } as any)
-        })
+        const existing = await prisma.exchangeRate.findFirst({ where: { base, target: r.target } })
+        if (existing) {
+          await prisma.exchangeRate.update({ where: { id: existing.id }, data: { rate: r.rate, source: 'exchangerate.host', fetchedAt: now, ttlSeconds: TTL_SECONDS } })
+        } else {
+          await prisma.exchangeRate.create({ data: { base, target: r.target, rate: r.rate, source: 'exchangerate.host', fetchedAt: now, ttlSeconds: TTL_SECONDS } })
+        }
         updated.push({ target: r.target, rate: r.rate, fetchedAt: now.toISOString() })
       }
 
