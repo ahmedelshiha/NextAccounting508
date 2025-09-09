@@ -10,12 +10,9 @@ export default function CareersPage() {
 
         <div className="space-y-4">
           <p className="text-sm text-gray-500">Want to be notified when we launch careers? Join our mailing list.</p>
-          <form className="flex items-center max-w-md mx-auto gap-2">
-            <input type="email" placeholder="Your email" className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none" />
-            <Button asChild>
-              <Link href="/">Notify Me</Link>
-            </Button>
-          </form>
+          <div className="max-w-md mx-auto">
+            <NewsletterForm placeholder="Your email" submitLabel="Notify Me" />
+          </div>
         </div>
 
         <div className="mt-8">
