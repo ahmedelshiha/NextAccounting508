@@ -7,6 +7,8 @@ import { ArrowRight, Calculator, FileText, Users, TrendingUp } from 'lucide-reac
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
+import { useCurrency } from '@/components/providers/currency-provider'
+import { convertFromUSD, formatMoney } from '@/lib/currency'
 
 const serviceIcons = {
   'Bookkeeping': Calculator,
