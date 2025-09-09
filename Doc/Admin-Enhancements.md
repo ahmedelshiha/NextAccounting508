@@ -448,6 +448,18 @@ Multi-currency support is now available: currencies can be added/activated, a de
 - Files: `src/components/admin/currency-quick-modal.tsx`, `src/app/api/admin/currencies/overrides/route.ts` (existing endpoint used).
 - UX notes: price inputs accept human-readable amounts (e.g., `100.00`) and are converted to cents server-side.
 
+### Unified Manage Currencies page
+- The Manage Currencies page (`/admin/settings/currencies`) now hosts the complete, single-pane management experience:
+  - Client-side comprehensive manager: `src/components/admin/currency-quick-modal.tsx` (dynamic import, client-only). This dialog provides full editing (symbol, decimals, active), set-default, save, and per-entity override management.
+  - Server-rendered reference table: `src/app/admin/settings/currencies/page.tsx` renders a read-only table with current currencies and last fetched rates to provide immediate server-state visibility alongside the client editor.
+  - The client modal is gated by permissions (`manage_currencies` / `manage_price_overrides`) via `src/lib/use-permissions.ts`.
+  - Quick action integration: Dashboard quick actions link to this page and also provide a separate quick modal on the dashboard for faster edits (`src/app/admin/page.tsx`).
+
+Notes & behavior
+- All edits (PATCH) are sent to `PATCH /api/admin/currencies/[code]` and are audited where appropriate.
+- Per-entity overrides use `GET /api/admin/currencies/overrides` and `POST /api/admin/currencies/overrides`.
+- The server render table is intentionally read-only; the modal is the canonical editor. We can make the table editable or add optimistic UI updates as a follow-up.
+
 If you want, I can also:
 - Add automated unit tests and a GitHub Actions workflow to run them, or
 - Run the DB push & seed here once you connect Neon (click [Open MCP popover](#open-mcp-popover) and connect Neon), then I can execute migration and seed for you.
