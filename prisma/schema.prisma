@@ -207,6 +207,10 @@ model ExchangeRate {
   source     String?
   fetchedAt  DateTime @default(now())
   ttlSeconds Int?
+
+  // relation to Currency (target)
+  currency   Currency @relation(fields: [target], references: [code])
+
   @@index([base, target])
 }
 
@@ -219,6 +223,10 @@ model PriceOverride {
   note         String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // relation to Currency
+  currency     Currency @relation(fields: [currencyCode], references: [code])
+
   @@index([entity, entityId, currencyCode])
 }
 
