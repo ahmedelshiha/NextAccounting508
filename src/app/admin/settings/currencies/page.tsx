@@ -8,7 +8,6 @@ export default function Page() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Currencies</h1>
         {/* Client-side comprehensive manager component */}
-        {/* @ts-expect-error Client component */}
         <CurrencyManager />
       </div>
 
