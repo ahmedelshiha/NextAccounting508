@@ -45,7 +45,7 @@ export default function CurrencyManager({ initial }: { initial: Currency[] }) {
       } else {
         setMessage('Failed to update')
       }
-    } catch (_e) {
+    } catch {
       setMessage('Failed to update')
     }
     setLoading(false)
