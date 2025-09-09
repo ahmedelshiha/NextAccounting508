@@ -13,5 +13,8 @@ export function usePermissions() {
     canManagePosts: hasPermission(role, 'manage_posts'),
     canManageServices: hasPermission(role, 'manage_services'),
     canManageNewsletter: hasPermission(role, 'manage_newsletter'),
+    canViewCurrencies: hasPermission(role, 'view_currencies'),
+    canManageCurrencies: hasPermission(role, 'manage_currencies'),
+    canManagePriceOverrides: hasPermission(role, 'manage_price_overrides'),
   }
 }
