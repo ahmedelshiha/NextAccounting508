@@ -9,7 +9,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
       where: {
         slug,
         active: true
-      }
+      },
+      include: { prices: true }
     })
 
     if (!service) {
@@ -45,7 +46,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       category,
       featured,
       active,
-      image
+      image,
+      prices
     } = body
 
     const updated = await prisma.service.update({
@@ -61,10 +63,26 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
         ...(featured !== undefined && { featured }),
         ...(active !== undefined && { active }),
         ...(image !== undefined && { image })
-      }
+      },
+      include: { prices: true }
     })
 
-    return NextResponse.json(updated)
+    if (prices && typeof prices === 'object') {
+      const entries = Object.entries(prices as Record<string, number | null>)
+      await prisma.$transaction(entries.map(([code, amt]) => {
+        if (amt === null || amt === undefined) {
+          return prisma.servicePrice.deleteMany({ where: { serviceId: updated.id, currency: code as any } })
+        }
+        return prisma.servicePrice.upsert({
+          where: { serviceId_currency: { serviceId: updated.id, currency: code as any } },
+          create: { serviceId: updated.id, currency: code as any, amount: parseFloat(String(amt)) },
+          update: { amount: parseFloat(String(amt)) }
+        })
+      }))
+    }
+
+    const refreshed = await prisma.service.findUnique({ where: { id: updated.id }, include: { prices: true } })
+    return NextResponse.json(refreshed)
   } catch (error) {
     console.error('Error updating service:', error)
     return NextResponse.json(
