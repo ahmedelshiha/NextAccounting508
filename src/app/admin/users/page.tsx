@@ -177,6 +177,40 @@ export default function AdminUsersPage() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Admin Activity</CardTitle>
+            <CardDescription>Latest audit events</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[...Array(4)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-16" />))}
+              </div>
+            ) : audits.length ? (
+              <div className="divide-y divide-gray-100">
+                {audits.map(a => {
+                  let parsed: any = {}
+                  try { parsed = JSON.parse(a.message) } catch {}
+                  return (
+                    <div key={a.id} className="py-3 text-sm text-gray-700 flex items-center justify-between">
+                      <div className="truncate mr-4">
+                        <span className="font-medium text-gray-900">{parsed.action || 'action'}</span>
+                        {parsed.targetId && <span className="ml-2 text-gray-500">target: {parsed.targetId}</span>}
+                      </div>
+                      <div className="text-xs text-gray-500">{new Date(a.checkedAt).toLocaleString()}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-gray-500">No audit events.</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
