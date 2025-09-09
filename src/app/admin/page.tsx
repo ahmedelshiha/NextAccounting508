@@ -280,42 +280,60 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/bookings">
-                    <Calendar className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Bookings</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/users">
-                    <Users className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Users</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/posts">
-                    <FileText className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Posts</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/services">
-                    <Settings className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Manage Services</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
-                  <Link href="/admin/newsletter">
-                    <Mail className="h-6 w-6 mb-2" />
-                    <span className="text-sm">Newsletter</span>
-                  </Link>
-                </Button>
+                {perms.canManageBookings && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/bookings">
+                      <Calendar className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Bookings</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageUsers && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/users">
+                      <Users className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Users</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManagePosts && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/posts">
+                      <FileText className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Posts</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageServices && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/services">
+                      <Settings className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Manage Services</span>
+                    </Link>
+                  </Button>
+                )}
+                {perms.canManageNewsletter && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/newsletter">
+                      <Mail className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Newsletter</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
                   <Link href="/admin/settings">
                     <Settings className="h-6 w-6 mb-2" />
                     <span className="text-sm">Settings</span>
                   </Link>
                 </Button>
+                {perms.canManageUsers && (
+                  <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
+                    <Link href="/admin/audits">
+                      <FileText className="h-6 w-6 mb-2" />
+                      <span className="text-sm">Audit Logs</span>
+                    </Link>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
