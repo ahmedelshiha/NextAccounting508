@@ -161,26 +161,6 @@ export async function BlogSection() {
           </Button>
         </div>
 
-        {/* Newsletter Signup */}
-        <div className="mt-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 sm:p-8 text-center text-white">
-          <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-            Stay Updated with Tax & Financial Tips
-          </h3>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Get our latest insights delivered to your inbox. No spam, just valuable
-            content to help your business thrive.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white shadow"
-            />
-            <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8">
-              Subscribe
-            </Button>
-          </div>
-        </div>
       </div>
     </section>
   )
