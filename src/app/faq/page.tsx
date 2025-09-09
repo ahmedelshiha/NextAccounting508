@@ -64,8 +64,8 @@ export default function FAQPage() {
         <div className="max-w-3xl mx-auto text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900">Frequently Asked Questions</h1>
           <p className="mt-4 text-lg text-gray-600">
-            Answers to common questions about our services, pricing, and processes. If you can't find
-            what you're looking for, please get in touch.
+            Answers to common questions about our services, pricing, and processes. If you can&apos;t find
+            what you&apos;re looking for, please get in touch.
           </p>
           <div className="mt-6">
             <Button asChild>
@@ -77,7 +77,7 @@ export default function FAQPage() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="md:col-span-2">
             <div className="space-y-4">
-              {faqs.map((faq, idx) => (
+              {faqs.map((faq) => (
                 <details
                   key={faq.question}
                   className="bg-white p-6 rounded-lg shadow-sm"
@@ -96,7 +96,7 @@ export default function FAQPage() {
           <aside className="hidden md:block">
             <div className="bg-white p-6 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Need more help?</h3>
-              <p className="text-gray-700 mb-4">Reach out to our team and we'll get back to you within 1 business day.</p>
+              <p className="text-gray-700 mb-4">Reach out to our team and we&apos;ll get back to you within 1 business day.</p>
               <div>
                 <Button asChild>
                   <Link href="/contact">Contact Us</Link>
