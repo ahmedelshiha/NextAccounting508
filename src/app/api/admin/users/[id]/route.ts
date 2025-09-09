@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { logAudit } from '@/lib/audit'
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
@@ -18,7 +18,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
     }
 
-    const id = params.id
+    const { id } = await context.params
     const body = await request.json().catch(() => ({}))
     const { role: newRole } = body || {}
 
