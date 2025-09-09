@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${service.name} | Accounting Firm Services`,
       description: service.description || undefined,
     }
-  } catch (err) {
+  } catch (error) {
+    console.error('Error generating metadata for service:', error)
     return { title: 'Service' }
   }
 }
