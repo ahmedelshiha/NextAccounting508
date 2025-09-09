@@ -3,8 +3,8 @@ const buckets = new Map<string, Bucket>()
 
 export function getClientIp(req: Request): string {
   try {
-    const anyReq = req as any
-    const ip = (anyReq?.ip as string | undefined) || anyReq?.socket?.remoteAddress
+    const r = req as unknown as { ip?: string; socket?: { remoteAddress?: string } }
+    const ip = r?.ip ?? r?.socket?.remoteAddress
     const hdr =
       req.headers.get('x-forwarded-for') ||
       req.headers.get('x-real-ip') ||
