@@ -20,6 +20,9 @@ interface UserStats {
 export default function AdminUsersPage() {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [users, setUsers] = useState<Array<{ id: string; name: string | null; email: string; role?: 'ADMIN' | 'STAFF' | 'CLIENT'; createdAt: string }>>([])
+  const [q, setQ] = useState('')
+  const [roleFilter, setRoleFilter] = useState<'all' | 'ADMIN' | 'STAFF' | 'CLIENT'>('all')
 
   useEffect(() => {
     async function load() {
