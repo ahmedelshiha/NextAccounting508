@@ -25,7 +25,7 @@ This document summarizes all admin-related enhancements implemented in this iter
   - List users: `GET /api/admin/users` with DB-less fallback.
   - Update user role: `PATCH /api/admin/users/[id]` (Admin-only, RBAC-enforced).
 - Advanced Analytics
-  - `GET /api/admin/analytics`: daily bookings (14 days), revenue by service, average lead time, top services.
+  - `GET /api/admin/analytics?range=7d|14d|30d|90d|1y`: parameterized analytics. Returns daily bookings for range, revenue by service within range, average lead time within range, and top services in range.
 - Stats (existing, now used by dashboard)
   - Bookings: `src/app/api/admin/stats/bookings/route.ts`
   - Users: `src/app/api/admin/stats/users/route.ts`
@@ -40,6 +40,9 @@ This document summarizes all admin-related enhancements implemented in this iter
   - Live DB health indicator via `/api/db-check`.
   - Trends (last 6 months): user registrations and posts published (bar mini-charts; no new deps).
   - Advanced Analytics section (guarded by permission) using `/api/admin/analytics`.
+  - Unified time-range selector (7d, 14d, 30d, 90d, 1y) that drives analytics.
+  - Service Distribution list derived from revenue by service with percentage bars.
+  - Recent Admin Activity feed (reads latest `AUDIT` logs via `/api/health/logs?service=AUDIT&limit=5`).
   - Quick Actions gated by permissions.
 - Users (`src/app/admin/users/page.tsx`)
   - User list with role update select (RBAC-gated; uses new APIs).
@@ -96,11 +99,11 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Optional chart library integration for richer visuals (keep bundle small).
 
 ### Admin Dashboard (Enhanced)
-- Unified time range filter across KPIs and charts (7d, 30d, 90d, 1y) with backend support via query params (e.g., `?range=7d`).
+- Unified time range filter across KPIs and charts (7d, 30d, 90d, 1y) with backend support via query params (e.g., `?range=7d`). [Implemented analytics time range and UI selector]
 - Export actions (CSV/PDF) for analytics, users, bookings, services, and audits with server-side generation and client download UI.
 - KPI cards backed by real data: monthly revenue, active clients, task completion rate, and system health sourced from stats endpoints and `/api/db-check`.
 - Charts: combined revenue vs bookings (bar+line), client growth (bar), and service distribution (donut). Use a lightweight chart lib or dynamic imports to keep bundle small.
-- Recent activity feed driven by audit logs with type filters (booking, user, payment, content, service).
+- Recent activity feed driven by audit logs with type filters (booking, user, payment, content, service). [Implemented basic feed on dashboard]
 - Upcoming tasks widget: integrate with Linear (via MCP) or introduce a `Task` model (title, due date, priority, status, assignee).
 - Performance tab: page load time, API response, uptime, and error rate with trend deltas; ingest from Lighthouse reports, Sentry metrics, and Netlify build data.
 - System tab: DB/API/external API/security status plus quick actions (DB backup, test email, view logs, open config) gated by RBAC.
