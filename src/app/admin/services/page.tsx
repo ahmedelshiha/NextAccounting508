@@ -257,8 +257,11 @@ export default function AdminServicesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-700">Price (USD)</label>
+                      <label className="text-sm text-gray-700">Price (Base USD)</label>
                       <Input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} />
+                      {price && (
+                        <div className="text-xs text-gray-600 mt-1">Preview: {formatMoney(convertFromUSD(Number(price || 0), currency), currency)}</div>
+                      )}
                     </div>
                     <div>
                       <label className="text-sm text-gray-700">Duration (min)</label>
