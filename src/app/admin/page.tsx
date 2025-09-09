@@ -70,17 +70,21 @@ export default function AdminDashboard() {
     async function fetchDashboardData() {
       try {
         // Fetch dashboard statistics
-          const statsPromises = await Promise.allSettled([
+        const statsPromises = await Promise.allSettled([
           apiFetch('/api/admin/stats/bookings').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/users').then(res => res.ok ? res.json() : Promise.reject(res)),
           apiFetch('/api/admin/stats/posts').then(res => res.ok ? res.json() : Promise.reject(res)),
-          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res))
+          apiFetch('/api/newsletter').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/db-check').then(res => res.ok ? res.json() : Promise.reject(res)),
+          apiFetch('/api/email-check').then(res => res.ok ? res.json() : Promise.reject(res))
         ])
 
-        const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0 }
+        const bookingsData = statsPromises[0].status === 'fulfilled' ? statsPromises[0].value : { total: 0, pending: 0, confirmed: 0, completed: 0, today: 0, revenue: { thisMonth: 0, lastMonth: 0, growth: 0 } }
         const usersData = statsPromises[1].status === 'fulfilled' ? statsPromises[1].value : { total: 0, clients: 0, staff: 0, newThisMonth: 0 }
         const postsData = statsPromises[2].status === 'fulfilled' ? statsPromises[2].value : { total: 0, published: 0, drafts: 0 }
-        const newsletterData = statsPromises[3].status === 'fulfilled' ? statsPromises[3].value : { total: 0, active: 0 }
+        const newsletterData = statsPromises[3].status === 'fulfilled' ? statsPromises[3].value : { total: 0, subscribed: 0 }
+        const dbHealth = statsPromises[4].status === 'fulfilled' ? statsPromises[4].value : { status: 'error' }
+        const emailHealth = statsPromises[5].status === 'fulfilled' ? statsPromises[5].value : { status: 'error' }
 
         setStats({
           bookings: bookingsData,
@@ -89,21 +93,34 @@ export default function AdminDashboard() {
           newsletter: {
             total: newsletterData.total || 0,
             subscribed: newsletterData.subscribed || 0,
-            newThisMonth: 0 // Would need additional API endpoint
+            newThisMonth: 0
           },
           revenue: {
-            thisMonth: 15750, // Mock data
-            lastMonth: 12300,
-            growth: 28.0
+            thisMonth: bookingsData?.revenue?.thisMonth ?? 0,
+            lastMonth: bookingsData?.revenue?.lastMonth ?? 0,
+            growth: bookingsData?.revenue?.growth ?? 0
           }
         })
 
-        // Fetch recent bookings
-        const recentBookingsRes = await apiFetch('/api/bookings?limit=5')
+        // Fetch recent bookings (admin endpoint supports limit & rich data)
+        const recentBookingsRes = await apiFetch('/api/admin/bookings?limit=5')
         if (recentBookingsRes.ok) {
-          const recentBookingsData = await recentBookingsRes.json()
-          setRecentBookings(recentBookingsData)
+          const recent = await recentBookingsRes.json()
+          const mapped = (recent.bookings || []).map((b: any) => ({
+            id: b.id,
+            clientName: b.clientName,
+            service: { name: b.service?.name || '' },
+            scheduledAt: b.scheduledAt,
+            status: b.status
+          }))
+          setRecentBookings(mapped)
         }
+
+        // Save system status locally
+        setSystemStatus({
+          db: dbHealth.status === 'ok' ? 'Healthy' : 'Issue',
+          email: emailHealth.status === 'ok' ? 'Configured' : 'Mock/Unconfigured'
+        })
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
