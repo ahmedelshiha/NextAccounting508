@@ -409,9 +409,10 @@ export default function AdminDashboard() {
             <div className="mt-6">
               <div className="text-sm font-medium text-gray-800 mb-2">Revenue by Service</div>
               <div className="space-y-2">
-                {((window as any).__adminAnalytics__?.revenueByService || []).map((r: any) => {
-                  const max = Math.max(...((window as any).__adminAnalytics__?.revenueByService || []).map((x: any) => x.amount), 1)
-                  const width = Math.max(4, Math.round((r.amount / max) * 100))
+                {(analytics?.revenueByService || []).map((r: AnalyticsRevenueByService) => {
+                  const rows = analytics?.revenueByService || []
+                  const max = Math.max(...rows.map((x) => x.amount), 1)
+                  const width = Math.max(4, Math.round(((r.amount ?? 0) / max) * 100))
                   return (
                     <div key={r.service} className="flex items-center gap-2">
                       <div className="w-40 text-sm text-gray-700 truncate">{r.service}</div>
