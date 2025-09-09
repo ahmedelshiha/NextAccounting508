@@ -374,5 +374,62 @@ Response: { success: true, updated: [ { target: 'EGP', rate: 30.1, fetchedAt: '.
 
 ## ✅ Add to documentation (this file)
 
-I have drafted the design above as a recommended **Future Enhancement**. If you'd like, I can append this section to the `admin-enhancements.md` file now (and produce a downloadable updated MD and PDF).
+I have drafted the design above as a recommended **Future Enhancement**. The multi-currency feature has now been implemented in this iteration — see the summary below.
+
+## ✅ Implemented — Multi-currency Admin Controls (Admin Dashboard)
+
+**Status:** Implemented in this iteration (Prisma models, seed, APIs, admin UI, cron, RBAC and audit integration, CSV export, basic test script).
+
+### Summary
+Multi-currency support is now available: currencies can be added/activated, a default base currency is honored, exchange rates are fetched and cached, per-entity price overrides are supported, and admin actions are permissioned and audited.
+
+### Key files added / modified
+- prisma/schema.prisma — added models: `Currency`, `ExchangeRate`, `PriceOverride`
+- prisma/seed.ts — seeds USD, AED, SAR, EGP + baseline USD→USD rate
+- src/lib/exchange.ts — fetchRates, convertCents helpers
+- src/lib/rbac.ts — added permissions: `view_currencies`, `manage_currencies`, `manage_price_overrides`
+- src/app/api/admin/currencies/route.ts — GET/POST admin currencies
+- src/app/api/admin/currencies/[code]/route.ts — PATCH currency
+- src/app/api/admin/currencies/refresh/route.ts — POST refresh rates (manual)
+- src/app/api/admin/currencies/export/route.ts — GET CSV export
+- src/app/api/admin/currencies/overrides/route.ts — GET/POST per-entity overrides (audit hooked)
+- src/app/api/currencies/route.ts — public list of active currencies + rates
+- src/app/api/currencies/convert/route.ts — simple convert helper
+- src/app/api/cron/refresh-exchange-rates/route.ts — protected cron endpoint (x-cron-secret header)
+- src/components/admin/currency-manager.tsx — client UI for managing currencies
+- src/app/admin/settings/currencies/page.tsx — Admin page (Settings → Currencies)
+- scripts/test-currency-util.ts — small test script for convertCents
+
+### RBAC & Audit
+- Admin actions require the new permissions and will return 401 when unauthorized. Audit entries are recorded using `src/lib/audit.ts` for price override create/update and exchange refresh events.
+
+### Environment variables (required)
+- NETLIFY_DATABASE_URL — Postgres connection (Neon recommended)
+- EXCHANGE_API_PROVIDER — e.g. `exchangerate.host` (defaults to exchangerate.host)
+- EXCHANGE_API_KEY — if provider requires a key
+- EXCHANGE_BASE_CURRENCY — default `USD`
+- EXCHANGE_RATE_TTL_SECONDS — default `86400`
+- CRON_SECRET — used to protect `/api/cron/refresh-exchange-rates`
+
+### How to run (local / CI)
+1. Connect DB and set NETLITY_DATABASE_URL (or NEON) and other env vars.
+2. Run migrations / push schema: `npm run db:push -- --accept-data-loss` or run `prisma migrate` as appropriate.
+3. Seed DB: `npm run db:seed`.
+4. Start dev server: `npm run dev`.
+5. Admin UI: Visit `/admin/settings/currencies` to manage currencies. Use the "Refresh rates" button or call `POST /api/admin/currencies/refresh`.
+6. Cron: Call `POST /api/cron/refresh-exchange-rates` with header `x-cron-secret: <CRON_SECRET>` to trigger scheduled refreshes.
+
+### Notes & Edge cases
+- When DB is not configured, audit logs fallback to console (existing behavior). Currency APIs expect DB; public fallback is not implemented for currencies — ensure NETLIFY_DATABASE_URL is set to use features.
+- Exchange rate provider failures fall back to existing DB values; admin UI surfaces success/failure messages.
+- Prices use integer cents; conversion uses `convertCents` in `src/lib/exchange.ts` to avoid floating-point errors.
+
+### Tests & QA
+- A basic conversion test script is available at `scripts/test-currency-util.ts`. Add unit and integration tests as next steps (mock provider responses, E2E checkout flows).
+
+---
+
+If you want, I can also:
+- Add automated unit tests and a GitHub Actions workflow to run them, or
+- Run the DB push & seed here once you connect Neon (click [Open MCP popover](#open-mcp-popover) and connect Neon), then I can execute migration and seed for you.
 
