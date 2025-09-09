@@ -95,6 +95,27 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Caching (SWR) with background revalidation; add indexes/migrations for queries listed in schema.
 - Optional chart library integration for richer visuals (keep bundle small).
 
+### Admin Dashboard (Enhanced)
+- Unified time range filter across KPIs and charts (7d, 30d, 90d, 1y) with backend support via query params (e.g., `?range=7d`).
+- Export actions (CSV/PDF) for analytics, users, bookings, services, and audits with server-side generation and client download UI.
+- KPI cards backed by real data: monthly revenue, active clients, task completion rate, and system health sourced from stats endpoints and `/api/db-check`.
+- Charts: combined revenue vs bookings (bar+line), client growth (bar), and service distribution (donut). Use a lightweight chart lib or dynamic imports to keep bundle small.
+- Recent activity feed driven by audit logs with type filters (booking, user, payment, content, service).
+- Upcoming tasks widget: integrate with Linear (via MCP) or introduce a `Task` model (title, due date, priority, status, assignee).
+- Performance tab: page load time, API response, uptime, and error rate with trend deltas; ingest from Lighthouse reports, Sentry metrics, and Netlify build data.
+- System tab: DB/API/external API/security status plus quick actions (DB backup, test email, view logs, open config) gated by RBAC.
+- Live updates via polling or Server-Sent Events; SWR cache with background revalidation and optimistic UI for quick actions.
+- Full i18n and accessibility for all labels, tooltips, and badges; responsive layouts for mobile.
+
+### Admin APIs to support dashboard
+- `GET /api/admin/analytics?range=...` (revenue, bookings, clients).
+- `GET /api/admin/analytics/service-distribution?range=...` (percent by service).
+- `GET /api/admin/activity?type=&limit=...` (recent activity from audits).
+- `GET/POST /api/admin/tasks`, `PATCH /api/admin/tasks/[id]` (CRUD for upcoming tasks).
+- `GET /api/admin/perf-metrics?range=...` (Lighthouse, Sentry aggregates).
+- `GET /api/admin/system/health` (DB/API/external/security rollup).
+- `GET /api/admin/export?entity=users|bookings|services|audits&format=csv|pdf` (server-side export).
+
 ### Operations & Observability
 - Add Sentry for error monitoring (via MCP); performance tracing on critical endpoints.
 - Background jobs for reminders and reports (cron) with idempotency tracking.
