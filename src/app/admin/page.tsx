@@ -352,6 +352,7 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Advanced Analytics */}
+        {perms.canViewAnalytics && (
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Advanced Analytics</CardTitle>
@@ -394,6 +395,7 @@ export default function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
