@@ -8,6 +8,7 @@ import { Calendar, Clock, DollarSign, FileText, Plus, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 interface Booking {
   id: string
