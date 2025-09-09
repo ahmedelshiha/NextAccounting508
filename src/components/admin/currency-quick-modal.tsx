@@ -109,7 +109,7 @@ export default function CurrencyQuickModal() {
       if (!res.ok) throw new Error('Failed')
       toast.success('Saved override')
       await loadOverrides()
-    } catch (e) {
+    } catch {
       toast.error('Failed to save override')
     }
   }
