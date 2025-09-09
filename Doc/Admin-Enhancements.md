@@ -52,6 +52,17 @@ This document summarizes all admin-related enhancements implemented in this iter
 - Prisma client safely disabled if DB URL not present (`src/lib/prisma.ts`).
 - NextAuth warnings remain visible in dev logs until `NEXTAUTH_URL` and `NEXTAUTH_SECRET` are set.
 
+## Build & Lint Fixes (Netlify)
+- Resolved TypeScript/ESLint errors (no-explicit-any, unused vars) that caused Netlify build to fail.
+- Admin Dashboard (`src/app/admin/page.tsx`):
+  - Removed window globals and any usage; added typed analytics state with interfaces `AnalyticsDailyPoint`, `AnalyticsRevenueByService`, `AdminAnalytics`.
+  - Updated charts to use typed React state instead of `(window as any)`; removed all `any` in mapping logic.
+- Admin Audits (`src/app/admin/audits/page.tsx`):
+  - Strongly typed audit message parsing with `AuditMessage`; removed `any`.
+- Admin Users (`src/app/admin/users/page.tsx`):
+  - Strongly typed audit parsing with `AuditMessage`; removed `any`.
+  - Removed unused `Button` import.
+
 ## File Changes (Key)
 - New: `src/lib/rbac.ts`, `src/lib/audit.ts`, `src/lib/use-permissions.ts`
 - New: `src/app/api/admin/users/route.ts`, `src/app/api/admin/users/[id]/route.ts`, `src/app/api/admin/analytics/route.ts`, `src/app/admin/audits/page.tsx`
