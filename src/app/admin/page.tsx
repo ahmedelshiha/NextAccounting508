@@ -391,7 +391,7 @@ export default function AdminDashboard() {
                     </Link>
                   </Button>
                 )}
-                {perms.canViewCurrencies && (
+                {perms.canViewCurrencies && !perms.canManageCurrencies && (
                   <Button asChild variant="outline" className="h-auto p-4 flex flex-col items-center">
                     <Link href="/admin/settings/currencies">
                       <DollarSign className="h-6 w-6 mb-2" />
