@@ -12,7 +12,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const entity = searchParams.get('entity')
     const entityId = searchParams.get('id')
     if (!entity || !entityId) return NextResponse.json({ error: 'Missing params' }, { status: 400 })
