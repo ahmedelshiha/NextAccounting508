@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip,
-        select: { id: true, name: true, email: true, role: true, createdAt: true }
+        select: { id: true, name: true, email: true, role: true, defaultCurrency: true, createdAt: true }
       }),
       prisma.user.count({ where })
     ])
