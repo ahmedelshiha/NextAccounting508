@@ -183,8 +183,16 @@ export default async function ServicePage({ params }: PageProps) {
 export async function generateStaticParams() {
   try {
     const services = await prisma.service.findMany({ where: { active: true }, select: { slug: true } })
-    return services.map((s) => ({ slug: s.slug }))
+    if (services && services.length > 0) return services.map((s) => ({ slug: s.slug }))
   } catch (error) {
-    return []
+    // ignore and fallback to default slugs
   }
+
+  // Fallback to core service slugs
+  return [
+    { slug: 'bookkeeping' },
+    { slug: 'tax-preparation' },
+    { slug: 'payroll' },
+    { slug: 'cfo-advisory' },
+  ]
 }
