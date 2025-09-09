@@ -121,21 +121,40 @@ export default function AdminUsersPage() {
                       <td className="py-2"><span className="inline-block px-2 py-1 rounded bg-gray-100 text-gray-800 text-xs">{u.role}</span></td>
                       <td className="py-2">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="py-2">
-                        <div className="flex items-center gap-2">
-                          <select className="border rounded px-2 py-1 text-sm" value={u.role || 'CLIENT'} onChange={async (e) => {
-                            const role = e.target.value
-                            await apiFetch('/api/admin/users', {
-                              method: 'PATCH',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ userIds: [u.id], role })
-                            })
-                            // trigger reload
-                            setQ(q => q)
-                          }}>
-                            <option value="CLIENT">Client</option>
-                            <option value="STAFF">Staff</option>
-                            <option value="ADMIN">Admin</option>
-                          </select>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-500">Role</label>
+                            <select className="border rounded px-2 py-1 text-sm" value={u.role || 'CLIENT'} onChange={async (e) => {
+                              const role = e.target.value
+                              await apiFetch('/api/admin/users', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userIds: [u.id], role })
+                              })
+                              setQ(q => q)
+                            }}>
+                              <option value="CLIENT">Client</option>
+                              <option value="STAFF">Staff</option>
+                              <option value="ADMIN">Admin</option>
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-500">Currency</label>
+                            <select className="border rounded px-2 py-1 text-sm" value={(u as any).defaultCurrency || 'USD'} onChange={async (e) => {
+                              const defaultCurrency = e.target.value
+                              await apiFetch('/api/admin/users', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userIds: [u.id], defaultCurrency })
+                              })
+                              setQ(q => q)
+                            }}>
+                              <option value="USD">USD</option>
+                              <option value="SAR">SAR</option>
+                              <option value="AED">AED</option>
+                              <option value="EGP">EGP</option>
+                            </select>
+                          </div>
                           <Button size="sm" variant="outline" onClick={() => setQ(q => q)}>Refresh</Button>
                         </div>
                       </td>
