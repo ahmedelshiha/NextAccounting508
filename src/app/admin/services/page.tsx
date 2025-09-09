@@ -74,10 +74,10 @@ export default function AdminServicesPage() {
     const res = await apiFetch('/api/services', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ ...body, image: image || null })
     })
     if (res.ok) {
-      setName(''); setSlug(''); setDescription(''); setShortDesc(''); setPrice(''); setDuration(''); setFeatured(false)
+      setName(''); setSlug(''); setDescription(''); setShortDesc(''); setPrice(''); setDuration(''); setFeatured(false); setImage('')
       load()
     }
   }
