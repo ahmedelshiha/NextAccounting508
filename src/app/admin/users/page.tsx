@@ -120,7 +120,25 @@ export default function AdminUsersPage() {
                       <td className="py-2">{u.email}</td>
                       <td className="py-2"><span className="inline-block px-2 py-1 rounded bg-gray-100 text-gray-800 text-xs">{u.role}</span></td>
                       <td className="py-2">{new Date(u.createdAt).toLocaleDateString()}</td>
-                      <td className="py-2"><UserRoleActions id={u.id} current={u.role || 'CLIENT'} onUpdated={() => { /* refresh */ setQ(x => x) }} /></td>
+                      <td className="py-2">
+                        <div className="flex items-center gap-2">
+                          <select className="border rounded px-2 py-1 text-sm" value={u.role || 'CLIENT'} onChange={async (e) => {
+                            const role = e.target.value
+                            await apiFetch('/api/admin/users', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userIds: [u.id], role })
+                            })
+                            // trigger reload
+                            setQ(q => q)
+                          }}>
+                            <option value="CLIENT">Client</option>
+                            <option value="STAFF">Staff</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                          <Button size="sm" variant="outline" onClick={() => setQ(q => q)}>Refresh</Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {users.length === 0 && (
