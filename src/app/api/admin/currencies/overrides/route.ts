@@ -5,7 +5,7 @@ import { hasPermission } from '@/lib/rbac'
 import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !hasPermission(session.user.role, 'view_currencies')) {
