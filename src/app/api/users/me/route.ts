@@ -76,6 +76,26 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
     }
 
+    const body = await request.json().catch(() => ({})) as { password?: string }
+    const password = body.password
+    if (!password) {
+      return NextResponse.json({ error: 'Password is required' }, { status: 400 })
+    }
+
+    // Fetch user including password hash
+    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true } })
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    if (!user.password) {
+      // User signed up with OAuth or has no password set
+      return NextResponse.json({ error: 'No local password set for this account. Please contact support.' }, { status: 400 })
+    }
+
+    const match = await bcrypt.compare(password, user.password)
+    if (!match) {
+      return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
+    }
+
     const userId = session.user.id
 
     // Delete the user. Cascades will remove related accounts, sessions, bookings, etc.
