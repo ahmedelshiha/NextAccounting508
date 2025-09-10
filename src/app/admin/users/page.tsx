@@ -338,7 +338,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>User Directory</CardTitle>
               <CardDescription>Search, filter and update roles</CardDescription>
