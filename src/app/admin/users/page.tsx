@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
-  const parseAudit = (msg?: string | null) => {
+  const _parseAudit = (msg?: string | null) => {
     try {
       if (!msg) return { action: 'event' }
       const json = JSON.parse(msg) as { action?: string; targetId?: string; details?: unknown }
