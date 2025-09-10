@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { apiFetch } from '@/lib/api'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { signOut } from 'next-auth/react'
 
 export default function PortalSettingsPage() {
   const { data: session } = useSession()
