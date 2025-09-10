@@ -94,9 +94,24 @@ model Post {
   updatedAt   DateTime    @updatedAt
   publishedAt DateTime?
 
+  // Advanced content management fields
+  status         PostStatus    @default(DRAFT)
+  archived       Boolean       @default(false)
+  scheduledAt    DateTime?
+  priority       PostPriority  @default(MEDIUM)
+  category       String?
+  reviewRequired Boolean       @default(false)
+  isCompliant    Boolean       @default(true)
+  approvedBy     String?
+  version        Int           @default(1)
+  shares         Int           @default(0)
+  comments       Int           @default(0)
+
   // Relations
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  @@index([publishedAt])
+  @@index([featured])
   @@map("posts")
 }
 
@@ -268,4 +283,18 @@ enum TaskStatus {
   OPEN
   IN_PROGRESS
   DONE
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+enum PostPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }

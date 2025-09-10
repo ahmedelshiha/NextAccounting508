@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    
+
     const {
       title,
       slug,
@@ -89,7 +89,19 @@ export async function POST(request: NextRequest) {
       seoTitle,
       seoDescription,
       tags = [],
-      readTime
+      readTime,
+      // Advanced fields (optional on create)
+      status,
+      archived = false,
+      scheduledAt,
+      priority,
+      category,
+      reviewRequired = false,
+      isCompliant = true,
+      approvedBy,
+      version,
+      shares,
+      comments
     } = body
 
     // Basic validation
@@ -101,10 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if slug already exists
-    const existingPost = await prisma.post.findUnique({
-      where: { slug }
-    })
-
+    const existingPost = await prisma.post.findUnique({ where: { slug } })
     if (existingPost) {
       return NextResponse.json(
         { error: 'Post with this slug already exists' },
@@ -112,30 +121,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Compute status & dates
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : undefined
+    let finalStatus: any = normalizedStatus || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
+    if (archived) finalStatus = 'ARCHIVED'
+
+    const createData: any = {
+      title,
+      slug,
+      content,
+      excerpt,
+      published,
+      featured,
+      coverImage,
+      seoTitle,
+      seoDescription,
+      tags,
+      readTime: readTime ? parseInt(readTime) : null,
+      authorId: session?.user?.id,
+      publishedAt: published || finalStatus === 'PUBLISHED' ? new Date() : null,
+      status: finalStatus,
+      archived,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      priority: typeof priority === 'string' ? priority.toUpperCase() : undefined,
+      category: category ?? null,
+      reviewRequired,
+      isCompliant,
+      approvedBy: approvedBy ?? null,
+      version: typeof version === 'number' ? version : undefined,
+      shares: typeof shares === 'number' ? shares : undefined,
+      comments: typeof comments === 'number' ? comments : undefined
+    }
+
     const post = await prisma.post.create({
-      data: {
-        title,
-        slug,
-        content,
-        excerpt,
-        published,
-        featured,
-        coverImage,
-        seoTitle,
-        seoDescription,
-        tags,
-        readTime: readTime ? parseInt(readTime) : null,
-        authorId: session?.user?.id,
-        publishedAt: published ? new Date() : null
-      },
+      data: createData,
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
-        }
+        author: { select: { id: true, name: true, image: true } }
       }
     })
 
