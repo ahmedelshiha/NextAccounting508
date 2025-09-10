@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, DollarSign, Eye, RefreshCw } from 'lucide-react'
+import { Calendar, DollarSign, Eye } from 'lucide-react'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
 interface Booking {
