@@ -61,6 +61,14 @@ export default function PortalSettingsPage() {
       return
     }
 
+    // Require current password when changing email or password
+    const changingEmail = email !== originalEmail
+    const changingPassword = !!password
+    if ((changingEmail || changingPassword) && !currentPassword) {
+      toast.error('Current password is required to change email or password')
+      return
+    }
+
     setSaving(true)
     try {
         const payload: any = { name, email }
