@@ -68,6 +68,12 @@ export default function PortalSettingsPage() {
         body: JSON.stringify(payload)
       })
       if (res.ok) {
+        const json = await res.json().catch(() => ({}))
+        const user = json.user
+        if (user) {
+          setName(user.name || '')
+          setEmail(user.email || '')
+        }
         toast.success('Profile updated')
       } else {
         const err = await res.json().catch(() => ({}))
