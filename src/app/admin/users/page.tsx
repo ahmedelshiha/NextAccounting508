@@ -190,7 +190,7 @@ export default function AdminUsersPage() {
       setUsers(prev => prev.map(u => (u.id === userId ? (original as UserItem) : u)))
       setErrorMsg('Failed to update role')
     }
-  }, [users, loadActivity])
+  }, [users])
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
