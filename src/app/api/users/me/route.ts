@@ -9,7 +9,8 @@ import { logAudit } from '@/lib/audit'
 const patchSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email().optional(),
-  password: z.string().min(6).optional()
+  password: z.string().min(6).optional(),
+  currentPassword: z.string().optional()
 })
 
 export async function GET(request: NextRequest) {
