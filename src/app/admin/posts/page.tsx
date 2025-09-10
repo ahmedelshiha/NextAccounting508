@@ -306,7 +306,10 @@ export default function ProfessionalPostManagement() {
     if (!file.type.startsWith('image/')) { setErrorMessage('Please select a valid image file'); return }
     if (file.size > 5 * 1024 * 1024) { setErrorMessage('Image file size should be less than 5MB'); return }
     const reader = new FileReader()
-    reader.onload = (e) => { setImagePreview(e.target?.result as string) }
+    reader.onload = (ev: ProgressEvent<FileReader>) => {
+      const fr = ev.target as FileReader
+      setImagePreview((fr.result as string) || null)
+    }
     reader.readAsDataURL(file)
     setFormData(prev => ({ ...prev, coverImage: file }))
   }, [])
