@@ -872,15 +872,47 @@ export default function AdminUsersPage() {
                       <div className="text-sm text-red-600">{activityError}</div>
                     ) : activity.length ? (
                       <div className="space-y-2">
-                        {activity.map((a) => (
-                          <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                            <div>
-                              <div className="text-sm font-medium">{a.message || 'Activity'}</div>
-                              <div className="text-xs text-gray-500">{formatDate(a.checkedAt)}</div>
+                        {activity.map((a) => {
+                          let title = a.message || 'Activity'
+                          let date = formatDate(a.checkedAt)
+                          let detailsStr = ''
+                          try {
+                            const obj = typeof a.message === 'string' ? JSON.parse(a.message) : a.message
+                            if (obj && obj.action) {
+                              const act = obj.action
+                              const label = act === 'user.profile.update' ? 'Profile updated'
+                                : act === 'user.role.update' ? 'Role updated'
+                                : act.replace(/\./g, ' ')
+                              title = label
+
+                              if (obj.details) {
+                                if (obj.details.updatedFields) {
+                                  detailsStr = Array.isArray(obj.details.updatedFields) ? obj.details.updatedFields.join(', ') : String(obj.details.updatedFields)
+                                } else if (typeof obj.details === 'object') {
+                                  // show a short summary for common fields
+                                  const keys = Object.keys(obj.details)
+                                  detailsStr = keys.map(k => `${k}: ${JSON.stringify(obj.details[k])}`).join(', ')
+                                } else {
+                                  detailsStr = String(obj.details)
+                                }
+                              }
+
+                              date = formatDate(obj.at || a.checkedAt)
+                            }
+                          } catch (e) {
+                            // not JSON — keep original message
+                          }
+
+                          return (
+                            <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                              <div>
+                                <div className="text-sm font-medium">{title}{detailsStr ? ` — ${detailsStr}` : ''}</div>
+                                <div className="text-xs text-gray-500">{date}</div>
+                              </div>
+                              <Badge variant="outline">Audit</Badge>
                             </div>
-                            <Badge variant="outline">Audit</Badge>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     ) : (
                       <div className="space-y-2">
