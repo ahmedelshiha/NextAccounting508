@@ -713,29 +713,53 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
       }
     ],
     management: [
-      { 
-        label: 'Analytics Hub', 
-        href: '/admin/analytics', 
+      {
+        label: 'Analytics Hub',
+        href: '/admin/analytics',
         icon: BarChart3,
         description: 'Revenue & performance metrics'
       },
-      { 
-        label: 'Client Portal', 
-        href: '/admin/clients', 
+      {
+        label: 'Client Portal',
+        href: '/admin/clients',
         icon: Users,
         description: 'Manage client relationships'
       },
-      { 
-        label: 'Task Manager', 
-        href: '/admin/tasks', 
+      {
+        label: 'Task Manager',
+        href: '/admin/tasks',
         icon: Target,
         description: 'Track team productivity'
       },
-      { 
-        label: 'Calendar View', 
-        href: '/admin/calendar', 
+      {
+        label: 'Calendar View',
+        href: '/admin/calendar',
         icon: CalendarDays,
         description: 'Schedule overview'
+      },
+      {
+        label: 'Services',
+        href: '/admin/services',
+        icon: Settings,
+        description: 'Create and manage services'
+      },
+      {
+        label: 'Bookings',
+        href: '/admin/bookings',
+        icon: Calendar,
+        description: 'Manage client appointments'
+      },
+      {
+        label: 'Posts',
+        href: '/admin/posts',
+        icon: FileText,
+        description: 'Manage blog posts'
+      },
+      {
+        label: 'Newsletter',
+        href: '/admin/newsletter',
+        icon: Mail,
+        description: 'Manage newsletter subscribers'
       }
     ],
     reports: [
