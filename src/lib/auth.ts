@@ -71,7 +71,8 @@ export const authOptions: NextAuthOptions = {
           const dbUser = await prisma.user.findUnique({ where: { id: token.sub }, select: { sessionVersion: true } })
           if (dbUser && token.sessionVersion !== dbUser.sessionVersion) {
             // Mark token as invalidated
-            ;(token as any).invalidated = true
+            const t = token as unknown as { invalidated?: boolean }
+            t.invalidated = true
           }
         } catch (e) {
           // ignore
