@@ -37,8 +37,29 @@ export async function PATCH(request: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
     const updates: any = {}
+    const changingEmail = parsed.data.email && parsed.data.email !== undefined
+    const changingPassword = parsed.data.password && parsed.data.password !== undefined
+
+    // If changing sensitive data, require currentPassword
+    if ((changingEmail || changingPassword) && !parsed.data.currentPassword) {
+      return NextResponse.json({ error: 'Current password is required to change email or password' }, { status: 400 })
+    }
+
+    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true, email: true } })
+    if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    if ((changingEmail || changingPassword)) {
+      if (!currentUser.password) {
+        return NextResponse.json({ error: 'No local password set for this account' }, { status: 400 })
+      }
+      const ok = await bcrypt.compare(parsed.data.currentPassword, currentUser.password)
+      if (!ok) {
+        return NextResponse.json({ error: 'Incorrect current password' }, { status: 401 })
+      }
+    }
+
     if (parsed.data.name) updates.name = parsed.data.name
-    if (parsed.data.email) {
+    if (changingEmail) {
       // check uniqueness
       const exists = await prisma.user.findUnique({ where: { email: parsed.data.email } })
       if (exists && exists.id !== session.user.id) {
@@ -46,7 +67,7 @@ export async function PATCH(request: NextRequest) {
       }
       updates.email = parsed.data.email
     }
-    if (parsed.data.password) {
+    if (changingPassword) {
       const hashed = await bcrypt.hash(parsed.data.password, 12)
       updates.password = hashed
     }
@@ -55,7 +76,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'No changes provided' }, { status: 400 })
     }
 
-    const updated = await prisma.user.update({ where: { id: session.user.id }, data: updates, select: { id: true, name: true, email: true } })
+    // Increment sessionVersion to invalidate existing JWTs
+    const updated = await prisma.user.update({ where: { id: session.user.id }, data: { ...updates, sessionVersion: { increment: 1 } }, select: { id: true, name: true, email: true, sessionVersion: true } })
 
     await logAudit({ action: 'user.profile.update', actorId: session.user.id, targetId: updated.id, details: { updatedFields: Object.keys(updates) } })
 
