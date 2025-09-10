@@ -99,7 +99,7 @@ function DialogContent({
         </div>
 
         {/* Content container that keeps header/footer and body layout; children can render DialogHeader/DialogFooter which we style separately */}
-        <div className="flex flex-col h-full overflow-auto">
+        <div className={"flex flex-col h-full [&>*:not([data-slot=\"dialog-header\"]):not([data-slot=\"dialog-footer\"])]:flex-1 [&>*:not([data-slot=\"dialog-header\"]):not([data-slot=\"dialog-footer\"])]:overflow-auto [&>*:not([data-slot=\"dialog-header\"]):not([data-slot=\"dialog-footer\"])]:p-4"}>
           {children}
         </div>
       </DialogPrimitive.Content>
