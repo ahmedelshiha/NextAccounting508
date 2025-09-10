@@ -82,7 +82,7 @@ export default function AdminUsersPage() {
   // UI state
   const [loading, setLoading] = useState(true)
   const [usersLoading, setUsersLoading] = useState(true)
-  const [activityLoading, setActivityLoading] = useState(true)
+  const [_activityLoading, setActivityLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [exporting, setExporting] = useState(false)
 
