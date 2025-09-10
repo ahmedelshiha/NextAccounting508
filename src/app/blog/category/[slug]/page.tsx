@@ -25,6 +25,8 @@ function mapCategoryToTag(slug: string): { label: string; tag: string | null } {
   }
 }
 
+import prisma from '@/lib/prisma'
+
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params
   const { label, tag } = mapCategoryToTag(slug)
@@ -42,14 +44,12 @@ export default async function CategoryPage({ params }: Props) {
   }> = []
 
   try {
-    const h = await headers()
-    const proto = h.get('x-forwarded-proto') || 'https'
-    const host = h.get('host') || ''
-    const baseUrl = `${proto}://${host}`
-    const qs = tag ? `?tag=${encodeURIComponent(tag)}&limit=24` : '?limit=24'
-    const res = await fetch(`${baseUrl}/api/posts${qs}`, { cache: 'no-store' })
-    if (res.ok) posts = await res.json()
-  } catch {}
+    const where: any = { published: true }
+    if (tag) where.tags = { has: tag }
+    posts = await prisma.post.findMany({ where, include: { author: { select: { name: true, image: true } } }, orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 }) as unknown as typeof posts
+  } catch (e) {
+    // ignore
+  }
 
   const formatDate = (date: Date | string) =>
     new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })

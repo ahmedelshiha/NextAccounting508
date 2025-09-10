@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { headers } from 'next/headers'
+import prisma from '@/lib/prisma'
 
 interface Props {
   params: {
@@ -11,15 +11,20 @@ interface Props {
 export default async function PostPage({ params }: Props) {
   const { slug } = await params
 
-  const h = await headers()
-  const proto = h.get('x-forwarded-proto') || 'https'
-  const host = h.get('host') || ''
-  const baseUrl = `${proto}://${host}`
+  // Fetch post directly from the database on the server to avoid making internal HTTP requests
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    include: { author: { select: { id: true, name: true, image: true } } }
+  })
 
-  const res = await fetch(`${baseUrl}/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
-  if (!res.ok) return notFound()
-  const post = await res.json()
-  if (!post || post.error) return notFound()
+  if (!post || !post.published) return notFound()
+
+  // Increment views (best-effort, ignore errors)
+  try {
+    await prisma.post.update({ where: { id: post.id }, data: { views: { increment: 1 } } })
+  } catch (e) {
+    // ignore
+  }
 
   const contentHtml = post.content
     ? post.content
@@ -62,16 +67,8 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-
-  const h = await headers()
-  const proto = h.get('x-forwarded-proto') || 'https'
-  const host = h.get('host') || ''
-  const baseUrl = `${proto}://${host}`
-
-  const res = await fetch(`${baseUrl}/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
-  if (!res.ok) return {}
-  const post = await res.json()
-  if (!post || post.error) return {}
+  const post = await prisma.post.findUnique({ where: { slug } })
+  if (!post) return {}
 
   return {
     title: post.seoTitle || post.title,
