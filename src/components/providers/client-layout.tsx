@@ -66,12 +66,51 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       }
     }
 
+    // Debugging helper: wrap window.fetch to log failing requests (helps diagnose next-auth CLIENT_FETCH_ERROR)
+    const originalFetch = window.fetch.bind(window)
+    // Only wrap once
+    if (!(window as any).__fetchLogged) {
+      (window as any).__fetchLogged = true
+      window.fetch = async (input: RequestInfo, init?: RequestInit) => {
+        try {
+          const res = await originalFetch(input as any, init)
+          if (!res.ok) {
+            try {
+              console.error('[fetch] non-ok response', { input, init, status: res.status, url: typeof input === 'string' ? input : (input as Request).url })
+            } catch {}
+          }
+          return res
+        } catch (err) {
+          try {
+            // Log rich details to console to help debugging
+            const info: any = { input, init }
+            if (input instanceof Request) {
+              info.requestUrl = input.url
+              info.requestMethod = input.method
+              info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
+            }
+            console.error('[fetch] network/error while fetching', info, err)
+          } catch (e) {
+            console.error('[fetch] failed and failed to log details', e)
+          }
+          throw err
+        }
+      }
+    }
+
     window.addEventListener('error', handleError)
     window.addEventListener('unhandledrejection', handleRejection)
 
     return () => {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
+      // restore fetch if we wrapped it
+      try {
+        if ((window as any).__fetchLogged) {
+          delete (window as any).__fetchLogged
+          // best effort: cannot reliably restore originalFetch reference here, reload to clean up
+        }
+      } catch {}
     }
   }, [])
 
