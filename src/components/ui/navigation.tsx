@@ -87,6 +87,12 @@ export function Navigation() {
                         My Bookings
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/portal/settings" className="flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
