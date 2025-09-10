@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock, User } from 'lucide-react'
+import { headers } from 'next/headers'
 
 export const revalidate = 60
 
@@ -41,8 +42,12 @@ export default async function CategoryPage({ params }: Props) {
   }> = []
 
   try {
+    const h = headers()
+    const proto = h.get('x-forwarded-proto') || 'https'
+    const host = h.get('host') || ''
+    const baseUrl = `${proto}://${host}`
     const qs = tag ? `?tag=${encodeURIComponent(tag)}&limit=24` : '?limit=24'
-    const res = await fetch(`/api/posts${qs}`, { cache: 'no-store' })
+    const res = await fetch(`${baseUrl}/api/posts${qs}`, { cache: 'no-store' })
     if (res.ok) posts = await res.json()
   } catch {}
 
