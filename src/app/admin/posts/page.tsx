@@ -995,7 +995,7 @@ export default function ProfessionalPostManagement() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded" />
+                        <Image src={imagePreview} alt="Preview" width={800} height={320} className="w-full h-40 object-cover rounded" />
                         <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => { setImagePreview(null); setFormData(prev => ({ ...prev, coverImage: null })) }}>
                           <X className="h-3 w-3" />
                         </Button>
@@ -1129,7 +1129,7 @@ export default function ProfessionalPostManagement() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded" />
+                        <Image src={imagePreview} alt="Preview" width={800} height={320} className="w-full h-40 object-cover rounded" />
                         <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => { setImagePreview(null); setFormData(prev => ({ ...prev, coverImage: null })) }}>
                           <X className="h-3 w-3" />
                         </Button>
