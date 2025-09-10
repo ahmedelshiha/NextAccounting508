@@ -141,17 +141,16 @@ export default function AdminUsersPage() {
   useEffect(() => {
     loadStats()
     loadUsers()
-    loadActivity()
-  }, [loadStats, loadUsers, loadActivity])
+  }, [loadStats, loadUsers])
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
     try {
-      await Promise.allSettled([loadStats(), loadUsers(), loadActivity()])
+      await Promise.allSettled([loadStats(), loadUsers()])
     } finally {
       setRefreshing(false)
     }
-  }, [loadStats, loadUsers, loadActivity])
+  }, [loadStats, loadUsers])
 
   const exportUsers = useCallback(async () => {
     setExporting(true)
@@ -186,7 +185,6 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ role: newRole })
       })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
-      await loadActivity()
     } catch (e) {
       console.error('Role update failed', e)
       setUsers(prev => prev.map(u => (u.id === userId ? (original as UserItem) : u)))
@@ -406,38 +404,6 @@ export default function AdminUsersPage() {
           </Card>
         </div>
 
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Admin Activity</CardTitle>
-              <CardDescription>Latest audit events</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activityLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {Array.from({ length: 4 }).map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-16" />))}
-                </div>
-              ) : activity.length ? (
-                <div className="divide-y divide-gray-100">
-                  {activity.map(log => {
-                    const a = parseAudit(log.message)
-                    return (
-                      <div key={log.id} className="py-3 text-sm text-gray-700 flex items-center justify-between">
-                        <div className="truncate mr-4">
-                          <span className="font-medium text-gray-900">{a.action}</span>
-                          {a.targetId && <span className="ml-2 text-gray-500">target: {a.targetId}</span>}
-                        </div>
-                        <div className="text-xs text-gray-500">{new Date(log.checkedAt).toLocaleString()}</div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="text-gray-500 text-sm">No audit events.</div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
