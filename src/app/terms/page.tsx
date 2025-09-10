@@ -1,7 +1,5 @@
 import Link from 'next/link'
 
-import Link from 'next/link'
-
 export default function TermsPage() {
   const effectiveDate = new Date('2025-09-10').toLocaleDateString('en-US')
 
