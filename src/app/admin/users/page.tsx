@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle>Top Clients by Bookings</CardTitle>
               <CardDescription>Most active clients</CardDescription>
