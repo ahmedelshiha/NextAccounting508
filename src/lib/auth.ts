@@ -1,4 +1,4 @@
-import type { NextAuthOptions, User } from 'next-auth'
+import type { NextAuthOptions, User, Session } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
