@@ -11,7 +11,7 @@ interface Props {
 export default async function PostPage({ params }: Props) {
   const { slug } = await params
 
-  const h = headers()
+  const h = await headers()
   const proto = h.get('x-forwarded-proto') || 'https'
   const host = h.get('host') || ''
   const baseUrl = `${proto}://${host}`
@@ -63,7 +63,7 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
 
-  const h = headers()
+  const h = await headers()
   const proto = h.get('x-forwarded-proto') || 'https'
   const host = h.get('host') || ''
   const baseUrl = `${proto}://${host}`
