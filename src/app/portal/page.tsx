@@ -159,27 +159,34 @@ export default function PortalPage() {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <div>
+                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                <CardDescription className="text-xs">{bookings.length} total</CardDescription>
+              </div>
               <Calendar className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{bookings.length}</div>
+              <div className="text-2xl font-bold">{upcomingBookings.length}</div>
               <p className="text-xs text-gray-600">
-                {upcomingBookings.length} upcoming
+                upcoming
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Account Status</CardTitle>
+              <CardTitle className="text-sm font-medium">Actions</CardTitle>
               <FileText className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Active</div>
-              <p className="text-xs text-gray-600">
-                All services available
-              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">Export CSV</Button>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="border border-gray-300 rounded px-2 py-1 text-sm">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="past">Past</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
             </CardContent>
           </Card>
         </div>
