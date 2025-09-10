@@ -15,7 +15,7 @@ import { signOut } from 'next-auth/react'
 
 export default function PortalSettingsPage() {
   const { data: session } = useSession()
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
