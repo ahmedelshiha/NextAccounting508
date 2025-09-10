@@ -99,6 +99,41 @@ type PostFormData = {
 
 type ValidationError = { field: string; message: string }
 
+type SortBy = 'lastModified' | 'publishedAt' | 'views' | 'title'
+type ComplianceFilter = 'all' | 'compliant' | 'non-compliant'
+
+type ApiAuthor = { id: string; name?: string | null; image?: string | null }
+type ApiPost = {
+  id: string
+  title: string
+  slug: string
+  content?: string | null
+  excerpt?: string | null
+  published?: boolean
+  featured?: boolean
+  tags?: string[]
+  coverImage?: string | null
+  seoTitle?: string | null
+  seoDescription?: string | null
+  readTime?: number | null
+  publishedAt?: string | Date | null
+  updatedAt?: string | Date | null
+  views?: number
+  author?: ApiAuthor | null
+  status?: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED' | null
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | null
+  lastModified?: string | Date | null
+  isCompliant?: boolean
+  reviewRequired?: boolean
+  approvedBy?: string | null
+  version?: number
+  shares?: number
+  comments?: number
+  category?: string | null
+  archived?: boolean
+  scheduledAt?: string | Date | null
+}
+
 const categories = [
   'Tax Planning',
   'Financial Planning',
@@ -157,7 +192,7 @@ export default function ProfessionalPostManagement() {
     reviewRequired: false
   })
 
-  const mapToEnhancedPost = (p: any): Post => {
+  const mapToEnhancedPost = (p: ApiPost): Post => {
     const persistedStatus = p.status ? String(p.status).toLowerCase() : undefined
     const computedStatus: PostStatus = (persistedStatus as PostStatus) || (p.archived ? 'archived' : p.published ? 'published' : p.scheduledAt ? 'scheduled' : 'draft')
     const persistedPriority = p.priority ? String(p.priority).toLowerCase() : undefined
@@ -210,7 +245,7 @@ export default function ProfessionalPostManagement() {
       } else {
         setErrorMessage('Failed to load posts. Please try again.')
       }
-    } catch (e) {
+    } catch (_e) {
       setErrorMessage('Network error. Please check your connection.')
     } finally {
       setLoading(false)
@@ -286,7 +321,6 @@ export default function ProfessionalPostManagement() {
     const featured = posts.filter(p => p.featured).length
     const needsReview = posts.filter(p => p.reviewRequired).length
     const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0)
-    const avgReadTime = posts.length > 0 ? Math.round(posts.reduce((s, p) => s + (p.readTime || 0), 0) / posts.length) : 0
     return { published, drafts, featured, needsReview, totalViews, total: posts.length }
   }, [posts])
 
@@ -640,7 +674,7 @@ export default function ProfessionalPostManagement() {
               <div className="flex items-center space-x-2">
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as SortBy)}
                   className="px-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
                   <option value="lastModified">Last Modified</option>
@@ -667,7 +701,7 @@ export default function ProfessionalPostManagement() {
 
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as 'all' | PostStatus)}
                 className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">All Status</option>
@@ -688,7 +722,7 @@ export default function ProfessionalPostManagement() {
 
               <select
                 value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value as any)}
+                onChange={(e) => setPriorityFilter(e.target.value as 'all' | PostPriority)}
                 className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">All Priorities</option>
@@ -700,7 +734,7 @@ export default function ProfessionalPostManagement() {
 
               <select
                 value={complianceFilter}
-                onChange={(e) => setComplianceFilter(e.target.value as any)}
+                onChange={(e) => setComplianceFilter(e.target.value as ComplianceFilter)}
                 className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="all">All Posts</option>
@@ -900,7 +934,7 @@ export default function ProfessionalPostManagement() {
           <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Create New Blog Post</DialogTitle>
-              <DialogDescription>Create professional content for your accounting firm's blog</DialogDescription>
+              <DialogDescription>Create professional content for your accounting firm&apos;s blog</DialogDescription>
             </DialogHeader>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1217,7 +1251,7 @@ export default function ProfessionalPostManagement() {
                 Delete Post
               </DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete "{selectedPost?.title}"? This action cannot be undone and will permanently remove the post and all its associated data.
+                Are you sure you want to delete &quot;{selectedPost?.title}&quot;? This action cannot be undone and will permanently remove the post and all its associated data.
               </DialogDescription>
             </DialogHeader>
 
