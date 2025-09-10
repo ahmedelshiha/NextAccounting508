@@ -682,6 +682,8 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
   )
 }
 
+import Link from 'next/link'
+
 function SmartQuickActions({ data }: { data: DashboardData }) {
   const [actionCategory, setActionCategory] = useState<'primary' | 'management' | 'reports'>('primary')
   
