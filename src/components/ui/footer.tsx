@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import NewsletterForm from '@/components/ui/newsletter-form'
 
-const navigation = {
+import { useTranslations } from '@/lib/i18n'
+
+const navigationBase = {
   services: [
     { name: 'Bookkeeping', href: '/services/bookkeeping' },
     { name: 'Tax Preparation', href: '/services/tax-preparation' },
@@ -20,11 +22,6 @@ const navigation = {
     { name: 'Tax Calendar', href: '/resources/tax-calendar' },
     { name: 'Financial Tools', href: '/resources/tools' },
     { name: 'FAQ', href: '/faq' },
-  ],
-  legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
   ],
 }
 
