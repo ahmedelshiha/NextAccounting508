@@ -48,9 +48,9 @@ export function Footer() {
   const navigation = {
     ...navigationBase,
     legal: [
-      { name: t('footer.privacy'), href: '/privacy' },
-      { name: t('footer.terms'), href: '/terms' },
-      { name: t('footer.cookies'), href: '/cookies' },
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Cookie Policy', href: '/cookies' },
     ]
   }
 
