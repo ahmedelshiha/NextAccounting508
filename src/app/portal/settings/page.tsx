@@ -71,7 +71,7 @@ export default function PortalSettingsPage() {
 
     setSaving(true)
     try {
-        const payload: any = { name, email }
+        const payload: { name: string; email: string; password?: string; currentPassword?: string } = { name, email }
       if (password) payload.password = password
       // include current password for sensitive changes
       if (currentPassword) payload.currentPassword = currentPassword
