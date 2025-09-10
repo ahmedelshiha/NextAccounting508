@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import { headers } from 'next/headers'
 
 interface Props {
   params: {
@@ -8,10 +9,14 @@ interface Props {
 }
 
 export default async function PostPage({ params }: Props) {
-  // Await params before using properties (Next.js app router requirement)
   const { slug } = await params
 
-  const res = await fetch(`/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+  const h = headers()
+  const proto = h.get('x-forwarded-proto') || 'https'
+  const host = h.get('host') || ''
+  const baseUrl = `${proto}://${host}`
+
+  const res = await fetch(`${baseUrl}/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
   if (!res.ok) return notFound()
   const post = await res.json()
   if (!post || post.error) return notFound()
@@ -57,7 +62,13 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const res = await fetch(`/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+
+  const h = headers()
+  const proto = h.get('x-forwarded-proto') || 'https'
+  const host = h.get('host') || ''
+  const baseUrl = `${proto}://${host}`
+
+  const res = await fetch(`${baseUrl}/api/posts/${encodeURIComponent(slug)}`, { cache: 'no-store' })
   if (!res.ok) return {}
   const post = await res.json()
   if (!post || post.error) return {}
