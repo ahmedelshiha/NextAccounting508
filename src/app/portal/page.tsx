@@ -179,7 +179,7 @@ export default function PortalPage() {
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">Export CSV</Button>
-                <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="border border-gray-300 rounded px-2 py-1 text-sm">
+                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm">
                   <option value="upcoming">Upcoming</option>
                   <option value="past">Past</option>
                   <option value="all">All</option>
