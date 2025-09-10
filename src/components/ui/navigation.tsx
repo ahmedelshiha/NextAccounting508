@@ -176,6 +176,13 @@ export function Navigation() {
                     >
                       My Bookings
                     </Link>
+                    <Link
+                      href="/portal/settings"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <Link
                         href="/admin"
