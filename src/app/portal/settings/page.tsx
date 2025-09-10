@@ -128,6 +128,37 @@ export default function PortalSettingsPage() {
               </Button>
               <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</Button>
             </div>
+
+            <div className="mt-8 border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Danger zone</h3>
+              <p className="text-sm text-gray-600 mb-4">Permanently delete your account and all related data. This action cannot be undone.</p>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive">Delete account</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm account deletion</DialogTitle>
+                    <DialogDescription>This action is permanent. Type DELETE to confirm.</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="mt-4">
+                    <Label htmlFor="confirmDelete">Type DELETE to confirm</Label>
+                    <Input id="confirmDelete" value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} className="mt-2" />
+                  </div>
+
+                  <DialogFooter>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" asChild>
+                        <Link href="/portal">Cancel</Link>
+                      </Button>
+                      <Button variant="destructive" onClick={handleDelete} disabled={deleting || confirmDelete !== 'DELETE'}>{deleting ? 'Deleting...' : 'Delete account'}</Button>
+                    </div>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardContent>
         </Card>
       </div>
