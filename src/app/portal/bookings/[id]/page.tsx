@@ -1,8 +1,7 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import prisma from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,59 +9,30 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, DollarSign } from 'lucide-react'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 
-interface BookingDetail {
-  id: string
-  scheduledAt: string
-  status: string
-  service: { name: string; price?: number }
-  duration: number
-  notes?: string
+interface Props {
+  params: { id: string }
 }
 
-export default function PortalBookingDetail({ params }: { params: { id: string } }) {
+export default async function PortalBookingDetail({ params }: Props) {
   const { id } = params
-  const { data: session } = useSession()
-  const [booking, setBooking] = useState<BookingDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return notFound()
 
-  useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true)
-        const res = await fetch(`/api/bookings/${id}`)
-        if (!res.ok) {
-          // Not found or unauthorized
-          router.replace('/portal')
-          return
-        }
-        const json = await res.json()
-        setBooking(json)
-      } catch (e) {
-        console.error('Failed to load booking', e)
-        router.replace('/portal')
-      } finally {
-        setLoading(false)
-      }
+  const booking = await prisma.booking.findUnique({
+    where: { id },
+    include: {
+      service: { select: { name: true, price: true, duration: true } },
+      client: { select: { id: true, name: true, email: true } }
     }
+  })
 
-    if (session) load()
-  }, [id, session, router])
+  if (!booking) return notFound()
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-200 animate-pulse rounded-lg h-36" />
-        </div>
-      </div>
-    )
-  }
+  // clients can only view their own bookings
+  if (session.user.role === 'CLIENT' && booking.clientId !== session.user.id) return notFound()
 
-  if (!booking) return null
-
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-  const formatTime = (d: string) => new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  const formatDate = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
