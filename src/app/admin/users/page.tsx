@@ -899,7 +899,7 @@ export default function AdminUsersPage() {
 
                               date = formatDate(obj.at || a.checkedAt)
                             }
-                          } catch (e) {
+                          } catch {
                             // not JSON — keep original message
                           }
 
