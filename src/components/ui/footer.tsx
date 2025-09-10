@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import NewsletterForm from '@/components/ui/newsletter-form'
-
-import { useTranslations } from '@/lib/i18n'
+import Link from 'next/link'
 
 const navigationBase = {
   services: [
