@@ -78,12 +78,14 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     // Only wrap once
     if (!window.__fetchLogged) {
       window.__fetchLogged = true
-      window.fetch = async (input: RequestInfo, init?: RequestInit) => {
+      window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
-          const res = await originalFetch(input as RequestInfo, init)
+          const res = await originalFetch(...(args as [RequestInfo | URL, RequestInit | undefined]))
           if (!res.ok) {
             try {
-              const url = typeof input === 'string' ? input : (input as Request).url
+              const input = args[0]
+              const init = args[1]
+              const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
               console.error('[fetch] non-ok response', { status: res.status, url, init })
             } catch {}
           }
@@ -91,6 +93,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         } catch (err: unknown) {
           try {
             // Log rich details to console to help debugging
+            const [input, init] = args
             const info: Record<string, unknown> = { init: init ?? null }
             if (typeof input === 'string') info.input = input
             else if (input instanceof Request) {
@@ -99,6 +102,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               try {
                 info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
               } catch {}
+            } else if (input instanceof URL) {
+              info.input = input.toString()
+            } else {
+              info.input = String(input)
             }
             console.error('[fetch] network/error while fetching', info, err)
           } catch (e) {
