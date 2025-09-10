@@ -22,7 +22,7 @@ export default async function PostPage({ params }: Props) {
   // Increment views (best-effort, ignore errors)
   try {
     await prisma.post.update({ where: { id: post.id }, data: { views: { increment: 1 } } })
-  } catch (e) {
+  } catch {
     // ignore
   }
 
