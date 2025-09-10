@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
           try {
             const dbUser = await prisma.user.findUnique({ where: { id: (user as User).id }, select: { sessionVersion: true } })
             token.sessionVersion = dbUser?.sessionVersion ?? 0
-          } catch (e) {
+          } catch {
             token.sessionVersion = 0
           }
         } else {
