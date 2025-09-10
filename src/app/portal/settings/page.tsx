@@ -88,13 +88,13 @@ export default function PortalSettingsPage() {
   }
 
   const handleDelete = async () => {
-    if (confirmDelete !== 'DELETE') {
-      toast.error('Please type DELETE to confirm')
+    if (!confirmDelete || confirmDelete.length < 6) {
+      toast.error('Please enter your current password to confirm')
       return
     }
     setDeleting(true)
     try {
-      const res = await apiFetch('/api/users/me', { method: 'DELETE' })
+      const res = await apiFetch('/api/users/me', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: confirmDelete }) })
       if (res.ok) {
         toast.success('Account deleted')
         // Sign out and redirect to home
