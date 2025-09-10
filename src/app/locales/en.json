@@ -59,6 +59,9 @@
   "footer.newsletter.placeholder": "Enter your email",
   "footer.newsletter.subscribe": "Subscribe",
   "footer.copyright": "© {{year}} Accounting Firm. All rights reserved.",
+  "footer.privacy": "Privacy Policy",
+  "footer.terms": "Terms of Service",
+  "footer.cookies": "Cookie Policy",
   
   "auth.login.title": "Sign in to your account",
   "auth.login.subtitle": "Or create a new account",
