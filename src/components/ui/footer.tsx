@@ -44,6 +44,16 @@ const socialLinks = [
 ]
 
 export function Footer() {
+  const { t } = useTranslations()
+  const navigation = {
+    ...navigationBase,
+    legal: [
+      { name: t('footer.privacy'), href: '/privacy' },
+      { name: t('footer.terms'), href: '/terms' },
+      { name: t('footer.cookies'), href: '/cookies' },
+    ]
+  }
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
