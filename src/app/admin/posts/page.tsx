@@ -357,7 +357,7 @@ export default function ProfessionalPostManagement() {
     setSaving(true)
     setValidationErrors([])
     try {
-      const payload: any = {
+      const payload = {
         title: formData.title,
         slug: formData.slug,
         excerpt: formData.excerpt || undefined,
@@ -367,7 +367,7 @@ export default function ProfessionalPostManagement() {
         published: formData.published,
         seoTitle: formData.seoTitle || undefined,
         seoDescription: formData.seoDescription || undefined
-      }
+      } as const
       const res = await apiFetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
