@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import type { Prisma } from '@prisma/client'
+import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
 
 // GET /api/posts/[slug] - Get post by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     }
 
     // Prepare update data
-    const updateData: Partial<import('@prisma/client').Prisma.PostUpdateInput> = {}
+    const updateData: Prisma.PostUpdateInput = {} as Prisma.PostUpdateInput
 
     if (title !== undefined) updateData.title = title
     if (content !== undefined) updateData.content = content
@@ -122,22 +122,22 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     if (readTime !== undefined) updateData.readTime = readTime ? parseInt(readTime) : null
 
     // Advanced updates
-    if (status !== undefined) (updateData as any).status = typeof status === 'string' ? status.toUpperCase() : status
-    if (archived !== undefined) (updateData as any).archived = archived
-    if (scheduledAt !== undefined) (updateData as any).scheduledAt = scheduledAt ? new Date(scheduledAt) : null
-    if (priority !== undefined) (updateData as any).priority = typeof priority === 'string' ? priority.toUpperCase() : priority
-    if (category !== undefined) (updateData as any).category = category
-    if (reviewRequired !== undefined) (updateData as any).reviewRequired = reviewRequired
-    if (isCompliant !== undefined) (updateData as any).isCompliant = isCompliant
-    if (approvedBy !== undefined) (updateData as any).approvedBy = approvedBy
-    if (version !== undefined) (updateData as any).version = version
-    if (shares !== undefined) (updateData as any).shares = shares
-    if (comments !== undefined) (updateData as any).comments = comments
+    if (status !== undefined) updateData.status = (typeof status === 'string' ? (status.toUpperCase() as PostStatus) : (status as PostStatus))
+    if (archived !== undefined) updateData.archived = archived
+    if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null
+    if (priority !== undefined) updateData.priority = (typeof priority === 'string' ? (priority.toUpperCase() as PostPriority) : (priority as PostPriority))
+    if (category !== undefined) updateData.category = category
+    if (reviewRequired !== undefined) updateData.reviewRequired = reviewRequired
+    if (isCompliant !== undefined) updateData.isCompliant = isCompliant
+    if (approvedBy !== undefined) updateData.approvedBy = approvedBy
+    if (version !== undefined) updateData.version = version
+    if (shares !== undefined) updateData.shares = shares
+    if (comments !== undefined) updateData.comments = comments
 
     // Keep publishedAt consistent with status change
     const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status
     if (normalizedStatus === 'PUBLISHED' && !existingPost.publishedAt) {
-      (updateData as any).publishedAt = new Date()
+      updateData.publishedAt = new Date()
       updateData.published = true
     }
 
