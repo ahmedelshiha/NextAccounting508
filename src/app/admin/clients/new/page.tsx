@@ -342,7 +342,7 @@ export default function ProfessionalAddClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Business Type *</label>
-                    <select value={formData.businessType} onChange={(e) => setField('businessType', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select value={formData.businessType} onChange={(e) => setField('businessType', e.target.value as ClientFormData['businessType'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="individual">Individual</option>
                       <option value="sole_proprietorship">Sole Proprietorship</option>
                       <option value="partnership">Partnership</option>
@@ -426,7 +426,7 @@ export default function ProfessionalAddClientPage() {
                       { value: 'smb', label: 'SMB', desc: 'Business accounting' },
                       { value: 'enterprise', label: 'Enterprise', desc: 'Corporate services' }
                     ].map((t) => (
-                      <div key={t.value} onClick={() => setField('clientTier', t.value)} className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${formData.clientTier === t.value ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:border-gray-300'}`}>
+                      <div key={t.value} onClick={() => setField('clientTier', t.value as ClientFormData['clientTier'])} className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${formData.clientTier === t.value ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:border-gray-300'}`}>
                         <div className="font-medium text-sm mb-1">{t.label}</div>
                         <div className="text-xs text-gray-600">{t.desc}</div>
                       </div>
@@ -436,7 +436,7 @@ export default function ProfessionalAddClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Client Source</label>
-                    <select value={formData.clientSource} onChange={(e) => setField('clientSource', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select value={formData.clientSource} onChange={(e) => setField('clientSource', e.target.value as ClientFormData['clientSource'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="referral">Referral</option>
                       <option value="website">Website</option>
                       <option value="marketing">Marketing</option>
@@ -446,7 +446,7 @@ export default function ProfessionalAddClientPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Urgency Level</label>
-                    <select value={formData.urgencyLevel} onChange={(e) => setField('urgencyLevel', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select value={formData.urgencyLevel} onChange={(e) => setField('urgencyLevel', e.target.value as ClientFormData['urgencyLevel'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="low">Low</option>
                       <option value="normal">Normal</option>
                       <option value="high">High</option>
@@ -468,7 +468,7 @@ export default function ProfessionalAddClientPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Contact Method</label>
-                    <select value={formData.preferredContactMethod} onChange={(e) => setField('preferredContactMethod', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select value={formData.preferredContactMethod} onChange={(e) => setField('preferredContactMethod', e.target.value as ClientFormData['preferredContactMethod'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="email">Email</option>
                       <option value="phone">Phone</option>
                       <option value="both">Both</option>
@@ -476,7 +476,7 @@ export default function ProfessionalAddClientPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Communication Frequency</label>
-                    <select value={formData.communicationFrequency} onChange={(e) => setField('communicationFrequency', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select value={formData.communicationFrequency} onChange={(e) => setField('communicationFrequency', e.target.value as ClientFormData['communicationFrequency'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                       <option value="as_needed">As Needed</option>
                       <option value="weekly">Weekly</option>
                       <option value="monthly">Monthly</option>
@@ -529,7 +529,7 @@ export default function ProfessionalAddClientPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-                  <select value={formData.paymentTerms} onChange={(e) => setField('paymentTerms', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <select value={formData.paymentTerms} onChange={(e) => setField('paymentTerms', e.target.value as ClientFormData['paymentTerms'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="immediate">Immediate</option>
                     <option value="net_15">Net 15</option>
                     <option value="net_30">Net 30</option>
