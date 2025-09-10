@@ -158,8 +158,10 @@ export default function ProfessionalPostManagement() {
   })
 
   const mapToEnhancedPost = (p: any): Post => {
-    const computedStatus: PostStatus = p.published ? 'published' : 'draft'
-    const computedPriority: PostPriority = p.featured ? 'high' : 'medium'
+    const persistedStatus = p.status ? String(p.status).toLowerCase() : undefined
+    const computedStatus: PostStatus = (persistedStatus as PostStatus) || (p.archived ? 'archived' : p.published ? 'published' : p.scheduledAt ? 'scheduled' : 'draft')
+    const persistedPriority = p.priority ? String(p.priority).toLowerCase() : undefined
+    const computedPriority: PostPriority = (persistedPriority as PostPriority) || (p.featured ? 'high' : 'medium')
     const author: AuthorInfo | null = p.author
       ? { id: p.author.id, name: p.author.name ?? 'Unknown', avatar: p.author.image ?? null, role: 'Author' }
       : null
@@ -185,13 +187,14 @@ export default function ProfessionalPostManagement() {
       priority: computedPriority,
       lastModified: p.updatedAt ?? null,
       wordCount: contentStr ? contentStr.trim().split(/\s+/).length : 0,
-      isCompliant: true,
-      reviewRequired: false,
-      approvedBy: undefined,
-      version: 1,
-      shares: 0,
-      comments: 0,
-      category: categories[0]
+      isCompliant: p.isCompliant ?? true,
+      reviewRequired: p.reviewRequired ?? false,
+      approvedBy: p.approvedBy ?? undefined,
+      version: typeof p.version === 'number' ? p.version : 1,
+      shares: typeof p.shares === 'number' ? p.shares : 0,
+      comments: typeof p.comments === 'number' ? p.comments : 0,
+      category: p.category ?? categories[0],
+      archived: !!p.archived
     }
   }
 
