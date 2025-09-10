@@ -36,18 +36,23 @@ function Tabs({
     [isControlled, onValueChange]
   )
 
+  type TabsListProps = React.ComponentProps<"div">
+  type TabsTriggerProps = React.ComponentProps<"button"> & { value: string; disabled?: boolean }
+
+  function isElementOf<P>(node: React.ReactNode, component: React.ComponentType<P>): node is React.ReactElement<P> {
+    return React.isValidElement(node) && node.type === component
+  }
+
   React.useEffect(() => {
     if (!defaultValue && !controlled && React.Children.count(children) > 0) {
       // Try to infer first trigger as default
-      const listEl = React.Children.toArray(children).find(
-        (child): child is React.ReactElement =>
-          React.isValidElement(child) && child.type === TabsList
+      const listEl = React.Children.toArray(children).find((child) =>
+        isElementOf<TabsListProps>(child, TabsList)
       )
 
       if (listEl) {
-        const firstTrigger = React.Children.toArray(listEl.props.children).find(
-          (c): c is React.ReactElement<{ value: string }> =>
-            React.isValidElement(c) && c.type === TabsTrigger && typeof c.props.value === "string"
+        const firstTrigger = React.Children.toArray(listEl.props.children).find((c) =>
+          isElementOf<TabsTriggerProps>(c, TabsTrigger)
         )
 
         if (firstTrigger) {
