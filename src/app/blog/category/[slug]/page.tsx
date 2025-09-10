@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock, User } from 'lucide-react'
-import { headers } from 'next/headers'
 import type { Prisma } from '@prisma/client'
 
 export const revalidate = 60
