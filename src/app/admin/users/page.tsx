@@ -362,44 +362,46 @@ export default function AdminUsersPage() {
                 </Select>
               </div>
 
-              {usersLoading ? (
-                <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => (<UserRowSkeleton key={i} />))}</div>
-              ) : filteredUsers.length ? (
-                <div className="space-y-2">
-                  {filteredUsers.map(u => (
-                    <div key={u.id} className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm w-full">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                          {(u.name || u.email).charAt(0).toUpperCase()}
+              <div className="max-h-[60vh] overflow-y-auto pr-1">
+                {usersLoading ? (
+                  <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => (<UserRowSkeleton key={i} />))}</div>
+                ) : filteredUsers.length ? (
+                  <div className="space-y-2">
+                    {filteredUsers.map(u => (
+                      <div key={u.id} className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm w-full">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {(u.name || u.email).charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-gray-900 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.name || 'Unnamed User'}</div>
+                            <div className="text-sm text-gray-600 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.email}</div>
+                            <div className="text-xs text-gray-400 truncate">Joined {formatDate(u.createdAt)}</div>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-medium text-gray-900 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.name || 'Unnamed User'}</div>
-                          <div className="text-sm text-gray-600 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.email}</div>
-                          <div className="text-xs text-gray-400 truncate">Joined {formatDate(u.createdAt)}</div>
+                        <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
+                          <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
+                          {perms.canManageUsers && (
+                            <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
+                              <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="CLIENT">Client</SelectItem>
+                                <SelectItem value="STAFF">Staff</SelectItem>
+                                <SelectItem value="ADMIN">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                          <Button variant="ghost" size="sm" onClick={() => { setSelected(u); setDetailsOpen(true) }}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
-                        <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
-                        {perms.canManageUsers && (
-                          <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
-                            <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="CLIENT">Client</SelectItem>
-                              <SelectItem value="STAFF">Staff</SelectItem>
-                              <SelectItem value="ADMIN">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => { setSelected(u); setDetailsOpen(true) }}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-gray-500 text-sm">No users found.</div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 text-sm py-6 text-center">No users found.</div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
