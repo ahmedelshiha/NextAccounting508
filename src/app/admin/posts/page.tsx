@@ -246,7 +246,8 @@ export default function ProfessionalPostManagement() {
       } else {
         setErrorMessage('Failed to load posts. Please try again.')
       }
-    } catch (_e) {
+    } catch (err) {
+      console.error('loadPosts failed', err)
       setErrorMessage('Network error. Please check your connection.')
     } finally {
       setLoading(false)
