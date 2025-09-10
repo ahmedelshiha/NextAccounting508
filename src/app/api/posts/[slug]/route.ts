@@ -78,14 +78,23 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       seoTitle,
       seoDescription,
       tags,
-      readTime
+      readTime,
+      // Advanced fields
+      status,
+      archived,
+      scheduledAt,
+      priority,
+      category,
+      reviewRequired,
+      isCompliant,
+      approvedBy,
+      version,
+      shares,
+      comments
     } = body
 
     // Check if post exists
-    const existingPost = await prisma.post.findUnique({
-      where: { slug }
-    })
-
+    const existingPost = await prisma.post.findUnique({ where: { slug } })
     if (!existingPost) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -95,13 +104,12 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
 
     // Prepare update data
     const updateData: Partial<import('@prisma/client').Prisma.PostUpdateInput> = {}
-    
+
     if (title !== undefined) updateData.title = title
     if (content !== undefined) updateData.content = content
     if (excerpt !== undefined) updateData.excerpt = excerpt
     if (published !== undefined) {
       updateData.published = published
-      // Set publishedAt when publishing for the first time
       if (published && !existingPost.publishedAt) {
         updateData.publishedAt = new Date()
       }
@@ -113,18 +121,30 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     if (tags !== undefined) updateData.tags = tags
     if (readTime !== undefined) updateData.readTime = readTime ? parseInt(readTime) : null
 
+    // Advanced updates
+    if (status !== undefined) (updateData as any).status = typeof status === 'string' ? status.toUpperCase() : status
+    if (archived !== undefined) (updateData as any).archived = archived
+    if (scheduledAt !== undefined) (updateData as any).scheduledAt = scheduledAt ? new Date(scheduledAt) : null
+    if (priority !== undefined) (updateData as any).priority = typeof priority === 'string' ? priority.toUpperCase() : priority
+    if (category !== undefined) (updateData as any).category = category
+    if (reviewRequired !== undefined) (updateData as any).reviewRequired = reviewRequired
+    if (isCompliant !== undefined) (updateData as any).isCompliant = isCompliant
+    if (approvedBy !== undefined) (updateData as any).approvedBy = approvedBy
+    if (version !== undefined) (updateData as any).version = version
+    if (shares !== undefined) (updateData as any).shares = shares
+    if (comments !== undefined) (updateData as any).comments = comments
+
+    // Keep publishedAt consistent with status change
+    const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status
+    if (normalizedStatus === 'PUBLISHED' && !existingPost.publishedAt) {
+      (updateData as any).publishedAt = new Date()
+      updateData.published = true
+    }
+
     const post = await prisma.post.update({
       where: { slug },
       data: updateData,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
-        }
-      }
+      include: { author: { select: { id: true, name: true, image: true } } }
     })
 
     return NextResponse.json(post)
