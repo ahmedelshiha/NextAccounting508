@@ -72,15 +72,61 @@ export default function PortalPage() {
     })
   }
 
-  const upcomingBookings = bookings.filter(booking => 
-    new Date(booking.scheduledAt) > new Date() && 
+  const [filter, setFilter] = useState<'all'|'upcoming'|'past'>('upcoming')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const upcomingBookings = bookings.filter(booking =>
+    new Date(booking.scheduledAt) > new Date() &&
     ['PENDING', 'CONFIRMED'].includes(booking.status)
   )
 
-  const pastBookings = bookings.filter(booking => 
-    new Date(booking.scheduledAt) <= new Date() || 
+  const pastBookings = bookings.filter(booking =>
+    new Date(booking.scheduledAt) <= new Date() ||
     ['COMPLETED', 'CANCELLED'].includes(booking.status)
   )
+
+  const displayedUpcoming = filter === 'all' || filter === 'upcoming' ? upcomingBookings : []
+  const displayedPast = filter === 'all' || filter === 'past' ? pastBookings : []
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return
+    setDeletingId(id)
+    try {
+      const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b))
+        toast.success('Appointment cancelled')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to cancel appointment')
+      }
+    } catch (e) {
+      console.error('Cancel error', e)
+      toast.error('Failed to cancel appointment')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const exportCSV = () => {
+    if (!bookings.length) return
+    const rows = bookings.map(b => ({
+      id: b.id,
+      service: b.service.name,
+      date: new Date(b.scheduledAt).toLocaleDateString(),
+      time: new Date(b.scheduledAt).toLocaleTimeString(),
+      status: b.status
+    }))
+    const header = Object.keys(rows[0]).join(',')
+    const csv = [header, ...rows.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bookings-${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
