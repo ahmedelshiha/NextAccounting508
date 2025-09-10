@@ -13,7 +13,7 @@ const patchSchema = z.object({
   currentPassword: z.string().optional()
 })
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -37,7 +37,7 @@ export async function PATCH(request: NextRequest) {
     const parsed = patchSchema.safeParse(json)
     if (!parsed.success) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-    const updates: any = {}
+    const updates: { name?: string; email?: string; password?: string } = {}
     const changingEmail = parsed.data.email && parsed.data.email !== undefined
     const changingPassword = parsed.data.password && parsed.data.password !== undefined
 
