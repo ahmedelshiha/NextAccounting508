@@ -172,12 +172,12 @@ export default function PortalSettingsPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Confirm account deletion</DialogTitle>
-                    <DialogDescription>This action is permanent. Type DELETE to confirm.</DialogDescription>
+                    <DialogDescription>This action is permanent. Please enter your current password to confirm account deletion.</DialogDescription>
                   </DialogHeader>
 
                   <div className="mt-4">
-                    <Label htmlFor="confirmDelete">Type DELETE to confirm</Label>
-                    <Input id="confirmDelete" value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} className="mt-2" />
+                    <Label htmlFor="confirmDelete">Current Password</Label>
+                    <Input id="confirmDelete" type="password" value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} className="mt-2" placeholder="Enter your current password" />
                   </div>
 
                   <DialogFooter>
@@ -185,7 +185,7 @@ export default function PortalSettingsPage() {
                       <Button variant="outline" asChild>
                         <Link href="/portal">Cancel</Link>
                       </Button>
-                      <Button variant="destructive" onClick={handleDelete} disabled={deleting || confirmDelete !== 'DELETE'}>{deleting ? 'Deleting...' : 'Delete account'}</Button>
+                      <Button variant="destructive" onClick={handleDelete} disabled={deleting || confirmDelete.length < 6}>{deleting ? 'Deleting...' : 'Delete account'}</Button>
                     </div>
                   </DialogFooter>
                 </DialogContent>
