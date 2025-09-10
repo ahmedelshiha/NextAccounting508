@@ -1212,7 +1212,7 @@ export default function ProfessionalPostManagement() {
             {selectedPost && (
               <div className="prose max-w-none">
                 {selectedPost.coverImage && (
-                  <img src={selectedPost.coverImage} alt={selectedPost.title} className="w-full h-64 object-cover rounded-lg mb-6" />
+                  <Image src={selectedPost.coverImage} alt={selectedPost.title} width={1200} height={600} className="w-full h-64 object-cover rounded-lg mb-6" />
                 )}
                 <div className="mb-4">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedPost.title}</h1>
