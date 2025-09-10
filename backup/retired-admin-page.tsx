@@ -473,7 +473,7 @@ export default function AdminDashboard() {
                     const rows = analytics?.dailyBookings || []
                     const max = Math.max(...rows.map((x) => x.count), 1)
                     const height = Math.max(4, Math.round(((p.count ?? 0) / max) * 96))
-                    return <div key={p.date ?? String(i)} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date \?? i}: ${p.count}`} />
+                    return <div key={p.date ?? String(i)} className="bg-gray-400 rounded" style={{ height, width: 8 }} title={`${p.date ?? i}: ${p.count}`} />
                   })}
                 </div>
               </div>
