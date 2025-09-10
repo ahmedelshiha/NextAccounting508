@@ -26,6 +26,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const isAdminUser = (session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF')
 
   const isActive = (href: string) => {
     if (href === '/') {
