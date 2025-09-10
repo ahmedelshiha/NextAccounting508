@@ -231,12 +231,19 @@ export default function PortalPage() {
                           </div>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/portal/bookings/${booking.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Details
-                        </Link>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/portal/bookings/${booking.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Details
+                          </Link>
+                        </Button>
+                        {['PENDING','CONFIRMED'].includes(booking.status) && (
+                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id}>
+                            {deletingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {booking.notes && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-md">
