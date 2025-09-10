@@ -233,7 +233,7 @@ export default function ProfessionalPostManagement() {
   }, [formData.title, selectedPost, formData.seoTitle])
 
   const filteredAndSortedPosts = useMemo(() => {
-    let filtered = posts.filter(post => {
+    const filtered = posts.filter(post => {
       const q = searchQuery.toLowerCase()
       const matchesSearch = !searchQuery ||
         post.title.toLowerCase().includes(q) ||
