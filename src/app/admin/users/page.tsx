@@ -26,7 +26,7 @@ import {
   Phone,
   Building,
   Calendar,
-  Activity,
+  Activity as ActivityIcon,
   Shield,
   Ban
 } from 'lucide-react'
@@ -103,12 +103,15 @@ export default function AdminUsersPage() {
   // Data state
   const [stats, setStats] = useState<UserStats | null>(null)
   const [users, setUsers] = useState<UserItem[]>([])
-  const [_activity, setActivity] = useState<HealthLog[]>([])
+
+  // Activity state for dialog (lazy)
+  const [activity, setActivity] = useState<HealthLog[]>([])
+  const [activityLoading, setActivityLoading] = useState(false)
+  const [activityError, setActivityError] = useState<string | null>(null)
 
   // UI state
   const [loading, setLoading] = useState(true)
   const [usersLoading, setUsersLoading] = useState(true)
-  const [_activityLoading, setActivityLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [exporting, setExporting] = useState(false)
 
@@ -119,6 +122,7 @@ export default function AdminUsersPage() {
   // Profile dialog state
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview'|'details'|'activity'|'settings'>('overview')
   const [editMode, setEditMode] = useState(false)
   const [editForm, setEditForm] = useState<Partial<UserItem>>({})
   const [updating, setUpdating] = useState(false)
@@ -161,15 +165,21 @@ export default function AdminUsersPage() {
     }
   }, [])
 
-  const _loadActivity = useCallback(async () => {
+  const loadUserActivity = useCallback(async (userId: string) => {
+    setActivityLoading(true)
+    setActivityError(null)
     try {
-      const res = await apiFetch('/api/admin/activity?type=AUDIT&limit=20')
+      let res = await apiFetch(`/api/admin/activity?userId=${encodeURIComponent(userId)}&limit=20`)
+      if (!res.ok) {
+        res = await apiFetch('/api/admin/activity?type=AUDIT&limit=20')
+      }
       if (!res.ok) throw new Error(`Failed to load activity (${res.status})`)
-      const list = (await res.json()) as HealthLog[] | unknown
+      const list = (await res.json()) as unknown
       setActivity(Array.isArray(list) ? (list as HealthLog[]) : [])
     } catch (err) {
       console.error(err)
       setActivity([])
+      setActivityError('Unable to load activity')
     } finally {
       setActivityLoading(false)
     }
@@ -241,7 +251,10 @@ export default function AdminUsersPage() {
       notes: user.notes || ''
     })
     setEditMode(false)
+    setActiveTab('overview')
     setProfileOpen(true)
+    setActivity([])
+    setActivityError(null)
   }, [])
 
   const handleEditUser = useCallback(async () => {
@@ -340,6 +353,14 @@ export default function AdminUsersPage() {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
+  const daysSince = (iso?: string) => {
+    if (!iso) return 0
+    const start = new Date(iso).getTime()
+    if (Number.isNaN(start)) return 0
+    const now = Date.now()
+    return Math.max(0, Math.floor((now - start) / (24 * 60 * 60 * 1000)))
+  }
+
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'ACTIVE':
@@ -365,6 +386,12 @@ export default function AdminUsersPage() {
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
+
+  useEffect(() => {
+    if (profileOpen && activeTab === 'activity' && selectedUser && !activityLoading && activity.length === 0 && !activityError) {
+      void loadUserActivity(selectedUser.id)
+    }
+  }, [profileOpen, activeTab, selectedUser, activityLoading, activity.length, activityError, loadUserActivity])
 
   if (loading) {
     return (
@@ -592,334 +619,393 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Enhanced User Profile Dialog */}
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+      <Dialog open={profileOpen} onOpenChange={(open) => {
+        setProfileOpen(open)
+        if (!open) {
+          setEditMode(false)
+          setActiveTab('overview')
+        }
+      }}>
+        <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                 {selectedUser ? (selectedUser.name || selectedUser.email).charAt(0).toUpperCase() : ''}
               </div>
-              {editMode ? 'Edit User Profile' : 'User Profile'}
+              {activeTab === 'details' && editMode ? 'Edit User Profile' : 'User Profile'}
             </DialogTitle>
             <DialogDescription>
-              {editMode ? 'Update user information and settings' : 'View detailed user information and manage account'}
+              {activeTab === 'details' && editMode ? 'Update user information and settings' : 'View detailed user information and manage account'}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedUser && (
-            <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="profile" className="space-y-4 mt-4">
-                {editMode ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                          id="name"
-                          value={editForm.name || ''}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Enter full name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={editForm.email || ''}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                          placeholder="Enter email address"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={editForm.phone || ''}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Enter phone number"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="company">Company</Label>
-                        <Input
-                          id="company"
-                          value={editForm.company || ''}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, company: e.target.value }))}
-                          placeholder="Enter company name"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={editForm.location || ''}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
-                        placeholder="Enter location"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Notes</Label>
-                      <Textarea
-                        id="notes"
-                        value={editForm.notes || ''}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
-                        placeholder="Add any notes about this user..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Email</div>
-                            <div className="text-sm text-gray-600">{selectedUser.email}</div>
-                          </div>
+            <div className="flex-1 overflow-y-auto pr-1">
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="activity">Activity</TabsTrigger>
+                  <TabsTrigger value="settings">Settings</TabsTrigger>
+                </TabsList>
+
+                {/* OVERVIEW */}
+                <TabsContent value="overview" className="space-y-4 mt-4">
+                  <div className="rounded-lg overflow-hidden border">
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-semibold">
+                          {(selectedUser.name || selectedUser.email).charAt(0).toUpperCase()}
                         </div>
-                        
-                        {selectedUser.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">Phone</div>
-                              <div className="text-sm text-gray-600">{selectedUser.phone}</div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {selectedUser.company && (
-                          <div className="flex items-center gap-2">
-                            <Building className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">Company</div>
-                              <div className="text-sm text-gray-600">{selectedUser.company}</div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {selectedUser.location && (
-                          <div className="flex items-center gap-2">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">Location</div>
-                              <div className="text-sm text-gray-600">{selectedUser.location}</div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Joined</div>
-                            <div className="text-sm text-gray-600">{formatDate(selectedUser.createdAt)}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Last Login</div>
-                            <div className="text-sm text-gray-600">{formatDate(selectedUser.lastLoginAt)}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">Role</div>
+                        <div className="min-w-0">
+                          <div className="text-lg font-semibold text-gray-900 truncate">{selectedUser.name || 'Unnamed User'}</div>
+                          <div className="text-sm text-gray-600 truncate">{selectedUser.email}</div>
+                          <div className="flex items-center gap-2 mt-2">
                             <Badge className={getRoleColor(selectedUser.role)}>{selectedUser.role}</Badge>
+                            <Badge className={getStatusColor(selectedUser.status)}>{selectedUser.status || 'ACTIVE'}</Badge>
                           </div>
                         </div>
-                        
+                      </div>
+                    </div>
+                    <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="bg-white border rounded-md p-3">
+                        <div className="text-xs text-gray-500">Total Bookings</div>
+                        <div className="text-xl font-bold text-gray-900">{selectedUser.totalBookings ?? 0}</div>
+                      </div>
+                      <div className="bg-white border rounded-md p-3">
+                        <div className="text-xs text-gray-500">Total Revenue</div>
+                        <div className="text-xl font-bold text-gray-900">${(selectedUser.totalRevenue ?? 0).toLocaleString()}</div>
+                      </div>
+                      <div className="bg-white border rounded-md p-3">
+                        <div className="text-xs text-gray-500">Days Active</div>
+                        <div className="text-xl font-bold text-gray-900">{daysSince(selectedUser.createdAt)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Email</div>
+                          <div className="text-sm text-gray-600">{selectedUser.email}</div>
+                        </div>
+                      </div>
+                      {selectedUser.phone && (
                         <div className="flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-gray-500" />
+                          <Phone className="h-4 w-4 text-gray-500" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">Status</div>
-                            <Badge className={getStatusColor(selectedUser.status)}>
-                              {selectedUser.status || 'ACTIVE'}
-                            </Badge>
+                            <div className="text-sm font-medium text-gray-900">Phone</div>
+                            <div className="text-sm text-gray-600">{selectedUser.phone}</div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    
-                    {selectedUser.notes && (
-                      <div className="pt-4 border-t">
-                        <div className="text-sm font-medium text-gray-900 mb-2">Notes</div>
-                        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
-                          {selectedUser.notes}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {(selectedUser.totalBookings || selectedUser.totalRevenue) && (
-                      <div className="pt-4 border-t">
-                        <div className="text-sm font-medium text-gray-900 mb-2">Statistics</div>
-                        <div className="grid grid-cols-2 gap-4">
-                          {selectedUser.totalBookings && (
-                            <div className="bg-blue-50 p-3 rounded-md">
-                              <div className="text-sm font-medium text-blue-900">Total Bookings</div>
-                              <div className="text-lg font-bold text-blue-700">{selectedUser.totalBookings}</div>
-                            </div>
-                          )}
-                          {selectedUser.totalRevenue && (
-                            <div className="bg-green-50 p-3 rounded-md">
-                              <div className="text-sm font-medium text-green-900">Total Revenue</div>
-                              <div className="text-lg font-bold text-green-700">${selectedUser.totalRevenue.toLocaleString()}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="activity" className="space-y-4 mt-4">
-                <div className="space-y-3">
-                  <div className="text-sm text-gray-500">Recent activity for this user</div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                      <div>
-                        <div className="text-sm font-medium">Account created</div>
-                        <div className="text-xs text-gray-500">{formatDate(selectedUser.createdAt)}</div>
-                      </div>
-                      <Badge variant="outline">System</Badge>
-                    </div>
-                    {selectedUser.lastLoginAt && (
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <div className="text-sm font-medium">Last login</div>
-                          <div className="text-xs text-gray-500">{formatDate(selectedUser.lastLoginAt)}</div>
-                        </div>
-                        <Badge variant="outline">Login</Badge>
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-400 text-center py-4">
-                      More detailed activity logs available in audit section
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="settings" className="space-y-4 mt-4">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Account Status</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <div className="text-sm font-medium">Current Status</div>
-                          <div className="text-xs text-gray-500">User account status</div>
-                        </div>
-                        <Badge className={getStatusColor(selectedUser.status)}>
-                          {selectedUser.status || 'ACTIVE'}
-                        </Badge>
-                      </div>
-                      
-                      {perms.canManageUsers && (
-                        <div className="flex gap-2 pt-2">
-                          {(selectedUser.status === 'INACTIVE' || selectedUser.status === 'SUSPENDED') && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => {
-                                setStatusAction({ action: 'activate', user: selectedUser })
-                                setStatusDialogOpen(true)
-                              }}
-                              className="flex items-center gap-1"
-                            >
-                              <UserCheck className="h-3 w-3" />
-                              Activate
-                            </Button>
-                          )}
-                          
-                          {selectedUser.status !== 'INACTIVE' && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => {
-                                setStatusAction({ action: 'deactivate', user: selectedUser })
-                                setStatusDialogOpen(true)
-                              }}
-                              className="flex items-center gap-1"
-                            >
-                              <UserX className="h-3 w-3" />
-                              Deactivate
-                            </Button>
-                          )}
-                          
-                          {selectedUser.status !== 'SUSPENDED' && (
-                            <Button 
-                              size="sm" 
-                              variant="destructive" 
-                              onClick={() => {
-                                setStatusAction({ action: 'suspend', user: selectedUser })
-                                setStatusDialogOpen(true)
-                              }}
-                              className="flex items-center gap-1"
-                            >
-                              <Ban className="h-3 w-3" />
-                              Suspend
-                            </Button>
-                          )}
+                      )}
+                      {selectedUser.company && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Company</div>
+                            <div className="text-sm text-gray-600">{selectedUser.company}</div>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Permissions</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div>
-                          <div className="text-sm font-medium">User Role</div>
-                          <div className="text-xs text-gray-500">Determines access level</div>
-                        </div>
-                        <Badge className={getRoleColor(selectedUser.role)}>
-                          {selectedUser.role}
-                        </Badge>
-                      </div>
-                      
-                      {selectedUser.permissions && selectedUser.permissions.length > 0 && (
-                        <div className="p-3 bg-gray-50 rounded-md">
-                          <div className="text-sm font-medium mb-2">Custom Permissions</div>
-                          <div className="flex flex-wrap gap-1">
-                            {selectedUser.permissions.map((perm, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {perm}
-                              </Badge>
-                            ))}
+                      {selectedUser.location && (
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Location</div>
+                            <div className="text-sm text-gray-600">{selectedUser.location}</div>
                           </div>
                         </div>
                       )}
                     </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Joined</div>
+                          <div className="text-sm text-gray-600">{formatDate(selectedUser.createdAt)}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Last Login</div>
+                          <div className="text-sm text-gray-600">{formatDate(selectedUser.lastLoginAt)}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Role</div>
+                          <Badge className={getRoleColor(selectedUser.role)}>{selectedUser.role}</Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ActivityIcon className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Status</div>
+                          <Badge className={getStatusColor(selectedUser.status)}>
+                            {selectedUser.status || 'ACTIVE'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+
+                  {selectedUser.notes && (
+                    <div className="pt-4 border-t">
+                      <div className="text-sm font-medium text-gray-900 mb-2">Notes</div>
+                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                        {selectedUser.notes}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* DETAILS */}
+                <TabsContent value="details" className="space-y-4 mt-4">
+                  {editMode ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input
+                            id="name"
+                            value={editForm.name || ''}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="Enter full name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email Address</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={editForm.email || ''}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="Enter email address"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <Input
+                            id="phone"
+                            value={editForm.phone || ''}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                            placeholder="Enter phone number"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company">Company</Label>
+                          <Input
+                            id="company"
+                            value={editForm.company || ''}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, company: e.target.value }))}
+                            placeholder="Enter company name"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input
+                          id="location"
+                          value={editForm.location || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                          placeholder="Enter location"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="notes">Notes</Label>
+                        <Textarea
+                          id="notes"
+                          value={editForm.notes || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                          placeholder="Add any notes about this user..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                          <div className="text-sm text-gray-500">Full Name</div>
+                          <div className="text-sm font-medium text-gray-900">{selectedUser.name || '—'}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Email Address</div>
+                          <div className="text-sm font-medium text-gray-900">{selectedUser.email}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Phone</div>
+                          <div className="text-sm font-medium text-gray-900">{selectedUser.phone || '—'}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Company</div>
+                          <div className="text-sm font-medium text-gray-900">{selectedUser.company || '—'}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">Location</div>
+                          <div className="text-sm font-medium text-gray-900">{selectedUser.location || '—'}</div>
+                        </div>
+                      </div>
+                      {selectedUser.notes && (
+                        <div className="pt-2 border-t">
+                          <div className="text-sm text-gray-500 mb-1">Notes</div>
+                          <div className="text-sm text-gray-700">{selectedUser.notes}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* ACTIVITY */}
+                <TabsContent value="activity" className="space-y-4 mt-4">
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-500">Recent activity for this user</div>
+                    {activityLoading ? (
+                      <div className="text-sm text-gray-500">Loading activity…</div>
+                    ) : activityError ? (
+                      <div className="text-sm text-red-600">{activityError}</div>
+                    ) : activity.length ? (
+                      <div className="space-y-2">
+                        {activity.map((a) => (
+                          <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <div>
+                              <div className="text-sm font-medium">{a.message || 'Activity'}</div>
+                              <div className="text-xs text-gray-500">{formatDate(a.checkedAt)}</div>
+                            </div>
+                            <Badge variant="outline">Audit</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <div className="text-sm font-medium">Account created</div>
+                            <div className="text-xs text-gray-500">{formatDate(selectedUser.createdAt)}</div>
+                          </div>
+                          <Badge variant="outline">System</Badge>
+                        </div>
+                        {selectedUser.lastLoginAt && (
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <div>
+                              <div className="text-sm font-medium">Last login</div>
+                              <div className="text-xs text-gray-500">{formatDate(selectedUser.lastLoginAt)}</div>
+                            </div>
+                            <Badge variant="outline">Login</Badge>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-400 text-center py-2">
+                          More detailed activity logs available in audit section
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* SETTINGS */}
+                <TabsContent value="settings" className="space-y-4 mt-4">
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Account Status</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <div className="text-sm font-medium">Current Status</div>
+                            <div className="text-xs text-gray-500">User account status</div>
+                          </div>
+                          <Badge className={getStatusColor(selectedUser.status)}>
+                            {selectedUser.status || 'ACTIVE'}
+                          </Badge>
+                        </div>
+                        {perms.canManageUsers && (
+                          <div className="flex gap-2 pt-2">
+                            {(selectedUser.status === 'INACTIVE' || selectedUser.status === 'SUSPENDED') && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => {
+                                  setStatusAction({ action: 'activate', user: selectedUser })
+                                  setStatusDialogOpen(true)
+                                }}
+                                className="flex items-center gap-1"
+                              >
+                                <UserCheck className="h-3 w-3" />
+                                Activate
+                              </Button>
+                            )}
+                            {selectedUser.status !== 'INACTIVE' && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => {
+                                  setStatusAction({ action: 'deactivate', user: selectedUser })
+                                  setStatusDialogOpen(true)
+                                }}
+                                className="flex items-center gap-1"
+                              >
+                                <UserX className="h-3 w-3" />
+                                Deactivate
+                              </Button>
+                            )}
+                            {selectedUser.status !== 'SUSPENDED' && (
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                onClick={() => {
+                                  setStatusAction({ action: 'suspend', user: selectedUser })
+                                  setStatusDialogOpen(true)
+                                }}
+                                className="flex items-center gap-1"
+                              >
+                                <Ban className="h-3 w-3" />
+                                Suspend
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Permissions</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                          <div>
+                            <div className="text-sm font-medium">User Role</div>
+                            <div className="text-xs text-gray-500">Determines access level</div>
+                          </div>
+                          <Badge className={getRoleColor(selectedUser.role)}>
+                            {selectedUser.role}
+                          </Badge>
+                        </div>
+                        {selectedUser.permissions && selectedUser.permissions.length > 0 && (
+                          <div className="p-3 bg-gray-50 rounded-md">
+                            <div className="text-sm font-medium mb-2">Custom Permissions</div>
+                            <div className="flex flex-wrap gap-1">
+                              {selectedUser.permissions.map((perm, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {perm}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
-          
+
           <DialogFooter className="flex justify-between">
             <div className="flex gap-2">
-              {!editMode && perms.canManageUsers && (
+              {activeTab === 'details' && !editMode && perms.canManageUsers && (
                 <Button variant="outline" onClick={() => setEditMode(true)} className="flex items-center gap-1">
                   <Edit3 className="h-3 w-3" />
                   Edit
@@ -927,7 +1013,7 @@ export default function AdminUsersPage() {
               )}
             </div>
             <div className="flex gap-2">
-              {editMode ? (
+              {activeTab === 'details' && editMode ? (
                 <>
                   <Button variant="outline" onClick={() => setEditMode(false)}>
                     Cancel
