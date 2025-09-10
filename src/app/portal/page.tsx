@@ -85,8 +85,6 @@ export default function PortalPage() {
     ['COMPLETED', 'CANCELLED'].includes(booking.status)
   )
 
-  const displayedUpcoming = filter === 'all' || filter === 'upcoming' ? upcomingBookings : []
-  const displayedPast = filter === 'all' || filter === 'past' ? pastBookings : []
 
   const handleCancel = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this appointment?')) return
