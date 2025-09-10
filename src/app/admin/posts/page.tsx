@@ -779,7 +779,9 @@ export default function ProfessionalPostManagement() {
 
               {post.coverImage && (
                 <div className="relative h-48 overflow-hidden rounded-t-lg">
-                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                  {post.coverImage && (
+                  <Image src={post.coverImage} alt={post.title} width={1200} height={480} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                )}
                   <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                     {post.featured && (
                       <Badge className="bg-purple-100 text-purple-800 border-purple-200">
