@@ -6,11 +6,11 @@ import { RefreshCw, Download, Save, Star, ToggleRight } from 'lucide-react'
 type Currency = { code: string; name: string; symbol?: string | null; decimals: number; active: boolean; isDefault: boolean; lastRate?: number | null }
 
 export default function CurrencyManager() {
-  const perms = usePermissions()
+  const _perms = usePermissions()
   const [currencies, setCurrencies] = useState<Currency[]>([])
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-  const [selectedDefault, setSelectedDefault] = useState<string | null>(null)
+  const [_selectedDefault, setSelectedDefault] = useState<string | null>(null)
 
   async function load() {
     try {
