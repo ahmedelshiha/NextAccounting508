@@ -817,7 +817,7 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
                     {action.description && (
                       <p className="text-xs text-gray-600 mt-1">{action.description}</p>
                     )}
-                    {action.badge && (
+                    {'badge' in action && action.badge && (
                       <Badge variant="outline" className="text-xs mt-1">
                         {action.badge}
                       </Badge>
