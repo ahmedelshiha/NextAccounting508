@@ -151,6 +151,17 @@ export function Footer() {
             </div>
           </div>
 
+          {/* Mobile Legal Links (visible on small screens) */}
+          <div className="mt-6 md:hidden">
+            <div className="grid grid-cols-3 gap-4">
+              {navigation.legal.map((item) => (
+                <Link key={item.name} href={item.href} className="text-gray-300 text-sm">
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
           {/* Newsletter Signup */}
           <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="max-w-md">
