@@ -821,19 +821,20 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
           {actions[actionCategory].map((action, index) => {
             const IconComponent = action.icon
             return (
-              <div
+              <Link
                 key={index}
+                href={action.href}
                 className={`relative group border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
                   ('urgent' in action && action.urgent) ? 'border-red-200 bg-red-50 hover:border-red-300' : 'border-gray-200 hover:border-gray-300'
                 }`}
-                onClick={() => console.log(`Navigate to: ${action.href}`)}
+                aria-label={action.label}
               >
                 {'urgent' in action && action.urgent && (
                   <div className="absolute -top-1 -right-1">
                     <AlertCircle className="h-4 w-4 text-red-500" />
                   </div>
                 )}
-                
+
                 <div className="flex flex-col items-center text-center space-y-2">
                   <div className={`p-3 rounded-lg ${('urgent' in action && action.urgent) ? 'bg-red-100' : 'bg-gray-100'} group-hover:scale-110 transition-transform`}>
                     <IconComponent className={`h-5 w-5 ${('urgent' in action && action.urgent) ? 'text-red-600' : 'text-gray-600'}`} />
@@ -850,7 +851,7 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>
