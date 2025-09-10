@@ -721,7 +721,7 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
       },
       {
         label: 'Client Portal',
-        href: '/admin/clients',
+        href: '/admin/users',
         icon: Users,
         description: 'Manage client relationships'
       },
