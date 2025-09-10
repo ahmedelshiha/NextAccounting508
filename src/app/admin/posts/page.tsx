@@ -252,7 +252,7 @@ export default function ProfessionalPostManagement() {
     })
 
     filtered.sort((a, b) => {
-      let aValue: any, bValue: any
+      let aValue: number | string, bValue: number | string
       switch (sortBy) {
         case 'lastModified':
           aValue = new Date(a.lastModified || 0).getTime()
