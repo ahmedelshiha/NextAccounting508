@@ -12,7 +12,7 @@ export default function TermsPage() {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900">Terms of Service</h1>
             <p className="mt-4 text-gray-600">Effective date: {effectiveDate}</p>
-            <p className="mt-4 text-gray-700">These Terms govern your use of Accounting Firm's platform, including the booking system, client portal, admin features, and related services.</p>
+            <p className="mt-4 text-gray-700">These Terms govern your use of Accounting Firm&apos;s platform, including the booking system, client portal, admin features, and related services.</p>
           </div>
         </div>
       </section>
