@@ -61,8 +61,11 @@ export default function PortalSettingsPage() {
 
     setSaving(true)
     try {
-      const payload: any = { name, email }
+        const payload: any = { name, email }
       if (password) payload.password = password
+      // include current password for sensitive changes
+      if (currentPassword) payload.currentPassword = currentPassword
+
       const res = await apiFetch('/api/users/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -76,6 +79,12 @@ export default function PortalSettingsPage() {
           setEmail(user.email || '')
         }
         toast.success('Profile updated')
+        // If changing email or password, sign out to refresh session tokens
+        if (password || (email && email !== (user?.email ?? ''))) {
+          setTimeout(async () => {
+            await signOut({ callbackUrl: '/login' })
+          }, 800)
+        }
       } else {
         const err = await res.json().catch(() => ({}))
         toast.error(err.error || 'Failed to update profile')
