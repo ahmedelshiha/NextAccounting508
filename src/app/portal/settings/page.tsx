@@ -81,6 +81,30 @@ export default function PortalSettingsPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (confirmDelete !== 'DELETE') {
+      toast.error('Please type DELETE to confirm')
+      return
+    }
+    setDeleting(true)
+    try {
+      const res = await apiFetch('/api/users/me', { method: 'DELETE' })
+      if (res.ok) {
+        toast.success('Account deleted')
+        // Sign out and redirect to home
+        await signOut({ callbackUrl: '/' })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to delete account')
+      }
+    } catch (e) {
+      console.error('Delete account error', e)
+      toast.error('Failed to delete account')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
