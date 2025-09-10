@@ -859,11 +859,11 @@ function IntelligentActivityFeed({ data }: { data: DashboardData }) {
               <CardDescription>Real-time business operations</CardDescription>
             </div>
             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-              {[
-                { key: 'schedule', label: 'Schedule', count: data.recentBookings.length },
-                { key: 'tasks', label: 'Tasks', count: data.urgentTasks.length },
-                { key: 'deadlines', label: 'Deadlines', count: data.upcomingDeadlines.length }
-              ].map((tab) => (
+              {([
+                { key: 'schedule', label: 'Schedule', count: data.recentBookings.length } as const,
+                { key: 'tasks', label: 'Tasks', count: data.urgentTasks.length } as const,
+                { key: 'deadlines', label: 'Deadlines', count: data.upcomingDeadlines.length } as const
+              ] as const).map((tab) => (
                 <Button
                   key={tab.key}
                   variant={activeTab === tab.key ? 'default' : 'ghost'}
