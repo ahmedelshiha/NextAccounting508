@@ -1,5 +1,6 @@
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import NewsletterForm from '@/components/ui/newsletter-form'
+import Link from 'next/link'
 
 
 const navigationBase = {
