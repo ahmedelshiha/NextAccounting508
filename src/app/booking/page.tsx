@@ -101,8 +101,8 @@ export default function BookingPage() {
           type ApiDay = { date: string; slots: { start: string; available?: boolean }[] }
           const availability: ApiDay[] = Array.isArray(json)
             ? (json as ApiDay[])
-            : json && Array.isArray((json as any).availability)
-            ? (json as any).availability
+            : json && typeof json === 'object' && Array.isArray((json as { availability?: unknown }).availability)
+            ? ((json as { availability: ApiDay[] }).availability)
             : []
 
           // Prefer the exact selectedDate if present, otherwise take the first day
