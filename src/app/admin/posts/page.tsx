@@ -931,7 +931,7 @@ export default function ProfessionalPostManagement() {
 
         {/* Create Modal */}
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="max-w-8xl max-h-[95vh] overflow-y-auto">
+          <DialogContent className="max-w-full max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Create New Blog Post</DialogTitle>
               <DialogDescription>Create professional content for your accounting firm&apos;s blog</DialogDescription>
@@ -1068,7 +1068,7 @@ export default function ProfessionalPostManagement() {
 
         {/* Edit Modal */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent className="max-w-8xl max-h-[95vh] overflow-y-auto">
+          <DialogContent className="max-w-full max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Edit Blog Post</DialogTitle>
               <DialogDescription>Update your professional blog content</DialogDescription>
