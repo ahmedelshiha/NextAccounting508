@@ -53,7 +53,9 @@ export async function PATCH(request: NextRequest) {
       if (!currentUser.password) {
         return NextResponse.json({ error: 'No local password set for this account' }, { status: 400 })
       }
-      const ok = await bcrypt.compare(parsed.data.currentPassword, currentUser.password)
+      const currentPassword = parsed.data.currentPassword as string
+      const storedHash = currentUser.password as string
+      const ok = await bcrypt.compare(currentPassword, storedHash)
       if (!ok) {
         return NextResponse.json({ error: 'Incorrect current password' }, { status: 401 })
       }
