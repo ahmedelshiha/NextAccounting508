@@ -82,8 +82,9 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       // If token was invalidated due to sessionVersion mismatch, return null session
-      if ((token as any).invalidated) {
-        return null as any
+      const tok = token as unknown as { invalidated?: boolean }
+      if (tok.invalidated) {
+        return null
       }
       if (token) {
         session.user.id = token.sub!
