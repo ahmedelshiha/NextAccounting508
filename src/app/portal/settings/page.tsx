@@ -155,6 +155,11 @@ export default function PortalSettingsPage() {
               </div>
             </div>
 
+            <div className="mt-4">
+              <Label htmlFor="currentPassword">Current Password (required to change email or password)</Label>
+              <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="mt-1" placeholder="Enter your current password" />
+            </div>
+
             <div className="flex justify-end gap-3 mt-6">
               <Button variant="outline" asChild>
                 <Link href="/portal">Cancel</Link>
