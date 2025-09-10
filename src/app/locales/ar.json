@@ -59,6 +59,9 @@
   "footer.newsletter.placeholder": "أدخل بريدك الإلكتروني",
   "footer.newsletter.subscribe": "اشترك",
   "footer.copyright": "© {{year}} شركة المحاسبة. جميع الحقوق محفوظة.",
+  "footer.privacy": "سياسة الخصوصية",
+  "footer.terms": "شروط الخدمة",
+  "footer.cookies": "سياسة ملفات تعريف الارتباط",
   
   "auth.login.title": "سجل دخولك إلى حسابك",
   "auth.login.subtitle": "أو أنشئ حساباً جديداً",
@@ -92,7 +95,7 @@
   "auth.register.signInHere": "سجل دخولك هنا",
   
   "portal.welcome": "مرحباً بعودتك، {{name}}!",
-  "portal.subtitle": "إدارة مواعيدك واطلع على خدماتك المحاسبية.",
+  "portal.subtitle": "إدارة مواعيدك واطلع على خ��ماتك المحاسبية.",
   "portal.bookNew": "احجز خدمة جديدة",
   "portal.scheduleConsultation": "جدولة استشارة",
   "portal.totalBookings": "إجمالي الحجوزات",
