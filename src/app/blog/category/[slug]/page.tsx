@@ -42,7 +42,7 @@ export default async function CategoryPage({ params }: Props) {
   }> = []
 
   try {
-    const h = headers()
+    const h = await headers()
     const proto = h.get('x-forwarded-proto') || 'https'
     const host = h.get('host') || ''
     const baseUrl = `${proto}://${host}`
