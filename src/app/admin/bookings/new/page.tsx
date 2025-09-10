@@ -801,15 +801,21 @@ export default function ProfessionalNewBooking() {
   }
 
   const canProceedToNext = () => {
+    const step1Valid = formData.isNewClient ? Boolean(formData.clientName && formData.clientEmail) : Boolean(selectedClient)
+    const step2Valid = Boolean(selectedService)
+    const step3Valid = Boolean(formData.scheduledDate && formData.scheduledTime && assignedStaff)
+
     switch (currentStep) {
       case 1:
-        return formData.isNewClient ? formData.clientName && formData.clientEmail : !!selectedClient
+        return step1Valid
       case 2:
-        return !!selectedService
+        return step2Valid
       case 3:
-        return !!formData.scheduledDate && !!formData.scheduledTime && !!assignedStaff
+        return step3Valid
       case 4:
         return true
+      case 5:
+        return step1Valid && step2Valid && step3Valid
       default:
         return false
     }

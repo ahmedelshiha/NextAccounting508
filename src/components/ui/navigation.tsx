@@ -26,6 +26,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const isAdminUser = (session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF')
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -81,34 +82,61 @@ export function Navigation() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link href="/portal" className="flex items-center">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        My Bookings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/portal/settings" className="flex items-center">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin" className="flex items-center">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
+                    {isAdminUser ? (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Admin Panel
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/portal/settings" className="flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Settings
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => signOut()}
+                          className="flex items-center text-red-600"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign Out
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/portal" className="flex items-center">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            My Bookings
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/portal/settings" className="flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Settings
+                          </Link>
+                        </DropdownMenuItem>
+                        {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin" className="flex items-center">
+                              <Settings className="mr-2 h-4 w-4" />
+                              Admin Panel
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => signOut()}
+                          className="flex items-center text-red-600"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign Out
+                        </DropdownMenuItem>
+                      </>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => signOut()}
-                      className="flex items-center text-red-600"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button asChild>
@@ -169,28 +197,49 @@ export function Navigation() {
                     <div className="px-3 py-2 text-sm text-gray-500">
                       Signed in as {session?.user?.name || session?.user?.email}
                     </div>
-                    <Link
-                      href="/portal"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      My Bookings
-                    </Link>
-                    <Link
-                      href="/portal/settings"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Settings
-                    </Link>
-                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
-                      <Link
-                        href="/admin"
-                        className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Admin Panel
-                      </Link>
+                    {isAdminUser ? (
+                      <>
+                        <Link
+                          href="/admin"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Admin Panel
+                        </Link>
+                        <Link
+                          href="/portal/settings"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Settings
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/portal"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          My Bookings
+                        </Link>
+                        <Link
+                          href="/portal/settings"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Settings
+                        </Link>
+                        {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
+                          <Link
+                            href="/admin"
+                            className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Admin Panel
+                          </Link>
+                        )}
+                      </>
                     )}
                     <button
                       onClick={() => {
