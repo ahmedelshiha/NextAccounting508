@@ -492,18 +492,18 @@ export default function ProfessionalAddClientPage() {
                         <h4 className="font-medium text-sm text-gray-800">{category}</h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {items.map((service) => (
-                            <label key={service.id} className="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                            <label key={service.id} className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-gray-50">
                               <input type="checkbox" checked={formData.servicesOfInterest.includes(service.id)} onChange={() => {
                                 const cur = formData.servicesOfInterest
                                 const upd = cur.includes(service.id) ? cur.filter((id) => id !== service.id) : [...cur, service.id]
                                 setField('servicesOfInterest', upd)
                               }} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium text-gray-900 flex items-center gap-1">
                                   {service.name}
                                   {service.isPopular && <Star className="h-3 w-3 text-yellow-500" />}
                                 </div>
-                                {service.description && <div className="text-xs text-gray-600 truncate">{service.description}</div>}
+                                {service.description && <div className="text-xs text-gray-600 whitespace-normal break-words">{service.description}</div>}
                               </div>
                             </label>
                           ))}
