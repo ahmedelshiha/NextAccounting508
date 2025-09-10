@@ -84,7 +84,9 @@ export const authOptions: NextAuthOptions = {
       // If token was invalidated due to sessionVersion mismatch, return null session
       const tok = token as unknown as { invalidated?: boolean }
       if (tok.invalidated) {
-        return null
+        // Token invalidated due to sessionVersion mismatch — force sign-in on client.
+        // Returning `null` is valid at runtime but TypeScript expects Session; cast safely.
+        return null as unknown as Session
       }
       if (token) {
         session.user.id = token.sub!
