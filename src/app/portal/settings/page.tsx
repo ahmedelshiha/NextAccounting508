@@ -19,6 +19,7 @@ export default function PortalSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [originalEmail, setOriginalEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
