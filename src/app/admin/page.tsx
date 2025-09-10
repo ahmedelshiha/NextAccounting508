@@ -15,12 +15,9 @@ import {
   BarChart3,
   FileText,
   Mail,
-  Filter,
-  Search,
   RefreshCw,
   Bell,
   ChevronDown,
-  MoreHorizontal,
   ExternalLink,
   Download,
   Eye,
@@ -32,7 +29,6 @@ import {
   Star,
   MapPin,
   Phone,
-  Globe,
   Activity,
   Target,
   PieChart,
@@ -780,13 +776,13 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
             <CardDescription>Contextual shortcuts based on current activity</CardDescription>
           </div>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {Object.keys(actions).map((category) => (
+            {(Object.keys(actions) as Array<keyof typeof actions>).map((category) => (
               <Button
                 key={category}
                 variant={actionCategory === category ? 'default' : 'ghost'}
                 size="sm"
                 className="text-xs capitalize"
-                onClick={() => setActionCategory(category as any)}
+                onClick={() => setActionCategory(category)}
               >
                 {category}
               </Button>
@@ -873,7 +869,7 @@ function IntelligentActivityFeed({ data }: { data: DashboardData }) {
                   variant={activeTab === tab.key ? 'default' : 'ghost'}
                   size="sm"
                   className="text-xs relative"
-                  onClick={() => setActiveTab(tab.key as any)}
+                  onClick={() => setActiveTab(tab.key)}
                 >
                   {tab.label}
                   {tab.count > 0 && (
