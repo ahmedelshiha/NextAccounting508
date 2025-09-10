@@ -15,7 +15,7 @@ export const userUpdateSchema = z.object({
   location: z.string().max(200).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional(),
-}).strict(false)
+}).passthrough()
 
 export const taskCreateSchema = z.object({
   title: z.string().min(1).max(200),
