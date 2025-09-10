@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import type { LucideIcon } from 'lucide-react'
 import {
   User,
-  Mail,
-  Phone,
   MapPin,
   RefreshCw,
   AlertCircle,
@@ -91,7 +90,7 @@ function generateTempPassword() {
   return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
-function Section({ icon: Icon, title, description, children }: { icon: any; title: string; description: string; children: React.ReactNode }) {
+function Section({ icon: Icon, title, description, children }: { icon: LucideIcon; title: string; description: string; children: React.ReactNode }) {
   return (
     <Card>
       <CardHeader>
@@ -171,7 +170,7 @@ export default function ProfessionalAddClientPage() {
     return () => clearTimeout(t)
   }, [formData.email])
 
-  const setField = (field: keyof ClientFormData, value: any) => {
+  const setField = <K extends keyof ClientFormData>(field: K, value: ClientFormData[K]) => {
     setFormData((p) => ({ ...p, [field]: value }))
     setValidationErrors((prev) => prev.filter((e) => e.field !== field))
     setError(null)
@@ -221,8 +220,9 @@ export default function ProfessionalAddClientPage() {
       setTempPassword(password)
       setSuccess('Client account created successfully!')
       setTimeout(() => { window.location.href = '/admin/users' }, 3000)
-    } catch (e: any) {
-      setError(e?.message || 'Failed to create client account')
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to create client account'
+      setError(message)
     } finally {
       setLoading(false)
     }
