@@ -76,6 +76,7 @@ type Post = {
   shares?: number
   comments?: number
   category?: string
+  archived?: boolean
 }
 
 type PostFormData = {
