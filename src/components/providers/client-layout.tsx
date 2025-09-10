@@ -10,6 +10,13 @@ interface ClientLayoutProps {
   children: React.ReactNode
 }
 
+// extend Window to store a fetch flag without using `any`
+declare global {
+  interface Window {
+    __fetchLogged?: boolean
+  }
+}
+
 export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
@@ -67,27 +74,31 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     }
 
     // Debugging helper: wrap window.fetch to log failing requests (helps diagnose next-auth CLIENT_FETCH_ERROR)
-    const originalFetch = window.fetch.bind(window)
+    const originalFetch: typeof fetch = window.fetch.bind(window)
     // Only wrap once
-    if (!(window as any).__fetchLogged) {
-      (window as any).__fetchLogged = true
+    if (!window.__fetchLogged) {
+      window.__fetchLogged = true
       window.fetch = async (input: RequestInfo, init?: RequestInit) => {
         try {
-          const res = await originalFetch(input as any, init)
+          const res = await originalFetch(input as RequestInfo, init)
           if (!res.ok) {
             try {
-              console.error('[fetch] non-ok response', { input, init, status: res.status, url: typeof input === 'string' ? input : (input as Request).url })
+              const url = typeof input === 'string' ? input : (input as Request).url
+              console.error('[fetch] non-ok response', { status: res.status, url, init })
             } catch {}
           }
           return res
-        } catch (err) {
+        } catch (err: unknown) {
           try {
             // Log rich details to console to help debugging
-            const info: any = { input, init }
-            if (input instanceof Request) {
-              info.requestUrl = input.url
+            const info: Record<string, unknown> = { init: init ?? null }
+            if (typeof input === 'string') info.input = input
+            else if (input instanceof Request) {
+              info.input = input.url
               info.requestMethod = input.method
-              info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
+              try {
+                info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
+              } catch {}
             }
             console.error('[fetch] network/error while fetching', info, err)
           } catch (e) {
@@ -104,11 +115,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     return () => {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
-      // restore fetch if we wrapped it
+      // restore fetch flag
       try {
-        if ((window as any).__fetchLogged) {
-          delete (window as any).__fetchLogged
-          // best effort: cannot reliably restore originalFetch reference here, reload to clean up
+        if (window.__fetchLogged) {
+          delete window.__fetchLogged
         }
       } catch {}
     }
