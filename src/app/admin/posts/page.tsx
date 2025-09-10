@@ -394,7 +394,7 @@ export default function ProfessionalPostManagement() {
     setSaving(true)
     setValidationErrors([])
     try {
-      const payload: any = {
+      const payload = {
         title: formData.title,
         excerpt: formData.excerpt || undefined,
         content: formData.content,
@@ -403,7 +403,7 @@ export default function ProfessionalPostManagement() {
         published: formData.published,
         seoTitle: formData.seoTitle || undefined,
         seoDescription: formData.seoDescription || undefined
-      }
+      } as const
       const res = await apiFetch(`/api/posts/${encodeURIComponent(selectedPost.slug)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
