@@ -5,19 +5,34 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users,
   Search,
   Download,
   RefreshCw,
   Eye,
-  Loader2
+  Loader2,
+  Edit3,
+  UserX,
+  UserCheck,
+  Clock,
+  Mail,
+  Phone,
+  Building,
+  Calendar,
+  Activity,
+  Shield,
+  Ban
 } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 
-// Types derived from our API responses
+// Enhanced types
 interface UserStats {
   total: number
   clients: number
@@ -35,6 +50,17 @@ interface UserItem {
   email: string
   role: 'ADMIN' | 'STAFF' | 'CLIENT'
   createdAt: string
+  lastLoginAt?: string
+  isActive?: boolean
+  phone?: string
+  company?: string
+  totalBookings?: number
+  totalRevenue?: number
+  avatar?: string
+  location?: string
+  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
+  permissions?: string[]
+  notes?: string
 }
 
 interface HealthLog {
@@ -88,8 +114,19 @@ export default function AdminUsersPage() {
 
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'STAFF' | 'CLIENT'>('ALL')
-  const [selected, setSelected] = useState<UserItem | null>(null)
-  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL')
+  
+  // Profile dialog state
+  const [selectedUser, setSelectedUser] = useState<UserItem | null>(null)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [editForm, setEditForm] = useState<Partial<UserItem>>({})
+  const [updating, setUpdating] = useState(false)
+  
+  // Status change state
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [statusAction, setStatusAction] = useState<{ action: 'activate' | 'deactivate' | 'suspend', user: UserItem } | null>(null)
+  
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Loaders
@@ -192,28 +229,140 @@ export default function AdminUsersPage() {
     }
   }, [users])
 
+  // New user profile functions
+  const openUserProfile = useCallback((user: UserItem) => {
+    setSelectedUser(user)
+    setEditForm({
+      name: user.name || '',
+      email: user.email,
+      phone: user.phone || '',
+      company: user.company || '',
+      location: user.location || '',
+      notes: user.notes || ''
+    })
+    setEditMode(false)
+    setProfileOpen(true)
+  }, [])
+
+  const handleEditUser = useCallback(async () => {
+    if (!selectedUser || !editForm) return
+    
+    setUpdating(true)
+    try {
+      const res = await apiFetch(`/api/admin/users/${encodeURIComponent(selectedUser.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      })
+      
+      if (!res.ok) throw new Error(`Failed to update user (${res.status})`)
+      
+      const updatedUser = await res.json()
+      
+      // Update local state
+      setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, ...updatedUser } : u))
+      setSelectedUser(prev => prev ? { ...prev, ...updatedUser } : null)
+      setEditMode(false)
+      
+    } catch (e) {
+      console.error('User update failed', e)
+      setErrorMsg('Failed to update user information')
+    } finally {
+      setUpdating(false)
+    }
+  }, [selectedUser, editForm])
+
+  const handleStatusChange = useCallback(async () => {
+    if (!statusAction) return
+    
+    const { action, user } = statusAction
+    let newStatus: string
+    
+    switch (action) {
+      case 'activate':
+        newStatus = 'ACTIVE'
+        break
+      case 'deactivate':
+        newStatus = 'INACTIVE'
+        break
+      case 'suspend':
+        newStatus = 'SUSPENDED'
+        break
+      default:
+        return
+    }
+    
+    setUpdating(true)
+    try {
+      const res = await apiFetch(`/api/admin/users/${encodeURIComponent(user.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+      
+      if (!res.ok) throw new Error(`Failed to update user status (${res.status})`)
+      
+      // Update local state
+      setUsers(prev => prev.map(u => 
+        u.id === user.id 
+          ? { ...u, status: newStatus as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' }
+          : u
+      ))
+      
+      if (selectedUser && selectedUser.id === user.id) {
+        setSelectedUser(prev => prev ? { ...prev, status: newStatus as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' } : null)
+      }
+      
+      setStatusDialogOpen(false)
+      setStatusAction(null)
+      
+    } catch (e) {
+      console.error('Status update failed', e)
+      setErrorMsg('Failed to update user status')
+    } finally {
+      setUpdating(false)
+    }
+  }, [statusAction, selectedUser])
+
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
     return users
       .filter(u => (roleFilter === 'ALL' ? true : u.role === roleFilter))
-      .filter(u => !q || (u.name?.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)))
+      .filter(u => (statusFilter === 'ALL' ? true : (u.status || 'ACTIVE') === statusFilter))
+      .filter(u => !q || (u.name?.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.company?.toLowerCase().includes(q)))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [users, roleFilter, search])
+  }, [users, roleFilter, statusFilter, search])
 
   const formatDate = (iso?: string) => {
-    if (!iso) return ''
+    if (!iso) return 'Never'
     const d = new Date(iso)
-    if (isNaN(d.getTime())) return ''
+    if (isNaN(d.getTime())) return 'Invalid date'
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
-  const _parseAudit = (msg?: string | null) => {
-    try {
-      if (!msg) return { action: 'event' }
-      const json = JSON.parse(msg) as { action?: string; targetId?: string; details?: unknown }
-      return { action: json.action || 'event', targetId: json.targetId }
-    } catch {
-      return { action: 'event' }
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-green-100 text-green-800 border-green-200'
+      case 'INACTIVE':
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'SUSPENDED':
+        return 'bg-red-100 text-red-800 border-red-200'
+      default:
+        return 'bg-green-100 text-green-800 border-green-200'
+    }
+  }
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return 'bg-red-100 text-red-800 border-red-200'
+      case 'STAFF':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'CLIENT':
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
@@ -236,6 +385,7 @@ export default function AdminUsersPage() {
         {errorMsg && (
           <div className="mb-6 border border-red-200 bg-red-50 text-red-800 rounded-md p-3 text-sm">
             {errorMsg}
+            <button onClick={() => setErrorMsg(null)} className="ml-2 text-red-600 hover:text-red-800">×</button>
           </div>
         )}
 
@@ -245,7 +395,7 @@ export default function AdminUsersPage() {
               <Users className="h-8 w-8 mr-3 text-blue-600" />
               User Management
             </h1>
-            <p className="text-gray-600 mt-2">Manage users, roles, and view activity</p>
+            <p className="text-gray-600 mt-2">Manage users, roles, and monitor activity</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" onClick={handleRefresh} disabled={refreshing} className="flex items-center gap-2">
@@ -261,6 +411,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
+        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -312,6 +463,7 @@ export default function AdminUsersPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Top Clients */}
           <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle>Top Clients by Bookings</CardTitle>
@@ -338,24 +490,43 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
 
+          {/* User Directory */}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>User Directory</CardTitle>
-              <CardDescription>Search, filter and update roles</CardDescription>
+              <CardDescription>Search, filter and manage users</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <div className="relative flex-1 min-w-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email" className="pl-9" />
+                  <Input 
+                    value={search} 
+                    onChange={(e) => setSearch(e.target.value)} 
+                    placeholder="Search by name, email, or company" 
+                    className="pl-9" 
+                  />
                 </div>
                 <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as typeof roleFilter)}>
-                  <SelectTrigger className="w-[160px]"><SelectValue placeholder="Role" /></SelectTrigger>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">All Roles</SelectItem>
                     <SelectItem value="ADMIN">Admin</SelectItem>
                     <SelectItem value="STAFF">Staff</SelectItem>
                     <SelectItem value="CLIENT">Client</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
+                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                    <SelectItem value="SUSPENDED">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -371,17 +542,32 @@ export default function AdminUsersPage() {
                           <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                             {(u.name || u.email).charAt(0).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-medium text-gray-900 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.name || 'Unnamed User'}</div>
+                          <div className="min-w-0 flex-1">
+                            <button
+                              onClick={() => openUserProfile(u)}
+                              className="font-medium text-gray-900 hover:text-blue-600 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px] text-left"
+                            >
+                              {u.name || 'Unnamed User'}
+                            </button>
                             <div className="text-sm text-gray-600 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.email}</div>
-                            <div className="text-xs text-gray-400 truncate">Joined {formatDate(u.createdAt)}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="text-xs text-gray-400">Joined {formatDate(u.createdAt)}</div>
+                              {u.company && <div className="text-xs text-gray-400">• {u.company}</div>}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
-                          <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <Badge className={getStatusColor(u.status)}>
+                            {u.status || 'ACTIVE'}
+                          </Badge>
+                          <Badge className={getRoleColor(u.role)}>
+                            {u.role}
+                          </Badge>
                           {perms.canManageUsers && (
                             <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
-                              <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className="w-28 h-8">
+                                <SelectValue />
+                              </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="CLIENT">Client</SelectItem>
                                 <SelectItem value="STAFF">Staff</SelectItem>
@@ -389,7 +575,7 @@ export default function AdminUsersPage() {
                               </SelectContent>
                             </Select>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => { setSelected(u); setDetailsOpen(true) }}>
+                          <Button variant="ghost" size="sm" onClick={() => openUserProfile(u)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                         </div>
@@ -397,30 +583,426 @@ export default function AdminUsersPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-500 text-sm py-6 text-center">No users found.</div>
+                  <div className="text-gray-500 text-sm py-6 text-center">No users found matching your criteria.</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
-
       </div>
 
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent>
+      {/* Enhanced User Profile Dialog */}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                {selectedUser ? (selectedUser.name || selectedUser.email).charAt(0).toUpperCase() : ''}
+              </div>
+              {editMode ? 'Edit User Profile' : 'User Profile'}
+            </DialogTitle>
+            <DialogDescription>
+              {editMode ? 'Update user information and settings' : 'View detailed user information and manage account'}
+            </DialogDescription>
           </DialogHeader>
-          {selected && (
-            <div className="space-y-2">
-              <div className="text-sm"><span className="text-gray-500">Name:</span> <span className="text-gray-900">{selected.name || 'Unnamed User'}</span></div>
-              <div className="text-sm"><span className="text-gray-500">Email:</span> <span className="text-gray-900">{selected.email}</span></div>
-              <div className="text-sm"><span className="text-gray-500">Role:</span> <span className="text-gray-900">{selected.role}</span></div>
-              <div className="text-sm"><span className="text-gray-500">Joined:</span> <span className="text-gray-900">{formatDate(selected.createdAt)}</span></div>
-            </div>
+          
+          {selectedUser && (
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="profile" className="space-y-4 mt-4">
+                {editMode ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input
+                          id="name"
+                          value={editForm.name || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Enter full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={editForm.email || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          value={editForm.phone || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="company">Company</Label>
+                        <Input
+                          id="company"
+                          value={editForm.company || ''}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, company: e.target.value }))}
+                          placeholder="Enter company name"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={editForm.location || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                        placeholder="Enter location"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">Notes</Label>
+                      <Textarea
+                        id="notes"
+                        value={editForm.notes || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                        placeholder="Add any notes about this user..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Email</div>
+                            <div className="text-sm text-gray-600">{selectedUser.email}</div>
+                          </div>
+                        </div>
+                        
+                        {selectedUser.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-500" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Phone</div>
+                              <div className="text-sm text-gray-600">{selectedUser.phone}</div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {selectedUser.company && (
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-gray-500" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Company</div>
+                              <div className="text-sm text-gray-600">{selectedUser.company}</div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {selectedUser.location && (
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">Location</div>
+                              <div className="text-sm text-gray-600">{selectedUser.location}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Joined</div>
+                            <div className="text-sm text-gray-600">{formatDate(selectedUser.createdAt)}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Last Login</div>
+                            <div className="text-sm text-gray-600">{formatDate(selectedUser.lastLoginAt)}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Role</div>
+                            <Badge className={getRoleColor(selectedUser.role)}>{selectedUser.role}</Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-gray-500" />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">Status</div>
+                            <Badge className={getStatusColor(selectedUser.status)}>
+                              {selectedUser.status || 'ACTIVE'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {selectedUser.notes && (
+                      <div className="pt-4 border-t">
+                        <div className="text-sm font-medium text-gray-900 mb-2">Notes</div>
+                        <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                          {selectedUser.notes}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {(selectedUser.totalBookings || selectedUser.totalRevenue) && (
+                      <div className="pt-4 border-t">
+                        <div className="text-sm font-medium text-gray-900 mb-2">Statistics</div>
+                        <div className="grid grid-cols-2 gap-4">
+                          {selectedUser.totalBookings && (
+                            <div className="bg-blue-50 p-3 rounded-md">
+                              <div className="text-sm font-medium text-blue-900">Total Bookings</div>
+                              <div className="text-lg font-bold text-blue-700">{selectedUser.totalBookings}</div>
+                            </div>
+                          )}
+                          {selectedUser.totalRevenue && (
+                            <div className="bg-green-50 p-3 rounded-md">
+                              <div className="text-sm font-medium text-green-900">Total Revenue</div>
+                              <div className="text-lg font-bold text-green-700">${selectedUser.totalRevenue.toLocaleString()}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="activity" className="space-y-4 mt-4">
+                <div className="space-y-3">
+                  <div className="text-sm text-gray-500">Recent activity for this user</div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <div>
+                        <div className="text-sm font-medium">Account created</div>
+                        <div className="text-xs text-gray-500">{formatDate(selectedUser.createdAt)}</div>
+                      </div>
+                      <Badge variant="outline">System</Badge>
+                    </div>
+                    {selectedUser.lastLoginAt && (
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <div className="text-sm font-medium">Last login</div>
+                          <div className="text-xs text-gray-500">{formatDate(selectedUser.lastLoginAt)}</div>
+                        </div>
+                        <Badge variant="outline">Login</Badge>
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-400 text-center py-4">
+                      More detailed activity logs available in audit section
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="settings" className="space-y-4 mt-4">
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Account Status</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <div className="text-sm font-medium">Current Status</div>
+                          <div className="text-xs text-gray-500">User account status</div>
+                        </div>
+                        <Badge className={getStatusColor(selectedUser.status)}>
+                          {selectedUser.status || 'ACTIVE'}
+                        </Badge>
+                      </div>
+                      
+                      {perms.canManageUsers && (
+                        <div className="flex gap-2 pt-2">
+                          {(selectedUser.status === 'INACTIVE' || selectedUser.status === 'SUSPENDED') && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                setStatusAction({ action: 'activate', user: selectedUser })
+                                setStatusDialogOpen(true)
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <UserCheck className="h-3 w-3" />
+                              Activate
+                            </Button>
+                          )}
+                          
+                          {selectedUser.status !== 'INACTIVE' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                setStatusAction({ action: 'deactivate', user: selectedUser })
+                                setStatusDialogOpen(true)
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <UserX className="h-3 w-3" />
+                              Deactivate
+                            </Button>
+                          )}
+                          
+                          {selectedUser.status !== 'SUSPENDED' && (
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              onClick={() => {
+                                setStatusAction({ action: 'suspend', user: selectedUser })
+                                setStatusDialogOpen(true)
+                              }}
+                              className="flex items-center gap-1"
+                            >
+                              <Ban className="h-3 w-3" />
+                              Suspend
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Permissions</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                        <div>
+                          <div className="text-sm font-medium">User Role</div>
+                          <div className="text-xs text-gray-500">Determines access level</div>
+                        </div>
+                        <Badge className={getRoleColor(selectedUser.role)}>
+                          {selectedUser.role}
+                        </Badge>
+                      </div>
+                      
+                      {selectedUser.permissions && selectedUser.permissions.length > 0 && (
+                        <div className="p-3 bg-gray-50 rounded-md">
+                          <div className="text-sm font-medium mb-2">Custom Permissions</div>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedUser.permissions.map((perm, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {perm}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
+          
+          <DialogFooter className="flex justify-between">
+            <div className="flex gap-2">
+              {!editMode && perms.canManageUsers && (
+                <Button variant="outline" onClick={() => setEditMode(true)} className="flex items-center gap-1">
+                  <Edit3 className="h-3 w-3" />
+                  Edit
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {editMode ? (
+                <>
+                  <Button variant="outline" onClick={() => setEditMode(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleEditUser} disabled={updating}>
+                    {updating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" onClick={() => setProfileOpen(false)}>
+                  Close
+                </Button>
+              )}
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Status Change Confirmation Dialog */}
+      <AlertDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {statusAction?.action === 'activate' && 'Activate User Account'}
+              {statusAction?.action === 'deactivate' && 'Deactivate User Account'}
+              {statusAction?.action === 'suspend' && 'Suspend User Account'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {statusAction?.action === 'activate' && 
+                `Are you sure you want to activate ${statusAction.user.name || statusAction.user.email}'s account? They will regain access to their account.`
+              }
+              {statusAction?.action === 'deactivate' && 
+                `Are you sure you want to deactivate ${statusAction.user.name || statusAction.user.email}'s account? They will lose access but their data will be preserved.`
+              }
+              {statusAction?.action === 'suspend' && 
+                `Are you sure you want to suspend ${statusAction.user.name || statusAction.user.email}'s account? This action should only be used for policy violations.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={updating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStatusChange}
+              disabled={updating}
+              className={
+                statusAction?.action === 'suspend' 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : statusAction?.action === 'activate'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : ''
+              }
+            >
+              {updating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {statusAction?.action === 'activate' && 'Activate User'}
+                  {statusAction?.action === 'deactivate' && 'Deactivate User'}
+                  {statusAction?.action === 'suspend' && 'Suspend User'}
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

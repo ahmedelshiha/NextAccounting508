@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { logAudit } from '@/lib/audit'
-import { roleUpdateSchema } from '@/lib/validation'
+import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -29,26 +29,39 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const json = await request.json().catch(() => ({}))
-    const parsed = roleUpdateSchema.safeParse(json)
+    const parsed = userUpdateSchema.safeParse(json)
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-    const newRole = parsed.data.role
+
+    const data: { name?: string; email?: string; role?: import('@prisma/client').UserRole } = {}
+    if (parsed.data.name !== undefined) data.name = parsed.data.name
+    if (parsed.data.email !== undefined) data.email = parsed.data.email
+    if (parsed.data.role !== undefined) data.role = parsed.data.role as import('@prisma/client').UserRole
 
     const updated = await prisma.user.update({
       where: { id },
-      data: { role: newRole },
+      data,
       select: { id: true, name: true, email: true, role: true, createdAt: true }
     })
 
-    await logAudit({
-      action: 'user.role.update',
-      actorId: session.user.id,
-      targetId: id,
-      details: { from: role, to: newRole }
-    })
+    if (parsed.data.role !== undefined) {
+      await logAudit({
+        action: 'user.role.update',
+        actorId: session.user.id,
+        targetId: id,
+        details: { to: parsed.data.role }
+      })
+    } else {
+      await logAudit({
+        action: 'user.update',
+        actorId: session.user.id,
+        targetId: id,
+        details: { fields: Object.keys(data) }
+      })
+    }
 
-    return NextResponse.json({ user: updated })
+    return NextResponse.json(updated)
   } catch (error) {
     console.error('Error updating user:', error)
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
