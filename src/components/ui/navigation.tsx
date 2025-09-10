@@ -87,6 +87,12 @@ export function Navigation() {
                         My Bookings
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/portal/settings" className="flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="flex items-center">
@@ -169,6 +175,13 @@ export function Navigation() {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       My Bookings
+                    </Link>
+                    <Link
+                      href="/portal/settings"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Settings
                     </Link>
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
                       <Link

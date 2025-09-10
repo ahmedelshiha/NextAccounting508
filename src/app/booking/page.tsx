@@ -96,17 +96,31 @@ export default function BookingPage() {
       try {
         const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1`)
         if (res.ok) {
-          type AvailabilityDay = { date: string; slots: { start: string; available?: boolean }[] }
-          const data = (await res.json()) as AvailabilityDay[]
-          const day = Array.isArray(data) ? data[0] : undefined
-          const slots: TimeSlot[] = (day?.slots || []).map((s) => ({
-            time: new Date(s.start).toTimeString().slice(0, 5),
-            available: s.available !== false,
-          }))
-          setTimeSlots(slots)
-          return
+          // API may return { availability: [...] } or directly an array
+          const json = await res.json().catch(() => null)
+          type ApiDay = { date: string; slots: { start: string; available?: boolean }[] }
+          const availability: ApiDay[] = Array.isArray(json)
+            ? (json as ApiDay[])
+            : json && typeof json === 'object' && Array.isArray((json as { availability?: unknown }).availability)
+            ? ((json as { availability: ApiDay[] }).availability)
+            : []
+
+          // Prefer the exact selectedDate if present, otherwise take the first day
+          const day = availability.find((d) => d.date === selectedDate) || availability[0]
+
+          if (day && Array.isArray(day.slots) && day.slots.length > 0) {
+            const slots: TimeSlot[] = day.slots.map((s) => ({
+              time: new Date(s.start).toTimeString().slice(0, 5),
+              available: s.available !== false,
+            }))
+            setTimeSlots(slots)
+            return
+          }
         }
-      } catch {}
+      } catch (err) {
+        console.error('loadAvailability error', err)
+      }
+      // Fallback to generated slots when API fails or returns empty
       setTimeSlots(generateTimeSlots())
     }
     loadAvailability()

@@ -2,20 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import {
-  Calendar,
   Clock,
   User as UserIcon,
   Mail,
   Phone,
   MapPin,
-  FileText,
   DollarSign,
   Search,
   Plus,
   ArrowRight,
   ArrowLeft,
   CheckCircle,
-  AlertCircle,
   Users,
   Building,
   Globe,
@@ -650,16 +647,18 @@ function SchedulingSection({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Meeting Location</label>
           <div className="grid grid-cols-3 gap-3">
-            {[
-              { value: 'office', label: 'Office Visit', icon: Building },
-              { value: 'remote', label: 'Remote/Video', icon: Globe },
-              { value: 'client_site', label: 'Client Site', icon: MapPin }
-            ].map((option) => {
+            {(
+              [
+                { value: 'office', label: 'Office Visit', icon: Building },
+                { value: 'remote', label: 'Remote/Video', icon: Globe },
+                { value: 'client_site', label: 'Client Site', icon: MapPin }
+              ] as { value: 'office' | 'remote' | 'client_site'; label: string; icon: typeof Building }[]
+            ).map((option) => {
               const IconComponent = option.icon
               return (
                 <div
                   key={option.value}
-                  onClick={() => onLocationChange(option.value as any)}
+                  onClick={() => onLocationChange(option.value)}
                   className={`p-3 border rounded-lg cursor-pointer transition-all text-center ${
                     location === option.value ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -700,26 +699,41 @@ export default function ProfessionalNewBooking() {
       try {
         setLoadingData(true)
         const svcRes = await fetch('/api/services', { cache: 'no-store' })
-        const svcJson = await svcRes.json().catch(() => [])
-        const mappedServices: Service[] = (svcJson || []).map((s: any) => ({
+        const svcJson = (await svcRes.json().catch(() => [])) as unknown
+        type ApiService = {
+          id: string
+          name: string
+          description?: string | null
+          shortDesc?: string | null
+          category?: string | null
+          duration?: number | null
+          price?: number | null
+          features?: string[] | null
+          featured?: boolean | null
+        }
+        const mappedServices: Service[] = (Array.isArray(svcJson) ? (svcJson as ApiService[]) : []).map((s) => ({
           id: s.id,
           name: s.name,
           description: s.description || s.shortDesc || '',
-          category: (s.category || 'consulting').toLowerCase(),
+          category: (s.category || 'consulting').toLowerCase() as Service['category'],
           duration: s.duration || 60,
           price: s.price || 0,
           estimatedHours: Math.max(1, Math.round(((s.duration || 60) / 60) * 10) / 10),
           requirements: Array.isArray(s.features) && s.features.length ? s.features.slice(0, 5) : ['Government ID', 'Previous statements'],
           isPopular: !!s.featured,
-          complexity: ((s.duration || 60) > 120 ? 'advanced' : (s.duration || 60) > 60 ? 'intermediate' : 'basic')
-        })) as Service[]
-        setServices(mappedServices)
+          complexity: (s.duration || 60) > 120 ? 'advanced' : (s.duration || 60) > 60 ? 'intermediate' : 'basic'
+        }))
+        setServices(mappedServices.length ? mappedServices : mockServices)
 
         const uRes = await fetch('/api/admin/users', { cache: 'no-store' })
-        const uJson = await uRes.json().catch(() => ({ users: [] }))
-        const mappedClients: Client[] = (uJson.users || [])
-          .filter((u: any) => u.role === 'CLIENT')
-          .map((u: any) => ({
+        const uJson = (await uRes.json().catch(() => ({ users: [] }))) as unknown
+        type ApiUser = { id: string; name?: string | null; email: string; role?: string | null }
+        const users = (uJson && typeof uJson === 'object' && 'users' in (uJson as Record<string, unknown>)
+          ? ((uJson as { users?: unknown }).users as unknown)
+          : []) as unknown
+        const mappedClients: Client[] = (Array.isArray(users) ? (users as ApiUser[]) : [])
+          .filter((u) => u.role === 'CLIENT')
+          .map((u) => ({
             id: u.id,
             name: u.name || u.email,
             email: u.email,
@@ -751,7 +765,7 @@ export default function ProfessionalNewBooking() {
     { number: 5, title: 'Review', description: 'Confirm booking details' }
   ]
 
-  const handleFormChange = (field: keyof BookingFormData, value: any) => {
+  const handleFormChange = <K extends keyof BookingFormData>(field: K, value: BookingFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -926,7 +940,7 @@ export default function ProfessionalNewBooking() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level</label>
                   <select
                     value={formData.priority}
-                    onChange={(e) => handleFormChange('priority', e.target.value)}
+                    onChange={(e) => handleFormChange('priority', e.target.value as BookingFormData['priority'])}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="normal">Normal</option>
@@ -939,7 +953,7 @@ export default function ProfessionalNewBooking() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Booking Source</label>
                   <select
                     value={formData.source}
-                    onChange={(e) => handleFormChange('source', e.target.value)}
+                    onChange={(e) => handleFormChange('source', e.target.value as BookingFormData['source'])}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="direct">Direct Contact</option>
@@ -1005,7 +1019,7 @@ export default function ProfessionalNewBooking() {
                   <div className="ml-6">
                     <select
                       value={formData.recurringPattern}
-                      onChange={(e) => handleFormChange('recurringPattern', e.target.value)}
+                      onChange={(e) => handleFormChange('recurringPattern', e.target.value as BookingFormData['recurringPattern'])}
                       className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select Pattern</option>

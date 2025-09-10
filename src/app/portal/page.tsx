@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
+import { toast } from 'sonner'
 
 interface Booking {
   id: string
@@ -71,15 +72,59 @@ export default function PortalPage() {
     })
   }
 
-  const upcomingBookings = bookings.filter(booking => 
-    new Date(booking.scheduledAt) > new Date() && 
+  const [filter, setFilter] = useState<'all'|'upcoming'|'past'>('upcoming')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const upcomingBookings = bookings.filter(booking =>
+    new Date(booking.scheduledAt) > new Date() &&
     ['PENDING', 'CONFIRMED'].includes(booking.status)
   )
 
-  const pastBookings = bookings.filter(booking => 
-    new Date(booking.scheduledAt) <= new Date() || 
+  const pastBookings = bookings.filter(booking =>
+    new Date(booking.scheduledAt) <= new Date() ||
     ['COMPLETED', 'CANCELLED'].includes(booking.status)
   )
+
+
+  const handleCancel = async (id: string) => {
+    if (!confirm('Are you sure you want to cancel this appointment?')) return
+    setDeletingId(id)
+    try {
+      const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (res.ok) {
+        setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b))
+        toast.success('Appointment cancelled')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to cancel appointment')
+      }
+    } catch (e) {
+      console.error('Cancel error', e)
+      toast.error('Failed to cancel appointment')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const exportCSV = () => {
+    if (!bookings.length) return
+    const rows = bookings.map(b => ({
+      id: b.id,
+      service: b.service.name,
+      date: new Date(b.scheduledAt).toLocaleDateString(),
+      time: new Date(b.scheduledAt).toLocaleTimeString(),
+      status: b.status
+    }))
+    const header = Object.keys(rows[0]).join(',')
+    const csv = [header, ...rows.map(r => Object.values(r).map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bookings-${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -112,27 +157,34 @@ export default function PortalPage() {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <div>
+                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+                <CardDescription className="text-xs">{bookings.length} total</CardDescription>
+              </div>
               <Calendar className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{bookings.length}</div>
+              <div className="text-2xl font-bold">{upcomingBookings.length}</div>
               <p className="text-xs text-gray-600">
-                {upcomingBookings.length} upcoming
+                upcoming
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Account Status</CardTitle>
+              <CardTitle className="text-sm font-medium">Actions</CardTitle>
               <FileText className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Active</div>
-              <p className="text-xs text-gray-600">
-                All services available
-              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">Export CSV</Button>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="past">Past</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -177,12 +229,19 @@ export default function PortalPage() {
                           </div>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/portal/bookings/${booking.id}`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Details
-                        </Link>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/portal/bookings/${booking.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Details
+                          </Link>
+                        </Button>
+                        {['PENDING','CONFIRMED'].includes(booking.status) && (
+                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id}>
+                            {deletingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     {booking.notes && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-md">
