@@ -4,6 +4,7 @@ import { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import type { Prisma } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/bookings - Get bookings (filtered by user role)
 export async function GET(request: NextRequest) {
@@ -143,9 +144,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const isAdminOrStaff = session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF'
+    const targetClientId = (isAdminOrStaff && body.clientId) ? body.clientId : session?.user?.id
+
     const booking = await prisma.booking.create({
       data: {
-        clientId: session?.user?.id,
+        clientId: targetClientId,
         serviceId,
         scheduledAt: scheduledDate,
         duration,

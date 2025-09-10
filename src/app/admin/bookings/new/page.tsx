@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Calendar,
   Clock,
@@ -31,6 +31,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 // Data types
 interface Service {
@@ -293,14 +294,11 @@ function ClientSelector({
               <Users className="h-4 w-4" />
               Existing
             </Button>
-            <Button
-              variant={isNewClient ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onNewClientToggle(true)}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              New Client
+            <Button asChild variant={isNewClient ? 'default' : 'outline'} size="sm" className="gap-2">
+              <Link href="/admin/clients/new">
+                <Plus className="h-4 w-4" />
+                New Client
+              </Link>
             </Button>
           </div>
         </div>
@@ -693,8 +691,50 @@ export default function ProfessionalNewBooking() {
     followUpRequired: false
   })
 
-  const [services, setServices] = useState<Service[]>(mockServices)
-  void setServices
+  const [services, setServices] = useState<Service[]>([])
+  const [clients, setClients] = useState<Client[]>([])
+  const [loadingData, setLoadingData] = useState(true)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoadingData(true)
+        const svcRes = await fetch('/api/services', { cache: 'no-store' })
+        const svcJson = await svcRes.json().catch(() => [])
+        const mappedServices: Service[] = (svcJson || []).map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          description: s.description || s.shortDesc || '',
+          category: (s.category || 'consulting').toLowerCase(),
+          duration: s.duration || 60,
+          price: s.price || 0,
+          estimatedHours: Math.max(1, Math.round(((s.duration || 60) / 60) * 10) / 10),
+          requirements: Array.isArray(s.features) && s.features.length ? s.features.slice(0, 5) : ['Government ID', 'Previous statements'],
+          isPopular: !!s.featured,
+          complexity: ((s.duration || 60) > 120 ? 'advanced' : (s.duration || 60) > 60 ? 'intermediate' : 'basic')
+        })) as Service[]
+        setServices(mappedServices)
+
+        const uRes = await fetch('/api/admin/users', { cache: 'no-store' })
+        const uJson = await uRes.json().catch(() => ({ users: [] }))
+        const mappedClients: Client[] = (uJson.users || [])
+          .filter((u: any) => u.role === 'CLIENT')
+          .map((u: any) => ({
+            id: u.id,
+            name: u.name || u.email,
+            email: u.email,
+            phone: '',
+            tier: 'individual',
+            totalBookings: 0,
+            isActive: true
+          }))
+        setClients(mappedClients)
+      } finally {
+        setLoadingData(false)
+      }
+    }
+    load()
+  }, [])
 
   const [selectedClient, setSelectedClient] = useState<Client>()
   const [selectedService, setSelectedService] = useState<Service>()
@@ -764,15 +804,30 @@ export default function ProfessionalNewBooking() {
   const handleSubmit = async () => {
     setLoading(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200))
-      const bookingData = {
-        ...formData,
-        id: `booking_${Date.now()}`,
-        status: 'confirmed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      if (!formData.serviceId || !formData.scheduledDate || !formData.scheduledTime || !formData.clientName || !formData.clientEmail) {
+        alert('Please complete required fields before submitting.')
+        return
       }
-      console.log('Booking created:', bookingData)
+      const scheduledAt = new Date(`${formData.scheduledDate}T${formData.scheduledTime}:00`)
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: formData.clientId,
+          serviceId: formData.serviceId,
+          scheduledAt: scheduledAt.toISOString(),
+          notes: formData.internalNotes || formData.clientNotes,
+          clientName: formData.clientName,
+          clientEmail: formData.clientEmail,
+          clientPhone: formData.clientPhone
+        })
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to create booking')
+      }
+      const booking = await res.json()
+      console.log('Booking created:', booking)
       alert('Booking created successfully!')
       setCurrentStep(1)
       setFormData({
@@ -806,7 +861,7 @@ export default function ProfessionalNewBooking() {
         return (
           <div className="space-y-6">
             <ClientSelector
-              clients={mockClients}
+              clients={clients.length ? clients : mockClients}
               selectedClient={selectedClient}
               onClientSelect={handleClientSelect}
               isNewClient={formData.isNewClient || false}
@@ -818,79 +873,13 @@ export default function ProfessionalNewBooking() {
             {formData.isNewClient && (
               <Card>
                 <CardHeader>
-                  <CardTitle>New Client Information</CardTitle>
-                  <CardDescription>Enter details for the new client</CardDescription>
+                  <CardTitle>Create Client in Full Form</CardTitle>
+                  <CardDescription>Use the dedicated client creation page for complete details</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                      <input
-                        type="text"
-                        value={formData.clientName || ''}
-                        onChange={(e) => handleFormChange('clientName', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter client's full name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-                      <input
-                        type="email"
-                        value={formData.clientEmail || ''}
-                        onChange={(e) => handleFormChange('clientEmail', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="client@example.com"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input
-                        type="tel"
-                        value={formData.clientPhone || ''}
-                        onChange={(e) => handleFormChange('clientPhone', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="+20123456789"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Company (Optional)</label>
-                      <input
-                        type="text"
-                        value={formData.clientCompany || ''}
-                        onChange={(e) => handleFormChange('clientCompany', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Company name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Client Type</label>
-                    <select
-                      value={formData.clientType}
-                      onChange={(e) => handleFormChange('clientType', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="individual">Individual</option>
-                      <option value="smb">Small/Medium Business</option>
-                      <option value="enterprise">Enterprise</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address (Optional)</label>
-                    <textarea
-                      value={formData.clientAddress || ''}
-                      onChange={(e) => handleFormChange('clientAddress', e.target.value)}
-                      rows={2}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Client's address"
-                    />
-                  </div>
+                <CardContent>
+                  <Button asChild>
+                    <Link href="/admin/clients/new">Open Client Creation</Link>
+                  </Button>
                 </CardContent>
               </Card>
             )}
@@ -1242,7 +1231,14 @@ export default function ProfessionalNewBooking() {
           </CardContent>
         </Card>
 
-        <div className="mb-8">{renderStepContent()}</div>
+        <div className="mb-8">{loadingData ? (
+          <div className="text-center py-8">
+            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
+            <p className="text-gray-600">Loading booking data...</p>
+          </div>
+        ) : (
+          renderStepContent()
+        )}</div>
 
         <Card>
           <CardContent className="p-6">
