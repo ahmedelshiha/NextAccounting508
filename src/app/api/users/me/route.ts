@@ -71,7 +71,8 @@ export async function PATCH(request: NextRequest) {
       updates.email = parsed.data.email
     }
     if (changingPassword) {
-      const hashed = await bcrypt.hash(parsed.data.password, 12)
+      const newPassword = parsed.data.password as string
+      const hashed = await bcrypt.hash(newPassword, 12)
       updates.password = hashed
     }
 
