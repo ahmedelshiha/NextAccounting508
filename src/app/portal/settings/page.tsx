@@ -36,6 +36,7 @@ export default function PortalSettingsPage() {
           const user = json.user
           setName(user.name || '')
           setEmail(user.email || '')
+          setOriginalEmail(user.email || '')
         }
       } catch (e) {
         console.error('Failed to load user', e)
