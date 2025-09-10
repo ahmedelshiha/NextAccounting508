@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { logAudit } from '@/lib/audit'
 
 const patchSchema = z.object({
   name: z.string().min(2).optional(),
@@ -56,9 +57,35 @@ export async function PATCH(request: NextRequest) {
 
     const updated = await prisma.user.update({ where: { id: session.user.id }, data: updates, select: { id: true, name: true, email: true } })
 
+    await logAudit({ action: 'user.profile.update', actorId: session.user.id, targetId: updated.id, details: { updatedFields: Object.keys(updates) } })
+
     return NextResponse.json({ user: updated })
   } catch (err) {
     console.error('PATCH /api/users/me error', err)
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+    if (!hasDb) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+    }
+
+    const userId = session.user.id
+
+    // Delete the user. Cascades will remove related accounts, sessions, bookings, etc.
+    await prisma.user.delete({ where: { id: userId } })
+
+    await logAudit({ action: 'user.delete', actorId: userId, targetId: userId })
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('DELETE /api/users/me error', err)
+    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
   }
 }
