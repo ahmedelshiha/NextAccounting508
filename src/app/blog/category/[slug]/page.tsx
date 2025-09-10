@@ -45,7 +45,7 @@ export default async function CategoryPage({ params }: Props) {
   }> = []
 
   try {
-    const where: any = { published: true }
+    const where: Prisma.PostWhereInput = { published: true }
     if (tag) where.tags = { has: tag }
     posts = await prisma.post.findMany({ where, include: { author: { select: { name: true, image: true } } }, orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }], take: 24 }) as unknown as typeof posts
   } catch (e) {
