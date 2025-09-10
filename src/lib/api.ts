@@ -1,11 +1,22 @@
-export async function apiFetch(path: string, options?: RequestInit) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const url = path.startsWith('http') ? path : `${origin}${path}`
-
+export async function apiFetch(path: RequestInfo | string, options?: RequestInit) {
+  // If a Request or non-string is passed through, delegate directly to fetch
   const opts: RequestInit = {
     credentials: 'include',
     ...options,
   }
+
+  // If path is not a string (Request, URL, etc.), just call fetch with it
+  if (typeof path !== 'string') {
+    try {
+      return await fetch(path, opts)
+    } catch (err) {
+      try { console.error('apiFetch failed for RequestInfo:', path, 'opts:', opts, 'error:', err) } catch (e) { console.error(e) }
+      throw err
+    }
+  }
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const url = path.startsWith('http') ? path : `${origin}${path}`
 
   try {
     return await fetch(url, opts)

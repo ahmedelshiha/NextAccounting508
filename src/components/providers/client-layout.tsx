@@ -10,6 +10,13 @@ interface ClientLayoutProps {
   children: React.ReactNode
 }
 
+// extend Window to store a fetch flag without using `any`
+declare global {
+  interface Window {
+    __fetchLogged?: boolean
+  }
+}
+
 export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
@@ -66,12 +73,61 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       }
     }
 
+    // Debugging helper: wrap window.fetch to log failing requests (helps diagnose next-auth CLIENT_FETCH_ERROR)
+    const originalFetch: typeof fetch = window.fetch.bind(window)
+    // Only wrap once
+    if (!window.__fetchLogged) {
+      window.__fetchLogged = true
+      window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
+        try {
+          const res = await originalFetch(...(args as [RequestInfo | URL, RequestInit | undefined]))
+          if (!res.ok) {
+            try {
+              const input = args[0]
+              const init = args[1]
+              const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
+              console.error('[fetch] non-ok response', { status: res.status, url, init })
+            } catch {}
+          }
+          return res
+        } catch (err: unknown) {
+          try {
+            // Log rich details to console to help debugging
+            const [input, init] = args
+            const info: Record<string, unknown> = { init: init ?? null }
+            if (typeof input === 'string') info.input = input
+            else if (input instanceof Request) {
+              info.input = input.url
+              info.requestMethod = input.method
+              try {
+                info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
+              } catch {}
+            } else if (input instanceof URL) {
+              info.input = input.toString()
+            } else {
+              info.input = String(input)
+            }
+            console.error('[fetch] network/error while fetching', info, err)
+          } catch (e) {
+            console.error('[fetch] failed and failed to log details', e)
+          }
+          throw err
+        }
+      }
+    }
+
     window.addEventListener('error', handleError)
     window.addEventListener('unhandledrejection', handleRejection)
 
     return () => {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
+      // restore fetch flag
+      try {
+        if (window.__fetchLogged) {
+          delete window.__fetchLogged
+        }
+      } catch {}
     }
   }, [])
 

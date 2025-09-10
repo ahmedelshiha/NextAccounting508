@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import Image from 'next/image'
 import {
   FileText,
   Search,
@@ -245,7 +246,8 @@ export default function ProfessionalPostManagement() {
       } else {
         setErrorMessage('Failed to load posts. Please try again.')
       }
-    } catch (_e) {
+    } catch (err) {
+      console.error('loadPosts failed', err)
       setErrorMessage('Network error. Please check your connection.')
     } finally {
       setLoading(false)
@@ -778,7 +780,9 @@ export default function ProfessionalPostManagement() {
 
               {post.coverImage && (
                 <div className="relative h-48 overflow-hidden rounded-t-lg">
-                  <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                  {post.coverImage && (
+                  <Image src={post.coverImage} alt={post.title} width={1200} height={480} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                )}
                   <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                     {post.featured && (
                       <Badge className="bg-purple-100 text-purple-800 border-purple-200">
@@ -931,7 +935,7 @@ export default function ProfessionalPostManagement() {
 
         {/* Create Modal */}
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+          <DialogContent className="max-w-full max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Create New Blog Post</DialogTitle>
               <DialogDescription>Create professional content for your accounting firm&apos;s blog</DialogDescription>
@@ -992,7 +996,7 @@ export default function ProfessionalPostManagement() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded" />
+                        <Image src={imagePreview} alt="Preview" width={800} height={320} className="w-full h-40 object-cover rounded" />
                         <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => { setImagePreview(null); setFormData(prev => ({ ...prev, coverImage: null })) }}>
                           <X className="h-3 w-3" />
                         </Button>
@@ -1068,7 +1072,7 @@ export default function ProfessionalPostManagement() {
 
         {/* Edit Modal */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+          <DialogContent className="max-w-full max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl">Edit Blog Post</DialogTitle>
               <DialogDescription>Update your professional blog content</DialogDescription>
@@ -1126,7 +1130,7 @@ export default function ProfessionalPostManagement() {
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded" />
+                        <Image src={imagePreview} alt="Preview" width={800} height={320} className="w-full h-40 object-cover rounded" />
                         <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => { setImagePreview(null); setFormData(prev => ({ ...prev, coverImage: null })) }}>
                           <X className="h-3 w-3" />
                         </Button>
@@ -1208,7 +1212,7 @@ export default function ProfessionalPostManagement() {
             {selectedPost && (
               <div className="prose max-w-none">
                 {selectedPost.coverImage && (
-                  <img src={selectedPost.coverImage} alt={selectedPost.title} className="w-full h-64 object-cover rounded-lg mb-6" />
+                  <Image src={selectedPost.coverImage} alt={selectedPost.title} width={1200} height={600} className="w-full h-64 object-cover rounded-lg mb-6" />
                 )}
                 <div className="mb-4">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedPost.title}</h1>

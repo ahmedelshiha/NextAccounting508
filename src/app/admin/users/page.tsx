@@ -77,12 +77,12 @@ export default function AdminUsersPage() {
   // Data state
   const [stats, setStats] = useState<UserStats | null>(null)
   const [users, setUsers] = useState<UserItem[]>([])
-  const [activity, setActivity] = useState<HealthLog[]>([])
+  const [_activity, setActivity] = useState<HealthLog[]>([])
 
   // UI state
   const [loading, setLoading] = useState(true)
   const [usersLoading, setUsersLoading] = useState(true)
-  const [activityLoading, setActivityLoading] = useState(true)
+  const [_activityLoading, setActivityLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [exporting, setExporting] = useState(false)
 
@@ -124,14 +124,14 @@ export default function AdminUsersPage() {
     }
   }, [])
 
-  const loadActivity = useCallback(async () => {
+  const _loadActivity = useCallback(async () => {
     try {
       const res = await apiFetch('/api/admin/activity?type=AUDIT&limit=20')
       if (!res.ok) throw new Error(`Failed to load activity (${res.status})`)
       const list = (await res.json()) as HealthLog[] | unknown
       setActivity(Array.isArray(list) ? (list as HealthLog[]) : [])
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      console.error(err)
       setActivity([])
     } finally {
       setActivityLoading(false)
@@ -190,7 +190,7 @@ export default function AdminUsersPage() {
       setUsers(prev => prev.map(u => (u.id === userId ? (original as UserItem) : u)))
       setErrorMsg('Failed to update role')
     }
-  }, [users, loadActivity])
+  }, [users])
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
-  const parseAudit = (msg?: string | null) => {
+  const _parseAudit = (msg?: string | null) => {
     try {
       if (!msg) return { action: 'event' }
       const json = JSON.parse(msg) as { action?: string; targetId?: string; details?: unknown }
