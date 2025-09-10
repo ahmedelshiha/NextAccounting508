@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/lib/rbac'
 import { logAudit } from '@/lib/audit'
-import { roleUpdateSchema } from '@/lib/validation'
+import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
