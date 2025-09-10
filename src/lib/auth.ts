@@ -52,10 +52,38 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt' },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = (user as User).role
+      // On sign in, attach role and sessionVersion
+      if (user) {
+        token.role = (user as User).role
+        if (hasDb) {
+          try {
+            const dbUser = await prisma.user.findUnique({ where: { id: (user as User).id }, select: { sessionVersion: true } })
+            token.sessionVersion = dbUser?.sessionVersion ?? 0
+          } catch (e) {
+            token.sessionVersion = 0
+          }
+        } else {
+          token.sessionVersion = 0
+        }
+      } else if (token.sub && hasDb) {
+        // On subsequent requests, validate token against DB version
+        try {
+          const dbUser = await prisma.user.findUnique({ where: { id: token.sub }, select: { sessionVersion: true } })
+          if (dbUser && token.sessionVersion !== dbUser.sessionVersion) {
+            // Mark token as invalidated
+            ;(token as any).invalidated = true
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
       return token
     },
     async session({ session, token }) {
+      // If token was invalidated due to sessionVersion mismatch, return null session
+      if ((token as any).invalidated) {
+        return null as any
+      }
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
