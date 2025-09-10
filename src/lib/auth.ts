@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
             const t = token as unknown as { invalidated?: boolean }
             t.invalidated = true
           }
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
