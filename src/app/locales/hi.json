@@ -59,6 +59,9 @@
   "footer.newsletter.placeholder": "अपना ईमेल दर्ज करें",
   "footer.newsletter.subscribe": "सब्सक्राइब करें",
   "footer.copyright": "© {{year}} अकाउंटिंग फर्म। सभी अधिकार सुरक्षित।",
+  "footer.privacy": "गोपनीयता नीति",
+  "footer.terms": "सेवा की शर्तें",
+  "footer.cookies": "कुकी नीति",
   
   "auth.login.title": "अपने खाते में साइन इन करें",
   "auth.login.subtitle": "या एक नया खाता बनाएं",
@@ -92,7 +95,7 @@
   "auth.register.signInHere": "यहाँ साइन इन करें",
   
   "portal.welcome": "वापसी पर स्वागत है, {{name}}!",
-  "portal.subtitle": "अपनी नियुक्तियों का प्रबंधन करें और अपनी लेखांकन सेवाएं देखें।",
+  "portal.subtitle": "अपनी नियुक्तियों का प्रबंधन करें और अपनी लेखांकन सेवा��ं देखें।",
   "portal.bookNew": "नई सेवा बुक करें",
   "portal.scheduleConsultation": "परामर्श शेड्यूल करें",
   "portal.totalBookings": "कुल बुकिंग",
