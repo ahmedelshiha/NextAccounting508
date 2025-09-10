@@ -39,11 +39,10 @@ const socialLinks = [
     name: 'LinkedIn',
     href: 'https://linkedin.com/company/accountingfirm',
     icon: Linkedin,
-  },
+  }
 ]
 
 export function Footer() {
-  const { t } = useTranslations()
   const navigation = {
     ...navigationBase,
     legal: [
