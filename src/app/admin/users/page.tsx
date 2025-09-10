@@ -124,14 +124,14 @@ export default function AdminUsersPage() {
     }
   }, [])
 
-  const loadActivity = useCallback(async () => {
+  const _loadActivity = useCallback(async () => {
     try {
       const res = await apiFetch('/api/admin/activity?type=AUDIT&limit=20')
       if (!res.ok) throw new Error(`Failed to load activity (${res.status})`)
       const list = (await res.json()) as HealthLog[] | unknown
       setActivity(Array.isArray(list) ? (list as HealthLog[]) : [])
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      console.error(err)
       setActivity([])
     } finally {
       setActivityLoading(false)
