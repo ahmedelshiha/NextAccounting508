@@ -940,7 +940,7 @@ export default function ProfessionalNewBooking() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level</label>
                   <select
                     value={formData.priority}
-                    onChange={(e) => handleFormChange('priority', e.target.value)}
+                    onChange={(e) => handleFormChange('priority', e.target.value as BookingFormData['priority'])}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="normal">Normal</option>
@@ -953,7 +953,7 @@ export default function ProfessionalNewBooking() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Booking Source</label>
                   <select
                     value={formData.source}
-                    onChange={(e) => handleFormChange('source', e.target.value)}
+                    onChange={(e) => handleFormChange('source', e.target.value as BookingFormData['source'])}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="direct">Direct Contact</option>
@@ -1019,7 +1019,7 @@ export default function ProfessionalNewBooking() {
                   <div className="ml-6">
                     <select
                       value={formData.recurringPattern}
-                      onChange={(e) => handleFormChange('recurringPattern', e.target.value)}
+                      onChange={(e) => handleFormChange('recurringPattern', e.target.value as BookingFormData['recurringPattern'])}
                       className="w-48 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="">Select Pattern</option>
