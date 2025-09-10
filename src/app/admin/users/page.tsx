@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <div className="relative flex-1">
+                <div className="relative flex-1 min-w-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or email" className="pl-9" />
                 </div>
@@ -367,22 +367,22 @@ export default function AdminUsersPage() {
               ) : filteredUsers.length ? (
                 <div className="space-y-2">
                   {filteredUsers.map(u => (
-                    <div key={u.id} className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm">
-                      <div className="flex items-center gap-4">
+                    <div key={u.id} className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm w-full">
+                      <div className="flex items-center gap-4 min-w-0">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                           {(u.name || u.email).charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{u.name || 'Unnamed User'}</div>
-                          <div className="text-sm text-gray-600">{u.email}</div>
-                          <div className="text-xs text-gray-400">Joined {formatDate(u.createdAt)}</div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.name || 'Unnamed User'}</div>
+                          <div className="text-sm text-gray-600 truncate max-w-[220px] sm:max-w-[260px] md:max-w-[320px]">{u.email}</div>
+                          <div className="text-xs text-gray-400 truncate">Joined {formatDate(u.createdAt)}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 shrink-0 whitespace-nowrap">
                         <Badge className="bg-gray-100 text-gray-800">{u.role}</Badge>
                         {perms.canManageUsers && (
                           <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
-                            <SelectTrigger className="w-24 h-8"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="CLIENT">Client</SelectItem>
                               <SelectItem value="STAFF">Staff</SelectItem>
