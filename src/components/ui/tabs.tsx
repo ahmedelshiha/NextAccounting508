@@ -40,10 +40,17 @@ function Tabs({
     if (!defaultValue && !controlled && React.Children.count(children) > 0) {
       // Try to infer first trigger as default
       const first = React.Children.toArray(children).find(
-        (child: any) => child?.type?.displayName === "TabsList"
-      ) as any
-      const firstTrigger = first?.props?.children?.[0]
-      const v = firstTrigger?.props?.value
+        (child): child is React.ReactElement<{ children?: React.ReactNode }> =>
+          React.isValidElement(child) &&
+          (child.type as { displayName?: string }).displayName === "TabsList"
+      )
+      const firstChildren = first?.props?.children
+      const firstTriggerEl = firstChildren
+        ? (React.Children.toArray(firstChildren).find((c): c is React.ReactElement<{ value?: string }> =>
+            React.isValidElement(c)
+          ) ?? undefined)
+        : undefined
+      const v = firstTriggerEl?.props?.value
       if (typeof v === "string") setUncontrolled(v)
     }
   }, [children, defaultValue, controlled])
