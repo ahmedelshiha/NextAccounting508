@@ -77,7 +77,7 @@ export default function AdminUsersPage() {
   // Data state
   const [stats, setStats] = useState<UserStats | null>(null)
   const [users, setUsers] = useState<UserItem[]>([])
-  const [activity, setActivity] = useState<HealthLog[]>([])
+  const [_activity, setActivity] = useState<HealthLog[]>([])
 
   // UI state
   const [loading, setLoading] = useState(true)
