@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         orderBy: { joinDate: 'desc' }
       })
       return NextResponse.json({ teamMembers: members.map(mapDbMember) })
-    } catch (e) {
+    } catch (_err) {
       // Table may not exist yet or DB not configured
       return NextResponse.json({ teamMembers: fallbackMembers })
     }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         include: { stats: true }
       })
       return NextResponse.json({ teamMember: mapDbMember(created) }, { status: 201 })
-    } catch (e) {
+    } catch (_err) {
       // DB not ready: respond with echo payload
       const echo = mapDbMember({ id: `tm-${Date.now()}`, userId, name, email, phone, role: role || 'STAFF', department, title, status: 'active', experienceYears, hourlyRate, specialties, certifications, workingHours, isAvailable: true, canManageBookings, canViewAllClients, notificationSettings, availabilityNotes: null, notes, joinDate: new Date().toISOString(), lastActive: new Date().toISOString(), stats: {} })
       return NextResponse.json({ teamMember: echo, warning: 'DB not available, returned non-persistent item' }, { status: 201 })
