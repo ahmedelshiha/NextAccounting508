@@ -176,6 +176,22 @@ export default function AdminBookingDetailPage() {
     }
   }
 
+  async function updateAssignment(memberId: string | '') {
+    if (!booking) return
+    setAssigning(true)
+    try {
+      const res = await apiFetch(`/api/bookings/${booking.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTeamMemberId: memberId || null }) })
+      if (res.ok) {
+        const data = await res.json()
+        setBooking(data)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setAssigning(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
