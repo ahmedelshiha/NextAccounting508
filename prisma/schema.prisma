@@ -269,6 +269,50 @@ model Task {
   updatedAt DateTime     @updatedAt
 }
 
+model TeamMember {
+  id                 String   @id @default(cuid())
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name               String
+  email              String   @unique
+  phone              String?
+  role               String
+  department         String
+  title              String
+  status             String   @default("active")
+  experienceYears    Int      @default(0)
+  hourlyRate         Decimal?
+  specialties        String[]
+  certifications     String[]
+  workingHours       Json
+  isAvailable        Boolean  @default(true)
+  canManageBookings  Boolean  @default(false)
+  canViewAllClients  Boolean  @default(false)
+  notificationSettings Json?
+  availabilityNotes  String?
+  notes              String?
+  joinDate           DateTime @default(now())
+  lastActive         DateTime @default(now())
+  stats              TeamMemberStats?
+
+  @@map("team_members")
+}
+
+model TeamMemberStats {
+  id               String      @id @default(cuid())
+  teamMemberId     String      @unique
+  teamMember       TeamMember  @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+  totalBookings    Int         @default(0)
+  completedBookings Int        @default(0)
+  averageRating    Float       @default(0)
+  totalRatings     Int         @default(0)
+  revenueGenerated Int         @default(0)
+  utilizationRate  Int         @default(0)
+  updatedAt        DateTime    @updatedAt
+
+  @@map("team_member_stats")
+}
+
 enum UserRole {
   CLIENT
   ADMIN
