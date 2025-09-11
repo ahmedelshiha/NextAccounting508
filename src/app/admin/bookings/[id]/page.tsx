@@ -296,6 +296,24 @@ export default function AdminBookingDetailPage() {
                   <Clock className="h-4 w-4 text-gray-500" />
                   <span>{formatTime(booking.scheduledAt)}</span>
                 </div>
+                <div className="space-y-2 pt-2">
+                  <div className="text-sm font-medium text-gray-900">Assigned Staff</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span>{booking.assignedTeamMember?.name || 'Unassigned'}</span>
+                  </div>
+                  {teamMembers.length > 0 && (
+                    <Select value={booking.assignedTeamMember?.id || ''} onValueChange={(v) => updateAssignment(v)}>
+                      <SelectTrigger size="sm" className="w-56">
+                        <SelectValue placeholder="Assign staff" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
+                        {teamMembers.map(tm => (<SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3">
