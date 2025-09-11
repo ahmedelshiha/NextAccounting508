@@ -3,10 +3,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import useSWR from 'swr'
 import { Pie, Bar, Line } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title as ChartTitle } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title as ChartTitle } from 'chart.js'
 import type { ChartData, ChartOptions } from 'chart.js'
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartTitle)
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ChartTitle)
 import { 
   Calendar, 
   Users, 
