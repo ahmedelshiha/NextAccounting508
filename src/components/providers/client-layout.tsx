@@ -73,10 +73,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       }
     }
 
-    // Debugging helper: wrap window.fetch to log failing requests (helps diagnose next-auth CLIENT_FETCH_ERROR)
+    // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
     const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once
-    if (!window.__fetchLogged) {
+    // Only wrap once and only when explicitly enabled
+    if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !window.__fetchLogged) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
