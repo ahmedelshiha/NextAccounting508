@@ -24,6 +24,45 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+// Lightweight SVG charts (no extra deps)
+function LineAreaChart({ values, stroke = '#2563eb', fill = '#bfdbfe', height = 120 }: { values: number[]; stroke?: string; fill?: string; height?: number }) {
+  const n = values.length
+  const max = Math.max(1, ...values)
+  const points = values.map((v, i) => ({ x: (i / Math.max(1, n - 1)) * 100, y: 100 - (v / max) * 100 }))
+  const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ')
+  const area = `M 0,100 ${points.map(p => `L ${p.x},${p.y}`).join(' ')} L 100,100 Z`
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height }}>
+      <path d={area} fill={fill} opacity={0.6} />
+      <path d={path} fill="none" stroke={stroke} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={1.5} fill={stroke}>
+          <title>{values[i]}</title>
+        </circle>
+      ))}
+    </svg>
+  )
+}
+
+function HBarChart({ items, color = '#22c55e', height = 12 }: { items: { label: string; value: number }[]; color?: string; height?: number }) {
+  const max = Math.max(1, ...items.map(i => i.value))
+  return (
+    <div className="space-y-3">
+      {items.map((it, idx) => (
+        <div key={idx}>
+          <div className="flex justify-between text-xs text-gray-600 mb-1">
+            <span className="truncate pr-2">{it.label}</span>
+            <span>${it.value.toLocaleString()}</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded" style={{ height }}>
+            <div className="rounded" style={{ width: `${Math.min(100, Math.round((it.value / max) * 100))}%`, height, backgroundColor: color }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 interface Service {
   id: string
   name: string
@@ -463,27 +502,11 @@ export default function EnhancedServicesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
                     <div className="text-sm text-gray-600 mb-2">Daily bookings</div>
-                    <div className="flex items-end gap-1 h-24">
-                      {analytics.dailyBookings.slice(-24).map((d, idx) => (
-                        <div key={idx} className="flex-1 bg-blue-200 rounded-sm" style={{ height: `${Math.max(2, Math.round((d.count / analyticsMaxBookings) * 96))}px` }} />
-                      ))}
-                    </div>
+                    <LineAreaChart values={analytics.dailyBookings.slice(-30).map(d => d.count)} stroke="#2563eb" fill="#bfdbfe" height={120} />
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-2">Revenue by service</div>
-                    <div className="space-y-2">
-                      {analytics.revenueByService.slice(0,5).map((r, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between text-xs text-gray-600 mb-1">
-                            <span className="truncate pr-2">{r.service}</span>
-                            <span>${r.amount.toLocaleString()}</span>
-                          </div>
-                          <div className="h-2 bg-gray-100 rounded">
-                            <div className="h-2 bg-green-500 rounded" style={{ width: `${Math.min(100, Math.round((r.amount / analyticsMaxRevenue) * 100))}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <HBarChart items={analytics.revenueByService.slice(0,5).map(r => ({ label: r.service, value: r.amount }))} color="#22c55e" height={8} />
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-2">Top services</div>
