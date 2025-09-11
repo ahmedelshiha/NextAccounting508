@@ -33,6 +33,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Maximize2,
+  Minimize2,
   ChevronDown
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -98,6 +99,7 @@ interface Booking {
   }
   paymentStatus?: 'PENDING' | 'PAID' | 'PARTIAL' | 'OVERDUE'
   source?: 'WEBSITE' | 'PHONE' | 'REFERRAL' | 'WALK_IN' | 'MARKETING'
+  reminderSent?: boolean
 }
 
 const statusStyles: Record<string, string> = {
@@ -136,11 +138,14 @@ export default function EnhancedBookingManagement() {
   const [clientTierFilter, setClientTierFilter] = useState('all')
   const [selected, setSelected] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState('overview')
-  const [sortBy, setSortBy] = useState<'date' | 'revenue' | 'client' | 'status'>('date')
+  const [sortBy, setSortBy] = useState<'date' | 'value' | 'client' | 'status'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const intervalRef = useRef<number | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [expandedCard, setExpandedCard] = useState<string | null>(null)
+  const [serviceFilter, setServiceFilter] = useState('all')
 
   useEffect(() => {
     refresh()
@@ -249,6 +254,7 @@ export default function EnhancedBookingManagement() {
       const matchesPriority = priorityFilter === 'all' || b.priority === (priorityFilter as any)
       const matchesStaff = staffFilter === 'all' || b.assignedStaff === staffFilter
       const matchesTier = clientTierFilter === 'all' || b.client.tier === (clientTierFilter as any)
+      const matchesService = serviceFilter === 'all' || (b.service?.category || '') === serviceFilter
 
       const d = new Date(b.scheduledAt)
       let matchesDate = true
@@ -262,20 +268,20 @@ export default function EnhancedBookingManagement() {
       } else if (dateFilter === 'upcoming') matchesDate = d > now
       else if (dateFilter === 'past') matchesDate = d < now
 
-      return matchesSearch && matchesStatus && matchesPriority && matchesStaff && matchesTier && matchesDate
+      return matchesSearch && matchesStatus && matchesPriority && matchesStaff && matchesTier && matchesService && matchesDate
     })
 
     const sorted = list.sort((a, b) => {
       let cmp = 0
       if (sortBy === 'date') cmp = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-      else if (sortBy === 'revenue') cmp = (Number(a.service?.price || 0) - Number(b.service?.price || 0))
+      else if (sortBy === 'value') cmp = (Number(a.service?.price || 0) - Number(b.service?.price || 0))
       else if (sortBy === 'client') cmp = a.clientName.localeCompare(b.clientName)
       else if (sortBy === 'status') cmp = a.status.localeCompare(b.status)
       return sortOrder === 'desc' ? -cmp : cmp
     })
 
     return sorted
-  }, [bookings, searchTerm, statusFilter, priorityFilter, staffFilter, clientTierFilter, dateFilter, sortBy, sortOrder])
+  }, [bookings, searchTerm, statusFilter, priorityFilter, staffFilter, clientTierFilter, serviceFilter, dateFilter, sortBy, sortOrder])
 
   const analytics = useMemo(() => {
     const total = bookings.length
@@ -300,6 +306,14 @@ export default function EnhancedBookingManagement() {
       revenueGrowth: 12.5,
     }
   }, [bookings])
+
+  function sendReminders() {
+    const targets = (selected.length ? bookings.filter(b => selected.includes(b.id)) : filtered).map(b => b.clientEmail).filter(Boolean)
+    if (!targets.length) return
+    const subject = encodeURIComponent('Appointment Reminder')
+    const body = encodeURIComponent('This is a friendly reminder for your upcoming appointment. If you need to reschedule, please reply to this email.')
+    window.location.href = `mailto:?bcc=${targets.join(',')}&subject=${subject}&body=${body}`
+  }
 
   function exportCSV() {
     const rows = [
@@ -525,10 +539,20 @@ export default function EnhancedBookingManagement() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Advanced Filters & Search</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => setShowAdvanced(v => !v)}>
-                    <Filter className="h-4 w-4 mr-2" />{showAdvanced ? 'Hide' : 'Show'} Advanced
-                    <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <span className="hidden md:inline text-sm text-gray-500">View:</span>
+                    <div className="flex bg-gray-100 rounded-lg p-1">
+                      {(['table','cards'] as const).map(mode => (
+                        <Button key={mode} variant={viewMode===mode?'default':'ghost'} size="sm" className="text-xs capitalize px-3" onClick={() => setViewMode(mode)}>
+                          {mode === 'table' ? <BarChart3 className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => setShowAdvanced(v => !v)}>
+                      <Filter className="h-4 w-4 mr-2" />{showAdvanced ? 'Hide' : 'Show'} Advanced
+                      <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -596,6 +620,16 @@ export default function EnhancedBookingManagement() {
                       </SelectContent>
                     </Select>
 
+                    <Select value={serviceFilter} onValueChange={setServiceFilter}>
+                      <SelectTrigger><SelectValue placeholder="Service Category" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {Array.from(new Set(bookings.map(b => b.service?.category).filter(Boolean) as string[])).map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm" onClick={() => {
                         setSearchTerm(''); setStatusFilter('all'); setDateFilter('all'); setPriorityFilter('all'); setStaffFilter('all'); setClientTierFilter('all')
@@ -612,7 +646,7 @@ export default function EnhancedBookingManagement() {
                       <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="revenue">Revenue</SelectItem>
+                        <SelectItem value="value">Value</SelectItem>
                         <SelectItem value="client">Client</SelectItem>
                         <SelectItem value="status">Status</SelectItem>
                       </SelectContent>
@@ -632,6 +666,7 @@ export default function EnhancedBookingManagement() {
                           <DropdownMenuItem onClick={() => bulkAction('cancel')}>Cancel</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => bulkAction('complete')}>Mark Complete</DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => sendReminders()}>Send Reminders</DropdownMenuItem>
                           <DropdownMenuItem onClick={exportCSV}>Export Selected</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setSelected([])}>Clear Selection</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -661,6 +696,7 @@ export default function EnhancedBookingManagement() {
                 </div>
               </CardHeader>
               <CardContent>
+                {viewMode === 'table' ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -712,6 +748,9 @@ export default function EnhancedBookingManagement() {
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                   <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                                  {b.reminderSent && b.status === 'CONFIRMED' && (
+                                    <span className="text-xs text-green-600">Reminded</span>
+                                  )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <div className={`w-2 h-2 rounded-full ${priorityStyles[p].dot}`} />
@@ -769,6 +808,83 @@ export default function EnhancedBookingManagement() {
                     </div>
                   )}
                 </div>
+                ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filtered.map((b) => {
+                    const LocIcon = locationMeta[(b.location || 'OFFICE') as keyof typeof locationMeta].icon
+                    const locColor = locationMeta[(b.location || 'OFFICE') as keyof typeof locationMeta].color
+                    const isExpanded = expandedCard === b.id
+                    const p = b.priority || 'NORMAL'
+                    return (
+                      <Card key={b.id} className={`hover:shadow-lg transition-all cursor-pointer ${selected.includes(b.id) ? 'ring-2 ring-blue-200 bg-blue-50' : ''}`} onClick={() => setExpandedCard(isExpanded ? null : b.id)}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                              <div>
+                                <CardTitle className="text-lg">{b.clientName}</CardTitle>
+                                <CardDescription className="flex items-center gap-2">
+                                  {b.service?.name}
+                                  {b.client.tier && (<Badge variant="outline" className="text-xs">{b.client.tier}</Badge>)}
+                                </CardDescription>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={priorityStyles[p].badge}>{p}</Badge>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); setExpandedCard(isExpanded ? null : b.id) }}>
+                                {isExpanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-gray-400" /><span>{formatDate(b.scheduledAt)}</span></div>
+                            <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-gray-400" /><span>{formatTime(b.scheduledAt)}</span></div>
+                            <div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-400" /><span className="text-xs">{b.assignedStaff || 'Unassigned'}</span></div>
+                            <div className="flex items-center gap-2"><LocIcon className={`h-4 w-4 ${locColor}`} /><span className="text-xs">{locationMeta[(b.location || 'OFFICE') as keyof typeof locationMeta].label}</span></div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs text-gray-500">{b.duration} minutes</div>
+                            <div className="font-medium text-green-600">{formatCurrency(b.service?.price)}</div>
+                          </div>
+                          {isExpanded && (
+                            <div className="border-t pt-4 space-y-3">
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">Contact</h4>
+                                <div className="space-y-1 text-sm text-gray-600">
+                                  <div className="flex items-center gap-2"><Mail className="h-3 w-3" />{b.clientEmail}</div>
+                                  {b.clientPhone && (<div className="flex items-center gap-2"><Phone className="h-3 w-3" />{b.clientPhone}</div>)}
+                                </div>
+                              </div>
+                              {b.notes && (
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-900 mb-1">Notes</h4>
+                                  <p className="text-sm text-gray-600">{b.notes}</p>
+                                </div>
+                              )}
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" variant="outline" asChild><a href={`tel:${b.clientPhone || ''}`}><Phone className="h-3 w-3 mr-1" />Call</a></Button>
+                                <Button size="sm" variant="outline" asChild><a href={`mailto:${b.clientEmail}`}><Mail className="h-3 w-3 mr-1" />Email</a></Button>
+                                <Button size="sm" variant="outline" asChild><a href={`sms:${b.clientPhone || ''}`}><MessageSquareIcon className="h-3 w-3 mr-1" />SMS</a></Button>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+
+                  {filtered.length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
+                      <p className="text-gray-600 mb-4">{searchTerm || statusFilter !== 'all' || dateFilter !== 'all' ? 'Try adjusting your filters' : 'No bookings have been created yet'}</p>
+                      <Button asChild><Link href="/admin/bookings/new"><Plus className="h-4 w-4 mr-2" />Create New Booking</Link></Button>
+                    </div>
+                  )}
+                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
