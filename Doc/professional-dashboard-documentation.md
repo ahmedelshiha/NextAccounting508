@@ -982,7 +982,7 @@ const reportError = (error: Error, context: ErrorContext) => {
 - [x] KPI progress shows 0% correctly
 - [x] Basic JSON export (client-side download)
 - [x] SWR integration (initial analytics fetch)
-- [ ] SSE/WebSocket real-time updates
+- [x] SSE real-time updates (client EventSource + /api/admin/updates)
 - [x] Chart integrations (revenue by service pie, daily bookings bar)
 - [ ] Configurable alert thresholds & historical health charts
 - [ ] RBAC-gated sections and middleware enforcement
