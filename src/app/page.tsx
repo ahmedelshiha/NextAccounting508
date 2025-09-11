@@ -1,10 +1,10 @@
 import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
+import { Suspense } from 'react'
 import { BlogSection } from '@/components/home/blog-section'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const revalidate = 60
 
 export default function HomePage() {
   return (
@@ -12,7 +12,9 @@ export default function HomePage() {
       <HomeHeroSection />
       <ServicesSection />
       <TestimonialsSection />
-      <BlogSection />
+      <Suspense fallback={null}>
+        <BlogSection />
+      </Suspense>
     </main>
   )
 }

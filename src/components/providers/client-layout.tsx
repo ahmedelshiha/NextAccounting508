@@ -73,10 +73,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       }
     }
 
-    // Debugging helper: wrap window.fetch to log failing requests (helps diagnose next-auth CLIENT_FETCH_ERROR)
+    // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
     const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once
-    if (!window.__fetchLogged) {
+    // Only wrap once and only when explicitly enabled
+    if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !window.__fetchLogged) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
@@ -87,30 +87,38 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!res.ok) {
             try {
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
-              console.error('[fetch] non-ok response', { status: res.status, url, init })
+              const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
+              // Skip logging for keep-alive pings and HEAD requests
+              if (method !== 'HEAD' && !url.includes('/api/admin/health-history')) {
+                console.error('[fetch] non-ok response', { status: res.status, url, init })
+              }
             } catch {}
           }
           return res
         } catch (err: unknown) {
           try {
-            // Log rich details to console to help debugging
             const [input, init] = args
-            const info: Record<string, unknown> = { init: init ?? null }
-            if (typeof input === 'string') info.input = input
-            else if (input instanceof Request) {
-              info.input = input.url
-              info.requestMethod = input.method
-              try {
-                info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
-              } catch {}
-            } else if (input instanceof URL) {
-              info.input = input.toString()
-            } else {
-              info.input = String(input)
+            // Derive url/method robustly across realms
+            const derivedMethod = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toString().toUpperCase()
+            const url = typeof input === 'string'
+              ? input
+              : input instanceof Request
+                ? input.url
+                : input instanceof URL
+                  ? input.toString()
+                  : ''
+
+            const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
+            const isKeepAlive = url.includes('/api/admin/health-history')
+            const isApi = url.includes('/api/')
+            const isHead = derivedMethod === 'HEAD'
+            const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+
+            if (!isNextInternal && !isKeepAlive && isApi && !isHead && !offline) {
+              console.warn('[fetch] network/error while fetching', { url, method: derivedMethod, init: init ?? null }, err)
             }
-            console.error('[fetch] network/error while fetching', info, err)
-          } catch (e) {
-            console.error('[fetch] failed and failed to log details', e)
+          } catch {
+            // avoid noisy console errors during dev
           }
           throw err
         }
@@ -132,8 +140,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     }
   }, [])
 
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      const id = setInterval(() => {
+        fetch('/api/admin/health-history?ping=1', { method: 'GET', cache: 'no-store' }).catch(() => {})
+      }, 30000)
+      return () => clearInterval(id)
+    }
+  }, [])
+
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1">
