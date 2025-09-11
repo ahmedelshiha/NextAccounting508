@@ -1466,8 +1466,16 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
 }
 
 export default function ProfessionalAdminDashboard() {
+  const zeroStats: DashboardStats = {
+    revenue: { current: 0, previous: 0, trend: 0, target: 0, targetProgress: 0 },
+    bookings: { total: 0, today: 0, thisWeek: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0, conversion: 0 },
+    clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
+    tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
+  }
+  const initialDashboardData: DashboardData = { ...mockDashboardData, stats: zeroStats }
+
   const [loading, setLoading] = useState(true)
-  const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData)
+  const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
