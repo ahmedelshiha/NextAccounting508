@@ -1550,7 +1550,7 @@ export default function ProfessionalAdminDashboard() {
   }
 
   // Fetch historical health metrics
-  const { data: history } = useSWR('/api/health-history', fetcher)
+  const { data: history } = useSWR('/api/admin/health-history', fetcher)
 
   const loadDashboardData = useCallback(async () => {
     setLoading(true)
