@@ -75,6 +75,7 @@ interface Booking {
   createdAt: string
   updatedAt?: string
   assignedStaff?: string
+  assignedTeamMember?: { id: string; name: string; email: string }
   location?: 'OFFICE' | 'REMOTE' | 'CLIENT_SITE'
   priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   service: {
@@ -99,6 +100,8 @@ interface Booking {
   source?: 'WEBSITE' | 'PHONE' | 'REFERRAL' | 'WALK_IN' | 'MARKETING'
   reminderSent?: boolean
 }
+
+interface TeamMemberLite { id: string; name: string; email: string; title?: string; department?: string; isAvailable?: boolean }
 
 const statusStyles: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
