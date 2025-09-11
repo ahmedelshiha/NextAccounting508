@@ -71,7 +71,7 @@ interface Booking {
   clientPhone?: string
   scheduledAt: string
   duration: number
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | 'IN_PROGRESS' | 'RESCHEDULED'
+  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
   notes?: string
   createdAt: string
   updatedAt?: string
@@ -106,8 +106,6 @@ const statusStyles: Record<string, string> = {
   COMPLETED: 'bg-blue-100 text-blue-800 border-blue-200',
   CANCELLED: 'bg-red-100 text-red-800 border-red-200',
   NO_SHOW: 'bg-gray-100 text-gray-800 border-gray-200',
-  IN_PROGRESS: 'bg-purple-100 text-purple-800 border-purple-200',
-  RESCHEDULED: 'bg-orange-100 text-orange-800 border-orange-200',
 }
 
 const priorityStyles: Record<string, { badge: string; dot: string }> = {
@@ -546,7 +544,6 @@ export default function EnhancedBookingManagement() {
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="PENDING">Pending</SelectItem>
                       <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                       <SelectItem value="COMPLETED">Completed</SelectItem>
                       <SelectItem value="CANCELLED">Cancelled</SelectItem>
                       <SelectItem value="NO_SHOW">No Show</SelectItem>
@@ -745,11 +742,8 @@ export default function EnhancedBookingManagement() {
                                   {b.status === 'PENDING' && (
                                     <DropdownMenuItem onClick={() => updateStatus(b.id, 'CONFIRMED')}><CheckCircle className="h-4 w-4 mr-2" />Confirm</DropdownMenuItem>
                                   )}
-                                  {(b.status === 'PENDING' || b.status === 'CONFIRMED') && (
-                                    <DropdownMenuItem onClick={() => updateStatus(b.id, 'IN_PROGRESS')}><BarChart3 className="h-4 w-4 mr-2" />Start</DropdownMenuItem>
-                                  )}
-                                  {b.status === 'IN_PROGRESS' && (
-                                    <DropdownMenuItem onClick={() => updateStatus(b.id, 'COMPLETED')}><CheckCircle className="h-4 w-4 mr-2" />Complete</DropdownMenuItem>
+                                  {b.status === 'CONFIRMED' && (
+                                    <DropdownMenuItem onClick={() => updateStatus(b.id, 'COMPLETED')}><CheckCircle className="h-4 w-4 mr-2" />Mark Complete</DropdownMenuItem>
                                   )}
                                   {b.status !== 'CANCELLED' && (
                                     <>
