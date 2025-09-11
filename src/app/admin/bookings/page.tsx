@@ -75,6 +75,7 @@ interface Booking {
   createdAt: string
   updatedAt?: string
   assignedStaff?: string
+  assignedTeamMember?: { id: string; name: string; email: string }
   location?: 'OFFICE' | 'REMOTE' | 'CLIENT_SITE'
   priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   service: {
@@ -99,6 +100,8 @@ interface Booking {
   source?: 'WEBSITE' | 'PHONE' | 'REFERRAL' | 'WALK_IN' | 'MARKETING'
   reminderSent?: boolean
 }
+
+interface TeamMemberLite { id: string; name: string; email: string; title?: string; department?: string; isAvailable?: boolean }
 
 const statusStyles: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -144,9 +147,20 @@ export default function EnhancedBookingManagement() {
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [serviceFilter, setServiceFilter] = useState('all')
+  const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
 
   useEffect(() => {
     refresh()
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/admin/team-members')
+        const json = await res.json().catch(() => ({}))
+        const list: TeamMemberLite[] = Array.isArray(json?.teamMembers) ? json.teamMembers : []
+        setTeamMembers(list)
+      } catch {
+        setTeamMembers([])
+      }
+    })()
   }, [])
 
   useEffect(() => {
@@ -175,7 +189,7 @@ export default function EnhancedBookingManagement() {
 
       const enhanced: Booking[] = items.map((b) => ({
         ...b,
-        assignedStaff: b.assignedStaff ?? ['John Smith', 'Jane Doe', 'Alex Johnson'][Math.floor(Math.random() * 3)],
+        assignedStaff: (b as any).assignedTeamMember?.name || b.assignedStaff,
         location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
         priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
         source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
@@ -192,6 +206,20 @@ export default function EnhancedBookingManagement() {
       console.error(e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function assignMember(bookingId: string, memberId: string | '') {
+    try {
+      const res = await apiFetch(`/api/bookings/${bookingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTeamMemberId: memberId || null }) })
+      if (res.ok) {
+        const updated = await res.json()
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, assignedTeamMember: updated.assignedTeamMember ?? undefined, assignedStaff: updated.assignedTeamMember?.name || undefined } : b))
+      }
+    } catch (e) {
+      console.error('Failed to assign member', e)
+    } finally {
+      // no-op
     }
   }
 
@@ -763,7 +791,25 @@ export default function EnhancedBookingManagement() {
                             </TableCell>
                             <TableCell>
                               <div className="space-y-2">
-                                {b.assignedStaff && (<div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-400" /><span className="text-sm font-medium">{b.assignedStaff}</span></div>)}
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-gray-400" />
+                                  <span className="text-sm font-medium">{b.assignedTeamMember?.name || b.assignedStaff || 'Unassigned'}</span>
+                                </div>
+                                {teamMembers.length > 0 && (
+                                  <div className="mt-1">
+                                    <Select value={b.assignedTeamMember?.id || ''} onValueChange={(v) => assignMember(b.id, v)}>
+                                      <SelectTrigger size="sm" className="w-48">
+                                        <SelectValue placeholder="Assign staff" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="">Unassigned</SelectItem>
+                                        {teamMembers.map(tm => (
+                                          <SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
                                 <div className="text-xs text-gray-500">Source: {(b.source || 'WEBSITE').replace('_',' ')}</div>
                                 {b.client.totalBookings && (<div className="text-xs text-blue-600">{b.client.totalBookings} total bookings</div>)}
                               </div>

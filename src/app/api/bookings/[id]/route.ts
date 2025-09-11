@@ -36,6 +36,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
             price: true,
             description: true
           }
+        },
+        assignedTeamMember: {
+          select: { id: true, name: true, email: true }
         }
       }
     })
@@ -79,7 +82,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     const body = await request.json()
-    const { status, scheduledAt, notes, adminNotes, confirmed } = body
+    const { status, scheduledAt, notes, adminNotes, confirmed, assignedTeamMemberId } = body
 
     // Get existing booking to check permissions
     const existingBooking = await prisma.booking.findUnique({
@@ -113,6 +116,11 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt)
       if (adminNotes !== undefined) updateData.adminNotes = adminNotes
       if (confirmed !== undefined) updateData.confirmed = confirmed
+      if (assignedTeamMemberId !== undefined) {
+        updateData.assignedTeamMember = assignedTeamMemberId
+          ? { connect: { id: String(assignedTeamMemberId) } }
+          : { disconnect: true }
+      }
     }
 
     if (isOwner) {
@@ -142,7 +150,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
             duration: true,
             price: true
           }
-        }
+        },
+        assignedTeamMember: { select: { id: true, name: true, email: true } }
       }
     })
 

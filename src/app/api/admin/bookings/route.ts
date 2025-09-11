@@ -70,7 +70,8 @@ export async function GET(request: NextRequest) {
             name: true,
             price: true
           }
-        }
+        },
+        assignedTeamMember: { select: { id: true, name: true, email: true } }
       },
       orderBy: {
         scheduledAt: 'desc'

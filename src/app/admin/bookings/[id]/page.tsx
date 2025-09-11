@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Calendar,
   Clock,
@@ -53,9 +54,12 @@ interface BookingDetail {
   reminderSent?: boolean
   createdAt?: string
   updatedAt?: string
+  assignedTeamMember?: { id: string; name: string; email: string }
   service: ServiceLite
   client: ClientLite
 }
+
+interface TeamMemberLite { id: string; name: string; email: string }
 
 export default function AdminBookingDetailPage() {
   const params = useParams<{ id: string }>()
@@ -67,6 +71,8 @@ export default function AdminBookingDetailPage() {
   const [adminNotes, setAdminNotes] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState<'CONFIRMED'|'COMPLETED'|'CANCELLED'|null>(null)
+  const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
+  const [assigning, setAssigning] = useState(false)
 
   useEffect(() => {
     let ignore = false
@@ -94,6 +100,16 @@ export default function AdminBookingDetailPage() {
       }
     }
     load()
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/admin/team-members')
+        const json = await res.json().catch(() => ({}))
+        const list: TeamMemberLite[] = Array.isArray(json?.teamMembers) ? json.teamMembers : []
+        if (!ignore) setTeamMembers(list)
+      } catch {
+        if (!ignore) setTeamMembers([])
+      }
+    })()
     return () => { ignore = true }
   }, [id])
 
@@ -158,6 +174,22 @@ export default function AdminBookingDetailPage() {
       setError('Failed to save notes')
     } finally {
       setSavingNotes(false)
+    }
+  }
+
+  async function updateAssignment(memberId: string | '') {
+    if (!booking) return
+    setAssigning(true)
+    try {
+      const res = await apiFetch(`/api/bookings/${booking.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTeamMemberId: memberId || null }) })
+      if (res.ok) {
+        const data = await res.json()
+        setBooking(data)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setAssigning(false)
     }
   }
 
@@ -263,6 +295,24 @@ export default function AdminBookingDetailPage() {
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <Clock className="h-4 w-4 text-gray-500" />
                   <span>{formatTime(booking.scheduledAt)}</span>
+                </div>
+                <div className="space-y-2 pt-2">
+                  <div className="text-sm font-medium text-gray-900">Assigned Staff</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <Users className="h-4 w-4 text-gray-500" />
+                    <span>{booking.assignedTeamMember?.name || 'Unassigned'}</span>
+                  </div>
+                  {teamMembers.length > 0 && (
+                    <Select value={booking.assignedTeamMember?.id || ''} onValueChange={(v) => updateAssignment(v)}>
+                      <SelectTrigger size="sm" className="w-56">
+                        <SelectValue placeholder="Assign staff" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
+                        {teamMembers.map(tm => (<SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 

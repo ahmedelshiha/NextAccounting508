@@ -481,8 +481,8 @@ export default function TeamManagement() {
         const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
         setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
-      } catch {
-        console.error('Failed to load team members', e)
+      } catch (err) {
+        console.error('Failed to load team members', err)
       }
     }
     loadMembers()
