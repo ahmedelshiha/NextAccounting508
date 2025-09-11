@@ -180,33 +180,88 @@ export default function EnhancedBookingManagement() {
     setLoading(true)
     try {
       const response = await apiFetch('/api/admin/bookings')
-      const data = response.ok ? await response.json() : { bookings: [] }
-      const items: Booking[] = Array.isArray(data)
-        ? data
-        : Array.isArray((data as any)?.bookings)
-        ? (data as any).bookings
-        : []
+      const data: unknown = response.ok ? await response.json() : { bookings: [] }
 
-      const enhanced: Booking[] = items.map((b) => {
-        const baseClient = b.client && typeof b.client === 'object'
-          ? b.client
-          : { id: (b as any)?.client?.id, name: b.clientName, email: b.clientEmail, phone: b.clientPhone }
-        const baseService = b.service && typeof b.service === 'object'
-          ? b.service
-          : { id: (b as any)?.service?.id, name: (b as any)?.service?.name || 'Unknown service', price: (b as any)?.service?.price, category: (b as any)?.service?.category, duration: (b as any)?.service?.duration }
+      type ApiBookingRecord = {
+        id: string
+        clientName?: string
+        clientEmail?: string
+        clientPhone?: string | null
+        scheduledAt: string | Date
+        duration?: number | null
+        status?: Booking['status'] | string | null
+        notes?: string | null
+        createdAt?: string | Date
+        updatedAt?: string | Date
+        assignedStaff?: string | null
+        assignedTeamMember?: { id: string; name: string; email: string } | null
+        location?: Booking['location']
+        priority?: Booking['priority']
+        service?: { id?: string; name?: string; price?: number | string | null; category?: string | null; duration?: number | null } | null
+        client?: { id?: string; name?: string | null; email?: string; phone?: string | null; tier?: Booking['client']['tier']; totalBookings?: number; satisfaction?: number; lastBooking?: string } | null
+        source?: Booking['source']
+      }
+
+      const items: ApiBookingRecord[] = Array.isArray(data)
+        ? (data as ApiBookingRecord[])
+        : (data && typeof data === 'object' && Array.isArray((data as { bookings?: unknown }).bookings)
+          ? ((data as { bookings: unknown[] }).bookings as ApiBookingRecord[])
+          : [])
+
+      const enhanced: Booking[] = items.map((r) => {
+        const clientObj = r.client ?? null
+        const serviceObj = r.service ?? null
+
+        const client: Booking['client'] = {
+          id: clientObj?.id,
+          name: (clientObj?.name ?? r.clientName ?? r.clientEmail ?? 'Client') as string,
+          email: (clientObj?.email ?? r.clientEmail ?? '') as string,
+          phone: (clientObj?.phone ?? r.clientPhone ?? undefined) || undefined,
+          tier: clientObj?.tier,
+          totalBookings: clientObj?.totalBookings,
+          lastBooking: clientObj?.lastBooking,
+          satisfaction: clientObj?.satisfaction,
+        }
+
+        const service: Booking['service'] = {
+          id: serviceObj?.id,
+          name: (serviceObj?.name ?? 'Unknown service') as string,
+          price: serviceObj?.price ?? undefined,
+          category: serviceObj?.category ?? undefined,
+          duration: serviceObj?.duration ?? undefined,
+        }
+
+        const statusRaw = String(r.status ?? 'PENDING').toUpperCase()
+        const status: Booking['status'] = (['PENDING','CONFIRMED','COMPLETED','CANCELLED','NO_SHOW'] as const).includes(statusRaw as Booking['status'])
+          ? (statusRaw as Booking['status'])
+          : 'PENDING'
+
+        const scheduledAtStr = typeof r.scheduledAt === 'string' ? r.scheduledAt : new Date(r.scheduledAt).toISOString()
+
         return {
-          ...b,
-          service: baseService,
-          assignedStaff: b.assignedTeamMember?.name || b.assignedStaff,
-          location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
-          priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
-          source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
+          id: r.id,
+          clientName: r.clientName ?? client.name,
+          clientEmail: r.clientEmail ?? client.email,
+          clientPhone: r.clientPhone ?? client.phone,
+          scheduledAt: scheduledAtStr,
+          duration: Number(r.duration ?? service.duration ?? 60),
+          status,
+          notes: r.notes ?? undefined,
+          createdAt: typeof r.createdAt === 'string' ? r.createdAt : new Date(r.createdAt || Date.now()).toISOString(),
+          updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : (r.updatedAt ? new Date(r.updatedAt).toISOString() : undefined),
+          assignedStaff: r.assignedStaff ?? undefined,
+          assignedTeamMember: r.assignedTeamMember ?? undefined,
+          location: r.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
+          priority: r.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
+          service,
           client: {
-            ...baseClient,
-            tier: (baseClient as any).tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
-            totalBookings: (baseClient as any).totalBookings ?? Math.floor(Math.random() * 20) + 1,
-            satisfaction: (baseClient as any).satisfaction ?? 3.5 + Math.random() * 1.5,
+            ...client,
+            tier: client.tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
+            totalBookings: client.totalBookings ?? Math.floor(Math.random() * 20) + 1,
+            satisfaction: client.satisfaction ?? 3.5 + Math.random() * 1.5,
           },
+          source: r.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
+          reminderSent: false,
         }
       })
 
