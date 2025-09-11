@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +23,8 @@ export async function GET(request: NextRequest) {
       const filtered = featured === 'true' ? fallback.filter(s => s.featured) : fallback
       return NextResponse.json(filtered)
     }
+
+    const { default: prisma } = await import('@/lib/prisma')
 
     const where: Prisma.ServiceWhereInput = { active: true }
 
@@ -60,8 +61,15 @@ export async function GET(request: NextRequest) {
 // POST /api/services - Create a new service (admin only)
 export async function POST(request: NextRequest) {
   try {
+    const hasDb = !!process.env.NETLIFY_DATABASE_URL
+    if (!hasDb) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+    }
+
+    const { default: prisma } = await import('@/lib/prisma')
+
     const body = await request.json()
-    
+
     const {
       name,
       slug,

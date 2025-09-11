@@ -4,8 +4,7 @@ import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
 import { BlogSection } from '@/components/home/blog-section'
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+export const revalidate = 60
 
 export default function HomePage() {
   return (
