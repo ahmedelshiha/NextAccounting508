@@ -1,8 +1,9 @@
-import Link from 'next/link'
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import NewsletterForm from '@/components/ui/newsletter-form'
+import Link from 'next/link'
 
-const navigation = {
+
+const navigationBase = {
   services: [
     { name: 'Bookkeeping', href: '/services/bookkeeping' },
     { name: 'Tax Preparation', href: '/services/tax-preparation' },
@@ -21,11 +22,6 @@ const navigation = {
     { name: 'Financial Tools', href: '/resources/tools' },
     { name: 'FAQ', href: '/faq' },
   ],
-  legal: [
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Cookie Policy', href: '/cookies' },
-  ],
 }
 
 const socialLinks = [
@@ -43,10 +39,19 @@ const socialLinks = [
     name: 'LinkedIn',
     href: 'https://linkedin.com/company/accountingfirm',
     icon: Linkedin,
-  },
+  }
 ]
 
 export function Footer() {
+  const navigation = {
+    ...navigationBase,
+    legal: [
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Cookie Policy', href: '/cookies' },
+    ]
+  }
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -141,6 +146,17 @@ export function Footer() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+
+          {/* Mobile Legal Links (visible on small screens) */}
+          <div className="mt-6 md:hidden">
+            <div className="grid grid-cols-3 gap-4">
+              {navigation.legal.map((item) => (
+                <Link key={item.name} href={item.href} className="text-gray-300 text-sm">
+                  {item.name}
+                </Link>
+              ))}
             </div>
           </div>
 

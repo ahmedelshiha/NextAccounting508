@@ -71,7 +71,7 @@ export const useTranslations = () => {
 // Utility to load translations
 export async function loadTranslations(locale: Locale): Promise<Record<string, string>> {
   try {
-    const translations = await import(`@/locales/${locale}.json`)
+    const translations = await import(`@/app/locales/${locale}.json`)
     return translations.default
   } catch {
     console.warn(`Failed to load translations for locale: ${locale}`)
