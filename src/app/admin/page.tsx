@@ -1404,6 +1404,22 @@ export default function ProfessionalAdminDashboard() {
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
 
+  // Configurable thresholds (persisted in localStorage)
+  const [thresholds, setThresholds] = useState<{ responseTime: number; errorRate: number; storageGrowth: number }>(() => {
+    try {
+      const saved = localStorage.getItem('admin_health_thresholds')
+      return saved ? JSON.parse(saved) : { responseTime: 100, errorRate: 1, storageGrowth: 20 }
+    } catch { return { responseTime: 100, errorRate: 1, storageGrowth: 20 } }
+  })
+
+  const saveThresholds = (t: { responseTime: number; errorRate: number; storageGrowth: number }) => {
+    setThresholds(t)
+    try { localStorage.setItem('admin_health_thresholds', JSON.stringify(t)) } catch {}
+  }
+
+  // Fetch historical health metrics
+  const { data: history } = useSWR('/api/admin/health-history', fetcher)
+
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true)
