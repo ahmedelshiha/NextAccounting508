@@ -1265,7 +1265,7 @@ function EnhancedSystemHealth({ data, thresholds, history }: { data: DashboardDa
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {history && history.length > 0 && (
+          {hist && hist.length > 0 && (
             <div className="bg-gray-50 p-3 rounded">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium">Historical Metrics</div>
