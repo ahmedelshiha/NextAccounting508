@@ -72,7 +72,7 @@ export default function AdminBookingDetailPage() {
   const [savingNotes, setSavingNotes] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState<'CONFIRMED'|'COMPLETED'|'CANCELLED'|null>(null)
   const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
-  const [assigning, setAssigning] = useState(false)
+  const [_assigning, setAssigning] = useState(false)
 
   useEffect(() => {
     let ignore = false
