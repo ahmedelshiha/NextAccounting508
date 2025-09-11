@@ -99,6 +99,16 @@ export default function AdminBookingDetailPage() {
       }
     }
     load()
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/admin/team-members')
+        const json = await res.json().catch(() => ({}))
+        const list: TeamMemberLite[] = Array.isArray(json?.teamMembers) ? json.teamMembers : []
+        if (!ignore) setTeamMembers(list)
+      } catch {
+        if (!ignore) setTeamMembers([])
+      }
+    })()
     return () => { ignore = true }
   }, [id])
 
