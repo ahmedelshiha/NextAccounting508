@@ -986,6 +986,9 @@ const reportError = (error: Error, context: ErrorContext) => {
 - [x] Chart integrations (revenue by service pie, daily bookings bar)
 - [x] Configurable alert thresholds & historical health charts
 - [x] Server-backed thresholds (DB)
+
+  Note: For development and CI convenience a temporary dev-header backdoor is available. It allows requests with a matching `x-admin-secret` header (set via the ADMIN_TEST_SECRET env var) to bypass NextAuth checks when NODE_ENV !== 'production'. This is intended only for automated tests and local development. Remove this backdoor before production by unsetting ADMIN_TEST_SECRET, or replace test authentication with a proper NextAuth sign-in flow for CI. See "Testing" below for how to run the thresholds test.
+
 - [ ] RBAC-gated sections and middleware enforcement
 - [ ] Accessibility polish and performance (virtualization, lazy charts)
 - [ ] Sentry integration and test coverage
