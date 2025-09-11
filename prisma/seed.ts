@@ -419,7 +419,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
   console.log('Staff: staff@accountingfirm.com / staff123')
-  console.log('Client: john@example.com / client123')
 }
 
 main()
