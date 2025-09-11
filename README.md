@@ -456,6 +456,22 @@ npm install
 3. **Community**: Join our Discord community for support
 4. **Professional Support**: Contact us for enterprise support
 
+## 🗺️ Admin Dashboard – Future Enhancements (Checklist)
+
+See the detailed plan in [Doc/professional-dashboard-documentation.md#future-enhancements](Doc/professional-dashboard-documentation.md#future-enhancements).
+
+- [ ] Data fetching and cache: integrate React Query/SWR; wire Manual Refresh; make Auto-refresh toggle control polling; per-section loading/error states.
+- [ ] Real-time updates: SSE/WebSocket for bookings, tasks, system alerts; optimistic UI for mutations.
+- [ ] Drill-down & actions: router navigation from KPIs; notifications actionUrl; “Mark all as read”.
+- [ ] Analytics: revenue trends, service breakdown, satisfaction charts; KPI sparklines.
+- [ ] System health: configurable thresholds, weighted health score, historical charts.
+- [ ] Exporting: CSV/JSON endpoints and client download with timestamped filenames.
+- [ ] RBAC: gate /admin in middleware; permission-based section rendering.
+- [ ] Accessibility: ARIA roles, keyboard navigation, focus management, color contrast.
+- [ ] Performance: memoization, virtualization, debounced filters, lazy-load charts.
+- [ ] Observability & QA: Sentry error/perf monitoring; unit/integration tests for dashboard hooks/components.
+- [ ] UX polish: show 0% KPI progress; clearer auto-refresh iconography; persist “Customize View”.
+
 ## 📝 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

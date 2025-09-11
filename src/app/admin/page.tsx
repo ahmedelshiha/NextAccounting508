@@ -1,6 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import useSWR from 'swr'
+import { Pie, Bar } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title as ChartTitle } from 'chart.js'
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartTitle)
 import { 
   Calendar, 
   Users, 
@@ -37,6 +42,11 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+const fetcher = (url: string) => fetch(url).then(async (r) => {
+  if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
+  return r.json()
+})
 
 interface DashboardData {
   stats: DashboardStats
@@ -331,10 +341,10 @@ const mockDashboardData: DashboardData = {
   }
 }
 
-function ProfessionalHeader({ data }: { data: DashboardData }) {
+function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh, onExport, onMarkAllRead }: { data: DashboardData; autoRefresh: boolean; onToggleAutoRefresh: () => void; onRefresh: () => void; onExport: () => void; onMarkAllRead: () => void; }) {
   const [showNotifications, setShowNotifications] = useState(false)
-  const [autoRefresh, setAutoRefresh] = useState(true)
   const [dashboardView, setDashboardView] = useState<'overview' | 'detailed'>('overview')
+  const router = useRouter()
   
   const unreadCount = data.notifications.filter(n => !n.read).length
   const urgentNotifications = data.notifications.filter(n => n.type === 'urgent' && !n.read)
@@ -387,22 +397,22 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
           </select>
         </div>
 
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
-          onClick={() => setAutoRefresh(!autoRefresh)}
+          onClick={onToggleAutoRefresh}
         >
           {autoRefresh ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           Auto-refresh
         </Button>
         
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={onRefresh}>
           <RefreshCw className="h-4 w-4" />
           Refresh Data
         </Button>
 
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={onExport}>
           <Download className="h-4 w-4" />
           Export
         </Button>
@@ -430,7 +440,7 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">Notifications</CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs">Mark all read</Button>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={onMarkAllRead}>Mark all read</Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -463,8 +473,8 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
                               <p className="text-xs text-gray-500">
                                 {new Date(notification.timestamp).toLocaleString()}
                               </p>
-                              {notification.actionRequired && (
-                                <Button variant="ghost" size="sm" className="text-xs p-1 h-auto">
+                              {notification.actionRequired && notification.actionUrl && (
+                                <Button variant="ghost" size="sm" className="text-xs p-1 h-auto" onClick={(e) => { e.stopPropagation(); router.push(notification.actionUrl!); }}>
                                   Take Action <ArrowRight className="h-3 w-3 ml-1" />
                                 </Button>
                               )}
@@ -492,6 +502,7 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
 function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'today' | 'week' | 'month'>('month')
   const [expandedKPI, setExpandedKPI] = useState<string | null>(null)
+  const router = useRouter()
 
   const kpis = [
     {
@@ -581,7 +592,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
               className={`transition-all duration-200 hover:shadow-lg cursor-pointer group relative ${
                 hasAlerts ? `ring-2 ring-red-200 ${kpi.borderColor}` : 'hover:border-gray-300'
               } ${isExpanded ? 'lg:col-span-2' : ''}`}
-              onClick={() => console.log(`Navigate to: ${kpi.drillDown}`)}
+              onClick={() => router.push(kpi.drillDown)}
             >
               {hasAlerts && (
                 <div className="absolute -top-2 -right-2 z-10">
@@ -636,7 +647,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
                     )}
                   </div>
                   
-                  {kpi.progress && (
+                  {kpi.progress !== undefined && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Target Progress</span>
@@ -683,6 +694,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
 }
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 function SmartQuickActions({ data }: { data: DashboardData }) {
   const [actionCategory, setActionCategory] = useState<'primary' | 'management' | 'reports'>('primary')
@@ -1282,33 +1294,189 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
   )
 }
 
+function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: DashboardData }) {
+  const { data: analytics, error } = useSWR('/api/admin/analytics?range=30d', fetcher, { revalidateOnFocus: false })
+
+  const serviceLabels = (analytics?.revenueByService?.map((s: any) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
+  const serviceValues = (analytics?.revenueByService?.map((s: any) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
+  const pieData = {
+    labels: serviceLabels,
+    datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
+  }
+
+  const dailyLabels = (analytics?.dailyBookings?.map((d: any, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
+  const dailyValues = (analytics?.dailyBookings?.map((d: any) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
+  const barData = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <h3 className="font-medium text-gray-900">Revenue Performance</h3>
+        <div className="bg-white rounded-lg border p-4">
+          {error ? (<div className="text-sm text-red-600">Analytics unavailable. Showing fallback.</div>) : null}
+          <div className="h-56">
+            <Pie data={pieData as any} options={{ plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }} />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
+            {analyticsFallback.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
+              <div key={idx} className="text-center">
+                <div className="font-medium">{service.percentage}%</div>
+                <div className="text-gray-600 truncate">{service.service}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="text-xs text-gray-600">
+          Current: ${analyticsFallback.stats.revenue.current.toLocaleString()} • Target: ${analyticsFallback.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{analyticsFallback.stats.revenue.trend}%</span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-gray-900">Operational Metrics</h3>
+        <div className="bg-white rounded-lg border p-4">
+          <div className="h-56">
+            <Bar data={barData as any} options={{ plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }} />
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Booking Utilization</span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%` }} />
+              </div>
+              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Client Satisfaction</span>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500" />
+              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Task Completion Rate</span>
+            <span className="text-sm font-medium text-green-600">{analyticsFallback.performanceMetrics.efficiency.taskCompletionRate}%</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Show Rate</span>
+            <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.operational.appointmentShowRate}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfessionalAdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
+  const [autoRefresh, setAutoRefresh] = useState(true)
 
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      setDashboardData(mockDashboardData)
+      setLastUpdated(new Date())
+      setError(null)
+    } catch (err) {
+      setError('Failed to load dashboard data. Please check your connection and try again.')
+      console.error('Dashboard data loading error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const handleToggleAutoRefresh = () => setAutoRefresh(v => !v)
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify(dashboardData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dashboard-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  const handleMarkAllRead = () => {
+    setDashboardData(prev => ({ ...prev, notifications: prev.notifications.map(n => ({ ...n, read: true })) }))
+  }
+
+  // Live updates via SSE
   useEffect(() => {
-    const loadDashboardData = async () => {
+    if (!autoRefresh) return
+    const es = new EventSource('/api/admin/updates')
+
+    es.addEventListener('booking_update', (ev) => {
       try {
-        setLoading(true)
-        await new Promise(resolve => setTimeout(resolve, 1200))
-        setDashboardData(mockDashboardData)
-        setLastUpdated(new Date())
-        setError(null)
-      } catch (err) {
-        setError('Failed to load dashboard data. Please check your connection and try again.')
-        console.error('Dashboard data loading error:', err)
-      } finally {
-        setLoading(false)
-      }
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        const newBooking: Booking = {
+          id: data.id,
+          clientId: 'live',
+          clientName: data.clientName || 'Live Client',
+          clientEmail: 'live@example.com',
+          service: data.service || 'Service',
+          serviceCategory: 'Live',
+          scheduledAt: data.scheduledAt,
+          duration: data.duration || 60,
+          status: (data.status || 'confirmed') as Booking['status'],
+          revenue: Number(data.revenue || 0),
+          priority: (data.priority || 'normal') as Booking['priority'],
+          location: (data.location || 'office') as Booking['location'],
+          isRecurring: false,
+          source: 'direct'
+        }
+        setDashboardData(prev => ({ ...prev, recentBookings: [newBooking, ...prev.recentBookings].slice(0, 20) }))
+      } catch {}
+    })
+
+    es.addEventListener('task_completed', (ev) => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        setDashboardData(prev => ({
+          ...prev,
+          urgentTasks: prev.urgentTasks.map(t => t.id === data.id ? { ...t, status: 'completed', completionPercentage: 100 } : t)
+        }))
+      } catch {}
+    })
+
+    es.addEventListener('system_alert', (ev) => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        const notif: Notification = {
+          id: data.id,
+          type: (data.severity || 'info') as Notification['type'],
+          category: 'system',
+          title: data.title || 'System Alert',
+          message: data.message || 'Update received',
+          timestamp: new Date().toISOString(),
+          read: false,
+          actionRequired: false,
+          priority: 5,
+        }
+        setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
+      } catch {}
+    })
+
+    es.onerror = () => {
+      es.close()
     }
 
+    return () => es.close()
+  }, [autoRefresh])
+
+  useEffect(() => {
     loadDashboardData()
-    
+  }, [loadDashboardData])
+
+  useEffect(() => {
+    if (!autoRefresh) return
     const interval = setInterval(loadDashboardData, 300000)
     return () => clearInterval(interval)
-  }, [])
+  }, [autoRefresh, loadDashboardData])
 
   if (loading) {
     return (
@@ -1387,7 +1555,14 @@ export default function ProfessionalAdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <ProfessionalHeader data={dashboardData} />
+        <ProfessionalHeader
+          data={dashboardData}
+          autoRefresh={autoRefresh}
+          onToggleAutoRefresh={handleToggleAutoRefresh}
+          onRefresh={loadDashboardData}
+          onExport={handleExport}
+          onMarkAllRead={handleMarkAllRead}
+        />
         <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
         <IntelligentActivityFeed data={dashboardData} />
@@ -1406,67 +1581,7 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="font-medium text-gray-900">Revenue Performance</h3>
-                <div className="h-48 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <PieChart className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Revenue Chart Integration</p>
-                    <div className="mt-2 space-y-1 text-xs">
-                      <div>Current: ${dashboardData.stats.revenue.current.toLocaleString()}</div>
-                      <div>Target: ${dashboardData.stats.revenue.target.toLocaleString()}</div>
-                      <div className="text-green-600">+{dashboardData.stats.revenue.trend}% growth</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  {dashboardData.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
-                    <div key={idx} className="text-center">
-                      <div className="font-medium">{service.percentage}%</div>
-                      <div className="text-gray-600 truncate">{service.service}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-medium text-gray-900">Operational Metrics</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Booking Utilization</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full" 
-                          style={{ width: `${dashboardData.performanceMetrics.efficiency.bookingUtilization}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.bookingUtilization}%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Client Satisfaction</span>
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Task Completion Rate</span>
-                    <span className="text-sm font-medium text-green-600">
-                      {dashboardData.performanceMetrics.efficiency.taskCompletionRate}%
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Show Rate</span>
-                    <span className="text-sm font-medium">
-                      {dashboardData.performanceMetrics.operational.appointmentShowRate}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BusinessIntelligence analyticsFallback={dashboardData} />
           </CardContent>
         </Card>
 

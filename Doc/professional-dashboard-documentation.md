@@ -946,6 +946,49 @@ const reportError = (error: Error, context: ErrorContext) => {
 }
 ```
 
+## Future Enhancements
+
+### Near-term (implementation-ready)
+- Data fetching and cache: integrate React Query (or SWR) across dashboard; wire Manual Refresh and Auto-refresh toggle to polling/revalidation; add per-section loading and error states.
+- Real-time updates: add SSE/WebSocket channel for bookings, tasks, and system alerts; optimistic UI for task status changes.
+- Drill-down navigation: replace console logs with router.push to analytics/report routes; navigate to notification actionUrl; implement "Mark all as read" (server + client state).
+- Analytics and charts: integrate a chart library (Recharts or Chart.js) for revenue trend, service breakdown, satisfaction trends; add KPI sparklines.
+- System health: configurable AlertConfig thresholds; weighted health score calculation; historical performance charts per subsystem.
+- Exporting: implement /api/admin/export endpoints (CSV/JSON); client-side download with proper filenames and date stamps.
+- RBAC: enforce permission-based rendering using session-derived permissions and middleware; gate /admin and conditionally render sections.
+- Accessibility: keyboard navigation for tabs and lists, aria-* on popovers/menus, focus management for dialogs; ensure color contrast.
+- Performance: memoize derived values, virtualize long feeds, debounce filters; lazy-load charts; avoid unnecessary re-renders.
+- Observability and QA: integrate Sentry for errors and performance; add unit/integration tests for dashboard hooks/components.
+- UX polish: show 0% KPI progress (don’t rely on truthy check); clarify auto-refresh iconography; persist "Customize View" preferences per user.
+
+### Mid-term
+- Business intelligence: forecasting and anomaly detection; service profitability and client LTV dashboards; retention and cohort analysis.
+- Notification center: priority queues, categories, server-side pagination and search; per-user notification settings.
+- Personalization: widget layout editor with drag-and-drop; per-user saved layouts and refresh intervals.
+- Internationalization: currency/locale-aware formatting across charts and KPIs; multi-language labels.
+- Offline and caching: IndexedDB-backed cache for read paths; background sync and staleness indicators.
+
+### Integration roadmap
+- API: define typed endpoints under /api/admin/* for KPIs, activity, health, and analytics; add mutations for tasks/bookings.
+- Charts: standardize chart primitives and theme for consistent look-and-feel.
+- Export/import: bulk CSV export/import for tasks and bookings with server-side validation.
+- Security: audit logging for sensitive actions; rate limiting and backpressure for health/status endpoints.
+
+### Implementation Status (updated)
+- [x] Manual refresh wired to data loader
+- [x] Auto-refresh toggle controls polling interval
+- [x] KPI drill-down navigation via router.push
+- [x] Notifications: "Mark all read" and actionUrl navigation
+- [x] KPI progress shows 0% correctly
+- [x] Basic JSON export (client-side download)
+- [x] SWR integration (initial analytics fetch)
+- [x] SSE real-time updates (client EventSource + /api/admin/updates)
+- [x] Chart integrations (revenue by service pie, daily bookings bar)
+- [ ] Configurable alert thresholds & historical health charts
+- [ ] RBAC-gated sections and middleware enforcement
+- [ ] Accessibility polish and performance (virtualization, lazy charts)
+- [ ] Sentry integration and test coverage
+
 ## Conclusion
 
 This Professional Admin Dashboard represents a complete business intelligence solution for accounting firms. It combines modern web development practices with deep understanding of accounting business operations to create a tool that genuinely improves business outcomes.
