@@ -34,12 +34,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           message = evt.message
         }
 
-        if (/loading chunk|chunkloaderror|loading asset/i.test(String(message))) {
+        const msgStr = String(message || '')
+        if (/loading chunk|chunkloaderror|loading asset/i.test(msgStr)) {
           if (!handled) {
             handled = true
-            console.warn('Detected chunk load error, reloading page to recover.', message)
+            console.warn('Detected chunk load error, reloading page to recover.', msgStr)
             setTimeout(() => window.location.reload(), 800)
           }
+        }
+        // Suppress dev overlay noise for Next HMR/network hiccups
+        if (/failed to fetch/i.test(msgStr)) {
+          try { event.preventDefault?.() } catch {}
         }
       } catch {
         // ignore
@@ -61,12 +66,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           msg = String(reason || '')
         }
 
-        if (/loading chunk|chunkloaderror|cannot find module/i.test(String(msg))) {
+        const msgStr = String(msg)
+        if (/loading chunk|chunkloaderror|cannot find module/i.test(msgStr)) {
           if (!handled) {
             handled = true
-            console.warn('Detected chunk load error from unhandledrejection, reloading page.', msg)
+            console.warn('Detected chunk load error from unhandledrejection, reloading page.', msgStr)
             setTimeout(() => window.location.reload(), 800)
           }
+        }
+        // Suppress dev overlay noise for HMR-related fetch errors
+        if (/failed to fetch/i.test(msgStr) || /hot-reloader|\?reload=|hmr/i.test(msgStr)) {
+          try { ev.preventDefault?.() } catch {}
         }
       } catch {
         // ignore
@@ -141,12 +151,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, [])
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      const id = setInterval(() => {
-        fetch('/api/admin/health-history?ping=1', { method: 'GET', cache: 'no-store' }).catch(() => {})
-      }, 30000)
-      return () => clearInterval(id)
-    }
+    // no-op: removed keepalive ping to avoid dev fetch noise
   }, [])
 
   return (

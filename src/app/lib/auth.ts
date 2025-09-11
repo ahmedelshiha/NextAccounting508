@@ -6,6 +6,24 @@ import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  logger: {
+    error: (...args) => {
+      if (process.env.NODE_ENV === 'development') {
+        // keep errors readable in dev server logs without breaking UI
+        console.warn('[next-auth:error]', ...args)
+      }
+    },
+    warn: (...args) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[next-auth:warn]', ...args)
+      }
+    },
+    debug: (...args) => {
+      if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1') {
+        console.debug('[next-auth:debug]', ...args)
+      }
+    }
+  },
   providers: [
     CredentialsProvider({
       name: 'credentials',

@@ -1,5 +1,3 @@
-import type { NextRequest } from 'next/server'
-
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 

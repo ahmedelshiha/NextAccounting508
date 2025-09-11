@@ -4,13 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { hasPermission } from '@/lib/rbac'
 import prisma from '@/lib/prisma'
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !hasPermission(session.user.role, 'manage_users')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const id = params.id
+    const { id } = await context.params
     const body = await request.json()
 
     try {
@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         ...updated,
         hourlyRate: updated.hourlyRate != null ? Number(updated.hourlyRate) : null
       } })
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'DB not available, cannot persist update' }, { status: 503 })
     }
   } catch (error) {
@@ -52,19 +52,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   void request
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !hasPermission(session.user.role, 'manage_users')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const id = params.id
+    const { id } = await context.params
 
     try {
       await prisma.teamMember.delete({ where: { id } })
       return NextResponse.json({ message: 'Team member removed' })
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'DB not available, cannot delete' }, { status: 503 })
     }
   } catch (error) {

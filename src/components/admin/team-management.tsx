@@ -377,7 +377,7 @@ function TeamMemberForm({ member, onSave, onCancel }: {
                           <span className="text-sm text-gray-700">{opt.label}</span>
                           <p className="text-xs text-gray-500">{opt.desc}</p>
                         </div>
-                        <input type="checkbox" checked={Boolean((formData.notificationSettings as any)?.[opt.key])} onChange={(e) => setFormData((p) => ({ ...p, notificationSettings: { ...(p.notificationSettings || { email: true, sms: false, inApp: true }), [opt.key]: e.target.checked } }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <input type="checkbox" checked={Boolean(formData.notificationSettings?.[opt.key])} onChange={(e) => setFormData((p) => ({ ...p, notificationSettings: { ...(p.notificationSettings || { email: true, sms: false, inApp: true }), [opt.key]: e.target.checked } }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                       </div>
                     ))}
                   </div>
@@ -481,7 +481,7 @@ export default function TeamManagement() {
         const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
         setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
-      } catch (e) {
+      } catch {
         console.error('Failed to load team members', e)
       }
     }
@@ -514,7 +514,7 @@ export default function TeamManagement() {
       }
       setShowForm(false)
       setEditingMember(null)
-    } catch (e) {
+    } catch {
       alert('Failed to save team member')
     } finally {
       setLoading(false)
@@ -528,7 +528,7 @@ export default function TeamManagement() {
       const res = await fetch(`/api/admin/team-members/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       setTeamMembers((prev) => prev.filter((m) => m.id !== id))
-    } catch (e) {
+    } catch {
       alert('Failed to remove team member')
     } finally {
       setLoading(false)
@@ -580,14 +580,14 @@ export default function TeamManagement() {
               <input type="text" placeholder="Search team members..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
           </div>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | TeamMember['status'])} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="busy">Busy</option>
             <option value="on_leave">On Leave</option>
             <option value="inactive">Inactive</option>
           </select>
-          <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value as 'all' | TeamMember['department'])} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="all">All Departments</option>
             {departmentOptions.map((d) => (<option key={d.value} value={d.value}>{d.label}</option>))}
           </select>
