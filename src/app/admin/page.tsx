@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { 
   Calendar, 
   Users, 
@@ -331,10 +331,10 @@ const mockDashboardData: DashboardData = {
   }
 }
 
-function ProfessionalHeader({ data }: { data: DashboardData }) {
+function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh, onExport, onMarkAllRead }: { data: DashboardData; autoRefresh: boolean; onToggleAutoRefresh: () => void; onRefresh: () => void; onExport: () => void; onMarkAllRead: () => void; }) {
   const [showNotifications, setShowNotifications] = useState(false)
-  const [autoRefresh, setAutoRefresh] = useState(true)
   const [dashboardView, setDashboardView] = useState<'overview' | 'detailed'>('overview')
+  const router = useRouter()
   
   const unreadCount = data.notifications.filter(n => !n.read).length
   const urgentNotifications = data.notifications.filter(n => n.type === 'urgent' && !n.read)
@@ -387,22 +387,22 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
           </select>
         </div>
 
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
-          onClick={() => setAutoRefresh(!autoRefresh)}
+          onClick={onToggleAutoRefresh}
         >
           {autoRefresh ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           Auto-refresh
         </Button>
         
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={onRefresh}>
           <RefreshCw className="h-4 w-4" />
           Refresh Data
         </Button>
 
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={onExport}>
           <Download className="h-4 w-4" />
           Export
         </Button>
@@ -430,7 +430,7 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">Notifications</CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs">Mark all read</Button>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={onMarkAllRead}>Mark all read</Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -463,8 +463,8 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
                               <p className="text-xs text-gray-500">
                                 {new Date(notification.timestamp).toLocaleString()}
                               </p>
-                              {notification.actionRequired && (
-                                <Button variant="ghost" size="sm" className="text-xs p-1 h-auto">
+                              {notification.actionRequired && notification.actionUrl && (
+                                <Button variant="ghost" size="sm" className="text-xs p-1 h-auto" onClick={(e) => { e.stopPropagation(); router.push(notification.actionUrl!); }}>
                                   Take Action <ArrowRight className="h-3 w-3 ml-1" />
                                 </Button>
                               )}
@@ -492,6 +492,7 @@ function ProfessionalHeader({ data }: { data: DashboardData }) {
 function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'today' | 'week' | 'month'>('month')
   const [expandedKPI, setExpandedKPI] = useState<string | null>(null)
+  const router = useRouter()
 
   const kpis = [
     {
@@ -581,7 +582,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
               className={`transition-all duration-200 hover:shadow-lg cursor-pointer group relative ${
                 hasAlerts ? `ring-2 ring-red-200 ${kpi.borderColor}` : 'hover:border-gray-300'
               } ${isExpanded ? 'lg:col-span-2' : ''}`}
-              onClick={() => console.log(`Navigate to: ${kpi.drillDown}`)}
+              onClick={() => router.push(kpi.drillDown)}
             >
               {hasAlerts && (
                 <div className="absolute -top-2 -right-2 z-10">
@@ -636,7 +637,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
                     )}
                   </div>
                   
-                  {kpi.progress && (
+                  {kpi.progress !== undefined && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Target Progress</span>
@@ -683,6 +684,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
 }
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 function SmartQuickActions({ data }: { data: DashboardData }) {
   const [actionCategory, setActionCategory] = useState<'primary' | 'management' | 'reports'>('primary')
@@ -1287,28 +1289,46 @@ export default function ProfessionalAdminDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
+  const [autoRefresh, setAutoRefresh] = useState(true)
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      setDashboardData(mockDashboardData)
+      setLastUpdated(new Date())
+      setError(null)
+    } catch (err) {
+      setError('Failed to load dashboard data. Please check your connection and try again.')
+      console.error('Dashboard data loading error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const handleToggleAutoRefresh = () => setAutoRefresh(v => !v)
+  const handleExport = () => {
+    const blob = new Blob([JSON.stringify(dashboardData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dashboard-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+  const handleMarkAllRead = () => {
+    setDashboardData(prev => ({ ...prev, notifications: prev.notifications.map(n => ({ ...n, read: true })) }))
+  }
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true)
-        await new Promise(resolve => setTimeout(resolve, 1200))
-        setDashboardData(mockDashboardData)
-        setLastUpdated(new Date())
-        setError(null)
-      } catch (err) {
-        setError('Failed to load dashboard data. Please check your connection and try again.')
-        console.error('Dashboard data loading error:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadDashboardData()
-    
+  }, [loadDashboardData])
+
+  useEffect(() => {
+    if (!autoRefresh) return
     const interval = setInterval(loadDashboardData, 300000)
     return () => clearInterval(interval)
-  }, [])
+  }, [autoRefresh, loadDashboardData])
 
   if (loading) {
     return (
@@ -1387,7 +1407,14 @@ export default function ProfessionalAdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <ProfessionalHeader data={dashboardData} />
+        <ProfessionalHeader
+          data={dashboardData}
+          autoRefresh={autoRefresh}
+          onToggleAutoRefresh={handleToggleAutoRefresh}
+          onRefresh={loadDashboardData}
+          onExport={handleExport}
+          onMarkAllRead={handleMarkAllRead}
+        />
         <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
         <IntelligentActivityFeed data={dashboardData} />
