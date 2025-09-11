@@ -1405,6 +1405,69 @@ export default function ProfessionalAdminDashboard() {
     setDashboardData(prev => ({ ...prev, notifications: prev.notifications.map(n => ({ ...n, read: true })) }))
   }
 
+  // Live updates via SSE
+  useEffect(() => {
+    if (!autoRefresh) return
+    const es = new EventSource('/api/admin/updates')
+
+    es.addEventListener('booking_update', (ev) => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        const newBooking: Booking = {
+          id: data.id,
+          clientId: 'live',
+          clientName: data.clientName || 'Live Client',
+          clientEmail: 'live@example.com',
+          service: data.service || 'Service',
+          serviceCategory: 'Live',
+          scheduledAt: data.scheduledAt,
+          duration: data.duration || 60,
+          status: (data.status || 'confirmed') as Booking['status'],
+          revenue: Number(data.revenue || 0),
+          priority: (data.priority || 'normal') as Booking['priority'],
+          location: (data.location || 'office') as Booking['location'],
+          isRecurring: false,
+          source: 'direct'
+        }
+        setDashboardData(prev => ({ ...prev, recentBookings: [newBooking, ...prev.recentBookings].slice(0, 20) }))
+      } catch {}
+    })
+
+    es.addEventListener('task_completed', (ev) => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        setDashboardData(prev => ({
+          ...prev,
+          urgentTasks: prev.urgentTasks.map(t => t.id === data.id ? { ...t, status: 'completed', completionPercentage: 100 } : t)
+        }))
+      } catch {}
+    })
+
+    es.addEventListener('system_alert', (ev) => {
+      try {
+        const data = JSON.parse((ev as MessageEvent).data) as any
+        const notif: Notification = {
+          id: data.id,
+          type: (data.severity || 'info') as Notification['type'],
+          category: 'system',
+          title: data.title || 'System Alert',
+          message: data.message || 'Update received',
+          timestamp: new Date().toISOString(),
+          read: false,
+          actionRequired: false,
+          priority: 5,
+        }
+        setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
+      } catch {}
+    })
+
+    es.onerror = () => {
+      es.close()
+    }
+
+    return () => es.close()
+  }, [autoRefresh])
+
   useEffect(() => {
     loadDashboardData()
   }, [loadDashboardData])
