@@ -1181,16 +1181,16 @@ function IntelligentActivityFeed({ data, thresholds, history }: { data: Dashboar
   )
 }
 
-function EnhancedSystemHealth({ data }: { data: DashboardData }) {
+function EnhancedSystemHealth({ data, thresholds, history }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
-  
+
   const healthSections = [
     {
       key: 'database',
       title: 'Database',
       status: data.systemHealth.database.status,
       metrics: [
-        { label: 'Response Time', value: `${data.systemHealth.database.responseTime}ms`, good: data.systemHealth.database.responseTime < 100 },
+        { label: 'Response Time', value: `${data.systemHealth.database.responseTime}ms`, good: data.systemHealth.database.responseTime < (thresholds?.responseTime ?? 100) },
         { label: 'Connections', value: data.systemHealth.database.connections.toString(), good: true },
         { label: 'Last Backup', value: new Date(data.systemHealth.database.lastBackup).toLocaleDateString(), good: true }
       ]
@@ -1202,7 +1202,7 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
       metrics: [
         { label: 'Uptime', value: `${data.systemHealth.api.uptime}%`, good: data.systemHealth.api.uptime > 99 },
         { label: 'Avg Response', value: `${data.systemHealth.api.averageResponseTime}ms`, good: data.systemHealth.api.averageResponseTime < 200 },
-        { label: 'Error Rate', value: `${data.systemHealth.api.errorRate}%`, good: data.systemHealth.api.errorRate < 1 }
+        { label: 'Error Rate', value: `${data.systemHealth.api.errorRate}%`, good: data.systemHealth.api.errorRate < (thresholds?.errorRate ?? 1) }
       ]
     },
     {
@@ -1221,7 +1221,7 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
       status: data.systemHealth.storage.status,
       metrics: [
         { label: 'Used', value: `${data.systemHealth.storage.used}GB / ${data.systemHealth.storage.total}GB`, good: data.systemHealth.storage.used < data.systemHealth.storage.total * 0.8 },
-        { label: 'Growth', value: `${data.systemHealth.storage.growth}% monthly`, good: data.systemHealth.storage.growth < 20 }
+        { label: 'Growth', value: `${data.systemHealth.storage.growth}% monthly`, good: data.systemHealth.storage.growth < (thresholds?.storageGrowth ?? 20) }
       ]
     },
     {
@@ -1263,13 +1263,34 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {history && history.length > 0 && (
+            <div className="bg-gray-50 p-3 rounded">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium">Historical Metrics</div>
+                <div className="text-xs text-gray-500">Last {history.length} entries</div>
+              </div>
+              <div className="h-40">
+                <Line
+                  data={{
+                    labels: history.map(h => new Date(h.timestamp).toLocaleTimeString()),
+                    datasets: [
+                      { label: 'DB Response (ms)', data: history.map(h => h.databaseResponseTime), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.2)', tension: 0.3 },
+                      { label: 'API Error Rate (%)', data: history.map(h => h.apiErrorRate), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.15)', tension: 0.3 }
+                    ]
+                  }}
+                  options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }}}
+                />
+              </div>
+            </div>
+          )}
+
           {healthSections.map((section) => {
             const isExpanded = expandedSection === section.key
             const StatusIcon = section.status === 'healthy' ? CheckCircle : AlertCircle
-            
+
             return (
               <div key={section.key} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                <div 
+                <div
                   className="flex items-center justify-between cursor-pointer"
                   onClick={() => setExpandedSection(isExpanded ? null : section.key)}
                 >
@@ -1281,7 +1302,7 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
                     <span className="font-medium text-sm">{section.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge 
+                    <Badge
                       variant={
                         section.status === 'healthy' ? 'default' :
                         section.status === 'warning' ? 'secondary' : 'destructive'
@@ -1293,7 +1314,7 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
                     <ChevronDown className={`h-3 w-3 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
-                
+
                 {isExpanded && (
                   <div className="mt-3 pt-3 border-t border-gray-200 space-y-2">
                     {section.metrics.map((metric, idx) => (
@@ -1309,7 +1330,7 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
               </div>
             )
           })}
-          
+
           <Button variant="outline" size="sm" className="w-full mt-4">
             <Activity className="h-4 w-4 mr-2" />
             Detailed System Report
