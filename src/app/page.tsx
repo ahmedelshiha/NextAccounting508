@@ -1,12 +1,15 @@
-import { HeroSection } from '@/components/home/hero-section'
+import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { BlogSection } from '@/components/home/blog-section'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function HomePage() {
   return (
     <main>
-      <HeroSection />
+      <HomeHeroSection />
       <ServicesSection />
       <TestimonialsSection />
       <BlogSection />

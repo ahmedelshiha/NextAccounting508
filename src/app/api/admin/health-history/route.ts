@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: Request) {
   // Return mock historical metrics for the system health charts
   const now = Date.now()
   const entries = Array.from({ length: 12 }).map((_, i) => {

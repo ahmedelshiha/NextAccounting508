@@ -1,4 +1,3 @@
-import type { NextRequest } from 'next/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
@@ -7,14 +6,14 @@ import prisma from '@/lib/prisma'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' } as any })
+    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
     if (!threshold) {
       return NextResponse.json({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 })
     }
@@ -25,20 +24,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await _request.json()
     const { responseTime, errorRate, storageGrowth } = body
     if (typeof responseTime !== 'number' || typeof errorRate !== 'number' || typeof storageGrowth !== 'number') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
-    const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' } as any })
+    const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
     let upserted
     if (existing) {
       upserted = await prisma.healthThreshold.update({ where: { id: existing.id }, data: { responseTime, errorRate, storageGrowth } })

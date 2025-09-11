@@ -9,12 +9,9 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     }
   }
 
-  // Resolve to absolute URL in the browser to play nicely with preview/iframe proxies
+  // Browser: keep relative paths relative so the Builder proxy can route correctly
   if (typeof window !== 'undefined') {
-    const origin = window.location.origin
-    const url = typeof path === 'string'
-      ? (path.startsWith('http') ? path : new URL(path, origin).toString())
-      : path
+    const url = typeof path === 'string' ? path : path
     try {
       return await fetch(url as RequestInfo, opts)
     } catch (err) {
