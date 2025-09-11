@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs'
 async function main() {
   console.log('🌱 Starting seed...')
 
+  // Purge deprecated demo user Sarah Johnson and related bookings
+  await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
+  await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
+
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 12)
   const admin = await prisma.user.upsert({
@@ -47,17 +51,6 @@ async function main() {
     },
   })
 
-  const client2 = await prisma.user.upsert({
-    where: { email: 'sarah@example.com' },
-    update: {},
-    create: {
-      email: 'sarah@example.com',
-      name: 'Sarah Johnson',
-      password: clientPassword,
-      role: UserRole.CLIENT,
-      emailVerified: new Date(),
-    },
-  })
 
   console.log('✅ Users created')
 
@@ -350,18 +343,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
         confirmed: true,
       },
       {
-        clientId: client2.id,
-        serviceId: taxService.id,
-        status: BookingStatus.PENDING,
-        scheduledAt: new Date('2024-03-20T14:00:00Z'),
-        duration: 90,
-        clientName: client2.name!,
-        clientEmail: client2.email,
-        clientPhone: '+1-555-0456',
-        notes: 'Tax preparation for 2023 returns',
-        confirmed: false,
-      },
-      {
         clientId: client1.id,
         serviceId: taxService.id,
         status: BookingStatus.COMPLETED,
@@ -491,7 +472,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('Admin: admin@accountingfirm.com / admin123')
   console.log('Staff: staff@accountingfirm.com / staff123')
   console.log('Client: john@example.com / client123')
-  console.log('Client: sarah@example.com / client123')
 }
 
 main()
