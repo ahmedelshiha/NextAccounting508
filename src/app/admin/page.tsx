@@ -1242,7 +1242,13 @@ function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { d
     return score + 10
   }, 0)
 
-  const hist = Array.isArray(history) ? history : (history && (history.entries || history.data)) ? (history.entries || history.data) : undefined
+  const hist = Array.isArray(history)
+    ? history
+    : history && typeof history === 'object' && 'entries' in history && Array.isArray((history as { entries: unknown }).entries)
+      ? (history as { entries: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }).entries
+      : history && typeof history === 'object' && 'data' in history && Array.isArray((history as { data: unknown }).data)
+        ? (history as { data: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }).data
+        : undefined
 
   const [showConfig, setShowConfig] = useState(false)
   const [formValues, setFormValues] = useState(() => ({ responseTime: thresholds?.responseTime ?? 100, errorRate: thresholds?.errorRate ?? 1, storageGrowth: thresholds?.storageGrowth ?? 20 }))
