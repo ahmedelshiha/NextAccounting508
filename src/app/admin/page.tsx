@@ -1181,7 +1181,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
   )
 }
 
-function EnhancedSystemHealth({ data, thresholds, history }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }) {
+function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[]; saveThresholds?: (t: { responseTime: number; errorRate: number; storageGrowth: number }) => void }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
 
   const healthSections = [
