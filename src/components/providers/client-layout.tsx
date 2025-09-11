@@ -150,7 +150,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, [])
 
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0} staleTime={Infinity}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1">
