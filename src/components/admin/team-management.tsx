@@ -514,7 +514,7 @@ export default function TeamManagement() {
       }
       setShowForm(false)
       setEditingMember(null)
-    } catch (e) {
+    } catch {
       alert('Failed to save team member')
     } finally {
       setLoading(false)
