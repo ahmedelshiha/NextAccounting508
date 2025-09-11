@@ -28,6 +28,7 @@ model User {
   posts    Post[]
   bookings Booking[]
   tasks    Task[]
+  teamMembers TeamMember[]
 
   @@map("users")
 }
@@ -296,6 +297,7 @@ model TeamMember {
   notes              String?
   joinDate           DateTime @default(now())
   lastActive         DateTime @default(now())
+  assignedBookings     Booking[]
   stats              TeamMemberStats?
 
   @@map("team_members")
