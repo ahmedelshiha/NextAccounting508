@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import useSWR from 'swr'
 import { Pie, Bar } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title as ChartTitle } from 'chart.js'
+import type { ChartData, ChartOptions } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartTitle)
 import { 
@@ -36,7 +37,6 @@ import {
   Phone,
   Activity,
   Target,
-  PieChart,
   TrendingDown
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -230,6 +230,32 @@ interface PerformanceMetrics {
     appointmentShowRate: number
     reschedulingRate: number
   }
+}
+
+interface AdminAnalyticsResponse {
+  revenueByService?: { service: string; amount: number }[];
+  dailyBookings?: { date?: string; count: number }[];
+}
+
+type BookingUpdateEvent = {
+  id: string;
+  clientName?: string;
+  service?: string;
+  scheduledAt: string;
+  duration?: number;
+  revenue?: number;
+  priority?: 'low' | 'normal' | 'high' | 'urgent';
+  status?: Booking['status'];
+  location?: Booking['location'];
+}
+
+type TaskCompletedEvent = { id: string }
+
+type SystemAlertEvent = {
+  id: string;
+  title?: string;
+  message?: string;
+  severity?: Notification['type'];
 }
 
 const mockDashboardData: DashboardData = {
@@ -1295,18 +1321,20 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
 }
 
 function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: DashboardData }) {
-  const { data: analytics, error } = useSWR('/api/admin/analytics?range=30d', fetcher, { revalidateOnFocus: false })
+  const { data: analytics, error } = useSWR<AdminAnalyticsResponse>('/api/admin/analytics?range=30d', fetcher, { revalidateOnFocus: false })
 
-  const serviceLabels = (analytics?.revenueByService?.map((s: any) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
-  const serviceValues = (analytics?.revenueByService?.map((s: any) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
-  const pieData = {
+  const serviceLabels = (analytics?.revenueByService?.map((s) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
+  const serviceValues = (analytics?.revenueByService?.map((s) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
+  const pieData: ChartData<'pie', number[], string> = {
     labels: serviceLabels,
     datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
   }
+  const pieOptions: ChartOptions<'pie'> = { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
 
-  const dailyLabels = (analytics?.dailyBookings?.map((d: any, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
-  const dailyValues = (analytics?.dailyBookings?.map((d: any) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
-  const barData = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
+  const dailyLabels = (analytics?.dailyBookings?.map((d, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
+  const dailyValues = (analytics?.dailyBookings?.map((d) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
+  const barData: ChartData<'bar', number[], string> = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
+  const barOptions: ChartOptions<'bar'> = { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1315,7 +1343,7 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
         <div className="bg-white rounded-lg border p-4">
           {error ? (<div className="text-sm text-red-600">Analytics unavailable. Showing fallback.</div>) : null}
           <div className="h-56">
-            <Pie data={pieData as any} options={{ plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }} />
+            <Pie data={pieData} options={pieOptions} />
           </div>
           <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
             {analyticsFallback.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
@@ -1335,7 +1363,7 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
         <h3 className="font-medium text-gray-900">Operational Metrics</h3>
         <div className="bg-white rounded-lg border p-4">
           <div className="h-56">
-            <Bar data={barData as any} options={{ plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }} />
+            <Bar data={barData} options={barOptions} />
           </div>
         </div>
         <div className="space-y-3">
@@ -1412,7 +1440,8 @@ export default function ProfessionalAdminDashboard() {
 
     es.addEventListener('booking_update', (ev) => {
       try {
-        const data = JSON.parse((ev as MessageEvent).data) as any
+        const dataRaw = JSON.parse((ev as MessageEvent).data) as unknown
+        const data = dataRaw as BookingUpdateEvent
         const newBooking: Booking = {
           id: data.id,
           clientId: 'live',
@@ -1435,7 +1464,7 @@ export default function ProfessionalAdminDashboard() {
 
     es.addEventListener('task_completed', (ev) => {
       try {
-        const data = JSON.parse((ev as MessageEvent).data) as any
+        const data = JSON.parse((ev as MessageEvent).data) as unknown as TaskCompletedEvent
         setDashboardData(prev => ({
           ...prev,
           urgentTasks: prev.urgentTasks.map(t => t.id === data.id ? { ...t, status: 'completed', completionPercentage: 100 } : t)
@@ -1445,7 +1474,7 @@ export default function ProfessionalAdminDashboard() {
 
     es.addEventListener('system_alert', (ev) => {
       try {
-        const data = JSON.parse((ev as MessageEvent).data) as any
+        const data = JSON.parse((ev as MessageEvent).data) as unknown as SystemAlertEvent
         const notif: Notification = {
           id: data.id,
           type: (data.severity || 'info') as Notification['type'],
