@@ -190,7 +190,7 @@ export default function EnhancedBookingManagement() {
 
       const enhanced: Booking[] = items.map((b) => ({
         ...b,
-        assignedStaff: b.assignedStaff ?? ['John Smith', 'Jane Doe', 'Alex Johnson'][Math.floor(Math.random() * 3)],
+        assignedStaff: (b as any).assignedTeamMember?.name || b.assignedStaff,
         location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
         priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
         source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
