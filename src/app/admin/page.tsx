@@ -258,6 +258,38 @@ type SystemAlertEvent = {
   severity?: Notification['type'];
 }
 
+// Admin bookings API minimal types
+interface AdminBookingsList {
+  bookings: Array<{
+    id: string
+    clientId?: string | null
+    clientName?: string | null
+    clientEmail?: string | null
+    clientPhone?: string | null
+    service?: { name?: string | null; price?: unknown } | null
+    scheduledAt: string | Date
+    duration?: number | null
+    status?: string | null
+    notes?: string | null
+    client?: { name?: string | null; email?: string | null } | null
+  }>
+}
+
+function isAdminBookingsList(val: unknown): val is AdminBookingsList {
+  return typeof val === 'object' && val !== null && Array.isArray((val as { bookings?: unknown }).bookings)
+}
+
+interface HasToString { toString: () => string }
+function toNumberish(v: unknown): number {
+  if (v == null) return 0
+  if (typeof v === 'number') return v
+  if (typeof v === 'bigint') return Number(v)
+  if (typeof v === 'string') { const n = Number(v); return Number.isFinite(n) ? n : 0 }
+  const s = (v as Partial<HasToString>)?.toString?.()
+  if (typeof s === 'string') { const n = Number(s); return Number.isFinite(n) ? n : 0 }
+  return 0
+}
+
 const mockDashboardData: DashboardData = {
   stats: {
     revenue: { current: 24500, previous: 21200, trend: 15.6, target: 30000, targetProgress: 81.7 },
@@ -570,7 +602,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
-      drillDown: '/admin/clients',
+      drillDown: '/admin/users',
       alerts: data.stats.clients.satisfaction < 4.0 ? ['Low satisfaction score'] : []
     },
     {
@@ -1466,8 +1498,16 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
 }
 
 export default function ProfessionalAdminDashboard() {
+  const zeroStats: DashboardStats = {
+    revenue: { current: 0, previous: 0, trend: 0, target: 0, targetProgress: 0 },
+    bookings: { total: 0, today: 0, thisWeek: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0, conversion: 0 },
+    clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
+    tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
+  }
+  const initialDashboardData: DashboardData = { ...mockDashboardData, stats: zeroStats, recentBookings: [] }
+
   const [loading, setLoading] = useState(true)
-  const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData)
+  const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
@@ -1507,10 +1547,127 @@ export default function ProfessionalAdminDashboard() {
   const { data: history } = useSWR('/api/admin/health-history', fetcher)
 
   const loadDashboardData = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1200))
-      setDashboardData(mockDashboardData)
+      const [bookingsRes, usersRes, tasksRes, bookingsListRes] = await Promise.allSettled([
+        fetch('/api/admin/stats/bookings?range=7d'),
+        fetch('/api/admin/stats/users'),
+        fetch('/api/admin/tasks?limit=50'),
+        fetch('/api/admin/bookings?limit=20')
+      ])
+
+      const okJson = async (r: PromiseSettledResult<Response>) => {
+        if (r.status === 'fulfilled' && r.value.ok) return r.value.json()
+        return null
+      }
+
+      const [bookings, users, tasks, adminBookings] = await Promise.all([
+        okJson(bookingsRes),
+        okJson(usersRes),
+        okJson(tasksRes),
+        okJson(bookingsListRes)
+      ])
+
+      setDashboardData((prev) => {
+        const base = prev || mockDashboardData
+
+        const totalBookings = Number(bookings?.total ?? base.stats.bookings.total) || 0
+        const completedBookings = Number(bookings?.completed ?? base.stats.bookings.completed) || 0
+        const confirmedBookings = Number(bookings?.confirmed ?? base.stats.bookings.confirmed) || 0
+        const pendingBookings = Number(bookings?.pending ?? base.stats.bookings.pending) || 0
+        const cancelledBookings = Number(bookings?.cancelled ?? base.stats.bookings.cancelled) || 0
+        const todayBookings = Number(bookings?.today ?? base.stats.bookings.today) || 0
+        const thisWeekBookings = Number(bookings?.range?.bookings ?? base.stats.bookings.thisWeek) || 0
+        const conversion = totalBookings > 0 ? ((completedBookings + confirmedBookings) / totalBookings) * 100 : 0
+
+        const clientsTotal = Number(users?.clients ?? base.stats.clients.total) || 0
+        const newClients = Number(users?.newThisMonth ?? base.stats.clients.new) || 0
+        const activeClients = Number(users?.activeUsers ?? base.stats.clients.active) || 0
+        const inactiveClients = Math.max(clientsTotal - activeClients, 0)
+        const retention = clientsTotal > 0 ? (activeClients / clientsTotal) * 100 : 0
+        const satisfaction = base.stats.clients.satisfaction
+
+        const list = Array.isArray(tasks) ? tasks as Array<{ status?: string; dueAt?: string | null }> : []
+        const now = new Date()
+        const tasksTotal = list.length
+        const tasksCompleted = list.filter(t => t.status === 'DONE').length
+        const tasksInProgress = list.filter(t => t.status === 'IN_PROGRESS').length
+        const tasksOverdue = list.filter(t => t.dueAt && new Date(t.dueAt) < now && t.status !== 'DONE').length
+        const tasksDueToday = list.filter(t => {
+          if (!t.dueAt) return false
+          const d = new Date(t.dueAt)
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+        }).length
+        const productivity = tasksTotal > 0 ? (tasksCompleted / tasksTotal) * 100 : 0
+
+        const revenueCurrent = Number(bookings?.revenue?.thisMonth ?? base.stats.revenue.current) || 0
+        const revenuePrevious = Number(bookings?.revenue?.lastMonth ?? base.stats.revenue.previous) || 0
+        const revenueTrend = Number(bookings?.revenue?.growth ?? base.stats.revenue.trend) || 0
+        const revenueTarget = revenueCurrent
+        const targetProgress = revenueCurrent > 0 ? 100 : 0
+
+        const mappedRecent: Booking[] = isAdminBookingsList(adminBookings)
+          ? adminBookings.bookings.map((b) => ({
+              id: b.id,
+              clientId: b.clientId || 'unknown',
+              clientName: b.clientName || b.client?.name || 'Client',
+              clientEmail: b.clientEmail || b.client?.email || '',
+              clientPhone: b.clientPhone || undefined,
+              service: b.service?.name || 'Service',
+              serviceCategory: b.service?.name || 'General',
+              scheduledAt: typeof b.scheduledAt === 'string' ? b.scheduledAt : new Date(b.scheduledAt).toISOString(),
+              duration: Number(b.duration || 60),
+              status: String(b.status || 'CONFIRMED').toLowerCase() as Booking['status'],
+              revenue: toNumberish(b.service?.price),
+              priority: 'normal',
+              location: 'office',
+              assignedTo: undefined,
+              notes: b.notes || undefined,
+              isRecurring: false,
+              source: 'direct'
+            }))
+          : base.recentBookings
+
+        return {
+          ...base,
+          recentBookings: mappedRecent,
+          stats: {
+            revenue: {
+              current: revenueCurrent,
+              previous: revenuePrevious,
+              trend: revenueTrend,
+              target: revenueTarget,
+              targetProgress: targetProgress
+            },
+            bookings: {
+              total: totalBookings,
+              today: todayBookings,
+              thisWeek: thisWeekBookings,
+              pending: pendingBookings,
+              confirmed: confirmedBookings,
+              completed: completedBookings,
+              cancelled: cancelledBookings,
+              conversion
+            },
+            clients: {
+              total: clientsTotal,
+              new: newClients,
+              active: activeClients,
+              inactive: inactiveClients,
+              retention,
+              satisfaction
+            },
+            tasks: {
+              total: tasksTotal,
+              overdue: tasksOverdue,
+              dueToday: tasksDueToday,
+              completed: tasksCompleted,
+              inProgress: tasksInProgress,
+              productivity
+            }
+          }
+        }
+      })
       setLastUpdated(new Date())
       setError(null)
     } catch (err) {
