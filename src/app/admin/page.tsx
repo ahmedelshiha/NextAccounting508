@@ -570,7 +570,7 @@ function ProfessionalKPIGrid({ data }: { data: DashboardData }) {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
-      drillDown: '/admin/clients',
+      drillDown: '/admin/users',
       alerts: data.stats.clients.satisfaction < 4.0 ? ['Low satisfaction score'] : []
     },
     {
@@ -1507,10 +1507,102 @@ export default function ProfessionalAdminDashboard() {
   const { data: history } = useSWR('/api/admin/health-history', fetcher)
 
   const loadDashboardData = useCallback(async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1200))
-      setDashboardData(mockDashboardData)
+      const [bookingsRes, usersRes, tasksRes] = await Promise.allSettled([
+        fetch('/api/admin/stats/bookings?range=7d'),
+        fetch('/api/admin/stats/users'),
+        fetch('/api/admin/tasks?limit=50')
+      ])
+
+      const okJson = async (r: PromiseSettledResult<Response>) => {
+        if (r.status === 'fulfilled' && r.value.ok) return r.value.json()
+        return null
+      }
+
+      const [bookings, users, tasks] = await Promise.all([
+        okJson(bookingsRes),
+        okJson(usersRes),
+        okJson(tasksRes)
+      ])
+
+      const prev = dashboardData || mockDashboardData
+
+      const totalBookings = Number(bookings?.total ?? prev.stats.bookings.total) || 0
+      const completedBookings = Number(bookings?.completed ?? prev.stats.bookings.completed) || 0
+      const confirmedBookings = Number(bookings?.confirmed ?? prev.stats.bookings.confirmed) || 0
+      const pendingBookings = Number(bookings?.pending ?? prev.stats.bookings.pending) || 0
+      const cancelledBookings = Number(bookings?.cancelled ?? prev.stats.bookings.cancelled) || 0
+      const todayBookings = Number(bookings?.today ?? prev.stats.bookings.today) || 0
+      const thisWeekBookings = Number(bookings?.range?.bookings ?? prev.stats.bookings.thisWeek) || 0
+      const conversion = totalBookings > 0 ? ((completedBookings + confirmedBookings) / totalBookings) * 100 : 0
+
+      const clientsTotal = Number(users?.clients ?? prev.stats.clients.total) || 0
+      const newClients = Number(users?.newThisMonth ?? prev.stats.clients.new) || 0
+      const activeClients = Number(users?.activeUsers ?? prev.stats.clients.active) || 0
+      const inactiveClients = Math.max(clientsTotal - activeClients, 0)
+      const retention = clientsTotal > 0 ? (activeClients / clientsTotal) * 100 : 0
+      const satisfaction = prev.stats.clients.satisfaction
+
+      const list = Array.isArray(tasks) ? tasks as Array<{ status?: string; dueAt?: string | null }> : []
+      const now = new Date()
+      const tasksTotal = list.length
+      const tasksCompleted = list.filter(t => t.status === 'DONE').length
+      const tasksInProgress = list.filter(t => t.status === 'IN_PROGRESS').length
+      const tasksOverdue = list.filter(t => t.dueAt && new Date(t.dueAt) < now && t.status !== 'DONE').length
+      const tasksDueToday = list.filter(t => {
+        if (!t.dueAt) return false
+        const d = new Date(t.dueAt)
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+      }).length
+      const productivity = tasksTotal > 0 ? (tasksCompleted / tasksTotal) * 100 : 0
+
+      const revenueCurrent = Number(bookings?.revenue?.thisMonth ?? prev.stats.revenue.current) || 0
+      const revenuePrevious = Number(bookings?.revenue?.lastMonth ?? prev.stats.revenue.previous) || 0
+      const revenueTrend = Number(bookings?.revenue?.growth ?? prev.stats.revenue.trend) || 0
+      const revenueTarget = revenueCurrent
+      const targetProgress = revenueCurrent > 0 ? 100 : 0
+
+      const updated: DashboardData = {
+        ...prev,
+        stats: {
+          revenue: {
+            current: revenueCurrent,
+            previous: revenuePrevious,
+            trend: revenueTrend,
+            target: revenueTarget,
+            targetProgress: targetProgress
+          },
+          bookings: {
+            total: totalBookings,
+            today: todayBookings,
+            thisWeek: thisWeekBookings,
+            pending: pendingBookings,
+            confirmed: confirmedBookings,
+            completed: completedBookings,
+            cancelled: cancelledBookings,
+            conversion
+          },
+          clients: {
+            total: clientsTotal,
+            new: newClients,
+            active: activeClients,
+            inactive: inactiveClients,
+            retention,
+            satisfaction
+          },
+          tasks: {
+            total: tasksTotal,
+            overdue: tasksOverdue,
+            dueToday: tasksDueToday,
+            completed: tasksCompleted,
+            inProgress: tasksInProgress,
+            productivity
+          }
+        }
+      }
+
+      setDashboardData(updated)
       setLastUpdated(new Date())
       setError(null)
     } catch (err) {
@@ -1519,7 +1611,7 @@ export default function ProfessionalAdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [dashboardData])
 
   const handleToggleAutoRefresh = () => setAutoRefresh(v => !v)
   const handleExport = () => {
