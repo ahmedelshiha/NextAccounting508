@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         ...updated,
         hourlyRate: updated.hourlyRate != null ? Number(updated.hourlyRate) : null
       } })
-    } catch (_err) {
+    } catch {
       return NextResponse.json({ error: 'DB not available, cannot persist update' }, { status: 503 })
     }
   } catch (error) {
@@ -64,7 +64,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     try {
       await prisma.teamMember.delete({ where: { id } })
       return NextResponse.json({ message: 'Team member removed' })
-    } catch (_err) {
+    } catch {
       return NextResponse.json({ error: 'DB not available, cannot delete' }, { status: 503 })
     }
   } catch (error) {
