@@ -7,14 +7,12 @@ import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Calendar,
   Clock,
   Mail,
   Phone,
-  MapPin,
   Users,
   DollarSign,
   ChevronLeft,
@@ -22,12 +20,12 @@ import {
   XCircle,
   Save,
 } from 'lucide-react'
-import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
+import { formatCurrencyFromDecimal, type DecimalLike } from '@/lib/decimal-utils'
 
 interface ServiceLite {
   id: string
   name: string
-  price?: number | string
+  price?: DecimalLike
   duration?: number | null
   category?: string | null
 }
@@ -89,7 +87,7 @@ export default function AdminBookingDetailPage() {
           setBooking(data)
           setAdminNotes(data?.adminNotes || '')
         }
-      } catch (e) {
+      } catch {
         if (!ignore) setError('Could not fetch booking')
       } finally {
         if (!ignore) setLoading(false)
@@ -133,7 +131,7 @@ export default function AdminBookingDetailPage() {
         const body = await res.json().catch(() => ({}))
         setError(body?.error || `Failed to update (${res.status})`)
       }
-    } catch (e) {
+    } catch {
       setError('Failed to update status')
     } finally {
       setUpdatingStatus(null)
@@ -156,7 +154,7 @@ export default function AdminBookingDetailPage() {
         const body = await res.json().catch(() => ({}))
         setError(body?.error || `Failed to save notes (${res.status})`)
       }
-    } catch (e) {
+    } catch {
       setError('Failed to save notes')
     } finally {
       setSavingNotes(false)
@@ -255,7 +253,7 @@ export default function AdminBookingDetailPage() {
                 {booking.service?.price != null && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <DollarSign className="h-4 w-4" />
-                    <span>{formatCurrencyFromDecimal(booking.service.price as any)}</span>
+                    <span>{formatCurrencyFromDecimal(booking.service.price)}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-sm text-gray-700">
