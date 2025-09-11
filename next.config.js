@@ -23,7 +23,7 @@ const nextConfig = {
   compress: true,
 
   images: {
-    domains: ["localhost", "mydomain.com"],
+    domains: ["localhost", "mydomain.com", "cdn.builder.io"],
   },
 
   // Allow Builder preview domains to access dev resources like /_next/* during development
