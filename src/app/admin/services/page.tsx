@@ -63,6 +63,63 @@ function HBarChart({ items, color = '#22c55e', height = 12 }: { items: { label: 
   )
 }
 
+function PieDonutChart({ items, donut = true, thickness = 12, palette }: { items: { label: string; value: number }[]; donut?: boolean; thickness?: number; palette?: string[] }) {
+  const total = items.reduce((a, b) => a + (b.value || 0), 0)
+  if (!total) return <div className="text-sm text-gray-600">No data</div>
+  const colors = palette && palette.length ? palette : ['#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444','#14b8a6','#a855f7']
+  const arcs: { start: number; end: number; color: string; label: string; value: number; pct: number }[] = []
+  let acc = 0
+  items.forEach((it, idx) => {
+    const pct = (it.value / total)
+    const start = acc
+    const end = acc + pct
+    arcs.push({ start, end, color: colors[idx % colors.length], label: it.label, value: it.value, pct })
+    acc = end
+  })
+  const cx = 50, cy = 50, rOuter = 45
+  const rInner = donut ? rOuter - thickness : 0
+
+  function polarToCartesian(r: number, t: number) {
+    const a = (t - 0.25) * 2 * Math.PI
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) }
+  }
+  function arcPath(startT: number, endT: number) {
+    const start = polarToCartesian(rOuter, startT)
+    const end = polarToCartesian(rOuter, endT)
+    const large = endT - startT > 0.5 ? 1 : 0
+    if (!donut) {
+      return `M ${cx} ${cy} L ${start.x} ${start.y} A ${rOuter} ${rOuter} 0 ${large} 1 ${end.x} ${end.y} Z`
+    }
+    const iStart = polarToCartesian(rInner, endT)
+    const iEnd = polarToCartesian(rInner, startT)
+    return `M ${start.x} ${start.y} A ${rOuter} ${rOuter} 0 ${large} 1 ${end.x} ${end.y} L ${iStart.x} ${iStart.y} A ${rInner} ${rInner} 0 ${large} 0 ${iEnd.x} ${iEnd.y} Z`
+  }
+
+  return (
+    <div className="flex items-center gap-6">
+      <svg viewBox="0 0 100 100" className="w-40 h-40">
+        {arcs.map((a, i) => (
+          <path key={i} d={arcPath(a.start, a.end)} fill={a.color}>
+            <title>{`${a.label}: ${a.value.toLocaleString()} (${Math.round(a.pct*100)}%)`}</title>
+          </path>
+        ))}
+        {donut && (
+          <circle cx={cx} cy={cy} r={rInner - 0.5} fill="white" />
+        )}
+      </svg>
+      <ul className="space-y-1 text-sm">
+        {arcs.map((a, i) => (
+          <li key={i} className="flex items-center gap-2">
+            <span className="inline-block rounded-sm" style={{ backgroundColor: a.color, width: 10, height: 10 }} />
+            <span className="truncate max-w-[12rem]" title={a.label}>{a.label}</span>
+            <span className="text-gray-600">- {Math.round(a.pct * 100)}%</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 interface Service {
   id: string
   name: string
@@ -499,28 +556,55 @@ export default function EnhancedServicesPage() {
                   {[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded animate-pulse" />)}
                 </div>
               ) : analytics ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <div className="text-sm text-gray-600 mb-2">Daily bookings</div>
-                    <LineAreaChart values={analytics.dailyBookings.slice(-30).map(d => d.count)} stroke="#2563eb" fill="#bfdbfe" height={120} />
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Daily bookings</div>
+                      <LineAreaChart values={analytics.dailyBookings.slice(-30).map(d => d.count)} stroke="#2563eb" fill="#bfdbfe" height={120} />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Revenue by service</div>
+                      <HBarChart items={analytics.revenueByService.slice(0,5).map(r => ({ label: r.service, value: r.amount }))} color="#22c55e" height={8} />
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Top services</div>
+                      <ul className="space-y-2">
+                        {analytics.topServices.slice(0,5).map((t, idx) => (
+                          <li key={idx} className="flex items-center justify-between text-sm">
+                            <span className="truncate pr-2">{t.service}</span>
+                            <span className="text-gray-700">{t.bookings} bookings</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-4 text-sm text-gray-700">Avg lead time: <span className="font-medium">{analytics.avgLeadTimeDays.toFixed(1)} days</span></div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-2">Revenue by service</div>
-                    <HBarChart items={analytics.revenueByService.slice(0,5).map(r => ({ label: r.service, value: r.amount }))} color="#22c55e" height={8} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Revenue share (donut)</div>
+                      {(() => {
+                        const list = [...(analytics.revenueByService || [])].sort((a,b) => b.amount - a.amount)
+                        const top = list.slice(0,5)
+                        const otherVal = list.slice(5).reduce((s,x)=> s + x.amount, 0)
+                        const items = [...top.map(t => ({ label: t.service, value: t.amount })), ...(otherVal > 0 ? [{ label: 'Other', value: otherVal }] : [])]
+                        return <PieDonutChart items={items} donut thickness={12} />
+                      })()}
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600 mb-2">Service status (pie)</div>
+                      {(() => {
+                        const active = services.filter(s => s.active).length
+                        const inactive = services.length - active
+                        const items = [
+                          { label: 'Active', value: active },
+                          { label: 'Inactive', value: inactive }
+                        ]
+                        return <PieDonutChart items={items} donut={false} />
+                      })()}
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-600 mb-2">Top services</div>
-                    <ul className="space-y-2">
-                      {analytics.topServices.slice(0,5).map((t, idx) => (
-                        <li key={idx} className="flex items-center justify-between text-sm">
-                          <span className="truncate pr-2">{t.service}</span>
-                          <span className="text-gray-700">{t.bookings} bookings</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-4 text-sm text-gray-700">Avg lead time: <span className="font-medium">{analytics.avgLeadTimeDays.toFixed(1)} days</span></div>
-                  </div>
-                </div>
+                </>
               ) : (
                 <div className="text-sm text-gray-600">Analytics unavailable.</div>
               )}
