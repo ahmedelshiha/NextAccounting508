@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
     }
 
     const ip = getClientIp(request as unknown as Request)
-    if (!rateLimit(`tasks:create:${ip}`, 30, 60_000)) {
+    const rl = await rateLimit(`tasks:create:${ip}`, 30, 60)
+    if (!rl.allowed) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
