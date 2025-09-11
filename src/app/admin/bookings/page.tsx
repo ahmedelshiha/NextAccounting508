@@ -152,6 +152,16 @@ export default function EnhancedBookingManagement() {
 
   useEffect(() => {
     refresh()
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/admin/team-members')
+        const json = await res.json().catch(() => ({}))
+        const list: TeamMemberLite[] = Array.isArray(json?.teamMembers) ? json.teamMembers : []
+        setTeamMembers(list)
+      } catch {
+        setTeamMembers([])
+      }
+    })()
   }, [])
 
   useEffect(() => {
