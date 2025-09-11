@@ -7,24 +7,11 @@ import prisma from '@/lib/prisma'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
-const DEV_ADMIN_HEADER = 'x-admin-secret'
-const DEV_ADMIN_SECRET = process.env.ADMIN_TEST_SECRET
-
-function isDevAdmin(request: NextRequest) {
-  if (process.env.NODE_ENV === 'production') return false
-  if (!DEV_ADMIN_SECRET) return false
-  const header = request.headers.get(DEV_ADMIN_HEADER) || request.headers.get(DEV_ADMIN_HEADER.toUpperCase())
-  return header === DEV_ADMIN_SECRET
-}
-
 export async function GET(request: NextRequest) {
   try {
-    // allow dev header bypass
-    if (!isDevAdmin(request)) {
-      const session = await getServerSession(authOptions)
-      if (!session?.user || session.user.role !== 'ADMIN') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    const session = await getServerSession(authOptions)
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' } as any })
@@ -40,12 +27,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // allow dev header bypass
-    if (!isDevAdmin(request)) {
-      const session = await getServerSession(authOptions)
-      if (!session?.user || session.user.role !== 'ADMIN') {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
+    const session = await getServerSession(authOptions)
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
