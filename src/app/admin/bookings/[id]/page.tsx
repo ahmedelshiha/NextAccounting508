@@ -53,9 +53,12 @@ interface BookingDetail {
   reminderSent?: boolean
   createdAt?: string
   updatedAt?: string
+  assignedTeamMember?: { id: string; name: string; email: string }
   service: ServiceLite
   client: ClientLite
 }
+
+interface TeamMemberLite { id: string; name: string; email: string }
 
 export default function AdminBookingDetailPage() {
   const params = useParams<{ id: string }>()
