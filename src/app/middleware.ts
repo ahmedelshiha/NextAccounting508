@@ -9,6 +9,11 @@ export async function middleware(req: NextRequest) {
 
   // CORS + basic rate limiting for API routes
   if (pathname.startsWith('/api')) {
+    // Do not interfere with NextAuth internals
+    if (pathname.startsWith('/api/auth')) {
+      return NextResponse.next()
+    }
+
     if (req.method === 'OPTIONS') return corsPreflight(req)
 
     const { getClientIp } = await import('@/lib/rate-limit')
