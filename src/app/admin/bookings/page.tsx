@@ -311,7 +311,7 @@ export default function EnhancedBookingManagement() {
       if (sortBy === 'date') cmp = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       else if (sortBy === 'value') cmp = (Number(a.service?.price || 0) - Number(b.service?.price || 0))
       else if (sortBy === 'client') cmp = a.clientName.localeCompare(b.clientName)
-      else if (sortBy === 'status') cmp = a.status.localeCompare(b.status)
+      else if (sortBy === 'status') cmp = (a.status || '').localeCompare(b.status || '')
       return sortOrder === 'desc' ? -cmp : cmp
     })
 
@@ -782,7 +782,7 @@ export default function EnhancedBookingManagement() {
                             <TableCell>
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                  <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                                  <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{(b.status || 'PENDING').replace('_',' ')}</Badge>
                                   {b.reminderSent && b.status === 'CONFIRMED' && (
                                     <span className="text-xs text-green-600">Reminded</span>
                                   )}
@@ -873,7 +873,7 @@ export default function EnhancedBookingManagement() {
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                              <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                              <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{(b.status || 'PENDING').replace('_',' ')}</Badge>
                               <div>
                                 <CardTitle className="text-lg">{b.clientName}</CardTitle>
                                 <CardDescription className="flex items-center gap-2">
