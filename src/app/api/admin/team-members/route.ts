@@ -8,7 +8,7 @@ import type { Prisma } from '@prisma/client'
 // Shared projection to normalize DB to API shape
 interface DbMemberStats { totalBookings?: number; completedBookings?: number; averageRating?: number; totalRatings?: number; revenueGenerated?: number; utilizationRate?: number }
 interface DbWorkingHours { start?: string; end?: string; timezone?: string; days?: string[] }
-interface DbMember { id: string; userId?: string | null; name: string; email: string; role?: string; department: string; status?: string; title: string; certifications?: string[]; specialties?: string[]; experienceYears?: number | null; hourlyRate?: number | Prisma.Decimal | null; workingHours?: Prisma.JsonValue | null; isAvailable?: boolean; availabilityNotes?: string | null; stats?: DbMemberStats | null; canManageBookings?: boolean; canViewAllClients?: boolean; notificationSettings?: { email?: boolean; sms?: boolean; inApp?: boolean } | null; joinDate?: string | Date; lastActive?: string | Date; notes?: string | null; phone?: string | null }
+interface DbMember { id: string; userId?: string | null; name: string; email: string; role?: string; department: string; status?: string; title: string; certifications?: string[]; specialties?: string[]; experienceYears?: number | null; hourlyRate?: number | Prisma.Decimal | null; workingHours?: Prisma.JsonValue | null; isAvailable?: boolean; availabilityNotes?: string | null; stats?: DbMemberStats | null; canManageBookings?: boolean; canViewAllClients?: boolean; notificationSettings?: Prisma.JsonValue | null; joinDate?: string | Date; lastActive?: string | Date; notes?: string | null; phone?: string | null }
 function mapDbMember(m: DbMember) {
   const stats = m.stats || {}
   const whRaw = m.workingHours as Prisma.JsonValue | null | undefined
@@ -24,6 +24,18 @@ function mapDbMember(m: DbMember) {
   } else {
     workingHours = { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] }
   }
+  const nsRaw = m.notificationSettings as Prisma.JsonValue | null | undefined
+  const notificationSettings = (() => {
+    if (nsRaw && typeof nsRaw === 'object' && !Array.isArray(nsRaw)) {
+      const o = nsRaw as Record<string, unknown>
+      return {
+        email: typeof o.email === 'boolean' ? o.email : true,
+        sms: typeof o.sms === 'boolean' ? o.sms : false,
+        inApp: typeof o.inApp === 'boolean' ? o.inApp : true,
+      }
+    }
+    return { email: true, sms: false, inApp: true }
+  })()
   return {
     id: m.id,
     userId: m.userId || null,
@@ -50,7 +62,7 @@ function mapDbMember(m: DbMember) {
     },
     canManageBookings: Boolean(m.canManageBookings),
     canViewAllClients: Boolean(m.canViewAllClients),
-    notificationSettings: m.notificationSettings || { email: true, sms: false, inApp: true },
+    notificationSettings,
     joinDate: (m.joinDate instanceof Date ? m.joinDate.toISOString() : (m.joinDate || new Date().toISOString())),
     lastActive: (m.lastActive instanceof Date ? m.lastActive.toISOString() : (m.lastActive || new Date().toISOString())),
     notes: m.notes || undefined,
