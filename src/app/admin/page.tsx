@@ -1176,7 +1176,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
         </CardContent>
       </Card>
       
-      <EnhancedSystemHealth data={data} thresholds={thresholds} history={history} />
+      <EnhancedSystemHealth data={data} thresholds={thresholds} history={history} saveThresholds={saveThresholds} />
     </div>
   )
 }
