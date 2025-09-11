@@ -5,7 +5,10 @@ import { hasPermission } from '@/lib/rbac'
 import prisma from '@/lib/prisma'
 
 // Shared projection to normalize DB to API shape
-function mapDbMember(m: any) {
+interface DbMemberStats { totalBookings?: number; completedBookings?: number; averageRating?: number; totalRatings?: number; revenueGenerated?: number; utilizationRate?: number }
+interface DbWorkingHours { start?: string; end?: string; timezone?: string; days?: string[] }
+interface DbMember { id: string; userId?: string | null; name: string; email: string; role?: string; department: string; status?: string; title: string; certifications?: string[]; specialties?: string[]; experienceYears?: number | null; hourlyRate?: number | null; workingHours?: DbWorkingHours | null; isAvailable?: boolean; availabilityNotes?: string | null; stats?: DbMemberStats | null; canManageBookings?: boolean; canViewAllClients?: boolean; notificationSettings?: { email?: boolean; sms?: boolean; inApp?: boolean } | null; joinDate?: string | Date; lastActive?: string | Date; notes?: string | null; phone?: string | null }
+function mapDbMember(m: DbMember) {
   const stats = m.stats || {}
   return {
     id: m.id,
