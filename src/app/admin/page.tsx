@@ -1244,6 +1244,15 @@ function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { d
 
   const hist = Array.isArray(history) ? history : (history && (history.entries || history.data)) ? (history.entries || history.data) : undefined
 
+  const [showConfig, setShowConfig] = useState(false)
+  const [formValues, setFormValues] = useState(() => ({ responseTime: thresholds?.responseTime ?? 100, errorRate: thresholds?.errorRate ?? 1, storageGrowth: thresholds?.storageGrowth ?? 20 }))
+
+  const applyConfig = () => {
+    if (saveThresholds) saveThresholds(formValues)
+    try { localStorage.setItem('admin_health_thresholds', JSON.stringify(formValues)) } catch {}
+    setShowConfig(false)
+  }
+
   return (
     <Card>
       <CardHeader>
