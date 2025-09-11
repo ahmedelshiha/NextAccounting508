@@ -1242,6 +1242,8 @@ function EnhancedSystemHealth({ data, thresholds, history }: { data: DashboardDa
     return score + 10
   }, 0)
 
+  const hist = Array.isArray(history) ? history : (history && (history.entries || history.data)) ? (history.entries || history.data) : undefined
+
   return (
     <Card>
       <CardHeader>
