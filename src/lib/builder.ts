@@ -50,7 +50,7 @@ export async function fetchBuilderContent<T = any>(opts: BuilderFetchOptions): P
     return dist
   }
 
-  const hp = headers()
+  const hp = await headers()
   const host = hp.get('host') || ''
   const urlParam = opts.urlPath || '/'
 
