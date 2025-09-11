@@ -774,7 +774,7 @@ export default function EnhancedBookingManagement() {
                                 <DropdownMenuContent align="end" className="w-56">
                                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                   <DropdownMenuItem asChild><Link href={`/admin/bookings/${b.id}`} className="cursor-pointer"><Eye className="h-4 w-4 mr-2" />View Details</Link></DropdownMenuItem>
-                                  <DropdownMenuItem><Edit className="h-4 w-4 mr-2" />Edit Booking</DropdownMenuItem>
+                                  <DropdownMenuItem asChild><Link href={`/admin/bookings/${b.id}?edit=1`} className="cursor-pointer"><Edit className="h-4 w-4 mr-2" />Edit Booking</Link></DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   {b.status === 'PENDING' && (
                                     <DropdownMenuItem onClick={() => updateStatus(b.id, 'CONFIRMED')}><CheckCircle className="h-4 w-4 mr-2" />Confirm</DropdownMenuItem>
