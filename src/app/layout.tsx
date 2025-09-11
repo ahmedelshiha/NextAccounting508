@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ClientLayout } from '@/components/providers/client-layout'
 import './globals.css'
