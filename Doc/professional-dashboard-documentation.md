@@ -984,10 +984,26 @@ const reportError = (error: Error, context: ErrorContext) => {
 - [x] SWR integration (initial analytics fetch)
 - [x] SSE real-time updates (client EventSource + /api/admin/updates)
 - [x] Chart integrations (revenue by service pie, daily bookings bar)
-- [ ] Configurable alert thresholds & historical health charts
+- [x] Configurable alert thresholds & historical health charts
+- [x] Server-backed thresholds (DB)
+
+  Note: For development and CI convenience a temporary dev-header backdoor is available. It allows requests with a matching `x-admin-secret` header (set via the ADMIN_TEST_SECRET env var) to bypass NextAuth checks when NODE_ENV !== 'production'. This is intended only for automated tests and local development. Remove this backdoor before production by unsetting ADMIN_TEST_SECRET, or replace test authentication with a proper NextAuth sign-in flow for CI.
+
 - [ ] RBAC-gated sections and middleware enforcement
 - [ ] Accessibility polish and performance (virtualization, lazy charts)
 - [ ] Sentry integration and test coverage
+
+### Testing
+
+We provide a lightweight integration test for the thresholds API used during local development and CI.
+
+- Script: scripts/test-thresholds.ts
+- NPM script: npm run test:thresholds
+- Dev-only test header: ADMIN_TEST_SECRET environment variable (development only) — requests with header `x-admin-secret: <ADMIN_TEST_SECRET>` bypass NextAuth and act as an admin.
+
+Recommended CI approach:
+- Prefer programmatic NextAuth sign-in (or seed an admin user + service account) for CI rather than relying on the dev-header backdoor.
+- If using the dev-header for CI, ensure ADMIN_TEST_SECRET is stored securely in CI secrets and remove the backdoor in production.
 
 ## Conclusion
 
