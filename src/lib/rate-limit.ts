@@ -24,24 +24,8 @@ export function getClientIp(req: Request | NextRequest): string {
   }
 }
 
-export function rateLimit(key: string, limit: number, windowMs: number): boolean
-export function rateLimit(key: string, limit: number, windowSec: number): Promise<RateLimitResult>
-export async function rateLimit(key: string, limit: number, window: number): Promise<RateLimitResult> | boolean {
+export async function rateLimit(key: string, limit: number, windowSec: number): Promise<RateLimitResult> {
   const now = Date.now()
-
-  if (window >= 1000) {
-    const bucketKey = `rl:${key}`
-    let state = mem.get(bucketKey)
-    if (!state || state.resetAt <= now) {
-      state = { count: 0, resetAt: now + window }
-    }
-    state.count += 1
-    const allowed = state.count <= limit
-    mem.set(bucketKey, state)
-    return allowed
-  }
-
-  const windowSec = window
   const bucketKey = `rl:${key}`
 
   let state = mem.get(bucketKey)
