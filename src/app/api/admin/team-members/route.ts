@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { hasPermission } from '@/lib/rbac'
@@ -9,9 +8,22 @@ import type { Prisma } from '@prisma/client'
 // Shared projection to normalize DB to API shape
 interface DbMemberStats { totalBookings?: number; completedBookings?: number; averageRating?: number; totalRatings?: number; revenueGenerated?: number; utilizationRate?: number }
 interface DbWorkingHours { start?: string; end?: string; timezone?: string; days?: string[] }
-interface DbMember { id: string; userId?: string | null; name: string; email: string; role?: string; department: string; status?: string; title: string; certifications?: string[]; specialties?: string[]; experienceYears?: number | null; hourlyRate?: number | Prisma.Decimal | null; workingHours?: DbWorkingHours | null; isAvailable?: boolean; availabilityNotes?: string | null; stats?: DbMemberStats | null; canManageBookings?: boolean; canViewAllClients?: boolean; notificationSettings?: { email?: boolean; sms?: boolean; inApp?: boolean } | null; joinDate?: string | Date; lastActive?: string | Date; notes?: string | null; phone?: string | null }
+interface DbMember { id: string; userId?: string | null; name: string; email: string; role?: string; department: string; status?: string; title: string; certifications?: string[]; specialties?: string[]; experienceYears?: number | null; hourlyRate?: number | Prisma.Decimal | null; workingHours?: Prisma.JsonValue | null; isAvailable?: boolean; availabilityNotes?: string | null; stats?: DbMemberStats | null; canManageBookings?: boolean; canViewAllClients?: boolean; notificationSettings?: { email?: boolean; sms?: boolean; inApp?: boolean } | null; joinDate?: string | Date; lastActive?: string | Date; notes?: string | null; phone?: string | null }
 function mapDbMember(m: DbMember) {
   const stats = m.stats || {}
+  const whRaw = m.workingHours as Prisma.JsonValue | null | undefined
+  let workingHours: DbWorkingHours
+  if (whRaw && typeof whRaw === 'object' && !Array.isArray(whRaw)) {
+    const wo = whRaw as Record<string, unknown>
+    workingHours = {
+      start: typeof wo.start === 'string' ? wo.start : '09:00',
+      end: typeof wo.end === 'string' ? wo.end : '17:00',
+      timezone: typeof wo.timezone === 'string' ? wo.timezone : 'Africa/Cairo',
+      days: Array.isArray(wo.days) ? (wo.days.filter((d): d is string => typeof d === 'string')) : ['Monday','Tuesday','Wednesday','Thursday','Friday']
+    }
+  } else {
+    workingHours = { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] }
+  }
   return {
     id: m.id,
     userId: m.userId || null,
@@ -25,7 +37,7 @@ function mapDbMember(m: DbMember) {
     specialties: m.specialties || [],
     experienceYears: Number(m.experienceYears || 0),
     hourlyRate: m.hourlyRate != null ? Number(m.hourlyRate) : undefined,
-    workingHours: m.workingHours || { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] },
+    workingHours,
     isAvailable: Boolean(m.isAvailable ?? m.status === 'active'),
     availabilityNotes: m.availabilityNotes || undefined,
     stats: {
