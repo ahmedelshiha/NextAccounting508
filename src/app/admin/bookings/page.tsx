@@ -210,7 +210,6 @@ export default function EnhancedBookingManagement() {
   }
 
   async function assignMember(bookingId: string, memberId: string | '') {
-    setAssigningId(bookingId)
     try {
       const res = await apiFetch(`/api/bookings/${bookingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTeamMemberId: memberId || null }) })
       if (res.ok) {
