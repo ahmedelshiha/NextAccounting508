@@ -6,7 +6,7 @@ import { BlogSection } from '@/components/home/blog-section'
 export default function HomePage() {
   return (
     <main>
-      <HeroSection />
+      <HomeHeroSection />
       <ServicesSection />
       <TestimonialsSection />
       <BlogSection />
