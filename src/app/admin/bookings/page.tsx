@@ -183,23 +183,32 @@ export default function EnhancedBookingManagement() {
       const data = response.ok ? await response.json() : { bookings: [] }
       const items: Booking[] = Array.isArray(data)
         ? data
-        : Array.isArray(data?.bookings)
-        ? data.bookings
+        : Array.isArray((data as any)?.bookings)
+        ? (data as any).bookings
         : []
 
-      const enhanced: Booking[] = items.map((b) => ({
-        ...b,
-        assignedStaff: b.assignedTeamMember?.name || b.assignedStaff,
-        location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
-        priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
-        source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
-        client: {
-          ...b.client,
-          tier: b.client.tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
-          totalBookings: b.client.totalBookings ?? Math.floor(Math.random() * 20) + 1,
-          satisfaction: b.client.satisfaction ?? 3.5 + Math.random() * 1.5,
-        },
-      }))
+      const enhanced: Booking[] = items.map((b) => {
+        const baseClient = b.client && typeof b.client === 'object'
+          ? b.client
+          : { id: (b as any)?.client?.id, name: b.clientName, email: b.clientEmail, phone: b.clientPhone }
+        const baseService = b.service && typeof b.service === 'object'
+          ? b.service
+          : { id: (b as any)?.service?.id, name: (b as any)?.service?.name || 'Unknown service', price: (b as any)?.service?.price, category: (b as any)?.service?.category, duration: (b as any)?.service?.duration }
+        return {
+          ...b,
+          service: baseService,
+          assignedStaff: b.assignedTeamMember?.name || b.assignedStaff,
+          location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
+          priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
+          source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
+          client: {
+            ...baseClient,
+            tier: (baseClient as any).tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
+            totalBookings: (baseClient as any).totalBookings ?? Math.floor(Math.random() * 20) + 1,
+            satisfaction: (baseClient as any).satisfaction ?? 3.5 + Math.random() * 1.5,
+          },
+        }
+      })
 
       setBookings(enhanced)
     } catch (e) {
