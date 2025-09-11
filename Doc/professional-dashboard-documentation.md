@@ -981,9 +981,9 @@ const reportError = (error: Error, context: ErrorContext) => {
 - [x] Notifications: "Mark all read" and actionUrl navigation
 - [x] KPI progress shows 0% correctly
 - [x] Basic JSON export (client-side download)
-- [ ] SWR/React Query integration for data fetching/cache
+- [x] SWR integration (initial analytics fetch)
 - [ ] SSE/WebSocket real-time updates
-- [ ] Chart integrations (revenue, service breakdown, satisfaction)
+- [x] Chart integrations (revenue by service pie, daily bookings bar)
 - [ ] Configurable alert thresholds & historical health charts
 - [ ] RBAC-gated sections and middleware enforcement
 - [ ] Accessibility polish and performance (virtualization, lazy charts)
