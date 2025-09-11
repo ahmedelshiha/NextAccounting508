@@ -5,9 +5,11 @@ import bcrypt from 'bcryptjs'
 async function main() {
   console.log('🌱 Starting seed...')
 
-  // Purge deprecated demo user Sarah Johnson and related bookings
+  // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
   await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
+  await prisma.booking.deleteMany({ where: { clientEmail: 'john@example.com' } })
+  await prisma.user.deleteMany({ where: { email: 'john@example.com' } })
 
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 12)
@@ -33,20 +35,6 @@ async function main() {
       name: 'Staff Member',
       password: staffPassword,
       role: UserRole.STAFF,
-      emailVerified: new Date(),
-    },
-  })
-
-  // Create client users
-  const clientPassword = await bcrypt.hash('client123', 12)
-  const client1 = await prisma.user.upsert({
-    where: { email: 'john@example.com' },
-    update: {},
-    create: {
-      email: 'john@example.com',
-      name: 'John Smith',
-      password: clientPassword,
-      role: UserRole.CLIENT,
       emailVerified: new Date(),
     },
   })
@@ -324,46 +312,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('✅ Blog posts created')
 
-  // Create sample bookings
-  const bookingService = await prisma.service.findFirst({ where: { slug: 'bookkeeping' } })
-  const taxService = await prisma.service.findFirst({ where: { slug: 'tax-preparation' } })
-
-  if (bookingService && taxService) {
-    const bookings = [
-      {
-        clientId: client1.id,
-        serviceId: bookingService.id,
-        status: BookingStatus.CONFIRMED,
-        scheduledAt: new Date('2024-03-15T10:00:00Z'),
-        duration: 60,
-        clientName: client1.name!,
-        clientEmail: client1.email,
-        clientPhone: '+1-555-0123',
-        notes: 'Initial consultation for bookkeeping services',
-        confirmed: true,
-      },
-      {
-        clientId: client1.id,
-        serviceId: taxService.id,
-        status: BookingStatus.COMPLETED,
-        scheduledAt: new Date('2024-02-10T09:00:00Z'),
-        duration: 90,
-        clientName: client1.name!,
-        clientEmail: client1.email,
-        clientPhone: '+1-555-0123',
-        notes: 'Completed tax consultation',
-        confirmed: true,
-      },
-    ]
-
-    for (const booking of bookings) {
-      await prisma.booking.create({
-        data: booking,
-      })
-    }
-  }
-
-  console.log('✅ Sample bookings created')
 
   // Create contact submissions
   const contactSubmissions = [
