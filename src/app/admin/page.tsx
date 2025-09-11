@@ -1472,7 +1472,7 @@ export default function ProfessionalAdminDashboard() {
     clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
     tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
   }
-  const initialDashboardData: DashboardData = { ...mockDashboardData, stats: zeroStats }
+  const initialDashboardData: DashboardData = { ...mockDashboardData, stats: zeroStats, recentBookings: [] }
 
   const [loading, setLoading] = useState(true)
   const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData)
@@ -1517,10 +1517,11 @@ export default function ProfessionalAdminDashboard() {
   const loadDashboardData = useCallback(async () => {
     setLoading(true)
     try {
-      const [bookingsRes, usersRes, tasksRes] = await Promise.allSettled([
+      const [bookingsRes, usersRes, tasksRes, bookingsListRes] = await Promise.allSettled([
         fetch('/api/admin/stats/bookings?range=7d'),
         fetch('/api/admin/stats/users'),
-        fetch('/api/admin/tasks?limit=50')
+        fetch('/api/admin/tasks?limit=50'),
+        fetch('/api/admin/bookings?limit=20')
       ])
 
       const okJson = async (r: PromiseSettledResult<Response>) => {
@@ -1528,10 +1529,11 @@ export default function ProfessionalAdminDashboard() {
         return null
       }
 
-      const [bookings, users, tasks] = await Promise.all([
+      const [bookings, users, tasks, adminBookings] = await Promise.all([
         okJson(bookingsRes),
         okJson(usersRes),
-        okJson(tasksRes)
+        okJson(tasksRes),
+        okJson(bookingsListRes)
       ])
 
       setDashboardData((prev) => {
@@ -1572,8 +1574,31 @@ export default function ProfessionalAdminDashboard() {
         const revenueTarget = revenueCurrent
         const targetProgress = revenueCurrent > 0 ? 100 : 0
 
+        const mappedRecent: Booking[] = Array.isArray((adminBookings as any)?.bookings)
+          ? (adminBookings as any).bookings.map((b: any) => ({
+              id: b.id,
+              clientId: b.clientId || 'unknown',
+              clientName: b.clientName || b.client?.name || 'Client',
+              clientEmail: b.clientEmail || b.client?.email || '',
+              clientPhone: b.clientPhone || undefined,
+              service: b.service?.name || 'Service',
+              serviceCategory: b.service?.name || 'General',
+              scheduledAt: typeof b.scheduledAt === 'string' ? b.scheduledAt : new Date(b.scheduledAt).toISOString(),
+              duration: Number(b.duration || 60),
+              status: String(b.status || 'CONFIRMED').toLowerCase() as Booking['status'],
+              revenue: Number((b.service?.price as any)?.toString?.() || 0),
+              priority: 'normal',
+              location: 'office',
+              assignedTo: undefined,
+              notes: b.notes || undefined,
+              isRecurring: false,
+              source: 'direct'
+            }))
+          : base.recentBookings
+
         return {
           ...base,
+          recentBookings: mappedRecent,
           stats: {
             revenue: {
               current: revenueCurrent,
