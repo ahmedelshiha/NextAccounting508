@@ -1181,7 +1181,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
   )
 }
 
-function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[]; saveThresholds?: (t: { responseTime: number; errorRate: number; storageGrowth: number }) => void }) {
+function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] | { entries: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] } | { data: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }; saveThresholds?: (t: { responseTime: number; errorRate: number; storageGrowth: number }) => void }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
 
   const healthSections = [
@@ -1308,7 +1308,7 @@ function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { d
             <div className="bg-gray-50 p-3 rounded">
               <div className="flex items-center justify-between mb-2">
                 <div className="text-sm font-medium">Historical Metrics</div>
-                <div className="text-xs text-gray-500">Last {history.length} entries</div>
+                <div className="text-xs text-gray-500">Last {hist?.length ?? 0} entries</div>
               </div>
               <div className="h-40">
                 <Line
