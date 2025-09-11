@@ -56,7 +56,8 @@ export async function BlogSection() {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'UTC'
     })
   }
 
