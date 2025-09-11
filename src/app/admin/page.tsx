@@ -786,6 +786,12 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
     ],
     management: [
       {
+        label: 'Team Members',
+        href: '/admin/team',
+        icon: Users,
+        description: 'Manage staff & assignments'
+      },
+      {
         label: 'Analytics Hub',
         href: '/admin/analytics',
         icon: BarChart3,
