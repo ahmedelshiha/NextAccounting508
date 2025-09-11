@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { buildCorsHeaders, corsPreflight } from '@/lib/cors'
 import { rateLimit } from '@/lib/rate-limit'
+import { logInfo } from '@/lib/log'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -37,18 +38,24 @@ export async function middleware(req: NextRequest) {
   if (isAuthPage && isAuth) {
     const role = (token as unknown as { role?: string } | null)?.role
     const dest = role === 'ADMIN' || role === 'STAFF' ? '/admin' : '/portal'
+    logInfo('middleware.redirect.authenticated', { dest, role })
     return NextResponse.redirect(new URL(dest, req.url))
   }
 
   if (isAdminPage) {
-    if (!isAuth) return NextResponse.redirect(new URL('/login', req.url))
+    if (!isAuth) {
+      logInfo('middleware.redirect.admin_not_auth')
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
     const role = (token as unknown as { role?: string } | null)?.role
     if (role !== 'ADMIN' && role !== 'STAFF') {
+      logInfo('middleware.redirect.admin_wrong_role', { role })
       return NextResponse.redirect(new URL('/portal', req.url))
     }
   }
 
   if (isPortalPage && !isAuth) {
+    logInfo('middleware.redirect.portal_not_auth')
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
