@@ -55,6 +55,9 @@ export async function GET(request: NextRequest) {
             duration: true,
             price: true
           }
+        },
+        assignedTeamMember: {
+          select: { id: true, name: true, email: true, title: true }
         }
       },
       orderBy: {
@@ -92,7 +95,8 @@ export async function POST(request: NextRequest) {
       notes,
       clientName,
       clientEmail,
-      clientPhone
+      clientPhone,
+      assignedTeamMemberId
     } = body
 
     // Basic validation
@@ -156,7 +160,8 @@ export async function POST(request: NextRequest) {
         clientName,
         clientEmail,
         clientPhone,
-        status: BookingStatus.PENDING
+        status: BookingStatus.PENDING,
+        assignedTeamMemberId: assignedTeamMemberId || null
       },
       include: {
         service: {
@@ -165,7 +170,8 @@ export async function POST(request: NextRequest) {
             slug: true,
             price: true
           }
-        }
+        },
+        assignedTeamMember: { select: { id: true, name: true, email: true, title: true } }
       }
     })
 
