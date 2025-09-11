@@ -1274,10 +1274,10 @@ function EnhancedSystemHealth({ data, thresholds, history }: { data: DashboardDa
               <div className="h-40">
                 <Line
                   data={{
-                    labels: history.map(h => new Date(h.timestamp).toLocaleTimeString()),
+                    labels: hist.map((h: any) => new Date(h.timestamp).toLocaleTimeString()),
                     datasets: [
-                      { label: 'DB Response (ms)', data: history.map(h => h.databaseResponseTime), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.2)', tension: 0.3 },
-                      { label: 'API Error Rate (%)', data: history.map(h => h.apiErrorRate), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.15)', tension: 0.3 }
+                      { label: 'DB Response (ms)', data: hist.map((h: any) => h.databaseResponseTime), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.2)', tension: 0.3 },
+                      { label: 'API Error Rate (%)', data: hist.map((h: any) => h.apiErrorRate), borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.15)', tension: 0.3 }
                     ]
                   }}
                   options={{ maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }}}
