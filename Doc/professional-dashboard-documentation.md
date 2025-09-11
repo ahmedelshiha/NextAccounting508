@@ -974,6 +974,21 @@ const reportError = (error: Error, context: ErrorContext) => {
 - Export/import: bulk CSV export/import for tasks and bookings with server-side validation.
 - Security: audit logging for sensitive actions; rate limiting and backpressure for health/status endpoints.
 
+### Implementation Status (updated)
+- [x] Manual refresh wired to data loader
+- [x] Auto-refresh toggle controls polling interval
+- [x] KPI drill-down navigation via router.push
+- [x] Notifications: "Mark all read" and actionUrl navigation
+- [x] KPI progress shows 0% correctly
+- [x] Basic JSON export (client-side download)
+- [ ] SWR/React Query integration for data fetching/cache
+- [ ] SSE/WebSocket real-time updates
+- [ ] Chart integrations (revenue, service breakdown, satisfaction)
+- [ ] Configurable alert thresholds & historical health charts
+- [ ] RBAC-gated sections and middleware enforcement
+- [ ] Accessibility polish and performance (virtualization, lazy charts)
+- [ ] Sentry integration and test coverage
+
 ## Conclusion
 
 This Professional Admin Dashboard represents a complete business intelligence solution for accounting firms. It combines modern web development practices with deep understanding of accounting business operations to create a tool that genuinely improves business outcomes.
