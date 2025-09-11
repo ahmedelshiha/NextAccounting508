@@ -81,12 +81,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
           const [i0, init] = args
-          let input = i0
-          // Convert relative string URLs to absolute to appease iframe/proxy fetch wrappers
-          if (typeof input === 'string' && input.startsWith('/')) {
-            input = new URL(input, window.location.origin).toString()
-          }
-          // Delegate to the original (already proxy-wrapped) fetch
+          const input = i0
+          // Delegate to the original (already proxy-wrapped) fetch without altering URL shape
           const res = await originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
           if (!res.ok) {
             try {
