@@ -219,7 +219,7 @@ export default function EnhancedBookingManagement() {
     } catch (e) {
       console.error('Failed to assign member', e)
     } finally {
-      setAssigningId(null)
+      // no-op
     }
   }
 
