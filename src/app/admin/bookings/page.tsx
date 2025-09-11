@@ -210,6 +210,21 @@ export default function EnhancedBookingManagement() {
     }
   }
 
+  async function assignMember(bookingId: string, memberId: string | '') {
+    setAssigningId(bookingId)
+    try {
+      const res = await apiFetch(`/api/bookings/${bookingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTeamMemberId: memberId || null }) })
+      if (res.ok) {
+        const updated = await res.json()
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, assignedTeamMember: updated.assignedTeamMember ?? undefined, assignedStaff: updated.assignedTeamMember?.name || undefined } : b))
+      }
+    } catch (e) {
+      console.error('Failed to assign member', e)
+    } finally {
+      setAssigningId(null)
+    }
+  }
+
   async function updateStatus(id: string, status: Booking['status']) {
     try {
       const res = await apiFetch(`/api/bookings/${id}`, {
