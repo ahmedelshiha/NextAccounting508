@@ -1,4 +1,7 @@
 import type { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 
 export const revalidate = 0
@@ -8,21 +11,26 @@ export async function GET(request: NextRequest) {
   try {
     const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' } as any })
     if (!threshold) {
-      return new Response(JSON.stringify({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      return NextResponse.json({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 })
     }
-    return new Response(JSON.stringify({ responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    return NextResponse.json({ responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth })
   } catch (err) {
     console.error('Thresholds GET error', err)
-    return new Response(JSON.stringify({ error: 'Failed to read thresholds' }), { status: 500 })
+    return NextResponse.json({ error: 'Failed to read thresholds' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { responseTime, errorRate, storageGrowth } = body
     if (typeof responseTime !== 'number' || typeof errorRate !== 'number' || typeof storageGrowth !== 'number') {
-      return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 })
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
     const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' } as any })
@@ -33,9 +41,9 @@ export async function POST(request: NextRequest) {
       upserted = await prisma.healthThreshold.create({ data: { responseTime, errorRate, storageGrowth } })
     }
 
-    return new Response(JSON.stringify({ responseTime: upserted.responseTime, errorRate: upserted.errorRate, storageGrowth: upserted.storageGrowth }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    return NextResponse.json({ responseTime: upserted.responseTime, errorRate: upserted.errorRate, storageGrowth: upserted.storageGrowth })
   } catch (err) {
     console.error('Thresholds POST error', err)
-    return new Response(JSON.stringify({ error: 'Failed to save thresholds' }), { status: 500 })
+    return NextResponse.json({ error: 'Failed to save thresholds' }, { status: 500 })
   }
 }
