@@ -258,6 +258,38 @@ type SystemAlertEvent = {
   severity?: Notification['type'];
 }
 
+// Admin bookings API minimal types
+interface AdminBookingsList {
+  bookings: Array<{
+    id: string
+    clientId?: string | null
+    clientName?: string | null
+    clientEmail?: string | null
+    clientPhone?: string | null
+    service?: { name?: string | null; price?: unknown } | null
+    scheduledAt: string | Date
+    duration?: number | null
+    status?: string | null
+    notes?: string | null
+    client?: { name?: string | null; email?: string | null } | null
+  }>
+}
+
+function isAdminBookingsList(val: unknown): val is AdminBookingsList {
+  return typeof val === 'object' && val !== null && Array.isArray((val as { bookings?: unknown }).bookings)
+}
+
+interface HasToString { toString: () => string }
+function toNumberish(v: unknown): number {
+  if (v == null) return 0
+  if (typeof v === 'number') return v
+  if (typeof v === 'bigint') return Number(v)
+  if (typeof v === 'string') { const n = Number(v); return Number.isFinite(n) ? n : 0 }
+  const s = (v as Partial<HasToString>)?.toString?.()
+  if (typeof s === 'string') { const n = Number(s); return Number.isFinite(n) ? n : 0 }
+  return 0
+}
+
 const mockDashboardData: DashboardData = {
   stats: {
     revenue: { current: 24500, previous: 21200, trend: 15.6, target: 30000, targetProgress: 81.7 },
@@ -1574,8 +1606,8 @@ export default function ProfessionalAdminDashboard() {
         const revenueTarget = revenueCurrent
         const targetProgress = revenueCurrent > 0 ? 100 : 0
 
-        const mappedRecent: Booking[] = Array.isArray((adminBookings as any)?.bookings)
-          ? (adminBookings as any).bookings.map((b: any) => ({
+        const mappedRecent: Booking[] = isAdminBookingsList(adminBookings)
+          ? adminBookings.bookings.map((b) => ({
               id: b.id,
               clientId: b.clientId || 'unknown',
               clientName: b.clientName || b.client?.name || 'Client',
@@ -1586,7 +1618,7 @@ export default function ProfessionalAdminDashboard() {
               scheduledAt: typeof b.scheduledAt === 'string' ? b.scheduledAt : new Date(b.scheduledAt).toISOString(),
               duration: Number(b.duration || 60),
               status: String(b.status || 'CONFIRMED').toLowerCase() as Booking['status'],
-              revenue: Number((b.service?.price as any)?.toString?.() || 0),
+              revenue: toNumberish(b.service?.price),
               priority: 'normal',
               location: 'office',
               assignedTo: undefined,
