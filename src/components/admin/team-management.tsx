@@ -1,0 +1,627 @@
+"use client"
+import React, { useState, useEffect } from 'react'
+import {
+  Users,
+  Edit,
+  Trash2,
+  Search,
+  MoreHorizontal,
+  Save,
+  X,
+  UserPlus,
+  Mail,
+  Phone,
+  Clock,
+  Star,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Eye
+} from 'lucide-react'
+
+// Types
+interface TeamMember {
+  id: string
+  userId?: string | null
+  name: string
+  email: string
+  role: string
+  department: 'tax' | 'audit' | 'consulting' | 'bookkeeping' | 'advisory' | 'admin'
+  status: 'active' | 'inactive' | 'on_leave' | 'busy'
+  phone?: string
+  title: string
+  certifications: string[]
+  specialties: string[]
+  experienceYears: number
+  hourlyRate?: number
+  workingHours: { start: string; end: string; timezone: string; days: string[] }
+  isAvailable: boolean
+  availabilityNotes?: string
+  stats: { totalBookings: number; completedBookings: number; averageRating: number; totalRatings: number; revenueGenerated: number; utilizationRate: number }
+  canManageBookings: boolean
+  canViewAllClients: boolean
+  notificationSettings: { email: boolean; sms: boolean; inApp: boolean }
+  joinDate: string
+  lastActive: string
+  notes?: string
+}
+
+const departmentOptions = [
+  { value: 'tax', label: 'Tax Services', color: 'bg-green-100 text-green-800' },
+  { value: 'audit', label: 'Audit', color: 'bg-blue-100 text-blue-800' },
+  { value: 'consulting', label: 'Consulting', color: 'bg-purple-100 text-purple-800' },
+  { value: 'bookkeeping', label: 'Bookkeeping', color: 'bg-orange-100 text-orange-800' },
+  { value: 'advisory', label: 'Advisory', color: 'bg-indigo-100 text-indigo-800' },
+  { value: 'admin', label: 'Administration', color: 'bg-gray-100 text-gray-800' }
+] as const
+
+function TeamMemberCard({ member, onEdit, onDelete, onToggleStatus, onViewDetails }: {
+  member: TeamMember
+  onEdit: (m: TeamMember) => void
+  onDelete: (id: string) => void
+  onToggleStatus: (m: TeamMember) => void
+  onViewDetails: (m: TeamMember) => void
+}) {
+  const getDepartmentColor = (dept: TeamMember['department']) => {
+    const option = departmentOptions.find((opt) => opt.value === dept)
+    return option?.color || 'bg-gray-100 text-gray-800'
+  }
+  const getStatusColor = (status: TeamMember['status']) => {
+    switch (status) {
+      case 'active': return 'text-green-600 bg-green-50'
+      case 'busy': return 'text-yellow-600 bg-yellow-50'
+      case 'on_leave': return 'text-blue-600 bg-blue-50'
+      case 'inactive': return 'text-gray-600 bg-gray-50'
+      default: return 'text-gray-600 bg-gray-50'
+    }
+  }
+  const utilizationColor = member.stats.utilizationRate >= 85 ? 'text-green-600' : member.stats.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-all">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <span className="text-blue-600 font-medium text-lg">
+              {member.name.split(' ').map((n) => n[0]).join('')}
+            </span>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{member.name}</h3>
+            <p className="text-sm text-gray-600">{member.title}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDepartmentColor(member.department)}`}>
+                {departmentOptions.find((d) => d.value === member.department)?.label}
+              </span>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+                {member.status.replace('_', ' ')}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center space-x-1">
+          <button onClick={() => onViewDetails(member)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100" aria-label="View details">
+            <Eye className="h-4 w-4" />
+          </button>
+          <button onClick={() => onEdit(member)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100" aria-label="Edit">
+            <Edit className="h-4 w-4" />
+          </button>
+          <div className="relative group">
+            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100" aria-haspopup>
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+            <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <button onClick={() => onToggleStatus(member)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                {member.status === 'active' ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                {member.status === 'active' ? 'Mark Inactive' : 'Mark Active'}
+              </button>
+              <button onClick={() => onDelete(member.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600 flex items-center gap-2">
+                <Trash2 className="h-4 w-4" />
+                Remove Member
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="flex items-center text-sm text-gray-600">
+          <Mail className="h-4 w-4 mr-2" />
+          {member.email}
+        </div>
+        <div className="flex items-center text-sm text-gray-600">
+          <Phone className="h-4 w-4 mr-2" />
+          {member.phone || 'Not provided'}
+        </div>
+      </div>
+
+      <div className="space-y-3 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-600">Utilization Rate:</span>
+          <span className={`font-medium ${utilizationColor}`}>{member.stats.utilizationRate}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className={`${member.stats.utilizationRate >= 85 ? 'bg-green-500' : member.stats.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-2 rounded-full transition-all`} style={{ width: `${member.stats.utilizationRate}%` }} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-600 mb-4">
+        <div>
+          <div className="font-medium text-gray-900">{member.stats.totalBookings}</div>
+          <div>Bookings</div>
+        </div>
+        <div>
+          <div className="font-medium text-gray-900 flex items-center justify-center gap-1">
+            {member.stats.averageRating}
+            <Star className="h-3 w-3 text-yellow-500" />
+          </div>
+          <div>Rating</div>
+        </div>
+        <div>
+          <div className="font-medium text-gray-900">${(member.stats.revenueGenerated / 1000).toFixed(0)}k</div>
+          <div>Revenue</div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center text-xs text-gray-600">
+          <Clock className="h-3 w-3 mr-1" />
+          {member.workingHours.start} - {member.workingHours.end}
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {member.specialties.slice(0, 2).map((s, idx) => (
+            <span key={idx} className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{s}</span>
+          ))}
+          {member.specialties.length > 2 && (
+            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">+{member.specialties.length - 2} more</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TeamMemberForm({ member, onSave, onCancel }: {
+  member: TeamMember | null
+  onSave: (data: Partial<TeamMember>) => void
+  onCancel: () => void
+}) {
+  const [formData, setFormData] = useState<Partial<TeamMember>>(() => {
+    if (member) return { ...member }
+    return {
+      role: 'STAFF',
+      department: 'tax',
+      title: '',
+      specialties: [],
+      certifications: [],
+      experienceYears: 0,
+      workingHours: { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] },
+      canManageBookings: false,
+      canViewAllClients: false,
+      notificationSettings: { email: true, sms: false, inApp: true }
+    } as Partial<TeamMember>
+  })
+  const [activeTab, setActiveTab] = useState<'basic'|'professional'|'schedule'|'permissions'>('basic')
+
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onSave(formData) }
+  const toggleSpecialty = (specialty: string) => setFormData((p) => ({ ...p, specialties: (p.specialties || []).includes(specialty) ? (p.specialties || []).filter((s) => s !== specialty) : ([...(p.specialties || []), specialty]) }))
+  const toggleCertification = (cert: string) => setFormData((p) => ({ ...p, certifications: (p.certifications || []).includes(cert) ? (p.certifications || []).filter((c) => c !== cert) : ([...(p.certifications || []), cert]) }))
+  const toggleWorkingDay = (day: string) => setFormData((p) => ({ ...p, workingHours: { ...(p.workingHours as TeamMember['workingHours']), days: (p.workingHours?.days || []).includes(day) ? (p.workingHours?.days || []).filter((d) => d !== day) : ([...(p.workingHours?.days || []), day]) } }))
+
+  const specialtiesList = ['Corporate Tax','Individual Tax','International Tax','Tax Planning','VAT','Payroll Tax','Financial Audit','Internal Audit','Compliance Review','Risk Assessment','Forensic Audit','Business Strategy','Financial Planning','Growth Advisory','Process Optimization','Bookkeeping','Accounts Payable','Accounts Receivable','Financial Reporting','Wealth Management','Investment Advisory','Estate Planning','Retirement Planning']
+  const certificationsList = ['CPA','CIA','CMA','CFA','EA','MBA','ACCA','Tax Specialist','Audit Specialist','Business Strategy Cert','Financial Planning Cert']
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">{member ? 'Edit Team Member' : 'Add Team Member'}</h2>
+            <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close"><X className="h-5 w-5" /></button>
+          </div>
+          <div className="flex space-x-1 mt-4 bg-gray-100 rounded-lg p-1">
+            {([
+              { key: 'basic', label: 'Basic Info' },
+              { key: 'professional', label: 'Professional' },
+              { key: 'schedule', label: 'Schedule' },
+              { key: 'permissions', label: 'Permissions' }
+            ] as const).map((tab) => (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`px-3 py-2 text-sm rounded-md transition-colors ${activeTab === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>{tab.label}</button>
+            ))}
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="overflow-y-auto max-h-[calc(90vh-180px)]">
+          <div className="p-6 space-y-6">
+            {activeTab === 'basic' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                    <input required type="text" value={formData.name || ''} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                    <input required type="email" value={formData.email || ''} onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                    <input type="tel" value={formData.phone || ''} onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                    <select value={formData.role || 'STAFF'} onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="STAFF">Staff Member</option>
+                      <option value="MANAGER">Manager</option>
+                      <option value="ADMIN">Administrator</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Department *</label>
+                    <select value={formData.department || 'tax'} onChange={(e) => setFormData((p) => ({ ...p, department: e.target.value as TeamMember['department'] }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      {departmentOptions.map((d) => (<option key={d.value} value={d.value}>{d.label}</option>))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
+                    <input required type="text" value={formData.title || ''} onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Senior Tax Advisor" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                  <textarea value={formData.notes || ''} onChange={(e) => setFormData((p) => ({ ...p, notes: e.target.value }))} rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional notes about this team member..." />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'professional' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
+                    <input type="number" min={0} max={50} value={formData.experienceYears || 0} onChange={(e) => setFormData((p) => ({ ...p, experienceYears: parseInt(e.target.value) || 0 }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
+                    <input type="number" min={0} step={0.01} value={formData.hourlyRate || ''} onChange={(e) => setFormData((p) => ({ ...p, hourlyRate: parseFloat(e.target.value) || undefined }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Specialties</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    {specialtiesList.map((s) => (
+                      <label key={s} className="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" checked={(formData.specialties || []).includes(s)} onChange={() => toggleSpecialty(s)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <span className="text-sm text-gray-700">{s}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Certifications</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    {certificationsList.map((c) => (
+                      <label key={c} className="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" checked={(formData.certifications || []).includes(c)} onChange={() => toggleCertification(c)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <span className="text-sm text-gray-700">{c}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'schedule' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                    <input type="time" value={formData.workingHours?.start || '09:00'} onChange={(e) => setFormData((p) => ({ ...p, workingHours: { ...(p.workingHours as TeamMember['workingHours']), start: e.target.value } }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                    <input type="time" value={formData.workingHours?.end || '17:00'} onChange={(e) => setFormData((p) => ({ ...p, workingHours: { ...(p.workingHours as TeamMember['workingHours']), end: e.target.value } }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                    <select value={formData.workingHours?.timezone || 'Africa/Cairo'} onChange={(e) => setFormData((p) => ({ ...p, workingHours: { ...(p.workingHours as TeamMember['workingHours']), timezone: e.target.value } }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="Africa/Cairo">Cairo (GMT+2)</option>
+                      <option value="Europe/London">London (GMT+0)</option>
+                      <option value="America/New_York">New York (GMT-5)</option>
+                      <option value="Asia/Dubai">Dubai (GMT+4)</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Working Days</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map((day) => (
+                      <label key={day} className="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" checked={(formData.workingHours?.days || []).includes(day)} onChange={() => toggleWorkingDay(day)} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <span className="text-sm text-gray-700">{day}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'permissions' && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">Manage Bookings</h3>
+                      <p className="text-xs text-gray-600">Can create, edit, and manage client bookings</p>
+                    </div>
+                    <input type="checkbox" checked={!!formData.canManageBookings} onChange={(e) => setFormData((p) => ({ ...p, canManageBookings: e.target.checked }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">View All Clients</h3>
+                      <p className="text-xs text-gray-600">Can access and view information for all clients</p>
+                    </div>
+                    <input type="checkbox" checked={!!formData.canViewAllClients} onChange={(e) => setFormData((p) => ({ ...p, canViewAllClients: e.target.checked }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Notification Preferences</h3>
+                  <div className="space-y-3">
+                    {([
+                      { key: 'email', label: 'Email Notifications', desc: 'Booking updates, reminders, and alerts' },
+                      { key: 'sms', label: 'SMS Notifications', desc: 'Urgent alerts and reminders via text' },
+                      { key: 'inApp', label: 'In-App Notifications', desc: 'Dashboard alerts and system updates' }
+                    ] as const).map((opt) => (
+                      <div key={opt.key} className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm text-gray-700">{opt.label}</span>
+                          <p className="text-xs text-gray-500">{opt.desc}</p>
+                        </div>
+                        <input type="checkbox" checked={Boolean((formData.notificationSettings as any)?.[opt.key])} onChange={(e) => setFormData((p) => ({ ...p, notificationSettings: { ...(p.notificationSettings || { email: true, sms: false, inApp: true }), [opt.key]: e.target.checked } }))} className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="border-t border-gray-200 p-6 bg-gray-50 flex justify-end space-x-3">
+            <button type="button" onClick={onCancel} className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"><Save className="h-4 w-4" />{member ? 'Update Member' : 'Add Member'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function TeamMemberDetails({ member, onClose, onEdit }: { member: TeamMember | null; onClose: () => void; onEdit: (m: TeamMember) => void }) {
+  if (!member) return null
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-bold text-xl">{member.name.split(' ').map((n) => n[0]).join('')}</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{member.name}</h2>
+                <p className="text-gray-600">{member.title}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${member.department === 'tax' ? 'bg-green-100 text-green-800' : member.department === 'audit' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>{member.department}</span>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${member.status === 'active' ? 'text-green-600 bg-green-50' : member.status === 'busy' ? 'text-yellow-600 bg-yellow-50' : member.status === 'on_leave' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 bg-gray-50'}`}>{member.status.replace('_',' ')}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button onClick={() => onEdit(member)} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2"><Edit className="h-4 w-4" />Edit</button>
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg" aria-label="Close"><X className="h-5 w-5" /></button>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+          <div className="p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Contact Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-3"><Mail className="h-5 w-5 text-gray-400" /><div><div className="text-sm text-gray-600">Email</div><div className="font-medium">{member.email}</div></div></div>
+                <div className="flex items-center space-x-3"><Phone className="h-5 w-5 text-gray-400" /><div><div className="text-sm text-gray-600">Phone</div><div className="font-medium">{member.phone || 'Not provided'}</div></div></div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Performance Metrics</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="text-center"><div className="text-2xl font-bold text-gray-900">{member.stats.totalBookings}</div><div className="text-sm text-gray-600">Total Bookings</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-green-600">{member.stats.completedBookings}</div><div className="text-sm text-gray-600">Completed</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-yellow-600 flex items-center justify-center gap-1">{member.stats.averageRating}<Star className="h-5 w-5" /></div><div className="text-sm text-gray-600">Avg Rating</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-blue-600">${(member.stats.revenueGenerated / 1000).toFixed(0)}k</div><div className="text-sm text-gray-600">Revenue</div></div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Utilization Rate</span>
+                  <span className={`text-sm font-bold ${member.stats.utilizationRate >= 85 ? 'text-green-600' : member.stats.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>{member.stats.utilizationRate}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3"><div className={`${member.stats.utilizationRate >= 85 ? 'bg-green-500' : member.stats.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-3 rounded-full transition-all`} style={{ width: `${member.stats.utilizationRate}%` }} /></div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Schedule & Availability</h3>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div className="flex items-center space-x-3"><Clock className="h-5 w-5 text-gray-400" /><div><div className="text-sm text-gray-600">Working Hours</div><div className="font-medium">{member.workingHours.start} - {member.workingHours.end} ({member.workingHours.timezone})</div></div></div>
+                <div>
+                  <div className="text-sm text-gray-600 mb-2">Working Days</div>
+                  <div className="flex flex-wrap gap-2">
+                    {member.workingHours.days.map((day, idx) => (<span key={idx} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{day}</span>))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function TeamManagement() {
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | TeamMember['status']>('all')
+  const [departmentFilter, setDepartmentFilter] = useState<'all' | TeamMember['department']>('all')
+  const [showForm, setShowForm] = useState(false)
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [viewingMember, setViewingMember] = useState<TeamMember | null>(null)
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
+        const data = await res.json().catch(() => ({}))
+        setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
+      } catch (e) {
+        console.error('Failed to load team members', e)
+      }
+    }
+    loadMembers()
+  }, [])
+
+  const filteredMembers = teamMembers.filter((m) => {
+    const term = searchTerm.toLowerCase()
+    const matchesSearch = m.name.toLowerCase().includes(term) || m.email.toLowerCase().includes(term) || m.title.toLowerCase().includes(term)
+    const matchesStatus = statusFilter === 'all' || m.status === statusFilter
+    const matchesDepartment = departmentFilter === 'all' || m.department === departmentFilter
+    return matchesSearch && matchesStatus && matchesDepartment
+  })
+
+  const handleSave = async (data: Partial<TeamMember>) => {
+    setLoading(true)
+    try {
+      if (editingMember) {
+        const res = await fetch(`/api/admin/team-members/${editingMember.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        if (!res.ok) throw new Error('Failed to update')
+        const json = await res.json()
+        const updated = json.teamMember as TeamMember
+        setTeamMembers((prev) => prev.map((m) => (m.id === editingMember.id ? updated : m)))
+      } else {
+        const res = await fetch('/api/admin/team-members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        if (!res.ok) throw new Error('Failed to create')
+        const json = await res.json()
+        const created = json.teamMember as TeamMember
+        setTeamMembers((prev) => [...prev, created])
+      }
+      setShowForm(false)
+      setEditingMember(null)
+    } catch (e) {
+      alert('Failed to save team member')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to remove this team member?')) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/team-members/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      setTeamMembers((prev) => prev.filter((m) => m.id !== id))
+    } catch (e) {
+      alert('Failed to remove team member')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleStatus = async (member: TeamMember) => {
+    const newStatus = member.status === 'active' ? 'inactive' : 'active'
+    const res = await fetch(`/api/admin/team-members/${member.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus, isAvailable: newStatus === 'active' }) })
+    if (res.ok) {
+      setTeamMembers((prev) => prev.map((m) => (m.id === member.id ? { ...m, status: newStatus, isAvailable: newStatus === 'active' } : m)))
+    }
+  }
+
+  const stats = {
+    total: teamMembers.length,
+    active: teamMembers.filter((m) => m.status === 'active').length,
+    busy: teamMembers.filter((m) => m.status === 'busy').length,
+    avgUtilization: teamMembers.length ? Math.round(teamMembers.reduce((acc, m) => acc + (m.stats.utilizationRate || 0), 0) / teamMembers.length) : 0,
+    totalRevenue: teamMembers.reduce((acc, m) => acc + (m.stats.revenueGenerated || 0), 0)
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
+          <p className="text-gray-600">Manage team members and their assignments</p>
+        </div>
+        <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <UserPlus className="h-4 w-4" />
+          Add Team Member
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Total Members</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div><Users className="h-8 w-8 text-blue-500" /></div></div>
+        <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Active</p><p className="text-2xl font-bold text-green-600">{stats.active}</p></div><CheckCircle className="h-8 w-8 text-green-500" /></div></div>
+        <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Busy</p><p className="text-2xl font-bold text-yellow-600">{stats.busy}</p></div><Clock className="h-8 w-8 text-yellow-500" /></div></div>
+        <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Avg Utilization</p><p className="text-2xl font-bold text-purple-600">{stats.avgUtilization}%</p></div><Calendar className="h-8 w-8 text-purple-500" /></div></div>
+        <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Total Revenue</p><p className="text-2xl font-bold text-green-600">${(stats.totalRevenue / 1000).toFixed(0)}k</p></div><Star className="h-8 w-8 text-green-500" /></div></div>
+      </div>
+
+      <div className="bg-white p-4 rounded-lg border">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search team members..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            </div>
+          </div>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="busy">Busy</option>
+            <option value="on_leave">On Leave</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value as any)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="all">All Departments</option>
+            {departmentOptions.map((d) => (<option key={d.value} value={d.value}>{d.label}</option>))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filteredMembers.map((member) => (
+          <TeamMemberCard key={member.id} member={member} onEdit={(m) => { setEditingMember(m); setShowForm(true) }} onDelete={handleDelete} onToggleStatus={handleToggleStatus} onViewDetails={setViewingMember} />
+        ))}
+      </div>
+
+      {filteredMembers.length === 0 && (
+        <div className="text-center py-12">
+          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No team members found</h3>
+          <p className="text-gray-600 mb-4">{searchTerm || statusFilter !== 'all' || departmentFilter !== 'all' ? 'Try adjusting your search or filters' : 'Get started by adding your first team member'}</p>
+          {!searchTerm && statusFilter === 'all' && departmentFilter === 'all' && (
+            <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Add First Team Member</button>
+          )}
+        </div>
+      )}
+
+      {showForm && (
+        <TeamMemberForm member={editingMember} onSave={handleSave} onCancel={() => { setShowForm(false); setEditingMember(null) }} />
+      )}
+
+      {viewingMember && (
+        <TeamMemberDetails member={viewingMember} onClose={() => setViewingMember(null)} onEdit={(m) => { setViewingMember(null); setEditingMember(m); setShowForm(true) }} />
+      )}
+
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="bg-white rounded-lg p-6 flex items-center space-x-4"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><span className="text-gray-900">Processing...</span></div></div>
+      )}
+    </div>
+  )
+}

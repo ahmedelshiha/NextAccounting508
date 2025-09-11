@@ -68,6 +68,7 @@ interface Staff {
   specialties: string[]
   isAvailable: boolean
   workingHours: { start: string; end: string; days: string[] }
+  department?: 'tax' | 'audit' | 'consulting' | 'bookkeeping' | 'advisory' | 'admin'
 }
 
 interface BookingFormData {
@@ -692,6 +693,7 @@ export default function ProfessionalNewBooking() {
 
   const [services, setServices] = useState<Service[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [team, setTeam] = useState<Staff[]>([])
   const [loadingData, setLoadingData] = useState(true)
 
   useEffect(() => {
@@ -743,6 +745,26 @@ export default function ProfessionalNewBooking() {
             isActive: true
           }))
         setClients(mappedClients)
+
+        // Load team members for assignment
+        try {
+          const tmRes = await fetch('/api/admin/team-members', { cache: 'no-store' })
+          const tmJson = (await tmRes.json().catch(() => ({ teamMembers: [] }))) as { teamMembers?: any[] }
+          const members = Array.isArray(tmJson.teamMembers) ? tmJson.teamMembers : []
+          const mappedTeam: Staff[] = members.map((m) => ({
+            id: m.id,
+            name: m.name,
+            role: m.title || m.role || 'Staff',
+            email: m.email,
+            specialties: Array.isArray(m.specialties) ? m.specialties : [],
+            isAvailable: Boolean(m.isAvailable && m.status === 'active'),
+            workingHours: { start: m.workingHours?.start || '09:00', end: m.workingHours?.end || '17:00', days: m.workingHours?.days || ['Monday','Tuesday','Wednesday','Thursday','Friday'] },
+            department: m.department
+          }))
+          setTeam(mappedTeam.length ? mappedTeam : mockStaff)
+        } catch {
+          setTeam(mockStaff)
+        }
       } finally {
         setLoadingData(false)
       }
@@ -836,7 +858,8 @@ export default function ProfessionalNewBooking() {
           clientId: formData.clientId,
           serviceId: formData.serviceId,
           scheduledAt: scheduledAt.toISOString(),
-          notes: formData.internalNotes || formData.clientNotes,
+          notes: [formData.internalNotes, formData.clientNotes, (assignedStaff ? `Assigned to: ${assignedStaff.name} (${assignedStaff.id})` : '')].filter(Boolean).join('\n'),
+          assignedTeamMemberId: assignedStaff?.id,
           clientName: formData.clientName,
           clientEmail: formData.clientEmail,
           clientPhone: formData.clientPhone
@@ -927,7 +950,7 @@ export default function ProfessionalNewBooking() {
             onTimeChange={(time) => handleFormChange('scheduledTime', time)}
             assignedStaff={assignedStaff}
             onStaffChange={handleStaffSelect}
-            staff={mockStaff}
+            staff={(selectedService ? team.filter((s) => !s.department || s.department === selectedService.category) : team).filter((s) => s.isAvailable)}
             location={formData.location || 'office'}
             onLocationChange={(location) => handleFormChange('location', location)}
           />
