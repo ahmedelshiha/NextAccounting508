@@ -16,7 +16,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const { id } = await context.params
 
     const ip = getClientIp(request as unknown as Request)
-    if (!rateLimit(`tasks:update:${ip}`, 60, 60_000)) {
+    const rl = await rateLimit(`tasks:update:${ip}`, 60, 60)
+    if (!rl.allowed) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
