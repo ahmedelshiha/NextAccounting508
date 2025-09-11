@@ -148,7 +148,6 @@ export default function EnhancedBookingManagement() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [serviceFilter, setServiceFilter] = useState('all')
   const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
-  const [assigningId, setAssigningId] = useState<string | null>(null)
 
   useEffect(() => {
     refresh()
