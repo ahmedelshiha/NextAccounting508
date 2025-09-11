@@ -132,6 +132,15 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     }
   }, [])
 
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      const id = setInterval(() => {
+        fetch('/api/health-history?ping=1', { method: 'HEAD', cache: 'no-store' }).catch(() => {})
+      }, 30000)
+      return () => clearInterval(id)
+    }
+  }, [])
+
   return (
     <SessionProvider>
       <div className="min-h-screen flex flex-col">
