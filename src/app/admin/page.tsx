@@ -1274,6 +1274,36 @@ function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { d
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowConfig(v => !v)}>
+                Configure Thresholds
+              </Button>
+            </div>
+          </div>
+          {showConfig && (
+            <div className="mb-3 p-3 bg-gray-50 rounded">
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-gray-600">DB resp. threshold (ms)</label>
+                  <input type="number" value={formValues.responseTime} onChange={(e) => setFormValues(v => ({ ...v, responseTime: Number(e.target.value) }))} className="w-full border rounded px-2 py-1 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">API error % threshold</label>
+                  <input type="number" value={formValues.errorRate} onChange={(e) => setFormValues(v => ({ ...v, errorRate: Number(e.target.value) }))} className="w-full border rounded px-2 py-1 text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600">Storage growth %</label>
+                  <input type="number" value={formValues.storageGrowth} onChange={(e) => setFormValues(v => ({ ...v, storageGrowth: Number(e.target.value) }))} className="w-full border rounded px-2 py-1 text-sm" />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <Button size="sm" onClick={() => setShowConfig(false)} variant="ghost">Cancel</Button>
+                <Button size="sm" onClick={applyConfig}>Save</Button>
+              </div>
+            </div>
+          )}
+
           {hist && hist.length > 0 && (
             <div className="bg-gray-50 p-3 rounded">
               <div className="flex items-center justify-between mb-2">
