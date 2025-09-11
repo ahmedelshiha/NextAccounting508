@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -157,12 +157,6 @@ export default function EnhancedServicesPage() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
   const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRange>('14d')
 
-  const analyticsMaxBookings = useMemo(() => {
-    return Math.max(1, ...(analytics?.dailyBookings.map(d => d.count || 0) || [1]))
-  }, [analytics])
-  const analyticsMaxRevenue = useMemo(() => {
-    return Math.max(1, ...(analytics?.revenueByService.map(r => r.amount || 0) || [1]))
-  }, [analytics])
 
   // Stats
   const stats = useMemo(() => {
@@ -213,7 +207,7 @@ export default function EnhancedServicesPage() {
   const [conversionRate, setConversionRate] = useState<number | null>(null)
   const [previewCount, setPreviewCount] = useState(0)
 
-  async function load(initial = false) {
+  const load = useCallback(async (initial = false) => {
     try {
       if (initial) setLoading(true)
       const qp = new URLSearchParams()
@@ -230,9 +224,9 @@ export default function EnhancedServicesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [onlyFeatured, showInactive, searchTerm])
 
-  async function loadAnalytics(initial = false) {
+  const loadAnalytics = useCallback(async (initial = false) => {
     try {
       if (initial) setAnalyticsLoading(true)
       const res = await apiFetch(`/api/admin/analytics?range=${encodeURIComponent(analyticsRange)}`)
@@ -286,11 +280,10 @@ export default function EnhancedServicesPage() {
     } finally {
       setAnalyticsLoading(false)
     }
-  }
+  }, [analyticsRange])
 
-  useEffect(() => { load(true) }, [])
-  useEffect(() => { loadAnalytics(true) }, [])
-  useEffect(() => { loadAnalytics(false) }, [analyticsRange])
+  useEffect(() => { load(true) }, [load])
+  useEffect(() => { loadAnalytics(true) }, [loadAnalytics])
   useEffect(() => {
     if (!name) return setSlug('')
     const auto = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
