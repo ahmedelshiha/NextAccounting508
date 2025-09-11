@@ -1633,7 +1633,7 @@ export default function ProfessionalAdminDashboard() {
         />
         <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
-        <IntelligentActivityFeed data={dashboardData} thresholds={thresholds} history={history} />
+        <IntelligentActivityFeed data={dashboardData} thresholds={thresholds} history={history} saveThresholds={saveThresholds} />
         
         <Card>
           <CardHeader>
