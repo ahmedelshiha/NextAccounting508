@@ -97,24 +97,25 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           return res
         } catch (err: unknown) {
           try {
-            // Log rich details to console to help debugging
             const [input, init] = args
-            const info: Record<string, unknown> = { init: init ?? null }
-            if (typeof input === 'string') info.input = input
-            else if (input instanceof Request) {
-              info.input = input.url
-              info.requestMethod = input.method
-              try {
-                info.requestHeaders = Object.fromEntries(Array.from(input.headers.entries()))
-              } catch {}
-            } else if (input instanceof URL) {
-              info.input = input.toString()
-            } else {
-              info.input = String(input)
+            // Derive url/method robustly across realms
+            const method = ((init && (init as any).method) || (typeof (input as any)?.method === 'string' ? (input as any).method : 'GET')).toString().toUpperCase()
+            let url = ''
+            if (typeof input === 'string') url = input
+            else if (typeof (input as any)?.url === 'string') url = (input as any).url
+            else if (typeof (input as any)?.toString === 'function') url = (input as any).toString()
+
+            const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
+            const isKeepAlive = url.includes('/api/admin/health-history')
+            const isApi = url.includes('/api/')
+            const isHead = method === 'HEAD'
+            const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+
+            if (!isNextInternal && !isKeepAlive && isApi && !isHead && !offline) {
+              console.warn('[fetch] network/error while fetching', { url, method, init: init ?? null }, err)
             }
-            console.error('[fetch] network/error while fetching', info, err)
           } catch (e) {
-            console.error('[fetch] failed and failed to log details', e)
+            // avoid noisy console errors during dev
           }
           throw err
         }
