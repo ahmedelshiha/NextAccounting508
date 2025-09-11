@@ -87,7 +87,11 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!res.ok) {
             try {
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
-              console.error('[fetch] non-ok response', { status: res.status, url, init })
+              const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
+              // Skip logging for keep-alive pings and HEAD requests
+              if (method !== 'HEAD' && !url.includes('/api/admin/health-history')) {
+                console.error('[fetch] non-ok response', { status: res.status, url, init })
+              }
             } catch {}
           }
           return res
