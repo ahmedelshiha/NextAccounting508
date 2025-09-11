@@ -5,6 +5,12 @@ import bcrypt from 'bcryptjs'
 async function main() {
   console.log('🌱 Starting seed...')
 
+  // Purge deprecated demo users and related bookings
+  await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
+  await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
+  await prisma.booking.deleteMany({ where: { clientEmail: 'john@example.com' } })
+  await prisma.user.deleteMany({ where: { email: 'john@example.com' } })
+
   // Create admin user
   const adminPassword = await bcrypt.hash('admin123', 12)
   const admin = await prisma.user.upsert({
@@ -33,31 +39,6 @@ async function main() {
     },
   })
 
-  // Create client users
-  const clientPassword = await bcrypt.hash('client123', 12)
-  const client1 = await prisma.user.upsert({
-    where: { email: 'john@example.com' },
-    update: {},
-    create: {
-      email: 'john@example.com',
-      name: 'John Smith',
-      password: clientPassword,
-      role: UserRole.CLIENT,
-      emailVerified: new Date(),
-    },
-  })
-
-  const client2 = await prisma.user.upsert({
-    where: { email: 'sarah@example.com' },
-    update: {},
-    create: {
-      email: 'sarah@example.com',
-      name: 'Sarah Johnson',
-      password: clientPassword,
-      role: UserRole.CLIENT,
-      emailVerified: new Date(),
-    },
-  })
 
   console.log('✅ Users created')
 
@@ -331,58 +312,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('✅ Blog posts created')
 
-  // Create sample bookings
-  const bookingService = await prisma.service.findFirst({ where: { slug: 'bookkeeping' } })
-  const taxService = await prisma.service.findFirst({ where: { slug: 'tax-preparation' } })
-
-  if (bookingService && taxService) {
-    const bookings = [
-      {
-        clientId: client1.id,
-        serviceId: bookingService.id,
-        status: BookingStatus.CONFIRMED,
-        scheduledAt: new Date('2024-03-15T10:00:00Z'),
-        duration: 60,
-        clientName: client1.name!,
-        clientEmail: client1.email,
-        clientPhone: '+1-555-0123',
-        notes: 'Initial consultation for bookkeeping services',
-        confirmed: true,
-      },
-      {
-        clientId: client2.id,
-        serviceId: taxService.id,
-        status: BookingStatus.PENDING,
-        scheduledAt: new Date('2024-03-20T14:00:00Z'),
-        duration: 90,
-        clientName: client2.name!,
-        clientEmail: client2.email,
-        clientPhone: '+1-555-0456',
-        notes: 'Tax preparation for 2023 returns',
-        confirmed: false,
-      },
-      {
-        clientId: client1.id,
-        serviceId: taxService.id,
-        status: BookingStatus.COMPLETED,
-        scheduledAt: new Date('2024-02-10T09:00:00Z'),
-        duration: 90,
-        clientName: client1.name!,
-        clientEmail: client1.email,
-        clientPhone: '+1-555-0123',
-        notes: 'Completed tax consultation',
-        confirmed: true,
-      },
-    ]
-
-    for (const booking of bookings) {
-      await prisma.booking.create({
-        data: booking,
-      })
-    }
-  }
-
-  console.log('✅ Sample bookings created')
 
   // Create contact submissions
   const contactSubmissions = [
@@ -490,8 +419,6 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
   console.log('Staff: staff@accountingfirm.com / staff123')
-  console.log('Client: john@example.com / client123')
-  console.log('Client: sarah@example.com / client123')
 }
 
 main()
