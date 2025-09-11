@@ -89,7 +89,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
               const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
               // Skip logging for keep-alive pings and HEAD requests
-              if (method !== 'HEAD' && !url.includes('/api/admin/health-history')) {
+              if (method !== 'HEAD' && !url.includes('/api/health-history')) {
                 console.error('[fetch] non-ok response', { status: res.status, url, init })
               }
             } catch {}
@@ -109,7 +109,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
                   : ''
 
             const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
-            const isKeepAlive = url.includes('/api/admin/health-history')
+            const isKeepAlive = url.includes('/api/health-history')
             const isApi = url.includes('/api/')
             const isHead = derivedMethod === 'HEAD'
             const offline = typeof navigator !== 'undefined' && navigator.onLine === false
