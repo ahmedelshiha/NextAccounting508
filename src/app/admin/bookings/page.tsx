@@ -17,8 +17,6 @@ import {
   MoreHorizontal,
   Filter,
   Users,
-  TrendingUp,
-  TrendingDown,
   AlertCircle,
   MapPin,
   FileText,
@@ -251,9 +249,9 @@ export default function EnhancedBookingManagement() {
         (b.assignedStaff || '').toLowerCase().includes(q)
 
       const matchesStatus = statusFilter === 'all' || b.status === statusFilter
-      const matchesPriority = priorityFilter === 'all' || b.priority === (priorityFilter as any)
+      const matchesPriority = priorityFilter === 'all' || b.priority === (priorityFilter as Booking['priority'])
       const matchesStaff = staffFilter === 'all' || b.assignedStaff === staffFilter
-      const matchesTier = clientTierFilter === 'all' || b.client.tier === (clientTierFilter as any)
+      const matchesTier = clientTierFilter === 'all' || b.client.tier === (clientTierFilter as Booking['client']['tier'])
       const matchesService = serviceFilter === 'all' || (b.service?.category || '') === serviceFilter
 
       const d = new Date(b.scheduledAt)
@@ -642,7 +640,7 @@ export default function EnhancedBookingManagement() {
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-gray-600">Sort by:</span>
-                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as 'date' | 'value' | 'client' | 'status')}>
                       <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="date">Date</SelectItem>
