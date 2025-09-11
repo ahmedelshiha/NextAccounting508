@@ -39,11 +39,32 @@ interface Service {
   updatedAt?: string
 }
 
+interface AnalyticsData {
+  dailyBookings: { label: string; count: number }[]
+  revenueByService: { service: string; amount: number }[]
+  avgLeadTimeDays: number
+  topServices: { service: string; bookings: number }[]
+}
+
+type AnalyticsRange = '7d' | '14d' | '30d' | '90d' | '1y'
+
 type ViewMode = 'grid' | 'table'
 
 export default function EnhancedServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Analytics
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [analyticsRange, setAnalyticsRange] = useState<AnalyticsRange>('14d')
+
+  const analyticsMaxBookings = useMemo(() => {
+    return Math.max(1, ...(analytics?.dailyBookings.map(d => d.count || 0) || [1]))
+  }, [analytics])
+  const analyticsMaxRevenue = useMemo(() => {
+    return Math.max(1, ...(analytics?.revenueByService.map(r => r.amount || 0) || [1]))
+  }, [analytics])
 
   // Stats
   const stats = useMemo(() => {
@@ -113,7 +134,28 @@ export default function EnhancedServicesPage() {
     }
   }
 
+  async function loadAnalytics(initial = false) {
+    try {
+      if (initial) setAnalyticsLoading(true)
+      const res = await apiFetch(`/api/admin/analytics?range=${encodeURIComponent(analyticsRange)}`)
+      if (!res.ok) throw new Error('Failed')
+      const json = await res.json()
+      const daily = (json.dailyBookings || []).map((d: any) => ({ label: d.date || String(d.day), count: Number(d.count || 0) }))
+      const revenueByService = (json.revenueByService || []).map((r: any) => ({ service: String(r.service || 'Unknown'), amount: Number(r.amount || 0) }))
+      const topServices = (json.topServices || []).map((t: any) => ({ service: String(t.service || 'Unknown'), bookings: Number(t.bookings || 0) }))
+      const avgLeadTimeDays = Number(json.avgLeadTimeDays || 0)
+      setAnalytics({ dailyBookings: daily, revenueByService, topServices, avgLeadTimeDays })
+    } catch (e) {
+      console.error('loadAnalytics error', e)
+      setAnalytics(null)
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }
+
   useEffect(() => { load(true) }, [])
+  useEffect(() => { loadAnalytics(true) }, [])
+  useEffect(() => { loadAnalytics(false) }, [analyticsRange])
   useEffect(() => {
     if (!name) return setSlug('')
     const auto = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -395,6 +437,72 @@ export default function EnhancedServicesPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="mb-6">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Analytics</CardTitle>
+                  <CardDescription>Booking trends and revenue by service</CardDescription>
+                </div>
+                <select value={analyticsRange} onChange={(e) => setAnalyticsRange(e.target.value as AnalyticsRange)} className="border rounded-md px-3 py-2 text-sm">
+                  <option value="7d">Last 7 days</option>
+                  <option value="14d">Last 14 days</option>
+                  <option value="30d">Last 30 days</option>
+                  <option value="90d">Last 90 days</option>
+                  <option value="1y">Last year</option>
+                </select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-gray-100 rounded animate-pulse" />)}
+                </div>
+              ) : analytics ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="text-sm text-gray-600 mb-2">Daily bookings</div>
+                    <div className="flex items-end gap-1 h-24">
+                      {analytics.dailyBookings.slice(-24).map((d, idx) => (
+                        <div key={idx} className="flex-1 bg-blue-200 rounded-sm" style={{ height: `${Math.max(2, Math.round((d.count / analyticsMaxBookings) * 96))}px` }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600 mb-2">Revenue by service</div>
+                    <div className="space-y-2">
+                      {analytics.revenueByService.slice(0,5).map((r, idx) => (
+                        <div key={idx}>
+                          <div className="flex justify-between text-xs text-gray-600 mb-1">
+                            <span className="truncate pr-2">{r.service}</span>
+                            <span>${r.amount.toLocaleString()}</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded">
+                            <div className="h-2 bg-green-500 rounded" style={{ width: `${Math.min(100, Math.round((r.amount / analyticsMaxRevenue) * 100))}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600 mb-2">Top services</div>
+                    <ul className="space-y-2">
+                      {analytics.topServices.slice(0,5).map((t, idx) => (
+                        <li key={idx} className="flex items-center justify-between text-sm">
+                          <span className="truncate pr-2">{t.service}</span>
+                          <span className="text-gray-700">{t.bookings} bookings</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-4 text-sm text-gray-700">Avg lead time: <span className="font-medium">{analytics.avgLeadTimeDays.toFixed(1)} days</span></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-600">Analytics unavailable.</div>
+              )}
+            </CardContent>
+          </Card>
 
           <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="flex items-center gap-2">
