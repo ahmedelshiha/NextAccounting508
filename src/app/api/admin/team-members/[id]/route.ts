@@ -10,7 +10,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     if (!session?.user || !hasPermission(session.user.role, 'manage_users')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const id = params.id
+    const { id } = await context.params
     const body = await request.json()
 
     try {
