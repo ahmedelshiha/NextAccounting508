@@ -35,13 +35,23 @@ export default function LoginPage() {
       } else {
         toast.success('Signed in successfully!')
         
-        // Get the updated session to check user role
-        const session = await getSession()
-        
-        // Redirect based on user role
-        if (session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') {
-          router.push('/admin')
-        } else {
+        // Try to fetch the current user via internal API (uses credentials include)
+        try {
+          const res = await apiFetch('/api/users/me')
+          if (res.ok) {
+            const json = await res.json().catch(() => ({}))
+            const user = json.user
+            if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+              router.push('/admin')
+            } else {
+              router.push('/portal')
+            }
+          } else {
+            // Fallback if session endpoint failed
+            router.push('/portal')
+          }
+        } catch (err) {
+          console.error('Failed to resolve session after sign in', err)
           router.push('/portal')
         }
       }
