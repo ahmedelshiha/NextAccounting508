@@ -146,6 +146,8 @@ type AnalyticsRange = '7d' | '14d' | '30d' | '90d' | '1y'
 
 type ViewMode = 'grid' | 'table'
 
+type FeaturedFilter = 'all' | 'featured' | 'non'
+
 export default function EnhancedServicesPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -176,7 +178,7 @@ export default function EnhancedServicesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [showInactive, setShowInactive] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [onlyFeatured, setOnlyFeatured] = useState<'all' | 'featured' | 'non'>('all')
+  const [onlyFeatured, setOnlyFeatured] = useState<FeaturedFilter>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
   // Bulk
@@ -235,11 +237,48 @@ export default function EnhancedServicesPage() {
       if (initial) setAnalyticsLoading(true)
       const res = await apiFetch(`/api/admin/analytics?range=${encodeURIComponent(analyticsRange)}`)
       if (!res.ok) throw new Error('Failed')
-      const json = await res.json()
-      const daily = (json.dailyBookings || []).map((d: any) => ({ label: d.date || String(d.day), count: Number(d.count || 0) }))
-      const revenueByService = (json.revenueByService || []).map((r: any) => ({ service: String(r.service || 'Unknown'), amount: Number(r.amount || 0) }))
-      const topServices = (json.topServices || []).map((t: any) => ({ service: String(t.service || 'Unknown'), bookings: Number(t.bookings || 0) }))
-      const avgLeadTimeDays = Number(json.avgLeadTimeDays || 0)
+      const json: unknown = await res.json()
+      type Resp = {
+        dailyBookings?: unknown
+        revenueByService?: unknown
+        topServices?: unknown
+        avgLeadTimeDays?: unknown
+      }
+      const resp = (json || {}) as Resp
+
+      const daily = Array.isArray(resp.dailyBookings)
+        ? resp.dailyBookings.map((d) => {
+            const rec = (d ?? {}) as Record<string, unknown>
+            const label = typeof rec.date === 'string' && rec.date ? rec.date : String(rec.day ?? '')
+            const count = typeof rec.count === 'number' ? rec.count : typeof rec.count === 'string' ? Number(rec.count) || 0 : 0
+            return { label, count }
+          })
+        : []
+
+      const revenueByService = Array.isArray(resp.revenueByService)
+        ? resp.revenueByService.map((r) => {
+            const rec = (r ?? {}) as Record<string, unknown>
+            const service = typeof rec.service === 'string' ? rec.service : 'Unknown'
+            const amount = typeof rec.amount === 'number' ? rec.amount : typeof rec.amount === 'string' ? Number(rec.amount) || 0 : 0
+            return { service, amount }
+          })
+        : []
+
+      const topServices = Array.isArray(resp.topServices)
+        ? resp.topServices.map((t) => {
+            const rec = (t ?? {}) as Record<string, unknown>
+            const service = typeof rec.service === 'string' ? rec.service : 'Unknown'
+            const bookings = typeof rec.bookings === 'number' ? rec.bookings : typeof rec.bookings === 'string' ? Number(rec.bookings) || 0 : 0
+            return { service, bookings }
+          })
+        : []
+
+      const avgLeadTimeDays = typeof resp.avgLeadTimeDays === 'number'
+        ? resp.avgLeadTimeDays
+        : typeof resp.avgLeadTimeDays === 'string'
+          ? Number(resp.avgLeadTimeDays) || 0
+          : 0
+
       setAnalytics({ dailyBookings: daily, revenueByService, topServices, avgLeadTimeDays })
     } catch (e) {
       console.error('loadAnalytics error', e)
@@ -616,7 +655,7 @@ export default function EnhancedServicesPage() {
               <Search className="h-4 w-4 text-gray-400" />
               <Input placeholder="Search services..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-64" />
             </div>
-            <select value={onlyFeatured} onChange={(e) => setOnlyFeatured(e.target.value as any)} className="border rounded-md px-3 py-2 text-sm">
+            <select value={onlyFeatured} onChange={(e) => setOnlyFeatured(e.target.value as FeaturedFilter)} className="border rounded-md px-3 py-2 text-sm">
               <option value="all">All</option>
               <option value="featured">Featured only</option>
               <option value="non">Non-featured</option>
