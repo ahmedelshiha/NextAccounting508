@@ -80,7 +80,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
-          let [input, init] = args
+          const [i0, init] = args
+          let input = i0
           // Convert relative string URLs to absolute to appease iframe/proxy fetch wrappers
           if (typeof input === 'string' && input.startsWith('/')) {
             input = new URL(input, window.location.origin).toString()
