@@ -793,7 +793,25 @@ export default function EnhancedBookingManagement() {
                             </TableCell>
                             <TableCell>
                               <div className="space-y-2">
-                                {b.assignedStaff && (<div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-400" /><span className="text-sm font-medium">{b.assignedStaff}</span></div>)}
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-gray-400" />
+                                  <span className="text-sm font-medium">{b.assignedTeamMember?.name || b.assignedStaff || 'Unassigned'}</span>
+                                </div>
+                                {teamMembers.length > 0 && (
+                                  <div className="mt-1">
+                                    <Select value={b.assignedTeamMember?.id || ''} onValueChange={(v) => assignMember(b.id, v)}>
+                                      <SelectTrigger size="sm" className="w-48">
+                                        <SelectValue placeholder="Assign staff" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="">Unassigned</SelectItem>
+                                        {teamMembers.map(tm => (
+                                          <SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
                                 <div className="text-xs text-gray-500">Source: {(b.source || 'WEBSITE').replace('_',' ')}</div>
                                 {b.client.totalBookings && (<div className="text-xs text-blue-600">{b.client.totalBookings} total bookings</div>)}
                               </div>
