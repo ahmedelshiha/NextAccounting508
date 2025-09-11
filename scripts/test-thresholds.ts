@@ -30,16 +30,21 @@ async function signIn() {
   const form = new URLSearchParams()
   form.append('csrfToken', csrfToken)
   form.append('callbackUrl', '/')
-  form.append('json', 'true')
+  // NOTE: omit 'json' param so NextAuth will set cookies on redirect
   form.append('email', adminEmail)
   form.append('password', adminPassword)
 
   const res = await fetch(`${base}/api/auth/callback/credentials`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form.toString(), redirect: 'manual' })
-  // NextAuth returns cookies on sign-in; capture them
-  const setCookie = res.headers.get('set-cookie') || res.headers.get('Set-Cookie')
-  if (!setCookie) throw new Error('No set-cookie header received during sign-in')
-  // Build cookie string for subsequent requests
-  const cookie = setCookie.split(/,(?=[^ ;]+=)/).map(s => s.split(';')[0]).join('; ')
+  // NextAuth returns cookies on sign-in (302) -> capture set-cookie headers
+  const rawSetCookie = res.headers.get('set-cookie') || res.headers.get('Set-Cookie')
+  if (!rawSetCookie) throw new Error('No set-cookie header received during sign-in')
+  const cookie = rawSetCookie.split(/,(?=[^ ;]+=)/).map(s => s.split(';')[0]).join('; ')
+
+  // validate session
+  const sess = await request('/api/auth/session', {}, cookie)
+  if (!sess.json || !sess.json.user) throw new Error('Session not present after sign-in')
+  if (sess.json.user.role !== 'ADMIN') throw new Error('Signed-in user is not ADMIN: ' + JSON.stringify(sess.json))
+
   return cookie
 }
 
