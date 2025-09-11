@@ -9,9 +9,13 @@ export async function middleware(req: NextRequest) {
 
   // CORS + basic rate limiting for API routes
   if (pathname.startsWith('/api')) {
-    // Do not interfere with NextAuth internals
+    // NextAuth endpoints: allow CORS but do not rate limit or alter body
     if (pathname.startsWith('/api/auth')) {
-      return NextResponse.next()
+      if (req.method === 'OPTIONS') return corsPreflight(req)
+      const res = NextResponse.next()
+      const cors = buildCorsHeaders(req)
+      cors.forEach((v, k) => res.headers.set(k, v))
+      return res
     }
 
     if (req.method === 'OPTIONS') return corsPreflight(req)
