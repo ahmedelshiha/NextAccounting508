@@ -898,7 +898,7 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   )
 }
 
-function IntelligentActivityFeed({ data }: { data: DashboardData }) {
+function IntelligentActivityFeed({ data, thresholds, history }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[] }) {
   const [activeTab, setActiveTab] = useState<'schedule' | 'tasks' | 'deadlines'>('schedule')
   const [filterStatus, setFilterStatus] = useState<string>('all')
 
