@@ -99,22 +99,25 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           try {
             const [input, init] = args
             // Derive url/method robustly across realms
-            const method = ((init && (init as any).method) || (typeof (input as any)?.method === 'string' ? (input as any).method : 'GET')).toString().toUpperCase()
-            let url = ''
-            if (typeof input === 'string') url = input
-            else if (typeof (input as any)?.url === 'string') url = (input as any).url
-            else if (typeof (input as any)?.toString === 'function') url = (input as any).toString()
+            const derivedMethod = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toString().toUpperCase()
+            const url = typeof input === 'string'
+              ? input
+              : input instanceof Request
+                ? input.url
+                : input instanceof URL
+                  ? input.toString()
+                  : ''
 
             const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
             const isKeepAlive = url.includes('/api/admin/health-history')
             const isApi = url.includes('/api/')
-            const isHead = method === 'HEAD'
+            const isHead = derivedMethod === 'HEAD'
             const offline = typeof navigator !== 'undefined' && navigator.onLine === false
 
             if (!isNextInternal && !isKeepAlive && isApi && !isHead && !offline) {
-              console.warn('[fetch] network/error while fetching', { url, method, init: init ?? null }, err)
+              console.warn('[fetch] network/error while fetching', { url, method: derivedMethod, init: init ?? null }, err)
             }
-          } catch (e) {
+          } catch {
             // avoid noisy console errors during dev
           }
           throw err
