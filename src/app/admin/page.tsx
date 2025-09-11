@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import useSWR from 'swr'
-import { Pie, Bar } from 'react-chartjs-2'
+import { Pie, Bar, Line } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title as ChartTitle } from 'chart.js'
 import type { ChartData, ChartOptions } from 'chart.js'
 
