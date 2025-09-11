@@ -80,11 +80,16 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
-          const res = await originalFetch(...(args as [RequestInfo | URL, RequestInit | undefined]))
+          const [i0, init] = args
+          let input = i0
+          // Convert relative string URLs to absolute to appease iframe/proxy fetch wrappers
+          if (typeof input === 'string' && input.startsWith('/')) {
+            input = new URL(input, window.location.origin).toString()
+          }
+          // Delegate to the original (already proxy-wrapped) fetch
+          const res = await originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
           if (!res.ok) {
             try {
-              const input = args[0]
-              const init = args[1]
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
               console.error('[fetch] non-ok response', { status: res.status, url, init })
             } catch {}
