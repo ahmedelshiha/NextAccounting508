@@ -730,10 +730,11 @@ export default function ProfessionalNewBooking() {
         const uRes = await fetch('/api/admin/users', { cache: 'no-store' })
         const uJson = (await uRes.json().catch(() => ({ users: [] }))) as unknown
         type ApiUser = { id: string; name?: string | null; email: string; role?: string | null }
-        const users = (uJson && typeof uJson === 'object' && 'users' in (uJson as Record<string, unknown>)
+        const usersUnknown = (uJson && typeof uJson === 'object' && 'users' in (uJson as Record<string, unknown>)
           ? ((uJson as { users?: unknown }).users as unknown)
           : []) as unknown
-        const mappedClients: Client[] = (Array.isArray(users) ? (users as ApiUser[]) : [])
+        const users = Array.isArray(usersUnknown) ? (usersUnknown as ApiUser[]) : []
+        const mappedClients: Client[] = users
           .filter((u) => u.role === 'CLIENT')
           .map((u) => ({
             id: u.id,
@@ -749,7 +750,8 @@ export default function ProfessionalNewBooking() {
         // Load team members for assignment
         try {
           const tmRes = await fetch('/api/admin/team-members', { cache: 'no-store' })
-          const tmJson = (await tmRes.json().catch(() => ({ teamMembers: [] }))) as { teamMembers?: any[] }
+          type ApiTeamMember = { id: string; name: string; email: string; title?: string; role?: string; specialties?: string[]; isAvailable?: boolean; status?: string; workingHours?: { start?: string; end?: string; days?: string[] }; department?: Staff['department'] }
+          const tmJson = (await tmRes.json().catch(() => ({ teamMembers: [] }))) as { teamMembers?: ApiTeamMember[] }
           const members = Array.isArray(tmJson.teamMembers) ? tmJson.teamMembers : []
           const mappedTeam: Staff[] = members.map((m) => ({
             id: m.id,
