@@ -59,7 +59,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     if (!session?.user || !hasPermission(session.user.role, 'manage_users')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const id = params.id
+    const { id } = await context.params
 
     try {
       await prisma.teamMember.delete({ where: { id } })
