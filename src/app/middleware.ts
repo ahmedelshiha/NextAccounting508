@@ -11,7 +11,8 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/api')) {
     if (req.method === 'OPTIONS') return corsPreflight(req)
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.ip || 'unknown'
+    const { getClientIp } = await import('@/lib/rate-limit')
+    const ip = getClientIp(req)
     const key = `${ip}:${pathname}`
     const { allowed, remaining, resetInMs } = await rateLimit(key, 120, 60)
     if (!allowed) {
