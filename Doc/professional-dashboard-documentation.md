@@ -984,7 +984,7 @@ const reportError = (error: Error, context: ErrorContext) => {
 - [x] SWR integration (initial analytics fetch)
 - [x] SSE real-time updates (client EventSource + /api/admin/updates)
 - [x] Chart integrations (revenue by service pie, daily bookings bar)
-- [ ] Configurable alert thresholds & historical health charts
+- [x] Configurable alert thresholds & historical health charts
 - [ ] RBAC-gated sections and middleware enforcement
 - [ ] Accessibility polish and performance (virtualization, lazy charts)
 - [ ] Sentry integration and test coverage
