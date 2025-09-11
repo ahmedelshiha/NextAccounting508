@@ -859,6 +859,7 @@ export default function ProfessionalNewBooking() {
           serviceId: formData.serviceId,
           scheduledAt: scheduledAt.toISOString(),
           notes: [formData.internalNotes, formData.clientNotes, (assignedStaff ? `Assigned to: ${assignedStaff.name} (${assignedStaff.id})` : '')].filter(Boolean).join('\n'),
+          assignedTeamMemberId: assignedStaff?.id,
           clientName: formData.clientName,
           clientEmail: formData.clientEmail,
           clientPhone: formData.clientPhone
