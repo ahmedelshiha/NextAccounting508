@@ -143,7 +143,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       const id = setInterval(() => {
-        fetch('/api/admin/health-history?ping=1', { method: 'GET', cache: 'no-store' }).catch(() => {})
+        fetch('/api/health-history?ping=1', { method: 'GET', cache: 'no-store' }).catch(() => {})
       }, 30000)
       return () => clearInterval(id)
     }
