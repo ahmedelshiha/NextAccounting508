@@ -280,8 +280,8 @@ export default function EnhancedBookingManagement() {
     const list = bookings.filter((b) => {
       const q = searchTerm.toLowerCase()
       const matchesSearch =
-        b.clientName.toLowerCase().includes(q) ||
-        b.clientEmail.toLowerCase().includes(q) ||
+        (b.clientName || '').toLowerCase().includes(q) ||
+        (b.clientEmail || '').toLowerCase().includes(q) ||
         (b.service?.name || '').toLowerCase().includes(q) ||
         (b.assignedStaff || '').toLowerCase().includes(q)
 
@@ -310,7 +310,7 @@ export default function EnhancedBookingManagement() {
       let cmp = 0
       if (sortBy === 'date') cmp = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       else if (sortBy === 'value') cmp = (Number(a.service?.price || 0) - Number(b.service?.price || 0))
-      else if (sortBy === 'client') cmp = a.clientName.localeCompare(b.clientName)
+      else if (sortBy === 'client') cmp = (a.clientName || '').localeCompare(b.clientName || '')
       else if (sortBy === 'status') cmp = (a.status || '').localeCompare(b.status || '')
       return sortOrder === 'desc' ? -cmp : cmp
     })
