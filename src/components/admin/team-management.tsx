@@ -15,7 +15,8 @@ import {
   Star,
   CheckCircle,
   XCircle,
-  Calendar
+  Calendar,
+  Eye
 } from 'lucide-react'
 
 // Types
