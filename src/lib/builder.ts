@@ -70,6 +70,7 @@ export async function fetchBuilderContent<T = any>(opts: BuilderFetchOptions): P
   const t0 = Date.now()
   const res = await fetch(apiUrl, { ...nextOpts, headers: { 'X-Builder-Proxy-Host': host } })
   const dur = Date.now() - t0
+  try { (await import('@/lib/metrics')).recordMetric('builder_fetch_ms', dur) } catch {}
 
   if (!res.ok) {
     logWarn('builder.fetch.error', { status: res.status, url: apiUrl, dur })
