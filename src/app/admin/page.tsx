@@ -1,6 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import useSWR from 'swr'
+import { Pie, Bar } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title as ChartTitle } from 'chart.js'
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, ChartTitle)
 import { 
   Calendar, 
   Users, 
@@ -37,6 +42,11 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+const fetcher = (url: string) => fetch(url).then(async (r) => {
+  if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
+  return r.json()
+})
 
 interface DashboardData {
   stats: DashboardStats
@@ -1284,6 +1294,81 @@ function EnhancedSystemHealth({ data }: { data: DashboardData }) {
   )
 }
 
+function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: DashboardData }) {
+  const { data: analytics, error } = useSWR('/api/admin/analytics?range=30d', fetcher, { revalidateOnFocus: false })
+
+  const serviceLabels = (analytics?.revenueByService?.map((s: any) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
+  const serviceValues = (analytics?.revenueByService?.map((s: any) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
+  const pieData = {
+    labels: serviceLabels,
+    datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
+  }
+
+  const dailyLabels = (analytics?.dailyBookings?.map((d: any, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
+  const dailyValues = (analytics?.dailyBookings?.map((d: any) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
+  const barData = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <h3 className="font-medium text-gray-900">Revenue Performance</h3>
+        <div className="bg-white rounded-lg border p-4">
+          {error ? (<div className="text-sm text-red-600">Analytics unavailable. Showing fallback.</div>) : null}
+          <div className="h-56">
+            <Pie data={pieData as any} options={{ plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }} />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
+            {analyticsFallback.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
+              <div key={idx} className="text-center">
+                <div className="font-medium">{service.percentage}%</div>
+                <div className="text-gray-600 truncate">{service.service}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="text-xs text-gray-600">
+          Current: ${analyticsFallback.stats.revenue.current.toLocaleString()} • Target: ${analyticsFallback.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{analyticsFallback.stats.revenue.trend}%</span>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="font-medium text-gray-900">Operational Metrics</h3>
+        <div className="bg-white rounded-lg border p-4">
+          <div className="h-56">
+            <Bar data={barData as any} options={{ plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }} />
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Booking Utilization</span>
+            <div className="flex items-center gap-2">
+              <div className="w-24 bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%` }} />
+              </div>
+              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Client Satisfaction</span>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500" />
+              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Task Completion Rate</span>
+            <span className="text-sm font-medium text-green-600">{analyticsFallback.performanceMetrics.efficiency.taskCompletionRate}%</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <span className="text-sm text-gray-600">Show Rate</span>
+            <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.operational.appointmentShowRate}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfessionalAdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [dashboardData, setDashboardData] = useState<DashboardData>(mockDashboardData)
@@ -1433,67 +1518,7 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="font-medium text-gray-900">Revenue Performance</h3>
-                <div className="h-48 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <PieChart className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Revenue Chart Integration</p>
-                    <div className="mt-2 space-y-1 text-xs">
-                      <div>Current: ${dashboardData.stats.revenue.current.toLocaleString()}</div>
-                      <div>Target: ${dashboardData.stats.revenue.target.toLocaleString()}</div>
-                      <div className="text-green-600">+{dashboardData.stats.revenue.trend}% growth</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  {dashboardData.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
-                    <div key={idx} className="text-center">
-                      <div className="font-medium">{service.percentage}%</div>
-                      <div className="text-gray-600 truncate">{service.service}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-medium text-gray-900">Operational Metrics</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Booking Utilization</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full" 
-                          style={{ width: `${dashboardData.performanceMetrics.efficiency.bookingUtilization}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.bookingUtilization}%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Client Satisfaction</span>
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Task Completion Rate</span>
-                    <span className="text-sm font-medium text-green-600">
-                      {dashboardData.performanceMetrics.efficiency.taskCompletionRate}%
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Show Rate</span>
-                    <span className="text-sm font-medium">
-                      {dashboardData.performanceMetrics.operational.appointmentShowRate}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BusinessIntelligence analyticsFallback={dashboardData} />
           </CardContent>
         </Card>
 
