@@ -118,7 +118,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       if (confirmed !== undefined) updateData.confirmed = confirmed
       if (assignedTeamMemberId !== undefined) {
         updateData.assignedTeamMember = assignedTeamMemberId
-          ? { connect: { id } as any }
+          ? { connect: { id: String(assignedTeamMemberId) } }
           : { disconnect: true }
       }
     }
