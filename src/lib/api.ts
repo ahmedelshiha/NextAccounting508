@@ -9,23 +9,29 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     }
   }
 
-  // In the browser, always use relative paths when given (better for proxies/iframes)
-  if (typeof window !== 'undefined' && path.startsWith('/')) {
+  // Resolve to absolute URL in the browser to play nicely with preview/iframe proxies
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin
+    const url = typeof path === 'string'
+      ? (path.startsWith('http') ? path : new URL(path, origin).toString())
+      : path
     try {
-      return await fetch(path, opts)
+      return await fetch(url as RequestInfo, opts)
     } catch (err) {
-      console.error('apiFetch failed for relative path:', path, 'opts:', opts, 'error:', err)
+      try {
+        const u = typeof url === 'string' ? url : (url as Request).url
+        console.error('apiFetch failed for URL:', u, 'opts:', opts, 'error:', err)
+      } catch (e) { console.error(e) }
       throw err
     }
   }
 
-  // Absolute URLs or server-side fall back to provided value (or construct from origin if available)
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const url = path.startsWith('http') ? path : `${origin}${path}`
+  // Server-side: allow absolute or return as-is
+  const url = typeof path === 'string' ? path : (path as Request).url
   try {
-    return await fetch(url, opts)
+    return await fetch(url as RequestInfo, opts)
   } catch (err) {
-    try { console.error('apiFetch failed for URL:', url, 'opts:', opts, 'error:', err) } catch (e) { console.error(e) }
+    try { console.error('apiFetch failed server-side for URL:', url, 'opts:', opts, 'error:', err) } catch (e) { console.error(e) }
     throw err
   }
 }
