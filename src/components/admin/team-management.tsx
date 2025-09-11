@@ -528,7 +528,7 @@ export default function TeamManagement() {
       const res = await fetch(`/api/admin/team-members/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       setTeamMembers((prev) => prev.filter((m) => m.id !== id))
-    } catch (e) {
+    } catch {
       alert('Failed to remove team member')
     } finally {
       setLoading(false)
