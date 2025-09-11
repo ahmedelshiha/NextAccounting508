@@ -1,16 +1,28 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { buildCorsHeaders, corsPreflight } from '@/lib/cors'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // CORS for API routes (allows Builder.io preview and Netlify to call dev APIs)
+  // CORS + basic rate limiting for API routes
   if (pathname.startsWith('/api')) {
     if (req.method === 'OPTIONS') return corsPreflight(req)
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.ip || 'unknown'
+    const key = `${ip}:${pathname}`
+    const { allowed, remaining, resetInMs } = await rateLimit(key, 120, 60)
+    if (!allowed) {
+      const h = buildCorsHeaders(req)
+      h.set('Retry-After', String(Math.ceil(resetInMs / 1000)))
+      return new NextResponse(JSON.stringify({ error: 'Too Many Requests' }), { status: 429, headers: h })
+    }
+
     const res = NextResponse.next()
     const cors = buildCorsHeaders(req)
     cors.forEach((v, k) => res.headers.set(k, v))
+    res.headers.set('X-RateLimit-Remaining', String(remaining))
     return res
   }
 

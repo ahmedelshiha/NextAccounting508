@@ -1,37 +1,33 @@
-type Bucket = { tokens: number; last: number }
-const buckets = new Map<string, Bucket>()
+import { cacheGet, cacheSet } from '@/lib/cache'
 
-export function getClientIp(req: Request): string {
-  try {
-    const r = req as unknown as { ip?: string; socket?: { remoteAddress?: string } }
-    const ip = r?.ip ?? r?.socket?.remoteAddress
-    const hdr =
-      req.headers.get('x-forwarded-for') ||
-      req.headers.get('x-real-ip') ||
-      req.headers.get('x-nf-client-connection-ip') ||
-      req.headers.get('cf-connecting-ip') ||
-      ''
-    const first = hdr.split(',')[0]?.trim()
-    return ip || first || 'anonymous'
-  } catch {
-    return 'anonymous'
-  }
-}
+export type RateLimitResult = { allowed: boolean; remaining: number; resetInMs: number }
 
-export function rateLimit(key: string, limit = 20, windowMs = 60_000): boolean {
+const g = globalThis as unknown as { __rl?: Map<string, { count: number; resetAt: number }> }
+if (!g.__rl) g.__rl = new Map()
+const mem = g.__rl
+
+export async function rateLimit(key: string, limit: number, windowSec: number): Promise<RateLimitResult> {
   const now = Date.now()
-  const bucket = buckets.get(key) || { tokens: limit, last: now }
-  const elapsed = now - bucket.last
-  const refill = Math.floor(elapsed / windowMs) * limit
-  if (refill > 0) {
-    bucket.tokens = Math.min(limit, bucket.tokens + refill)
-    bucket.last = now
+  const bucketKey = `rl:${key}`
+
+  let state = mem.get(bucketKey)
+  if (!state || state.resetAt <= now) {
+    state = { count: 0, resetAt: now + windowSec * 1000 }
   }
-  if (bucket.tokens <= 0) {
-    buckets.set(key, bucket)
-    return false
+
+  const dist = await cacheGet<{ c: number; r: number }>(bucketKey)
+  if (dist && dist.r > now) {
+    state.count = Math.max(state.count, dist.c)
+    state.resetAt = Math.max(state.resetAt, dist.r)
   }
-  bucket.tokens -= 1
-  buckets.set(key, bucket)
-  return true
+
+  state.count += 1
+  const allowed = state.count <= limit
+  const remaining = Math.max(0, limit - state.count)
+  const resetInMs = Math.max(0, state.resetAt - now)
+
+  mem.set(bucketKey, state)
+  await cacheSet(bucketKey, { c: state.count, r: state.resetAt }, Math.ceil(resetInMs / 1000))
+
+  return { allowed, remaining, resetInMs }
 }

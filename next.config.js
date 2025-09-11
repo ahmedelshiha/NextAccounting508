@@ -54,6 +54,22 @@ const nextConfig = {
 
   // Turbopack is the default in Next 15; keep explicit block for clarity
   turbopack: {},
+
+  // Fallback to webpack dev options if Turbopack is disabled
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // Reduce file watching noise in dev if webpack is used
+      config.watchOptions = {
+        ignored: [
+          '**/node_modules/**',
+          '**/.next/**',
+          '**/public/uploads/**',
+          '**/dist/**',
+        ],
+      }
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig
