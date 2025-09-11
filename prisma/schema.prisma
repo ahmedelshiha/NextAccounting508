@@ -201,6 +201,16 @@ model HealthLog {
   checkedAt DateTime @default(now())
 }
 
+// Health thresholds stored in DB for admin-configurable alerts
+model HealthThreshold {
+  id            Int      @id @default(autoincrement())
+  responseTime  Int      @default(100)    // ms
+  errorRate     Float    @default(1.0)    // percent
+  storageGrowth Float    @default(20.0)   // percent
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 // Currency models for multi-currency support
 model Currency {
   code        String   @id
