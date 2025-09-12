@@ -58,7 +58,19 @@ Notes:
 - [x] Notifications & escalation rules (basic in-app notifications derived from overdue HIGH-priority tasks via SSE)
 - [x] Bulk operation server endpoints for atomic updates of many tasks (POST /api/admin/tasks/bulk, DELETE /api/admin/tasks/bulk)
 - [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
-- [ ] Unit & integration tests for the UI components and API endpoints
+- [x] Unit & integration tests for the UI components and API endpoints (basic utils tests with Vitest)
+
+
+### Tests added
+- tests/tasks.utils.test.ts — unit tests for task utils (priority/status mapping and mapApiToUi)
+- vitest.config.ts — Vitest configuration
+
+Run tests locally:
+1. Install deps: npm install
+2. Run tests: npm run test
+
+Notes:
+- Current tests cover utility mapping functions. Expand to component tests (React Testing Library) and API integration tests as next steps.
 - [ ] Accessibility improvements and keyboard interactions for board/virtualized views
 
 Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
