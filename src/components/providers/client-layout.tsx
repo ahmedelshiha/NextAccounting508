@@ -57,9 +57,14 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             setTimeout(reloadWithBuster, 600)
           }
         }
-        // Suppress dev overlay noise for Next HMR/network hiccups
+        // Suppress dev overlay noise for Next HMR/network hiccups and try to auto-recover
         if (/failed to fetch/i.test(msgStr)) {
           try { event.preventDefault?.() } catch {}
+          if (!handled) {
+            handled = true
+            console.warn('Detected failed fetch (dev/HMR). Reloading to recover.')
+            setTimeout(reloadWithBuster, 600)
+          }
         }
       } catch {
         // ignore
@@ -89,9 +94,14 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             setTimeout(reloadWithBuster, 600)
           }
         }
-        // Suppress dev overlay noise for HMR-related fetch errors
+        // Suppress dev overlay noise for HMR-related fetch errors and auto-recover
         if (/failed to fetch/i.test(msgStr) || /hot-reloader|\?reload=|hmr/i.test(msgStr)) {
           try { ev.preventDefault?.() } catch {}
+          if (!handled) {
+            handled = true
+            console.warn('Detected HMR fetch failure. Reloading to recover.')
+            setTimeout(reloadWithBuster, 600)
+          }
         }
       } catch {
         // ignore
