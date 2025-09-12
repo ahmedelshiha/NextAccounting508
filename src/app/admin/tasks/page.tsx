@@ -36,8 +36,9 @@ import ExportButton from './export-button'
 import PaginationControls from './pagination-controls'
 import NotificationsPanel from './notifications-panel'
 import TagFilter from './tag-filter'
+import { mapApiToUi } from './utils'
 
-interface TaskItem {
+export interface TaskItem {
   id: string
   title: string
   dueAt: string | null
@@ -93,9 +94,11 @@ interface TaskManagementProps {
   onTaskCreate?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void> | void
   onTaskDelete?: (taskId: string) => Promise<void> | void
   onSearch?: (q: string) => void
+  hasMore?: boolean
+  onLoadMore?: (q: string) => Promise<void> | void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch, hasMore, onLoadMore }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string; tag?: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '', tag: undefined })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
@@ -675,7 +678,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         </Card>
       )}
 
-      <PaginationControls hasMore={hasMore} onLoadMore={async () => { await loadTasks(filters.search || '', page + 1, true) }} />
+      <PaginationControls hasMore={hasMore ?? false} onLoadMore={async () => { await onLoadMore?.(filters.search || '') }} />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
@@ -821,24 +824,6 @@ export default function AdminTasksPage() {
     return () => es?.close()
   }, [loadTasks])
 
-  // map API TaskItem to UI Task using shared utils
-  import('./utils').then(m => {})
-  // fallback inline mapping (used if dynamic import not resolved)
-  const mapApiToUi = (t: TaskItem) => ({
-    id: t.id,
-    title: t.title,
-    priority: t.priority === 'HIGH' ? 'high' : t.priority === 'LOW' ? 'low' : 'medium',
-    dueDate: t.dueAt ? String(t.dueAt) : new Date().toISOString(),
-    status: t.boardStatus ? (t.boardStatus as TaskStatus) : (t.status === 'DONE' ? 'completed' : t.status === 'IN_PROGRESS' ? 'in_progress' : 'pending'),
-    category: 'system',
-    estimatedHours: 0,
-    completionPercentage: t.status === 'DONE' ? 100 : 0,
-    createdAt: t.createdAt || new Date().toISOString(),
-    updatedAt: t.updatedAt || new Date().toISOString(),
-    complianceRequired: false,
-    position: t.position,
-  } as Task)
-
   const uiTasks = tasks.map(mapApiToUi)
 
   const onTaskUpdate = async (id: string, updates: Partial<Task>) => {
@@ -916,7 +901,15 @@ export default function AdminTasksPage() {
             <Button asChild variant="outline"><Link href="/admin/tasks/new">Quick Task</Link></Button>
           </div>
         </div>
-        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} onTaskDelete={onTaskDelete} onSearch={(q) => loadTasks(q)} />
+        <TaskManagementSystem
+          initialTasks={uiTasks}
+          onTaskUpdate={onTaskUpdate}
+          onTaskCreate={onTaskCreate}
+          onTaskDelete={onTaskDelete}
+          onSearch={(q) => loadTasks(q)}
+          hasMore={hasMore}
+          onLoadMore={(q) => loadTasks(q, page + 1, true)}
+        />
       </div>
     </div>
   )
