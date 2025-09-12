@@ -847,7 +847,10 @@ export default function AdminTasksPage() {
       if (updates.title !== undefined) payload.title = updates.title
       if (updates.dueDate !== undefined) payload.dueAt = updates.dueDate
       if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
-      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
+      if (updates.status !== undefined) {
+        payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
+        payload.boardStatus = updates.status
+      }
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
     } catch (e) { console.error('update failed', e) }
