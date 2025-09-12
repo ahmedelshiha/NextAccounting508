@@ -54,8 +54,8 @@ Notes:
 
 ## Remaining enhancements (Planned / Pending)
 - [x] Replace home-grown virtualization with a maintained library (react-window) for better performance
-- [ ] Tag filtering UI and dependency-management UI
-- [ ] Notifications & escalation rules (in-app notifications, email/SMS integrations)
+- [x] Tag filtering UI and dependency-management UI (client-side)
+- [x] Notifications & escalation rules (basic in-app notifications derived from overdue HIGH-priority tasks via SSE)
 - [ ] Bulk operation server endpoints for atomic updates of many tasks
 - [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
 - [ ] Unit & integration tests for the UI components and API endpoints
