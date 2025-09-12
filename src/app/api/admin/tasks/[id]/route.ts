@@ -35,6 +35,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (parsed.data.status !== undefined) data.status = parsed.data.status
     if (parsed.data.priority !== undefined) data.priority = parsed.data.priority
     if (parsed.data.dueAt !== undefined) data.dueAt = parsed.data.dueAt ? new Date(parsed.data.dueAt) : null
+    if (parsed.data.position !== undefined) data.position = parsed.data.position as number
+    if (parsed.data.boardStatus !== undefined) {
+      data.boardStatus = parsed.data.boardStatus as string
+      // keep coarse status synced with board column
+      const mapped = parsed.data.boardStatus === 'completed' ? 'DONE' : parsed.data.boardStatus === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
+      data.status = mapped as any
+    }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
