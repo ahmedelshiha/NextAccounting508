@@ -1,5 +1,30 @@
 import { PrismaClient } from "@prisma/client";
 
+// Provide a test-mode in-memory mock to avoid requiring a real DB during tests
+if (process.env.NODE_ENV === 'test') {
+  let thresholds: any[] = []
+  const mock = {
+    healthThreshold: {
+      findFirst: async () => (thresholds.length ? thresholds[thresholds.length - 1] : null),
+      create: async ({ data }: any) => {
+        const id = thresholds.length + 1
+        const rec = { id, ...data }
+        thresholds.push(rec)
+        return rec
+      },
+      update: async ({ where, data }: any) => {
+        const rec = thresholds.find((r) => r.id === where.id)
+        if (!rec) throw new Error('not found')
+        Object.assign(rec, data)
+        return rec
+      },
+      deleteMany: async () => { thresholds = []; return { count: 0 } },
+    },
+    $disconnect: async () => {},
+  }
+  export default mock as any
+}
+
 declare global {
   var __prisma__: PrismaClient | undefined;
 }
