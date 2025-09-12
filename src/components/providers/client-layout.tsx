@@ -20,6 +20,9 @@ declare global {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
+    // initialize Sentry lazily on the client if DSN is provided
+    try { initSentry().catch(() => {}) } catch {}
+
     let handled = false
 
     const reloadWithBuster = () => {
