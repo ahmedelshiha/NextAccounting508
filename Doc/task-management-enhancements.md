@@ -53,7 +53,7 @@ Notes:
 ---
 
 ## Remaining enhancements (Planned / Pending)
-- [ ] Replace home-grown virtualization with a maintained library (react-window / react-virtual) for better performance
+- [x] Replace home-grown virtualization with a maintained library (react-window) for better performance
 - [ ] Tag filtering UI and dependency-management UI
 - [ ] Notifications & escalation rules (in-app notifications, email/SMS integrations)
 - [ ] Bulk operation server endpoints for atomic updates of many tasks
