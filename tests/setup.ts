@@ -1,33 +1,5 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
-
-// Mock prisma to avoid requiring a real DB in tests
-(() => {
-  let thresholds: any[] = []
-  vi.mock('@/lib/prisma', () => ({
-    default: {
-      healthThreshold: {
-        findFirst: async ({ orderBy }: any) => {
-          return thresholds.length ? thresholds[thresholds.length - 1] : null
-        },
-        create: async ({ data }: any) => {
-          const id = thresholds.length + 1
-          const rec = { id, ...data }
-          thresholds.push(rec)
-          return rec
-        },
-        update: async ({ where, data }: any) => {
-          const rec = thresholds.find((r) => r.id === where.id)
-          if (!rec) throw new Error('not found')
-          Object.assign(rec, data)
-          return rec
-        },
-        deleteMany: async () => { thresholds = []; return { count: 0 } },
-      },
-      $disconnect: async () => {},
-    }
-  }))
-})()
+import '@testing-library/jest-dom'
 
 // Mock matchMedia for components that use it
 Object.defineProperty(window, 'matchMedia', {
