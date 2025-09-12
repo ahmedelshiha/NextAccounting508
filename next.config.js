@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-let withSentryConfig = null
-
 let withBundleAnalyzer = (cfg) => cfg
 try {
   withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' })
@@ -70,23 +68,5 @@ const nextConfig = {
   },
 }
 
-const enableSentryUpload = process.env.SENTRY_UPLOAD_SOURCEMAPS === 'true' && !!process.env.SENTRY_AUTH_TOKEN && !!process.env.SENTRY_ORG && !!process.env.SENTRY_PROJECT
-
 const finalConfig = withBundleAnalyzer(nextConfig)
-
-if (enableSentryUpload) {
-  try {
-    const { withSentryConfig: sentryWrap } = require('@sentry/nextjs')
-    module.exports = sentryWrap(finalConfig, {
-      silent: true,
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      sourcemaps: { deleteSourcemapsAfterUpload: true },
-    })
-  } catch {
-    module.exports = finalConfig
-  }
-} else {
-  module.exports = finalConfig
-}
+module.exports = finalConfig
