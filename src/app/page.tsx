@@ -10,7 +10,7 @@ export const revalidate = 60
 export default function HomePage() {
   return (
     <main>
-      <HomeHeroSection />
+      <HeroSection />
       <ServicesSection />
       <TestimonialsSection />
       <Suspense fallback={null}>
