@@ -674,13 +674,18 @@ export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const loadTasks = useCallback(async (q?: string) => {
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+
+  const loadTasks = useCallback(async (q?: string, p = 1, append = false) => {
     try {
       setErrorMsg(null)
       const qp = q ? `&q=${encodeURIComponent(q)}` : ''
-      const res = await apiFetch(`/api/admin/tasks?limit=50${qp}`)
+      const res = await apiFetch(`/api/admin/tasks?limit=50&page=${p}${qp}`)
       if (!res.ok) throw new Error(`Failed (${res.status})`)
-      const list = (await res.json()) as TaskItem[]
+      const data = await res.json()
+      // server returns { tasks, pagination }
+      const list = Array.isArray(data.tasks) ? data.tasks : data
       const normalized = (Array.isArray(list) ? list : []).map((t) => ({
         id: t.id,
         title: t.title,
@@ -691,7 +696,13 @@ export default function AdminTasksPage() {
         createdAt: t.createdAt ? String(t.createdAt) : undefined,
         updatedAt: t.updatedAt ? String(t.updatedAt) : undefined,
       }))
-      setTasks(normalized)
+
+      setTasks((prev) => (append ? [...prev, ...normalized] : normalized))
+
+      const pagination = data.pagination || { total: normalized.length, page: p, limit: 50 }
+      const total = pagination.total || 0
+      setHasMore(p * pagination.limit < total)
+      setPage(p)
     } catch (e) {
       console.error('loadTasks error', e)
       setErrorMsg('Unable to load tasks')
