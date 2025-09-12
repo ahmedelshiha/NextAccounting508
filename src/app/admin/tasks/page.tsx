@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import VirtualizedTaskList from './virtualized-task-list'
 import BoardView from './board-view'
+import TaskEditDialog from './task-edit-dialog'
 
 interface TaskItem {
   id: string
