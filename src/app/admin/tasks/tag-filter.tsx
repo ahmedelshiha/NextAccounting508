@@ -2,8 +2,9 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
+import type { Task } from './page'
 
-export default function TagFilter({ tasks, value, onChange }: { tasks: any[]; value?: string; onChange: (t?: string) => void }) {
+export default function TagFilter({ tasks, value, onChange }: { tasks: Task[]; value?: string; onChange: (t?: string) => void }) {
   const tags = new Set<string>()
   for (const t of tasks) if (Array.isArray(t.tags)) for (const tag of t.tags) tags.add(tag)
   const list = Array.from(tags)

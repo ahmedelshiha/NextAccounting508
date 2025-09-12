@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth/next'
-import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import type { Session } from 'next-auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,7 +9,7 @@ export const revalidate = 0
 
 // Simple server-sent events endpoint that pushes task summaries every 5s
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions as any)
+  const session = (await getServerSession(authOptions)) as Session | null
   if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
     return new Response('Unauthorized', { status: 401 })
   }
@@ -18,7 +18,6 @@ export async function GET(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      let i = 0
       let closed = false
 
       // clean up when client disconnects
@@ -30,8 +29,8 @@ export async function GET(request: Request) {
         if (closed) return
         try {
           const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
-          let tasks
-          let notifications: any[] = []
+          let tasks: Array<{ id: string; title: string; dueAt: Date | null; priority: string; status: string }>
+          let notifications: Array<{ id: string; type: string; message: string; taskId?: string }> = []
           if (!hasDb) {
             tasks = [
               { id: 't1', title: 'Send monthly newsletters', dueAt: null, priority: 'HIGH', status: 'OPEN' },
@@ -51,7 +50,7 @@ export async function GET(request: Request) {
 
           const payload = JSON.stringify({ ts: Date.now(), tasks, notifications })
           controller.enqueue(encoder.encode(`data: ${payload}\n\n`))
-        } catch (err) {
+        } catch (_err) {
           controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: 'error' })}\n\n`))
         }
       }

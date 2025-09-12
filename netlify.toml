@@ -4,6 +4,7 @@ publish = ".next"
 
 [build.environment]
 DATABASE_URL = "${NETLIFY_DATABASE_URL}"
+NODE_VERSION = "20.11.1"
 # Increase npm network resiliency on Netlify
 NPM_CONFIG_FETCH_RETRIES = "5"
 NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "20000"

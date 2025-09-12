@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!ids.length) return NextResponse.json({ error: 'No ids provided' }, { status: 400 })
 
-    const data: any = {}
+    const data: import('@prisma/client').Prisma.TaskUpdateManyMutationInput = {}
     if (updatesIn.status !== undefined) {
       // map client status to DB status
       const s = updatesIn.status

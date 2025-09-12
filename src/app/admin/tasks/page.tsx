@@ -98,13 +98,15 @@ interface TaskManagementProps {
   onLoadMore?: (q: string) => Promise<void> | void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch, hasMore, onLoadMore }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onTaskDelete, onSearch, hasMore, onLoadMore }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string; tag?: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '', tag: undefined })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate')
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState<{ title: string; dueDate: string; priority: Priority }>({ title: '', dueDate: '', priority: 'medium' })
+  useEffect(() => { setTasks(initialTasks) }, [initialTasks])
+
   const assigneeOptions = useMemo(() => {
     const s = new Set<string>()
     for (const t of tasks) if (t.assignee) s.add(t.assignee)
@@ -257,11 +259,12 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
 
   const reorderTask = useCallback(
     async (taskId: string, targetStatus: TaskStatus, targetIndex: number) => {
+      let snapshotForPersist: Task[] = []
       setTasks((prev) => {
         const moved = prev.find((t) => t.id === taskId)
         if (!moved) return prev
         const next = prev.map((t) => ({ ...t }))
-        // set new status
+        // set new status on moved task
         for (const t of next) if (t.id === taskId) t.status = targetStatus
         // compute new order in target column
         const column = next.filter((t) => t.status === targetStatus)
@@ -274,12 +277,13 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
           const item = next.find((x) => x.id === t.id)
           if (item) item.position = idx
         })
+        snapshotForPersist = next
         return next
       })
       try {
-        // persist positions for all tasks in the target column
-        const colTasks = tasks
-          .filter((t) => (t.id === taskId ? targetStatus : t.status) === targetStatus)
+        // persist positions for all tasks in the target column using the latest snapshot
+        const colTasks = snapshotForPersist
+          .filter((t) => t.status === targetStatus)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
         const updates = colTasks.map((t, idx) => ({ id: t.id, boardStatus: targetStatus, position: idx }))
         await fetch('/api/admin/tasks/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updates }) })
@@ -287,7 +291,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         console.error('reorder failed', e)
       }
     },
-    [tasks]
+    []
   )
 
   const getPriorityColor = (p: string) => {
@@ -647,7 +651,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
           tasks={tasksForBoard}
           onMove={(id, status) => updateTaskStatus(id, status)}
           onReorder={(id, status, index) => reorderTask(id, status, index)}
-          renderCard={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+          renderCard={(task) => <TaskCard key={task.id} task={task} />}
         />
       ) : filteredAndSorted.length <= 60 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -660,7 +664,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
           tasks={filteredAndSorted}
           itemHeight={320}
           overscan={4}
-          renderItem={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+          renderItem={(task) => <TaskCard key={task.id} task={task} />}
         />
       )}
 
@@ -861,25 +865,7 @@ export default function AdminTasksPage() {
     } catch (e) { console.error('delete failed', e) }
   }
 
-  const onTaskSave = async (id: string, updates: Record<string, any>) => {
-    try {
-      const payload: Record<string, unknown> = {}
-      if (updates.title !== undefined) payload.title = updates.title
-      if (updates.description !== undefined) payload.description = updates.description
-      if (updates.dueDate !== undefined) payload.dueAt = updates.dueDate
-      if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
-      if (updates.estimatedHours !== undefined) payload.estimatedHours = updates.estimatedHours
-      if (updates.actualHours !== undefined) payload.actualHours = updates.actualHours
-      if (updates.status !== undefined) {
-        payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
-        payload.boardStatus = updates.status
-      }
-
-      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error(`Failed (${res.status})`)
-      await loadTasks()
-    } catch (e) { console.error('save failed', e) }
-  }
+  /* removed unused onTaskSave to satisfy lint */
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

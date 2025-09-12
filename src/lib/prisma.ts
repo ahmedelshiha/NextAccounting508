@@ -1,21 +1,40 @@
 import { PrismaClient } from "@prisma/client";
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client"
 
-let exportedPrisma: any = null
+type HealthThresholdRecord = {
+  id: number
+  responseTime?: number
+  errorRate?: number
+  storageGrowth?: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+interface TestPrisma {
+  healthThreshold: {
+    findFirst: () => Promise<HealthThresholdRecord | null>
+    create: (args: { data: Partial<HealthThresholdRecord> }) => Promise<HealthThresholdRecord>
+    update: (args: { where: { id: number }; data: Partial<HealthThresholdRecord> }) => Promise<HealthThresholdRecord>
+    deleteMany: () => Promise<{ count: number }>
+  }
+  $disconnect: () => Promise<void>
+}
+
+let exportedPrisma: PrismaClient | TestPrisma | null = null
 
 if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-  let thresholds: any[] = []
+  let thresholds: HealthThresholdRecord[] = []
   exportedPrisma = {
     healthThreshold: {
       findFirst: async () => (thresholds.length ? thresholds[thresholds.length - 1] : null),
-      create: async ({ data }: any) => {
+      create: async ({ data }: { data: Partial<HealthThresholdRecord> }) => {
         const id = thresholds.length + 1
         const rec = { id, ...data }
         thresholds.push(rec)
         return rec
       },
-      update: async ({ where, data }: any) => {
+      update: async ({ where, data }: { where: { id: number }; data: Partial<HealthThresholdRecord> }) => {
         const rec = thresholds.find((r) => r.id === where.id)
         if (!rec) throw new Error('not found')
         Object.assign(rec, data)
@@ -23,7 +42,7 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
       },
       deleteMany: async () => { thresholds = []; return { count: 0 } },
     },
-    $disconnect: async () => {},
+    $disconnect: async () => { return },
   }
 }
 
@@ -44,7 +63,9 @@ if (!exportedPrisma) {
 
   // Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
   exportedPrisma = (() => {
-    if (typeof global !== "undefined" && (global as any).__prisma__) return (global as any).__prisma__;
+    type GlobalWithPrisma = typeof globalThis & { __prisma__?: PrismaClient }
+    const g = global as unknown as GlobalWithPrisma
+    if (typeof global !== "undefined" && g.__prisma__) return g.__prisma__ as PrismaClient;
 
     const client = dbUrl
       ? createClient(dbUrl)
@@ -60,7 +81,7 @@ if (!exportedPrisma) {
         ) as unknown as PrismaClient);
 
     if (process.env.NODE_ENV !== "production") {
-      ;(global as any).__prisma__ = client;
+      ;(global as unknown as { __prisma__?: PrismaClient }).__prisma__ = client;
     }
 
     return client;

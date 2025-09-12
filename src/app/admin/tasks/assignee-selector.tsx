@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
 
 interface Member {
   id: string
@@ -12,24 +11,28 @@ interface Member {
 
 export default function AssigneeSelector({ value, onChange }: { value?: string | null; onChange: (id: string | null) => void }) {
   const [members, setMembers] = useState<Member[]>([])
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
-    setLoading(true)
     fetch('/api/admin/team-members', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : Promise.resolve({ teamMembers: [] })))
       .then((data) => {
         if (!mounted) return
         const list = Array.isArray(data)
-          ? data
-          : (data?.teamMembers || data?.members || [])
-        setMembers(
-          list.map((m: any) => ({ id: m.id, name: m.name || m.fullName || m.email, email: m.email, title: m.title }))
-        )
+          ? (data as unknown[])
+          : ((data?.teamMembers || data?.members || []) as unknown[])
+        const mapped: Member[] = list
+          .map((m) => {
+            const obj = m as { id?: string; name?: string; fullName?: string; email?: string; title?: string }
+            const id = obj.id || obj.email || ''
+            const name = obj.name || obj.fullName || obj.email || 'Unknown'
+            if (!id) return null
+            return { id, name, email: obj.email, title: obj.title }
+          })
+          .filter((v): v is Member => Boolean(v))
+        setMembers(mapped)
       })
       .catch(() => {})
-      .finally(() => setLoading(false))
     return () => { mounted = false }
   }, [])
 

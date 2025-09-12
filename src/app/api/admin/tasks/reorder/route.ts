@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { NextRequest, NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
         data.boardStatus = u.boardStatus
         // keep coarse status in sync with board column
         const status = u.boardStatus === 'completed' ? 'DONE' : u.boardStatus === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
-        data.status = status as any
+        data.status = status as import('@prisma/client').TaskStatus
       }
       return prisma.task.update({ where: { id: u.id }, data })
     })
