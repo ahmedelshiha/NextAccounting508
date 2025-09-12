@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import AssigneeSelector from './assignee-selector'
 import DependencyManager from './dependency-manager'
-import type { Task, TaskStatus } from './types'
+import type { Task } from './types'
 
 interface TaskEditDialogProps {
   task: Task | null
