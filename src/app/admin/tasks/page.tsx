@@ -780,6 +780,8 @@ export default function AdminTasksPage() {
         dueAt: t.dueAt ? String(t.dueAt) : null,
         priority: (t.priority as TaskItem['priority']) || 'MEDIUM',
         status: (t.status as TaskItem['status']) || 'OPEN',
+        boardStatus: (t.boardStatus as TaskItem['boardStatus']) || undefined,
+        position: typeof t.position === 'number' ? t.position : undefined,
         assigneeId: t.assigneeId ?? null,
         createdAt: t.createdAt ? String(t.createdAt) : undefined,
         updatedAt: t.updatedAt ? String(t.updatedAt) : undefined,
