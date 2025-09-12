@@ -10,8 +10,8 @@ export const revalidate = 0
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN', 'STAFF'].includes((session.user as any)?.role ?? '')) {
       return new Response('Unauthorized', { status: 401 })
     }
 
