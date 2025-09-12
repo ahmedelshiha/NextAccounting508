@@ -818,6 +818,7 @@ export default function AdminTasksPage() {
             <p className="text-gray-600">Create, assign, and track admin tasks</p>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationsPanel />
             <Button asChild variant="outline"><Link href="/admin">Back to Dashboard</Link></Button>
             <Button asChild variant="outline"><Link href="/admin/tasks/new">Quick Task</Link></Button>
           </div>
