@@ -282,6 +282,13 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(task.id)}
+                onChange={(e) => { e.stopPropagation(); toggleSelect(task.id) }}
+                onClick={(e) => e.stopPropagation()}
+                className="h-4 w-4"
+              />
               <div className={`p-2 rounded-lg ${getPriorityColor(task.priority)} border`}>
                 <CategoryIcon className="h-4 w-4" />
               </div>
