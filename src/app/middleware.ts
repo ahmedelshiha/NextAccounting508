@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+  let token: unknown = null
+  try {
+    const secret = process.env.NEXTAUTH_SECRET
+    token = secret ? await getToken({ req, secret }) : await getToken({ req })
+  } catch {
+    token = null
+  }
   const isAuth = !!token
   const { pathname } = req.nextUrl
 
