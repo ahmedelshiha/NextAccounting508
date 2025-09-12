@@ -63,7 +63,13 @@ interface TeamMemberLite { id: string; name: string; email: string }
 
 export default function AdminBookingDetailPage() {
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const id = params?.id
+
+  const isEditMode = (searchParams?.get('edit') === '1')
+  const [editDate, setEditDate] = useState('')
+  const [editTime, setEditTime] = useState('')
 
   const [booking, setBooking] = useState<BookingDetail | null>(null)
   const [loading, setLoading] = useState(true)
