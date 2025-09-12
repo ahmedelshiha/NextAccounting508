@@ -26,6 +26,7 @@ import { formatCurrencyFromDecimal, type DecimalLike } from '@/lib/decimal-utils
 interface ServiceLite {
   id: string
   name: string
+  slug?: string
   price?: DecimalLike
   duration?: number | null
   category?: string | null
