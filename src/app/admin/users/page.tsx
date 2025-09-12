@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -435,6 +436,9 @@ export default function AdminUsersPage() {
                 {exporting ? 'Exporting…' : 'Export'}
               </Button>
             )}
+            <Button asChild variant="outline">
+              <Link href="/admin">Back to Dashboard</Link>
+            </Button>
           </div>
         </div>
 
