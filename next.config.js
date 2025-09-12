@@ -11,7 +11,6 @@ const hasSvgr = (() => { try { require.resolve('@svgr/webpack'); return true } c
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   productionBrowserSourceMaps: true,
   eslint: { ignoreDuringBuilds: false },
   images: { domains: ["localhost", "mydomain.com"] },
