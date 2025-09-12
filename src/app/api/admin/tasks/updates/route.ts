@@ -9,7 +9,7 @@ export const revalidate = 0
 
 // Simple server-sent events endpoint that pushes task summaries every 5s
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions as any)
+  const session = await getServerSession(authOptions)
   if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
     return new Response('Unauthorized', { status: 401 })
   }
