@@ -259,7 +259,7 @@ export default function EnhancedBookingManagement() {
           client: {
             ...client,
             tier: client.tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
-            totalBookings: client.totalBookings ?? Math.floor(Math.random() * 20) + 1,
+            totalBookings: client.totalBookings ?? undefined,
             satisfaction: client.satisfaction ?? 3.5 + Math.random() * 1.5,
           },
           source: r.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
