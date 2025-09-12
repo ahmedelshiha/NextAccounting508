@@ -200,7 +200,7 @@ export default function EnhancedBookingManagement() {
         location?: Booking['location']
         priority?: Booking['priority']
         service?: { id?: string; name?: string; price?: number | string | null; category?: string | null; duration?: number | null } | null
-        client?: { id?: string; name?: string | null; email?: string; phone?: string | null; tier?: Booking['client']['tier']; totalBookings?: number; satisfaction?: number; lastBooking?: string } | null
+        client?: { id?: string; name?: string | null; email?: string; phone?: string | null; tier?: Booking['client']['tier']; totalBookings?: number; satisfaction?: number; lastBooking?: string; _count?: { bookings: number } } | null
         source?: Booking['source']
       }
 
