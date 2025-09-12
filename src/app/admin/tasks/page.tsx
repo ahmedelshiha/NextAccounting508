@@ -82,9 +82,10 @@ interface TaskManagementProps {
   onTaskUpdate?: (taskId: string, updates: Partial<Task>) => Promise<void> | void
   onTaskCreate?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void> | void
   onTaskDelete?: (taskId: string) => Promise<void> | void
+  onSearch?: (q: string) => void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '' })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
@@ -96,6 +97,15 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }:
     for (const t of tasks) if (t.assignee) s.add(t.assignee)
     return Array.from(s)
   }, [tasks])
+
+  // debounce search -> inform parent to perform server-side search
+  useEffect(() => {
+    if (!onSearch) return
+    const handler = setTimeout(() => {
+      onSearch(filters.search.trim())
+    }, 400)
+    return () => clearTimeout(handler)
+  }, [filters.search, onSearch])
 
   const taskStats = useMemo(() => {
     const now = new Date()
@@ -661,7 +671,7 @@ export default function AdminTasksPage() {
             <Button asChild variant="outline"><Link href="/admin/tasks/new">Quick Task</Link></Button>
           </div>
         </div>
-        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} />
+        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} onSearch={(q) => loadTasks(q)} />
       </div>
     </div>
   )
