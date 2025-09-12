@@ -827,13 +827,14 @@ export default function AdminTasksPage() {
     title: t.title,
     priority: t.priority === 'HIGH' ? 'high' : t.priority === 'LOW' ? 'low' : 'medium',
     dueDate: t.dueAt ? String(t.dueAt) : new Date().toISOString(),
-    status: t.status === 'DONE' ? 'completed' : t.status === 'IN_PROGRESS' ? 'in_progress' : 'pending',
+    status: t.boardStatus ? (t.boardStatus as TaskStatus) : (t.status === 'DONE' ? 'completed' : t.status === 'IN_PROGRESS' ? 'in_progress' : 'pending'),
     category: 'system',
     estimatedHours: 0,
     completionPercentage: t.status === 'DONE' ? 100 : 0,
     createdAt: t.createdAt || new Date().toISOString(),
     updatedAt: t.updatedAt || new Date().toISOString(),
     complianceRequired: false,
+    position: t.position,
   } as Task)
 
   const uiTasks = tasks.map(mapApiToUi)
