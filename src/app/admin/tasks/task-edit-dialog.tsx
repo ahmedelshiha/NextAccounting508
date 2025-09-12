@@ -63,6 +63,11 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
                 <input className="w-full border rounded px-2 py-1" type="number" step="0.25" value={form.actualHours ?? ''} onChange={(e) => setForm((s: any) => ({ ...s, actualHours: e.target.value === '' ? undefined : Number(e.target.value) }))} />
               </div>
             </div>
+
+            <div>
+              <label className="text-sm">Assignee</label>
+              <AssigneeSelector value={form.assignee ?? ''} onChange={(id) => setForm((s: any) => ({ ...s, assignee: id }))} />
+            </div>
             <div className="flex items-center justify-between">
               <Button variant="destructive" type="button" onClick={async () => { if (confirm('Delete this task?')) { await onDelete(task.id); onOpenChange(false) } }}>Delete</Button>
               <div className="flex gap-2">
