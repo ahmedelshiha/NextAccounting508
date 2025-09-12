@@ -535,6 +535,9 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
                   </Button>
                 ))}
               </div>
+              <div className="ml-2">
+                <ExportButton q={filters.search} />
+              </div>
             </div>
           </div>
         </CardContent>
