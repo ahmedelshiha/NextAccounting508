@@ -586,10 +586,11 @@ export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (q?: string) => {
     try {
       setErrorMsg(null)
-      const res = await apiFetch('/api/admin/tasks?limit=50')
+      const qp = q ? `&q=${encodeURIComponent(q)}` : ''
+      const res = await apiFetch(`/api/admin/tasks?limit=50${qp}`)
       if (!res.ok) throw new Error(`Failed (${res.status})`)
       const list = (await res.json()) as TaskItem[]
       const normalized = (Array.isArray(list) ? list : []).map((t) => ({
