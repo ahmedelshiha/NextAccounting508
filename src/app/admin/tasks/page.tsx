@@ -640,7 +640,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
       )}
 
       {viewMode === 'board' ? (
-        <BoardView
+        <BoardAccessible
           tasks={tasksForBoard}
           onMove={(id, status) => updateTaskStatus(id, status)}
           onReorder={(id, status, index) => reorderTask(id, status, index)}
