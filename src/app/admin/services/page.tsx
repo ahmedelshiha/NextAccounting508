@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -511,6 +512,9 @@ export default function EnhancedServicesPage() {
               </Button>
               <Button variant="outline" size="sm" onClick={() => load()} className="gap-2">
                 <RefreshCw className="h-4 w-4" /> Refresh
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/admin">Back to Dashboard</Link>
               </Button>
             </div>
           </div>

@@ -21,6 +21,21 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
 
+    const reloadWithBuster = () => {
+      try {
+        const key = 'lastChunkReload'
+        const now = Date.now()
+        const last = Number(sessionStorage.getItem(key) || '0')
+        if (now - last < 15000) return
+        sessionStorage.setItem(key, String(now))
+        const url = new URL(window.location.href)
+        url.searchParams.set('v', String(now))
+        window.location.replace(url.toString())
+      } catch {
+        window.location.reload()
+      }
+    }
+
     const handleError = (event: ErrorEvent) => {
       try {
         const evt = event as ErrorEvent & { error?: unknown }
@@ -39,12 +54,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!handled) {
             handled = true
             console.warn('Detected chunk load error, reloading page to recover.', msgStr)
-            setTimeout(() => window.location.reload(), 800)
+            setTimeout(reloadWithBuster, 600)
           }
         }
-        // Suppress dev overlay noise for Next HMR/network hiccups
+        // Suppress dev overlay noise for Next HMR/network hiccups and try to auto-recover
         if (/failed to fetch/i.test(msgStr)) {
           try { event.preventDefault?.() } catch {}
+          if (!handled) {
+            handled = true
+            console.warn('Detected failed fetch (dev/HMR). Reloading to recover.')
+            setTimeout(reloadWithBuster, 600)
+          }
         }
       } catch {
         // ignore
@@ -71,12 +91,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!handled) {
             handled = true
             console.warn('Detected chunk load error from unhandledrejection, reloading page.', msgStr)
-            setTimeout(() => window.location.reload(), 800)
+            setTimeout(reloadWithBuster, 600)
           }
         }
-        // Suppress dev overlay noise for HMR-related fetch errors
+        // Suppress dev overlay noise for HMR-related fetch errors and auto-recover
         if (/failed to fetch/i.test(msgStr) || /hot-reloader|\?reload=|hmr/i.test(msgStr)) {
           try { ev.preventDefault?.() } catch {}
+          if (!handled) {
+            handled = true
+            console.warn('Detected HMR fetch failure. Reloading to recover.')
+            setTimeout(reloadWithBuster, 600)
+          }
         }
       } catch {
         // ignore

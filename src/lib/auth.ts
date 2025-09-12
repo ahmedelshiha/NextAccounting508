@@ -14,6 +14,8 @@ const demoUsers = [
 ]
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   // Only attach the Prisma adapter when a DB is available
   ...(hasDb ? { adapter: PrismaAdapter(prisma) } : {}),
   providers: [
