@@ -6,7 +6,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev --turbo",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",
