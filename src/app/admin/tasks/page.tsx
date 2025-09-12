@@ -43,6 +43,8 @@ interface TaskItem {
   dueAt: string | null
   priority: 'LOW' | 'MEDIUM' | 'HIGH'
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | string
+  boardStatus?: 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
+  position?: number
   assigneeId?: string | null
   createdAt?: string
   updatedAt?: string
