@@ -84,6 +84,7 @@ export interface Task {
   tags?: string[]
   revenueImpact?: number
   complianceRequired: boolean
+  position?: number
 }
 
 interface TaskManagementProps {
