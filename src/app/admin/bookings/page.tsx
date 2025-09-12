@@ -32,7 +32,9 @@ import {
   ArrowDownRight,
   Maximize2,
   Minimize2,
-  ChevronDown
+  ChevronDown,
+  MessageSquare,
+  Info
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -600,7 +602,7 @@ export default function EnhancedBookingManagement() {
                   <Card className="border-orange-200 bg-orange-50">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <MessageSquareIcon className="h-5 w-5 text-orange-500" />
+                        <MessageSquare className="h-5 w-5 text-orange-500" />
                         <div>
                           <p className="font-medium text-orange-900">Follow-ups Required</p>
                           <p className="text-sm text-orange-700">{analytics.followUps} clients need follow-up</p>
@@ -613,7 +615,7 @@ export default function EnhancedBookingManagement() {
                   <Card className="border-yellow-200 bg-yellow-50">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <InfoIcon className="h-5 w-5 text-yellow-500" />
+                        <Info className="h-5 w-5 text-yellow-500" />
                         <div>
                           <p className="font-medium text-yellow-900">High No-Show Rate</p>
                           <p className="text-sm text-yellow-700">{analytics.noShow.toFixed(1)}% no-show rate detected</p>
@@ -974,7 +976,7 @@ export default function EnhancedBookingManagement() {
                               <div className="flex gap-2 pt-2">
                                 <Button size="sm" variant="outline" asChild><a href={`tel:${b.clientPhone || ''}`}><Phone className="h-3 w-3 mr-1" />Call</a></Button>
                                 <Button size="sm" variant="outline" asChild><a href={`mailto:${b.clientEmail}`}><Mail className="h-3 w-3 mr-1" />Email</a></Button>
-                                <Button size="sm" variant="outline" asChild><a href={`sms:${b.clientPhone || ''}`}><MessageSquareIcon className="h-3 w-3 mr-1" />SMS</a></Button>
+                                <Button size="sm" variant="outline" asChild><a href={`sms:${b.clientPhone || ''}`}><MessageSquare className="h-3 w-3 mr-1" />SMS</a></Button>
                               </div>
                             </div>
                           )}
@@ -1171,10 +1173,10 @@ export default function EnhancedBookingManagement() {
   )
 }
 
-function MessageSquareIcon(props: { className?: string }) {
+function MessageSquare(props: { className?: string }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 }
 
-function InfoIcon(props: { className?: string }) {
+function Info(props: { className?: string }) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
 }
