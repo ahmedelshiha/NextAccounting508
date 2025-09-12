@@ -27,5 +27,7 @@ export const taskUpdateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   dueAt: z.string().datetime().optional().nullable(),
   status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE']).optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional()
-})
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  boardStatus: z.enum(['pending', 'in_progress', 'review', 'completed', 'blocked']).optional(),
+  position: z.number().int().min(0).optional(),
+}).passthrough()
