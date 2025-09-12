@@ -133,6 +133,19 @@ export default function AdminBookingDetailPage() {
     return () => { ignore = true }
   }, [id])
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/users/me')
+        if (!res.ok) return
+        const j = await res.json().catch(() => ({}))
+        if (!cancelled) setCurrentUserName(j?.user?.name || j?.user?.email || 'Admin')
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   })
