@@ -323,14 +323,34 @@ export default function AdminBookingDetailPage() {
                     <span>{formatCurrencyFromDecimal(booking.service.price)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>{formatDate(booking.scheduledAt)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{formatTime(booking.scheduledAt)}</span>
-                </div>
+                {!isEditMode ? (
+                  <>
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span>{formatDate(booking.scheduledAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>{formatTime(booking.scheduledAt)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Date</label>
+                      <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Time</label>
+                      <input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+                    </div>
+                    <div className="col-span-2 flex gap-2">
+                      <Button size="sm" onClick={saveSchedule}><Save className="h-4 w-4 mr-1" />Save Changes</Button>
+                      <Button size="sm" variant="outline" onClick={() => router.replace(`/admin/bookings/${booking.id}`)}>Cancel</Button>
+                    </div>
+                  </div>
+                )
+                }
                 <div className="space-y-2 pt-2">
                   <div className="text-sm font-medium text-gray-900">Assigned Staff</div>
                   <div className="flex items-center gap-2 text-sm text-gray-700">
