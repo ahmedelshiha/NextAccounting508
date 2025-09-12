@@ -664,6 +664,8 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
           </form>
         </DialogContent>
       </Dialog>
+
+      <TaskEditDialog task={selectedTask} open={showTaskModal} onOpenChange={(v) => setShowTaskModal(v)} onSave={async (id, updates) => { await onTaskUpdate?.(id, updates); await setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t)); await loadTasks() }} onDelete={async (id) => { await onTaskDelete?.(id); setTasks((prev) => prev.filter((t) => t.id !== id)); setShowTaskModal(false); await loadTasks() }} />
     </div>
   )
 }
