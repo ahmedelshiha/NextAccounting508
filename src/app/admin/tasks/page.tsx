@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { apiFetch } from '@/lib/api'
-import TaskManagementSystem, { Task } from '@/components/TaskManagementSystem'
+import TaskManagementSystem, { Task } from './TaskManagementSystem'
 import { Button } from '@/components/ui/button'
 
 interface TaskItem {
