@@ -154,7 +154,7 @@ export default function VirtualizedTaskList<T extends { id: string; title?: stri
         <div aria-live="polite" aria-atomic="true" className="sr-only" data-testid="live-region">{announcement}</div>
         <List
           ref={listRef}
-          height={Math.min(window.innerHeight * 0.7, 1200)}
+          height={listHeight}
           itemCount={rowCount}
           itemSize={itemHeight}
           width={width}
