@@ -18,11 +18,15 @@ export default function AssigneeSelector({ value, onChange }: { value?: string |
     let mounted = true
     setLoading(true)
     fetch('/api/admin/team-members', { cache: 'no-store' })
-      .then((r) => r.ok ? r.json() : [])
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ teamMembers: [] })))
       .then((data) => {
         if (!mounted) return
-        const list = Array.isArray(data) ? data : (data?.members || [])
-        setMembers(list.map((m: any) => ({ id: m.id, name: m.name || m.fullName || m.email, email: m.email, title: m.title })))
+        const list = Array.isArray(data)
+          ? data
+          : (data?.teamMembers || data?.members || [])
+        setMembers(
+          list.map((m: any) => ({ id: m.id, name: m.name || m.fullName || m.email, email: m.email, title: m.title }))
+        )
       })
       .catch(() => {})
       .finally(() => setLoading(false))
