@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import AssigneeSelector from './assignee-selector'
+import DependencyManager from './dependency-manager'
 
 interface TaskEditDialogProps {
   task: any | null
