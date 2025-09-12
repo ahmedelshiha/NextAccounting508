@@ -31,15 +31,25 @@ export async function GET(request: Request) {
         try {
           const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
           let tasks
+          let notifications: any[] = []
           if (!hasDb) {
             tasks = [
               { id: 't1', title: 'Send monthly newsletters', dueAt: null, priority: 'HIGH', status: 'OPEN' },
               { id: 't2', title: 'Review pending bookings', dueAt: null, priority: 'MEDIUM', status: 'OPEN' },
             ]
+            // sample notification: overdue/high priority
+            notifications = tasks
+              .filter((t) => t.priority === 'HIGH' && t.dueAt && new Date(t.dueAt) < new Date())
+              .map((t) => ({ id: `notif-${t.id}`, type: 'overdue', message: `${t.title} is overdue`, taskId: t.id }))
           } else {
-            tasks = await prisma.task.findMany({ orderBy: { updatedAt: 'desc' }, take: 50, select: { id: true, title: true, updatedAt: true } })
+            tasks = await prisma.task.findMany({ orderBy: { updatedAt: 'desc' }, take: 50, select: { id: true, title: true, updatedAt: true, dueAt: true, priority: true, status: true } })
+            // compute notifications: overdue HIGH priority tasks
+            const now = new Date()
+            const overdueHigh = await prisma.task.findMany({ where: { dueAt: { lt: now }, status: { not: 'DONE' }, priority: 'HIGH' }, select: { id: true, title: true, dueAt: true } })
+            notifications = overdueHigh.map((t) => ({ id: `notif-${t.id}`, type: 'overdue', message: `${t.title} is overdue`, taskId: t.id }))
           }
-          const payload = JSON.stringify({ ts: Date.now(), tasks })
+
+          const payload = JSON.stringify({ ts: Date.now(), tasks, notifications })
           controller.enqueue(encoder.encode(`data: ${payload}\n\n`))
         } catch (err) {
           controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: 'error' })}\n\n`))
