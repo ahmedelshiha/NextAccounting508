@@ -6,8 +6,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build --turbopack",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev --turbo",
+    "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
