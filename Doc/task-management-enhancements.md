@@ -74,6 +74,8 @@ Run tests locally:
 Notes:
 - Current tests cover utility mapping functions. Expand to component tests (React Testing Library) and API integration tests as next steps.
 - [x] Accessibility improvements and keyboard interactions for board/virtualized views — BoardAccessible component added; VirtualizedTaskList updated with listbox/option ARIA roles and keyboard navigation (arrow keys, Home/End, PageUp/PageDown, Enter/Space activation)
+- [~] Unit & integration tests for Task components and API endpoints — in progress (configured Vitest, added setup, added virtualized keyboard test)
+- [~] Observability & security: Sentry and Semgrep — in progress (added lazy Sentry initializer and .semgrep.yml)
 
 Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
 
