@@ -94,7 +94,7 @@ interface TaskManagementProps {
 
 function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '' })
+  const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string; tag?: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '', tag: undefined })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate')
   const [createOpen, setCreateOpen] = useState(false)
