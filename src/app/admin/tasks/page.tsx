@@ -9,6 +9,7 @@ import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import {
   Calendar,
   Clock,
@@ -25,6 +26,7 @@ import {
   DollarSign,
   AlertTriangle,
   FileText,
+  TrendingUp,
   Settings,
 } from 'lucide-react'
 
@@ -82,11 +84,18 @@ interface TaskManagementProps {
   onTaskDelete?: (taskId: string) => Promise<void> | void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _onTaskCreate }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '' })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createForm, setCreateForm] = useState<{ title: string; dueDate: string; priority: Priority }>({ title: '', dueDate: '', priority: 'medium' })
+  const assigneeOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of tasks) if (t.assignee) s.add(t.assignee)
+    return Array.from(s)
+  }, [tasks])
 
   const taskStats = useMemo(() => {
     const now = new Date()
@@ -200,7 +209,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
       case 'system':
         return Settings
       case 'marketing':
-        return AlertTriangle
+        return TrendingUp
       case 'booking':
         return Calendar
       default:
@@ -282,6 +291,19 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                 <span className="capitalize">{task.category}</span>
               </div>
             </div>
+            {typeof task.actualHours === 'number' && (
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <Clock className="h-3 w-3" />
+                <span>{task.actualHours}h actual</span>
+                {(() => {
+                  const delta = (task.actualHours || 0) - (task.estimatedHours || 0)
+                  const positive = delta > 0
+                  const cls = positive ? 'text-red-600 bg-red-50 border-red-200' : 'text-green-600 bg-green-50 border-green-200'
+                  const sign = positive ? '+' : ''
+                  return <Badge variant="outline" className={`px-1 py-0 ${cls}`}>{`Δ ${sign}${delta.toFixed(1)}h`}</Badge>
+                })()}
+              </div>
+            )}
             {typeof task.revenueImpact === 'number' && (
               <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 rounded p-2">
                 <DollarSign className="h-3 w-3" />
@@ -363,7 +385,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!onTaskCreate}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -404,6 +426,16 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                   ))}
                 </select>
               ))}
+              <select
+                value={filters.assignee}
+                onChange={(e) => setFilters((p) => ({ ...p, assignee: e.target.value }))}
+                className="border rounded px-3 py-2 text-sm capitalize"
+              >
+                <option value="all">all</option>
+                {assigneeOptions.map((name) => (
+                  <option key={name} value={name} className="capitalize">{name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -453,13 +485,89 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
             <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
             <p className="text-gray-600 mb-4">Try adjusting your filters or create a new task.</p>
-            <Button>
+            <Button onClick={() => setCreateOpen(true)} disabled={!onTaskCreate}>
               <Plus className="h-4 w-4 mr-2" />
               Create New Task
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Task</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              if (!onTaskCreate) { setCreateOpen(false); return }
+              const dueIso = createForm.dueDate ? new Date(createForm.dueDate).toISOString() : new Date().toISOString()
+              await onTaskCreate({
+                title: createForm.title,
+                description: undefined,
+                priority: createForm.priority,
+                dueDate: dueIso,
+                assignee: undefined,
+                assigneeAvatar: undefined,
+                status: 'pending',
+                category: 'system',
+                estimatedHours: 0,
+                actualHours: undefined,
+                completionPercentage: 0,
+                dependencies: undefined,
+                clientId: undefined,
+                bookingId: undefined,
+                completedAt: undefined,
+                tags: undefined,
+                revenueImpact: undefined,
+                complianceRequired: false,
+              })
+              setCreateForm({ title: '', dueDate: '', priority: 'medium' })
+              setCreateOpen(false)
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1">
+              <label className="text-sm text-gray-700">Title</label>
+              <input
+                value={createForm.title}
+                onChange={(e) => setCreateForm((p) => ({ ...p, title: e.target.value }))}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Task title"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Due date</label>
+                <input
+                  type="date"
+                  value={createForm.dueDate}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, dueDate: e.target.value }))}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Priority</label>
+                <select
+                  value={createForm.priority}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, priority: e.target.value as Priority }))}
+                  className="w-full border rounded px-3 py-2 text-sm capitalize"
+                >
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={!createForm.title.trim()}>Create</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
