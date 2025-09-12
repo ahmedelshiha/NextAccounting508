@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limitParam = searchParams.get('limit')
     const q = (searchParams.get('q') || '').trim()
-    const take = limitParam ? Math.min(parseInt(limitParam, 10) || 10, 50) : 10
+    const pageParam = searchParams.get('page')
+    const page = pageParam ? Math.max(parseInt(pageParam, 10) || 1, 1) : 1
+    const take = limitParam ? Math.min(parseInt(limitParam, 10) || 10, 100) : 10
+    const skip = (page - 1) * take
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
@@ -30,12 +33,9 @@ export async function GET(request: NextRequest) {
         { id: 't3', title: 'Update service pricing', dueAt: null, priority: 'LOW', status: 'IN_PROGRESS', assigneeId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
 
-      if (q) {
-        const ql = q.toLowerCase()
-        return NextResponse.json(fallback.filter((t) => t.title.toLowerCase().includes(ql)).slice(0, take))
-      }
-
-      return NextResponse.json(fallback.slice(0, take))
+      const results = q ? fallback.filter((t) => t.title.toLowerCase().includes(q.toLowerCase())) : fallback
+      const pageItems = results.slice(skip, skip + take)
+      return NextResponse.json({ tasks: pageItems, pagination: { total: results.length, page, limit: take } })
     }
 
     const where = q
@@ -47,13 +47,18 @@ export async function GET(request: NextRequest) {
         }
       : undefined
 
-    const tasks = await prisma.task.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take,
-      select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
-    })
-    return NextResponse.json(tasks)
+    const [total, tasks] = await Promise.all([
+      prisma.task.count({ where }),
+      prisma.task.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
+      })
+    ])
+
+    return NextResponse.json({ tasks, pagination: { total, page, limit: take } })
   } catch (error) {
     console.error('Error fetching tasks:', error)
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
