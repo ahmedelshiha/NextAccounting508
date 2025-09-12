@@ -187,7 +187,8 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
       const byAssignee = filters.assignee === 'all' || t.assignee === filters.assignee
       const q = filters.search.trim().toLowerCase()
       const bySearch = !q || t.title.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)
-      return byStatus && byPriority && byCategory && byAssignee && bySearch
+      const byTag = !filters.tag || !filters.tag.length || (t.tags || []).includes(filters.tag as string)
+      return byStatus && byPriority && byCategory && byAssignee && bySearch && byTag
     })
 
     const order: Record<Priority, number> = { critical: 4, high: 3, medium: 2, low: 1 }
