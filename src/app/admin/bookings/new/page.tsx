@@ -23,7 +23,8 @@ import {
   Eye,
   Star,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Bell,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -118,6 +119,9 @@ interface BookingFormData {
   requiresPreparation: boolean
   preparationNotes?: string
   followUpRequired: boolean
+
+  // Notifications
+  reminderSettings?: { client: boolean; staff: boolean; followUp: boolean }
 }
 
 // Mock data (replace with API integration when available)
@@ -690,7 +694,8 @@ export default function ProfessionalNewBooking() {
     source: 'direct',
     timezone: 'Africa/Cairo',
     requiresPreparation: false,
-    followUpRequired: false
+    followUpRequired: false,
+    reminderSettings: { client: true, staff: true, followUp: false },
   })
 
   const [services, setServices] = useState<Service[]>([])
@@ -866,7 +871,11 @@ export default function ProfessionalNewBooking() {
           clientId: formData.clientId,
           serviceId: formData.serviceId,
           scheduledAt: scheduledAt.toISOString(),
-          notes: [formData.internalNotes, formData.clientNotes, (assignedStaff ? `Assigned to: ${assignedStaff.name} (${assignedStaff.id})` : '')].filter(Boolean).join('\n'),
+          notes: [
+            formData.internalNotes,
+            formData.clientNotes,
+            (assignedStaff ? `Assigned to: ${assignedStaff.name} (${assignedStaff.id})` : '')
+          ].filter(Boolean).join('\n'),
           assignedTeamMemberId: assignedStaff?.id,
           clientName: formData.clientName,
           clientEmail: formData.clientEmail,
@@ -968,6 +977,7 @@ export default function ProfessionalNewBooking() {
                     <option value="normal">Normal</option>
                     <option value="high">High Priority</option>
                     <option value="urgent">Urgent</option>
+                  </option>
                   </select>
                 </div>
 
@@ -986,6 +996,7 @@ export default function ProfessionalNewBooking() {
                 </div>
               </div>
 
+              {/* Location-specific fields */}
               {formData.location === 'remote' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Meeting Link (Optional)</label>
@@ -1011,6 +1022,46 @@ export default function ProfessionalNewBooking() {
                   />
                 </div>
               )}
+
+              {/* Notification Settings */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <Bell className="h-4 w-4 inline mr-1" />
+                  Notification Settings
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="client-reminder"
+                      checked={!!formData.reminderSettings?.client}
+                      onChange={(e) => handleFormChange('reminderSettings', { ...(formData.reminderSettings || { client: false, staff: false, followUp: false }), client: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="client-reminder" className="text-sm text-gray-700">Send reminder to client (24 hours before)</label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="staff-reminder"
+                      checked={!!formData.reminderSettings?.staff}
+                      onChange={(e) => handleFormChange('reminderSettings', { ...(formData.reminderSettings || { client: false, staff: false, followUp: false }), staff: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="staff-reminder" className="text-sm text-gray-700">Send reminder to assigned staff</label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="followup-reminder"
+                      checked={!!formData.reminderSettings?.followUp}
+                      onChange={(e) => handleFormChange('reminderSettings', { ...(formData.reminderSettings || { client: false, staff: false, followUp: false }), followUp: e.target.checked })}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="followup-reminder" className="text-sm text-gray-700">Schedule follow-up reminder (1 week after completion)</label>
+                  </div>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
