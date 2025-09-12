@@ -220,7 +220,7 @@ export default function EnhancedBookingManagement() {
           email: (clientObj?.email ?? r.clientEmail ?? '') as string,
           phone: (clientObj?.phone ?? r.clientPhone ?? undefined) || undefined,
           tier: clientObj?.tier,
-          totalBookings: clientObj?.totalBookings,
+          totalBookings: (clientObj?._count?.bookings ?? clientObj?.totalBookings),
           lastBooking: clientObj?.lastBooking,
           satisfaction: clientObj?.satisfaction,
         }
