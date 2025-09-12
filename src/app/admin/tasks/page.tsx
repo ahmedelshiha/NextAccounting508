@@ -774,7 +774,7 @@ export default function AdminTasksPage() {
             <Button asChild variant="outline"><Link href="/admin/tasks/new">Quick Task</Link></Button>
           </div>
         </div>
-        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} onSearch={(q) => loadTasks(q)} />
+        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} onTaskDelete={onTaskDelete} onSearch={(q) => loadTasks(q)} />
       </div>
     </div>
   )
