@@ -20,10 +20,6 @@ interface TestPrisma {
   $disconnect: () => Promise<void>
 }
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __prisma__: PrismaClient | undefined
-}
 
 const isVitest = Boolean((process as unknown as { VITEST?: string }).VITEST)
 const isTestEnv = process.env.NODE_ENV === "test" || isVitest
@@ -83,12 +79,12 @@ function getSingleton(): PrismaClient {
   }
 
   // Reuse a single instance in dev to avoid connection exhaustion
-  const g = global as unknown as { __prisma__?: PrismaClient }
-  if (g.__prisma__) return g.__prisma__
+  const globalForPrisma = globalThis as unknown as { __prisma__?: PrismaClient }
+  if (globalForPrisma.__prisma__) return globalForPrisma.__prisma__
 
   const client = createRealClient()
   if (process.env.NODE_ENV !== "production") {
-    g.__prisma__ = client
+    globalForPrisma.__prisma__ = client
   }
   return client
 }
