@@ -12,7 +12,6 @@ const hasSvgr = (() => { try { require.resolve('@svgr/webpack'); return true } c
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
-  swcMinify: true,
   eslint: { ignoreDuringBuilds: false },
   images: { domains: ["localhost", "mydomain.com"] },
   // Allow Builder preview domain to access dev resources like /_next/* during development
