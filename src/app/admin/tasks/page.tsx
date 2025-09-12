@@ -98,7 +98,7 @@ interface TaskManagementProps {
   onLoadMore?: (q: string) => Promise<void> | void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch, hasMore, onLoadMore }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onTaskDelete, onSearch, hasMore, onLoadMore }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string; tag?: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '', tag: undefined })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
