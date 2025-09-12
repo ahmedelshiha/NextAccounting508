@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 
 let exportedPrisma: any = null
 
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
   let thresholds: any[] = []
   exportedPrisma = {
     healthThreshold: {
