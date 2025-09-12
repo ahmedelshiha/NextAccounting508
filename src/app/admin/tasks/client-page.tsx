@@ -6,7 +6,7 @@ import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Calendar,
   Clock,
@@ -48,13 +48,9 @@ export interface TaskItem {
   updatedAt?: string
 }
 
-type StatusFilter = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'DONE'
 
-type SortBy = 'createdAt' | 'dueAt' | 'priority' | 'status' | 'title'
 
-type CreateForm = { title: string; dueAt: string; priority: 'LOW' | 'MEDIUM' | 'HIGH'; notes: string }
 
-type UpdatePayload = Partial<Pick<TaskItem, 'title' | 'dueAt' | 'priority' | 'status'>>
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type TaskStatus = 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
