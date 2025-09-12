@@ -5,15 +5,19 @@ import prisma from '@/lib/prisma'
 import { taskUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // PATCH /api/admin/tasks/[id]
-export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id } = await context.params
+    const { id } = params
 
     const ip = getClientIp(request as unknown as Request)
     if (!rateLimit(`tasks:update:${ip}`, 60, 60_000)) {
