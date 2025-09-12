@@ -57,7 +57,7 @@ Notes:
 - [x] Tag filtering UI and dependency-management UI (client-side)
 - [x] Notifications & escalation rules (basic in-app notifications derived from overdue HIGH-priority tasks via SSE)
 - [x] Bulk operation server endpoints for atomic updates of many tasks (POST /api/admin/tasks/bulk, DELETE /api/admin/tasks/bulk)
-- [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
+- [x] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field) — implemented (added boardStatus & position fields, client reorder UI, and POST /api/admin/tasks/reorder endpoint)
 - [x] Unit & integration tests for the UI components and API endpoints (basic utils tests with Vitest)
 
 
