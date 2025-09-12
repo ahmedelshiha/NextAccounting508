@@ -13,6 +13,8 @@ interface TaskEditDialogProps {
   onDelete: (id: string) => Promise<void>
 }
 
+// augment availableTasks prop in component usage
+
 export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDelete, availableTasks }: TaskEditDialogProps & { availableTasks?: { id: string; title: string }[] }) {
   const [form, setForm] = useState<any>(null)
 
