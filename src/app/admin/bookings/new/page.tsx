@@ -29,6 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 // Data types
 interface Service {
@@ -677,6 +678,7 @@ function SchedulingSection({
 }
 
 export default function ProfessionalNewBooking() {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<BookingFormData>>({
@@ -876,26 +878,11 @@ export default function ProfessionalNewBooking() {
         throw new Error(err.error || 'Failed to create booking')
       }
       const booking = await res.json()
-      console.log('Booking created:', booking)
-      alert('Booking created successfully!')
-      setCurrentStep(1)
-      setFormData({
-        isNewClient: false,
-        clientType: 'individual',
-        location: 'office',
-        priority: 'normal',
-        isRecurring: false,
-        source: 'direct',
-        timezone: 'Africa/Cairo',
-        requiresPreparation: false,
-        followUpRequired: false
-      })
-      setSelectedClient(undefined)
-      setSelectedService(undefined)
-      setAssignedStaff(undefined)
-      setClientSearchTerm('')
-      setServiceCategory('all')
-      setShowPreview(false)
+      const bookingId = booking?.id
+      if (bookingId) {
+        router.push(`/admin/bookings/${bookingId}`)
+        return
+      }
     } catch (error) {
       console.error('Error creating booking:', error)
       alert('Failed to create booking. Please try again.')
