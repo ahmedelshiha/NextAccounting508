@@ -48,13 +48,9 @@ export interface TaskItem {
   updatedAt?: string
 }
 
-type StatusFilter = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'DONE'
 
-type SortBy = 'createdAt' | 'dueAt' | 'priority' | 'status' | 'title'
 
-type CreateForm = { title: string; dueAt: string; priority: 'LOW' | 'MEDIUM' | 'HIGH'; notes: string }
 
-type UpdatePayload = Partial<Pick<TaskItem, 'title' | 'dueAt' | 'priority' | 'status'>>
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical'
 export type TaskStatus = 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
