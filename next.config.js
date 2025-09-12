@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const { withSentryConfig } = require('@sentry/nextjs')
+let withSentryConfig = null
 
 let withBundleAnalyzer = (cfg) => cfg
 try {
