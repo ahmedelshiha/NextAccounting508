@@ -401,7 +401,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
                 </Button>
               )}
             </div>
-            <Button variant="ghost" size="sm" className="text-xs">
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setSelectedTask(task); setShowTaskModal(true) }}>
               <Eye className="h-3 w-3 mr-1" />
               Details
             </Button>
