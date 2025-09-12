@@ -747,6 +747,14 @@ export default function AdminTasksPage() {
     } catch (e) { console.error('create failed', e) }
   }
 
+  const onTaskDelete = async (id: string) => {
+    try {
+      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Failed (${res.status})`)
+      await loadTasks()
+    } catch (e) { console.error('delete failed', e) }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
