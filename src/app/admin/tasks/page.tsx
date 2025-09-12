@@ -533,6 +533,22 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         </CardContent>
       </Card>
 
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between bg-white border rounded p-3">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium">{selectedIds.length} selected</div>
+            <Button variant="ghost" size="sm" onClick={selectAllVisible}>Select all visible</Button>
+            <Button variant="ghost" size="sm" onClick={clearSelection}>Clear</Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => bulkUpdateStatus('in_progress')}>Mark In Progress</Button>
+            <Button size="sm" onClick={() => bulkUpdateStatus('completed')}>Mark Completed</Button>
+            <Button variant="destructive" size="sm" onClick={bulkDelete}>Delete</Button>
+            <Button size="sm" onClick={exportSelectedCsv}>Export CSV</Button>
+          </div>
+        </div>
+      )}
+
       {filteredAndSorted.length <= 60 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredAndSorted.map((t) => (
