@@ -23,8 +23,10 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 - src/app/admin/tasks/assignee-selector.tsx — assignee selector (fetches team members)
 - src/app/admin/tasks/export-button.tsx — client export trigger (downloads CSV)
 - src/app/admin/tasks/pagination-controls.tsx — simple load-more control
+- src/app/admin/tasks/dependency-manager.tsx — dependency management UI used in the edit dialog
 - src/app/api/admin/tasks/updates/route.ts — SSE endpoint for real-time snapshots
 - src/app/api/admin/tasks/export/route.ts — server export endpoint (CSV/JSON)
+- src/app/api/admin/tasks/reorder/route.ts — endpoint to persist kanban reorder (boardStatus + position)
 
 ## Files modified (key)
 - src/app/admin/tasks/page.tsx — main UI wired to the new components and APIs
@@ -122,9 +124,10 @@ Note: To connect any MCP, open the MCP popover in the Builder UI and select the 
 ---
 
 ## Changes summary (git)
-- New components: `virtualized-task-list.tsx`, `board-view.tsx`, `task-edit-dialog.tsx`
-- API: `src/app/api/admin/tasks/route.ts` (search q), `src/app/api/admin/tasks/[id]/route.ts` (DELETE), `src/app/api/admin/tasks/updates/route.ts` (SSE)
+- New components: `virtualized-task-list.tsx`, `board-view.tsx`, `task-edit-dialog.tsx`, `dependency-manager.tsx`
+- API: `src/app/api/admin/tasks/route.ts` (search q), `src/app/api/admin/tasks/[id]/route.ts` (DELETE), `src/app/api/admin/tasks/updates/route.ts` (SSE), `src/app/api/admin/tasks/reorder/route.ts` (reorder positions)
 - Main page updated: `src/app/admin/tasks/page.tsx`
+- Prisma schema updated: added `boardStatus`, `position`, and `dependencies` fields to `Task` model
 
 ---
 
