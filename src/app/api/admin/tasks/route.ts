@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const where: Prisma.TaskWhereInput | undefined = q
       ? {
           OR: [
-            { title: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
+            { title: { contains: q, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : undefined
