@@ -30,22 +30,40 @@ export async function GET(request: Request) {
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
 
-    let rows: any[] = []
+    type TaskRow = {
+      id: string
+      title: string
+      description?: string | null
+      priority: string
+      status: string
+      dueAt: Date | null
+      assigneeId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }
+
+    let rows: TaskRow[] = []
     if (!hasDb) {
       rows = [
-        { id: 't1', title: 'Send monthly newsletters', dueAt: null, priority: 'HIGH', status: 'OPEN' },
-        { id: 't2', title: 'Review pending bookings', dueAt: null, priority: 'MEDIUM', status: 'OPEN' },
+        { id: 't1', title: 'Send monthly newsletters', description: '', dueAt: null, priority: 'HIGH', status: 'OPEN', assigneeId: null, createdAt: new Date(), updatedAt: new Date() },
+        { id: 't2', title: 'Review pending bookings', description: '', dueAt: null, priority: 'MEDIUM', status: 'OPEN', assigneeId: null, createdAt: new Date(), updatedAt: new Date() },
       ]
     } else {
-      rows = await prisma.task.findMany({ where, orderBy: { createdAt: 'desc' }, take: 1000 })
+      const dbRows = await prisma.task.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 1000,
+        select: { id: true, title: true, priority: true, status: true, dueAt: true, assigneeId: true, createdAt: true, updatedAt: true },
+      })
+      rows = dbRows.map((r) => ({ ...r, description: '' })) as TaskRow[]
     }
 
     if (format === 'csv') {
-      const header = ['id','title','description','priority','status','dueAt','assigneeId','createdAt','updatedAt']
+      const header: (keyof TaskRow)[] = ['id','title','description','priority','status','dueAt','assigneeId','createdAt','updatedAt']
       const csvRows = [header.join(',')]
       for (const r of rows) {
         const vals = header.map((k) => {
-          const v = (r as any)[k] ?? ''
+          const v = r[k] ?? ''
           const s = String(v).replace(/"/g, '""')
           return `"${s}"`
         })
