@@ -122,6 +122,9 @@ interface BookingFormData {
 
   // Notifications
   reminderSettings?: { client: boolean; staff: boolean; followUp: boolean }
+
+  // Documents to upload later on details page
+  documents?: File[]
 }
 
 // Mock data (replace with API integration when available)
@@ -263,7 +266,8 @@ function ClientSelector({
   isNewClient,
   onNewClientToggle,
   searchTerm,
-  onSearchChange
+  onSearchChange,
+  analytics
 }: {
   clients: Client[]
   selectedClient?: Client
@@ -272,6 +276,7 @@ function ClientSelector({
   onNewClientToggle: (isNew: boolean) => void
   searchTerm: string
   onSearchChange: (term: string) => void
+  analytics?: { totalSpent: number; total: number; completed: number; cancelled: number; noShow: number; lastBooking?: string; upcoming: number; riskLevel: 'low' | 'medium' | 'high' }
 }) {
   const filteredClients = clients.filter((client) =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -368,6 +373,18 @@ function ClientSelector({
                       {client.lastBooking && <div>Last: {new Date(client.lastBooking).toLocaleDateString()}</div>}
                     </div>
                   </div>
+
+                  {selectedClient?.id === client.id && analytics && (
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2 border rounded"><div className="text-gray-500">Total Spent</div><div className="font-medium text-green-700">${analytics.totalSpent.toFixed(2)}</div></div>
+                      <div className="p-2 border rounded"><div className="text-gray-500">Bookings</div><div className="font-medium">{analytics.total}</div></div>
+                      <div className="p-2 border rounded"><div className="text-gray-500">Completed</div><div className="font-medium text-blue-700">{analytics.completed}</div></div>
+                      <div className="p-2 border rounded"><div className="text-gray-500">Cancelled</div><div className="font-medium text-red-700">{analytics.cancelled}</div></div>
+                      <div className="p-2 border rounded"><div className="text-gray-500">Upcoming</div><div className="font-medium">{analytics.upcoming}</div></div>
+                      {analytics.lastBooking && <div className="p-2 border rounded col-span-2"><div className="text-gray-500">Last Booking</div><div className="font-medium">{new Date(analytics.lastBooking).toLocaleDateString()}</div></div>}
+                      <div className="col-span-2"><Badge variant="outline" className={`${analytics.riskLevel==='high'?'bg-red-100 text-red-800':analytics.riskLevel==='medium'?'bg-yellow-100 text-yellow-800':'bg-green-100 text-green-800'} text-[10px]`}>Risk: {analytics.riskLevel}</Badge></div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -696,6 +713,7 @@ export default function ProfessionalNewBooking() {
     requiresPreparation: false,
     followUpRequired: false,
     reminderSettings: { client: true, staff: true, followUp: false },
+    documents: [],
   })
 
   const [services, setServices] = useState<Service[]>([])
@@ -784,6 +802,7 @@ export default function ProfessionalNewBooking() {
   const [selectedClient, setSelectedClient] = useState<Client>()
   const [selectedService, setSelectedService] = useState<Service>()
   const [assignedStaff, setAssignedStaff] = useState<Staff>()
+  const [selectedClientAnalytics, setSelectedClientAnalytics] = useState<{ totalSpent: number; total: number; completed: number; cancelled: number; noShow: number; lastBooking?: string; upcoming: number; riskLevel: 'low' | 'medium' | 'high' } | undefined>()
   const [clientSearchTerm, setClientSearchTerm] = useState('')
   const [serviceCategory, setServiceCategory] = useState('all')
   const [showPreview, setShowPreview] = useState(false)
@@ -804,7 +823,7 @@ export default function ProfessionalNewBooking() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleClientSelect = (client: Client) => {
+  const handleClientSelect = async (client: Client) => {
     setSelectedClient(client)
     setFormData((prev) => ({
       ...prev,
@@ -816,6 +835,35 @@ export default function ProfessionalNewBooking() {
       clientType: client.tier,
       isNewClient: false
     }))
+
+    // Load client analytics from bookings
+    try {
+      const res = await fetch(`/api/bookings?userId=${encodeURIComponent(client.id)}`, { cache: 'no-store' })
+      const list = (await res.json().catch(() => [])) as Array<{ status?: string; scheduledAt?: string; service?: { price?: number | string | null } | null; createdAt?: string }>
+      const total = list.length
+      let completed = 0, cancelled = 0, noShow = 0, upcoming = 0
+      let totalSpent = 0
+      let lastBooking: string | undefined
+      const now = new Date()
+      for (const b of list) {
+        const status = String(b.status || 'PENDING').toUpperCase()
+        if (status === 'COMPLETED') completed++
+        if (status === 'CANCELLED') cancelled++
+        if (status === 'NO_SHOW') noShow++
+        const sched = b.scheduledAt ? new Date(b.scheduledAt) : null
+        if (sched && sched > now && (status === 'PENDING' || status === 'CONFIRMED')) upcoming++
+        if (!lastBooking || (b.createdAt && new Date(b.createdAt) > new Date(lastBooking))) lastBooking = b.createdAt
+        const price = b.service?.price
+        const n = typeof price === 'string' ? Number(price) : Number(price || 0)
+        if (status === 'COMPLETED') totalSpent += n
+      }
+      const cancelRate = total ? cancelled / total : 0
+      const noShowRate = total ? noShow / total : 0
+      const riskLevel: 'low' | 'medium' | 'high' = (noShowRate > 0.2 || cancelRate > 0.3) ? 'high' : (noShowRate > 0.1 || cancelRate > 0.15) ? 'medium' : 'low'
+      setSelectedClientAnalytics({ totalSpent, total, completed, cancelled, noShow, lastBooking, upcoming, riskLevel })
+    } catch {
+      setSelectedClientAnalytics(undefined)
+    }
   }
 
   const handleServiceSelect = (service: Service) => {
@@ -913,6 +961,7 @@ export default function ProfessionalNewBooking() {
               onNewClientToggle={(isNew) => handleFormChange('isNewClient', isNew)}
               searchTerm={clientSearchTerm}
               onSearchChange={setClientSearchTerm}
+              analytics={selectedClientAnalytics}
             />
 
             {formData.isNewClient && (
@@ -1060,6 +1109,50 @@ export default function ProfessionalNewBooking() {
                     <label htmlFor="followup-reminder" className="text-sm text-gray-700">Schedule follow-up reminder (1 week after completion)</label>
                   </div>
                 </div>
+              </div>
+
+              {/* Document Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Supporting Documents</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <input
+                    id="docs-input"
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx"
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || [])
+                      const allowed = ['pdf','doc','docx','xls','xlsx']
+                      const next: File[] = []
+                      for (const f of files) {
+                        const ext = f.name.split('.').pop()?.toLowerCase()
+                        if (!ext || !allowed.includes(ext)) continue
+                        if (f.size > 10 * 1024 * 1024) continue
+                        next.push(f)
+                      }
+                      handleFormChange('documents', [ ...(formData.documents || []), ...next ])
+                    }}
+                  />
+                  <label htmlFor="docs-input" className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded text-sm">
+                    <FileText className="h-4 w-4" /> Choose Files
+                  </label>
+                  <div className="text-xs text-gray-500 mt-2">PDF, DOC, XLS up to 10MB each</div>
+                </div>
+                {(formData.documents?.length || 0) > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {formData.documents!.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between border rounded p-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{f.name}</span>
+                          <span className="text-gray-500">({(f.size/1024/1024).toFixed(2)} MB)</span>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleFormChange('documents', (formData.documents || []).filter((_, idx) => idx !== i))}>Remove</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1261,6 +1354,21 @@ export default function ProfessionalNewBooking() {
                       <div key={idx} className="flex items-center gap-2 text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span>{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(formData.documents?.length || 0) > 0 && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">Attached Documents</h4>
+                  <div className="space-y-2">
+                    {formData.documents!.map((f, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <FileText className="h-4 w-4 text-gray-500" />
+                        <span>{f.name}</span>
+                        <span className="text-gray-500">({(f.size/1024/1024).toFixed(2)} MB)</span>
                       </div>
                     ))}
                   </div>
