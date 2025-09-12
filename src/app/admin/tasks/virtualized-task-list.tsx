@@ -1,7 +1,6 @@
 'use client'
 import './task-accessibility.css'
 
-'use client'
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { FixedSizeList as List } from 'react-window'
 import type { FixedSizeList as FixedSizeListType } from 'react-window'
