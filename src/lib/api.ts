@@ -38,7 +38,9 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
   }
 
   if (typeof window !== 'undefined') {
-    const url = path
+    const url = typeof path === 'string' && path.startsWith('/')
+      ? new URL(path, window.location.origin).toString()
+      : (path as string)
     return withRetries(url as RequestInfo)
   }
 
