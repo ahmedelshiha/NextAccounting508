@@ -5,6 +5,10 @@ import prisma from '@/lib/prisma'
 import { taskCreateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/admin/tasks?limit=10
 export async function GET(request: NextRequest) {
   try {
