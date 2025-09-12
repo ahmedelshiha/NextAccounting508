@@ -131,6 +131,12 @@ export default function EnhancedAdminBookingDetailPage() {
   // Local-only UI state
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid' | 'refunded'>('pending')
 
+  // Documents state
+  const [docFiles, setDocFiles] = useState<File[]>([])
+  const [docs, setDocs] = useState<{ name: string; size: number; type: string; url?: string }[]>([])
+  const [uploadingDocs, setUploadingDocs] = useState(false)
+  const [docsError, setDocsError] = useState<string | null>(null)
+
   useEffect(() => {
     let ignore = false
     async function load() {
@@ -184,6 +190,22 @@ export default function EnhancedAdminBookingDetailPage() {
     }
 
     load()
+
+    // Try to load existing documents (will be 501 until storage configured)
+    ;(async () => {
+      if (!id) return
+      try {
+        const res = await fetch(`/api/bookings/${id}/documents`)
+        if (res.ok) {
+          const list = await res.json().catch(() => ([])) as { name?: string; size?: number; type?: string; url?: string }[]
+          if (Array.isArray(list)) setDocs(list.filter(d => d && d.name).map(d => ({ name: String(d.name), size: Number(d.size||0), type: String(d.type||'application/octet-stream'), url: d.url })))
+        } else if (res.status === 501) {
+          setDocsError('Document storage not configured')
+        }
+      } catch {
+        setDocsError('Unable to load documents')
+      }
+    })()
 
     // Load team members for assignment
     ;(async () => {
@@ -684,6 +706,91 @@ export default function EnhancedAdminBookingDetailPage() {
                   <div className="mt-6 pt-6 border-t">
                     <h3 className="font-medium text-gray-900 mb-2">Client Notes</h3>
                     <div className="p-4 bg-blue-50 rounded-lg text-sm text-gray-700">{booking.notes}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Documents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Documents</CardTitle>
+                <CardDescription>Upload and manage related files</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {docsError && (
+                  <div className="p-3 rounded bg-yellow-50 text-yellow-800 text-sm">{docsError}. Connect storage (e.g., Supabase Storage or Builder CMS assets) to enable uploads.</div>
+                )}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <input id="file-input" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" className="hidden" onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    const allowed = ['pdf','doc','docx','xls','xlsx']
+                    const next: File[] = []
+                    for (const f of files) {
+                      const ext = f.name.split('.').pop()?.toLowerCase()
+                      if (!ext || !allowed.includes(ext)) continue
+                      if (f.size > 10 * 1024 * 1024) continue
+                      next.push(f)
+                    }
+                    setDocFiles(prev => [...prev, ...next])
+                  }} />
+                  <label htmlFor="file-input" className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded text-sm">
+                    <FileText className="h-4 w-4" /> Choose Files
+                  </label>
+                  <div className="text-xs text-gray-500 mt-2">PDF, DOC, XLS up to 10MB each</div>
+                </div>
+
+                {docFiles.length > 0 && (
+                  <div className="space-y-2">
+                    {docFiles.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between border rounded p-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{f.name}</span>
+                          <span className="text-gray-500">({(f.size/1024/1024).toFixed(2)} MB)</span>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => setDocFiles(prev => prev.filter((_, idx) => idx !== i))}>Remove</Button>
+                      </div>
+                    ))}
+                    <Button onClick={async () => {
+                      if (!booking) return
+                      setUploadingDocs(true)
+                      setDocsError(null)
+                      try {
+                        const fd = new FormData()
+                        docFiles.forEach(f => fd.append('files', f))
+                        const res = await fetch(`/api/bookings/${booking.id}/documents`, { method: 'POST', body: fd })
+                        if (!res.ok) {
+                          const msg = res.status === 501 ? 'Document storage not configured' : 'Upload failed'
+                          setDocsError(msg)
+                        } else {
+                          const uploaded = await res.json().catch(() => []) as { name?: string; size?: number; type?: string; url?: string }[]
+                          if (Array.isArray(uploaded) && uploaded.length) setDocs(uploaded.filter(d => d && d.name).map(d => ({ name: String(d.name), size: Number(d.size||0), type: String(d.type||'application/octet-stream'), url: d.url })))
+                          setDocFiles([])
+                        }
+                      } catch {
+                        setDocsError('Upload failed')
+                      } finally {
+                        setUploadingDocs(false)
+                      }
+                    }} disabled={uploadingDocs} className="gap-2">
+                      {uploadingDocs ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      {uploadingDocs ? 'Uploading...' : 'Upload'}
+                    </Button>
+                  </div>
+                )}
+
+                {docs.length > 0 && (
+                  <div className="space-y-2">
+                    {docs.map((d, i) => (
+                      <div key={i} className="flex items-center justify-between border rounded p-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <a href={d.url || '#'} target={d.url ? '_blank' : undefined} rel={d.url ? 'noreferrer' : undefined} className="font-medium text-blue-600 hover:underline">{d.name}</a>
+                          <span className="text-gray-500">{(d.size/1024/1024).toFixed(2)} MB</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
