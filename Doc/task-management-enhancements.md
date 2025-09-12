@@ -38,24 +38,24 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 - [x] Debounced client search (400ms) and server-side search support (`q` query)
 - [x] Virtualized task list component and integration for large lists
 - [x] Real-time updates via SSE (server endpoint + client EventSource)
-- [x] Bulk operations: multi-select, bulk status update, bulk delete, CSV export
+- [x] Bulk operations: multi-select, bulk status update, bulk delete, CSV export (client-side)
 - [x] Board (kanban) view with drag-and-drop move support (columns: pending → in_progress → review → completed → blocked)
 - [x] Task edit modal (edit/save/delete) wired to API
 - [x] API: GET /api/admin/tasks?q=..., POST /api/admin/tasks, PATCH /api/admin/tasks/:id, DELETE /api/admin/tasks/:id
+- [x] Server-side pagination / load-more support (page & limit)
+- [x] Server export endpoint (GET /api/admin/tasks/export?format=csv|json&q=...)
+- [x] Assignee/team lookup and assignee selector component (fetches /api/admin/team-members)
 
 Notes:
-- CSV export is implemented client-side (downloads selected rows as CSV). No server-side export endpoint was added (see pending).
-- Virtualized list is a home-grown implementation placed in `virtualized-task-list.tsx`. It provides column-aware layout and basic overscan.
+- CSV export is implemented both client-side (export selected rows) and server-side (export endpoint supports CSV/JSON).
+- Virtualized list is a home-grown implementation placed in `virtualized-task-list.tsx`. It provides column-aware layout and basic overscan. Consider replacing with react-window for production.
 
 ---
 
 ## Remaining enhancements (Planned / Pending)
-- [ ] Server-side pagination / load-more (cursor or page-based) for very large lists
-- [ ] True virtualization using a maintained library (react-window / react-virtual) for better performance
-- [ ] Team/assignee lookup UI (fetch team members) and a proper assignee selector component (currently assignee options derived from current tasks)
+- [ ] Replace home-grown virtualization with a maintained library (react-window / react-virtual) for better performance
 - [ ] Tag filtering UI and dependency-management UI
 - [ ] Notifications & escalation rules (in-app notifications, email/SMS integrations)
-- [ ] CSV/JSON export endpoint on the server (for large datasets and scheduled exports)
 - [ ] Bulk operation server endpoints for atomic updates of many tasks
 - [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
 - [ ] Unit & integration tests for the UI components and API endpoints
