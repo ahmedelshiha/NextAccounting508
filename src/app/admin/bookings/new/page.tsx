@@ -466,7 +466,7 @@ function ServiceSelector({
                 <Badge className={`text-xs ${getCategoryColor(service.category)}`}>{service.category}</Badge>
               </div>
 
-              <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+              <p className="text-sm text-gray-600 mb-3">{(service.description || '').length > 120 ? `${service.description.slice(0, 120)}…` : (service.description || '')}</p>
 
               <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div className="flex items-center gap-2">
