@@ -32,7 +32,9 @@ import {
   ArrowDownRight,
   Maximize2,
   Minimize2,
-  ChevronDown
+  ChevronDown,
+  MessageSquare,
+  Info
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -180,26 +182,90 @@ export default function EnhancedBookingManagement() {
     setLoading(true)
     try {
       const response = await apiFetch('/api/admin/bookings')
-      const data = response.ok ? await response.json() : { bookings: [] }
-      const items: Booking[] = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.bookings)
-        ? data.bookings
-        : []
+      const data: unknown = response.ok ? await response.json() : { bookings: [] }
 
-      const enhanced: Booking[] = items.map((b) => ({
-        ...b,
-        assignedStaff: b.assignedTeamMember?.name || b.assignedStaff,
-        location: b.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
-        priority: b.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
-        source: b.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
-        client: {
-          ...b.client,
-          tier: b.client.tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
-          totalBookings: b.client.totalBookings ?? Math.floor(Math.random() * 20) + 1,
-          satisfaction: b.client.satisfaction ?? 3.5 + Math.random() * 1.5,
-        },
-      }))
+      type ApiBookingRecord = {
+        id: string
+        clientName?: string
+        clientEmail?: string
+        clientPhone?: string | null
+        scheduledAt: string | Date
+        duration?: number | null
+        status?: Booking['status'] | string | null
+        notes?: string | null
+        createdAt?: string | Date
+        updatedAt?: string | Date
+        assignedStaff?: string | null
+        assignedTeamMember?: { id: string; name: string; email: string } | null
+        location?: Booking['location']
+        priority?: Booking['priority']
+        service?: { id?: string; name?: string; price?: number | string | null; category?: string | null; duration?: number | null } | null
+        client?: { id?: string; name?: string | null; email?: string; phone?: string | null; tier?: Booking['client']['tier']; totalBookings?: number; satisfaction?: number; lastBooking?: string; _count?: { bookings: number } } | null
+        source?: Booking['source']
+      }
+
+      const items: ApiBookingRecord[] = Array.isArray(data)
+        ? (data as ApiBookingRecord[])
+        : (data && typeof data === 'object' && Array.isArray((data as { bookings?: unknown }).bookings)
+          ? ((data as { bookings: unknown[] }).bookings as ApiBookingRecord[])
+          : [])
+
+      const enhanced: Booking[] = items.map((r) => {
+        const clientObj = r.client ?? null
+        const serviceObj = r.service ?? null
+
+        const client: Booking['client'] = {
+          id: clientObj?.id,
+          name: (clientObj?.name ?? r.clientName ?? r.clientEmail ?? 'Client') as string,
+          email: (clientObj?.email ?? r.clientEmail ?? '') as string,
+          phone: (clientObj?.phone ?? r.clientPhone ?? undefined) || undefined,
+          tier: clientObj?.tier,
+          totalBookings: (clientObj?._count?.bookings ?? clientObj?.totalBookings),
+          lastBooking: clientObj?.lastBooking,
+          satisfaction: clientObj?.satisfaction,
+        }
+
+        const service: Booking['service'] = {
+          id: serviceObj?.id,
+          name: (serviceObj?.name ?? 'Unknown service') as string,
+          price: serviceObj?.price ?? undefined,
+          category: serviceObj?.category ?? undefined,
+          duration: serviceObj?.duration ?? undefined,
+        }
+
+        const statusRaw = String(r.status ?? 'PENDING').toUpperCase()
+        const status: Booking['status'] = (['PENDING','CONFIRMED','COMPLETED','CANCELLED','NO_SHOW'] as const).includes(statusRaw as Booking['status'])
+          ? (statusRaw as Booking['status'])
+          : 'PENDING'
+
+        const scheduledAtStr = typeof r.scheduledAt === 'string' ? r.scheduledAt : new Date(r.scheduledAt).toISOString()
+
+        return {
+          id: r.id,
+          clientName: r.clientName ?? client.name,
+          clientEmail: r.clientEmail ?? client.email,
+          clientPhone: r.clientPhone ?? client.phone,
+          scheduledAt: scheduledAtStr,
+          duration: Number(r.duration ?? service.duration ?? 60),
+          status,
+          notes: r.notes ?? undefined,
+          createdAt: typeof r.createdAt === 'string' ? r.createdAt : new Date(r.createdAt || Date.now()).toISOString(),
+          updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : (r.updatedAt ? new Date(r.updatedAt).toISOString() : undefined),
+          assignedStaff: r.assignedStaff ?? undefined,
+          assignedTeamMember: r.assignedTeamMember ?? undefined,
+          location: r.location ?? (['OFFICE', 'REMOTE', 'CLIENT_SITE'] as const)[Math.floor(Math.random() * 3)],
+          priority: r.priority ?? (['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const)[Math.floor(Math.random() * 4)],
+          service,
+          client: {
+            ...client,
+            tier: client.tier ?? (['INDIVIDUAL', 'SMB', 'ENTERPRISE'] as const)[Math.floor(Math.random() * 3)],
+            totalBookings: client.totalBookings ?? undefined,
+            satisfaction: client.satisfaction ?? 3.5 + Math.random() * 1.5,
+          },
+          source: r.source ?? (['WEBSITE', 'PHONE', 'REFERRAL', 'WALK_IN', 'MARKETING'] as const)[Math.floor(Math.random() * 5)],
+          reminderSent: false,
+        }
+      })
 
       setBookings(enhanced)
     } catch (e) {
@@ -271,8 +337,8 @@ export default function EnhancedBookingManagement() {
     const list = bookings.filter((b) => {
       const q = searchTerm.toLowerCase()
       const matchesSearch =
-        b.clientName.toLowerCase().includes(q) ||
-        b.clientEmail.toLowerCase().includes(q) ||
+        (b.clientName || '').toLowerCase().includes(q) ||
+        (b.clientEmail || '').toLowerCase().includes(q) ||
         (b.service?.name || '').toLowerCase().includes(q) ||
         (b.assignedStaff || '').toLowerCase().includes(q)
 
@@ -301,8 +367,8 @@ export default function EnhancedBookingManagement() {
       let cmp = 0
       if (sortBy === 'date') cmp = new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
       else if (sortBy === 'value') cmp = (Number(a.service?.price || 0) - Number(b.service?.price || 0))
-      else if (sortBy === 'client') cmp = a.clientName.localeCompare(b.clientName)
-      else if (sortBy === 'status') cmp = a.status.localeCompare(b.status)
+      else if (sortBy === 'client') cmp = (a.clientName || '').localeCompare(b.clientName || '')
+      else if (sortBy === 'status') cmp = (a.status || '').localeCompare(b.status || '')
       return sortOrder === 'desc' ? -cmp : cmp
     })
 
@@ -536,7 +602,7 @@ export default function EnhancedBookingManagement() {
                   <Card className="border-orange-200 bg-orange-50">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <MessageSquareIcon className="h-5 w-5 text-orange-500" />
+                        <MessageSquare className="h-5 w-5 text-orange-500" />
                         <div>
                           <p className="font-medium text-orange-900">Follow-ups Required</p>
                           <p className="text-sm text-orange-700">{analytics.followUps} clients need follow-up</p>
@@ -549,7 +615,7 @@ export default function EnhancedBookingManagement() {
                   <Card className="border-yellow-200 bg-yellow-50">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <InfoIcon className="h-5 w-5 text-yellow-500" />
+                        <Info className="h-5 w-5 text-yellow-500" />
                         <div>
                           <p className="font-medium text-yellow-900">High No-Show Rate</p>
                           <p className="text-sm text-yellow-700">{analytics.noShow.toFixed(1)}% no-show rate detected</p>
@@ -773,7 +839,7 @@ export default function EnhancedBookingManagement() {
                             <TableCell>
                               <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                  <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                                  <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{(b.status || 'PENDING').replace('_',' ')}</Badge>
                                   {b.reminderSent && b.status === 'CONFIRMED' && (
                                     <span className="text-xs text-green-600">Reminded</span>
                                   )}
@@ -797,12 +863,12 @@ export default function EnhancedBookingManagement() {
                                 </div>
                                 {teamMembers.length > 0 && (
                                   <div className="mt-1">
-                                    <Select value={b.assignedTeamMember?.id || ''} onValueChange={(v) => assignMember(b.id, v)}>
+                                    <Select value={b.assignedTeamMember?.id ?? 'unassigned'} onValueChange={(v) => assignMember(b.id, v === 'unassigned' ? '' : v)}>
                                       <SelectTrigger size="sm" className="w-48">
                                         <SelectValue placeholder="Assign staff" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="">Unassigned</SelectItem>
+                                        <SelectItem value="unassigned">Unassigned</SelectItem>
                                         {teamMembers.map(tm => (
                                           <SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>
                                         ))}
@@ -864,7 +930,7 @@ export default function EnhancedBookingManagement() {
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
-                              <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{b.status.replace('_',' ')}</Badge>
+                              <Badge className={statusStyles[b.status] || 'bg-gray-100 text-gray-800'}>{(b.status || 'PENDING').replace('_',' ')}</Badge>
                               <div>
                                 <CardTitle className="text-lg">{b.clientName}</CardTitle>
                                 <CardDescription className="flex items-center gap-2">
@@ -910,7 +976,7 @@ export default function EnhancedBookingManagement() {
                               <div className="flex gap-2 pt-2">
                                 <Button size="sm" variant="outline" asChild><a href={`tel:${b.clientPhone || ''}`}><Phone className="h-3 w-3 mr-1" />Call</a></Button>
                                 <Button size="sm" variant="outline" asChild><a href={`mailto:${b.clientEmail}`}><Mail className="h-3 w-3 mr-1" />Email</a></Button>
-                                <Button size="sm" variant="outline" asChild><a href={`sms:${b.clientPhone || ''}`}><MessageSquareIcon className="h-3 w-3 mr-1" />SMS</a></Button>
+                                <Button size="sm" variant="outline" asChild><a href={`sms:${b.clientPhone || ''}`}><MessageSquare className="h-3 w-3 mr-1" />SMS</a></Button>
                               </div>
                             </div>
                           )}
@@ -1105,12 +1171,4 @@ export default function EnhancedBookingManagement() {
       </div>
     </div>
   )
-}
-
-function MessageSquareIcon(props: { className?: string }) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-}
-
-function InfoIcon(props: { className?: string }) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
 }
