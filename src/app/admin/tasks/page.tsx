@@ -623,6 +623,25 @@ export default function AdminTasksPage() {
 
   useEffect(() => { loadTasks() }, [loadTasks])
 
+  // Real-time updates via SSE: reload list on events
+  useEffect(() => {
+    let es: EventSource | null = null
+    try {
+      es = new EventSource('/api/admin/tasks/updates')
+      es.onmessage = () => {
+        loadTasks()
+      }
+      es.onerror = (e) => {
+        // silently ignore, will attempt reconnect from server
+        console.debug('SSE error', e)
+        es?.close()
+      }
+    } catch (e) {
+      console.debug('SSE not available', e)
+    }
+    return () => es?.close()
+  }, [loadTasks])
+
   const mapApiToUi = (t: TaskItem) => ({
     id: t.id,
     title: t.title,
