@@ -48,3 +48,31 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
   }
 }
+
+// DELETE /api/admin/tasks/[id]
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = params
+
+    const ip = getClientIp(request as unknown as Request)
+    if (!rateLimit(`tasks:delete:${ip}`, 60, 60_000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+    if (!hasDb) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+    }
+
+    await prisma.task.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('Error deleting task:', error)
+    return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
+  }
+}
