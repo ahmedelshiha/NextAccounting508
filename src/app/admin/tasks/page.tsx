@@ -550,7 +550,13 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         </div>
       )}
 
-      {filteredAndSorted.length <= 60 ? (
+      {viewMode === 'board' ? (
+        <BoardView
+          tasks={filteredAndSorted}
+          onMove={(id, status) => updateTaskStatus(id, status)}
+          renderCard={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+        />
+      ) : filteredAndSorted.length <= 60 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredAndSorted.map((t) => (
             <TaskCard key={t.id} task={t} />
