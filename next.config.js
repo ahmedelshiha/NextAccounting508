@@ -1,5 +1,3 @@
-const { withSentryConfig } = require('@sentry/nextjs')
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: { ignoreDuringBuilds: false },
@@ -10,6 +8,11 @@ const nextConfig = {
 }
 
 const isProd = process.env.NODE_ENV === 'production'
-module.exports = isProd
-  ? withSentryConfig(nextConfig, { silent: true }, { hideSourceMaps: true })
-  : nextConfig
+
+if (isProd) {
+  // Defer requiring Sentry to production only to speed up dev startup
+  const { withSentryConfig } = require('@sentry/nextjs')
+  module.exports = withSentryConfig(nextConfig, { silent: true }, { hideSourceMaps: true })
+} else {
+  module.exports = nextConfig
+}
