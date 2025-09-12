@@ -1,0 +1,15 @@
+rules:
+  - id: generic-error-handling
+    patterns:
+      - pattern: |
+          try:
+            ...
+          except Exception:
+            ...
+    message: Avoid bare excepts; catch specific exceptions instead
+    severity: MEDIUM
+
+  - id: sql-injection-check
+    pattern: "execute($X)"
+    message: Review SQL execution for injection risks
+    severity: HIGH
