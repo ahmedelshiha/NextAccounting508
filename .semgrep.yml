@@ -1,15 +1,19 @@
+# Semgrep rules for this project
 rules:
-  - id: generic-error-handling
-    patterns:
-      - pattern: |
-          try:
-            ...
-          except Exception:
-            ...
-    message: Avoid bare excepts; catch specific exceptions instead
-    severity: MEDIUM
+  - id: no-eval
+    message: Avoid eval, it can lead to code injection vulnerabilities.
+    severity: ERROR
+    languages: [javascript, typescript]
+    pattern: eval(...)
 
-  - id: sql-injection-check
-    pattern: "execute($X)"
-    message: Review SQL execution for injection risks
-    severity: HIGH
+  - id: insecure-http-fetch
+    message: Use HTTPS for network requests.
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern-regex: "fetch\\(\\s*['\"]http://"
+
+  - id: no-inner-html-assign
+    message: Avoid assigning to innerHTML directly.
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern-regex: "\.innerHTML\\s*="
