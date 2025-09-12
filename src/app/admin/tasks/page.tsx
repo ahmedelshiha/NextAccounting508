@@ -30,7 +30,7 @@ import {
   Settings,
 } from 'lucide-react'
 import VirtualizedTaskList from './virtualized-task-list'
-import BoardView from './board-view'
+import BoardAccessible from './board-accessible'
 import TaskEditDialog from './task-edit-dialog'
 import ExportButton from './export-button'
 import PaginationControls from './pagination-controls'
