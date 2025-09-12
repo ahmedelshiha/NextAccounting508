@@ -763,6 +763,23 @@ export default function AdminTasksPage() {
     } catch (e) { console.error('delete failed', e) }
   }
 
+  const onTaskSave = async (id: string, updates: Record<string, any>) => {
+    try {
+      const payload: Record<string, unknown> = {}
+      if (updates.title !== undefined) payload.title = updates.title
+      if (updates.description !== undefined) payload.description = updates.description
+      if (updates.dueDate !== undefined) payload.dueAt = updates.dueDate
+      if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
+      if (updates.estimatedHours !== undefined) payload.estimatedHours = updates.estimatedHours
+      if (updates.actualHours !== undefined) payload.actualHours = updates.actualHours
+      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+
+      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error(`Failed (${res.status})`)
+      await loadTasks()
+    } catch (e) { console.error('save failed', e) }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
