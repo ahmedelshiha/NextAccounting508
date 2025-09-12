@@ -24,7 +24,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            _count: { select: { bookings: true } }
           }
         },
         service: {
@@ -139,7 +140,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            _count: { select: { bookings: true } }
           }
         },
         service: {
