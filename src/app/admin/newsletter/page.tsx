@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Mail } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
@@ -36,9 +37,16 @@ export default function AdminNewsletterPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center"><Mail className="h-6 w-6 mr-2 text-orange-600"/> Newsletter</h1>
-          <p className="text-gray-600 mt-2">Manage newsletter subscribers</p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center"><Mail className="h-6 w-6 mr-2 text-orange-600"/> Newsletter</h1>
+            <p className="text-gray-600 mt-2">Manage newsletter subscribers</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/admin">Back to Dashboard</Link>
+            </Button>
+          </div>
         </div>
 
         <Card>
