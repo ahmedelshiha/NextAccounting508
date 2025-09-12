@@ -594,6 +594,8 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         </Card>
       )}
 
+      <PaginationControls hasMore={hasMore} onLoadMore={async () => { await loadTasks(filters.search || '', page + 1, true) }} />
+
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
