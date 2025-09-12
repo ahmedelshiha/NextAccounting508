@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import type { Task } from './page'
+import type { Task } from './types'
 
 export default function TagFilter({ tasks, value, onChange }: { tasks: Task[]; value?: string; onChange: (t?: string) => void }) {
   const tags = new Set<string>()
