@@ -105,6 +105,8 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate')
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState<{ title: string; dueDate: string; priority: Priority }>({ title: '', dueDate: '', priority: 'medium' })
+  useEffect(() => { setTasks(initialTasks) }, [initialTasks])
+
   const assigneeOptions = useMemo(() => {
     const s = new Set<string>()
     for (const t of tasks) if (t.assignee) s.add(t.assignee)
