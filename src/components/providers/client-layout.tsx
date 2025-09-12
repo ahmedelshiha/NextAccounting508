@@ -5,7 +5,6 @@ import { SessionProvider } from 'next-auth/react'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
-import { initSentry } from '@/lib/sentry'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -20,8 +19,6 @@ declare global {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
-    // initialize Sentry lazily on the client if DSN is provided
-    try { initSentry().catch(() => {}) } catch {}
 
     let handled = false
 

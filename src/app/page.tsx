@@ -1,4 +1,5 @@
 import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
+import { HeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
@@ -9,7 +10,7 @@ export const revalidate = 60
 export default function HomePage() {
   return (
     <main>
-      <HomeHeroSection />
+      <HeroSection />
       <ServicesSection />
       <TestimonialsSection />
       <Suspense fallback={null}>
