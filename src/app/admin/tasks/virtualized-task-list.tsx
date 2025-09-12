@@ -16,17 +16,21 @@ interface VirtualizedListProps<T extends { id: string; title?: string }> {
 
 export default function VirtualizedTaskList<T extends { id: string; title?: string }>({ tasks, itemHeight = 320, overscan = 3, renderItem, onActivate }: VirtualizedListProps<T>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const listRef = useRef<{ scrollToItem: (index: number) => void } | null>(null)
+  const listRef = useRef<FixedSizeListType<any> | null>(null)
   const [width, setWidth] = useState(1200)
   const [columns, setColumns] = useState(3)
   const [activeIndex, setActiveIndex] = useState<number>(0)
+  const [listHeight, setListHeight] = useState<number>(600)
 
   const updateSize = useCallback(() => {
-    const w = containerRef.current?.clientWidth || window.innerWidth
+    const w = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200)
     setWidth(w)
     if (w >= 1280) setColumns(3)
     else if (w >= 1024) setColumns(2)
     else setColumns(1)
+
+    const winH = typeof window !== 'undefined' ? window.innerHeight : 800
+    setListHeight(Math.min(winH * 0.7, 1200))
   }, [])
 
   useEffect(() => {
