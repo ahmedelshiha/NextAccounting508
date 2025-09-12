@@ -9,4 +9,7 @@ const nextConfig = {
   turbopack: {},
 }
 
-module.exports = withSentryConfig(nextConfig, { silent: true }, { hideSourceMaps: true })
+const isProd = process.env.NODE_ENV === 'production'
+module.exports = isProd
+  ? withSentryConfig(nextConfig, { silent: true }, { hideSourceMaps: true })
+  : nextConfig
