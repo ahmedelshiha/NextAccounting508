@@ -1,4 +1,3 @@
-# Semgrep rules for this project
 rules:
   - id: no-eval
     message: Avoid eval, it can lead to code injection vulnerabilities.
@@ -6,14 +5,20 @@ rules:
     languages: [javascript, typescript]
     pattern: eval(...)
 
-  - id: insecure-http-fetch
+  - id: insecure-http-fetch-single
     message: Use HTTPS for network requests.
     severity: WARNING
     languages: [javascript, typescript]
-    pattern-regex: "fetch\\(\\s*['\"]http://"
+    pattern: fetch('http://...')
+
+  - id: insecure-http-fetch-double
+    message: Use HTTPS for network requests.
+    severity: WARNING
+    languages: [javascript, typescript]
+    pattern: fetch("http://...")
 
   - id: no-inner-html-assign
     message: Avoid assigning to innerHTML directly.
     severity: WARNING
     languages: [javascript, typescript]
-    pattern-regex: "\.innerHTML\\s*="
+    pattern: $OBJ.innerHTML = $VAL
