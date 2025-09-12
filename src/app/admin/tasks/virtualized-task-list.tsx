@@ -48,9 +48,7 @@ export default function VirtualizedTaskList<T extends { id: string; title?: stri
 
   const scrollToIndex = (index: number) => {
     const row = Math.floor(index / columns)
-    if (listRef.current && typeof listRef.current.scrollToItem === 'function') {
-      listRef.current.scrollToItem(row)
-    }
+    listRef.current?.scrollToItem(row)
   }
 
   const [announcement, setAnnouncement] = useState<string>('')
