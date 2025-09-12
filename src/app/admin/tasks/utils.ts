@@ -1,6 +1,6 @@
 'use client'
 
-import type { TaskItem, Task } from './page'
+import type { TaskItem, Task } from './types'
 
 export function priorityFromApi(p?: string) {
   if (!p) return 'medium'

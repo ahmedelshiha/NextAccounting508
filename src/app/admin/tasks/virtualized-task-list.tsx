@@ -3,6 +3,7 @@ import './task-accessibility.css'
 
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { FixedSizeList as List } from 'react-window'
+import type { FixedSizeList as FixedSizeListType } from 'react-window'
 
 interface VirtualizedListProps<T extends { id: string; title?: string }> {
   tasks: T[]
@@ -14,17 +15,21 @@ interface VirtualizedListProps<T extends { id: string; title?: string }> {
 
 export default function VirtualizedTaskList<T extends { id: string; title?: string }>({ tasks, itemHeight = 320, overscan = 3, renderItem, onActivate }: VirtualizedListProps<T>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const listRef = useRef<{ scrollToItem: (index: number) => void } | null>(null)
+  const listRef = useRef<FixedSizeListType<unknown> | null>(null)
   const [width, setWidth] = useState(1200)
   const [columns, setColumns] = useState(3)
   const [activeIndex, setActiveIndex] = useState<number>(0)
+  const [listHeight, setListHeight] = useState<number>(600)
 
   const updateSize = useCallback(() => {
-    const w = containerRef.current?.clientWidth || window.innerWidth
+    const w = containerRef.current?.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200)
     setWidth(w)
     if (w >= 1280) setColumns(3)
     else if (w >= 1024) setColumns(2)
     else setColumns(1)
+
+    const winH = typeof window !== 'undefined' ? window.innerHeight : 800
+    setListHeight(Math.min(winH * 0.7, 1200))
   }, [])
 
   useEffect(() => {
@@ -42,9 +47,7 @@ export default function VirtualizedTaskList<T extends { id: string; title?: stri
 
   const scrollToIndex = (index: number) => {
     const row = Math.floor(index / columns)
-    if (listRef.current && typeof listRef.current.scrollToItem === 'function') {
-      listRef.current.scrollToItem(row)
-    }
+    listRef.current?.scrollToItem(row)
   }
 
   const [announcement, setAnnouncement] = useState<string>('')
@@ -150,7 +153,7 @@ export default function VirtualizedTaskList<T extends { id: string; title?: stri
         <div aria-live="polite" aria-atomic="true" className="sr-only" data-testid="live-region">{announcement}</div>
         <List
           ref={listRef}
-          height={Math.min(window.innerHeight * 0.7, 1200)}
+          height={listHeight}
           itemCount={rowCount}
           itemSize={itemHeight}
           width={width}
