@@ -51,10 +51,14 @@ export async function GET(request: NextRequest) {
       prisma.task.count({ where }),
       prisma.task.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          { boardStatus: 'asc' },
+          { position: 'asc' },
+          { createdAt: 'desc' },
+        ],
         skip,
         take,
-        select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
+        select: { id: true, title: true, dueAt: true, priority: true, status: true, boardStatus: true, position: true, assigneeId: true, createdAt: true, updatedAt: true }
       })
     ])
 
