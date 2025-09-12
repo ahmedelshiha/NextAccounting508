@@ -3,7 +3,9 @@
 import React, { useState, useRef } from 'react'
 import BoardView, { TaskStatus } from './board-view'
 
-export default function BoardAccessible<T extends { id: string; status: TaskStatus }>(props: {
+type BoardTaskBase = { id: string; status: TaskStatus; title?: string; priority?: string }
+
+export default function BoardAccessible<T extends BoardTaskBase>(props: {
   tasks: T[]
   onMove: (id: string, status: TaskStatus) => void
   onReorder?: (id: string, status: TaskStatus, index: number) => void
@@ -55,13 +57,13 @@ export default function BoardAccessible<T extends { id: string; status: TaskStat
   }
 
   // render custom cards wrapping renderCard to add accessibility attributes
-  const renderWrappedCard = (t: any, idx: number) => (
+  const renderWrappedCard = (t: T, idx: number) => (
     <div
       data-task-id={t.id}
       tabIndex={0}
       role="button"
       aria-pressed={picked === t.id}
-      aria-label={`Task ${t.title}. Priority ${t.priority || 'medium'}. Press space to ${picked === t.id ? 'drop' : 'pick up'}.`}
+      aria-label={`Task ${t.title ?? ''}. Priority ${t.priority ?? 'medium'}. Press space to ${picked === t.id ? 'drop' : 'pick up'}.`}
       onKeyDown={(e) => onCardKeyDown(e, t.id, t.status, idx)}
       className={`focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 ${picked === t.id ? 'ring-2 ring-indigo-300' : ''}`}
       onDoubleClick={() => {
@@ -88,7 +90,10 @@ export default function BoardAccessible<T extends { id: string; status: TaskStat
         tasks={tasks}
         onMove={onMove}
         onReorder={onReorder}
-        renderCard={(task) => renderWrappedCard(task as any, tasks.filter((x) => x.status === (task as any).status).indexOf(task as any))}
+        renderCard={(task: T) => {
+          const idx = tasks.filter((x) => x.status === task.status).findIndex((x) => x.id === task.id)
+          return renderWrappedCard(task, Math.max(0, idx))
+        }}
       />
     </div>
   )

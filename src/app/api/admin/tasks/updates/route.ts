@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 
           const payload = JSON.stringify({ ts: Date.now(), tasks, notifications })
           controller.enqueue(encoder.encode(`data: ${payload}\n\n`))
-        } catch (_err) {
+        } catch {
           controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: 'error' })}\n\n`))
         }
       }

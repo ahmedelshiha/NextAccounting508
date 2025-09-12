@@ -1,5 +1,3 @@
-import { PrismaClient } from "@prisma/client";
-
 import { PrismaClient } from "@prisma/client"
 
 type HealthThresholdRecord = {
@@ -21,11 +19,12 @@ interface TestPrisma {
   $disconnect: () => Promise<void>
 }
 
-let exportedPrisma: PrismaClient | TestPrisma | null = null
+// Always export PrismaClient type for compile-time to avoid union type errors across the app
+let exportedPrisma: PrismaClient | null = null
 
-if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+if (process.env.NODE_ENV === 'test' || (process as unknown as { VITEST?: string }).VITEST) {
   let thresholds: HealthThresholdRecord[] = []
-  exportedPrisma = {
+  const testClient: TestPrisma = {
     healthThreshold: {
       findFirst: async () => (thresholds.length ? thresholds[thresholds.length - 1] : null),
       create: async ({ data }: { data: Partial<HealthThresholdRecord> }) => {
@@ -44,6 +43,7 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
     },
     $disconnect: async () => { return },
   }
+  exportedPrisma = testClient as unknown as PrismaClient
 }
 
 declare global {
@@ -51,21 +51,21 @@ declare global {
 }
 
 if (!exportedPrisma) {
-  let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
+  let dbUrl = process.env.NETLIFY_DATABASE_URL || ""
 
   if (dbUrl && dbUrl.startsWith("neon://")) {
-    dbUrl = dbUrl.replace("neon://", "postgresql://");
+    dbUrl = dbUrl.replace("neon://", "postgresql://")
   }
 
   function createClient(url: string) {
-    return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+    return new PrismaClient(url ? { datasources: { db: { url } } } : undefined)
   }
 
   // Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
   exportedPrisma = (() => {
     type GlobalWithPrisma = typeof globalThis & { __prisma__?: PrismaClient }
     const g = global as unknown as GlobalWithPrisma
-    if (typeof global !== "undefined" && g.__prisma__) return g.__prisma__ as PrismaClient;
+    if (typeof global !== "undefined" && g.__prisma__) return g.__prisma__ as PrismaClient
 
     const client = dbUrl
       ? createClient(dbUrl)
@@ -75,16 +75,16 @@ if (!exportedPrisma) {
             get() {
               throw new Error(
                 "Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features."
-              );
+              )
             },
           }
-        ) as unknown as PrismaClient);
+        ) as unknown as PrismaClient)
 
     if (process.env.NODE_ENV !== "production") {
-      ;(global as unknown as { __prisma__?: PrismaClient }).__prisma__ = client;
+      ;(global as unknown as { __prisma__?: PrismaClient }).__prisma__ = client
     }
 
-    return client;
+    return client
   })()
 }
 

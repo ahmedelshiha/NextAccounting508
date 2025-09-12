@@ -21,15 +21,16 @@ export default function AssigneeSelector({ value, onChange }: { value?: string |
         const list = Array.isArray(data)
           ? (data as unknown[])
           : ((data?.teamMembers || data?.members || []) as unknown[])
-        const mapped: Member[] = list
-          .map((m) => {
+        const mapped = list
+          .map<Member | null>((m) => {
             const obj = m as { id?: string; name?: string; fullName?: string; email?: string; title?: string }
             const id = obj.id || obj.email || ''
             const name = obj.name || obj.fullName || obj.email || 'Unknown'
             if (!id) return null
-            return { id, name, email: obj.email, title: obj.title }
+            const member: Member = { id, name, email: obj.email, title: obj.title }
+            return member
           })
-          .filter((v): v is Member => Boolean(v))
+          .filter((v): v is Member => v !== null)
         setMembers(mapped)
       })
       .catch(() => {})

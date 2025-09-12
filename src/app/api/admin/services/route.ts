@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 // GET /api/admin/services - List all services (active and inactive)
 export async function GET(request: NextRequest) {
@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
     if (active === 'false') where.active = false
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { slug: { contains: search, mode: Prisma.QueryMode.insensitive } }
       ]
     }
 

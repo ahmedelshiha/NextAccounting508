@@ -7,7 +7,12 @@ export type TaskStatus = 'pending' | 'in_progress' | 'review' | 'completed' | 'b
 
 import { Badge } from '@/components/ui/badge'
 
-interface BoardViewProps<T> {
+interface WithBoardTask {
+  id: string
+  status: TaskStatus
+}
+
+interface BoardViewProps<T extends WithBoardTask> {
   tasks: T[]
   onMove: (id: string, status: TaskStatus) => void
   onReorder?: (id: string, status: TaskStatus, index: number) => void
@@ -22,7 +27,7 @@ const columns: { key: TaskStatus; title: string }[] = [
   { key: 'blocked', title: 'Blocked' },
 ]
 
-export default function BoardView<T extends { id: string; status: TaskStatus }>({ tasks, onMove, onReorder, renderCard }: BoardViewProps<T>) {
+export default function BoardView<T extends WithBoardTask>({ tasks, onMove, onReorder, renderCard }: BoardViewProps<T>) {
   const handleDropColumn = (e: React.DragEvent, status: TaskStatus) => {
     e.preventDefault()
     const id = e.dataTransfer.getData('text/task-id')
@@ -40,7 +45,7 @@ export default function BoardView<T extends { id: string; status: TaskStatus }>(
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
       {columns.map((col) => {
-        const colTasks = tasks.filter((t: any) => t.status === col.key)
+        const colTasks: T[] = tasks.filter((t) => t.status === col.key)
         return (
           <div key={col.key} className="bg-background border rounded p-2" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDropColumn(e, col.key)}>
             <div className="flex items-center justify-between mb-2">
@@ -48,7 +53,7 @@ export default function BoardView<T extends { id: string; status: TaskStatus }>(
               <Badge variant="outline" className="text-xs">{colTasks.length}</Badge>
             </div>
             <div className="space-y-2">
-              {colTasks.map((t: any, idx: number) => (
+              {colTasks.map((t: T, idx: number) => (
                 <div
                   key={t.id}
                   draggable

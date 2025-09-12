@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
+import { Prisma } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { taskCreateSchema } from '@/lib/validation'
@@ -38,11 +39,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ tasks: pageItems, pagination: { total: results.length, page, limit: take } })
     }
 
-    const where = q
+    const where: Prisma.TaskWhereInput | undefined = q
       ? {
           OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
+            { title: { contains: q, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : undefined
