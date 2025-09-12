@@ -5,7 +5,9 @@ export async function initSentry() {
     return
   }
   try {
-    const Sentry = await import('@sentry/nextjs')
+    if (process.env.NODE_ENV !== 'production') return
+    const mod = '@sentry/nextjs'
+    const Sentry = await import(mod)
     Sentry.init({
       dsn,
       tracesSampleRate: 0.1,
