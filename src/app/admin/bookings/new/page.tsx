@@ -977,7 +977,6 @@ export default function ProfessionalNewBooking() {
                     <option value="normal">Normal</option>
                     <option value="high">High Priority</option>
                     <option value="urgent">Urgent</option>
-                  </option>
                   </select>
                 </div>
 
