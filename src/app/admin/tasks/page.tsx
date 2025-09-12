@@ -106,6 +106,9 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
   const clearSelection = () => setSelectedIds([])
   const selectAllVisible = () => setSelectedIds(filteredAndSorted.map((t) => t.id))
 
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+
   const bulkUpdateStatus = async (status: TaskStatus) => {
     // optimistic update
     setTasks((prev) => prev.map((t) => (selectedIds.includes(t.id) ? { ...t, status, updatedAt: new Date().toISOString(), completionPercentage: status === 'completed' ? 100 : t.completionPercentage } : t)))
