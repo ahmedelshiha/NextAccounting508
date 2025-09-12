@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Clock,
   User as UserIcon,
@@ -780,6 +780,10 @@ export default function ProfessionalNewBooking() {
   const [clientSearchTerm, setClientSearchTerm] = useState('')
   const [serviceCategory, setServiceCategory] = useState('all')
   const [showPreview, setShowPreview] = useState(false)
+  const stepAnchorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    stepAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [currentStep])
 
   const steps = [
     { number: 1, title: 'Client', description: 'Select or create client' },
@@ -1275,6 +1279,8 @@ export default function ProfessionalNewBooking() {
             </div>
           </CardContent>
         </Card>
+
+        <div ref={stepAnchorRef}></div>
 
         <div className="mb-8">{loadingData ? (
           <div className="text-center py-8">
