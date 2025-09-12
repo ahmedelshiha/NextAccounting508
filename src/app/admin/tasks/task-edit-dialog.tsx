@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import AssigneeSelector from './assignee-selector'
 
 interface TaskEditDialogProps {
   task: any | null
