@@ -3,7 +3,8 @@ export async function register() {
   const enabled = process.env.NODE_ENV === 'production' && Boolean(dsn)
   if (!enabled) return
 
-  const { init } = await import('@sentry/nextjs')
+  const mod = '@sentry/nextjs'
+  const { init } = await import(mod)
   init({
     dsn,
     tracesSampleRate: 0.1,
