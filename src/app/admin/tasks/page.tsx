@@ -32,6 +32,8 @@ import {
 import VirtualizedTaskList from './virtualized-task-list'
 import BoardView from './board-view'
 import TaskEditDialog from './task-edit-dialog'
+import ExportButton from './export-button'
+import PaginationControls from './pagination-controls'
 
 interface TaskItem {
   id: string
