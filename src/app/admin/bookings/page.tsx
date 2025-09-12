@@ -863,12 +863,12 @@ export default function EnhancedBookingManagement() {
                                 </div>
                                 {teamMembers.length > 0 && (
                                   <div className="mt-1">
-                                    <Select value={b.assignedTeamMember?.id || ''} onValueChange={(v) => assignMember(b.id, v)}>
+                                    <Select value={b.assignedTeamMember?.id ?? 'unassigned'} onValueChange={(v) => assignMember(b.id, v === 'unassigned' ? '' : v)}>
                                       <SelectTrigger size="sm" className="w-48">
                                         <SelectValue placeholder="Assign staff" />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="">Unassigned</SelectItem>
+                                        <SelectItem value="unassigned">Unassigned</SelectItem>
                                         {teamMembers.map(tm => (
                                           <SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>
                                         ))}
