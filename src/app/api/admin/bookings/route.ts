@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
-import type { Prisma } from '@prisma/client'
+import { BookingStatus, Prisma } from '@prisma/client'
 import { hasPermission } from '@/lib/rbac'
 import { logAudit } from '@/lib/audit'
 
@@ -37,9 +36,9 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { clientName: { contains: search, mode: 'insensitive' } },
-        { clientEmail: { contains: search, mode: 'insensitive' } },
-        { service: { name: { contains: search, mode: 'insensitive' } } }
+        { clientName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { clientEmail: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { service: { name: { contains: search, mode: Prisma.QueryMode.insensitive } } }
       ]
     }
 
