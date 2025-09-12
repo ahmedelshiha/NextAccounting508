@@ -1,7 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-import { PrismaClient } from "@prisma/client";
-
 let exportedPrisma: any = null
 
 if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
