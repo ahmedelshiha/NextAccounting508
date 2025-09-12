@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import AssigneeSelector from './assignee-selector'
+import DependencyManager from './dependency-manager'
 
 interface TaskEditDialogProps {
   task: any | null
@@ -77,14 +78,13 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
 
             <div>
               <label className="text-sm">Dependencies</label>
-              <select multiple className="w-full border rounded px-2 py-1" value={(form.dependencies || [])} onChange={(e) => {
-                const opts = Array.from(e.target.selectedOptions).map((o: any) => o.value)
-                setForm((s: any) => ({ ...s, dependencies: opts }))
-              }}>
-                {(availableTasks || []).map((t) => (
-                  <option key={t.id} value={t.id}>{t.title}</option>
-                ))}
-              </select>
+              <div className="mt-1">
+                <DependencyManager
+                  available={availableTasks?.filter((x) => x.id !== task.id) || []}
+                  value={form.dependencies || []}
+                  onChange={(deps) => setForm((s: any) => ({ ...s, dependencies: deps }))}
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between">

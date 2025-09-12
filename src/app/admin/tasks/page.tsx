@@ -30,7 +30,7 @@ import {
   Settings,
 } from 'lucide-react'
 import VirtualizedTaskList from './virtualized-task-list'
-import BoardView from './board-view'
+import BoardAccessible from './board-accessible'
 import TaskEditDialog from './task-edit-dialog'
 import ExportButton from './export-button'
 import PaginationControls from './pagination-controls'
@@ -43,6 +43,8 @@ interface TaskItem {
   dueAt: string | null
   priority: 'LOW' | 'MEDIUM' | 'HIGH'
   status: 'OPEN' | 'IN_PROGRESS' | 'DONE' | string
+  boardStatus?: 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
+  position?: number
   assigneeId?: string | null
   createdAt?: string
   updatedAt?: string
@@ -82,6 +84,7 @@ export interface Task {
   tags?: string[]
   revenueImpact?: number
   complianceRequired: boolean
+  position?: number
 }
 
 interface TaskManagementProps {
@@ -219,6 +222,16 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
     return filtered
   }, [tasks, filters, sortBy])
 
+  const tasksForBoard = useMemo(() => {
+    const list = [...filteredAndSorted]
+    list.sort((a, b) => {
+      const pa = typeof a.position === 'number' ? a.position : 0
+      const pb = typeof b.position === 'number' ? b.position : 0
+      return pa - pb
+    })
+    return list
+  }, [filteredAndSorted])
+
   const updateTaskStatus = useCallback(
     async (taskId: string, status: TaskStatus) => {
       setTasks((prev) =>
@@ -237,6 +250,41 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
       await onTaskUpdate?.(taskId, { status })
     },
     [onTaskUpdate]
+  )
+
+  const reorderTask = useCallback(
+    async (taskId: string, targetStatus: TaskStatus, targetIndex: number) => {
+      setTasks((prev) => {
+        const moved = prev.find((t) => t.id === taskId)
+        if (!moved) return prev
+        const next = prev.map((t) => ({ ...t }))
+        // set new status
+        for (const t of next) if (t.id === taskId) t.status = targetStatus
+        // compute new order in target column
+        const column = next.filter((t) => t.status === targetStatus)
+        const others = column.filter((t) => t.id !== taskId)
+        const clamped = Math.max(0, Math.min(targetIndex, others.length))
+        const before = others.slice(0, clamped)
+        const after = others.slice(clamped)
+        const reordered = [...before, moved, ...after]
+        reordered.forEach((t, idx) => {
+          const item = next.find((x) => x.id === t.id)
+          if (item) item.position = idx
+        })
+        return next
+      })
+      try {
+        // persist positions for all tasks in the target column
+        const colTasks = tasks
+          .filter((t) => (t.id === taskId ? targetStatus : t.status) === targetStatus)
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+        const updates = colTasks.map((t, idx) => ({ id: t.id, boardStatus: targetStatus, position: idx }))
+        await fetch('/api/admin/tasks/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updates }) })
+      } catch (e) {
+        console.error('reorder failed', e)
+      }
+    },
+    [tasks]
   )
 
   const getPriorityColor = (p: string) => {
@@ -592,9 +640,10 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
       )}
 
       {viewMode === 'board' ? (
-        <BoardView
-          tasks={filteredAndSorted}
+        <BoardAccessible
+          tasks={tasksForBoard}
           onMove={(id, status) => updateTaskStatus(id, status)}
+          onReorder={(id, status, index) => reorderTask(id, status, index)}
           renderCard={(task) => <TaskCard key={(task as any).id} task={task as any} />}
         />
       ) : filteredAndSorted.length <= 60 ? (
@@ -731,6 +780,8 @@ export default function AdminTasksPage() {
         dueAt: t.dueAt ? String(t.dueAt) : null,
         priority: (t.priority as TaskItem['priority']) || 'MEDIUM',
         status: (t.status as TaskItem['status']) || 'OPEN',
+        boardStatus: (t.boardStatus as TaskItem['boardStatus']) || undefined,
+        position: typeof t.position === 'number' ? t.position : undefined,
         assigneeId: t.assigneeId ?? null,
         createdAt: t.createdAt ? String(t.createdAt) : undefined,
         updatedAt: t.updatedAt ? String(t.updatedAt) : undefined,
@@ -778,13 +829,14 @@ export default function AdminTasksPage() {
     title: t.title,
     priority: t.priority === 'HIGH' ? 'high' : t.priority === 'LOW' ? 'low' : 'medium',
     dueDate: t.dueAt ? String(t.dueAt) : new Date().toISOString(),
-    status: t.status === 'DONE' ? 'completed' : t.status === 'IN_PROGRESS' ? 'in_progress' : 'pending',
+    status: t.boardStatus ? (t.boardStatus as TaskStatus) : (t.status === 'DONE' ? 'completed' : t.status === 'IN_PROGRESS' ? 'in_progress' : 'pending'),
     category: 'system',
     estimatedHours: 0,
     completionPercentage: t.status === 'DONE' ? 100 : 0,
     createdAt: t.createdAt || new Date().toISOString(),
     updatedAt: t.updatedAt || new Date().toISOString(),
     complianceRequired: false,
+    position: t.position,
   } as Task)
 
   const uiTasks = tasks.map(mapApiToUi)
@@ -795,7 +847,10 @@ export default function AdminTasksPage() {
       if (updates.title !== undefined) payload.title = updates.title
       if (updates.dueDate !== undefined) payload.dueAt = updates.dueDate
       if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
-      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
+      if (updates.status !== undefined) {
+        payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
+        payload.boardStatus = updates.status
+      }
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
     } catch (e) { console.error('update failed', e) }
@@ -830,7 +885,10 @@ export default function AdminTasksPage() {
       if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
       if (updates.estimatedHours !== undefined) payload.estimatedHours = updates.estimatedHours
       if (updates.actualHours !== undefined) payload.actualHours = updates.actualHours
-      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+      if (updates.status !== undefined) {
+        payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+        payload.boardStatus = updates.status
+      }
 
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error(`Failed (${res.status})`)

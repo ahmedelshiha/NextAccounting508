@@ -1,0 +1,2 @@
+.task-focus:focus { outline: 3px solid rgba(99,102,241,0.8); outline-offset: 2px; }
+.task-activated { box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }

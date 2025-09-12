@@ -23,8 +23,10 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 - src/app/admin/tasks/assignee-selector.tsx — assignee selector (fetches team members)
 - src/app/admin/tasks/export-button.tsx — client export trigger (downloads CSV)
 - src/app/admin/tasks/pagination-controls.tsx — simple load-more control
+- src/app/admin/tasks/dependency-manager.tsx — dependency management UI used in the edit dialog
 - src/app/api/admin/tasks/updates/route.ts — SSE endpoint for real-time snapshots
 - src/app/api/admin/tasks/export/route.ts — server export endpoint (CSV/JSON)
+- src/app/api/admin/tasks/reorder/route.ts — endpoint to persist kanban reorder (boardStatus + position)
 
 ## Files modified (key)
 - src/app/admin/tasks/page.tsx — main UI wired to the new components and APIs
@@ -57,7 +59,7 @@ Notes:
 - [x] Tag filtering UI and dependency-management UI (client-side)
 - [x] Notifications & escalation rules (basic in-app notifications derived from overdue HIGH-priority tasks via SSE)
 - [x] Bulk operation server endpoints for atomic updates of many tasks (POST /api/admin/tasks/bulk, DELETE /api/admin/tasks/bulk)
-- [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
+- [x] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field) — implemented (added boardStatus & position fields, client reorder UI, and POST /api/admin/tasks/reorder endpoint)
 - [x] Unit & integration tests for the UI components and API endpoints (basic utils tests with Vitest)
 
 
@@ -71,7 +73,9 @@ Run tests locally:
 
 Notes:
 - Current tests cover utility mapping functions. Expand to component tests (React Testing Library) and API integration tests as next steps.
-- [ ] Accessibility improvements and keyboard interactions for board/virtualized views
+- [x] Accessibility improvements and keyboard interactions for board/virtualized views — BoardAccessible component added; VirtualizedTaskList updated with listbox/option ARIA roles and keyboard navigation (arrow keys, Home/End, PageUp/PageDown, Enter/Space activation)
+- [x] Unit & integration tests for Task components and API endpoints — in progress (configured Vitest, added setup, added virtualized keyboard test)
+- [~] Observability & security: Sentry and Semgrep — in progress (added lazy Sentry initializer, ClientLayout initialization, and .semgrep.yml; install @sentry/nextjs and set SENTRY_DSN to enable)
 
 Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
 
@@ -122,9 +126,10 @@ Note: To connect any MCP, open the MCP popover in the Builder UI and select the 
 ---
 
 ## Changes summary (git)
-- New components: `virtualized-task-list.tsx`, `board-view.tsx`, `task-edit-dialog.tsx`
-- API: `src/app/api/admin/tasks/route.ts` (search q), `src/app/api/admin/tasks/[id]/route.ts` (DELETE), `src/app/api/admin/tasks/updates/route.ts` (SSE)
+- New components: `virtualized-task-list.tsx`, `board-view.tsx`, `task-edit-dialog.tsx`, `dependency-manager.tsx`
+- API: `src/app/api/admin/tasks/route.ts` (search q), `src/app/api/admin/tasks/[id]/route.ts` (DELETE), `src/app/api/admin/tasks/updates/route.ts` (SSE), `src/app/api/admin/tasks/reorder/route.ts` (reorder positions)
 - Main page updated: `src/app/admin/tasks/page.tsx`
+- Prisma schema updated: added `boardStatus`, `position`, and `dependencies` fields to `Task` model
 
 ---
 
