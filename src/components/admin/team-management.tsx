@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import {
   Users,
   Edit,
@@ -558,10 +559,13 @@ export default function TeamManagement() {
           <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
           <p className="text-gray-600">Manage team members and their assignments</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add Team Member
-        </button>
+        <div className="flex items-center gap-2">
+          <Link href="/admin" className="border border-gray-300 text-gray-700 bg-white px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">Back to Dashboard</Link>
+          <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add Team Member
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
