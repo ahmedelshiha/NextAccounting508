@@ -7,8 +7,10 @@ import { Download } from 'lucide-react'
 export default function ExportButton({ q }: { q?: string }) {
   const handleExport = async () => {
     try {
-      const qp = q ? `?q=${encodeURIComponent(q)}` : ''
-      const res = await fetch(`/api/admin/tasks/export${qp}&format=csv`)
+      const params = new URLSearchParams()
+      if (q) params.set('q', q)
+      params.set('format', 'csv')
+      const res = await fetch(`/api/admin/tasks/export?${params.toString()}`)
       if (!res.ok) throw new Error('Failed to export')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
