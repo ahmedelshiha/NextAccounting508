@@ -1430,16 +1430,16 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
 
   const serviceLabels = (analytics?.revenueByService?.map((s) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
   const serviceValues = (analytics?.revenueByService?.map((s) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
-  const pieData: ChartData<'pie', number[], string> = {
+  const pieData = {
     labels: serviceLabels,
     datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
   }
-  const pieOptions: ChartOptions<'pie'> = { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
+  const pieOptions = { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
 
   const dailyLabels = (analytics?.dailyBookings?.map((d, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
   const dailyValues = (analytics?.dailyBookings?.map((d) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
-  const barData: ChartData<'bar', number[], string> = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
-  const barOptions: ChartOptions<'bar'> = { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }
+  const barData = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
+  const barOptions = { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
