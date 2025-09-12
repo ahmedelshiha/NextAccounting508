@@ -303,12 +303,12 @@ export default function AdminBookingDetailPage() {
                     <span>{booking.assignedTeamMember?.name || 'Unassigned'}</span>
                   </div>
                   {teamMembers.length > 0 && (
-                    <Select value={booking.assignedTeamMember?.id || ''} onValueChange={(v) => updateAssignment(v)}>
+                    <Select value={booking.assignedTeamMember?.id ?? 'unassigned'} onValueChange={(v) => updateAssignment(v === 'unassigned' ? '' : v)}>
                       <SelectTrigger size="sm" className="w-56">
                         <SelectValue placeholder="Assign staff" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {teamMembers.map(tm => (<SelectItem key={tm.id} value={tm.id}>{tm.name}</SelectItem>))}
                       </SelectContent>
                     </Select>
