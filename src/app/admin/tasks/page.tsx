@@ -484,11 +484,20 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredAndSorted.map((t) => (
-          <TaskCard key={t.id} task={t} />
-        ))}
-      </div>
+      {filteredAndSorted.length <= 60 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredAndSorted.map((t) => (
+            <TaskCard key={t.id} task={t} />
+          ))}
+        </div>
+      ) : (
+        <VirtualizedTaskList
+          tasks={filteredAndSorted}
+          itemHeight={320}
+          overscan={4}
+          renderItem={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+        />
+      )}
 
       {filteredAndSorted.length === 0 && (
         <Card>
