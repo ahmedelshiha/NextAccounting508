@@ -74,12 +74,19 @@ const enableSentryUpload = process.env.SENTRY_UPLOAD_SOURCEMAPS === 'true' && !!
 
 const finalConfig = withBundleAnalyzer(nextConfig)
 
-module.exports = enableSentryUpload
-  ? withSentryConfig(finalConfig, {
+if (enableSentryUpload) {
+  try {
+    const { withSentryConfig: sentryWrap } = require('@sentry/nextjs')
+    module.exports = sentryWrap(finalConfig, {
       silent: true,
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       authToken: process.env.SENTRY_AUTH_TOKEN,
       sourcemaps: { deleteSourcemapsAfterUpload: true },
     })
-  : finalConfig
+  } catch {
+    module.exports = finalConfig
+  }
+} else {
+  module.exports = finalConfig
+}
