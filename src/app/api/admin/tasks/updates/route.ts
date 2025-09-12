@@ -1,0 +1,78 @@
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
+import prisma from '@/lib/prisma'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// Simple server-sent events endpoint that pushes task summaries every 5s
+export async function GET(request: Request) {
+  const session = await getServerSession(authOptions as any)
+  if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
+  const encoder = new TextEncoder()
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      let i = 0
+      let closed = false
+
+      // clean up when client disconnects
+      request.signal.addEventListener('abort', () => {
+        closed = true
+      })
+
+      async function sendSnapshot() {
+        if (closed) return
+        try {
+          const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+          let tasks
+          if (!hasDb) {
+            tasks = [
+              { id: 't1', title: 'Send monthly newsletters', dueAt: null, priority: 'HIGH', status: 'OPEN' },
+              { id: 't2', title: 'Review pending bookings', dueAt: null, priority: 'MEDIUM', status: 'OPEN' },
+            ]
+          } else {
+            tasks = await prisma.task.findMany({ orderBy: { updatedAt: 'desc' }, take: 50, select: { id: true, title: true, updatedAt: true } })
+          }
+          const payload = JSON.stringify({ ts: Date.now(), tasks })
+          controller.enqueue(encoder.encode(`data: ${payload}\n\n`))
+        } catch (err) {
+          controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: 'error' })}\n\n`))
+        }
+      }
+
+      // initial send
+      await sendSnapshot()
+
+      // periodic
+      const iv = setInterval(() => sendSnapshot(), 5000)
+
+      // keep stream alive padding
+      const pingIv = setInterval(() => {
+        if (closed) return
+        controller.enqueue(encoder.encode(': ping\n\n'))
+      }, 20000)
+
+      // cleanup
+      const cleanup = () => {
+        clearInterval(iv)
+        clearInterval(pingIv)
+        controller.close()
+      }
+
+      request.signal.addEventListener('abort', cleanup)
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
+}
