@@ -9,6 +9,7 @@ import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import {
   Calendar,
   Clock,
@@ -25,8 +26,16 @@ import {
   DollarSign,
   AlertTriangle,
   FileText,
+  TrendingUp,
   Settings,
 } from 'lucide-react'
+import VirtualizedTaskList from './virtualized-task-list'
+import BoardView from './board-view'
+import TaskEditDialog from './task-edit-dialog'
+import ExportButton from './export-button'
+import PaginationControls from './pagination-controls'
+import NotificationsPanel from './notifications-panel'
+import TagFilter from './tag-filter'
 
 interface TaskItem {
   id: string
@@ -80,13 +89,85 @@ interface TaskManagementProps {
   onTaskUpdate?: (taskId: string, updates: Partial<Task>) => Promise<void> | void
   onTaskCreate?: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void> | void
   onTaskDelete?: (taskId: string) => Promise<void> | void
+  onSearch?: (q: string) => void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _onTaskCreate }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, onSearch }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '' })
+  const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string; tag?: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '', tag: undefined })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
   const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee'>('dueDate')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createForm, setCreateForm] = useState<{ title: string; dueDate: string; priority: Priority }>({ title: '', dueDate: '', priority: 'medium' })
+  const assigneeOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of tasks) if (t.assignee) s.add(t.assignee)
+    return Array.from(s)
+  }, [tasks])
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const toggleSelect = (id: string) => setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
+  const clearSelection = () => setSelectedIds([])
+  const selectAllVisible = () => setSelectedIds(filteredAndSorted.map((t) => t.id))
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+
+  const bulkUpdateStatus = async (status: TaskStatus) => {
+    if (selectedIds.length === 0) return
+    // optimistic update locally
+    setTasks((prev) => prev.map((t) => (selectedIds.includes(t.id) ? { ...t, status, updatedAt: new Date().toISOString(), completionPercentage: status === 'completed' ? 100 : t.completionPercentage } : t)))
+    try {
+      const payload = { ids: selectedIds, updates: { status } }
+      const res = await apiFetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error(`Bulk update failed (${res.status})`)
+      // optionally reload full list via parent onTaskUpdate handlers or SSE
+    } catch (e) {
+      console.error('bulk update failed', e)
+      // revert naive: reload page data via SSE or inform parent
+    }
+    clearSelection()
+  }
+
+  const bulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    if (!confirm(`Delete ${selectedIds.length} tasks? This cannot be undone.`)) return
+    try {
+      const res = await apiFetch('/api/admin/tasks/bulk', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: selectedIds }) })
+      if (!res.ok) throw new Error(`Bulk delete failed (${res.status})`)
+      // update local state
+      setTasks((prev) => prev.filter((t) => !selectedIds.includes(t.id)))
+      clearSelection()
+    } catch (e) {
+      console.error('bulk delete failed', e)
+      alert('Bulk delete failed')
+    }
+  }
+
+  const exportSelectedCsv = () => {
+    if (selectedIds.length === 0) return
+    const rows = [['id','title','status','priority','dueDate','assignee','estimatedHours','actualHours','revenueImpact']]
+    for (const t of tasks.filter((x) => selectedIds.includes(x.id))) {
+      rows.push([t.id, t.title, t.status, t.priority, t.dueDate, t.assignee || '', String(t.estimatedHours || 0), String(t.actualHours ?? ''), String(t.revenueImpact ?? '')])
+    }
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tasks_export_${Date.now()}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // debounce search -> inform parent to perform server-side search
+  useEffect(() => {
+    if (!onSearch) return
+    const handler = setTimeout(() => {
+      onSearch(filters.search.trim())
+    }, 400)
+    return () => clearTimeout(handler)
+  }, [filters.search, onSearch])
 
   const taskStats = useMemo(() => {
     const now = new Date()
@@ -116,7 +197,8 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
       const byAssignee = filters.assignee === 'all' || t.assignee === filters.assignee
       const q = filters.search.trim().toLowerCase()
       const bySearch = !q || t.title.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)
-      return byStatus && byPriority && byCategory && byAssignee && bySearch
+      const byTag = !filters.tag || !filters.tag.length || (t.tags || []).includes(filters.tag as string)
+      return byStatus && byPriority && byCategory && byAssignee && bySearch && byTag
     })
 
     const order: Record<Priority, number> = { critical: 4, high: 3, medium: 2, low: 1 }
@@ -200,7 +282,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
       case 'system':
         return Settings
       case 'marketing':
-        return AlertTriangle
+        return TrendingUp
       case 'booking':
         return Calendar
       default:
@@ -220,6 +302,13 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(task.id)}
+                onChange={(e) => { e.stopPropagation(); toggleSelect(task.id) }}
+                onClick={(e) => e.stopPropagation()}
+                className="h-4 w-4"
+              />
               <div className={`p-2 rounded-lg ${getPriorityColor(task.priority)} border`}>
                 <CategoryIcon className="h-4 w-4" />
               </div>
@@ -282,6 +371,19 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                 <span className="capitalize">{task.category}</span>
               </div>
             </div>
+            {typeof task.actualHours === 'number' && (
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <Clock className="h-3 w-3" />
+                <span>{task.actualHours}h actual</span>
+                {(() => {
+                  const delta = (task.actualHours || 0) - (task.estimatedHours || 0)
+                  const positive = delta > 0
+                  const cls = positive ? 'text-red-600 bg-red-50 border-red-200' : 'text-green-600 bg-green-50 border-green-200'
+                  const sign = positive ? '+' : ''
+                  return <Badge variant="outline" className={`px-1 py-0 ${cls}`}>{`Δ ${sign}${delta.toFixed(1)}h`}</Badge>
+                })()}
+              </div>
+            )}
             {typeof task.revenueImpact === 'number' && (
               <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 rounded p-2">
                 <DollarSign className="h-3 w-3" />
@@ -302,6 +404,21 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                 )}
               </div>
             )}
+
+            {task.dependencies && task.dependencies.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2 text-xs">
+                <div className="text-xs text-gray-500 mr-2">Dependencies:</div>
+                {task.dependencies.slice(0,3).map((depId) => {
+                  const dep = tasks.find((x) => x.id === depId)
+                  return (
+                    <Badge key={depId} variant="outline" className="text-xs px-1 py-0">
+                      {dep ? dep.title : depId}
+                    </Badge>
+                  )
+                })}
+                {task.dependencies.length > 3 && <Badge variant="outline" className="text-xs px-1 py-0">+{task.dependencies.length - 3}</Badge>}
+              </div>
+            )}
           </div>
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
             <div className="flex gap-1">
@@ -317,7 +434,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                 </Button>
               )}
             </div>
-            <Button variant="ghost" size="sm" className="text-xs">
+            <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setSelectedTask(task); setShowTaskModal(true) }}>
               <Eye className="h-3 w-3 mr-1" />
               Details
             </Button>
@@ -363,7 +480,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!onTaskCreate}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -404,6 +521,20 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                   ))}
                 </select>
               ))}
+              <select
+                value={filters.assignee}
+                onChange={(e) => setFilters((p) => ({ ...p, assignee: e.target.value }))}
+                className="border rounded px-3 py-2 text-sm capitalize"
+              >
+                <option value="all">all</option>
+                {assigneeOptions.map((name) => (
+                  <option key={name} value={name} className="capitalize">{name}</option>
+                ))}
+              </select>
+
+              <div className="ml-2">
+                <TagFilter tasks={tasks} value={filters.tag} onChange={(t) => setFilters((p) => ({ ...p, tag: t }))} />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -436,16 +567,50 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
                   </Button>
                 ))}
               </div>
+              <div className="ml-2">
+                <ExportButton q={filters.search} />
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredAndSorted.map((t) => (
-          <TaskCard key={t.id} task={t} />
-        ))}
-      </div>
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between bg-white border rounded p-3">
+          <div className="flex items-center gap-3">
+            <div className="text-sm font-medium">{selectedIds.length} selected</div>
+            <Button variant="ghost" size="sm" onClick={selectAllVisible}>Select all visible</Button>
+            <Button variant="ghost" size="sm" onClick={clearSelection}>Clear</Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => bulkUpdateStatus('in_progress')}>Mark In Progress</Button>
+            <Button size="sm" onClick={() => bulkUpdateStatus('completed')}>Mark Completed</Button>
+            <Button variant="destructive" size="sm" onClick={bulkDelete}>Delete</Button>
+            <Button size="sm" onClick={exportSelectedCsv}>Export CSV</Button>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'board' ? (
+        <BoardView
+          tasks={filteredAndSorted}
+          onMove={(id, status) => updateTaskStatus(id, status)}
+          renderCard={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+        />
+      ) : filteredAndSorted.length <= 60 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredAndSorted.map((t) => (
+            <TaskCard key={t.id} task={t} />
+          ))}
+        </div>
+      ) : (
+        <VirtualizedTaskList
+          tasks={filteredAndSorted}
+          itemHeight={320}
+          overscan={4}
+          renderItem={(task) => <TaskCard key={(task as any).id} task={task as any} />}
+        />
+      )}
 
       {filteredAndSorted.length === 0 && (
         <Card>
@@ -453,13 +618,93 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _
             <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
             <p className="text-gray-600 mb-4">Try adjusting your filters or create a new task.</p>
-            <Button>
+            <Button onClick={() => setCreateOpen(true)} disabled={!onTaskCreate}>
               <Plus className="h-4 w-4 mr-2" />
               Create New Task
             </Button>
           </CardContent>
         </Card>
       )}
+
+      <PaginationControls hasMore={hasMore} onLoadMore={async () => { await loadTasks(filters.search || '', page + 1, true) }} />
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Task</DialogTitle>
+          </DialogHeader>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              if (!onTaskCreate) { setCreateOpen(false); return }
+              const dueIso = createForm.dueDate ? new Date(createForm.dueDate).toISOString() : new Date().toISOString()
+              await onTaskCreate({
+                title: createForm.title,
+                description: undefined,
+                priority: createForm.priority,
+                dueDate: dueIso,
+                assignee: undefined,
+                assigneeAvatar: undefined,
+                status: 'pending',
+                category: 'system',
+                estimatedHours: 0,
+                actualHours: undefined,
+                completionPercentage: 0,
+                dependencies: undefined,
+                clientId: undefined,
+                bookingId: undefined,
+                completedAt: undefined,
+                tags: undefined,
+                revenueImpact: undefined,
+                complianceRequired: false,
+              })
+              setCreateForm({ title: '', dueDate: '', priority: 'medium' })
+              setCreateOpen(false)
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-1">
+              <label className="text-sm text-gray-700">Title</label>
+              <input
+                value={createForm.title}
+                onChange={(e) => setCreateForm((p) => ({ ...p, title: e.target.value }))}
+                className="w-full border rounded px-3 py-2 text-sm"
+                placeholder="Task title"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Due date</label>
+                <input
+                  type="date"
+                  value={createForm.dueDate}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, dueDate: e.target.value }))}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm text-gray-700">Priority</label>
+                <select
+                  value={createForm.priority}
+                  onChange={(e) => setCreateForm((p) => ({ ...p, priority: e.target.value as Priority }))}
+                  className="w-full border rounded px-3 py-2 text-sm capitalize"
+                >
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={!createForm.title.trim()}>Create</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <TaskEditDialog task={selectedTask} availableTasks={tasks.map((t) => ({ id: t.id, title: t.title }))} open={showTaskModal} onOpenChange={(v) => setShowTaskModal(v)} onSave={async (id, updates) => { await onTaskUpdate?.(id, updates); setTasks((prev) => prev.map((t) => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t)); }} onDelete={async (id) => { await onTaskDelete?.(id); setTasks((prev) => prev.filter((t) => t.id !== id)); setShowTaskModal(false); }} />
     </div>
   )
 }
@@ -468,12 +713,18 @@ export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const loadTasks = useCallback(async () => {
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+
+  const loadTasks = useCallback(async (q?: string, p = 1, append = false) => {
     try {
       setErrorMsg(null)
-      const res = await apiFetch('/api/admin/tasks?limit=50')
+      const qp = q ? `&q=${encodeURIComponent(q)}` : ''
+      const res = await apiFetch(`/api/admin/tasks?limit=50&page=${p}${qp}`)
       if (!res.ok) throw new Error(`Failed (${res.status})`)
-      const list = (await res.json()) as TaskItem[]
+      const data = await res.json()
+      // server returns { tasks, pagination }
+      const list = Array.isArray(data.tasks) ? data.tasks : data
       const normalized = (Array.isArray(list) ? list : []).map((t) => ({
         id: t.id,
         title: t.title,
@@ -484,7 +735,13 @@ export default function AdminTasksPage() {
         createdAt: t.createdAt ? String(t.createdAt) : undefined,
         updatedAt: t.updatedAt ? String(t.updatedAt) : undefined,
       }))
-      setTasks(normalized)
+
+      setTasks((prev) => (append ? [...prev, ...normalized] : normalized))
+
+      const pagination = data.pagination || { total: normalized.length, page: p, limit: 50 }
+      const total = pagination.total || 0
+      setHasMore(p * pagination.limit < total)
+      setPage(p)
     } catch (e) {
       console.error('loadTasks error', e)
       setErrorMsg('Unable to load tasks')
@@ -494,6 +751,28 @@ export default function AdminTasksPage() {
 
   useEffect(() => { loadTasks() }, [loadTasks])
 
+  // Real-time updates via SSE: reload list on events
+  useEffect(() => {
+    let es: EventSource | null = null
+    try {
+      es = new EventSource('/api/admin/tasks/updates')
+      es.onmessage = () => {
+        loadTasks()
+      }
+      es.onerror = (e) => {
+        // silently ignore, will attempt reconnect from server
+        console.debug('SSE error', e)
+        es?.close()
+      }
+    } catch (e) {
+      console.debug('SSE not available', e)
+    }
+    return () => es?.close()
+  }, [loadTasks])
+
+  // map API TaskItem to UI Task using shared utils
+  import('./utils').then(m => {})
+  // fallback inline mapping (used if dynamic import not resolved)
   const mapApiToUi = (t: TaskItem) => ({
     id: t.id,
     title: t.title,
@@ -534,6 +813,31 @@ export default function AdminTasksPage() {
     } catch (e) { console.error('create failed', e) }
   }
 
+  const onTaskDelete = async (id: string) => {
+    try {
+      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Failed (${res.status})`)
+      await loadTasks()
+    } catch (e) { console.error('delete failed', e) }
+  }
+
+  const onTaskSave = async (id: string, updates: Record<string, any>) => {
+    try {
+      const payload: Record<string, unknown> = {}
+      if (updates.title !== undefined) payload.title = updates.title
+      if (updates.description !== undefined) payload.description = updates.description
+      if (updates.dueDate !== undefined) payload.dueAt = updates.dueDate
+      if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
+      if (updates.estimatedHours !== undefined) payload.estimatedHours = updates.estimatedHours
+      if (updates.actualHours !== undefined) payload.actualHours = updates.actualHours
+      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+
+      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error(`Failed (${res.status})`)
+      await loadTasks()
+    } catch (e) { console.error('save failed', e) }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -549,11 +853,12 @@ export default function AdminTasksPage() {
             <p className="text-gray-600">Create, assign, and track admin tasks</p>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationsPanel />
             <Button asChild variant="outline"><Link href="/admin">Back to Dashboard</Link></Button>
             <Button asChild variant="outline"><Link href="/admin/tasks/new">Quick Task</Link></Button>
           </div>
         </div>
-        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} />
+        <TaskManagementSystem initialTasks={uiTasks} onTaskUpdate={onTaskUpdate} onTaskCreate={onTaskCreate} onTaskDelete={onTaskDelete} onSearch={(q) => loadTasks(q)} />
       </div>
     </div>
   )

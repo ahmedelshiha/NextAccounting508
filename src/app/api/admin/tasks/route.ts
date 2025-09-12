@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// GET /api/admin/tasks?limit=10
+// GET /api/admin/tasks?limit=10&q=search
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const limitParam = searchParams.get('limit')
-    const take = limitParam ? Math.min(parseInt(limitParam, 10) || 10, 50) : 10
+    const q = (searchParams.get('q') || '').trim()
+    const pageParam = searchParams.get('page')
+    const page = pageParam ? Math.max(parseInt(pageParam, 10) || 1, 1) : 1
+    const take = limitParam ? Math.min(parseInt(limitParam, 10) || 10, 100) : 10
+    const skip = (page - 1) * take
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
@@ -28,15 +32,33 @@ export async function GET(request: NextRequest) {
         { id: 't2', title: 'Review pending bookings', dueAt: null, priority: 'MEDIUM', status: 'OPEN', assigneeId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: 't3', title: 'Update service pricing', dueAt: null, priority: 'LOW', status: 'IN_PROGRESS', assigneeId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
-      return NextResponse.json(fallback.slice(0, take))
+
+      const results = q ? fallback.filter((t) => t.title.toLowerCase().includes(q.toLowerCase())) : fallback
+      const pageItems = results.slice(skip, skip + take)
+      return NextResponse.json({ tasks: pageItems, pagination: { total: results.length, page, limit: take } })
     }
 
-    const tasks = await prisma.task.findMany({
-      orderBy: { createdAt: 'desc' },
-      take,
-      select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
-    })
-    return NextResponse.json(tasks)
+    const where = q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : undefined
+
+    const [total, tasks] = await Promise.all([
+      prisma.task.count({ where }),
+      prisma.task.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
+      })
+    ])
+
+    return NextResponse.json({ tasks, pagination: { total, page, limit: take } })
   } catch (error) {
     console.error('Error fetching tasks:', error)
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
