@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -63,7 +63,16 @@ interface TeamMemberLite { id: string; name: string; email: string }
 
 export default function AdminBookingDetailPage() {
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const id = params?.id
+
+  const isEditMode = (searchParams?.get('edit') === '1')
+  const [editDate, setEditDate] = useState('')
+  const [editTime, setEditTime] = useState('')
+  const [editPrice, setEditPrice] = useState('')
+  const [newNote, setNewNote] = useState('')
+  const [currentUserName, setCurrentUserName] = useState('')
 
   const [booking, setBooking] = useState<BookingDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -92,6 +101,17 @@ export default function AdminBookingDetailPage() {
         if (!ignore) {
           setBooking(data)
           setAdminNotes(data?.adminNotes || '')
+          try {
+            const d = new Date(data?.scheduledAt)
+            const iso = d.toISOString()
+            setEditDate(iso.split('T')[0])
+            setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
+          } catch {}
+          try {
+            const pRaw = (data?.service?.price as unknown)
+            const pNum = typeof pRaw === 'string' ? parseFloat(pRaw) : typeof pRaw === 'number' ? pRaw : Number((pRaw as { toString?: () => string })?.toString?.() || '0')
+            setEditPrice(Number.isFinite(pNum) && pNum > 0 ? String(pNum) : '')
+          } catch {}
         }
       } catch {
         if (!ignore) setError('Could not fetch booking')
@@ -112,6 +132,19 @@ export default function AdminBookingDetailPage() {
     })()
     return () => { ignore = true }
   }, [id])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await apiFetch('/api/users/me')
+        if (!res.ok) return
+        const j = await res.json().catch(() => ({}))
+        if (!cancelled) setCurrentUserName(j?.user?.name || j?.user?.email || 'Admin')
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -190,6 +223,41 @@ export default function AdminBookingDetailPage() {
       // ignore
     } finally {
       setAssigning(false)
+    }
+  }
+
+  async function saveSchedule() {
+    if (!booking || !editDate || !editTime) return
+    try {
+      const scheduledAt = new Date(`${editDate}T${editTime}:00`)
+      const res = await apiFetch(`/api/bookings/${booking.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: scheduledAt.toISOString() })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setBooking(data)
+        const d = new Date(data.scheduledAt)
+        const iso = d.toISOString()
+        setEditDate(iso.split('T')[0])
+        setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
+        try {
+          if (booking.service?.slug && editPrice !== '') {
+            const priceNum = parseFloat(editPrice)
+            if (Number.isFinite(priceNum)) {
+              await apiFetch(`/api/services/${booking.service.slug}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ price: priceNum })
+              })
+            }
+          }
+        } catch {}
+        router.replace(`/admin/bookings/${booking.id}`)
+      }
+    } catch {
+      // ignore
     }
   }
 
@@ -288,14 +356,34 @@ export default function AdminBookingDetailPage() {
                     <span>{formatCurrencyFromDecimal(booking.service.price)}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span>{formatDate(booking.scheduledAt)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span>{formatTime(booking.scheduledAt)}</span>
-                </div>
+                {!isEditMode ? (
+                  <>
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span>{formatDate(booking.scheduledAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <Clock className="h-4 w-4 text-gray-500" />
+                      <span>{formatTime(booking.scheduledAt)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Date</label>
+                      <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Time</label>
+                      <input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" />
+                    </div>
+                    <div className="col-span-2 flex gap-2">
+                      <Button size="sm" onClick={saveSchedule}><Save className="h-4 w-4 mr-1" />Save Changes</Button>
+                      <Button size="sm" variant="outline" onClick={() => router.replace(`/admin/bookings/${booking.id}`)}>Cancel</Button>
+                    </div>
+                  </div>
+                )
+                }
                 <div className="space-y-2 pt-2">
                   <div className="text-sm font-medium text-gray-900">Assigned Staff</div>
                   <div className="flex items-center gap-2 text-sm text-gray-700">

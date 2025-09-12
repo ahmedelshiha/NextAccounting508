@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Clock,
   User as UserIcon,
@@ -29,6 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 // Data types
 interface Service {
@@ -466,7 +467,7 @@ function ServiceSelector({
                 <Badge className={`text-xs ${getCategoryColor(service.category)}`}>{service.category}</Badge>
               </div>
 
-              <p className="text-sm text-gray-600 mb-3">{service.description}</p>
+              <p className="text-sm text-gray-600 mb-3">{(service.description || '').length > 120 ? `${service.description.slice(0, 120)}…` : (service.description || '')}</p>
 
               <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div className="flex items-center gap-2">
@@ -677,6 +678,7 @@ function SchedulingSection({
 }
 
 export default function ProfessionalNewBooking() {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<BookingFormData>>({
@@ -780,6 +782,10 @@ export default function ProfessionalNewBooking() {
   const [clientSearchTerm, setClientSearchTerm] = useState('')
   const [serviceCategory, setServiceCategory] = useState('all')
   const [showPreview, setShowPreview] = useState(false)
+  const stepAnchorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    stepAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [currentStep])
 
   const steps = [
     { number: 1, title: 'Client', description: 'Select or create client' },
@@ -872,26 +878,11 @@ export default function ProfessionalNewBooking() {
         throw new Error(err.error || 'Failed to create booking')
       }
       const booking = await res.json()
-      console.log('Booking created:', booking)
-      alert('Booking created successfully!')
-      setCurrentStep(1)
-      setFormData({
-        isNewClient: false,
-        clientType: 'individual',
-        location: 'office',
-        priority: 'normal',
-        isRecurring: false,
-        source: 'direct',
-        timezone: 'Africa/Cairo',
-        requiresPreparation: false,
-        followUpRequired: false
-      })
-      setSelectedClient(undefined)
-      setSelectedService(undefined)
-      setAssignedStaff(undefined)
-      setClientSearchTerm('')
-      setServiceCategory('all')
-      setShowPreview(false)
+      const bookingId = booking?.id
+      if (bookingId) {
+        router.push(`/admin/bookings/${bookingId}`)
+        return
+      }
     } catch (error) {
       console.error('Error creating booking:', error)
       alert('Failed to create booking. Please try again.')
@@ -1275,6 +1266,8 @@ export default function ProfessionalNewBooking() {
             </div>
           </CardContent>
         </Card>
+
+        <div ref={stepAnchorRef}></div>
 
         <div className="mb-8">{loadingData ? (
           <div className="text-center py-8">
