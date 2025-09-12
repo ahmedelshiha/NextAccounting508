@@ -242,6 +242,18 @@ export default function AdminBookingDetailPage() {
         const iso = d.toISOString()
         setEditDate(iso.split('T')[0])
         setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
+        try {
+          if (booking.service?.slug && editPrice !== '') {
+            const priceNum = parseFloat(editPrice)
+            if (Number.isFinite(priceNum)) {
+              await apiFetch(`/api/services/${booking.service.slug}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ price: priceNum })
+              })
+            }
+          }
+        } catch {}
         router.replace(`/admin/bookings/${booking.id}`)
       }
     } catch {
