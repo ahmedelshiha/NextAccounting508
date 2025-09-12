@@ -46,38 +46,51 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
     }
   }
 
+  const [announcement, setAnnouncement] = useState<string>('')
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (tasks.length === 0) return
     let handled = false
     if (e.key === 'ArrowDown') {
-      setActiveIndex((i) => { const next = Math.min(i + 1, tasks.length - 1); scrollToIndex(next); return next })
+      setActiveIndex((i) => { const next = Math.min(i + 1, tasks.length - 1); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
       handled = true
     } else if (e.key === 'ArrowUp') {
-      setActiveIndex((i) => { const next = Math.max(i - 1, 0); scrollToIndex(next); return next })
+      setActiveIndex((i) => { const next = Math.max(i - 1, 0); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
       handled = true
     } else if (e.key === 'Home') {
-      setActiveIndex(0); scrollToIndex(0); handled = true
+      setActiveIndex(0); scrollToIndex(0); setAnnouncement(`Focused ${getTaskTitle(0)}`); handled = true
     } else if (e.key === 'End') {
-      setActiveIndex(tasks.length - 1); scrollToIndex(tasks.length - 1); handled = true
+      setActiveIndex(tasks.length - 1); scrollToIndex(tasks.length - 1); setAnnouncement(`Focused ${getTaskTitle(tasks.length - 1)}`); handled = true
     } else if (e.key === 'PageDown') {
-      // move by visible page (rows * columns)
       const visibleRows = Math.max(1, Math.floor((window.innerHeight * 0.7) / itemHeight))
       const delta = visibleRows * columns
-      setActiveIndex((i) => { const next = Math.min(i + delta, tasks.length - 1); scrollToIndex(next); return next })
+      setActiveIndex((i) => { const next = Math.min(i + delta, tasks.length - 1); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
       handled = true
     } else if (e.key === 'PageUp') {
       const visibleRows = Math.max(1, Math.floor((window.innerHeight * 0.7) / itemHeight))
       const delta = visibleRows * columns
-      setActiveIndex((i) => { const next = Math.max(i - delta, 0); scrollToIndex(next); return next })
+      setActiveIndex((i) => { const next = Math.max(i - delta, 0); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
       handled = true
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       const item = tasks[activeIndex]
-      if (item && onActivate) onActivate(item, activeIndex)
+      if (item) {
+        setAnnouncement(`${getTaskTitle(activeIndex)} activated`)
+        if (onActivate) onActivate(item, activeIndex)
+        // focus the item element if rendered
+        const el = document.getElementById(`task-item-${(item as any).id}`) as HTMLElement | null
+        el?.focus()
+      }
       handled = true
     }
 
     if (handled) e.preventDefault()
+  }
+
+  const getTaskTitle = (index: number) => {
+    const t = tasks[index]
+    if (!t) return 'item'
+    return (t as any).title || `item ${index + 1}`
   }
 
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
