@@ -63,7 +63,7 @@ export default function BoardAccessible<T extends { id: string; status: TaskStat
       aria-pressed={picked === t.id}
       aria-label={`Task ${t.title}. Priority ${t.priority || 'medium'}. Press space to ${picked === t.id ? 'drop' : 'pick up'}.`}
       onKeyDown={(e) => onCardKeyDown(e, t.id, t.status, idx)}
-      className={`focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 ${picked === t.id ? 'ring-2 ring-dashed ring-indigo-300' : ''}`}
+      className={`focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 ${picked === t.id ? 'ring-2 ring-indigo-300' : ''}`}
       onDoubleClick={() => {
         // double click toggles pick/drop
         setPicked((p) => (p === t.id ? null : t.id))
