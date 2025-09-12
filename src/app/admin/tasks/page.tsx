@@ -114,10 +114,17 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
   const [showTaskModal, setShowTaskModal] = useState(false)
 
   const bulkUpdateStatus = async (status: TaskStatus) => {
-    // optimistic update
+    if (selectedIds.length === 0) return
+    // optimistic update locally
     setTasks((prev) => prev.map((t) => (selectedIds.includes(t.id) ? { ...t, status, updatedAt: new Date().toISOString(), completionPercentage: status === 'completed' ? 100 : t.completionPercentage } : t)))
-    for (const id of selectedIds) {
-      await onTaskUpdate?.(id, { status })
+    try {
+      const payload = { ids: selectedIds, updates: { status } }
+      const res = await apiFetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      if (!res.ok) throw new Error(`Bulk update failed (${res.status})`)
+      // optionally reload full list via parent onTaskUpdate handlers or SSE
+    } catch (e) {
+      console.error('bulk update failed', e)
+      // revert naive: reload page data via SSE or inform parent
     }
     clearSelection()
   }
@@ -125,13 +132,16 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
   const bulkDelete = async () => {
     if (selectedIds.length === 0) return
     if (!confirm(`Delete ${selectedIds.length} tasks? This cannot be undone.`)) return
-    for (const id of selectedIds) {
-      try {
-        await onTaskDelete?.(id)
-        setTasks((prev) => prev.filter((t) => t.id !== id))
-      } catch (e) { console.error('delete failed', e) }
+    try {
+      const res = await apiFetch('/api/admin/tasks/bulk', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: selectedIds }) })
+      if (!res.ok) throw new Error(`Bulk delete failed (${res.status})`)
+      // update local state
+      setTasks((prev) => prev.filter((t) => !selectedIds.includes(t.id)))
+      clearSelection()
+    } catch (e) {
+      console.error('bulk delete failed', e)
+      alert('Bulk delete failed')
     }
-    clearSelection()
   }
 
   const exportSelectedCsv = () => {
