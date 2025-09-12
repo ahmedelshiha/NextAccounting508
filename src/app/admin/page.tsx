@@ -2,17 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import useSWR from 'swr'
-import dynamic from 'next/dynamic'
-const Pie = dynamic(() => import('react-chartjs-2').then(m => m.Pie), { ssr: false })
-const Bar = dynamic(() => import('react-chartjs-2').then(m => m.Bar), { ssr: false })
-const Line = dynamic(() => import('react-chartjs-2').then(m => m.Line), { ssr: false })
-import type { ChartData, ChartOptions } from 'chart.js'
-
-if (typeof window !== 'undefined') {
-  import('chart.js').then(({ Chart, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title }) => {
-    Chart.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title)
-  })
-}
+// Charts disabled: lightweight stubs to avoid heavy deps
+const Pie = (_props: any) => null
+const Bar = (_props: any) => null
+const Line = (_props: any) => null
 import { 
   Calendar, 
   Users, 
