@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   FileText,
   Search,
@@ -596,6 +597,9 @@ export default function ProfessionalPostManagement() {
               <Button onClick={() => setShowCreateModal(true)} className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="h-4 w-4 mr-2" />
                 Create Post
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/admin">Back to Dashboard</Link>
               </Button>
             </div>
           </div>
