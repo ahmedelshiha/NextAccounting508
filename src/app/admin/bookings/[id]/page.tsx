@@ -98,6 +98,12 @@ export default function AdminBookingDetailPage() {
         if (!ignore) {
           setBooking(data)
           setAdminNotes(data?.adminNotes || '')
+          try {
+            const d = new Date(data?.scheduledAt)
+            const iso = d.toISOString()
+            setEditDate(iso.split('T')[0])
+            setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
+          } catch {}
         }
       } catch {
         if (!ignore) setError('Could not fetch booking')
