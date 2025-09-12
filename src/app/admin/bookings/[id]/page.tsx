@@ -107,6 +107,11 @@ export default function AdminBookingDetailPage() {
             setEditDate(iso.split('T')[0])
             setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
           } catch {}
+          try {
+            const pRaw = (data?.service?.price as unknown)
+            const pNum = typeof pRaw === 'string' ? parseFloat(pRaw) : typeof pRaw === 'number' ? pRaw : Number((pRaw as { toString?: () => string })?.toString?.() || '0')
+            setEditPrice(Number.isFinite(pNum) && pNum > 0 ? String(pNum) : '')
+          } catch {}
         }
       } catch {
         if (!ignore) setError('Could not fetch booking')
