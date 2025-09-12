@@ -24,17 +24,6 @@ const nextConfig = {
     styledComponents: true,
   },
 
-  // Enable experimental features for better performance
-  experimental: {
-    turbo: hasSvgr ? {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    } : {}
-  },
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
