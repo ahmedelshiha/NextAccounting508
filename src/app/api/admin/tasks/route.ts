@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// GET /api/admin/tasks?limit=10
+// GET /api/admin/tasks?limit=10&q=search
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const limitParam = searchParams.get('limit')
+    const q = (searchParams.get('q') || '').trim()
     const take = limitParam ? Math.min(parseInt(limitParam, 10) || 10, 50) : 10
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
@@ -28,10 +29,26 @@ export async function GET(request: NextRequest) {
         { id: 't2', title: 'Review pending bookings', dueAt: null, priority: 'MEDIUM', status: 'OPEN', assigneeId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
         { id: 't3', title: 'Update service pricing', dueAt: null, priority: 'LOW', status: 'IN_PROGRESS', assigneeId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       ]
+
+      if (q) {
+        const ql = q.toLowerCase()
+        return NextResponse.json(fallback.filter((t) => t.title.toLowerCase().includes(ql)).slice(0, take))
+      }
+
       return NextResponse.json(fallback.slice(0, take))
     }
 
+    const where = q
+      ? {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : undefined
+
     const tasks = await prisma.task.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       take,
       select: { id: true, title: true, dueAt: true, priority: true, status: true, assigneeId: true, createdAt: true, updatedAt: true }
