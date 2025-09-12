@@ -72,8 +72,6 @@ export default function AdminBookingDetailPage() {
   const [editDate, setEditDate] = useState('')
   const [editTime, setEditTime] = useState('')
   const [editPrice, setEditPrice] = useState('')
-  const [newNote, setNewNote] = useState('')
-  const [currentUserName, setCurrentUserName] = useState('')
 
   const [booking, setBooking] = useState<BookingDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -134,18 +132,6 @@ export default function AdminBookingDetailPage() {
     return () => { ignore = true }
   }, [id])
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await apiFetch('/api/users/me')
-        if (!res.ok) return
-        const j = await res.json().catch(() => ({}))
-        if (!cancelled) setCurrentUserName(j?.user?.name || j?.user?.email || 'Admin')
-      } catch {}
-    })()
-    return () => { cancelled = true }
-  }, [])
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
