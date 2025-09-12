@@ -394,6 +394,21 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
                 )}
               </div>
             )}
+
+            {task.dependencies && task.dependencies.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2 text-xs">
+                <div className="text-xs text-gray-500 mr-2">Dependencies:</div>
+                {task.dependencies.slice(0,3).map((depId) => {
+                  const dep = tasks.find((x) => x.id === depId)
+                  return (
+                    <Badge key={depId} variant="outline" className="text-xs px-1 py-0">
+                      {dep ? dep.title : depId}
+                    </Badge>
+                  )
+                })}
+                {task.dependencies.length > 3 && <Badge variant="outline" className="text-xs px-1 py-0">+{task.dependencies.length - 3}</Badge>}
+              </div>
+            )}
           </div>
           <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-200">
             <div className="flex gap-1">
