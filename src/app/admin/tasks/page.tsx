@@ -885,7 +885,10 @@ export default function AdminTasksPage() {
       if (updates.priority !== undefined) payload.priority = updates.priority === 'high' ? 'HIGH' : updates.priority === 'low' ? 'LOW' : 'MEDIUM'
       if (updates.estimatedHours !== undefined) payload.estimatedHours = updates.estimatedHours
       if (updates.actualHours !== undefined) payload.actualHours = updates.actualHours
-      if (updates.status !== undefined) payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+      if (updates.status !== undefined) {
+        payload.status = updates.status === 'completed' ? 'DONE' : updates.status === 'in_progress' ? 'IN_PROGRESS' : updates.status
+        payload.boardStatus = updates.status
+      }
 
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
