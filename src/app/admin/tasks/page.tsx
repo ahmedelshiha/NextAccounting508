@@ -505,6 +505,10 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
                   <option key={name} value={name} className="capitalize">{name}</option>
                 ))}
               </select>
+
+              <div className="ml-2">
+                <TagFilter tasks={tasks} value={filters.tag} onChange={(t) => setFilters((p) => ({ ...p, tag: t }))} />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
