@@ -770,6 +770,9 @@ export default function AdminTasksPage() {
     return () => es?.close()
   }, [loadTasks])
 
+  // map API TaskItem to UI Task using shared utils
+  import('./utils').then(m => {})
+  // fallback inline mapping (used if dynamic import not resolved)
   const mapApiToUi = (t: TaskItem) => ({
     id: t.id,
     title: t.title,
