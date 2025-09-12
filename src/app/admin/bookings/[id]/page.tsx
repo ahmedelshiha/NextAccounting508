@@ -205,6 +205,29 @@ export default function AdminBookingDetailPage() {
     }
   }
 
+  async function saveSchedule() {
+    if (!booking || !editDate || !editTime) return
+    try {
+      const scheduledAt = new Date(`${editDate}T${editTime}:00`)
+      const res = await apiFetch(`/api/bookings/${booking.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: scheduledAt.toISOString() })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setBooking(data)
+        const d = new Date(data.scheduledAt)
+        const iso = d.toISOString()
+        setEditDate(iso.split('T')[0])
+        setEditTime(new Date(d).toISOString().split('T')[1].slice(0,5))
+        router.replace(`/admin/bookings/${booking.id}`)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
