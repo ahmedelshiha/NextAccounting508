@@ -29,6 +29,7 @@ import {
   TrendingUp,
   Settings,
 } from 'lucide-react'
+import VirtualizedTaskList from './virtualized-task-list'
 
 interface TaskItem {
   id: string
