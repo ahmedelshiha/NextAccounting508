@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 export default function DependencyManager({
   value = [],
   available = [],
-  onChange = (v: string[]) => {},
+  onChange = () => {},
 }: {
   value?: string[]
   available?: { id: string; title: string }[]

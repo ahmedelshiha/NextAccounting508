@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth/next'
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { taskUpdateSchema } from '@/lib/validation'
@@ -40,7 +41,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       data.boardStatus = parsed.data.boardStatus as string
       // keep coarse status synced with board column
       const mapped = parsed.data.boardStatus === 'completed' ? 'DONE' : parsed.data.boardStatus === 'in_progress' ? 'IN_PROGRESS' : 'OPEN'
-      data.status = mapped as any
+      data.status = mapped as import('@prisma/client').TaskStatus
     }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)

@@ -4,7 +4,7 @@ import './task-accessibility.css'
 import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { FixedSizeList as List } from 'react-window'
 
-interface VirtualizedListProps<T> {
+interface VirtualizedListProps<T extends { id: string; title?: string }> {
   tasks: T[]
   itemHeight?: number
   overscan?: number
@@ -12,9 +12,9 @@ interface VirtualizedListProps<T> {
   onActivate?: (item: T, index: number) => void
 }
 
-export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, overscan = 3, renderItem, onActivate }: VirtualizedListProps<T>) {
+export default function VirtualizedTaskList<T extends { id: string; title?: string }>({ tasks, itemHeight = 320, overscan = 3, renderItem, onActivate }: VirtualizedListProps<T>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const listRef = useRef<any>(null)
+  const listRef = useRef<{ scrollToItem: (index: number) => void } | null>(null)
   const [width, setWidth] = useState(1200)
   const [columns, setColumns] = useState(3)
   const [activeIndex, setActiveIndex] = useState<number>(0)
@@ -96,7 +96,7 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
       if (item) {
         setAnnouncement(`${getTaskTitle(activeIndexRef.current)} activated`)
         if (onActivate) onActivate(item, activeIndexRef.current)
-        const el = document.getElementById(`task-item-${(item as any).id}`) as HTMLElement | null
+        const el = document.getElementById(`task-item-${(item as { id: string }).id}`) as HTMLElement | null
         el?.focus()
       }
       handled = true
@@ -108,7 +108,7 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
   const getTaskTitle = (index: number) => {
     const t = tasks[index]
     if (!t) return 'item'
-    return (t as any).title || `item ${index + 1}`
+    return (t as { title?: string }).title || `item ${index + 1}`
   }
 
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -122,9 +122,9 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
     return (
       <div style={{ ...style, display: 'flex', gap: 12, padding: 8, boxSizing: 'border-box' }}>
         {items.map(({ item, idx }) => (
-          <div key={(item as any).id ?? idx} style={{ width: `${100 / columns}%` }}>
+          <div key={(item as { id: string }).id ?? idx} style={{ width: `${100 / columns}%` }}>
             <div
-              id={`task-item-${(item as any).id ?? idx}`}
+              id={`task-item-${(item as { id: string }).id ?? idx}`}
               role="option"
               aria-selected={activeIndex === idx}
               tabIndex={-1}
@@ -142,7 +142,7 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
       <div
         role="listbox"
         aria-label="Tasks"
-        aria-activedescendant={tasks[activeIndex] ? `task-item-${(tasks[activeIndex] as any).id}` : undefined}
+        aria-activedescendant={tasks[activeIndex] ? `task-item-${(tasks[activeIndex] as { id: string }).id}` : undefined}
         tabIndex={0}
         onKeyDown={onKeyDown}
         className="h-full outline-none"

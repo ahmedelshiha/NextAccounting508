@@ -5,19 +5,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button'
 import AssigneeSelector from './assignee-selector'
 import DependencyManager from './dependency-manager'
+import type { Task, TaskStatus } from './page'
 
 interface TaskEditDialogProps {
-  task: any | null
+  task: Task | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (id: string, updates: Record<string, any>) => Promise<void>
+  onSave: (id: string, updates: Partial<Task>) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }
 
-// augment availableTasks prop in component usage
-
 export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDelete, availableTasks }: TaskEditDialogProps & { availableTasks?: { id: string; title: string }[] }) {
-  const [form, setForm] = useState<any>(null)
+  const [form, setForm] = useState<Partial<Task> | null>(null)
 
   useEffect(() => {
     setForm(task ? { ...task } : null)
@@ -32,23 +31,23 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
         {form && (
-          <form onSubmit={async (e) => { e.preventDefault(); await onSave(task.id, form); onOpenChange(false) }} className="space-y-4">
+          <form onSubmit={async (e) => { e.preventDefault(); await onSave(task.id, form as Partial<Task>); onOpenChange(false) }} className="space-y-4">
             <div>
               <label className="text-sm">Title</label>
-              <input className="w-full border rounded px-2 py-1" value={form.title} onChange={(e) => setForm((s: any) => ({ ...s, title: e.target.value }))} />
+              <input className="w-full border rounded px-2 py-1" value={form.title as string} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), title: e.target.value }))} />
             </div>
             <div>
               <label className="text-sm">Description</label>
-              <textarea className="w-full border rounded px-2 py-1" value={form.description || ''} onChange={(e) => setForm((s: any) => ({ ...s, description: e.target.value }))} />
+              <textarea className="w-full border rounded px-2 py-1" value={(form.description as string) || ''} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), description: e.target.value }))} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="text-sm">Due date</label>
-                <input type="date" className="w-full border rounded px-2 py-1" value={form.dueDate ? form.dueDate.split('T')[0] : ''} onChange={(e) => setForm((s: any) => ({ ...s, dueDate: e.target.value }))} />
+                <input type="date" className="w-full border rounded px-2 py-1" value={form.dueDate ? (form.dueDate as string).split('T')[0] : ''} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), dueDate: e.target.value }))} />
               </div>
               <div>
                 <label className="text-sm">Priority</label>
-                <select className="w-full border rounded px-2 py-1" value={form.priority} onChange={(e) => setForm((s: any) => ({ ...s, priority: e.target.value }))}>
+                <select className="w-full border rounded px-2 py-1" value={form.priority as Task['priority']} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), priority: e.target.value as Task['priority'] }))}>
                   <option value="low">low</option>
                   <option value="medium">medium</option>
                   <option value="high">high</option>
@@ -58,22 +57,22 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="text-sm">Est. hours</label>
-                <input className="w-full border rounded px-2 py-1" type="number" step="0.25" value={form.estimatedHours ?? 0} onChange={(e) => setForm((s: any) => ({ ...s, estimatedHours: Number(e.target.value) }))} />
+                <input className="w-full border rounded px-2 py-1" type="number" step="0.25" value={form.estimatedHours ?? 0} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), estimatedHours: Number(e.target.value) }))} />
               </div>
               <div>
                 <label className="text-sm">Actual hours</label>
-                <input className="w-full border rounded px-2 py-1" type="number" step="0.25" value={form.actualHours ?? ''} onChange={(e) => setForm((s: any) => ({ ...s, actualHours: e.target.value === '' ? undefined : Number(e.target.value) }))} />
+                <input className="w-full border rounded px-2 py-1" type="number" step="0.25" value={form.actualHours ?? ''} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), actualHours: e.target.value === '' ? undefined : Number(e.target.value) }))} />
               </div>
             </div>
 
             <div>
               <label className="text-sm">Assignee</label>
-              <AssigneeSelector value={form.assignee ?? ''} onChange={(id) => setForm((s: any) => ({ ...s, assignee: id }))} />
+              <AssigneeSelector value={(form.assignee as string) ?? ''} onChange={(id) => setForm((s) => ({ ...(s as Partial<Task>), assignee: id || undefined }))} />
             </div>
 
             <div>
               <label className="text-sm">Tags (comma separated)</label>
-              <input className="w-full border rounded px-2 py-1" value={(form.tags || []).join(', ')} onChange={(e) => setForm((s: any) => ({ ...s, tags: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) }))} />
+              <input className="w-full border rounded px-2 py-1" value={Array.isArray(form.tags) ? form.tags.join(', ') : ''} onChange={(e) => setForm((s) => ({ ...(s as Partial<Task>), tags: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) }))} />
             </div>
 
             <div>
@@ -82,7 +81,7 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
                 <DependencyManager
                   available={availableTasks?.filter((x) => x.id !== task.id) || []}
                   value={form.dependencies || []}
-                  onChange={(deps) => setForm((s: any) => ({ ...s, dependencies: deps }))}
+                  onChange={(deps) => setForm((s) => ({ ...(s as Partial<Task>), dependencies: deps }))}
                 />
               </div>
             </div>

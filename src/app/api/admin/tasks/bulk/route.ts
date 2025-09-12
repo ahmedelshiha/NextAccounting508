@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!ids.length) return NextResponse.json({ error: 'No ids provided' }, { status: 400 })
 
-    const data: any = {}
+    const data: import('@prisma/client').Prisma.TaskUpdateManyMutationInput = {}
     if (updatesIn.status !== undefined) {
       // map client status to DB status
       const s = updatesIn.status
