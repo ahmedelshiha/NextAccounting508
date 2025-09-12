@@ -4,6 +4,7 @@ const { withSentryConfig } = require('@sentry/nextjs')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  productionBrowserSourceMaps: true,
   eslint: { ignoreDuringBuilds: false },
   images: { domains: ["localhost", "mydomain.com"] },
   // Allow Builder preview domain to access dev resources like /_next/* during development
@@ -11,4 +12,4 @@ const nextConfig = {
   turbopack: {},
 }
 
-module.exports = withSentryConfig(nextConfig)
+module.exports = withSentryConfig(nextConfig, { silent: true })
