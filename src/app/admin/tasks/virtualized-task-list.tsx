@@ -2,7 +2,7 @@
 import './task-accessibility.css'
 
 import React, { useRef, useState, useEffect, useCallback } from 'react'
-import { FixedSizeList as List, ListOnItemsRenderedProps } from 'react-window'
+import { FixedSizeList as List } from 'react-window'
 
 interface VirtualizedListProps<T> {
   tasks: T[]
