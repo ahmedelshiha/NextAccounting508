@@ -21,6 +21,21 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
 
+    const reloadWithBuster = () => {
+      try {
+        const key = 'lastChunkReload'
+        const now = Date.now()
+        const last = Number(sessionStorage.getItem(key) || '0')
+        if (now - last < 15000) return
+        sessionStorage.setItem(key, String(now))
+        const url = new URL(window.location.href)
+        url.searchParams.set('v', String(now))
+        window.location.replace(url.toString())
+      } catch {
+        window.location.reload()
+      }
+    }
+
     const handleError = (event: ErrorEvent) => {
       try {
         const evt = event as ErrorEvent & { error?: unknown }
@@ -39,7 +54,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!handled) {
             handled = true
             console.warn('Detected chunk load error, reloading page to recover.', msgStr)
-            setTimeout(() => window.location.reload(), 800)
+            setTimeout(reloadWithBuster, 600)
           }
         }
         // Suppress dev overlay noise for Next HMR/network hiccups
@@ -71,7 +86,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
           if (!handled) {
             handled = true
             console.warn('Detected chunk load error from unhandledrejection, reloading page.', msgStr)
-            setTimeout(() => window.location.reload(), 800)
+            setTimeout(reloadWithBuster, 600)
           }
         }
         // Suppress dev overlay noise for HMR-related fetch errors
