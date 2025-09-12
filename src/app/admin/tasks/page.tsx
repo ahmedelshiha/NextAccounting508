@@ -82,7 +82,7 @@ interface TaskManagementProps {
   onTaskDelete?: (taskId: string) => Promise<void> | void
 }
 
-function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }: TaskManagementProps) {
+function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate: _onTaskCreate }: TaskManagementProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [filters, setFilters] = useState<{ status: string; priority: string; category: string; assignee: string; search: string }>({ status: 'all', priority: 'all', category: 'all', assignee: 'all', search: '' })
   const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar'>('list')
@@ -386,14 +386,14 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }:
                   className="pl-10 pr-4 py-2 border rounded-lg text-sm w-64"
                 />
               </div>
-              {[
+              {([
                 { key: 'status', options: ['all', 'pending', 'in_progress', 'review', 'completed', 'blocked'] },
                 { key: 'priority', options: ['all', 'low', 'medium', 'high', 'critical'] },
                 { key: 'category', options: ['all', 'booking', 'client', 'system', 'finance', 'compliance', 'marketing'] },
-              ].map((f) => (
+              ] as const).map((f) => (
                 <select
                   key={f.key}
-                  value={(filters as any)[f.key]}
+                  value={filters[f.key]}
                   onChange={(e) => setFilters((p) => ({ ...p, [f.key]: e.target.value }))}
                   className="border rounded px-3 py-2 text-sm capitalize"
                 >
@@ -410,7 +410,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }:
                 <label className="text-sm text-gray-600">Sort by:</label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => setSortBy(e.target.value as 'dueDate' | 'priority' | 'status' | 'assignee')}
                   className="border rounded px-2 py-1 text-sm"
                 >
                   <option value="dueDate">Due Date</option>
@@ -420,17 +420,17 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }:
                 </select>
               </div>
               <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                {[
+                {([
                   { mode: 'list', icon: FileText },
                   { mode: 'board', icon: BarChart3 },
                   { mode: 'calendar', icon: Calendar },
-                ].map(({ mode, icon: Icon }) => (
+                ] as const).map(({ mode, icon: Icon }) => (
                   <Button
                     key={mode}
-                    variant={viewMode === (mode as any) ? 'default' : 'ghost'}
+                    variant={viewMode === mode ? 'default' : 'ghost'}
                     size="sm"
                     className="text-xs"
-                    onClick={() => setViewMode(mode as any)}
+                    onClick={() => setViewMode(mode)}
                   >
                     <Icon className="h-3 w-3" />
                   </Button>
@@ -466,19 +466,7 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate }:
 
 export default function AdminTasksPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
-  const [priorityFilter, setPriorityFilter] = useState<'ALL' | TaskItem['priority']>('ALL')
-  const [sortBy, setSortBy] = useState<SortBy>('dueAt')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
-
-  const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState<CreateForm>({ title: '', dueAt: '', priority: 'MEDIUM', notes: '' })
-  const [creating, setCreating] = useState(false)
 
   const loadTasks = useCallback(async () => {
     try {
@@ -501,118 +489,10 @@ export default function AdminTasksPage() {
       console.error('loadTasks error', e)
       setErrorMsg('Unable to load tasks')
       setTasks([])
-    } finally {
-      setLoading(false)
     }
   }, [])
 
   useEffect(() => { loadTasks() }, [loadTasks])
-
-  const stats = useMemo(() => {
-    const total = tasks.length
-    const open = tasks.filter(t => t.status === 'OPEN').length
-    const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length
-    const done = tasks.filter(t => t.status === 'DONE').length
-    const now = new Date()
-    const overdue = tasks.filter(t => t.dueAt && new Date(t.dueAt) < now && t.status !== 'DONE').length
-    const dueToday = tasks.filter(t => {
-      if (!t.dueAt) return false
-      const d = new Date(t.dueAt)
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
-    }).length
-    const completion = total > 0 ? Math.round((done / total) * 100) : 0
-    return { total, open, inProgress, done, overdue, dueToday, completion }
-  }, [tasks])
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return tasks
-      .filter(t => statusFilter === 'ALL' ? true : t.status === statusFilter)
-      .filter(t => priorityFilter === 'ALL' ? true : t.priority === priorityFilter)
-      .filter(t => !q || t.title.toLowerCase().includes(q))
-      .sort((a, b) => {
-        const dir = sortOrder === 'asc' ? 1 : -1
-        const va = (() => {
-          switch (sortBy) {
-            case 'createdAt': return new Date(a.createdAt || 0).getTime()
-            case 'dueAt': return new Date(a.dueAt || 0).getTime()
-            case 'priority': return a.priority === b.priority ? 0 : a.priority < b.priority ? -1 : 1
-            case 'status': return a.status === b.status ? 0 : a.status < b.status ? -1 : 1
-            case 'title': return a.title.toLowerCase()
-            default: return 0
-          }
-        })()
-        const vb = (() => {
-          switch (sortBy) {
-            case 'createdAt': return new Date(b.createdAt || 0).getTime()
-            case 'dueAt': return new Date(b.dueAt || 0).getTime()
-            case 'priority': return a.priority === b.priority ? 0 : b.priority < a.priority ? -1 : 1
-            case 'status': return a.status === b.status ? 0 : b.status < a.status ? -1 : 1
-            case 'title': return b.title.toLowerCase()
-            default: return 0
-          }
-        })()
-        if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir
-        return (String(va)).localeCompare(String(vb)) * dir
-      })
-  }, [tasks, search, statusFilter, priorityFilter, sortBy, sortOrder])
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true)
-    try { await loadTasks() } finally { setRefreshing(false) }
-  }, [loadTasks])
-
-  const createTask = useCallback(async () => {
-    if (!createForm.title.trim()) return
-    setCreating(true)
-    try {
-      const body: Record<string, unknown> = {
-        title: createForm.title.trim(),
-        dueAt: createForm.dueAt ? new Date(createForm.dueAt).toISOString() : null,
-        priority: createForm.priority,
-      }
-      const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) {
-        const msg = res.status === 501 ? 'Database not configured. Tasks are read-only in demo mode.' : 'Failed to create task'
-        setErrorMsg(msg)
-      } else {
-        setCreateOpen(false)
-        setCreateForm({ title: '', dueAt: '', priority: 'MEDIUM', notes: '' })
-        await loadTasks()
-      }
-    } catch (e) {
-      console.error('createTask error', e)
-      setErrorMsg('Failed to create task')
-    } finally {
-      setCreating(false)
-    }
-  }, [createForm, loadTasks])
-
-  const updateTask = useCallback(async (id: string, patch: UpdatePayload) => {
-    const prev = tasks
-    setTasks(cur => cur.map(t => (t.id === id ? { ...t, ...patch } : t)))
-    try {
-      const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
-        ...('title' in patch ? { title: patch.title } : {}),
-        ...('status' in patch ? { status: patch.status } : {}),
-        ...('priority' in patch ? { priority: patch.priority } : {}),
-        ...('dueAt' in patch ? { dueAt: patch.dueAt } : {}),
-      }) })
-      if (!res.ok) throw new Error(`Failed (${res.status})`)
-    } catch (e) {
-      console.error('updateTask error', e)
-      setTasks(prev)
-      setErrorMsg('Failed to update task')
-    }
-  }, [tasks])
-
-  const priorityBadge = (p: TaskItem['priority']) => {
-    switch (p) {
-      case 'HIGH': return 'bg-red-100 text-red-800'
-      case 'LOW': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-blue-100 text-blue-800'
-    }
-  }
 
   const mapApiToUi = (t: TaskItem) => ({
     id: t.id,
