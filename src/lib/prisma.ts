@@ -1,9 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 
-// Provide a test-mode in-memory mock to avoid requiring a real DB during tests
+import { PrismaClient } from "@prisma/client";
+
+let exportedPrisma: any = null
+
 if (process.env.NODE_ENV === 'test') {
   let thresholds: any[] = []
-  const mock = {
+  exportedPrisma = {
     healthThreshold: {
       findFirst: async () => (thresholds.length ? thresholds[thresholds.length - 1] : null),
       create: async ({ data }: any) => {
@@ -22,45 +25,46 @@ if (process.env.NODE_ENV === 'test') {
     },
     $disconnect: async () => {},
   }
-  export default mock as any
 }
 
 declare global {
   var __prisma__: PrismaClient | undefined;
 }
 
-let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
+if (!exportedPrisma) {
+  let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
 
-if (dbUrl && dbUrl.startsWith("neon://")) {
-  dbUrl = dbUrl.replace("neon://", "postgresql://");
-}
-
-function createClient(url: string) {
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
-}
-
-// Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
-const prisma: PrismaClient = (() => {
-  if (typeof global !== "undefined" && global.__prisma__) return global.__prisma__;
-
-  const client = dbUrl
-    ? createClient(dbUrl)
-    : (new Proxy(
-        {},
-        {
-          get() {
-            throw new Error(
-              "Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features."
-            );
-          },
-        }
-      ) as unknown as PrismaClient);
-
-  if (process.env.NODE_ENV !== "production") {
-    global.__prisma__ = client;
+  if (dbUrl && dbUrl.startsWith("neon://")) {
+    dbUrl = dbUrl.replace("neon://", "postgresql://");
   }
 
-  return client;
-})();
+  function createClient(url: string) {
+    return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  }
 
-export default prisma;
+  // Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
+  exportedPrisma = (() => {
+    if (typeof global !== "undefined" && (global as any).__prisma__) return (global as any).__prisma__;
+
+    const client = dbUrl
+      ? createClient(dbUrl)
+      : (new Proxy(
+          {},
+          {
+            get() {
+              throw new Error(
+                "Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features."
+              );
+            },
+          }
+        ) as unknown as PrismaClient);
+
+    if (process.env.NODE_ENV !== "production") {
+      ;(global as any).__prisma__ = client;
+    }
+
+    return client;
+  })()
+}
+
+export default exportedPrisma
