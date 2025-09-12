@@ -70,6 +70,9 @@ export default function AdminBookingDetailPage() {
   const isEditMode = (searchParams?.get('edit') === '1')
   const [editDate, setEditDate] = useState('')
   const [editTime, setEditTime] = useState('')
+  const [editPrice, setEditPrice] = useState('')
+  const [newNote, setNewNote] = useState('')
+  const [currentUserName, setCurrentUserName] = useState('')
 
   const [booking, setBooking] = useState<BookingDetail | null>(null)
   const [loading, setLoading] = useState(true)
