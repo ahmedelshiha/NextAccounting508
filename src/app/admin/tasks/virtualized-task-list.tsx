@@ -49,36 +49,53 @@ export default function VirtualizedTaskList<T>({ tasks, itemHeight = 320, oversc
 
   const [announcement, setAnnouncement] = useState<string>('')
 
+  const activeIndexRef = useRef<number>(activeIndex)
+  React.useEffect(() => { activeIndexRef.current = activeIndex }, [activeIndex])
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (tasks.length === 0) return
     let handled = false
+    const cur = activeIndexRef.current
     if (e.key === 'ArrowDown') {
-      setActiveIndex((i) => { const next = Math.min(i + 1, tasks.length - 1); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
+      const next = Math.min(cur + 1, tasks.length - 1)
+      setActiveIndex(next)
+      setAnnouncement(`Focused ${getTaskTitle(next)}`)
+      scrollToIndex(next)
       handled = true
     } else if (e.key === 'ArrowUp') {
-      setActiveIndex((i) => { const next = Math.max(i - 1, 0); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
+      const next = Math.max(cur - 1, 0)
+      setActiveIndex(next)
+      setAnnouncement(`Focused ${getTaskTitle(next)}`)
+      scrollToIndex(next)
       handled = true
     } else if (e.key === 'Home') {
-      setActiveIndex(0); scrollToIndex(0); setAnnouncement(`Focused ${getTaskTitle(0)}`); handled = true
+      const next = 0
+      setActiveIndex(next); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); handled = true
     } else if (e.key === 'End') {
-      setActiveIndex(tasks.length - 1); scrollToIndex(tasks.length - 1); setAnnouncement(`Focused ${getTaskTitle(tasks.length - 1)}`); handled = true
+      const next = tasks.length - 1
+      setActiveIndex(next); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); handled = true
     } else if (e.key === 'PageDown') {
       const visibleRows = Math.max(1, Math.floor((window.innerHeight * 0.7) / itemHeight))
       const delta = visibleRows * columns
-      setActiveIndex((i) => { const next = Math.min(i + delta, tasks.length - 1); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
+      const next = Math.min(cur + delta, tasks.length - 1)
+      setActiveIndex(next)
+      setAnnouncement(`Focused ${getTaskTitle(next)}`)
+      scrollToIndex(next)
       handled = true
     } else if (e.key === 'PageUp') {
       const visibleRows = Math.max(1, Math.floor((window.innerHeight * 0.7) / itemHeight))
       const delta = visibleRows * columns
-      setActiveIndex((i) => { const next = Math.max(i - delta, 0); scrollToIndex(next); setAnnouncement(`Focused ${getTaskTitle(next)}`); return next })
+      const next = Math.max(cur - delta, 0)
+      setActiveIndex(next)
+      setAnnouncement(`Focused ${getTaskTitle(next)}`)
+      scrollToIndex(next)
       handled = true
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      const item = tasks[activeIndex]
+      const item = tasks[activeIndexRef.current]
       if (item) {
-        setAnnouncement(`${getTaskTitle(activeIndex)} activated`)
-        if (onActivate) onActivate(item, activeIndex)
-        // focus the item element if rendered
+        setAnnouncement(`${getTaskTitle(activeIndexRef.current)} activated`)
+        if (onActivate) onActivate(item, activeIndexRef.current)
         const el = document.getElementById(`task-item-${(item as any).id}`) as HTMLElement | null
         el?.focus()
       }
