@@ -222,6 +222,16 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
     return filtered
   }, [tasks, filters, sortBy])
 
+  const tasksForBoard = useMemo(() => {
+    const list = [...filteredAndSorted]
+    list.sort((a, b) => {
+      const pa = typeof a.position === 'number' ? a.position : 0
+      const pb = typeof b.position === 'number' ? b.position : 0
+      return pa - pb
+    })
+    return list
+  }, [filteredAndSorted])
+
   const updateTaskStatus = useCallback(
     async (taskId: string, status: TaskStatus) => {
       setTasks((prev) =>
