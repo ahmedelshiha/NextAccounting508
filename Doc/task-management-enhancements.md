@@ -73,7 +73,7 @@ Run tests locally:
 
 Notes:
 - Current tests cover utility mapping functions. Expand to component tests (React Testing Library) and API integration tests as next steps.
-- [~] Accessibility improvements and keyboard interactions for board/virtualized views — in progress (added BoardAccessible component with keyboard interactions and ARIA attributes)
+- [x] Accessibility improvements and keyboard interactions for board/virtualized views — BoardAccessible component added; VirtualizedTaskList updated with listbox/option ARIA roles and keyboard navigation (arrow keys, Home/End, PageUp/PageDown, Enter/Space activation)
 
 Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
 
