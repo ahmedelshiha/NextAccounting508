@@ -45,6 +45,15 @@ export default function BookingPage() {
     notes: ''
   })
 
+  useEffect(() => {
+    if (!session?.user) return
+    setFormData((prev) => ({
+      ...prev,
+      clientName: prev.clientName || session.user.name || '',
+      clientEmail: prev.clientEmail || session.user.email || '',
+    }))
+  }, [session])
+
   const generateTimeSlots = (): TimeSlot[] => {
     const slots: TimeSlot[] = []
     const startHour = 9
