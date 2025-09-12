@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import { Prisma } from '@prisma/client'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -19,11 +20,10 @@ export async function GET(request: Request) {
     const q = (url.searchParams.get('q') || '').trim()
     const format = (url.searchParams.get('format') || 'csv').toLowerCase()
 
-    const where = q
+    const where: Prisma.TaskWhereInput | undefined = q
       ? {
           OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
+            { title: { contains: q, mode: 'insensitive' as Prisma.QueryMode } },
           ],
         }
       : undefined
