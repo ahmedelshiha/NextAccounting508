@@ -5,8 +5,6 @@ import React from 'react'
 // local TaskStatus type
 export type TaskStatus = 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
 
-import { Card } from '@/components/ui/card'
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 interface BoardViewProps<T> {
