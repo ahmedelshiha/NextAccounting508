@@ -641,8 +641,9 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
 
       {viewMode === 'board' ? (
         <BoardView
-          tasks={filteredAndSorted}
+          tasks={tasksForBoard}
           onMove={(id, status) => updateTaskStatus(id, status)}
+          onReorder={(id, status, index) => reorderTask(id, status, index)}
           renderCard={(task) => <TaskCard key={(task as any).id} task={task as any} />}
         />
       ) : filteredAndSorted.length <= 60 ? (
