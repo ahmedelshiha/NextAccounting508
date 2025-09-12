@@ -12,6 +12,7 @@ const hasSvgr = (() => { try { require.resolve('@svgr/webpack'); return true } c
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
+  swcMinify: true,
   eslint: { ignoreDuringBuilds: false },
   images: { domains: ["localhost", "mydomain.com"] },
   // Allow Builder preview domain to access dev resources like /_next/* during development
@@ -25,16 +26,16 @@ const nextConfig = {
   },
 
   // Enable experimental features for better performance
-  experimental: hasSvgr ? {
-    turbo: {
+  experimental: {
+    turbo: hasSvgr ? {
       rules: {
         '*.svg': {
           loaders: ['@svgr/webpack'],
           as: '*.js',
         },
       },
-    },
-  } : {},
+    } : {}
+  },
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
@@ -70,6 +71,12 @@ const nextConfig = {
         ],
       })
     }
+
+    // Silence noisy Sentry/OpenTelemetry critical dependency warnings
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      /Critical dependency: the request of a dependency is an expression/,
+    ]
 
     return config
   },
