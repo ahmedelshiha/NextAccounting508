@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import type { Session } from 'next-auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -8,7 +9,7 @@ export const revalidate = 0
 
 // Simple server-sent events endpoint that pushes task summaries every 5s
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions as any)
+  const session = (await getServerSession(authOptions)) as Session | null
   if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
     return new Response('Unauthorized', { status: 401 })
   }
