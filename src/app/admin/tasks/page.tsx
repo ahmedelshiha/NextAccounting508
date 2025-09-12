@@ -252,6 +252,41 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
     [onTaskUpdate]
   )
 
+  const reorderTask = useCallback(
+    async (taskId: string, targetStatus: TaskStatus, targetIndex: number) => {
+      setTasks((prev) => {
+        const moved = prev.find((t) => t.id === taskId)
+        if (!moved) return prev
+        const next = prev.map((t) => ({ ...t }))
+        // set new status
+        for (const t of next) if (t.id === taskId) t.status = targetStatus
+        // compute new order in target column
+        const column = next.filter((t) => t.status === targetStatus)
+        const others = column.filter((t) => t.id !== taskId)
+        const clamped = Math.max(0, Math.min(targetIndex, others.length))
+        const before = others.slice(0, clamped)
+        const after = others.slice(clamped)
+        const reordered = [...before, moved, ...after]
+        reordered.forEach((t, idx) => {
+          const item = next.find((x) => x.id === t.id)
+          if (item) item.position = idx
+        })
+        return next
+      })
+      try {
+        // persist positions for all tasks in the target column
+        const colTasks = tasks
+          .filter((t) => (t.id === taskId ? targetStatus : t.status) === targetStatus)
+          .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+        const updates = colTasks.map((t, idx) => ({ id: t.id, boardStatus: targetStatus, position: idx }))
+        await fetch('/api/admin/tasks/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updates }) })
+      } catch (e) {
+        console.error('reorder failed', e)
+      }
+    },
+    [tasks]
+  )
+
   const getPriorityColor = (p: string) => {
     switch (p) {
       case 'critical':
