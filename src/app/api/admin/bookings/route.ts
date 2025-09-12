@@ -61,7 +61,8 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            _count: { select: { bookings: true } }
           }
         },
         service: {
