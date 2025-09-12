@@ -15,7 +15,7 @@ interface VirtualizedListProps<T extends { id: string; title?: string }> {
 
 export default function VirtualizedTaskList<T extends { id: string; title?: string }>({ tasks, itemHeight = 320, overscan = 3, renderItem, onActivate }: VirtualizedListProps<T>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const listRef = useRef<FixedSizeListType<any> | null>(null)
+  const listRef = useRef<FixedSizeListType<unknown> | null>(null)
   const [width, setWidth] = useState(1200)
   const [columns, setColumns] = useState(3)
   const [activeIndex, setActiveIndex] = useState<number>(0)
