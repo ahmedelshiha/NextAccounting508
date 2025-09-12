@@ -20,12 +20,17 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 - src/app/admin/tasks/virtualized-task-list.tsx — simple virtualized grid list component
 - src/app/admin/tasks/board-view.tsx — lightweight board (kanban) view with drag/drop
 - src/app/admin/tasks/task-edit-dialog.tsx — edit dialog for task details, save & delete
+- src/app/admin/tasks/assignee-selector.tsx — assignee selector (fetches team members)
+- src/app/admin/tasks/export-button.tsx — client export trigger (downloads CSV)
+- src/app/admin/tasks/pagination-controls.tsx — simple load-more control
 - src/app/api/admin/tasks/updates/route.ts — SSE endpoint for real-time snapshots
+- src/app/api/admin/tasks/export/route.ts — server export endpoint (CSV/JSON)
 
 ## Files modified (key)
 - src/app/admin/tasks/page.tsx — main UI wired to the new components and APIs
-- src/app/api/admin/tasks/route.ts — added q parameter server-side search
+- src/app/api/admin/tasks/route.ts — added q parameter server-side search and pagination
 - src/app/api/admin/tasks/[id]/route.ts — added DELETE handler
+- src/app/api/admin/tasks/export/route.ts — new export endpoint (see files added)
 
 ---
 
