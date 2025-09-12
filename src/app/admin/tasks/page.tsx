@@ -99,6 +99,48 @@ function TaskManagementSystem({ initialTasks = [], onTaskUpdate, onTaskCreate, o
     return Array.from(s)
   }, [tasks])
 
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const toggleSelect = (id: string) => setSelectedIds((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
+  const clearSelection = () => setSelectedIds([])
+  const selectAllVisible = () => setSelectedIds(filteredAndSorted.map((t) => t.id))
+
+  const bulkUpdateStatus = async (status: TaskStatus) => {
+    // optimistic update
+    setTasks((prev) => prev.map((t) => (selectedIds.includes(t.id) ? { ...t, status, updatedAt: new Date().toISOString(), completionPercentage: status === 'completed' ? 100 : t.completionPercentage } : t)))
+    for (const id of selectedIds) {
+      await onTaskUpdate?.(id, { status })
+    }
+    clearSelection()
+  }
+
+  const bulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    if (!confirm(`Delete ${selectedIds.length} tasks? This cannot be undone.`)) return
+    for (const id of selectedIds) {
+      try {
+        await onTaskDelete?.(id)
+        setTasks((prev) => prev.filter((t) => t.id !== id))
+      } catch (e) { console.error('delete failed', e) }
+    }
+    clearSelection()
+  }
+
+  const exportSelectedCsv = () => {
+    if (selectedIds.length === 0) return
+    const rows = [['id','title','status','priority','dueDate','assignee','estimatedHours','actualHours','revenueImpact']]
+    for (const t of tasks.filter((x) => selectedIds.includes(x.id))) {
+      rows.push([t.id, t.title, t.status, t.priority, t.dueDate, t.assignee || '', String(t.estimatedHours || 0), String(t.actualHours ?? ''), String(t.revenueImpact ?? '')])
+    }
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tasks_export_${Date.now()}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // debounce search -> inform parent to perform server-side search
   useEffect(() => {
     if (!onSearch) return
