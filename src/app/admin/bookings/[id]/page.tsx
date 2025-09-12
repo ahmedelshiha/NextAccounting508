@@ -325,6 +325,9 @@ export default function AdminBookingDetailPage() {
                     {booking.clientPhone && (
                       <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-gray-500" />{booking.clientPhone}</div>
                     )}
+                    {((booking.client as unknown as { _count?: { bookings?: number } })?._count?.bookings ?? null) !== null && (
+                      <div className="flex items-center gap-2"><Users className="h-4 w-4 text-gray-500" /><span>{(booking.client as unknown as { _count?: { bookings?: number } })?._count?.bookings} total bookings</span></div>
+                    )}
                   </div>
                 </div>
 
