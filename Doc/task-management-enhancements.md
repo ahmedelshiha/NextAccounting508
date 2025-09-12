@@ -36,9 +36,17 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 
 ---
 
+## Latest updates
+- Exported TaskItem type from admin/tasks/page.tsx and switched to utils.mapApiToUi for mapping.
+- Wired pagination props (hasMore/onLoadMore) through TaskManagementSystem and parent AdminTasksPage.
+- Fixed missing API imports (NextRequest/NextResponse, getServerSession) across tasks routes.
+- Virtualized list now uses react-window in virtualized-task-list.tsx for robust performance.
+
+---
+
 ## Implemented enhancements (Completed)
 - [x] Debounced client search (400ms) and server-side search support (`q` query)
-- [x] Virtualized task list component and integration for large lists
+- [x] Virtualized task list component and integration for large lists (react-window)
 - [x] Real-time updates via SSE (server endpoint + client EventSource)
 - [x] Bulk operations: multi-select, bulk status update, bulk delete, CSV export (client-side)
 - [x] Board (kanban) view with drag-and-drop move support (columns: pending → in_progress → review → completed → blocked)
@@ -50,18 +58,13 @@ All new UI pieces were added as separate, small components under `src/app/admin/
 
 Notes:
 - CSV export is implemented both client-side (export selected rows) and server-side (export endpoint supports CSV/JSON).
-- Virtualized list is a home-grown implementation placed in `virtualized-task-list.tsx`. It provides column-aware layout and basic overscan. Consider replacing with react-window for production.
+- Virtualized list uses react-window and provides column-aware layout, overscan, and keyboard navigation.
 
 ---
 
-## Remaining enhancements (Planned / Pending)
-- [x] Replace home-grown virtualization with a maintained library (react-window) for better performance
-- [x] Tag filtering UI and dependency-management UI (client-side)
-- [x] Notifications & escalation rules (basic in-app notifications derived from overdue HIGH-priority tasks via SSE)
-- [x] Bulk operation server endpoints for atomic updates of many tasks (POST /api/admin/tasks/bulk, DELETE /api/admin/tasks/bulk)
-- [x] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field) — implemented (added boardStatus & position fields, client reorder UI, and POST /api/admin/tasks/reorder endpoint)
-- [x] Unit & integration tests for the UI components and API endpoints (basic utils tests with Vitest)
-
+## Remaining enhancements (Pending)
+- [ ] Observability & security: Sentry and Semgrep (enable Sentry DSN, install @sentry/nextjs, run Semgrep CI)
+- [ ] Expand tests: add component tests (React Testing Library) and API integration tests
 
 ### Tests added
 - tests/tasks.utils.test.ts — unit tests for task utils (priority/status mapping and mapApiToUi)
@@ -72,12 +75,10 @@ Run tests locally:
 2. Run tests: npm run test
 
 Notes:
-- Current tests cover utility mapping functions. Expand to component tests (React Testing Library) and API integration tests as next steps.
-- [x] Accessibility improvements and keyboard interactions for board/virtualized views — BoardAccessible component added; VirtualizedTaskList updated with listbox/option ARIA roles and keyboard navigation (arrow keys, Home/End, PageUp/PageDown, Enter/Space activation)
-- [x] Unit & integration tests for Task components and API endpoints — in progress (configured Vitest, added setup, added virtualized keyboard test)
-- [~] Observability & security: Sentry and Semgrep — in progress (added lazy Sentry initializer, ClientLayout initialization, and .semgrep.yml; install @sentry/nextjs and set SENTRY_DSN to enable)
+- Current tests cover utility mapping functions and keyboard/a11y for virtualization. Expand to component tests (React Testing Library) and API integration tests as next steps.
+- Accessibility improvements: BoardAccessible adds keyboard interactions; VirtualizedTaskList uses listbox/option roles and keyboard navigation (arrow keys, Home/End, PageUp/PageDown, Enter/Space activation).
 
-Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
+Each pending item can be implemented as its own small component/utility under `src/app/admin/tasks/` and wired into `page.tsx`.
 
 ---
 
@@ -95,13 +96,10 @@ If your environment does not have a database configured (NETLIFY_DATABASE_URL or
 ---
 
 ## Recommended next steps & priorities
-1. Add server-side pagination and a server export endpoint (high priority for large datasets)
-2. Implement team/assignee lookup (connect to users/team API) and replace free-text assignee options
-3. Add SAST and monitoring: integrate Semgrep (SAST) and Sentry for error monitoring
-4. Add tests covering API endpoints and the TaskManagementSystem UI
-5. Replace home-grown virtualization with react-window to ensure robustness
+1. Add SAST and monitoring: integrate Semgrep (SAST) and Sentry for error monitoring
+2. Add tests covering API endpoints and the TaskManagementSystem UI
 
-I can implement these in the order above or follow your preferred prioritization.
+I can implement these immediately after you confirm.
 
 ---
 
@@ -134,7 +132,5 @@ Note: To connect any MCP, open the MCP popover in the Builder UI and select the 
 ---
 
 If you'd like, I will:
-- Implement the next-highest priority item (server-side pagination + export endpoint), or
-- Start on team/assignee lookup and a proper assignee selector component.
-
-Tell me which to pick next and I will create small focused components and wire them into the admin tasks page.
+- Integrate Sentry and Semgrep, or
+- Expand the automated test suite for components and APIs.
