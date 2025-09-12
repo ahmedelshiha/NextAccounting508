@@ -270,6 +270,7 @@ model Task {
   // Kanban board enhancements
   boardStatus String?     // 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
   position    Int?        @default(0) // relative ordering within boardStatus column
+  dependencies String[]   @default([])
   assigneeId  String?
   assignee    User?        @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
   createdAt  DateTime     @default(now())
