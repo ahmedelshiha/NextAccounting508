@@ -1,0 +1,118 @@
+# Task Management — Enhancements & Status
+
+This document summarizes the Task Management work, files changed/added, implemented enhancements, and remaining work with recommended next steps.
+
+## Overview
+The admin task management UI (src/app/admin/tasks/page.tsx) was enhanced to match the project README and add production-ready features:
+- Debounced server-side search
+- Virtualized list rendering for large result sets
+- Real-time task updates via Server-Sent Events (SSE)
+- Bulk selection and batch operations (status updates, delete, CSV export)
+- Board (kanban) style view with drag/drop move support
+- Task edit/delete dialog (full edit flow wired to API)
+- API search support (q query), DELETE endpoint, and SSE updates endpoint
+
+All new UI pieces were added as separate, small components under `src/app/admin/tasks/`.
+
+---
+
+## Files added
+- src/app/admin/tasks/virtualized-task-list.tsx — simple virtualized grid list component
+- src/app/admin/tasks/board-view.tsx — lightweight board (kanban) view with drag/drop
+- src/app/admin/tasks/task-edit-dialog.tsx — edit dialog for task details, save & delete
+- src/app/api/admin/tasks/updates/route.ts — SSE endpoint for real-time snapshots
+
+## Files modified (key)
+- src/app/admin/tasks/page.tsx — main UI wired to the new components and APIs
+- src/app/api/admin/tasks/route.ts — added q parameter server-side search
+- src/app/api/admin/tasks/[id]/route.ts — added DELETE handler
+
+---
+
+## Implemented enhancements (Completed)
+- [x] Debounced client search (400ms) and server-side search support (`q` query)
+- [x] Virtualized task list component and integration for large lists
+- [x] Real-time updates via SSE (server endpoint + client EventSource)
+- [x] Bulk operations: multi-select, bulk status update, bulk delete, CSV export
+- [x] Board (kanban) view with drag-and-drop move support (columns: pending → in_progress → review → completed → blocked)
+- [x] Task edit modal (edit/save/delete) wired to API
+- [x] API: GET /api/admin/tasks?q=..., POST /api/admin/tasks, PATCH /api/admin/tasks/:id, DELETE /api/admin/tasks/:id
+
+Notes:
+- CSV export is implemented client-side (downloads selected rows as CSV). No server-side export endpoint was added (see pending).
+- Virtualized list is a home-grown implementation placed in `virtualized-task-list.tsx`. It provides column-aware layout and basic overscan.
+
+---
+
+## Remaining enhancements (Planned / Pending)
+- [ ] Server-side pagination / load-more (cursor or page-based) for very large lists
+- [ ] True virtualization using a maintained library (react-window / react-virtual) for better performance
+- [ ] Team/assignee lookup UI (fetch team members) and a proper assignee selector component (currently assignee options derived from current tasks)
+- [ ] Tag filtering UI and dependency-management UI
+- [ ] Notifications & escalation rules (in-app notifications, email/SMS integrations)
+- [ ] CSV/JSON export endpoint on the server (for large datasets and scheduled exports)
+- [ ] Bulk operation server endpoints for atomic updates of many tasks
+- [ ] Drag-and-drop enhancements: reorder within column, persist order on backend (Gantt / position field)
+- [ ] Unit & integration tests for the UI components and API endpoints
+- [ ] Accessibility improvements and keyboard interactions for board/virtualized views
+
+Each pending item can be implemented as its own small component under `src/app/admin/tasks/` and wired into `page.tsx`.
+
+---
+
+## How to run & test locally
+1. Start dev server: `npm run dev` (project uses Next.js). Ensure database MCP is configured if you want real DB-backed behavior.
+2. Visit: `/admin/tasks` to see the admin tasks page.
+3. Test search: type in the search box (debounced) — the UI calls `GET /api/admin/tasks?q=...&limit=50`.
+4. Test real-time: the client subscribes to `/api/admin/tasks/updates` (SSE). When tasks change in DB, SSE pushes snapshots and client reloads the list.
+5. Test bulk: select tasks via checkboxes → use bulk toolbar to update status, delete, or export CSV.
+6. Test board: switch view to board (icon), drag a task between columns to update its status.
+7. Test edit: click Details → edit form appears; save updates the task via PATCH; Delete calls DELETE endpoint.
+
+If your environment does not have a database configured (NETLIFY_DATABASE_URL or other), the API returns a small fallback list for development.
+
+---
+
+## Recommended next steps & priorities
+1. Add server-side pagination and a server export endpoint (high priority for large datasets)
+2. Implement team/assignee lookup (connect to users/team API) and replace free-text assignee options
+3. Add SAST and monitoring: integrate Semgrep (SAST) and Sentry for error monitoring
+4. Add tests covering API endpoints and the TaskManagementSystem UI
+5. Replace home-grown virtualization with react-window to ensure robustness
+
+I can implement these in the order above or follow your preferred prioritization.
+
+---
+
+## Suggested MCP Integrations
+When useful, you can connect these MCP servers from the Builder.io MCP popover. Recommended integrations for this project and how they help:
+
+- Neon — serverless Postgres database (useful for DB hosting and scaling). Connect: [Connect to Neon](#open-mcp-popover)
+- Netlify — host & deploy the site (CI/CD). Connect: [Connect to Netlify](#open-mcp-popover)
+- Zapier — automation between apps (notifications, workflows). Connect: [Connect to Zapier](#open-mcp-popover)
+- Figma — design to code conversion via Builder.io plugin. Get plugin: https://www.figma.com/community/plugin/747985167520967365/builder-io-ai-powered-figma-to-code-react-vue-tailwind-more
+- Supabase — DB + Auth alternative to Neon, with realtime features (useful for real-time updates). Connect: [Connect to Supabase](#open-mcp-popover)
+- Builder CMS — manage content/models/assets inside Builder.io (useful for public pages and CMS-driven tasks/descriptions). Connect: [Connect to Builder.io](#open-mcp-popover)
+- Linear — project management / ticket sync (useful for creating tasks from tickets). Connect: [Connect to Linear](#open-mcp-popover)
+- Notion — documentation sync and knowledge base integration. Connect: [Connect to Notion](#open-mcp-popover)
+- Sentry — error monitoring and performance insights (recommended). Connect: [Connect to Sentry](#open-mcp-popover)
+- Context7 — up-to-date docs / contextual help for libraries used. Connect: [Connect to Context7](#open-mcp-popover)
+- Semgrep — security scanning and rules. Connect: [Connect to Semgrep](#open-mcp-popover)
+- Prisma Postgres — ORM / schema management (if you use Prisma with Postgres). Connect: [Connect to Prisma Postgres](#open-mcp-popover)
+
+Note: To connect any MCP, open the MCP popover in the Builder UI and select the integration. Some tasks (like DB-driven pagination and realtime with Neon/Supabase) may require you to connect the appropriate MCP first.
+
+---
+
+## Changes summary (git)
+- New components: `virtualized-task-list.tsx`, `board-view.tsx`, `task-edit-dialog.tsx`
+- API: `src/app/api/admin/tasks/route.ts` (search q), `src/app/api/admin/tasks/[id]/route.ts` (DELETE), `src/app/api/admin/tasks/updates/route.ts` (SSE)
+- Main page updated: `src/app/admin/tasks/page.tsx`
+
+---
+
+If you'd like, I will:
+- Implement the next-highest priority item (server-side pagination + export endpoint), or
+- Start on team/assignee lookup and a proper assignee selector component.
+
+Tell me which to pick next and I will create small focused components and wire them into the admin tasks page.
