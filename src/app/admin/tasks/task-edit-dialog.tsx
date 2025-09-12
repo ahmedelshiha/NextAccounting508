@@ -13,7 +13,7 @@ interface TaskEditDialogProps {
   onDelete: (id: string) => Promise<void>
 }
 
-export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDelete }: TaskEditDialogProps) {
+export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDelete, availableTasks }: TaskEditDialogProps & { availableTasks?: { id: string; title: string }[] }) {
   const [form, setForm] = useState<any>(null)
 
   useEffect(() => {
@@ -49,7 +49,6 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
                   <option value="low">low</option>
                   <option value="medium">medium</option>
                   <option value="high">high</option>
-                  <option value="critical">critical</option>
                 </select>
               </div>
             </div>
@@ -68,6 +67,24 @@ export default function TaskEditDialog({ task, open, onOpenChange, onSave, onDel
               <label className="text-sm">Assignee</label>
               <AssigneeSelector value={form.assignee ?? ''} onChange={(id) => setForm((s: any) => ({ ...s, assignee: id }))} />
             </div>
+
+            <div>
+              <label className="text-sm">Tags (comma separated)</label>
+              <input className="w-full border rounded px-2 py-1" value={(form.tags || []).join(', ')} onChange={(e) => setForm((s: any) => ({ ...s, tags: e.target.value.split(',').map((x) => x.trim()).filter(Boolean) }))} />
+            </div>
+
+            <div>
+              <label className="text-sm">Dependencies</label>
+              <select multiple className="w-full border rounded px-2 py-1" value={(form.dependencies || [])} onChange={(e) => {
+                const opts = Array.from(e.target.selectedOptions).map((o: any) => o.value)
+                setForm((s: any) => ({ ...s, dependencies: opts }))
+              }}>
+                {(availableTasks || []).map((t) => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-center justify-between">
               <Button variant="destructive" type="button" onClick={async () => { if (confirm('Delete this task?')) { await onDelete(task.id); onOpenChange(false) } }}>Delete</Button>
               <div className="flex gap-2">
