@@ -730,7 +730,7 @@ export default function ProfessionalNewBooking() {
         }))
         setServices(mappedServices.length ? mappedServices : mockServices)
 
-        const uRes = await fetch('/api/admin/users', { cache: 'no-store' })
+        const uRes = await apiFetch('/api/admin/users', { cache: 'no-store' })
         const uJson = (await uRes.json().catch(() => ({ users: [] }))) as unknown
         type ApiUser = { id: string; name?: string | null; email: string; role?: string | null }
         const usersUnknown = (uJson && typeof uJson === 'object' && 'users' in (uJson as Record<string, unknown>)
