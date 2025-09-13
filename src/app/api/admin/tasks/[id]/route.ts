@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { taskUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
@@ -42,5 +43,36 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   } catch (error) {
     console.error('Error updating task:', error)
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/tasks/[id]
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await context.params
+
+    const ip = getClientIp(request as unknown as Request)
+    if (!rateLimit(`tasks:delete:${ip}`, 60, 60_000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+    if (!hasDb) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+    }
+
+    await prisma.task.delete({ where: { id } })
+    return NextResponse.json({ success: true })
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+    console.error('Error deleting task:', error)
+    return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
   }
 }
