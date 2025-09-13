@@ -14,7 +14,7 @@
 - [x] Create base Next.js project (app router, TypeScript enabled)
 - [x] Configure environment variables (DB, auth, API keys)
 - [x] Implement database schema for tasks (Prisma/Postgres) — dev branch extension for advanced fields
-- [ ] Create API routes for task CRUD operations (align with adapters and pagination)
+- [x] Create API routes for task CRUD operations (align with adapters and pagination)
 - [ ] Build UI components (TaskCard, TaskList, TaskForm) — consolidate from temp components
 - [ ] Add task filters (status, priority, due date)
 - [ ] Integrate authentication (NextAuth guards for admin pages)
