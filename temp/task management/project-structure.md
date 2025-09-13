@@ -1,4 +1,3 @@
-# Task Management System — Development Workspace
 
 ## TODO
 - [x] Review code samples in temp/task management to assess scope and gaps
@@ -41,7 +40,13 @@
 - 2025-09-16: Implemented basic CRUD API routes for tasks under `temp/task management/api/admin/tasks` and `.../tasks/[id]` using Prisma client (`temp/task management/prisma/client.ts`). Also added `temp/task management/package.json` with Prisma scripts (generate, migrate, studio). These are intended for the temp dev workspace — to activate them set DATABASE_URL and run `npm install` then `npm run prisma:migrate` in the `temp/task management` folder.
 - 2025-09-17: Added unit test scaffolding using Vitest + React Testing Library under `temp/task management/tests`. Files added: `vitest.config.ts`, `tests/test-setup.ts`, `tests/TaskCard.test.tsx`, `tests/TaskListView.test.tsx`, and a local `tsconfig.json`. Updated `temp/task management/package.json` to include a `test` script and devDependencies for Vitest and testing libraries. These tests are lightweight smoke tests for components and are intended as a starting point; run them locally with `npm install` then `npm test` in `temp/task management`.
 - 2025-09-17: Created Netlify deploy configuration (`temp/task management/netlify.toml`) and documented deployment steps and required environment variables in `temp/task management/netlify-readme.md`. The config uses `@netlify/plugin-nextjs` and sets the build command to run in `next-app`. Important env vars to set in Netlify: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_API_BASE, SENDGRID_API_KEY. Note: server-side DB access requires DATABASE_URL at runtime.
-- 2025-09-16: Consolidated UI components from temp modules: `task-card-components.tsx`, `task-view-components.tsx`, `task-layout-components.tsx`, and supporting widgets. These are wired into `DevTaskManagement` to provide List/Board/Calendar views, quick-create, and stats.
-- 2025-09-16: Implemented client-side task filters (status, priority, overdue, tags) in `DevTaskManagement` with an interactive sidebar. Filtering is applied client-side via `task-utils.applyFilters` and is reflected in `TasksStats` and `TasksToolbar`.
-- 2025-09-16: Integrated authentication checks with NextAuth in `DevTaskManagement` — it prefers `useSession()` (NextAuth) when available, and falls back to `/api/users/me` endpoint for compatibility. Unauthorized users see a clear message. See `temp/task management/dev-task-management.tsx`.
-- 2025-09-15: Added a client-side handler to `DevTaskManagement` to detect ChunkLoadError / failed-to-fetch during HMR and perform a full reload to recover. This reduces persistent broken client state in dev when hot updates produce stale chunks. See `temp/task management/dev-task-management.tsx`.
+- 2025-09-18: Completed documentation of all implemented steps in `temp/task management/project-structure.md`. Summary of completed work:
+  - Scaffolding: temp Next.js app, dev entry, and component consolidation.
+  - Adapters: API ↔ UI mapping implemented in `temp/task management/lib/tasks/adapters.ts` and used by `useDevTasks`.
+  - API: Prisma schema, Prisma client, and CRUD routes under `temp/task management/api/admin/tasks`.
+  - Dev UX: HMR recovery, dev fetch wrapper, hardened `src/lib/api.ts` with retries and timeout.
+  - UI: TaskCard, TaskList, TaskViews (List/Board/Calendar/Table), Task filters, quick-create flow, and NextAuth integration in dev UI.
+  - Tests: Vitest + RTL scaffold and basic component tests.
+  - CI/Deploy: Netlify config and documentation added.
+
+  Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
