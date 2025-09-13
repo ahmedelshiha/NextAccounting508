@@ -10,7 +10,7 @@
 - [x] Add DELETE /api/admin/tasks/[id] endpoint on dev branch and wire remove() fully
 - [x] Guard client fetches behind auth to prevent unauthorized fetch/HMR churn
 - [x] Initialize project in development mode
-- [ ] Setup GitHub repo + connect Builder.io
+- [x] Setup GitHub repo + connect Builder.io
 - [ ] Create base Next.js project (app router, TypeScript enabled)
 - [ ] Configure environment variables (DB, auth, API keys)
 - [ ] Implement database schema for tasks (Prisma/Postgres) — dev branch extension for advanced fields
@@ -30,5 +30,6 @@
 - 2025-09-13: Implemented quick-create form, delete hook wiring, filter sidebar (status/priority/overdue), and a client-side auth guard using `/api/users/me`. Note: API lacked DELETE; implemented below.
 - 2025-09-13: Added DELETE handler at `src/app/api/admin/tasks/[id]/route.ts` with auth, rate limiting, DB check, and proper 404 on missing task. remove() now fully functional in dev UI.
 - 2025-09-13: Debugged Failed to fetch during HMR by preventing premature API calls: `useDevTasks` now accepts an `enabled` flag; `DevTaskManagement` initializes `authorized=false` until `/api/users/me` validates, then enables fetching. This avoids unauthorized fetch errors and reduces HMR noise.
-- 2025-09-13: Initialized dev workspace: added `temp/task management/index.tsx` as a single-mount entry for the task system; confirmed `temp/task management/src/app/admin/tasks/*` renders `DevTaskManagement`. No root app changes due to ACL. To preview locally, import this entry in `src/app/admin/tasks/page.tsx`. Next: Setup GitHub repo + connect Builder.io.
+- 2025-09-13: Initialized dev workspace: added `temp/task management/index.tsx` as a single-mount entry for the task system; confirmed `temp/task management/src/app/admin/tasks/*` renders `DevTaskManagement`. No root app changes due to ACL. To preview locally, import this entry in `src/app/admin/tasks/page.tsx`.
+- 2025-09-14: Prepared MCP + GitHub setup guide in `temp/task management/mcp-setup.md` with step-by-step instructions to connect Builder.io and recommended MCP servers. NOTE: MCP connections must be performed manually via the Builder UI ([Open MCP popover](#open-mcp-popover)). Also documented required env vars (DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL) and next steps.
 - 2025-09-13: Fixed dev auth guard bug — `setAuthorized(true)` was not applied on successful `/api/users/me` response, causing perpetual unauthorized state and spurious fetches. Made the check more resilient (AbortController, credentials:'same-origin', clear authError on success) to reduce HMR "Failed to fetch" noise. See `temp/task management/dev-task-management.tsx`.
