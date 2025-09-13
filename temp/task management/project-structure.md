@@ -7,6 +7,7 @@
 - [x] Scaffold admin pages under temp (mirror target): temp/task management/src/app/admin/tasks/{page.tsx,[id]/page.tsx,loading.tsx}
 - [x] Wire adapters into hooks to consume /api/admin/tasks (useDevTasks)
 - [x] Expand dev flows: implement create/delete and filter sidebar; connect auth guards for admin routes
+- [x] Add DELETE /api/admin/tasks/[id] endpoint on dev branch and wire remove() fully
 - [ ] Initialize project in development mode
 - [ ] Setup GitHub repo + connect Builder.io
 - [ ] Create base Next.js project (app router, TypeScript enabled)
@@ -25,4 +26,5 @@
 - 2025-09-13: Relocated docs/project-structure.md to temp/task management/project-structure.md to keep the task system confined to the dev workspace. Next: initialize dev workspace in this directory per TODOs.
 - 2025-09-13: Completed code sample review for `temp/task management/`. Findings: UI layer is comprehensive (cards, views, filters, widgets, layout, hooks) plus a monolithic demo. Current API and Prisma differ from UI expectations (TaskStatus OPEN/IN_PROGRESS/DONE vs UI pending/in_progress/review/completed/blocked; TaskPriority LOW/MEDIUM/HIGH vs UI low/medium/high/critical; GET /api/admin/tasks returns array not { tasks, stats }). Plan: create an adapter in `temp/lib/tasks/adapters.ts` to map API <-> UI types and shapes; refactor temp hooks to use the adapter; scaffold admin pages under temp mirroring `src/app/admin/tasks/*`; evaluate Prisma schema extension on dev branch for advanced fields. Next: implement adapters and wire into `useTasks`, then scaffold pages.
 - 2025-09-13: Wired adapters into dev hook `temp/task management/hooks/useDevTasks.ts` to fetch `/api/admin/tasks` and map results; created `temp/task management/dev-task-management.tsx` using modular views + hook; updated dev page to render this component. Next: expand update/delete/create flows and filters.
-- 2025-09-13: Implemented quick-create form, delete hook wiring, filter sidebar (status/priority/overdue), and a client-side auth guard using `/api/users/me`. Note: API lacks DELETE route for `/api/admin/tasks/[id]`; delete will surface error until backend endpoint is added on the dev branch. Next: add backend DELETE route and full CRUD alignment.
+- 2025-09-13: Implemented quick-create form, delete hook wiring, filter sidebar (status/priority/overdue), and a client-side auth guard using `/api/users/me`. Note: API lacked DELETE; implemented below.
+- 2025-09-13: Added DELETE handler at `src/app/api/admin/tasks/[id]/route.ts` with auth, rate limiting, DB check, and proper 404 on missing task. remove() now fully functional in dev UI.
