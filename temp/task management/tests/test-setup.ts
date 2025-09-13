@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import React from 'react'
 import { vi } from 'vitest'
 
 // Minimal global fetch mock to avoid network calls by components during tests
@@ -19,45 +20,65 @@ if (typeof globalThis.EventSource === 'undefined') {
   } as any
 }
 
-// Mock NextResponse.json to be test-friendly
+// Mock NextResponse to be test-friendly
 vi.mock('next/server', () => {
-  return {
-    NextResponse: {
-      json: (data: any, init?: { status?: number }) => ({ json: async () => data, ok: !init?.status || init.status < 400, status: init?.status || 200 })
+  class NextResponse {
+    body: any
+    status: number
+    headers: Map<string, string>
+    ok: boolean
+    constructor(body?: any, init?: { status?: number, headers?: Record<string, string> }) {
+      this.body = body
+      this.status = init?.status ?? 200
+      this.headers = new Map<string, string>()
+      if (init?.headers) {
+        for (const [k, v] of Object.entries(init.headers)) this.headers.set(k, String(v))
+      }
+      this.ok = this.status < 400
+    }
+    static json(data: any, init?: { status?: number, headers?: Record<string, string> }) {
+      return new NextResponse(JSON.stringify(data), init)
+    }
+    async json() {
+      try { return typeof this.body === 'string' ? JSON.parse(this.body) : this.body } catch { return this.body }
+    }
+    async text() {
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body)
     }
   }
+  return { NextResponse }
 })
 
 // Stub UI components used in these tests to avoid pulling full design system
 vi.mock('@/components/ui/card', () => {
-  const Card = (props: any) => <div role="region" {...props} />
-  const CardContent = (props: any) => <div role="group" {...props} />
-  const CardHeader = (props: any) => <div role="heading" {...props} />
-  const CardTitle = (props: any) => <div role="heading" {...props} />
+  const Card = (props: any) => React.createElement('div', { role: 'region', ...props })
+  const CardContent = (props: any) => React.createElement('div', { role: 'group', ...props })
+  const CardHeader = (props: any) => React.createElement('div', { role: 'heading', ...props })
+  const CardTitle = (props: any) => React.createElement('div', { role: 'heading', ...props })
   return { Card, CardContent, CardHeader, CardTitle }
 }, { virtual: true })
 
 vi.mock('@/components/ui/button', () => {
-  const Button = (props: any) => <button {...props} />
+  const Button = (props: any) => React.createElement('button', { ...props })
   return { Button }
 }, { virtual: true })
 
 vi.mock('@/components/ui/input', () => {
-  const Input = (props: any) => <input {...props} />
+  const Input = (props: any) => React.createElement('input', { ...props })
   return { Input }
 }, { virtual: true })
 
 vi.mock('@/components/ui/badge', () => {
-  const Badge = (props: any) => <span {...props} />
+  const Badge = (props: any) => React.createElement('span', { ...props })
   return { Badge }
 }, { virtual: true })
 
 vi.mock('@/components/ui/dialog', () => {
-  const Dialog = (props: any) => <div {...props} />
-  const DialogContent = (props: any) => <div {...props} />
-  const DialogHeader = (props: any) => <div {...props} />
-  const DialogTitle = (props: any) => <div {...props} />
-  const DialogDescription = (props: any) => <div {...props} />
-  const DialogFooter = (props: any) => <div {...props} />
+  const Dialog = (props: any) => React.createElement('div', { ...props })
+  const DialogContent = (props: any) => React.createElement('div', { ...props })
+  const DialogHeader = (props: any) => React.createElement('div', { ...props })
+  const DialogTitle = (props: any) => React.createElement('div', { ...props })
+  const DialogDescription = (props: any) => React.createElement('div', { ...props })
+  const DialogFooter = (props: any) => React.createElement('div', { ...props })
   return { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter }
 }, { virtual: true })
