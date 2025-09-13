@@ -1,5 +1,5 @@
 export async function apiFetch(path: RequestInfo | string, options?: RequestInit) {
-  const defaultOpts: RequestInit = { credentials: 'include', cache: 'no-store', keepalive: false, ...options }
+  const defaultOpts: RequestInit = { credentials: 'same-origin', cache: 'no-store', keepalive: false, ...options }
   const debug = typeof process !== 'undefined' && process.env && (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1')
 
   const timeoutMs = (options && (options as any).timeout) || 8000
