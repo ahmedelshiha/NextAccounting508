@@ -118,8 +118,12 @@ export default function DevTaskManagement() {
     }, [filters])
 
     const handleTaskStatusChange = useCallback(async (taskId: string, status: Task['status']) => {
+      if (!perms.canEdit && !perms.canAssign) {
+        alert('Insufficient permissions to change task status')
+        return
+      }
       await update(taskId, { status })
-    }, [update])
+    }, [update, perms])
 
     // Quick create form
     const [newTitle, setNewTitle] = useState('')
