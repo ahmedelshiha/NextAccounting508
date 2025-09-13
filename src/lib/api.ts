@@ -1,47 +1,87 @@
 export async function apiFetch(path: RequestInfo | string, options?: RequestInit) {
-  const opts: RequestInit = { credentials: 'include', cache: 'no-store', keepalive: false, ...options }
+  const defaultOpts: RequestInit = { credentials: 'include', cache: 'no-store', keepalive: false, ...options }
   const debug = typeof process !== 'undefined' && process.env && (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1')
 
-  const attempt = async (info: RequestInfo | string) => {
-    return await fetch(info as RequestInfo, opts)
+  const timeoutMs = (options && (options as any).timeout) || 8000
+
+  const isNetworkError = (err: unknown) => {
+    try {
+      const s = String(err || '').toLowerCase()
+      return s.includes('failed to fetch') || s.includes('networkerror') || s.includes('network request failed')
+    } catch {
+      return false
+    }
   }
 
-  const withRetries = async (info: RequestInfo | string) => {
-    const max = 2
+  const doFetch = async (info: RequestInfo | string) : Promise<Response> => {
+    const controller = new AbortController()
+    const signal = options && (options as any).signal ? (options as any).signal : controller.signal
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    if (timeoutMs && !(options && (options as any).signal)) {
+      timeout = setTimeout(() => controller.abort(), timeoutMs)
+    }
+    try {
+      return await fetch(info as RequestInfo, { ...defaultOpts, signal })
+    } finally {
+      if (timeout) clearTimeout(timeout)
+    }
+  }
+
+  const withRetries = async (info: RequestInfo | string) : Promise<Response> => {
+    const maxRetries = 2
     let lastErr: unknown
-    for (let i = 0; i <= max; i++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await attempt(info)
+        const res = await doFetch(info)
+        return res
       } catch (err) {
         lastErr = err
-        const isAbort = err instanceof DOMException && err.name === 'AbortError'
-        const isNetwork = typeof err === 'object' && err !== null && String(err).toLowerCase().includes('failed to fetch')
-        if (isAbort) throw err
-        if (i < max && isNetwork) {
-          await new Promise((r) => setTimeout(r, 150 * Math.pow(2, i)))
+        // Abort should bubble up
+        if (err instanceof DOMException && err.name === 'AbortError') throw err
+
+        const network = isNetworkError(err)
+        if (debug) {
+          try { console.warn('apiFetch attempt failed', { attempt, info, err }) } catch {}
+        }
+
+        // retry only for network-type failures
+        if (attempt < maxRetries && network) {
+          await new Promise(r => setTimeout(r, 150 * Math.pow(2, attempt)))
+          // try origin-prefixed fallback on second attempt in browser
+          if (attempt === 0 && typeof window !== 'undefined' && typeof info === 'string' && info.startsWith('/')) {
+            try {
+              const originUrl = `${window.location.origin}${info}`
+              const res = await doFetch(originUrl)
+              return res
+            } catch (e) {
+              lastErr = e
+            }
+          }
           continue
         }
-        if (debug) {
-          try {
-            console.warn('apiFetch failed:', { info, opts, err })
-          } catch {}
-        }
-        throw err
+
+        // Non-retriable or exhausted retries — break loop
+        break
       }
     }
-    // Should not reach here
-    throw lastErr
+
+    // If we exhausted retries or encountered non-network error, return a safe Response instead of throwing
+    if (debug) {
+      try { console.error('apiFetch final error, returning 503 response', lastErr) } catch {}
+    }
+
+    try {
+      const body = typeof lastErr === 'string' ? lastErr : JSON.stringify({ error: 'Network error', detail: String(lastErr) })
+      return new Response(body, { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'application/json' } })
+    } catch (e) {
+      // Fallback: rethrow if Response construction fails
+      throw lastErr
+    }
   }
 
-  if (typeof path !== 'string') {
-    return withRetries(path)
-  }
+  // If a non-string RequestInfo was passed (Request), use it directly
+  if (typeof path !== 'string') return withRetries(path)
 
-  if (typeof window !== 'undefined') {
-    const url = path
-    return withRetries(url as RequestInfo)
-  }
-
-  const url = path
-  return withRetries(url as RequestInfo)
+  // Browser vs server: attempt as-is (relative path) — withRetries will try origin fallback if needed
+  return withRetries(path)
 }
