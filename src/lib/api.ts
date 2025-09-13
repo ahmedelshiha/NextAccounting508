@@ -82,6 +82,17 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
   // If a non-string RequestInfo was passed (Request), use it directly
   if (typeof path !== 'string') return withRetries(path)
 
-  // Browser vs server: attempt as-is (relative path) — withRetries will try origin fallback if needed
+  // Browser vs server: if an explicit public API base is provided, prefer it for relative paths
+  if (typeof window !== 'undefined' && typeof path === 'string' && path.startsWith('/') && typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_BASE) {
+    try {
+      const base = process.env.NEXT_PUBLIC_API_BASE!.replace(/\/$/, '')
+      return withRetries(`${base}${path}`)
+    } catch (e) {
+      // fallback to default behavior
+      return withRetries(path)
+    }
+  }
+
+  // Default behavior: attempt as-is (relative path) — withRetries will try origin fallback if needed
   return withRetries(path)
 }
