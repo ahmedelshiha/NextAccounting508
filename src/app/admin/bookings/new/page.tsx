@@ -860,7 +860,7 @@ export default function ProfessionalNewBooking() {
         return
       }
       const scheduledAt = new Date(`${formData.scheduledDate}T${formData.scheduledTime}:00`)
-      const res = await fetch('/api/bookings', {
+      const res = await apiFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
