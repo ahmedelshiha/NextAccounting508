@@ -8,6 +8,7 @@
 - [x] Wire adapters into hooks to consume /api/admin/tasks (useDevTasks)
 - [x] Expand dev flows: implement create/delete and filter sidebar; connect auth guards for admin routes
 - [x] Add DELETE /api/admin/tasks/[id] endpoint on dev branch and wire remove() fully
+- [x] Guard client fetches behind auth to prevent unauthorized fetch/HMR churn
 - [ ] Initialize project in development mode
 - [ ] Setup GitHub repo + connect Builder.io
 - [ ] Create base Next.js project (app router, TypeScript enabled)
@@ -28,3 +29,4 @@
 - 2025-09-13: Wired adapters into dev hook `temp/task management/hooks/useDevTasks.ts` to fetch `/api/admin/tasks` and map results; created `temp/task management/dev-task-management.tsx` using modular views + hook; updated dev page to render this component. Next: expand update/delete/create flows and filters.
 - 2025-09-13: Implemented quick-create form, delete hook wiring, filter sidebar (status/priority/overdue), and a client-side auth guard using `/api/users/me`. Note: API lacked DELETE; implemented below.
 - 2025-09-13: Added DELETE handler at `src/app/api/admin/tasks/[id]/route.ts` with auth, rate limiting, DB check, and proper 404 on missing task. remove() now fully functional in dev UI.
+- 2025-09-13: Debugged Failed to fetch during HMR by preventing premature API calls: `useDevTasks` now accepts an `enabled` flag; `DevTaskManagement` initializes `authorized=false` until `/api/users/me` validates, then enables fetching. This avoids unauthorized fetch errors and reduces HMR noise.
