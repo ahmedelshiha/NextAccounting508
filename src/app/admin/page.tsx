@@ -42,7 +42,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
-const fetcher = (url: string) => fetch(url).then(async (r) => {
+import { apiFetch } from '@/lib/api'
+
+const fetcher = (url: string) => apiFetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
   return r.json()
 })
@@ -1538,7 +1540,7 @@ export default function ProfessionalAdminDashboard() {
     setThresholds(t)
     try { localStorage.setItem('admin_health_thresholds', JSON.stringify(t)) } catch {}
     try {
-      const res = await fetch('/api/admin/thresholds', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(t) })
+      const res = await apiFetch('/api/admin/thresholds', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(t) })
       if (res.ok) {
         const json = await res.json()
         mutateThresholds(json, { revalidate: true })
@@ -1555,10 +1557,10 @@ export default function ProfessionalAdminDashboard() {
     setLoading(true)
     try {
       const [bookingsRes, usersRes, tasksRes, bookingsListRes] = await Promise.allSettled([
-        fetch('/api/admin/stats/bookings?range=7d'),
-        fetch('/api/admin/stats/users'),
-        fetch('/api/admin/tasks?limit=50'),
-        fetch('/api/admin/bookings?limit=20')
+        apiFetch('/api/admin/stats/bookings?range=7d'),
+        apiFetch('/api/admin/stats/users'),
+        apiFetch('/api/admin/tasks?limit=50'),
+        apiFetch('/api/admin/bookings?limit=20')
       ])
 
       const okJson = async (r: PromiseSettledResult<Response>) => {

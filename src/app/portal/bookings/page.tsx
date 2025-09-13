@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,7 +35,7 @@ export default function PortalBookingsPage() {
     async function load() {
       try {
         setLoading(true)
-        const res = await fetch('/api/bookings', { cache: 'no-store' })
+        const res = await apiFetch('/api/bookings', { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         setBookings(Array.isArray(json) ? json : [])

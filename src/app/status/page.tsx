@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { apiFetch } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 
 interface HealthLog {
@@ -29,9 +30,9 @@ export default function StatusPage() {
   async function load() {
     try {
       const [dbRes, emailRes, logsRes] = await Promise.all([
-        fetch('/api/db-check', { cache: 'no-store' }),
-        fetch('/api/email-check', { cache: 'no-store' }),
-        fetch('/api/health/logs?limit=50', { cache: 'no-store' }),
+        apiFetch('/api/db-check', { cache: 'no-store' }),
+        apiFetch('/api/email-check', { cache: 'no-store' }),
+        apiFetch('/api/health/logs?limit=50', { cache: 'no-store' }),
       ])
       setDbOk(dbRes.ok)
       setEmailOk(emailRes.ok)

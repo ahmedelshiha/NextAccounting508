@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 interface Member {
   id: string
@@ -14,7 +15,7 @@ export default function AssigneeSelector({ value, onChange }: { value?: string |
 
   useEffect(() => {
     let mounted = true
-    fetch('/api/admin/team-members', { cache: 'no-store' })
+    apiFetch('/api/admin/team-members', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : Promise.resolve({ teamMembers: [] })))
       .then((data) => {
         if (!mounted) return

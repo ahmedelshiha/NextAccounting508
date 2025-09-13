@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api'
 import { Input } from '@/components/ui/input'
 
 interface NewsletterFormProps {
@@ -33,7 +34,7 @@ export default function NewsletterForm({ placeholder = 'Enter your email', submi
     setLoading(true)
 
     try {
-      const res = await fetch('/api/newsletter', {
+      const res = await apiFetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

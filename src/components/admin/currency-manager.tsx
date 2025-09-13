@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { toast } from 'sonner'
 import { usePermissions } from '@/lib/use-permissions'
 import { RefreshCw, Download, Save, Star, ToggleRight } from 'lucide-react'
@@ -14,7 +15,7 @@ export default function CurrencyManager() {
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/currencies')
+      const res = await apiFetch('/api/admin/currencies')
       if (!res.ok) throw new Error('Failed')
       const json = await res.json()
       setCurrencies(json)
@@ -31,7 +32,7 @@ export default function CurrencyManager() {
   async function refreshRates() {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/currencies/refresh', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      const res = await apiFetch('/api/admin/currencies/refresh', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
       const json = await res.json()
       if (res.ok && json.updated) {
         toast.success('Rates refreshed')
@@ -52,7 +53,7 @@ export default function CurrencyManager() {
     setLoading(true)
     try {
       const payload = { symbol: cur.symbol ?? null, decimals: cur.decimals, active: cur.active }
-      const res = await fetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) })
+      const res = await apiFetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error('Failed')
       toast.success(`Saved ${code}`)
       await load()
@@ -66,7 +67,7 @@ export default function CurrencyManager() {
   async function setDefault(code: string) {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ isDefault: true }) })
+      const res = await apiFetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ isDefault: true }) })
       if (!res.ok) throw new Error('Failed')
       toast.success('Default currency updated')
       await load()
@@ -80,7 +81,7 @@ export default function CurrencyManager() {
   async function saveToggleActive(code: string, active: boolean) {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active }) })
+      const res = await apiFetch(`/api/admin/currencies/${code}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active }) })
       if (!res.ok) throw new Error('Failed')
       toast.success('Updated')
       await load()

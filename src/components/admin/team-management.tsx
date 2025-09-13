@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
+import { apiFetch } from '@/lib/api'
 import Link from 'next/link'
 import {
   Users,
@@ -479,7 +480,7 @@ export default function TeamManagement() {
   useEffect(() => {
     const loadMembers = async () => {
       try {
-        const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
+        const res = await apiFetch('/api/admin/team-members', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
         setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
       } catch (err) {
@@ -501,13 +502,13 @@ export default function TeamManagement() {
     setLoading(true)
     try {
       if (editingMember) {
-        const res = await fetch(`/api/admin/team-members/${editingMember.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        const res = await apiFetch(`/api/admin/team-members/${editingMember.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
         if (!res.ok) throw new Error('Failed to update')
         const json = await res.json()
         const updated = json.teamMember as TeamMember
         setTeamMembers((prev) => prev.map((m) => (m.id === editingMember.id ? updated : m)))
       } else {
-        const res = await fetch('/api/admin/team-members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        const res = await apiFetch('/api/admin/team-members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
         if (!res.ok) throw new Error('Failed to create')
         const json = await res.json()
         const created = json.teamMember as TeamMember
@@ -526,7 +527,7 @@ export default function TeamManagement() {
     if (!confirm('Are you sure you want to remove this team member?')) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/team-members/${id}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/admin/team-members/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
       setTeamMembers((prev) => prev.filter((m) => m.id !== id))
     } catch {
