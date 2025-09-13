@@ -752,7 +752,7 @@ export default function ProfessionalNewBooking() {
 
         // Load team members for assignment
         try {
-          const tmRes = await fetch('/api/admin/team-members', { cache: 'no-store' })
+          const tmRes = await apiFetch('/api/admin/team-members', { cache: 'no-store' })
           type ApiTeamMember = { id: string; name: string; email: string; title?: string; role?: string; specialties?: string[]; isAvailable?: boolean; status?: string; workingHours?: { start?: string; end?: string; days?: string[] }; department?: Staff['department'] }
           const tmJson = (await tmRes.json().catch(() => ({ teamMembers: [] }))) as { teamMembers?: ApiTeamMember[] }
           const members = Array.isArray(tmJson.teamMembers) ? tmJson.teamMembers : []
