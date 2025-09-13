@@ -77,6 +77,7 @@ export default function DevTaskManagement() {
   // Inner component that consumes the TaskProvider
   function Content() {
     const { tasks, loading, error, refresh, createTask: create, updateTask: update, deleteTask: remove } = useTasks()
+    const perms = useTaskPermissions()
 
     // Search, sort, filters
     const [searchQuery, setSearchQuery] = useState('')
