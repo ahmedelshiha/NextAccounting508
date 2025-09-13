@@ -67,7 +67,7 @@ const validatePhone = (phone: string) => /^[\+]?([0-9]|\s|\-|\(|\)){5,}$/i.test(
 
 async function fetchServices(): Promise<Service[]> {
   try {
-    const res = await fetch('/api/services', { cache: 'no-store' })
+    const res = await apiFetch('/api/services', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch services')
     return await res.json()
   } catch {
