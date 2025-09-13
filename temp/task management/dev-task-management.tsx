@@ -308,11 +308,14 @@ export default function DevTaskManagement() {
 
           <div className="flex-1 min-w-0">
             <TaskListView
-              tasks={fullyFiltered}
-              loading={loading}
-              onTaskStatusChange={handleTaskStatusChange}
-              onTaskDelete={async (id) => { await remove(id) }}
-            />
+            tasks={fullyFiltered}
+            loading={loading}
+            onTaskStatusChange={handleTaskStatusChange}
+            onTaskDelete={async (id) => {
+              if (!perms.canDelete) { alert('Insufficient permissions to delete tasks'); return }
+              await remove(id)
+            }}
+          />
           </div>
         </div>
       </div>
