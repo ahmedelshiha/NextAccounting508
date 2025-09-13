@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  REVIEW
+  BLOCKED
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("USER")
+  tasks     Task[]   @relation("AssigneeTasks")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id                 String       @id @default(uuid())
+  title              String
+  description        String?      
+  priority           TaskPriority @default(MEDIUM)
+  status             TaskStatus   @default(PENDING)
+  category           String       @default("system")
+  dueAt              DateTime?    
+  estimatedHours     Int          @default(0)
+  actualHours        Int?
+  assigneeId         String?      
+  assignee           User?        @relation("AssigneeTasks", fields: [assigneeId], references: [id])
+  tags               String[]     @default([])
+  complianceRequired Boolean      @default(false)
+  complianceDeadline DateTime?
+  clientId           String?
+  bookingId          String?
+  createdById        String?
+  createdBy          User?        @relation("CreatedTasks", fields: [createdById], references: [id])
+  customFields       Json?        
+  attachments        Json?        
+  comments           Json?        
+  recurring          Json?        
+  reminders          Json?        
+  watchers           String[]     @default([])
+  revenueImpact      Float?
+  completionPercentage Int        @default(0)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueAt])
+}

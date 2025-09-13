@@ -1,0 +1,15 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '../../../../../prisma/client'
+
+export async function POST(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params
+    const body = await request.json().catch(() => ({}))
+    const assigneeId = body.assigneeId ?? null
+    const updated = await prisma.task.update({ where: { id }, data: { assigneeId } })
+    return NextResponse.json(updated)
+  } catch (err) {
+    console.error('POST /api/admin/tasks/[id]/assign error', err)
+    return NextResponse.json({ error: 'Failed to assign' }, { status: 500 })
+  }
+}

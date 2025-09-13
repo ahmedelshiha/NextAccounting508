@@ -1,38 +1,67 @@
 'use client'
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { TasksHeader, TasksToolbar, TasksStats } from './task-layout-components'
 import { TaskListView } from './task-view-components'
 import type { Task, TaskFilters, TaskPriority } from './task-types'
 import { calculateTaskStatistics, applyFilters } from './task-utils'
 import { useDevTasks } from './hooks/useDevTasks'
+import TaskAnalytics from './components/analytics/TaskAnalytics'
 
 export default function DevTaskManagement() {
-  // Auth guard (client-side)
+  // Auth guard (client-side) — prefer NextAuth session when available
+  const { data: session, status } = useSession()
   const [authorized, setAuthorized] = useState<boolean>(false)
   const [authError, setAuthError] = useState<string | null>(null)
+
   useEffect(() => {
     let mounted = true
-    fetch('/api/users/me').then(async (r) => {
-      if (!mounted) return
-      if (!r.ok) {
+    const ctrl = new AbortController()
+
+    const applySession = (sess: any) => {
+      const role = sess?.user?.role || sess?.role
+      if (!role) return false
+      if (['ADMIN', 'STAFF'].includes(role)) return true
+      return false
+    }
+
+    // If NextAuth is present and session is known, use it
+    if (status === 'authenticated') {
+      const ok = applySession(session)
+      setAuthorized(ok)
+      setAuthError(ok ? null : 'Insufficient permissions')
+      return () => { mounted = false }
+    }
+
+    // Fallback: call /api/users/me (keeps compatibility with existing app)
+    ;(async () => {
+      try {
+        const r = await fetch('/api/users/me', { signal: ctrl.signal, credentials: 'same-origin' })
+        if (!mounted) return
+        if (!r.ok) {
+          setAuthorized(false)
+          setAuthError('Unauthorized')
+          return
+        }
+        const data = await r.json().catch(() => ({}))
+        const role = data?.user?.role
+        if (!['ADMIN', 'STAFF'].includes(role)) {
+          setAuthorized(false)
+          setAuthError('Insufficient permissions')
+        } else {
+          setAuthorized(true)
+          setAuthError(null)
+        }
+      } catch (err) {
+        if (!mounted) return
         setAuthorized(false)
         setAuthError('Unauthorized')
-        return
       }
-      const data = await r.json().catch(() => ({}))
-      const role = data?.user?.role
-      if (!['ADMIN', 'STAFF'].includes(role)) {
-        setAuthorized(false)
-        setAuthError('Insufficient permissions')
-      }
-    }).catch(() => {
-      if (!mounted) return
-      setAuthorized(false)
-      setAuthError('Unauthorized')
-    })
-    return () => { mounted = false }
-  }, [])
+    })()
+
+    return () => { mounted = false; ctrl.abort() }
+  }, [session, status])
 
   const { tasks, loading, error, create, update, remove } = useDevTasks(20, authorized)
 
@@ -103,6 +132,37 @@ export default function DevTaskManagement() {
     setNewPriority('medium')
   }, [newTitle, newDue, newPriority, create])
 
+  // HMR / ChunkLoadError handling: reload when a stale chunk causes failure to load
+  useEffect(() => {
+    const onError = (ev: ErrorEvent) => {
+      try {
+        const msg = (ev && ev.error && (ev.error.message || ev.error.name)) || ev.message || ''
+        if (msg && (msg.includes('Loading chunk') || msg.includes('ChunkLoadError') || msg.toLowerCase().includes('failed to fetch'))) {
+          // Reload once to recover from an out-of-sync HMR chunk
+          console.warn('ChunkLoadError detected in dev UI, reloading page to recover HMR state')
+          window.location.reload()
+        }
+      } catch (e) {
+        /* swallow */
+      }
+    }
+    const onRej = (ev: PromiseRejectionEvent) => {
+      try {
+        const reason = ev.reason && (ev.reason.message || ev.reason.toString()) || ''
+        if (reason && (reason.includes('Loading chunk') || reason.includes('ChunkLoadError') || reason.toLowerCase().includes('failed to fetch'))) {
+          console.warn('Unhandled rejection related to chunk loading; reloading')
+          window.location.reload()
+        }
+      } catch (e) { /* swallow */ }
+    }
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onRej)
+    return () => {
+      window.removeEventListener('error', onError)
+      window.removeEventListener('unhandledrejection', onRej)
+    }
+  }, [])
+
   if (!authorized) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -152,7 +212,14 @@ export default function DevTaskManagement() {
         <button onClick={handleCreate} className="px-4 py-2 bg-blue-600 text-white rounded text-sm">Add Task</button>
       </div>
 
-      <TasksStats stats={statistics} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TasksStats stats={statistics} />
+        </div>
+        <div className="lg:col-span-1">
+          <TaskAnalytics />
+        </div>
+      </div>
 
       <TasksToolbar
         searchQuery={searchQuery}
