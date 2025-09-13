@@ -19,7 +19,7 @@
 - [x] Add task filters (status, priority, due date)
 - [x] Integrate authentication (NextAuth guards for admin pages)
 - [x] Add unit tests (Vitest + React Testing Library)
-- [ ] Deploy dev branch to Netlify
+- [x] Deploy dev branch to Netlify
 - [ ] Document each step in project-structure.md
 
 ## Development Log
