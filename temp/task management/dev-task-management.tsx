@@ -10,6 +10,8 @@ import TaskAnalytics from './components/analytics/TaskAnalytics'
 import { TaskProvider, useTasks } from './providers/TaskProvider'
 import { useTaskPermissions } from './hooks/useTaskPermissions'
 import BulkActionsPanel from './components/bulk/BulkActionsPanel'
+import CommentsPanel from './components/comments/CommentsPanel'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 export default function DevTaskManagement() {
   // Auth guard (client-side) — prefer NextAuth session when available
