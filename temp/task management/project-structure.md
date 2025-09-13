@@ -20,6 +20,12 @@
 - [x] Add unit tests (Vitest + React Testing Library)
 - [x] Deploy dev branch to Netlify
 - [x] Document each step in project-structure.md
+- [ ] Implement advanced UI forms and modals (forms/, modals/)
+- [ ] Implement providers (TaskProvider, FilterProvider, ViewProvider, NotificationProvider)
+- [ ] Implement advanced hooks (useTaskFilters, useTaskActions, useTaskAnalytics, useTaskBulkActions, useTaskPermissions)
+- [ ] Add API subroutes: assign, status, comments, bulk, analytics, export, templates, notifications
+- [ ] Add analytics components and charts
+- [ ] Add styles/tasks/*.css to match design system
 
 ## Development Log
 - 2025-09-13: Initialized development documentation and TODO tracker at docs/project-structure.md. Verified available task module directory at `temp/task management/` (note the space). Awaiting confirmation to proceed using this path. Next: set workflow to keep all task-system work under temp/task management and begin initialization in dev mode.
