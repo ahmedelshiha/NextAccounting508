@@ -88,6 +88,12 @@ export default function DevTaskManagement() {
       search: '', status: [], priority: [], category: [], assignee: [], client: [], dateRange: {}, overdue: false, compliance: false, tags: []
     })
 
+    // Selection for bulk actions
+    const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+    const toggleSelect = (id: string) => setSelectedTasks(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    const clearSelection = () => setSelectedTasks([])
+    const selectAllVisible = () => setSelectedTasks(fullyFiltered.map(t => t.id))
+
     const filteredBySearch = useMemo(() => {
       if (!searchQuery.trim()) return tasks
       const q = searchQuery.toLowerCase()
