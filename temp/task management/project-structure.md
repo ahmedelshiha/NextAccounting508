@@ -34,7 +34,7 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
 - [x] Implement TaskForm validation (Zod schemas) and form unit tests
 - [x] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
-- [ ] Implement useTaskPermissions full behavior and role-based UI controls
+- [x] Implement useTaskPermissions full behavior and role-based UI controls
 - [ ] Add bulk UI flows and confirm dialogs wiring to bulk API
 - [ ] Add comments UI integrated with comments API (threaded comments, attachments)
 - [ ] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
@@ -80,4 +80,8 @@ These items are intentionally left for future work. The project is paused — re
   - Task CRUD routes now broadcast events on create/update/delete.
   - Added `temp/task management/providers/TaskProvider.tsx` implementing optimistic create/update/delete and EventSource listener.
   - Wired provider into `temp/task management/dev-task-management.tsx` and switched UI to use provider-backed tasks.
+- 2025-09-22: Implemented `useTaskPermissions` hook to expose role-based permissions and wired role checks into the UI.
+  - Added `temp/task management/hooks/useTaskPermissions.tsx` (reads NextAuth session role).
+  - Dev UI now disables/hides create/delete/status-change actions when the current role lacks permissions.
+  - Permission model: ADMIN(full), STAFF(create/edit/assign/comment), USER(comment-only).
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
