@@ -2,8 +2,9 @@ export async function register() {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
   if (!dsn) return
   try {
-    const mod = '@sentry/nextjs'
-    const Sentry: any = await import(mod)
+    if (process.env.NODE_ENV !== 'production') return
+    const dynImport = new Function('m', 'return import(m)') as (m: string) => Promise<any>
+    const Sentry: any = await dynImport('@sentry/nextjs')
     Sentry.init({
       dsn,
       tracesSampleRate: 1.0,
@@ -11,6 +12,6 @@ export async function register() {
       replaysOnErrorSampleRate: 1.0,
     })
   } catch {
-    // Silently ignore Sentry init errors in development
+    // Silently ignore Sentry init errors in development or when dependency is missing
   }
 }
