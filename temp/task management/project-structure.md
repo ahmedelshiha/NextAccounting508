@@ -40,12 +40,13 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
 - [x] Add Gantt view scaffold (data model + UI placeholder)
 - [x] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
-- [ ] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
+- [x] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
 - [ ] Finalize styles/design tokens and accessibility review
 - [ ] Run Prisma migrations in temp workspace and verify DB seed data (requires DATABASE_URL)
 
 
 ## Development Log
+- 2025-09-24: Added GitHub Actions CI workflow template at `temp/task management/.github/workflows/ci.yml` to run Vitest tests in the temp workspace, conditionally build the dev Next app, and optionally deploy to Netlify when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID secrets are set. This file lives under the temp workspace due to ACL; move to repo root `.github/workflows/` when ready to enable CI.
 - 2025-09-13: Added comprehensive unit and integration tests across API routes (export/templates/notifications/comments/bulk), adapters, permissions hook, and TaskProvider optimistic flows. Updated vitest setup to mock NextResponse constructor and UI stubs. Marked TODO complete.
 - 2025-09-24: Added Gantt view scaffold under `components/views/TaskGanttView.tsx` with monthly timeline, task bars, and legend. Updated toolbar to include Gantt and wired view switching in `dev-task-management.tsx`. This is a UI placeholder using createdAt/dueDate heuristics; no DB changes required.
 - 2025-09-13: Split consolidated components into per-file layout/cards/views/widgets under `temp/task management/components/`. Updated `dev-task-management.tsx` imports, removed duplicate viewTask state, and added missing ExportPanel import. Preserved original styles and class names.

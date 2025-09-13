@@ -1,0 +1,85 @@
+name: Task Management CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-temp:
+    name: Unit & Integration Tests (temp workspace)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: temp/task management
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: |
+            temp/task management/package-lock.json
+            temp/task management/next-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run tests (Vitest)
+        run: npm test -- --run
+
+  build-next-app:
+    name: Build Next app (dev scaffold)
+    runs-on: ubuntu-latest
+    needs: test-temp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: temp/task management/next-app/package-lock.json
+
+      - name: Build if Next is present
+        working-directory: temp/task management/next-app
+        run: |
+          if grep -q '"next"' package.json; then
+            npm ci || npm install
+            npm run build
+          else
+            echo "Skipping next-app build: 'next' dependency not found in package.json"
+          fi
+
+  deploy-netlify:
+    name: Deploy to Netlify (if secrets provided)
+    runs-on: ubuntu-latest
+    needs: build-next-app
+    if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: temp/task management/next-app/package-lock.json
+
+      - name: Netlify deploy (respects netlify.toml)
+        working-directory: temp/task management/next-app
+        run: |
+          if grep -q '"next"' package.json; then
+            npm ci || npm install
+            npx netlify deploy --build --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" --prod
+          else
+            echo "Skipping Netlify deploy: 'next' dependency not found in package.json"
+          fi
