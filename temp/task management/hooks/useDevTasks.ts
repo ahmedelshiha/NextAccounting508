@@ -33,7 +33,7 @@ export const useDevTasks = (limit: number = 20, enabled: boolean = true): UseDev
     } finally {
       setLoading(false)
     }
-  }, [limit])
+  }, [limit, enabled])
 
   const create = useCallback(async (input: CreateTaskInput): Promise<Task | null> => {
     try {
