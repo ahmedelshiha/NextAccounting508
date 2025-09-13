@@ -14,7 +14,7 @@ export const TaskCardFooter: React.FC<TaskCardFooterProps> = ({ task, onStatusCh
     <div className="flex justify-between items-center pt-3 border-t border-gray-200">
       <div className="flex gap-1">
         {task.status !== 'completed' && onStatusChange && (
-          <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); const newStatus = task.status === 'in_progress' ? 'completed' : 'in_progress'; onStatusChange(task.id, newStatus) }}>
+          <Button aria-label={`Mark ${task.title} as ${task.status === 'in_progress' ? 'completed' : 'in progress'}`} variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); const newStatus = task.status === 'in_progress' ? 'completed' : 'in_progress'; onStatusChange(task.id, newStatus) }}>
             Complete
           </Button>
         )}
