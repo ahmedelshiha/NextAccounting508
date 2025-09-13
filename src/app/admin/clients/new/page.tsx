@@ -77,7 +77,7 @@ async function fetchServices(): Promise<Service[]> {
 
 async function checkEmailExists(email: string) {
   try {
-    const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(email)}`, { cache: 'no-store' })
+    const res = await apiFetch(`/api/users/check-email?email=${encodeURIComponent(email)}`, { cache: 'no-store' })
     if (!res.ok) return false
     const data = await res.json()
     return !!data.exists
