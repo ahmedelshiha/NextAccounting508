@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { taskUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
@@ -67,8 +68,8 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
     await prisma.task.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error?.code === 'P2025') {
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
     console.error('Error deleting task:', error)
