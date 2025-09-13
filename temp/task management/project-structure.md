@@ -38,7 +38,7 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Add bulk UI flows and confirm dialogs wiring to bulk API
 - [x] Add comments UI integrated with comments API (threaded comments, attachments)
 - [x] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
-- [ ] Add Gantt view scaffold (data model + UI placeholder)
+- [x] Add Gantt view scaffold (data model + UI placeholder)
 - [ ] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
 - [ ] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
 - [ ] Finalize styles/design tokens and accessibility review
@@ -46,6 +46,7 @@ These items are intentionally left for future work. The project is paused — re
 
 
 ## Development Log
+- 2025-09-24: Added Gantt view scaffold under `components/views/TaskGanttView.tsx` with monthly timeline, task bars, and legend. Updated toolbar to include Gantt and wired view switching in `dev-task-management.tsx`. This is a UI placeholder using createdAt/dueDate heuristics; no DB changes required.
 - 2025-09-13: Split consolidated components into per-file layout/cards/views/widgets under `temp/task management/components/`. Updated `dev-task-management.tsx` imports, removed duplicate viewTask state, and added missing ExportPanel import. Preserved original styles and class names.
 - 2025-09-13: Initialized development documentation and TODO tracker at docs/project-structure.md. Verified available task module directory at `temp/task management/` (note the space). Awaiting confirmation to proceed using this path. Next: set workflow to keep all task-system work under temp/task management and begin initialization in dev mode.
 - 2025-09-13: Relocated docs/project-structure.md to temp/task management/project-structure.md to keep the task system confined to the dev workspace. Next: initialize dev workspace in this directory per TODOs.

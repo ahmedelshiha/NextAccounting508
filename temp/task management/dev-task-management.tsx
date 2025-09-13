@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { TasksHeader, TasksToolbar, TasksStats } from './components/layout'
-import { TaskListView } from './components/views'
+import { TaskListView, TaskBoardView, TaskCalendarView, TaskTableView, TaskGanttView } from './components/views'
 import type { Task, TaskFilters, TaskPriority } from './task-types'
 import { calculateTaskStatistics, applyFilters } from './task-utils'
 import TaskAnalytics from './components/analytics/TaskAnalytics'
@@ -86,7 +86,7 @@ export default function DevTaskManagement() {
     // Search, sort, filters
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState<'dueDate' | 'priority' | 'status' | 'assignee' | 'category'>('dueDate')
-    const [viewMode] = useState<'list' | 'board' | 'calendar' | 'table'>('list')
+    const [viewMode, setViewMode] = useState<'list' | 'board' | 'calendar' | 'table' | 'gantt'>('list')
     const [showFilters, setShowFilters] = useState(false)
     const [filters, setFilters] = useState<TaskFilters>({
       search: '', status: [], priority: [], category: [], assignee: [], client: [], dateRange: {}, overdue: false, compliance: false, tags: []
@@ -254,7 +254,7 @@ export default function DevTaskManagement() {
         sortBy={sortBy}
         onSortChange={(s) => setSortBy(s as any)}
         viewMode={viewMode}
-        onViewModeChange={() => {}}
+        onViewModeChange={(m) => setViewMode(m)}
         showFilters={true}
       />
 
@@ -326,7 +326,8 @@ export default function DevTaskManagement() {
           )}
 
           <div className="flex-1 min-w-0">
-            <TaskListView
+            {viewMode === 'list' && (
+              <TaskListView
               tasks={fullyFiltered}
               loading={loading}
               selectedTasks={selectedTasks}
@@ -338,6 +339,38 @@ export default function DevTaskManagement() {
               }}
               onTaskView={(t) => setViewTask(t)}
             />
+            )}
+            {viewMode === 'board' && (
+              <TaskBoardView
+                tasks={fullyFiltered}
+                loading={loading}
+                onTaskStatusChange={handleTaskStatusChange}
+                onTaskDelete={async (id) => { if (!perms.canDelete) { alert('Insufficient permissions to delete tasks'); return } await remove(id) }}
+                onTaskEdit={() => {}}
+                onTaskView={(t) => setViewTask(t)}
+              />
+            )}
+            {viewMode === 'calendar' && (
+              <TaskCalendarView
+                tasks={fullyFiltered}
+                loading={loading}
+                onTaskView={(t) => setViewTask(t)}
+              />
+            )}
+            {viewMode === 'table' && (
+              <TaskTableView
+                tasks={fullyFiltered}
+                loading={loading}
+                onTaskEdit={() => {}}
+              />
+            )}
+            {viewMode === 'gantt' && (
+              <TaskGanttView
+                tasks={fullyFiltered}
+                loading={loading}
+                onTaskView={(t) => setViewTask(t)}
+              />
+            )}
           </div>
         </div>
 

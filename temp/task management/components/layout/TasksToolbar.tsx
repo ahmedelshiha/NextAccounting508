@@ -9,8 +9,8 @@ interface TasksToolbarProps {
   onSearchChange: (query: string) => void
   onFiltersToggle?: () => void
   filtersActive?: number
-  viewMode?: 'list' | 'board' | 'calendar' | 'table'
-  onViewModeChange?: (mode: 'list' | 'board' | 'calendar' | 'table') => void
+  viewMode?: 'list' | 'board' | 'calendar' | 'table' | 'gantt'
+  onViewModeChange?: (mode: 'list' | 'board' | 'calendar' | 'table' | 'gantt') => void
   sortBy?: string
   onSortChange?: (sort: string) => void
   showFilters?: boolean
@@ -21,7 +21,8 @@ export const TasksToolbar: React.FC<TasksToolbarProps> = ({ searchQuery, onSearc
     { value: 'list', label: 'List' },
     { value: 'board', label: 'Board' },
     { value: 'calendar', label: 'Calendar' },
-    { value: 'table', label: 'Table' }
+    { value: 'table', label: 'Table' },
+    { value: 'gantt', label: 'Gantt' }
   ]
 
   const sortOptions = [
