@@ -188,6 +188,8 @@ export default function DevTaskManagement() {
       }
     }, [])
 
+    const [viewTask, setViewTask] = useState<any | null>(null)
+
     return (
       <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
         {error && (
