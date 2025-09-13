@@ -19,13 +19,33 @@ if (typeof globalThis.EventSource === 'undefined') {
   } as any
 }
 
-// Mock NextResponse.json to be test-friendly
+// Mock NextResponse to be test-friendly
 vi.mock('next/server', () => {
-  return {
-    NextResponse: {
-      json: (data: any, init?: { status?: number }) => ({ json: async () => data, ok: !init?.status || init.status < 400, status: init?.status || 200 })
+  class NextResponse {
+    body: any
+    status: number
+    headers: Map<string, string>
+    ok: boolean
+    constructor(body?: any, init?: { status?: number, headers?: Record<string, string> }) {
+      this.body = body
+      this.status = init?.status ?? 200
+      this.headers = new Map<string, string>()
+      if (init?.headers) {
+        for (const [k, v] of Object.entries(init.headers)) this.headers.set(k, String(v))
+      }
+      this.ok = this.status < 400
+    }
+    static json(data: any, init?: { status?: number, headers?: Record<string, string> }) {
+      return new NextResponse(JSON.stringify(data), init)
+    }
+    async json() {
+      try { return typeof this.body === 'string' ? JSON.parse(this.body) : this.body } catch { return this.body }
+    }
+    async text() {
+      return typeof this.body === 'string' ? this.body : JSON.stringify(this.body)
     }
   }
+  return { NextResponse }
 })
 
 // Stub UI components used in these tests to avoid pulling full design system
