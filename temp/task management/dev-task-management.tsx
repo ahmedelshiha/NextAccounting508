@@ -97,6 +97,9 @@ export default function DevTaskManagement() {
     const clearSelection = () => setSelectedTasks([])
     const selectAllVisible = () => setSelectedTasks(fullyFiltered.map(t => t.id))
 
+    // View task dialog state
+    const [viewTask, setViewTask] = useState<any | null>(null)
+
     const filteredBySearch = useMemo(() => {
       if (!searchQuery.trim()) return tasks
       const q = searchQuery.toLowerCase()
