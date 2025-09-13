@@ -18,7 +18,7 @@
 - [x] Build UI components (TaskCard, TaskList, TaskForm) — consolidate from temp components
 - [x] Add task filters (status, priority, due date)
 - [x] Integrate authentication (NextAuth guards for admin pages)
-- [ ] Add unit tests (Vitest + React Testing Library)
+- [x] Add unit tests (Vitest + React Testing Library)
 - [ ] Deploy dev branch to Netlify
 - [ ] Document each step in project-structure.md
 
