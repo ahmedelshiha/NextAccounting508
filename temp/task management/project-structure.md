@@ -25,6 +25,7 @@
 - [x] Implement advanced hooks (useTaskFilters, useTaskActions, useTaskBulkActions, useTaskPermissions)
 - [x] Add API subroutes: assign, status, comments, bulk (analytics/export/templates/notifications deferred)
 - [x] Add analytics components and charts (basic API + hook implemented; charts deferred)
+- [x] Add analytics UI component (TaskAnalytics) and wire into dev UI
 - [x] Add styles/tasks/*.css to match design system (basic CSS added; refine with design tokens later)
 
 - 2025-09-18: Implemented TaskForm and modal components (TaskEditModal, TaskDetailsModal, TaskDeleteModal, TaskAssignModal, BulkActionsModal) under `temp/task management/components` to provide basic create/edit/view/delete and bulk flows in the dev UI. These are lightweight, accessible, and designed to integrate with existing dev hooks. Next: implement providers and advanced hooks, then add API subroutes for assign/status/comments/bulk/analytics.
