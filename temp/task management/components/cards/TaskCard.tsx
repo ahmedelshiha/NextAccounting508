@@ -22,7 +22,14 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task, isSelected = false, onSelect, onEdit, onDelete, onStatusChange, onView, showFullDetails = false, className = '' }) => {
   const overdue = isOverdue(task.dueDate, task.status)
   return (
-    <Card className={`group relative transition-all duration-200 hover:shadow-md cursor-pointer ${overdue ? 'border-red-200 bg-red-50' : 'hover:border-gray-300'} ${isSelected ? 'ring-2 ring-blue-500' : ''} ${className}`} onClick={() => onSelect?.(task.id)}>
+    <Card
+      role="article"
+      aria-labelledby={`task-title-${task.id}`}
+      tabIndex={0}
+      className={`task-card group relative transition-all duration-200 hover:shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] ${overdue ? 'border-red-200 bg-red-50' : 'hover:border-gray-300'} ${isSelected ? 'ring-2 ring-blue-500' : ''} ${className}`}
+      onClick={() => onSelect?.(task.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect?.(task.id) } }}
+    >
       <TaskCardActions task={task} onEdit={onEdit} onDelete={onDelete} />
       <CardHeader className="pb-3"><TaskCardHeader task={task} /></CardHeader>
       <CardContent className="pt-0">
