@@ -4,9 +4,9 @@ async function getSendGrid() {
   if (!process.env.SENDGRID_API_KEY) return null
   if (sgMailClient) return sgMailClient
   try {
-    const mod = await import('@sendgrid/mail')
-    // Some bundlers expose default; use both shapes safely
-    const client = (mod as unknown as { default?: { setApiKey: (k: string) => void; send: (m: any) => Promise<unknown> } }).default ?? (mod as unknown as { setApiKey: (k: string) => void; send: (m: any) => Promise<unknown> })
+    const pkg = '@sendgrid/mail'
+    const mod: any = await import(pkg)
+    const client = (mod && mod.default) ? mod.default : mod
     client.setApiKey(process.env.SENDGRID_API_KEY as string)
     sgMailClient = client
     return sgMailClient

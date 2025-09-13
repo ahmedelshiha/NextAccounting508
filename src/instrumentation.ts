@@ -2,7 +2,8 @@ export async function register() {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
   if (!dsn) return
   try {
-    const Sentry = await import('@sentry/nextjs')
+    const mod = '@sentry/nextjs'
+    const Sentry: any = await import(mod)
     Sentry.init({
       dsn,
       tracesSampleRate: 1.0,
