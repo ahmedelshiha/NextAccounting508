@@ -32,7 +32,7 @@ These items are intentionally left for future work. The project is paused — re
 
 - [x] Implement analytics charts and visualizations (Chart.js or Recharts integration)
 - [x] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
-- [ ] Implement TaskForm validation (Zod schemas) and form unit tests
+- [x] Implement TaskForm validation (Zod schemas) and form unit tests
 - [ ] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
 - [ ] Implement useTaskPermissions full behavior and role-based UI controls
 - [ ] Add bulk UI flows and confirm dialogs wiring to bulk API
