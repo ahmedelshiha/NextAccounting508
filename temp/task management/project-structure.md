@@ -20,12 +20,14 @@
 - [x] Add unit tests (Vitest + React Testing Library)
 - [x] Deploy dev branch to Netlify
 - [x] Document each step in project-structure.md
-- [ ] Implement advanced UI forms and modals (forms/, modals/)
+- [x] Implement advanced UI forms and modals (forms/, modals/)
 - [ ] Implement providers (TaskProvider, FilterProvider, ViewProvider, NotificationProvider)
 - [ ] Implement advanced hooks (useTaskFilters, useTaskActions, useTaskAnalytics, useTaskBulkActions, useTaskPermissions)
 - [ ] Add API subroutes: assign, status, comments, bulk, analytics, export, templates, notifications
 - [ ] Add analytics components and charts
 - [ ] Add styles/tasks/*.css to match design system
+
+- 2025-09-18: Implemented TaskForm and modal components (TaskEditModal, TaskDetailsModal, TaskDeleteModal, TaskAssignModal, BulkActionsModal) under `temp/task management/components` to provide basic create/edit/view/delete and bulk flows in the dev UI. These are lightweight, accessible, and designed to integrate with existing dev hooks. Next: implement providers and advanced hooks, then add API subroutes for assign/status/comments/bulk/analytics.
 
 ## Development Log
 - 2025-09-13: Initialized development documentation and TODO tracker at docs/project-structure.md. Verified available task module directory at `temp/task management/` (note the space). Awaiting confirmation to proceed using this path. Next: set workflow to keep all task-system work under temp/task management and begin initialization in dev mode.
