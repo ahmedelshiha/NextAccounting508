@@ -325,18 +325,42 @@ export default function DevTaskManagement() {
 
           <div className="flex-1 min-w-0">
             <TaskListView
-            tasks={fullyFiltered}
-            loading={loading}
-            selectedTasks={selectedTasks}
-            onTaskSelect={(id) => toggleSelect(id)}
-            onTaskStatusChange={handleTaskStatusChange}
-            onTaskDelete={async (id) => {
-              if (!perms.canDelete) { alert('Insufficient permissions to delete tasks'); return }
-              await remove(id)
-            }}
-          />
+              tasks={fullyFiltered}
+              loading={loading}
+              selectedTasks={selectedTasks}
+              onTaskSelect={(id) => toggleSelect(id)}
+              onTaskStatusChange={handleTaskStatusChange}
+              onTaskDelete={async (id) => {
+                if (!perms.canDelete) { alert('Insufficient permissions to delete tasks'); return }
+                await remove(id)
+              }}
+              onTaskView={(t) => setViewTask(t)}
+            />
           </div>
         </div>
+
+        {/* Task View Dialog */}
+        <Dialog open={!!viewTask} onOpenChange={(open) => { if (!open) setViewTask(null) }}>
+          <DialogContent className="sm:max-w-[900px] max-h-[85vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>{viewTask?.title}</DialogTitle>
+              <DialogDescription>{viewTask?.description}</DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+              <div>
+                <div className="text-sm text-gray-600">Details</div>
+                <div className="mt-2">{viewTask?.description}</div>
+              </div>
+
+              <CommentsPanel taskId={viewTask?.id} />
+            </div>
+
+            <DialogFooter className="flex justify-end">
+              <button className="px-3 py-1 bg-gray-100 rounded" onClick={() => setViewTask(null)}>Close</button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
