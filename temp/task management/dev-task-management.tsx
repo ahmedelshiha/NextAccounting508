@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { TasksHeader, TasksToolbar, TasksStats } from './task-layout-components'
 import { TaskListView } from './task-view-components'
 import type { Task, TaskFilters, TaskPriority } from './task-types'
@@ -8,12 +9,31 @@ import { calculateTaskStatistics, applyFilters } from './task-utils'
 import { useDevTasks } from './hooks/useDevTasks'
 
 export default function DevTaskManagement() {
-  // Auth guard (client-side)
+  // Auth guard (client-side) — prefer NextAuth session when available
+  const { data: session, status } = useSession()
   const [authorized, setAuthorized] = useState<boolean>(false)
   const [authError, setAuthError] = useState<string | null>(null)
+
   useEffect(() => {
     let mounted = true
     const ctrl = new AbortController()
+
+    const applySession = (sess: any) => {
+      const role = sess?.user?.role || sess?.role
+      if (!role) return false
+      if (['ADMIN', 'STAFF'].includes(role)) return true
+      return false
+    }
+
+    // If NextAuth is present and session is known, use it
+    if (status === 'authenticated') {
+      const ok = applySession(session)
+      setAuthorized(ok)
+      setAuthError(ok ? null : 'Insufficient permissions')
+      return () => { mounted = false }
+    }
+
+    // Fallback: call /api/users/me (keeps compatibility with existing app)
     ;(async () => {
       try {
         const r = await fetch('/api/users/me', { signal: ctrl.signal, credentials: 'same-origin' })
@@ -40,7 +60,7 @@ export default function DevTaskManagement() {
     })()
 
     return () => { mounted = false; ctrl.abort() }
-  }, [])
+  }, [session, status])
 
   const { tasks, loading, error, create, update, remove } = useDevTasks(20, authorized)
 
