@@ -11,7 +11,7 @@
 - [x] Guard client fetches behind auth to prevent unauthorized fetch/HMR churn
 - [x] Initialize project in development mode
 - [x] Setup GitHub repo + connect Builder.io
-- [ ] Create base Next.js project (app router, TypeScript enabled)
+- [x] Create base Next.js project (app router, TypeScript enabled)
 - [ ] Configure environment variables (DB, auth, API keys)
 - [ ] Implement database schema for tasks (Prisma/Postgres) — dev branch extension for advanced fields
 - [ ] Create API routes for task CRUD operations (align with adapters and pagination)
