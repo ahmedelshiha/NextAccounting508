@@ -9,7 +9,7 @@
 - [x] Expand dev flows: implement create/delete and filter sidebar; connect auth guards for admin routes
 - [x] Add DELETE /api/admin/tasks/[id] endpoint on dev branch and wire remove() fully
 - [x] Guard client fetches behind auth to prevent unauthorized fetch/HMR churn
-- [ ] Initialize project in development mode
+- [x] Initialize project in development mode
 - [ ] Setup GitHub repo + connect Builder.io
 - [ ] Create base Next.js project (app router, TypeScript enabled)
 - [ ] Configure environment variables (DB, auth, API keys)
@@ -30,3 +30,4 @@
 - 2025-09-13: Implemented quick-create form, delete hook wiring, filter sidebar (status/priority/overdue), and a client-side auth guard using `/api/users/me`. Note: API lacked DELETE; implemented below.
 - 2025-09-13: Added DELETE handler at `src/app/api/admin/tasks/[id]/route.ts` with auth, rate limiting, DB check, and proper 404 on missing task. remove() now fully functional in dev UI.
 - 2025-09-13: Debugged Failed to fetch during HMR by preventing premature API calls: `useDevTasks` now accepts an `enabled` flag; `DevTaskManagement` initializes `authorized=false` until `/api/users/me` validates, then enables fetching. This avoids unauthorized fetch errors and reduces HMR noise.
+- 2025-09-13: Initialized dev workspace: added `temp/task management/index.tsx` as a single-mount entry for the task system; confirmed `temp/task management/src/app/admin/tasks/*` renders `DevTaskManagement`. No root app changes due to ACL. To preview locally, import this entry in `src/app/admin/tasks/page.tsx`. Next: Setup GitHub repo + connect Builder.io.
