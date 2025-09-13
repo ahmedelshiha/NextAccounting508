@@ -216,8 +216,10 @@ export default function DevTaskManagement() {
         <div className="lg:col-span-2">
           <TasksStats stats={statistics} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-4">
           <TaskAnalytics />
+          {/* Export / Templates / Notifications panel */}
+          <ExportPanel />
         </div>
       </div>
 

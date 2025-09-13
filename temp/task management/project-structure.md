@@ -31,7 +31,7 @@
 These items are intentionally left for future work. The project is paused — resume from the checklist below when ready.
 
 - [x] Implement analytics charts and visualizations (Chart.js or Recharts integration)
-- [ ] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
+- [x] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
 - [ ] Implement TaskForm validation (Zod schemas) and form unit tests
 - [ ] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
 - [ ] Implement useTaskPermissions full behavior and role-based UI controls
@@ -69,4 +69,9 @@ These items are intentionally left for future work. The project is paused — re
 - 2025-09-19: Project paused — updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
 
 - 2025-09-13: Implemented analytics charts in `temp/task management/components/analytics/TaskAnalytics.tsx` using react-chartjs-2 (Doughnut for status, Bar for priority); wired to `useTaskAnalytics`. Added graceful empty-state handling.
+- 2025-09-20: Implemented export, templates, and notifications features:
+  - Added CSV export API `temp/task management/api/admin/tasks/export/route.ts` (supports format=csv|xlsx, basic filters),
+  - Added file-backed templates API `temp/task management/api/admin/tasks/templates/route.ts`, and notifications API `temp/task management/api/admin/tasks/notifications/route.ts` (file-backed in `temp/task management/data/`),
+  - Added UI panel `temp/task management/components/export/ExportPanel.tsx` and wired into DevTaskManagement.
+  Note: Templates/notifications are file-backed to avoid requiring immediate Prisma migrations; to persist in DB, add a Template model and run migrations using existing DATABASE_URL.
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
