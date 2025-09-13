@@ -30,6 +30,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { apiFetch } from '@/lib/api'
 
 // Data types
 interface Service {
