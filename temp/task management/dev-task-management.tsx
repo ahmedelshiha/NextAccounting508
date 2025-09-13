@@ -219,7 +219,7 @@ export default function DevTaskManagement() {
             <option value="high">High</option>
             <option value="critical">Critical</option>
           </select>
-          <button onClick={handleCreate} className="px-4 py-2 bg-blue-600 text-white rounded text-sm">Add Task</button>
+          <button onClick={handleCreate} disabled={!perms.canCreate} className={`px-4 py-2 rounded text-sm ${perms.canCreate ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}>Add Task</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
