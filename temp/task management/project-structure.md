@@ -36,7 +36,7 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
 - [x] Implement useTaskPermissions full behavior and role-based UI controls
 - [x] Add bulk UI flows and confirm dialogs wiring to bulk API
-- [ ] Add comments UI integrated with comments API (threaded comments, attachments)
+- [x] Add comments UI integrated with comments API (threaded comments, attachments)
 - [ ] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
 - [ ] Add Gantt view scaffold (data model + UI placeholder)
 - [ ] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
@@ -88,4 +88,9 @@ These items are intentionally left for future work. The project is paused — re
   - Added `temp/task management/components/bulk/BulkActionsPanel.tsx` with delete/assign/mark-complete actions.
   - Wired selection state into `DevTaskManagement` and toggled selection via TaskCard click.
   - Bulk actions call `POST /api/admin/tasks/bulk` and show confirm dialogs; operations respect `useTaskPermissions.canBulk`.
+- 2025-09-24: Implemented comments UI and API integration:
+  - Added `temp/task management/api/admin/tasks/[id]/comments/route.ts` to GET and POST comments stored in Task.comments (JSON).
+  - Added `temp/task management/components/comments/CommentsPanel.tsx` with threaded display, reply prompt, and attachments (file -> dataURL stored in JSON). Optimistic UI on post.
+  - Wired task view dialog in `temp/task management/dev-task-management.tsx` to show task details and comments panel.
+  Note: Attachments are stored as data URLs inside task.comments JSON for the dev workspace. For production, migrate attachments to object storage and store references in DB.
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
