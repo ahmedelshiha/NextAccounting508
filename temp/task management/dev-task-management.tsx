@@ -13,25 +13,33 @@ export default function DevTaskManagement() {
   const [authError, setAuthError] = useState<string | null>(null)
   useEffect(() => {
     let mounted = true
-    fetch('/api/users/me').then(async (r) => {
-      if (!mounted) return
-      if (!r.ok) {
+    const ctrl = new AbortController()
+    ;(async () => {
+      try {
+        const r = await fetch('/api/users/me', { signal: ctrl.signal, credentials: 'same-origin' })
+        if (!mounted) return
+        if (!r.ok) {
+          setAuthorized(false)
+          setAuthError('Unauthorized')
+          return
+        }
+        const data = await r.json().catch(() => ({}))
+        const role = data?.user?.role
+        if (!['ADMIN', 'STAFF'].includes(role)) {
+          setAuthorized(false)
+          setAuthError('Insufficient permissions')
+        } else {
+          setAuthorized(true)
+          setAuthError(null)
+        }
+      } catch (err) {
+        if (!mounted) return
         setAuthorized(false)
         setAuthError('Unauthorized')
-        return
       }
-      const data = await r.json().catch(() => ({}))
-      const role = data?.user?.role
-      if (!['ADMIN', 'STAFF'].includes(role)) {
-        setAuthorized(false)
-        setAuthError('Insufficient permissions')
-      }
-    }).catch(() => {
-      if (!mounted) return
-      setAuthorized(false)
-      setAuthError('Unauthorized')
-    })
-    return () => { mounted = false }
+    })()
+
+    return () => { mounted = false; ctrl.abort() }
   }, [])
 
   const { tasks, loading, error, create, update, remove } = useDevTasks(20, authorized)
