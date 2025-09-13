@@ -2,11 +2,12 @@
 
 import React, { useMemo, useState, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { TasksHeader, TasksToolbar, TasksStats } from './task-layout-components'
-import { TaskListView } from './task-view-components'
+import { TasksHeader, TasksToolbar, TasksStats } from './components/layout'
+import { TaskListView } from './components/views'
 import type { Task, TaskFilters, TaskPriority } from './task-types'
 import { calculateTaskStatistics, applyFilters } from './task-utils'
 import TaskAnalytics from './components/analytics/TaskAnalytics'
+import ExportPanel from './components/export/ExportPanel'
 import { TaskProvider, useTasks } from './providers/TaskProvider'
 import { useTaskPermissions } from './hooks/useTaskPermissions'
 import BulkActionsPanel from './components/bulk/BulkActionsPanel'
@@ -97,8 +98,6 @@ export default function DevTaskManagement() {
     const clearSelection = () => setSelectedTasks([])
     const selectAllVisible = () => setSelectedTasks(fullyFiltered.map(t => t.id))
 
-    // View task dialog state
-    const [viewTask, setViewTask] = useState<any | null>(null)
 
     const filteredBySearch = useMemo(() => {
       if (!searchQuery.trim()) return tasks
