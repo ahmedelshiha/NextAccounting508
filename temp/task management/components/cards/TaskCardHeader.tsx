@@ -15,7 +15,7 @@ export const TaskCardHeader: React.FC<TaskCardHeaderProps> = ({ task }) => {
       <div className="flex items-center gap-3">
         <TaskPriority priority={task.priority} variant="icon" />
         <div className="min-w-0 flex-1">
-          <CardTitle className="text-sm font-medium line-clamp-1 mb-1">{task.title}</CardTitle>
+          <CardTitle id={`task-title-${task.id}`} className="text-sm font-medium line-clamp-1 mb-1">{task.title}</CardTitle>
           <div className="flex items-center gap-2">
             <TaskPriority priority={task.priority} />
             <TaskStatusBadge status={task.status} />
