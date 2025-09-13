@@ -323,6 +323,8 @@ export default function DevTaskManagement() {
             <TaskListView
             tasks={fullyFiltered}
             loading={loading}
+            selectedTasks={selectedTasks}
+            onTaskSelect={(id) => toggleSelect(id)}
             onTaskStatusChange={handleTaskStatusChange}
             onTaskDelete={async (id) => {
               if (!perms.canDelete) { alert('Insufficient permissions to delete tasks'); return }
