@@ -29,6 +29,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : []
 
     const updated = await prisma.task.update({ where: { id }, data: updates })
+    try {
+      const { broadcast } = await import('../../../../../lib/realtime')
+      broadcast({ type: 'task.updated', payload: updated })
+    } catch (e) { /* best-effort */ }
     return NextResponse.json(updated)
   } catch (err) {
     console.error('PATCH /api/admin/tasks/[id] error', err)
