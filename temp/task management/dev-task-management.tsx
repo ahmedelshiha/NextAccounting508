@@ -63,7 +63,8 @@ export default function DevTaskManagement() {
     return () => { mounted = false; ctrl.abort() }
   }, [session, status])
 
-  const { tasks, loading, error, create, update, remove } = useDevTasks(20, authorized)
+  // Use TaskProvider (real-time + optimistic updates)
+  const { tasks, loading, error, createTask: create, updateTask: update, deleteTask: remove } = useTasks()
 
   // Search, sort, filters
   const [searchQuery, setSearchQuery] = useState('')
