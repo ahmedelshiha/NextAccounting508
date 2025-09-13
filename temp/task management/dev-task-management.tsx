@@ -9,7 +9,7 @@ import { useDevTasks } from './hooks/useDevTasks'
 
 export default function DevTaskManagement() {
   // Auth guard (client-side)
-  const [authorized, setAuthorized] = useState<boolean>(true)
+  const [authorized, setAuthorized] = useState<boolean>(false)
   const [authError, setAuthError] = useState<string | null>(null)
   useEffect(() => {
     let mounted = true
