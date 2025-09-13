@@ -29,6 +29,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : []
 
     const updated = await prisma.task.update({ where: { id }, data: updates })
+    try {
+      const { broadcast } = await import('../../../../../lib/realtime')
+      broadcast({ type: 'task.updated', payload: updated })
+    } catch (e) { /* best-effort */ }
     return NextResponse.json(updated)
   } catch (err) {
     console.error('PATCH /api/admin/tasks/[id] error', err)
@@ -39,8 +43,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    await prisma.task.delete({ where: { id } })
-    return NextResponse.json({ ok: true })
+    const deleted = await prisma.task.delete({ where: { id } })
+    try {
+      const { broadcast } = await import('../../../../../lib/realtime')
+      broadcast({ type: 'task.deleted', payload: { id } })
+    } catch (e) { /* best-effort */ }
+    return NextResponse.json({ ok: true, deleted })
   } catch (err) {
     console.error('DELETE /api/admin/tasks/[id] error', err)
     return NextResponse.json({ error: 'Failed to delete' }, { status: 500 })

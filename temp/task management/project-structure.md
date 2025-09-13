@@ -30,13 +30,13 @@
 ## Remaining work (paused)
 These items are intentionally left for future work. The project is paused — resume from the checklist below when ready.
 
-- [ ] Implement analytics charts and visualizations (Chart.js or Recharts integration)
-- [ ] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
-- [ ] Implement TaskForm validation (Zod schemas) and form unit tests
-- [ ] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
-- [ ] Implement useTaskPermissions full behavior and role-based UI controls
-- [ ] Add bulk UI flows and confirm dialogs wiring to bulk API
-- [ ] Add comments UI integrated with comments API (threaded comments, attachments)
+- [x] Implement analytics charts and visualizations (Chart.js or Recharts integration)
+- [x] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
+- [x] Implement TaskForm validation (Zod schemas) and form unit tests
+- [x] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
+- [x] Implement useTaskPermissions full behavior and role-based UI controls
+- [x] Add bulk UI flows and confirm dialogs wiring to bulk API
+- [x] Add comments UI integrated with comments API (threaded comments, attachments)
 - [ ] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
 - [ ] Add Gantt view scaffold (data model + UI placeholder)
 - [ ] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
@@ -68,4 +68,29 @@ These items are intentionally left for future work. The project is paused — re
 - 2025-09-19: Implemented providers, advanced hooks, and API subroutes for assign/status/comments/bulk. Added analytics API/hook and basic analytics UI. Added basic styles folder.
 - 2025-09-19: Project paused — updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
 
+- 2025-09-13: Implemented analytics charts in `temp/task management/components/analytics/TaskAnalytics.tsx` using react-chartjs-2 (Doughnut for status, Bar for priority); wired to `useTaskAnalytics`. Added graceful empty-state handling.
+- 2025-09-20: Implemented export, templates, and notifications features:
+  - Added CSV export API `temp/task management/api/admin/tasks/export/route.ts` (supports format=csv|xlsx, basic filters),
+  - Added file-backed templates API `temp/task management/api/admin/tasks/templates/route.ts`, and notifications API `temp/task management/api/admin/tasks/notifications/route.ts` (file-backed in `temp/task management/data/`),
+  - Added UI panel `temp/task management/components/export/ExportPanel.tsx` and wired into DevTaskManagement.
+  Note: Templates/notifications are file-backed to avoid requiring immediate Prisma migrations; to persist in DB, add a Template model and run migrations using existing DATABASE_URL.
+- 2025-09-20: Implemented TaskForm validation with Zod and react-hook-form at `temp/task management/components/forms/TaskForm.tsx` and added schema at `temp/task management/schemas/task.ts`. Added unit test `temp/task management/tests/TaskForm.test.tsx` (Vitest + RTL) to cover validation and save flow.
+- 2025-09-21: Implemented TaskProvider with optimistic updates and SSE-based real-time sync.
+  - Added broadcaster `temp/task management/lib/realtime.ts` (in-process subscribers) and SSE endpoint `temp/task management/api/admin/tasks/stream/route.ts`.
+  - Task CRUD routes now broadcast events on create/update/delete.
+  - Added `temp/task management/providers/TaskProvider.tsx` implementing optimistic create/update/delete and EventSource listener.
+  - Wired provider into `temp/task management/dev-task-management.tsx` and switched UI to use provider-backed tasks.
+- 2025-09-22: Implemented `useTaskPermissions` hook to expose role-based permissions and wired role checks into the UI.
+  - Added `temp/task management/hooks/useTaskPermissions.tsx` (reads NextAuth session role).
+  - Dev UI now disables/hides create/delete/status-change actions when the current role lacks permissions.
+  - Permission model: ADMIN(full), STAFF(create/edit/assign/comment), USER(comment-only).
+- 2025-09-23: Implemented bulk UI flows:
+  - Added `temp/task management/components/bulk/BulkActionsPanel.tsx` with delete/assign/mark-complete actions.
+  - Wired selection state into `DevTaskManagement` and toggled selection via TaskCard click.
+  - Bulk actions call `POST /api/admin/tasks/bulk` and show confirm dialogs; operations respect `useTaskPermissions.canBulk`.
+- 2025-09-24: Implemented comments UI and API integration:
+  - Added `temp/task management/api/admin/tasks/[id]/comments/route.ts` to GET and POST comments stored in Task.comments (JSON).
+  - Added `temp/task management/components/comments/CommentsPanel.tsx` with threaded display, reply prompt, and attachments (file -> dataURL stored in JSON). Optimistic UI on post.
+  - Wired task view dialog in `temp/task management/dev-task-management.tsx` to show task details and comments panel.
+  Note: Attachments are stored as data URLs inside task.comments JSON for the dev workspace. For production, migrate attachments to object storage and store references in DB.
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).

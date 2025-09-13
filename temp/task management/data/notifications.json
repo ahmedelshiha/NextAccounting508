@@ -1,0 +1,6 @@
+{
+  "emailEnabled": false,
+  "emailFrom": "",
+  "webhookUrl": "",
+  "templates": []
+}
