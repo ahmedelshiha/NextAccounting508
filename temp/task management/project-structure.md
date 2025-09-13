@@ -12,7 +12,7 @@
 - [x] Initialize project in development mode
 - [x] Setup GitHub repo + connect Builder.io
 - [x] Create base Next.js project (app router, TypeScript enabled)
-- [ ] Configure environment variables (DB, auth, API keys)
+- [x] Configure environment variables (DB, auth, API keys)
 - [ ] Implement database schema for tasks (Prisma/Postgres) — dev branch extension for advanced fields
 - [ ] Create API routes for task CRUD operations (align with adapters and pagination)
 - [ ] Build UI components (TaskCard, TaskList, TaskForm) — consolidate from temp components
