@@ -58,5 +58,7 @@
   - UI: TaskCard, TaskList, TaskViews (List/Board/Calendar/Table), Task filters, quick-create flow, and NextAuth integration in dev UI.
   - Tests: Vitest + RTL scaffold and basic component tests.
   - CI/Deploy: Netlify config and documentation added.
+- 2025-09-19: Added basic analytics API and hook (`api/admin/tasks/analytics/route.ts`, `hooks/useTaskAnalytics.ts`) providing aggregated counts by status/priority and average completion. Chart components are deferred; the hook is used by analytics components when implemented.
+- 2025-09-19: Added foundational styles under `temp/task management/styles/tasks/` (task-cards.css, task-board.css, task-calendar.css, task-animations.css). These are minimal and intended as a starting point for design-system refinement.
 
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
