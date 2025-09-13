@@ -35,7 +35,7 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Implement TaskForm validation (Zod schemas) and form unit tests
 - [x] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
 - [x] Implement useTaskPermissions full behavior and role-based UI controls
-- [ ] Add bulk UI flows and confirm dialogs wiring to bulk API
+- [x] Add bulk UI flows and confirm dialogs wiring to bulk API
 - [ ] Add comments UI integrated with comments API (threaded comments, attachments)
 - [ ] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
 - [ ] Add Gantt view scaffold (data model + UI placeholder)
@@ -84,4 +84,8 @@ These items are intentionally left for future work. The project is paused — re
   - Added `temp/task management/hooks/useTaskPermissions.tsx` (reads NextAuth session role).
   - Dev UI now disables/hides create/delete/status-change actions when the current role lacks permissions.
   - Permission model: ADMIN(full), STAFF(create/edit/assign/comment), USER(comment-only).
+- 2025-09-23: Implemented bulk UI flows:
+  - Added `temp/task management/components/bulk/BulkActionsPanel.tsx` with delete/assign/mark-complete actions.
+  - Wired selection state into `DevTaskManagement` and toggled selection via TaskCard click.
+  - Bulk actions call `POST /api/admin/tasks/bulk` and show confirm dialogs; operations respect `useTaskPermissions.canBulk`.
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
