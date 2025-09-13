@@ -111,51 +111,49 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
     const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once and only when explicitly enabled
-    if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !window.__fetchLogged) {
+    // Always wrap once. We will only log when the debug flag is set OR when the request targets /api/auth/.
+    if (!window.__fetchLogged) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
+        const [input, init] = args
+        const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
+        const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
+        const isAuth = url.includes('/api/auth/')
+        const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
+        const isKeepAlive = url.includes('/api/admin/health-history')
+        const isApi = url.includes('/api/')
+        const isHead = method === 'HEAD'
+        const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+        const debug = process.env.NEXT_PUBLIC_DEBUG_FETCH === '1'
+
+        // If not debugging and not auth-related, delegate directly
+        if (!debug && !isAuth) return originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
+
         try {
-          const [i0, init] = args
-          const input = i0
-          // Delegate to the original (already proxy-wrapped) fetch without altering URL shape
           const res = await originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
-          if (!res.ok) {
+
+          if (!res.ok && (debug || isAuth)) {
             try {
-              const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
-              const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
-              // Skip logging for keep-alive pings and HEAD requests
-              if (method !== 'HEAD' && !url.includes('/api/admin/health-history')) {
-                console.error('[fetch] non-ok response', { status: res.status, url, init })
-              }
-            } catch {}
+              // Clone to read body safely
+              const bodyText = await res.clone().text()
+              console.error('[fetch] non-ok response', { status: res.status, url, method, init, body: bodyText })
+            } catch (e) {
+              console.error('[fetch] non-ok response (no body)', { status: res.status, url, method, init })
+            }
           }
+
           return res
         } catch (err: unknown) {
           try {
-            const [input, init] = args
-            // Derive url/method robustly across realms
-            const derivedMethod = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toString().toUpperCase()
-            const url = typeof input === 'string'
-              ? input
-              : input instanceof Request
-                ? input.url
-                : input instanceof URL
-                  ? input.toString()
-                  : ''
-
-            const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
-            const isKeepAlive = url.includes('/api/admin/health-history')
-            const isApi = url.includes('/api/')
-            const isHead = derivedMethod === 'HEAD'
-            const offline = typeof navigator !== 'undefined' && navigator.onLine === false
-
+            // Only report relevant API failures to avoid noise
             if (!isNextInternal && !isKeepAlive && isApi && !isHead && !offline) {
-              console.warn('[fetch] network/error while fetching', { url, method: derivedMethod, init: init ?? null }, err)
+              console.error('[fetch] network/error while fetching', { url, method, init }, err)
             }
-          } catch {
-            // avoid noisy console errors during dev
-          }
+            // Always log auth-related fetch failures so we can diagnose NextAuth issues
+            if (isAuth) {
+              console.error('[fetch] NextAuth fetch failed', { url, method, init }, err)
+            }
+          } catch {}
           throw err
         }
       }
