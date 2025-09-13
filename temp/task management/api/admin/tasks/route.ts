@@ -32,6 +32,11 @@ export async function POST(request: Request) {
       complianceDeadline: body.complianceDeadline ? new Date(body.complianceDeadline) : null,
     } })
 
+    try {
+      const { broadcast } = await import('../../../../lib/realtime')
+      broadcast({ type: 'task.created', payload: created })
+    } catch (e) { /* best-effort */ }
+
     return NextResponse.json(created, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/tasks error', err)
