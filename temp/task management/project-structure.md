@@ -39,7 +39,7 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Add comments UI integrated with comments API (threaded comments, attachments)
 - [x] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
 - [x] Add Gantt view scaffold (data model + UI placeholder)
-- [ ] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
+- [x] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
 - [ ] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
 - [ ] Finalize styles/design tokens and accessibility review
 - [ ] Run Prisma migrations in temp workspace and verify DB seed data (requires DATABASE_URL)
@@ -68,7 +68,7 @@ These items are intentionally left for future work. The project is paused — re
 - 2025-09-17: Created Netlify deploy configuration (`temp/task management/netlify.toml`) and documented deployment steps and required environment variables in `temp/task management/netlify-readme.md`. The config uses `@netlify/plugin-nextjs` and sets the build command to run in `next-app`. Important env vars to set in Netlify: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_API_BASE, SENDGRID_API_KEY. Note: server-side DB access requires DATABASE_URL at runtime.
 - 2025-09-18: Added unit tests scaffold and finalized documentation.
 - 2025-09-19: Implemented providers, advanced hooks, and API subroutes for assign/status/comments/bulk. Added analytics API/hook and basic analytics UI. Added basic styles folder.
-- 2025-09-19: Project paused — updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
+- 2025-09-19: Project paused �� updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
 
 - 2025-09-13: Implemented analytics charts in `temp/task management/components/analytics/TaskAnalytics.tsx` using react-chartjs-2 (Doughnut for status, Bar for priority); wired to `useTaskAnalytics`. Added graceful empty-state handling.
 - 2025-09-20: Implemented export, templates, and notifications features:
