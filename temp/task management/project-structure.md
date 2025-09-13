@@ -15,9 +15,9 @@
 - [x] Configure environment variables (DB, auth, API keys)
 - [x] Implement database schema for tasks (Prisma/Postgres) — dev branch extension for advanced fields
 - [x] Create API routes for task CRUD operations (align with adapters and pagination)
-- [ ] Build UI components (TaskCard, TaskList, TaskForm) — consolidate from temp components
-- [ ] Add task filters (status, priority, due date)
-- [ ] Integrate authentication (NextAuth guards for admin pages)
+- [x] Build UI components (TaskCard, TaskList, TaskForm) — consolidate from temp components
+- [x] Add task filters (status, priority, due date)
+- [x] Integrate authentication (NextAuth guards for admin pages)
 - [ ] Add unit tests (Vitest + React Testing Library)
 - [ ] Deploy dev branch to Netlify
 - [ ] Document each step in project-structure.md
