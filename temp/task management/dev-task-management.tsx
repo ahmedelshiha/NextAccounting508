@@ -241,18 +241,24 @@ export default function DevTaskManagement() {
         </div>
 
         <TasksToolbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onFiltersToggle={() => setShowFilters(v => !v)}
-          filtersActive={activeFilterCount}
-          sortBy={sortBy}
-          onSortChange={(s) => setSortBy(s as any)}
-          viewMode={viewMode}
-          onViewModeChange={() => {}}
-          showFilters={true}
-        />
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onFiltersToggle={() => setShowFilters(v => !v)}
+        filtersActive={activeFilterCount}
+        sortBy={sortBy}
+        onSortChange={(s) => setSortBy(s as any)}
+        viewMode={viewMode}
+        onViewModeChange={() => {}}
+        showFilters={true}
+      />
 
-        <div className="flex gap-6">
+      {selectedTasks.length > 0 && perms.canBulk && (
+        <div className="mb-4">
+          <BulkActionsPanel selectedIds={selectedTasks} onClear={clearSelection} onRefresh={refresh} />
+        </div>
+      )}
+
+      <div className="flex gap-6">
           {showFilters && (
             <div className="w-80 flex-shrink-0 bg-white border rounded-lg p-4 space-y-4">
               <div>
