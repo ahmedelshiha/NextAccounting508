@@ -53,3 +53,6 @@ export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
 export const useTaskContext = () => {
   return useContext(TaskContext)
 }
+
+// Backwards-compatible alias expected by dev UI
+export const useTasks = useTaskContext
