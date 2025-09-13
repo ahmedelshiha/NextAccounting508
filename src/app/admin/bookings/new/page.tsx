@@ -703,7 +703,7 @@ export default function ProfessionalNewBooking() {
     const load = async () => {
       try {
         setLoadingData(true)
-        const svcRes = await fetch('/api/services', { cache: 'no-store' })
+        const svcRes = await apiFetch('/api/services', { cache: 'no-store' })
         const svcJson = (await svcRes.json().catch(() => [])) as unknown
         type ApiService = {
           id: string
