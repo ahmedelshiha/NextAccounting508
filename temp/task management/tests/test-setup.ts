@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import React from 'react'
 import { vi } from 'vitest'
 
 // Minimal global fetch mock to avoid network calls by components during tests
@@ -50,34 +51,34 @@ vi.mock('next/server', () => {
 
 // Stub UI components used in these tests to avoid pulling full design system
 vi.mock('@/components/ui/card', () => {
-  const Card = (props: any) => <div role="region" {...props} />
-  const CardContent = (props: any) => <div role="group" {...props} />
-  const CardHeader = (props: any) => <div role="heading" {...props} />
-  const CardTitle = (props: any) => <div role="heading" {...props} />
+  const Card = (props: any) => React.createElement('div', { role: 'region', ...props })
+  const CardContent = (props: any) => React.createElement('div', { role: 'group', ...props })
+  const CardHeader = (props: any) => React.createElement('div', { role: 'heading', ...props })
+  const CardTitle = (props: any) => React.createElement('div', { role: 'heading', ...props })
   return { Card, CardContent, CardHeader, CardTitle }
 }, { virtual: true })
 
 vi.mock('@/components/ui/button', () => {
-  const Button = (props: any) => <button {...props} />
+  const Button = (props: any) => React.createElement('button', { ...props })
   return { Button }
 }, { virtual: true })
 
 vi.mock('@/components/ui/input', () => {
-  const Input = (props: any) => <input {...props} />
+  const Input = (props: any) => React.createElement('input', { ...props })
   return { Input }
 }, { virtual: true })
 
 vi.mock('@/components/ui/badge', () => {
-  const Badge = (props: any) => <span {...props} />
+  const Badge = (props: any) => React.createElement('span', { ...props })
   return { Badge }
 }, { virtual: true })
 
 vi.mock('@/components/ui/dialog', () => {
-  const Dialog = (props: any) => <div {...props} />
-  const DialogContent = (props: any) => <div {...props} />
-  const DialogHeader = (props: any) => <div {...props} />
-  const DialogTitle = (props: any) => <div {...props} />
-  const DialogDescription = (props: any) => <div {...props} />
-  const DialogFooter = (props: any) => <div {...props} />
+  const Dialog = (props: any) => React.createElement('div', { ...props })
+  const DialogContent = (props: any) => React.createElement('div', { ...props })
+  const DialogHeader = (props: any) => React.createElement('div', { ...props })
+  const DialogTitle = (props: any) => React.createElement('div', { ...props })
+  const DialogDescription = (props: any) => React.createElement('div', { ...props })
+  const DialogFooter = (props: any) => React.createElement('div', { ...props })
   return { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter }
 }, { virtual: true })
