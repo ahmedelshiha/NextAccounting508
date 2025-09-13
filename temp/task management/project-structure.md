@@ -46,6 +46,7 @@ These items are intentionally left for future work. The project is paused — re
 
 
 ## Development Log
+- 2025-09-13: Added comprehensive unit and integration tests across API routes (export/templates/notifications/comments/bulk), adapters, permissions hook, and TaskProvider optimistic flows. Updated vitest setup to mock NextResponse constructor and UI stubs. Marked TODO complete.
 - 2025-09-24: Added Gantt view scaffold under `components/views/TaskGanttView.tsx` with monthly timeline, task bars, and legend. Updated toolbar to include Gantt and wired view switching in `dev-task-management.tsx`. This is a UI placeholder using createdAt/dueDate heuristics; no DB changes required.
 - 2025-09-13: Split consolidated components into per-file layout/cards/views/widgets under `temp/task management/components/`. Updated `dev-task-management.tsx` imports, removed duplicate viewTask state, and added missing ExportPanel import. Preserved original styles and class names.
 - 2025-09-13: Initialized development documentation and TODO tracker at docs/project-structure.md. Verified available task module directory at `temp/task management/` (note the space). Awaiting confirmation to proceed using this path. Next: set workflow to keep all task-system work under temp/task management and begin initialization in dev mode.
@@ -68,7 +69,7 @@ These items are intentionally left for future work. The project is paused — re
 - 2025-09-17: Created Netlify deploy configuration (`temp/task management/netlify.toml`) and documented deployment steps and required environment variables in `temp/task management/netlify-readme.md`. The config uses `@netlify/plugin-nextjs` and sets the build command to run in `next-app`. Important env vars to set in Netlify: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_API_BASE, SENDGRID_API_KEY. Note: server-side DB access requires DATABASE_URL at runtime.
 - 2025-09-18: Added unit tests scaffold and finalized documentation.
 - 2025-09-19: Implemented providers, advanced hooks, and API subroutes for assign/status/comments/bulk. Added analytics API/hook and basic analytics UI. Added basic styles folder.
-- 2025-09-19: Project paused �� updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
+- 2025-09-19: Project paused — updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
 
 - 2025-09-13: Implemented analytics charts in `temp/task management/components/analytics/TaskAnalytics.tsx` using react-chartjs-2 (Doughnut for status, Bar for priority); wired to `useTaskAnalytics`. Added graceful empty-state handling.
 - 2025-09-20: Implemented export, templates, and notifications features:
