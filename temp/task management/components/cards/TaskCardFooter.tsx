@@ -19,13 +19,13 @@ export const TaskCardFooter: React.FC<TaskCardFooterProps> = ({ task, onStatusCh
           </Button>
         )}
         {onEdit && (
-          <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onEdit(task) }}>
+          <Button aria-label={`Edit ${task.title}`} variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onEdit(task) }}>
             Edit
           </Button>
         )}
       </div>
       {onView && (
-        <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onView(task) }}>
+        <Button aria-label={`View details for ${task.title}`} variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onView(task) }}>
           Details
         </Button>
       )}
