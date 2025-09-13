@@ -7,6 +7,7 @@ import { TaskListView } from './task-view-components'
 import type { Task, TaskFilters, TaskPriority } from './task-types'
 import { calculateTaskStatistics, applyFilters } from './task-utils'
 import { useDevTasks } from './hooks/useDevTasks'
+import TaskAnalytics from './components/analytics/TaskAnalytics'
 
 export default function DevTaskManagement() {
   // Auth guard (client-side) — prefer NextAuth session when available
