@@ -21,6 +21,7 @@ export const useDevTasks = (limit: number = 20, enabled: boolean = true): UseDev
     try {
       setLoading(true)
       setError(null)
+      if (!enabled) { setTasks([]); setLoading(false); return }
       const res = await fetch(`/api/admin/tasks?limit=${encodeURIComponent(limit)}`)
       if (!res.ok) throw new Error(`Failed to load tasks (${res.status})`)
       const data: ApiTask[] | { tasks: ApiTask[] } = await res.json()
