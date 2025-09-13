@@ -46,6 +46,7 @@ These items are intentionally left for future work. The project is paused — re
 
 
 ## Development Log
+- 2025-09-24: DATABASE_URL configured via environment for temp workspace (Neon). Running prisma generate/migrate is blocked by ACL for shell commands; awaiting approval to run via CI or MCP, or user-triggered migration.
 - 2025-09-24: Finalized styles and a11y: added CSS design tokens at `styles/tasks/tokens.css`, refactored task styles to use tokens, added prefers-reduced-motion safeguards, and improved accessibility in TaskCard (roles, aria-labelledby, keyboard interaction, descriptive aria-labels). Preserved original look and class names.
 - 2025-09-24: Added GitHub Actions CI workflow template at `temp/task management/.github/workflows/ci.yml` to run Vitest tests in the temp workspace, conditionally build the dev Next app, and optionally deploy to Netlify when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID secrets are set. This file lives under the temp workspace due to ACL; move to repo root `.github/workflows/` when ready to enable CI.
 - 2025-09-13: Added comprehensive unit and integration tests across API routes (export/templates/notifications/comments/bulk), adapters, permissions hook, and TaskProvider optimistic flows. Updated vitest setup to mock NextResponse constructor and UI stubs. Marked TODO complete.
