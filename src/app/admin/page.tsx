@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import useSWR from 'swr'
 // Charts disabled: lightweight stubs to avoid heavy deps
-const Pie = (_props: any) => null
-const Bar = (_props: any) => null
-const Line = (_props: any) => null
+const Pie = (_props: unknown) => null
+const Bar = (_props: unknown) => null
+const Line = (_props: unknown) => null
 import { 
   Calendar, 
   Users, 
