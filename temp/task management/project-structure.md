@@ -1,4 +1,3 @@
-
 ## TODO
 - [x] Review code samples in temp/task management to assess scope and gaps
 - [x] Define API/DB ↔ UI adapter mapping (Prisma enums/status/priority vs UI types)
@@ -28,9 +27,23 @@
 - [x] Add analytics UI component (TaskAnalytics) and wire into dev UI
 - [x] Add styles/tasks/*.css to match design system (basic CSS added; refine with design tokens later)
 
-- 2025-09-18: Implemented TaskForm and modal components (TaskEditModal, TaskDetailsModal, TaskDeleteModal, TaskAssignModal, BulkActionsModal) under `temp/task management/components` to provide basic create/edit/view/delete and bulk flows in the dev UI. These are lightweight, accessible, and designed to integrate with existing dev hooks. Next: implement providers and advanced hooks, then add API subroutes for assign/status/comments/bulk/analytics.
-- 2025-09-19: Implemented providers (`TaskProvider`, `FilterProvider`, `ViewProvider`, `NotificationProvider`) under `temp/task management/components/providers` and advanced hooks `hooks/useTaskFilters.ts`, `hooks/useTaskActions.ts`, `hooks/useTaskBulkActions.ts`, `hooks/useTaskPermissions.ts`. Also added API subroutes for assign, status, comments, and bulk operations under `temp/task management/api/admin/tasks/*`. These provide the basic server-side support for assignment, status updates, comment storage (JSON), and bulk updates/deletes. Analytics/export/templates/notifications APIs are deferred.
-- 2025-09-19: Wire-up note: The new providers are intended for the temp dev UI — wrap `DevTaskManagement` with `<NotificationProvider><TaskProvider><FilterProvider tasks={...}><ViewProvider>...</ViewProvider></FilterProvider></TaskProvider></NotificationProvider>` or use `useTaskContext()` and `useFilterContext()` where appropriate. The new API subroutes operate on the Prisma Task model and require DATABASE_URL to be set.
+## Remaining work (paused)
+These items are intentionally left for future work. The project is paused — resume from the checklist below when ready.
+
+- [ ] Implement analytics charts and visualizations (Chart.js or Recharts integration)
+- [ ] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
+- [ ] Implement TaskForm validation (Zod schemas) and form unit tests
+- [ ] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
+- [ ] Implement useTaskPermissions full behavior and role-based UI controls
+- [ ] Add bulk UI flows and confirm dialogs wiring to bulk API
+- [ ] Add comments UI integrated with comments API (threaded comments, attachments)
+- [ ] Split consolidated component files into per-file layout/cards/forms/views/widgets per the original structure
+- [ ] Add Gantt view scaffold (data model + UI placeholder)
+- [ ] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
+- [ ] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
+- [ ] Finalize styles/design tokens and accessibility review
+- [ ] Run Prisma migrations in temp workspace and verify DB seed data (requires DATABASE_URL)
+
 
 ## Development Log
 - 2025-09-13: Initialized development documentation and TODO tracker at docs/project-structure.md. Verified available task module directory at `temp/task management/` (note the space). Awaiting confirmation to proceed using this path. Next: set workflow to keep all task-system work under temp/task management and begin initialization in dev mode.
@@ -51,15 +64,8 @@
 - 2025-09-16: Implemented basic CRUD API routes for tasks under `temp/task management/api/admin/tasks` and `.../tasks/[id]` using Prisma client (`temp/task management/prisma/client.ts`). Also added `temp/task management/package.json` with Prisma scripts (generate, migrate, studio). These are intended for the temp dev workspace — to activate them set DATABASE_URL and run `npm install` then `npm run prisma:migrate` in the `temp/task management` folder.
 - 2025-09-17: Added unit test scaffolding using Vitest + React Testing Library under `temp/task management/tests`. Files added: `vitest.config.ts`, `tests/test-setup.ts`, `tests/TaskCard.test.tsx`, `tests/TaskListView.test.tsx`, and a local `tsconfig.json`. Updated `temp/task management/package.json` to include a `test` script and devDependencies for Vitest and testing libraries. These tests are lightweight smoke tests for components and are intended as a starting point; run them locally with `npm install` then `npm test` in `temp/task management`.
 - 2025-09-17: Created Netlify deploy configuration (`temp/task management/netlify.toml`) and documented deployment steps and required environment variables in `temp/task management/netlify-readme.md`. The config uses `@netlify/plugin-nextjs` and sets the build command to run in `next-app`. Important env vars to set in Netlify: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NEXT_PUBLIC_API_BASE, SENDGRID_API_KEY. Note: server-side DB access requires DATABASE_URL at runtime.
-- 2025-09-18: Completed documentation of all implemented steps in `temp/task management/project-structure.md`. Summary of completed work:
-  - Scaffolding: temp Next.js app, dev entry, and component consolidation.
-  - Adapters: API ↔ UI mapping implemented in `temp/task management/lib/tasks/adapters.ts` and used by `useDevTasks`.
-  - API: Prisma schema, Prisma client, and CRUD routes under `temp/task management/api/admin/tasks`.
-  - Dev UX: HMR recovery, dev fetch wrapper, hardened `src/lib/api.ts` with retries and timeout.
-  - UI: TaskCard, TaskList, TaskViews (List/Board/Calendar/Table), Task filters, quick-create flow, and NextAuth integration in dev UI.
-  - Tests: Vitest + RTL scaffold and basic component tests.
-  - CI/Deploy: Netlify config and documentation added.
-- 2025-09-19: Added basic analytics API and hook (`api/admin/tasks/analytics/route.ts`, `hooks/useTaskAnalytics.ts`) providing aggregated counts by status/priority and average completion. Chart components are deferred; the hook is used by analytics components when implemented.
-- 2025-09-19: Added foundational styles under `temp/task management/styles/tasks/` (task-cards.css, task-board.css, task-calendar.css, task-animations.css). These are minimal and intended as a starting point for design-system refinement.
+- 2025-09-18: Added unit tests scaffold and finalized documentation.
+- 2025-09-19: Implemented providers, advanced hooks, and API subroutes for assign/status/comments/bulk. Added analytics API/hook and basic analytics UI. Added basic styles folder.
+- 2025-09-19: Project paused — updated TODO with remaining tasks. To resume, set DATABASE_URL and other env vars, run Prisma migrations, and continue with the Remaining work checklist.
 
   Files changed/added are listed in the repository but key paths are: `temp/task management/*` modules, `src/lib/api.ts`, and new test & prisma files under temp. To finish full production readiness you must set env vars (DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, SENDGRID_API_KEY) and connect a DB MCP (Neon/Prisma Postgres) via [Open MCP popover](#open-mcp-popover).
