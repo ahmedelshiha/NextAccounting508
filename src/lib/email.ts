@@ -1,8 +1,18 @@
-import sgMail from '@sendgrid/mail'
+let sgMailClient: { send: (msg: any) => Promise<unknown> } | null = null
 
-// Initialize SendGrid
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+async function getSendGrid() {
+  if (!process.env.SENDGRID_API_KEY) return null
+  if (sgMailClient) return sgMailClient
+  try {
+    const mod = await import('@sendgrid/mail')
+    // Some bundlers expose default; use both shapes safely
+    const client = (mod as unknown as { default?: { setApiKey: (k: string) => void; send: (m: any) => Promise<unknown> } }).default ?? (mod as unknown as { setApiKey: (k: string) => void; send: (m: any) => Promise<unknown> })
+    client.setApiKey(process.env.SENDGRID_API_KEY as string)
+    sgMailClient = client
+    return sgMailClient
+  } catch {
+    return null
+  }
 }
 
 interface EmailOptions {
@@ -14,13 +24,9 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions) {
-  // If no SendGrid API key, log the email instead (for development)
-  if (!process.env.SENDGRID_API_KEY) {
-    console.log('📧 Email would be sent:', {
-      to: options.to,
-      subject: options.subject,
-      html: options.html
-    })
+  const client = await getSendGrid()
+  if (!client) {
+    console.log('📧 Email would be sent:', { to: options.to, subject: options.subject, html: options.html })
     return { success: true, mock: true }
   }
 
@@ -30,10 +36,10 @@ export async function sendEmail(options: EmailOptions) {
       from: options.from || process.env.FROM_EMAIL || 'noreply@accountingfirm.com',
       subject: options.subject,
       html: options.html,
-      text: options.text || options.html.replace(/<[^>]*>/g, '') // Strip HTML for text version
+      text: options.text || options.html.replace(/<[^>]*>/g, '')
     }
 
-    await sgMail.send(msg)
+    await client.send(msg)
     return { success: true }
   } catch (error) {
     console.error('Error sending email:', error)
@@ -148,24 +154,17 @@ export async function sendBookingConfirmation(booking: {
     `
   }
 
-  // Add ICS attachment if SendGrid is configured
-  if (process.env.SENDGRID_API_KEY) {
+  const client = await getSendGrid()
+  if (client) {
     const msg = {
       ...emailOptions,
       from: process.env.FROM_EMAIL || 'appointments@accountingfirm.com',
       attachments: [
-        {
-          content: icsBase64,
-          filename: 'appointment.ics',
-          type: 'text/calendar',
-          disposition: 'attachment'
-        }
+        { content: icsBase64, filename: 'appointment.ics', type: 'text/calendar', disposition: 'attachment' }
       ]
     }
-
-    await sgMail.send(msg)
+    await client.send(msg)
   } else {
-    // For development, just send the email without attachment
     await sendEmail(emailOptions)
   }
 }

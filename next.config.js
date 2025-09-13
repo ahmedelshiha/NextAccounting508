@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const { withSentryConfig } = require('@sentry/nextjs')
-
 let withBundleAnalyzer = (cfg) => cfg
 try {
   withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' })
@@ -24,17 +22,6 @@ const nextConfig = {
     styledComponents: true,
   },
 
-  // Enable experimental features for better performance
-  experimental: hasSvgr ? {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
-  } : {},
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
@@ -71,20 +58,15 @@ const nextConfig = {
       })
     }
 
+    // Silence noisy Sentry/OpenTelemetry critical dependency warnings
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      /Critical dependency: the request of a dependency is an expression/,
+    ]
+
     return config
   },
 }
 
-const enableSentryUpload = process.env.SENTRY_UPLOAD_SOURCEMAPS === 'true' && !!process.env.SENTRY_AUTH_TOKEN && !!process.env.SENTRY_ORG && !!process.env.SENTRY_PROJECT
-
 const finalConfig = withBundleAnalyzer(nextConfig)
-
-module.exports = enableSentryUpload
-  ? withSentryConfig(finalConfig, {
-      silent: true,
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      sourcemaps: { deleteSourcemapsAfterUpload: true },
-    })
-  : finalConfig
+module.exports = finalConfig

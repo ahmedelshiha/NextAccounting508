@@ -33,9 +33,7 @@ export async function GET(_request: NextRequest) {
     const auth = { status: authConfigured ? ('healthy' as const) : ('degraded' as const), message: authConfigured ? undefined : 'NEXTAUTH envs missing' }
 
     // External APIs placeholder (extend as integrations added)
-    const externalApis = [
-      { name: 'Neon', status: process.env.NETLIFY_DATABASE_URL ? 'healthy' : 'degraded', message: process.env.NETLIFY_DATABASE_URL ? undefined : 'NETLIFY_DATABASE_URL missing' },
-    ]
+    const externalApis: Array<{ name: string; status: string; message?: string }> = []
 
     const summary = {
       overall: db.status === 'healthy' && email.status === 'healthy' && auth.status === 'healthy' ? 'operational' : 'degraded',

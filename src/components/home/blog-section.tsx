@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import prisma from '@/lib/prisma'
 
 export const revalidate = 60
 
@@ -22,6 +21,7 @@ export async function BlogSection() {
 
   if (hasDb) {
     try {
+      const { default: prisma } = await import('@/lib/prisma')
       posts = (await prisma.post.findMany({
         where: { published: true },
         include: { author: { select: { name: true, image: true } } },
