@@ -12,7 +12,7 @@ interface UseDevTasksReturn {
   remove: (id: string) => Promise<boolean>
 }
 
-export const useDevTasks = (limit: number = 20): UseDevTasksReturn => {
+export const useDevTasks = (limit: number = 20, enabled: boolean = true): UseDevTasksReturn => {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
