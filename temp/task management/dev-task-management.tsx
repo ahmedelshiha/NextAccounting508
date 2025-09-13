@@ -111,6 +111,37 @@ export default function DevTaskManagement() {
     setNewPriority('medium')
   }, [newTitle, newDue, newPriority, create])
 
+  // HMR / ChunkLoadError handling: reload when a stale chunk causes failure to load
+  useEffect(() => {
+    const onError = (ev: ErrorEvent) => {
+      try {
+        const msg = (ev && ev.error && (ev.error.message || ev.error.name)) || ev.message || ''
+        if (msg && (msg.includes('Loading chunk') || msg.includes('ChunkLoadError') || msg.toLowerCase().includes('failed to fetch'))) {
+          // Reload once to recover from an out-of-sync HMR chunk
+          console.warn('ChunkLoadError detected in dev UI, reloading page to recover HMR state')
+          window.location.reload()
+        }
+      } catch (e) {
+        /* swallow */
+      }
+    }
+    const onRej = (ev: PromiseRejectionEvent) => {
+      try {
+        const reason = ev.reason && (ev.reason.message || ev.reason.toString()) || ''
+        if (reason && (reason.includes('Loading chunk') || reason.includes('ChunkLoadError') || reason.toLowerCase().includes('failed to fetch'))) {
+          console.warn('Unhandled rejection related to chunk loading; reloading')
+          window.location.reload()
+        }
+      } catch (e) { /* swallow */ }
+    }
+    window.addEventListener('error', onError)
+    window.addEventListener('unhandledrejection', onRej)
+    return () => {
+      window.removeEventListener('error', onError)
+      window.removeEventListener('unhandledrejection', onRej)
+    }
+  }, [])
+
   if (!authorized) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
