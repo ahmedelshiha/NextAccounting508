@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 import { TaskProgress, TaskMetrics, TaskTags } from '../widgets'
 
 interface TaskCardContentProps { task: Task; showFullDetails?: boolean }
