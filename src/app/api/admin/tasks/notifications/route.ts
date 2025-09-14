@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'tasks', 'notifications.json')
+const DATA_PATH = path.join(process.cwd(), 'temp', 'task management', 'data', 'notifications.json')
 
 function readSettings() {
   try {

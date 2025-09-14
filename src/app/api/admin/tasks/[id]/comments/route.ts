@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '../../../../../prisma/client'
 
 function makeId() {
   return 'c_' + Math.random().toString(36).slice(2, 9)
@@ -44,7 +44,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     // Broadcast event
     try {
-      const { broadcast } = await import('@/lib/realtime')
+      const { broadcast } = await import('../../../../../lib/realtime')
       broadcast({ type: 'task.comment.created', payload: { taskId: id, comment } })
     } catch (e) { /* best-effort */ }
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '../../../../prisma/client'
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -30,7 +30,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     const updated = await prisma.task.update({ where: { id }, data: updates })
     try {
-      const { broadcast } = await import('@/lib/realtime')
+      const { broadcast } = await import('../../../../../lib/realtime')
       broadcast({ type: 'task.updated', payload: updated })
     } catch (e) { /* best-effort */ }
     return NextResponse.json(updated)
@@ -45,7 +45,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     const { id } = params
     const deleted = await prisma.task.delete({ where: { id } })
     try {
-      const { broadcast } = await import('@/lib/realtime')
+      const { broadcast } = await import('../../../../../lib/realtime')
       broadcast({ type: 'task.deleted', payload: { id } })
     } catch (e) { /* best-effort */ }
     return NextResponse.json({ ok: true, deleted })

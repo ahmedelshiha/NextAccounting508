@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const DATA_PATH = path.join(process.cwd(), 'data', 'tasks', 'templates.json')
+const DATA_PATH = path.join(process.cwd(), 'temp', 'task management', 'data', 'templates.json')
 
 function readTemplates() {
   try {

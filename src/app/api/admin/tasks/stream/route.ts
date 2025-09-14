@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { subscribe } from '@/lib/realtime'
+import { subscribe } from '../../../../lib/realtime'
 
 export async function GET() {
   const stream = new ReadableStream({
