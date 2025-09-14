@@ -5,7 +5,8 @@ function makeId() {
   return 'c_' + Math.random().toString(36).slice(2, 9)
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const task = await prisma.task.findUnique({ where: { id }, select: { comments: true } })
