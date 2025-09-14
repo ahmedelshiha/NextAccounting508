@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}))
     const { name, email, role = 'STAFF', department = 'tax', title = '', userId = null } = body || {}
     if (!name || !email) return NextResponse.json({ error: 'Missing name or email' }, { status: 400 })
-    const created = await prisma.teamMember.create({ data: { name, email, role, department, title, userId } })
+    const created = await prisma.teamMember.create({ data: { name, email, role, department, title, userId } as any })
     return NextResponse.json({ teamMember: created }, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/team-members error', err)
