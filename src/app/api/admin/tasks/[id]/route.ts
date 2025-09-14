@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const task = await prisma.task.findUnique({ where: { id } })
