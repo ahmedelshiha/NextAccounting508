@@ -8,6 +8,7 @@ import { TaskListView } from './components/views/TaskListView'
 import { TaskBoardView } from './components/views/TaskBoardView'
 import type { Task, TaskStatus, SortOption } from '@/lib/tasks/types'
 import { sortTasks } from '@/lib/tasks/utils'
+import { Button } from '@/components/ui/button'
 
 function TasksInner() {
   const { tasks, loading, error, updateTask, deleteTask } = useTasks()
