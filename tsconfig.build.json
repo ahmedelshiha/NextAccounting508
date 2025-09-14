@@ -7,6 +7,10 @@
   "exclude": [
     "node_modules",
     "backup/**",
-    "temp/**"
+    "temp/**",
+    "tests/**",
+    "src/**/__tests__/**",
+    "src/**/*.test.*",
+    "src/app/admin/tasks/tests/**"
   ]
 }
