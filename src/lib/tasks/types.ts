@@ -2,7 +2,7 @@
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical'
 export type TaskStatus = 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked'
 export type TaskCategory = 'booking' | 'client' | 'system' | 'finance' | 'compliance' | 'marketing'
-export type ViewMode = 'list' | 'board' | 'calendar' | 'table'
+export type ViewMode = 'list' | 'board' | 'calendar' | 'table' | 'gantt'
 export type SortOption = 'dueDate' | 'priority' | 'status' | 'assignee' | 'category'
 
 export interface User {
@@ -222,7 +222,8 @@ export const VIEW_MODES: { value: ViewMode; label: string; icon: string }[] = [
   { value: 'list', label: 'List', icon: 'List' },
   { value: 'board', label: 'Board', icon: 'Columns' },
   { value: 'calendar', label: 'Calendar', icon: 'Calendar' },
-  { value: 'table', label: 'Table', icon: 'Table' }
+  { value: 'table', label: 'Table', icon: 'Table' },
+  { value: 'gantt', label: 'Gantt', icon: 'Timeline' }
 ]
 
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [

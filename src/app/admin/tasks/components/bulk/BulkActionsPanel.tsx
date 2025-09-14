@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState } from 'react'
 
 interface Props {
@@ -28,7 +26,8 @@ export default function BulkActionsPanel({ selectedIds, onClear, onRefresh }: Pr
   }
 
   const handleDelete = () => bulkAction('delete')
-  const handleMarkComplete = () => bulkAction('update', { status: 'COMPLETED' })
+  // DB uses TaskStatus enum: OPEN, IN_PROGRESS, DONE
+  const handleMarkComplete = () => bulkAction('update', { status: 'DONE' })
   const handleAssign = async () => {
     const assigneeId = prompt('Assignee ID (enter user id or leave empty to unassign)')
     if (assigneeId === null) return

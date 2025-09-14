@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+function mapStatusToDb(s?: string): any {
+  if (!s) return undefined
+  const v = String(s || '').toUpperCase()
+  if (v === 'IN_PROGRESS') return 'IN_PROGRESS'
+  if (v === 'DONE' || v === 'COMPLETED') return 'DONE'
+  if (v === 'OPEN' || v === 'PENDING') return 'OPEN'
+  return undefined
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}))
@@ -11,9 +20,12 @@ export async function POST(request: Request) {
       case 'delete':
         await prisma.task.deleteMany({ where: { id: { in: taskIds } } })
         return NextResponse.json({ ok: true })
-      case 'update':
-        await prisma.task.updateMany({ where: { id: { in: taskIds } }, data: updates || {} })
+      case 'update': {
+        const data: any = { ...(updates || {}) }
+        if (updates?.status) data.status = mapStatusToDb(updates.status)
+        await prisma.task.updateMany({ where: { id: { in: taskIds } }, data })
         return NextResponse.json({ ok: true })
+      }
       case 'assign':
         await prisma.task.updateMany({ where: { id: { in: taskIds } }, data: { assigneeId: updates?.assigneeId ?? null } })
         return NextResponse.json({ ok: true })
