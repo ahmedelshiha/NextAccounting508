@@ -14,7 +14,8 @@ export async function GET(request: Request, context: any) {
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const body = await request.json().catch(() => null)
