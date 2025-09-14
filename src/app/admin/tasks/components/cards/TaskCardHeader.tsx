@@ -1,8 +1,8 @@
 import React from 'react'
 import { DollarSign, User, Calendar, Target, AlertCircle, Flag } from 'lucide-react'
 import { CardTitle } from '@/components/ui/card'
-import type { Task } from '../../task-types'
-import { isOverdue } from '../../task-utils'
+import type { Task } from '@/lib/tasks/types'
+import { isOverdue } from '@/lib/tasks/utils'
 import { TaskPriority, TaskStatus as TaskStatusBadge } from '../widgets'
 
 interface TaskCardHeaderProps { task: Task }
