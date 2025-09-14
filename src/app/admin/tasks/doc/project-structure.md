@@ -32,7 +32,7 @@ These items are intentionally left for future work. The project is paused — re
 
 - [x] Implement analytics charts and visualizations (Chart.js or Recharts integration)
 - [x] Complete export/templates/notifications API routes and UI (CSV/Excel export, task templates, notification settings)
-- [x] Implement TaskForm validation (Zod schemas) and form unit tests
+- [x] Implement TaskForm validation (Zod schemas) and form unit tests)
 - [x] Implement TaskProvider optimizations: optimistic updates, WebSocket/real-time sync
 - [x] Implement useTaskPermissions full behavior and role-based UI controls
 - [x] Add bulk UI flows and confirm dialogs wiring to bulk API
@@ -61,3 +61,16 @@ TODO: Verify any external dashboards or CI that referenced the dev workspace; if
 - 2025-09-13: Relocated docs/project-structure.md to temp/task management/project-structure.md to keep the task system confined to the dev workspace. Next: initialize dev workspace in this directory per TODOs.
 - 2025-09-13: Completed code sample review for `temp/task management/`. Findings: UI layer is comprehensive (cards, views, filters, widgets, layout, hooks) plus a monolithic demo. Current API and Prisma differ from UI expectations (TaskStatus OPEN/IN_PROGRESS/DONE vs UI pending/in_progress/review/completed/blocked; TaskPriority LOW/MEDIUM/HIGH vs UI low/medium/high/critical; GET /api/admin/tasks returns array not { tasks, stats }). Plan: create an adapter in `temp/lib/tasks/adapters.ts` to map API <-> UI types and shapes; refactor temp hooks to use the adapter; scaffold admin pages under temp mirroring `src/app/admin/tasks/*`; evaluate Prisma schema extension on dev branch for advanced fields.
 - 2025-09-25: Moved Task Management module into src/app/admin/tasks and API subroutes into src/app/api/admin/tasks. Updated imports to use '@/lib/prisma' and '@/lib/realtime'. Copied adapters to src/lib/tasks/adapters.ts and realtime to src/lib/realtime.ts.
+
+---
+### 2025-09-14 — Admin Tasks cleanup audit
+- Updated all task API routes to import Prisma via `@/lib/prisma` (default export) instead of broken `../../../prisma/client` paths.
+- Standardized realtime imports to `@/lib/realtime` in tasks routes (root, [id], comments, stream) and dynamic imports.
+- Pointed templates/notifications APIs to project data at `src/app/admin/tasks/data/*.json` (removed dependency on `temp/task management`).
+- Removed unused placeholder: `src/app/admin/tasks/components/modals/other-modals.tsx`.
+- Verified Admin Tasks UI renders through `page.tsx → dev-task-management.tsx` and all referenced components exist.
+
+Open TODOs
+- Consider migrating templates/notifications storage from JSON files to DB tables via Prisma.
+- Confirm Prisma enum values align with UI types; adjust adapters or schema if needed.
+- If realtime needs to scale beyond in-process SSE, evaluate WebSocket/SSE broker.
