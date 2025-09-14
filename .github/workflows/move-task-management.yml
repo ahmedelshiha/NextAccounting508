@@ -1,0 +1,116 @@
+name: Move Task Management
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  move:
+    name: Move Task Management
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Move files and update imports
+        run: |
+          set -euo pipefail
+
+          # detect source (support both dash and space variants)
+          if [ -d "temp/task-management" ]; then
+            SRC="temp/task-management"
+          elif [ -d "temp/task management" ]; then
+            SRC="temp/task management"
+          else
+            echo "ERROR: temp/task-management or temp/task management not found"
+            exit 1
+          fi
+
+          echo "Source detected: $SRC"
+
+          # Append relocation log entry to project-structure.md (if present)
+          if [ -f "$SRC/project-structure.md" ]; then
+            printf "\n\n✅ Relocated Task Management module into /src/app/admin/tasks\n\nAll UI files in src/app/admin/tasks\n\nAPI routes in src/app/api/admin/tasks\n\nShared libs in src/lib/tasks\n\nStyles in src/styles/tasks\n" >> "$SRC/project-structure.md"
+            echo "Appended relocation note to $SRC/project-structure.md"
+          fi
+
+          # Prepare temp working area for report
+          mkdir -p .github/move_tmp
+
+          # Capture list of files that will be moved (relative paths)
+          find "$SRC" -type f | sed "s|^$SRC/||" | sort > .github/move_tmp/moved_from_list.txt || true
+
+          # Ensure destination directories exist
+          mkdir -p src/app/admin/tasks src/app/api/admin/tasks src/lib/tasks src/styles/tasks
+
+          # Copy everything from the workspace root source into src/app/admin/tasks (preserve dotfiles)
+          rsync -a --exclude='.git' --exclude='node_modules' "$SRC/" src/app/admin/tasks/
+
+          # If API subroutes exist under the temp workspace, copy them into src/app/api/admin/tasks
+          if [ -d "$SRC/api/admin/tasks" ]; then
+            rsync -a "$SRC/api/admin/tasks/" src/app/api/admin/tasks/
+          fi
+
+          # Copy lib folder into src/lib if present
+          if [ -d "$SRC/lib" ]; then
+            rsync -a "$SRC/lib/" src/lib/
+          fi
+
+          # Copy styles into src/styles if present
+          if [ -d "$SRC/styles" ]; then
+            rsync -a "$SRC/styles/" src/styles/
+          fi
+
+          # Update imports across the repository for common patterns to new paths
+          # Use find + xargs -0 to handle spaces
+          find src -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -print0 | xargs -0 -I{} sed -i \
+            -e "s|from '../../../../prisma/client'|from '@/lib/prisma'|g" \
+            -e "s|from '../../../../../prisma/client'|from '@/lib/prisma'|g" \
+            -e "s|from '../../../../lib/realtime'|from '@/lib/realtime'|g" \
+            -e "s|from '../../../../../lib/realtime'|from '@/lib/realtime'|g" \
+            {}
+
+          # Record git status for changed files
+          git add -A
+          git status --porcelain > .github/move_tmp/git_status.txt || true
+
+          # Record the list of deleted files (we'll delete the temp folder next)
+          find "$SRC" -type f | sed "s|^$SRC/||" | sort > .github/move_tmp/deleted_from_temp.txt || true
+
+          # Remove the original temp folder to avoid leaving it in repo
+          rm -rf "$SRC"
+
+          # Generate a report of moved & deleted files
+          printf "Moved files (copied from $SRC into src/app/admin/tasks and related destinations):\n" > .github/move_tmp/report.txt
+          cat .github/move_tmp/moved_from_list.txt >> .github/move_tmp/report.txt || true
+          printf "\nDeleted files (removed from temp):\n" >> .github/move_tmp/report.txt
+          cat .github/move_tmp/deleted_from_temp.txt >> .github/move_tmp/report.txt || true
+          printf "\nGit status (changes staged):\n" >> .github/move_tmp/report.txt
+          cat .github/move_tmp/git_status.txt >> .github/move_tmp/report.txt || true
+
+          echo "=== Move report ==="
+          cat .github/move_tmp/report.txt
+
+      - name: Commit and push changes
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Move Task Management to src/app/admin/tasks"
+            git push
+          fi
+
+      - name: Upload move report
+        uses: actions/upload-artifact@v4
+        with:
+          name: move-task-management-report
+          path: .github/move_tmp/report.txt
