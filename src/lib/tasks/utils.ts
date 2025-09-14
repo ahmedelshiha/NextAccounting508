@@ -1,10 +1,12 @@
 // lib/tasks/utils.ts
-import { 
-  Task, 
-  TaskPriority, 
-  TaskStatus, 
-  TaskCategory, 
+import {
+  Task,
+  TaskPriority,
+  TaskStatus,
+  TaskCategory,
   TaskStatistics,
+  TaskFilters,
+  SortOption,
   TASK_PRIORITIES,
   TASK_STATUSES,
   TASK_CATEGORIES
