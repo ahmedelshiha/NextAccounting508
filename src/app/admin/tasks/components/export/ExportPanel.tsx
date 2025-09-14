@@ -126,7 +126,7 @@ export default function ExportPanel() {
         <div className="text-sm font-medium mb-2">Notifications</div>
         <div className="space-y-2">
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={!!notifications?.emailEnabled} onChange={e => setNotifications(prev => ({ ...prev, emailEnabled: e.target.checked }))} />
+            <input type="checkbox" checked={!!notifications?.emailEnabled} onChange={e => setNotifications((prev: any) => ({ ...prev, emailEnabled: e.target.checked }))} />
             <span className="text-sm">Enable email notifications</span>
           </label>
           <input value={notifications?.emailFrom || ''} onChange={e => setNotifications(prev => ({ ...prev, emailFrom: e.target.value }))} placeholder="From address" className="border rounded px-2 py-1 w-full" />
