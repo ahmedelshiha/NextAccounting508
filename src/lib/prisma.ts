@@ -16,28 +16,27 @@ function createClient(url: string) {
   return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
 }
 
-// Export a real Prisma client if DB URL present; otherwise export a safe proxy that throws on use
+// Export a proxy that lazily creates Prisma client on first use
 const prisma: PrismaClient = (() => {
-  if (typeof global !== "undefined" && global.__prisma__) return global.__prisma__;
+  let client: PrismaClient | undefined = (typeof global !== 'undefined' && global.__prisma__) as any
 
-  const client = dbUrl
-    ? createClient(dbUrl)
-    : (new Proxy(
-        {},
-        {
-          get() {
-            throw new Error(
-              "Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features."
-            );
-          },
+  const handler: ProxyHandler<any> = {
+    get(_target, prop) {
+      if (!client) {
+        if (!dbUrl) {
+          throw new Error('Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features.')
         }
-      ) as unknown as PrismaClient);
-
-  if (process.env.NODE_ENV !== "production") {
-    global.__prisma__ = client;
+        client = createClient(dbUrl)
+        if (process.env.NODE_ENV !== 'production') {
+          ;(global as any).__prisma__ = client
+        }
+      }
+      const anyClient = client as any
+      return anyClient[prop as any]
+    }
   }
 
-  return client;
+  return new Proxy({}, handler) as unknown as PrismaClient
 })();
 
 export default prisma;
