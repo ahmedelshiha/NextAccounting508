@@ -1,14 +1,15 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const id = params.id
-    const body = await req.json().catch(() => ({}))
+    const body = await request.json().catch(() => ({}))
     const updates: any = {}
     const allowed = ['name','email','role','department','title','status','isAvailable','userId','workingHours','specialties']
     for (const k of allowed) if (k in body) updates[k] = (body as any)[k]
-    const updated = await prisma.teamMember.update({ where: { id }, data: updates })
+    const updated = await prisma.teamMember.update({ where: { id }, data: updates as any })
     return NextResponse.json({ teamMember: updated })
   } catch (err) {
     console.error('PUT /api/admin/team-members/[id] error', err)
@@ -16,7 +17,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const id = params.id
     await prisma.teamMember.delete({ where: { id } })
@@ -27,7 +29,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const id = params.id
     const member = await prisma.teamMember.findUnique({ where: { id } })
