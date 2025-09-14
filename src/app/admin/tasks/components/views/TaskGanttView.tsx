@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface TaskGanttViewProps {

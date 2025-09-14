@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { TaskGanttView } from '../components/views/TaskGanttView'
-import type { Task } from '../task-types'
+import type { Task } from '@/lib/tasks/types'
 
 const makeTask = (id: string, day: number): Task => ({
   id,

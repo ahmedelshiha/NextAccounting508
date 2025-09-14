@@ -1,6 +1,6 @@
 import React from 'react'
 import { User } from 'lucide-react'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 
 interface TaskAssigneeProps { assignee?: Task['assignee']; variant?: 'avatar' | 'name' | 'full'; size?: 'sm' | 'md' }
 

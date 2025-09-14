@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { calculateTaskStatistics, applyFilters, getTaskUrgencyScore } from '../task-utils'
-import type { Task } from '../task-types'
+import { calculateTaskStatistics, applyFilters, getTaskUrgencyScore } from '@/lib/tasks/utils'
+import type { Task } from '@/lib/tasks/types'
 
 const baseTask: Partial<Task> = {
   description: '',

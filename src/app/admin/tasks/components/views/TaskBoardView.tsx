@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react'
 import { Target } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Task, TaskStatus } from '../../task-types'
-import { groupTasksByStatus } from '../../task-utils'
+import type { Task, TaskStatus } from '@/lib/tasks/types'
+import { groupTasksByStatus } from '@/lib/tasks/utils'
 import { TaskCard } from '../cards'
 
 interface TaskBoardViewProps {

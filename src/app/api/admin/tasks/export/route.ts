@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../../../prisma/client'
+import prisma from '@/lib/prisma'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {

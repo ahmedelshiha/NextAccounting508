@@ -2,7 +2,7 @@ import React from 'react'
 import { Target, Plus } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import type { Task, TaskStatus } from '../../task-types'
+import type { Task, TaskStatus } from '@/lib/tasks/types'
 import { TaskCard, TaskCardSkeleton } from '../cards'
 
 interface TaskListViewProps {

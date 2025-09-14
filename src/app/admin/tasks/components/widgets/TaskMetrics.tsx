@@ -1,6 +1,6 @@
 import React from 'react'
 import { Clock, User, Target, DollarSign, AlertTriangle } from 'lucide-react'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 import { TaskDueDate } from './TaskDueDate'
 
 interface TaskMetricsProps { task: Task; showRevenue?: boolean; showTime?: boolean; showCompliance?: boolean }
