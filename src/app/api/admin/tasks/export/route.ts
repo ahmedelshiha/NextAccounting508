@@ -32,7 +32,7 @@ export async function GET(request: Request) {
       where,
       include: { assignee: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
-    })
+    }) as any[]
 
     const rows = tasks.map(t => ({
       id: t.id,
