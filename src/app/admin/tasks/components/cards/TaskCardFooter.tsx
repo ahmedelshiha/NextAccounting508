@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 
 interface TaskCardFooterProps {
   task: Task
