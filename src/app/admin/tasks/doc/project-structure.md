@@ -42,11 +42,12 @@ These items are intentionally left for future work. The project is paused — re
 - [x] Add comprehensive unit and integration tests (Vitest + React Testing Library, API tests)
 - [x] Create GitHub Actions workflow for CI (tests, lint, build) and Netlify deploy
 - [x] Finalize styles/design tokens and accessibility review
-- [ ] Run Prisma migrations in temp workspace and verify DB seed data (requires DATABASE_URL)
+- [ ] Blocked: Run Prisma migrations in temp workspace and verify DB seed data (requires DATABASE_URL). Reason: No DATABASE_URL configured and ACL prevents local migrations. Use CI with GitHub secret or connect Neon via MCP and rerun.
 - [x] Enable CI-run for Prisma migrations (GitHub Actions)
 
 
 ## Development Log
+- 2025-09-14: Audited src/app/admin/tasks and src/app/api/admin/tasks; fixed missing NextResponse import in stream route; migrations TODO blocked pending DATABASE_URL and CI/MCP connection.
 - 2025-09-14: Cleanup and consolidation completed. Removed dev/temp workspace and duplicates: deleted src/app/admin/tasks/next-app/, src/app/admin/tasks/api/, src/app/admin/tasks/prisma/, src/app/admin/tasks/src/, src/app/admin/tasks/lib/realtime.ts, src/app/admin/tasks/lib/tasks/adapters.ts, src/app/admin/tasks/components/providers/TaskProvider.tsx, src/app/admin/tasks/hooks/useDevTasks.ts, src/app/admin/tasks/hooks/useTaskPermissions.ts (TS duplicate), netlify.toml, netlify-readme.md, env-setup.md, package.json, tsconfig.json, vitest.config.ts, complete-task-management-system.tsx and its copy, and index.tsx. Updated imports to use project aliases and fixed task-utils to import from './task-types'. Updated tests to reference components paths and '@/lib/tasks/adapters'. All UI now consumes API under src/app/api/admin/tasks and realtime via '@/lib/realtime'.
 
 TODO: Verify any external dashboards or CI that referenced the dev workspace; if so, update/remove. Confirm tests run under root Vitest config. If any missing usage of adapters is needed in UI, wire '@/lib/tasks/adapters' where necessary.
