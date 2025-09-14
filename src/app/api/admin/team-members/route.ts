@@ -23,3 +23,16 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to list team members' }, { status: 500 })
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json().catch(() => ({}))
+    const { name, email, role = 'STAFF', department = 'tax', title = '', userId = null } = body || {}
+    if (!name || !email) return NextResponse.json({ error: 'Missing name or email' }, { status: 400 })
+    const created = await prisma.teamMember.create({ data: { name, email, role, department, title, userId } })
+    return NextResponse.json({ teamMember: created }, { status: 201 })
+  } catch (err) {
+    console.error('POST /api/admin/team-members error', err)
+    return NextResponse.json({ error: 'Failed to create team member' }, { status: 500 })
+  }
+}
