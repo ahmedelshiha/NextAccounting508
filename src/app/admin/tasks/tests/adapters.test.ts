@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapUiPriorityToApi, mapApiPriorityToUi, mapUiStatusToApi, mapApiStatusToUi, apiTaskToUiTask } from '../lib/tasks/adapters'
+import { mapUiPriorityToApi, mapApiPriorityToUi, mapUiStatusToApi, mapApiStatusToUi, apiTaskToUiTask } from '@/lib/tasks/adapters'
 
 describe('adapters', () => {
   it('maps priorities', () => {

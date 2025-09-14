@@ -8,7 +8,7 @@ import {
   TASK_PRIORITIES,
   TASK_STATUSES,
   TASK_CATEGORIES
-} from './types'
+} from './task-types'
 
 export const getPriorityColor = (priority: TaskPriority): string => {
   return TASK_PRIORITIES.find(p => p.value === priority)?.color || 'text-gray-600 bg-gray-50 border-gray-200'
@@ -193,7 +193,7 @@ export const generateTaskId = (): string => {
 }
 
 // lib/tasks/filtering.ts
-import { Task, TaskFilters } from './types'
+import { Task, TaskFilters } from './task-types'
 
 export const applyFilters = (tasks: Task[], filters: TaskFilters): Task[] => {
   return tasks.filter(task => {
@@ -269,7 +269,7 @@ const matchesSearch = (task: Task, searchTerm: string): boolean => {
 }
 
 // lib/tasks/sorting.ts
-import { Task, SortOption } from './types'
+import { Task, SortOption } from './task-types'
 
 export const sortTasks = (tasks: Task[], sortBy: SortOption, ascending: boolean = true): Task[] => {
   return [...tasks].sort((a, b) => {
