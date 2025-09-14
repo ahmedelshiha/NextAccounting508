@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo } from 'react'
-import type { TaskFilters } from '../../task-types'
-import { applyFilters } from '../../task-utils'
+import type { TaskFilters } from '@/lib/tasks/types'
+import { applyFilters } from '@/lib/tasks/utils'
 
 const defaultFilters: TaskFilters = { search: '', status: [], priority: [], category: [], assignee: [], client: [], dateRange: {}, overdue: false, compliance: false, tags: [] }
 const FilterContext = createContext<any>(null)
