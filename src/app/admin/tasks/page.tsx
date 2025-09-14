@@ -4,7 +4,7 @@ import React, { useMemo, useState, useCallback } from 'react'
 import { TaskProvider, useTasks } from './providers/TaskProvider'
 import { TasksToolbar } from './components/layout'
 import { TaskListView } from './components/views/TaskListView'
-import type { Task, TaskStatus } from './task-types'
+import type { Task, TaskStatus } from '@/lib/tasks/types'
 
 function TasksContent() {
   const { tasks, loading, error, updateTask, deleteTask } = useTasks()
