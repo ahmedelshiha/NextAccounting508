@@ -96,6 +96,8 @@ function TasksInner() {
 
       <TasksStats stats={stats} />
 
+      <TaskAnalytics />
+
       <div className="flex items-center justify-between">
         <TasksToolbar
           searchQuery={searchQuery}
