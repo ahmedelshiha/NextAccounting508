@@ -1,3 +1,5 @@
+'use client'
+
 import { applyFilters } from '@/lib/tasks/utils'
 import type { Task, TaskFilters } from '@/lib/tasks/types'
 import { useMemo } from 'react'
