@@ -1,17 +1,42 @@
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import fs from 'fs'
+import path from 'path'
+
+function commentsPath(taskId: string) {
+  return path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'comments', `${taskId}.json`)
+}
+
+function ensureDir(p: string) {
+  try { fs.mkdirSync(p, { recursive: true }) } catch (e) { /* ignore */ }
+}
+
+function readComments(taskId: string) {
+  const file = commentsPath(taskId)
+  try {
+    const raw = fs.readFileSync(file, 'utf-8')
+    const data = JSON.parse(raw)
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function writeComments(taskId: string, comments: any[]) {
+  const file = commentsPath(taskId)
+  ensureDir(path.dirname(file))
+  fs.writeFileSync(file, JSON.stringify(comments, null, 2), 'utf-8')
+}
 
 function makeId() {
   return 'c_' + Math.random().toString(36).slice(2, 9)
 }
 
-export async function GET(request: Request, context: any) {
+export async function GET(_request: Request, context: any) {
   const params = context?.params || context
+  const { id } = params
   try {
-    const { id } = params
-    const task = await prisma.task.findUnique({ where: { id } }) as any
-    const comments = (task?.comments) ?? []
-    return NextResponse.json(Array.isArray(comments) ? comments : [])
+    const comments = readComments(id)
+    return NextResponse.json(comments)
   } catch (err) {
     console.error('GET comments error', err)
     return NextResponse.json({ error: 'Failed to load comments' }, { status: 500 })
@@ -20,8 +45,8 @@ export async function GET(request: Request, context: any) {
 
 export async function POST(request: Request, context: any) {
   const params = context?.params || context
+  const { id } = params
   try {
-    const { id } = params
     const body = await request.json().catch(() => null)
     if (!body || !body.content) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
@@ -37,18 +62,14 @@ export async function POST(request: Request, context: any) {
       updatedAt: now,
     }
 
-    // Read existing comments and append
-    const task = await prisma.task.findUnique({ where: { id } }) as any
-    const comments = Array.isArray(task?.comments) ? (task!.comments as any[]) : []
+    const comments = readComments(id)
     comments.push(comment)
+    writeComments(id, comments)
 
-    await prisma.task.update({ where: { id }, data: { comments } as any })
-
-    // Broadcast event
     try {
       const { broadcast } = await import('@/lib/realtime')
       broadcast({ type: 'task.comment.created', payload: { taskId: id, comment } })
-    } catch (e) { /* best-effort */ }
+    } catch { /* best-effort */ }
 
     return NextResponse.json(comment, { status: 201 })
   } catch (err) {
