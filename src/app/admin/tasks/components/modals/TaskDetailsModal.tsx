@@ -1,5 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
+import CommentsPanel from '../../components/comments/CommentsPanel'
 
 interface Props {
   open: boolean
@@ -24,6 +25,11 @@ export default function TaskDetailsModal({ open, onClose, task }: Props) {
           <div><strong>Assignee:</strong> {task?.assignee?.name ?? task?.assigneeId ?? 'Unassigned'}</div>
           <div><strong>Due:</strong> {task?.dueDate ? new Date(task.dueDate).toLocaleString() : '—'}</div>
         </div>
+        {!!task?.id && (
+          <div className="mt-6">
+            <CommentsPanel taskId={task.id} />
+          </div>
+        )}
         <div className="mt-6 flex justify-end">
           <Button onClick={onClose}>Close</Button>
         </div>
