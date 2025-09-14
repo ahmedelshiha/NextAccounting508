@@ -1,7 +1,7 @@
 import React from 'react'
 import { MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { Task } from '../../task-types'
+import type { Task } from '@/lib/tasks/types'
 
 interface TaskCardActionsProps {
   task: Task
