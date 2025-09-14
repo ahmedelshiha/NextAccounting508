@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { TaskListView } from '../task-view-components'
+import { TaskListView } from '../components/views/TaskListView'
 
 const tasks = [
   { id: '1', title: 'A', description: '', priority: 'low', status: 'pending', category: 'system', dueDate: new Date().toISOString(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), completionPercentage: 0, tags: [] },
