@@ -42,6 +42,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
@@ -288,6 +289,25 @@ function toNumberish(v: unknown): number {
   const s = (v as Partial<HasToString>)?.toString?.()
   if (typeof s === 'string') { const n = Number(s); return Number.isFinite(n) ? n : 0 }
   return 0
+}
+
+function useTasksAnalytics() {
+  const [data, setData] = useState<{ total?: number; completed?: number; byStatus?: any[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/tasks/analytics')
+        const j = await r.json().catch(() => ({}))
+        if (!ignore) setData(j)
+      } catch {
+        if (!ignore) setData(null)
+      } finally { if (!ignore) setLoading(false) }
+    })()
+    return () => { ignore = true }
+  }, [])
+  return { data, loading }
 }
 
 const mockDashboardData: DashboardData = {

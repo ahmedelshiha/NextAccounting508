@@ -246,6 +246,22 @@ export default function AdminBookingDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={async () => {
+              try {
+                const title = `Booking: ${booking.service?.name || 'Service'} — ${booking.clientName}`
+                const dueAt = new Date(booking.scheduledAt).toISOString()
+                let assigneeId: string | null = null
+                if (booking.assignedTeamMember?.id) {
+                  const tm = teamMembers.find(t => t.id === booking.assignedTeamMember?.id)
+                  assigneeId = (tm as any)?.userId || null
+                }
+                const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, priority: 'MEDIUM', status: 'OPEN', dueAt, assigneeId }) })
+                if (res.ok) alert('Task created')
+                else alert('Failed to create task')
+              } catch { alert('Failed to create task') }
+            }}>
+              <Plus className="h-4 w-4 mr-2" />Create Task
+            </Button>
             {booking.status !== 'CONFIRMED' && booking.status !== 'CANCELLED' && (
               <Button onClick={() => updateStatus('CONFIRMED')} disabled={!!updatingStatus}>
                 <CheckCircle className="h-4 w-4 mr-2" />Confirm
