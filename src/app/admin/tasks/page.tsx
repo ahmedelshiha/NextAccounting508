@@ -55,7 +55,7 @@ function TasksInner() {
           sortBy={sortBy}
           onSortChange={(s) => setSortBy(s as SortOption)}
         />
-        <a href="/admin/tasks/new" className="ml-4"><button className="inline-flex items-center rounded-md border px-3 py-2 text-sm">New Task</button></a>
+        <a href="/admin/tasks/new" className="ml-4"><Button>New Task</Button></a>
       </div>
 
       {viewMode === 'list' && (
