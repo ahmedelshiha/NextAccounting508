@@ -265,8 +265,8 @@ const matchesSearch = (task: Task, searchTerm: string): boolean => {
     task.title.toLowerCase().includes(term) ||
     task.description?.toLowerCase().includes(term) ||
     task.tags.some(tag => tag.toLowerCase().includes(term)) ||
-    task.assignee?.name.toLowerCase().includes(term) ||
-    task.client?.name.toLowerCase().includes(term)
+    task.assignee?.name?.toLowerCase().includes(term) ||
+    task.client?.name?.toLowerCase().includes(term)
   )
 }
 
