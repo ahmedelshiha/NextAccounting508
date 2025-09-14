@@ -21,7 +21,7 @@ export default function TaskForm({ task, mode, availableUsers = [], onSave, onCa
     title: task?.title || '',
     description: task?.description || '',
     priority: (task?.priority || 'medium') as any,
-    dueDate: task?.dueAt ? task.dueAt.slice(0, 10) : undefined,
+    dueDate: task?.dueDate ? String(task.dueDate).slice(0, 10) : (task?.dueAt ? String(task.dueAt).slice(0, 10) : undefined),
     assigneeId: task?.assigneeId || undefined,
   }
 
