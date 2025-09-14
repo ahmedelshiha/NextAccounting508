@@ -263,10 +263,10 @@ const matchesSearch = (task: Task, searchTerm: string): boolean => {
   const term = searchTerm.toLowerCase()
   return (
     task.title.toLowerCase().includes(term) ||
-    task.description?.toLowerCase().includes(term) ||
+    (task.description?.toLowerCase().includes(term) ?? false) ||
     task.tags.some(tag => tag.toLowerCase().includes(term)) ||
-    task.assignee?.name?.toLowerCase().includes(term) ||
-    task.client?.name?.toLowerCase().includes(term)
+    (task.assignee?.name?.toLowerCase().includes(term) ?? false) ||
+    (task.client?.name?.toLowerCase().includes(term) ?? false)
   )
 }
 
