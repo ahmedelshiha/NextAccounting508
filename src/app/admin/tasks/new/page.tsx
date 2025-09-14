@@ -21,7 +21,7 @@ function NewTaskContent() {
         if (!res.ok) return
         const data = await res.json().catch(() => ({}))
         const list = Array.isArray(data) ? data : (data?.teamMembers || [])
-        const mapped = list.map((m: any) => ({ id: m.userId || m.id, name: m.name || m.email || 'Unknown' }))
+        const mapped = list.map((m: any) => ({ id: m.userId || null, name: m.name || m.email || 'Unknown' }))
         if (!ignore) setAvailableUsers(mapped.filter((u: any) => !!u.id))
       } catch (e) {
         // ignore
