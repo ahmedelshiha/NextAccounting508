@@ -1,8 +1,8 @@
 import React from 'react'
 import { Flag } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { TaskPriority as TaskPriorityType } from '../../task-types'
-import { getPriorityColor } from '../../task-utils'
+import type { TaskPriority as TaskPriorityType } from '@/lib/tasks/types'
+import { getPriorityColor } from '@/lib/tasks/utils'
 
 interface TaskPriorityProps { priority: TaskPriorityType; variant?: 'badge' | 'icon' | 'full'; size?: 'sm' | 'md' }
 
