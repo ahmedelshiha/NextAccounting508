@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Task, CreateTaskInput, UpdateTaskInput } from '../../task-types'
 import { apiTasksToUi, uiCreateToApi, uiUpdateToApi, type ApiTask } from '../lib/tasks/adapters'
 
@@ -71,7 +70,7 @@ export const useDevTasks = (limit: number = 20, enabled: boolean = true): UseDev
       await refresh()
       return true
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete task')
+      setError(e instanceof Error ? e.message : 'Failed to delete')
       return false
     }
   }, [refresh])

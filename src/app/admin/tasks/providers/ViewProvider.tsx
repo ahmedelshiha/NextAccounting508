@@ -1,5 +1,3 @@
-import React, { createContext, useContext, useState } from 'react'
-
 const ViewContext = createContext<any>(null)
 
 export const ViewProvider = ({ children }: { children: React.ReactNode }) => {

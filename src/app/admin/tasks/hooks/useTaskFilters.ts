@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { applyFilters } from '../task-utils'
 
 export const useTaskFilters = (tasks: any[], filters: any) => {

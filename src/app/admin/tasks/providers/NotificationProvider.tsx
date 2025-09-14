@@ -1,5 +1,3 @@
-import React, { createContext, useContext, useState } from 'react'
-
 const NotificationContext = createContext<any>(null)
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
