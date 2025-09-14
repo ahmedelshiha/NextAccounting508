@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
-import { z } from 'zod'
+import { z as zod } from 'zod'
 
-export const TaskFormSchema = z.object({
+export const TaskFormSchema = zod.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
   description: z.string().optional(),
   priority: z.enum(['low','medium','high','critical']).default('medium'),
