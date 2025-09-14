@@ -291,6 +291,25 @@ function toNumberish(v: unknown): number {
   return 0
 }
 
+function useTasksAnalytics() {
+  const [data, setData] = useState<{ total?: number; completed?: number; byStatus?: any[] } | null>(null)
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/tasks/analytics')
+        const j = await r.json().catch(() => ({}))
+        if (!ignore) setData(j)
+      } catch {
+        if (!ignore) setData(null)
+      } finally { if (!ignore) setLoading(false) }
+    })()
+    return () => { ignore = true }
+  }, [])
+  return { data, loading }
+}
+
 const mockDashboardData: DashboardData = {
   stats: {
     revenue: { current: 24500, previous: 21200, trend: 15.6, target: 30000, targetProgress: 81.7 },
