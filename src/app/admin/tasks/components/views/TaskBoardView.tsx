@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import React, { useMemo } from 'react'
 import { Target } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Task, TaskStatus } from '@/lib/tasks/types'
