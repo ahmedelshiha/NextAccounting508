@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { apiFetch } from '@/lib/api'
-import type { Task } from '../task-types'
+import type { Task } from '@/lib/tasks/types'
 
 type TaskEvent = { type: string, payload?: any }
 
