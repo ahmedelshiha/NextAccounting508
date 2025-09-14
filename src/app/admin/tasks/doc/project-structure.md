@@ -68,7 +68,7 @@ TODO: Verify any external dashboards or CI that referenced the dev workspace; if
 - Standardized realtime imports to `@/lib/realtime` in tasks routes (root, [id], comments, stream) and dynamic imports.
 - Pointed templates/notifications APIs to project data at `src/app/admin/tasks/data/*.json` (removed dependency on `temp/task management`).
 - Removed unused placeholder: `src/app/admin/tasks/components/modals/other-modals.tsx`.
-- Verified Admin Tasks UI renders through `page.tsx → dev-task-management.tsx` and all referenced components exist.
+- Removed `src/app/admin/tasks/dev-task-management.tsx` and refactored `page.tsx` to render a minimal Tasks UI using `TaskProvider`, `TasksToolbar`, and `TaskListView` directly.
 
 Open TODOs
 - Consider migrating templates/notifications storage from JSON files to DB tables via Prisma.
