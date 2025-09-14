@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import CommentsPanel from '../../components/comments/CommentsPanel'
+import CommentsPanel from '../comments/CommentsPanel'
 
 interface Props {
   open: boolean
