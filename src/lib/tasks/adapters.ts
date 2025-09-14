@@ -8,7 +8,7 @@ import type {
   CreateTaskInput,
   UpdateTaskInput,
   User,
-} from '@/lib/tasks/types'
+} from './types'
 
 // Prisma/API enums and payload shapes used by src/app/api/admin/tasks
 export type ApiTaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
