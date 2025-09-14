@@ -2,7 +2,7 @@ import React from 'react'
 import { Target, AlertCircle, Calendar, Timer, CheckCircle2, BarChart3 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import type { TaskStatistics } from '../../task-types'
+import type { TaskStatistics } from '@/lib/tasks/types'
 
 interface TasksStatsProps {
   stats: TaskStatistics
