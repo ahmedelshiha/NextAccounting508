@@ -33,7 +33,7 @@ export async function PATCH(request: Request, context: any) {
     const updated = await prisma.task.update({ where: { id }, data: updates })
     try {
       const { broadcast } = await import('@/lib/realtime')
-      broadcast({ type: 'task.updated', payload: updated })
+      try { broadcast({ type: 'task.updated', payload: updated }) } catch(e) {}
     } catch (e) { /* best-effort */ }
     return NextResponse.json(updated)
   } catch (err) {
