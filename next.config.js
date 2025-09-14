@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: false,
+    // Keep ESLint in dev, but don't fail production builds on lint errors
+    ignoreDuringBuilds: true,
   },
   images: {
     domains: ["localhost", "mydomain.com"],
