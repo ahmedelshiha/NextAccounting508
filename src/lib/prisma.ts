@@ -1,4 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+// Lazily require @prisma/client to avoid crash when generated client is missing during initial module load
+
+// Use `any` for PrismaClient type to avoid importing Prisma at top-level
+type PrismaClient = any
 
 declare global {
   var __prisma__: PrismaClient | undefined;
@@ -11,12 +14,16 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 }
 
 function createClient(url: string) {
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  // require at runtime so the module resolution happens only when needed
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pkg = require('@prisma/client')
+  const PrismaClientCtor = pkg?.PrismaClient || pkg
+  return new PrismaClientCtor(url ? { datasources: { db: { url } } } : undefined)
 }
 
 // Export a proxy that lazily creates Prisma client on first use
 const prisma: PrismaClient = (() => {
-  let client: PrismaClient | undefined = (typeof global !== 'undefined' && global.__prisma__) as any
+  let client: PrismaClient | undefined = (typeof global !== 'undefined' && (global as any).__prisma__) as any
 
   const handler: ProxyHandler<any> = {
     get(_target, prop) {
