@@ -1,13 +1,21 @@
 import React from 'react'
+import { getProgressColor } from '../../task-utils'
 
-export const TaskProgress: React.FC<{ percentage: number; size?: 'sm'|'md'|'lg'; showLabel?: boolean }> = ({ percentage, size='md', showLabel=true }) => {
-  const h = size === 'sm' ? 'h-2' : size === 'lg' ? 'h-4' : 'h-3'
+interface TaskProgressProps { percentage: number; size?: 'sm' | 'md' | 'lg'; showLabel?: boolean }
+
+export const TaskProgress: React.FC<TaskProgressProps> = ({ percentage, size = 'md', showLabel = true }) => {
+  const sizeClasses = { sm: 'h-1', md: 'h-2', lg: 'h-3' }
   return (
-    <div>
-      <div className={`w-full bg-gray-200 rounded ${h}`}>
-        <div className={`bg-blue-600 h-full rounded`} style={{ width: Math.max(0, Math.min(100, percentage)) + '%' }} />
+    <div className="space-y-1">
+      {showLabel && (
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-500">Progress</span>
+          <span className="font-medium">{percentage}%</span>
+        </div>
+      )}
+      <div className={`w-full bg-gray-200 rounded-full ${sizeClasses[size]}`}>
+        <div className={`${sizeClasses[size]} rounded-full transition-all duration-300 ${getProgressColor(percentage)}`} style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }} />
       </div>
-      {showLabel && <div className="text-xs text-gray-600 mt-1">{percentage}%</div>}
     </div>
   )
 }

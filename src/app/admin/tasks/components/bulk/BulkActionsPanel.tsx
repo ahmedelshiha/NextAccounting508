@@ -1,28 +1,47 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
+'use client'
 
-export default function BulkActionsPanel({ selectedIds, onClear, onRefresh }: { selectedIds: string[]; onClear?: () => void; onRefresh?: () => void }) {
-  const doAction = async (action: string) => {
+import React, { useState } from 'react'
+
+interface Props {
+  selectedIds: string[]
+  onClear: () => void
+  onRefresh: () => void
+}
+
+export default function BulkActionsPanel({ selectedIds, onClear, onRefresh }: Props) {
+  const [loading, setLoading] = useState(false)
+
+  const bulkAction = async (action: string, updates?: any) => {
+    if (!selectedIds.length) return
+    if (!confirm(`Run '${action}' for ${selectedIds.length} tasks?`)) return
+    setLoading(true)
     try {
-      const res = await fetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, taskIds: selectedIds }) })
-      if (!res.ok) throw new Error('Bulk failed')
-      alert('Action completed')
-      onRefresh?.()
-      onClear?.()
+      const res = await fetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, taskIds: selectedIds, updates }) })
+      if (!res.ok) throw new Error('Bulk action failed')
+      alert('Bulk action succeeded')
+      onRefresh()
+      onClear()
     } catch (e) {
       console.error(e)
       alert('Bulk action failed')
-    }
+    } finally { setLoading(false) }
+  }
+
+  const handleDelete = () => bulkAction('delete')
+  const handleMarkComplete = () => bulkAction('update', { status: 'COMPLETED' })
+  const handleAssign = async () => {
+    const assigneeId = prompt('Assignee ID (enter user id or leave empty to unassign)')
+    if (assigneeId === null) return
+    await bulkAction('assign', { assigneeId: assigneeId || null })
   }
 
   return (
-    <div className="p-3 bg-white border rounded flex items-center gap-3">
-      <div className="text-sm">{selectedIds.length} selected</div>
-      <div className="ml-auto flex gap-2">
-        <Button variant="outline" size="sm" onClick={() => doAction('assign')}>Assign</Button>
-        <Button variant="outline" size="sm" onClick={() => doAction('update')}>Update</Button>
-        <Button variant="destructive" size="sm" onClick={() => doAction('delete')}>Delete</Button>
-      </div>
+    <div className="bg-white border rounded p-3 flex items-center gap-3">
+      <div className="text-sm text-gray-700">{selectedIds.length} selected</div>
+      <button onClick={handleMarkComplete} disabled={loading} className="px-3 py-1 bg-green-600 text-white rounded text-sm">Mark Complete</button>
+      <button onClick={handleAssign} disabled={loading} className="px-3 py-1 bg-blue-600 text-white rounded text-sm">Assign</button>
+      <button onClick={handleDelete} disabled={loading} className="px-3 py-1 bg-red-600 text-white rounded text-sm">Delete</button>
+      <button onClick={onClear} disabled={loading} className="ml-auto px-2 py-1 bg-gray-100 rounded text-sm">Clear</button>
     </div>
   )
 }
