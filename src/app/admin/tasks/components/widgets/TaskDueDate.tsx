@@ -1,7 +1,7 @@
 import React from 'react'
 import { Calendar, AlertCircle } from 'lucide-react'
-import type { TaskStatus } from '../../task-types'
-import { isOverdue, formatDueDate } from '../../task-utils'
+import type { TaskStatus } from '@/lib/tasks/types'
+import { isOverdue, formatDueDate } from '@/lib/tasks/utils'
 
 interface TaskDueDateProps { dueDate: string; status: TaskStatus; variant?: 'full' | 'compact' | 'relative' }
 
