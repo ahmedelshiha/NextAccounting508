@@ -36,6 +36,10 @@ export type PostRow = {
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await ctx.params
+    if (!sql) {
+      console.warn('Neon client not available; returning null post')
+      return NextResponse.json(null)
+    }
     const rows = (await sql`SELECT * FROM "Post" WHERE id = ${id} LIMIT 1`) as unknown as PostRow[]
     const post: PostRow | null = rows[0] ?? null
     return NextResponse.json(post)
