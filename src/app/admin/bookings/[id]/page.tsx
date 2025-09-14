@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   CheckCircle,
   XCircle,
+  Plus,
   Save,
 } from 'lucide-react'
 import { formatCurrencyFromDecimal, type DecimalLike } from '@/lib/decimal-utils'
