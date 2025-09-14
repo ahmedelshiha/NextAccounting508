@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import React, { useMemo } from 'react'
 import { useTaskAnalytics } from '../../hooks/useTaskAnalytics'
 import { Doughnut, Bar } from 'react-chartjs-2'
 import {

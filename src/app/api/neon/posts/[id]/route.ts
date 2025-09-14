@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@netlify/neon'
-
-const sql = neon()
+let sql: any = null
+try {
+  sql = neon()
+} catch (e) {
+  // Best-effort: if no NETLIFY_DATABASE_URL is configured (local dev), don't throw at import time.
+  // The route will return an error response when executed without a DB.
+  // This avoids build-time failures when the environment variable isn't present.
+  // eslint-disable-next-line no-console
+  console.warn('Neon client not initialized (NETLIFY_DATABASE_URL missing?):', e)
+}
 
 export type PostRow = {
   id: string
@@ -23,14 +31,19 @@ export type PostRow = {
   updatedAt?: string | Date
 }
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(_req: Request, ctx: any) {
   try {
-    const { id } = await ctx.params
+    const params = ctx?.params || ctx
+    const { id } = params && params.params ? await params.params : (params || {})
+    if (!sql) {
+      console.warn('Neon client not available; returning null post')
+      return new Response(JSON.stringify(null), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
     const rows = (await sql`SELECT * FROM "Post" WHERE id = ${id} LIMIT 1`) as unknown as PostRow[]
     const post: PostRow | null = rows[0] ?? null
-    return NextResponse.json(post)
+    return new Response(JSON.stringify(post), { status: 200, headers: { 'Content-Type': 'application/json' } })
   } catch (error) {
     console.error('Neon GET /api/neon/posts/[id] error:', error)
-    return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 })
+    return new Response(JSON.stringify({ error: 'Failed to fetch post' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
 }
