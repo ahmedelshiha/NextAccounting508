@@ -1,7 +1,7 @@
 import React from 'react'
 import { DollarSign, AlertTriangle, User, Settings, TrendingUp, Calendar, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { TaskCategory as TaskCategoryType } from '../../task-types'
+import type { TaskCategory as TaskCategoryType } from '@/lib/tasks/types'
 
 interface TaskCategoryProps { category: TaskCategoryType; variant?: 'badge' | 'icon' | 'full' }
 
