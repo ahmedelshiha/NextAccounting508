@@ -1,5 +1,5 @@
 import React from 'react'
-import { getProgressColor } from '../../task-utils'
+import { getProgressColor } from '@/lib/tasks/utils'
 
 interface TaskProgressProps { percentage: number; size?: 'sm' | 'md' | 'lg'; showLabel?: boolean }
 
