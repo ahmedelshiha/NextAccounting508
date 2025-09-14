@@ -95,8 +95,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchTasks = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/tasks?limit=200')
-      if (!res.ok) throw new Error('Failed to load tasks')
+      const res = await apiFetch('/api/admin/tasks?limit=200')
+      if (!res.ok) throw new Error(`Failed to load tasks (${res.status})`)
       const data = await res.json()
       const normalized = Array.isArray(data) ? data.map(toUiTask) : []
       setTasks(normalized)
