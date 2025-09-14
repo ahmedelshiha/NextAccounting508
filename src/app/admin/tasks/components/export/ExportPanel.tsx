@@ -130,7 +130,7 @@ export default function ExportPanel() {
             <span className="text-sm">Enable email notifications</span>
           </label>
           <input value={notifications?.emailFrom || ''} onChange={e => setNotifications((prev: any) => ({ ...prev, emailFrom: e.target.value }))} placeholder="From address" className="border rounded px-2 py-1 w-full" />
-          <input value={notifications?.webhookUrl || ''} onChange={e => setNotifications(prev => ({ ...prev, webhookUrl: e.target.value }))} placeholder="Webhook URL" className="border rounded px-2 py-1 w-full" />
+          <input value={notifications?.webhookUrl || ''} onChange={e => setNotifications((prev: any) => ({ ...prev, webhookUrl: e.target.value }))} placeholder="Webhook URL" className="border rounded px-2 py-1 w-full" />
           <div className="flex gap-2 justify-end">
             <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={handleSaveNotifications}>Save</button>
           </div>
