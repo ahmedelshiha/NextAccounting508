@@ -8,7 +8,7 @@ import type {
   CreateTaskInput,
   UpdateTaskInput,
   User,
-} from '@/lib/tasks/types'
+} from './types'
 
 // Prisma/API enums and payload shapes used by src/app/api/admin/tasks
 export type ApiTaskPriority = 'LOW' | 'MEDIUM' | 'HIGH'
@@ -105,7 +105,7 @@ export const apiTaskToUiTask = (t: ApiTask, usersById?: Record<string, User>): T
     assignee,
     assigneeId: t.assigneeId ?? undefined,
     collaborators: [],
-    createdBy: assignee || { id: 'system', name: 'System', email: 'system@local' },
+    createdBy: assignee || { id: 'system', name: 'System', email: 'system@local', role: 'SYSTEM' },
     completionPercentage: uiStatus === 'completed' ? 100 : 0,
     progress: [],
     dependencies: [],

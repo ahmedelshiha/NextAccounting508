@@ -26,7 +26,7 @@ export default function TaskForm({ task, mode, availableUsers = [], onSave, onCa
   }
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<TaskFormValues>({
-    resolver: zodResolver(TaskFormSchema),
+    resolver: zodResolver(TaskFormSchema) as any,
     defaultValues: defaultValues as TaskFormValues,
   })
 

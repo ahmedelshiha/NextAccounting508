@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null)
     if (!body || !body.title) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-    const created = await prisma.task.create({ data: {
+    const created = await prisma.task.create({ data: ({
       title: String(body.title),
       description: body.description ?? null,
       priority: (body.priority || 'MEDIUM') as any,
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       tags: Array.isArray(body.tags) ? body.tags : [],
       complianceRequired: Boolean(body.complianceRequired || false),
       complianceDeadline: body.complianceDeadline ? new Date(body.complianceDeadline) : null,
-    } })
+    }) as any })
 
     try {
       const { broadcast } = await import('@/lib/realtime')

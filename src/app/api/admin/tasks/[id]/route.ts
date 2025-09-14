@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const task = await prisma.task.findUnique({ where: { id } })
@@ -13,7 +14,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const body = await request.json().catch(() => null)
@@ -31,7 +33,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const updated = await prisma.task.update({ where: { id }, data: updates })
     try {
       const { broadcast } = await import('@/lib/realtime')
-      broadcast({ type: 'task.updated', payload: updated })
+      try { broadcast({ type: 'task.updated', payload: updated }) } catch(e) {}
     } catch (e) { /* best-effort */ }
     return NextResponse.json(updated)
   } catch (err) {
@@ -40,7 +42,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const deleted = await prisma.task.delete({ where: { id } })

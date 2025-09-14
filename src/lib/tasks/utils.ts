@@ -1,10 +1,12 @@
 // lib/tasks/utils.ts
-import { 
-  Task, 
-  TaskPriority, 
-  TaskStatus, 
-  TaskCategory, 
+import {
+  Task,
+  TaskPriority,
+  TaskStatus,
+  TaskCategory,
   TaskStatistics,
+  TaskFilters,
+  SortOption,
   TASK_PRIORITIES,
   TASK_STATUSES,
   TASK_CATEGORIES
@@ -193,7 +195,7 @@ export const generateTaskId = (): string => {
 }
 
 // lib/tasks/filtering.ts
-import { Task, TaskFilters } from './types'
+// types are already imported above
 
 export const applyFilters = (tasks: Task[], filters: TaskFilters): Task[] => {
   return tasks.filter(task => {
@@ -261,15 +263,15 @@ const matchesSearch = (task: Task, searchTerm: string): boolean => {
   const term = searchTerm.toLowerCase()
   return (
     task.title.toLowerCase().includes(term) ||
-    task.description?.toLowerCase().includes(term) ||
+    (task.description?.toLowerCase().includes(term) ?? false) ||
     task.tags.some(tag => tag.toLowerCase().includes(term)) ||
-    task.assignee?.name.toLowerCase().includes(term) ||
-    task.client?.name.toLowerCase().includes(term)
+    (task.assignee?.name?.toLowerCase().includes(term) ?? false) ||
+    (task.client?.name?.toLowerCase().includes(term) ?? false)
   )
 }
 
 // lib/tasks/sorting.ts
-import { Task, SortOption } from './types'
+// types are already imported above
 
 export const sortTasks = (tasks: Task[], sortBy: SortOption, ascending: boolean = true): Task[] => {
   return [...tasks].sort((a, b) => {

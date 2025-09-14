@@ -5,11 +5,12 @@ function makeId() {
   return 'c_' + Math.random().toString(36).slice(2, 9)
 }
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
-    const task = await prisma.task.findUnique({ where: { id }, select: { comments: true } })
-    const comments = task?.comments ?? []
+    const task = await prisma.task.findUnique({ where: { id } }) as any
+    const comments = (task?.comments) ?? []
     return NextResponse.json(Array.isArray(comments) ? comments : [])
   } catch (err) {
     console.error('GET comments error', err)
@@ -17,7 +18,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, context: any) {
+  const params = context?.params || context
   try {
     const { id } = params
     const body = await request.json().catch(() => null)
@@ -36,11 +38,11 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     // Read existing comments and append
-    const task = await prisma.task.findUnique({ where: { id }, select: { comments: true } })
-    const comments = Array.isArray(task?.comments) ? task!.comments as any[] : []
+    const task = await prisma.task.findUnique({ where: { id } }) as any
+    const comments = Array.isArray(task?.comments) ? (task!.comments as any[]) : []
     comments.push(comment)
 
-    await prisma.task.update({ where: { id }, data: { comments } })
+    await prisma.task.update({ where: { id }, data: { comments } as any })
 
     // Broadcast event
     try {

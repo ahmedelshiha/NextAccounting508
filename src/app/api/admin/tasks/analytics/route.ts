@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma'
 export async function GET() {
   try {
     const total = await prisma.task.count()
-    const byStatus = await prisma.task.groupBy({ by: ['status'], _count: { _all: true } })
-    const byPriority = await prisma.task.groupBy({ by: ['priority'], _count: { _all: true } })
-    const completed = await prisma.task.count({ where: { status: 'COMPLETED' } })
-    const avgCompletion = await prisma.task.aggregate({ _avg: { completionPercentage: true } })
+    const completed = await prisma.task.count({ where: { status: 'COMPLETED' as any } })
+    const byStatus: any = await prisma.$queryRaw`SELECT status, COUNT(*) as _count FROM "Task" GROUP BY status`
+    const byPriority: any = await prisma.$queryRaw`SELECT priority, COUNT(*) as _count FROM "Task" GROUP BY priority`
+    const avgCompletion: any = await prisma.$queryRaw`SELECT AVG("completionPercentage") as avg FROM "Task"`
 
     return NextResponse.json({ total, completed, byStatus, byPriority, avgCompletion })
   } catch (err) {
