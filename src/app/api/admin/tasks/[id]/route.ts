@@ -23,12 +23,10 @@ export async function PATCH(request: Request, context: any) {
 
     const updates: any = {}
     if (body.title !== undefined) updates.title = String(body.title)
-    if (body.description !== undefined) updates.description = body.description
     if (body.priority !== undefined) updates.priority = body.priority
     if (body.status !== undefined) updates.status = body.status
     if (body.dueAt !== undefined) updates.dueAt = body.dueAt ? new Date(body.dueAt) : null
     if (body.assigneeId !== undefined) updates.assigneeId = body.assigneeId || null
-    if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : []
 
     const updated = await prisma.task.update({ where: { id }, data: updates })
     try {
