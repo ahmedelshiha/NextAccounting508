@@ -193,7 +193,7 @@ export const generateTaskId = (): string => {
 }
 
 // lib/tasks/filtering.ts
-import { Task, TaskFilters } from './types'
+// types are already imported above
 
 export const applyFilters = (tasks: Task[], filters: TaskFilters): Task[] => {
   return tasks.filter(task => {
@@ -269,7 +269,7 @@ const matchesSearch = (task: Task, searchTerm: string): boolean => {
 }
 
 // lib/tasks/sorting.ts
-import { Task, SortOption } from './types'
+// types are already imported above
 
 export const sortTasks = (tasks: Task[], sortBy: SortOption, ascending: boolean = true): Task[] => {
   return [...tasks].sort((a, b) => {
