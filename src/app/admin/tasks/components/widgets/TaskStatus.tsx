@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import type { TaskStatus as TaskStatusType } from '../../task-types'
-import { getStatusColor } from '../../task-utils'
+import type { TaskStatus as TaskStatusType } from '@/lib/tasks/types'
+import { getStatusColor } from '@/lib/tasks/utils'
 
 interface TaskStatusProps { status: TaskStatusType; variant?: 'badge' | 'dot' | 'full' }
 
