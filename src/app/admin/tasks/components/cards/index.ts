@@ -1,4 +1,5 @@
 export { default as TaskCard } from './TaskCard'
+export { default as TaskCard } from './TaskCard'
 export { TaskCardSkeleton } from './TaskCardSkeleton'
 export { TaskCardHeader } from './TaskCardHeader'
 export { TaskCardContent } from './TaskCardContent'

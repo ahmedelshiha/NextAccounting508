@@ -20,16 +20,10 @@ export async function POST(request: Request) {
 
     const created = await prisma.task.create({ data: ({
       title: String(body.title),
-      description: body.description ?? null,
       priority: (body.priority || 'MEDIUM') as any,
-      status: (body.status || 'PENDING') as any,
-      category: body.category ?? 'system',
+      status: (body.status || 'OPEN') as any,
       dueAt: body.dueAt ? new Date(body.dueAt) : null,
-      estimatedHours: Number(body.estimatedHours || 0),
       assigneeId: body.assigneeId ?? null,
-      tags: Array.isArray(body.tags) ? body.tags : [],
-      complianceRequired: Boolean(body.complianceRequired || false),
-      complianceDeadline: body.complianceDeadline ? new Date(body.complianceDeadline) : null,
     }) as any })
 
     try {
