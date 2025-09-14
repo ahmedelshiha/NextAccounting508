@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@netlify/neon'
-import { NextRequest, NextResponse } from 'next/server'
-
 let sql: any = null
 try {
   sql = neon()
