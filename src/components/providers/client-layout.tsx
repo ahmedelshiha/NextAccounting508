@@ -156,14 +156,16 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
-      <div className="min-h-screen flex flex-col">
-        <Navigation />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
-      </div>
-      <Toaster />
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <div className="min-h-screen flex flex-col">
+          <Navigation />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
+      </ThemeProvider>
     </SessionProvider>
   )
 }
