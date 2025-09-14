@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../prisma/client'
+import prisma from '@/lib/prisma'
 
 export async function GET(request: Request) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     } })
 
     try {
-      const { broadcast } = await import('../../../../lib/realtime')
+      const { broadcast } = await import('@/lib/realtime')
       broadcast({ type: 'task.created', payload: created })
     } catch (e) { /* best-effort */ }
 
