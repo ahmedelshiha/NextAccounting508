@@ -110,10 +110,27 @@ function TeamMemberCard({ member, onEdit, onDelete, onToggleStatus, onViewDetail
             <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100" aria-haspopup>
               <MoreHorizontal className="h-4 w-4" />
             </button>
-            <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+            <div className="absolute right-0 top-8 w-56 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
               <button onClick={() => onToggleStatus(member)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
                 {member.status === 'active' ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                 {member.status === 'active' ? 'Mark Inactive' : 'Mark Active'}
+              </button>
+              <button onClick={() => {
+                if (!member.userId) { alert('This team member is not linked to a user account and cannot be assigned tasks. Edit member and set a User.'); return }
+                const title = prompt('Task title', `Follow up: ${member.name}`)
+                if (!title) return
+                const due = prompt('Due date (YYYY-MM-DD)', new Date().toISOString().slice(0,10))
+                const priority = prompt('Priority (LOW|MEDIUM|HIGH)', 'MEDIUM')
+                ;(async () => {
+                  try {
+                    const res = await fetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, priority: (priority || 'MEDIUM').toUpperCase(), status: 'OPEN', dueAt: due ? new Date(due).toISOString() : null, assigneeId: member.userId }) })
+                    if (res.ok) alert('Task created and assigned')
+                    else alert('Failed to create task')
+                  } catch { alert('Failed to create task') }
+                })()
+              }} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Task for Member
               </button>
               <button onClick={() => onDelete(member.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 text-red-600 flex items-center gap-2">
                 <Trash2 className="h-4 w-4" />
