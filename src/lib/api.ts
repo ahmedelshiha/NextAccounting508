@@ -17,11 +17,24 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     const controller = new AbortController()
     const signal = options && (options as any).signal ? (options as any).signal : controller.signal
     let timeout: ReturnType<typeof setTimeout> | null = null
+    let timedOut = false
     if (timeoutMs && !(options && (options as any).signal)) {
-      timeout = setTimeout(() => controller.abort(), timeoutMs)
+      timeout = setTimeout(() => {
+        timedOut = true
+        try { controller.abort() } catch {}
+      }, timeoutMs)
     }
+
     try {
       return await fetch(info as RequestInfo, { ...defaultOpts, signal })
+    } catch (err) {
+      // If our controller triggered the abort due to timeout, wrap error with a flag so callers can distinguish
+      if (timedOut) {
+        const e: any = new Error('Request timed out')
+        e.isTimeout = true
+        throw e
+      }
+      throw err
     } finally {
       if (timeout) clearTimeout(timeout)
     }
@@ -36,12 +49,16 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
         return res
       } catch (err) {
         lastErr = err
-        // Abort should bubble up
+        // If this is an external abort (signal passed in by caller), rethrow so caller can handle
         if (err instanceof DOMException && err.name === 'AbortError') throw err
 
-        const network = isNetworkError(err)
+        // Treat our timeout errors as retriable network failures
+        const isTimeoutErr = (err as any)?.isTimeout === true || String((err as any)?.message || '').toLowerCase().includes('timed out')
+        let network = isNetworkError(err)
+        if (isTimeoutErr) network = true
+
         if (debug) {
-          try { console.warn('apiFetch attempt failed', { attempt, info, err }) } catch {}
+          try { console.warn('apiFetch attempt failed', { attempt, info, err, isTimeoutErr }) } catch {}
         }
 
         // retry only for network-type failures
