@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { apiFetch } from '@/lib/api'
 import type { Task, TaskPriority, TaskStatus } from '@/lib/tasks/types'
