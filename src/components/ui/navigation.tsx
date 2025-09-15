@@ -74,6 +74,21 @@ export function Navigation() {
               <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
             ) : session ? (
               <div className="flex items-center space-x-4">
+                {/* Notifications */}
+                {!isAdminUser && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative">
+                        <Bell className="h-5 w-5" />
+                        <ClientNotificationsBadge />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-80">
+                      <ClientNotificationsList />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center space-x-2">
