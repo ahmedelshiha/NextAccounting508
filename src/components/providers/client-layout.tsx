@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Toaster } from '@/components/ui/sonner'
-import dynamic from 'next/dynamic'
 import { Footer } from '@/components/ui/footer'
 
 const NavigationDynamic: any = dynamic(
