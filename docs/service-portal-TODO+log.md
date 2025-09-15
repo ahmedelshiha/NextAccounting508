@@ -78,7 +78,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
 - [ ] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests with attachments)
 - [x] Add client approval action and status view (sets clientApprovalAt)
-- [ ] Notify client on assignment/status updates (email + in-app)
+- [x] Notify client on assignment/status updates — email implemented; in-app notifications pending
 
 ### 8) Cleanup and Consistency (from audits)
 - [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
@@ -126,6 +126,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Added API: /api/portal/service-requests (list/create), /api/portal/service-requests/[id] (GET/PATCH), /api/portal/service-requests/[id]/comments (GET/POST)
   - Added pages: src/app/portal/service-requests/{page.tsx,[id]/page.tsx,new/page.tsx}
   - Clients can create requests, view details, comment, approve, and cancel before progress
+
+- [x] 2025-09-15: Implemented email notifications for service requests.
+  - Assignment emails to client on team assignment
+  - Status change emails to client on updates
+  - Realtime events emitted for admin dashboards
 
     Status: Paused (as of 2025-09-15)
 
