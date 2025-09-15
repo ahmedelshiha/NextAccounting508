@@ -115,6 +115,8 @@ function CreateTaskPage({
     return Object.keys(newErrors).length === 0
   }
 
+  const isSubmitDisabled = isLoading || !formData.title.trim() || !formData.dueDate || formData.estimatedHours <= 0 || (formData.complianceRequired && !formData.complianceDeadline)
+
   const handleSave = async () => {
     if (!validateForm()) return
     setIsLoading(true)
@@ -188,7 +190,7 @@ function CreateTaskPage({
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Task Title *</label>
-                  <input type="text" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-300' : 'border-gray-300'}`} placeholder="Enter task title..." />
+                  <input type="text" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} aria-invalid={!!errors.title} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-300' : 'border-gray-300'}`} placeholder="Enter task title..." />
                   {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
                 </div>
                 <div>
@@ -245,7 +247,7 @@ function CreateTaskPage({
                   {formData.complianceRequired && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Compliance Deadline *</label>
-                      <input type="date" value={formData.complianceDeadline || ''} onChange={(e) => setFormData(prev => ({ ...prev, complianceDeadline: e.target.value }))} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.complianceDeadline ? 'border-red-300' : 'border-gray-300'}`} />
+                      <input type="date" value={formData.complianceDeadline || ''} onChange={(e) => setFormData(prev => ({ ...prev, complianceDeadline: e.target.value }))} aria-invalid={!!errors.complianceDeadline} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.complianceDeadline ? 'border-red-300' : 'border-gray-300'}`} />
                       {errors.complianceDeadline && <p className="text-red-600 text-sm mt-1">{errors.complianceDeadline}</p>}
                     </div>
                   )}
@@ -258,12 +260,12 @@ function CreateTaskPage({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Due Date *</label>
-                    <input type="date" value={formData.dueDate} onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.dueDate ? 'border-red-300' : 'border-gray-300'}`} />
+                    <input type="date" value={formData.dueDate} onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))} aria-invalid={!!errors.dueDate} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.dueDate ? 'border-red-300' : 'border-gray-300'}`} />
                     {errors.dueDate && <p className="text-red-600 text-sm mt-1">{errors.dueDate}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Hours *</label>
-                    <input type="number" min="0.5" step="0.5" value={formData.estimatedHours} onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: parseFloat(e.target.value) || 1 }))} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.estimatedHours ? 'border-red-300' : 'border-gray-300'}`} />
+                    <input type="number" min="0.5" step="0.5" value={formData.estimatedHours} onChange={(e) => setFormData(prev => ({ ...prev, estimatedHours: parseFloat(e.target.value) || 1 }))} aria-invalid={!!errors.estimatedHours} className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.estimatedHours ? 'border-red-300' : 'border-gray-300'}`} />
                     {errors.estimatedHours && <p className="text-red-600 text-sm mt-1">{errors.estimatedHours}</p>}
                   </div>
                 </div>
@@ -305,7 +307,7 @@ function CreateTaskPage({
             </div>
             <div className="flex items-center gap-3">
               <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
-              <button type="button" onClick={handleSave} disabled={isLoading} className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">{isLoading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Creating...</>) : (<><Save className="w-4 h-4" />Create Task</>)}</button>
+              <button type="button" onClick={handleSave} disabled={isSubmitDisabled} className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">{isLoading ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Creating...</>) : (<><Save className="w-4 h-4" />Create Task</>)}</button>
             </div>
           </div>
         </div>
