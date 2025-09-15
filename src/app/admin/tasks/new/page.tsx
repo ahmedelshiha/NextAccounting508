@@ -326,7 +326,10 @@ function useAssignees() {
         const res = await apiFetch('/api/admin/team-members', { signal: ac.signal })
         const data = await res.json().catch(() => ({}))
         const list = Array.isArray(data) ? data : (data?.teamMembers || [])
-        const mapped: UserItem[] = list.map((m: any) => ({ id: m.userId || m.id, name: m.name || m.email || 'Unknown', email: m.email || '', role: m.role || 'STAFF' })).filter((u: any) => !!u.id)
+        // Only include team members linked to a real User to avoid FK errors on assignment
+        const mapped: UserItem[] = list
+          .map((m: any) => ({ id: m.userId, name: m.name || m.email || 'Unknown', email: m.email || '', role: m.role || 'STAFF' }))
+          .filter((u: any) => !!u.id)
         setItems(mapped)
       } catch { /* ignore */ }
     })()
