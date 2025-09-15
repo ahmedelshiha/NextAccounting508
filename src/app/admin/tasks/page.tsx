@@ -104,9 +104,6 @@ function TasksInner() {
 
       <TasksStats stats={stats} />
 
-      {mounted && <TaskAnalytics />}
-      {mounted && <AdvancedAnalytics />}
-
       <div className="flex items-center justify-between">
         <TasksToolbar
           searchQuery={searchQuery}
@@ -181,6 +178,9 @@ function TasksInner() {
           onTaskView={onTaskView}
         />
       )}
+
+      {mounted && <TaskAnalytics />}
+      {mounted && <AdvancedAnalytics />}
 
       {showExport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
