@@ -80,14 +80,16 @@ export default function TaskAnalytics() {
           <div className="p-3 border rounded">
             <div className="text-sm text-gray-600 mb-2">By status</div>
             {status.length ? (
-              <Doughnut
-                data={statusData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom' as const } },
-                }}
-              />
+              <div className="h-48">
+                <Doughnut
+                  data={statusData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' as const } },
+                  }}
+                />
+              </div>
             ) : (
               <div className="text-sm text-gray-500">No status data</div>
             )}
