@@ -36,10 +36,19 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
         return res
       } catch (err) {
         lastErr = err
-        // Abort should bubble up
-        if (err instanceof DOMException && err.name === 'AbortError') throw err
 
-        const network = isNetworkError(err)
+        // Distinguish between external abort (caller-provided signal) and internal timeout abort.
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          const optSignal = options && (options as any).signal
+          if (optSignal && optSignal.aborted) {
+            // External abort requested by caller — bubble up so caller can handle cancellation.
+            throw err
+          }
+          // Otherwise it's an internal timeout-induced abort; treat as a network error and allow retries.
+        }
+
+        const isAbort = (err instanceof DOMException && err.name === 'AbortError')
+        const network = isNetworkError(err) || isAbort
         if (debug) {
           try { console.warn('apiFetch attempt failed', { attempt, info, err }) } catch {}
         }
