@@ -39,11 +39,28 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => null)
     if (!body || !body.title) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
+    const mapPriority = (p: any) => {
+      const v = String(p || '').toUpperCase()
+      if (v === 'LOW') return 'LOW'
+      if (v === 'HIGH' || v === 'CRITICAL') return 'HIGH'
+      return 'MEDIUM'
+    }
+    const mapStatus = (s: any) => {
+      const v = String(s || '').toUpperCase()
+      if (v === 'IN_PROGRESS') return 'IN_PROGRESS'
+      if (v === 'DONE' || v === 'COMPLETED') return 'DONE'
+      return 'OPEN'
+    }
+
+    const dueAt = (() => {
+      try { return body.dueAt ? new Date(body.dueAt) : null } catch { return null }
+    })()
+
     const created = await prisma.task.create({ data: ({
       title: String(body.title),
-      priority: (body.priority || 'MEDIUM') as any,
-      status: (body.status || 'OPEN') as any,
-      dueAt: body.dueAt ? new Date(body.dueAt) : null,
+      priority: mapPriority(body.priority) as any,
+      status: mapStatus(body.status) as any,
+      dueAt,
       assigneeId: body.assigneeId ?? null,
     }) as any })
 
