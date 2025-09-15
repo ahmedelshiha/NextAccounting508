@@ -5,7 +5,7 @@ Scope: End-to-end task system (API, UI, dashboard integration)
 
 ## TODO
 - [x] Implement /api/admin/tasks/statistics for dashboard KPIs (recent, urgent, performance)
-- [ ] Extend GET /api/admin/tasks with basic filtering (status, priority, assignee) and pagination metadata
+- [x] Extend GET /api/admin/tasks with basic filtering (status, priority, assignee) and pagination metadata
 - [ ] Align dashboard widgets to consume statistics endpoint (hook or adapter)
 - [ ] Add lightweight auth/ACL checks to tasks APIs (admin/staff only) respecting existing auth middleware
 - [ ] Add error boundaries around task pages/widgets
