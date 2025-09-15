@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
+const hasDb = !!process.env.NETLIFY_DATABASE_URL
+
 export async function GET() {
   try {
+    if (!hasDb) {
+      return NextResponse.json({
+        total: 0,
+        completed: 0,
+        byStatus: [],
+        byPriority: [],
+        avgAgeDays: 0,
+        compliance: {
+          complianceTotal: 0,
+          complianceCompleted: 0,
+          complianceRate: 0,
+          overdueCompliance: 0,
+          avgTimeToCompliance: 0
+        }
+      })
+    }
+
     const total = await prisma.task.count()
     const completed = await prisma.task.count({ where: { status: 'DONE' as any } })
 
