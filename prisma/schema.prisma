@@ -357,6 +357,7 @@ model ServiceRequest {
   assignedTeamMember    TeamMember?     @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
   assignedByUser        User?           @relation("ServiceRequestAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   requestTasks          RequestTask[]
+  comments              ServiceRequestComment[]
 
   @@index([clientId])
   @@index([status])
@@ -377,6 +378,21 @@ model RequestTask {
 
   @@unique([serviceRequestId, taskId], name: "unique_request_task")
   @@map("request_tasks")
+}
+
+model ServiceRequestComment {
+  id                 String          @id @default(cuid())
+  serviceRequestId   String
+  serviceRequest     ServiceRequest  @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  authorId           String?
+  author             User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content            String
+  attachments        Json?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([serviceRequestId])
+  @@map("service_request_comments")
 }
 
 model TeamMember {
