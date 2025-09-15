@@ -21,9 +21,7 @@ function titleCase(input: string): string {
 export default function TaskAnalytics() {
   const { loading, error, stats } = useTaskAnalytics()
 
-  if (loading) return <div className="p-4 bg-white border rounded">Loading analytics...</div>
-  if (error) return <div className="p-4 bg-red-50 border rounded text-red-700">{error}</div>
-
+  // derive data early so hooks (useMemo) are called unconditionally
   const status = stats?.byStatus || []
   const priority = stats?.byPriority || []
 
@@ -58,6 +56,9 @@ export default function TaskAnalytics() {
       ],
     }
   }, [priority])
+
+  if (loading) return <div className="p-4 bg-white border rounded">Loading analytics...</div>
+  if (error) return <div className="p-4 bg-red-50 border rounded text-red-700">{error}</div>
 
   return (
     <div className="bg-white border rounded p-4">
