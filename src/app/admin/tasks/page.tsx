@@ -101,8 +101,8 @@ function TasksInner() {
 
       <TasksStats stats={stats} />
 
-      <TaskAnalytics />
-      <AdvancedAnalytics />
+      {mounted && <TaskAnalytics />}
+      {mounted && <AdvancedAnalytics />}
 
       <div className="flex items-center justify-between">
         <TasksToolbar
