@@ -500,7 +500,7 @@ import { TaskProvider, useTasks } from '../providers/TaskProvider'
 
 function NewTaskInner() {
   const router = useRouter()
-  const { createTask } = useTasks()
+  const { createTask, error: providerError } = useTasks()
 
   const onCancel = () => { try { router.push('/admin/tasks') } catch {} }
 
@@ -511,7 +511,7 @@ function NewTaskInner() {
       dueDate: task.dueDate ? new Date(task.dueDate).toISOString() : undefined,
       assigneeId: task.assigneeId || undefined,
     })
-    if (!result) throw new Error('Failed to create')
+    if (!result) throw new Error(providerError || 'Failed to create')
     try { router.push('/admin/tasks') } catch {}
   }
 
