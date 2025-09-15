@@ -86,7 +86,7 @@ export default function CommentsPanel({ taskId }: { taskId: string }) {
           <button onClick={async () => {
             const reply = prompt('Reply')
             if (!reply) return
-            await postComment(c.id)
+            await postComment(c.id, reply)
           }} className="text-xs text-blue-600">Reply</button>
         </div>
         <div className="mt-3">{renderThread(c.id, level + 1)}</div>
