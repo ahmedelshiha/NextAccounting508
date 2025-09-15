@@ -26,7 +26,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Implement [id]/route.ts (GET, PATCH, DELETE)
 - [x] Implement [id]/assign/route.ts (POST assign to team member + audit)
 - [x] Implement [id]/tasks/route.ts (GET related tasks, POST create from template/plain)
-- [ ] Implement [id]/comments/route.ts (GET/POST comments) including attachment handling
+- [x] Implement [id]/comments/route.ts (GET/POST comments) including attachment handling
 - [x] Implement [id]/status/route.ts (PATCH status transitions) with server-side validation of workflow
 - [x] Implement bulk/route.ts (bulk operations)
 - [x] Implement export/route.ts (CSV export)
