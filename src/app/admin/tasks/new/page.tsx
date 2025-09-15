@@ -123,7 +123,7 @@ function CreateTaskPage({
     try {
       if (onSave) await onSave(formData)
     } catch (error) {
-      setErrors({ submit: 'Failed to save task. Please try again.' })
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to save task. Please try again.' })
     } finally { setIsLoading(false) }
   }
 
