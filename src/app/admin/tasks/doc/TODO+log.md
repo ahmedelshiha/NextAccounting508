@@ -23,3 +23,6 @@ Scope: End-to-end task system (API, UI, dashboard integration)
 - 2025-09-15: Added dashboard integration hook (src/app/admin/tasks/hooks/useDashboardTasks.ts)
   - Consumes /api/admin/tasks/statistics
   - Provides quick task creation and status updates
+- 2025-09-15: Hardened POST /api/admin/tasks validation/coercion
+  - Whitelist and map priority/status values
+  - Safe date parsing for dueAt
