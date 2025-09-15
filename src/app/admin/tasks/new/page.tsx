@@ -326,10 +326,22 @@ function useAssignees() {
         const res = await apiFetch('/api/admin/team-members', { signal: ac.signal })
         const data = await res.json().catch(() => ({}))
         const list = Array.isArray(data) ? data : (data?.teamMembers || [])
-        // Only include team members linked to a real User to avoid FK errors on assignment
-        const mapped: UserItem[] = list
+        let mapped: UserItem[] = list
           .map((m: any) => ({ id: m.userId, name: m.name || m.email || 'Unknown', email: m.email || '', role: m.role || 'STAFF' }))
           .filter((u: any) => !!u.id)
+
+        // Client-side fallback: if no team members are linked to users, derive from users endpoint
+        if (!mapped.length) {
+          try {
+            const resUsers = await apiFetch('/api/admin/users', { signal: ac.signal })
+            const usersJson = await resUsers.json().catch(() => ({}))
+            const users = Array.isArray(usersJson) ? usersJson : (usersJson?.users || [])
+            mapped = users
+              .filter((u: any) => ['ADMIN','STAFF'].includes(String(u.role || '').toUpperCase()))
+              .map((u: any) => ({ id: u.id, name: u.name || u.email || 'User', email: u.email || '', role: u.role || 'STAFF' }))
+          } catch { /* ignore */ }
+        }
+
         setItems(mapped)
       } catch { /* ignore */ }
     })()
