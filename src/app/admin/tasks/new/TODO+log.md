@@ -4,7 +4,7 @@
 - [x] Wire real API data loaders for assignees, clients, bookings, dependencies
 - [x] Implement save flow to POST /api/admin/tasks (map priority, dueAt, assigneeId)
 - [x] Add graceful fallbacks for API errors (no crash, empty lists)
-- [ ] Validate and polish interactions (final QA pass)
+- [x] Validate and polish interactions (final QA pass)
 
 ## Change Log
 - Replaced src/app/admin/tasks/new/page.tsx with client-side CreateTaskPage using Tailwind classes consistent with existing styles.
@@ -15,3 +15,4 @@
   - GET /api/admin/tasks?limit=200 → dependencies source
 - Save now POSTs to /api/admin/tasks with mapped fields. Critical/High both map to HIGH to match DB enums.
 - Added defensive parsing and AbortController to avoid fetch crashes in embeds/proxy.
+- Polished validation: aria-invalid on error fields; disable Create button until required fields valid; keeps original styles.
