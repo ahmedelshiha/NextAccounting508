@@ -496,25 +496,32 @@ function mapUiPriorityToDb(p: TaskPriorityUi): 'LOW' | 'MEDIUM' | 'HIGH' {
   return 'HIGH' // treat High/Critical as HIGH
 }
 
-export default function AdminNewTaskPage() {
-  const router = useRouter()
+import { TaskProvider, useTasks } from '../providers/TaskProvider'
 
-  const onCancel = () => { try { router.push('/admin/tasks') } catch { /* ignore */ } }
+function NewTaskInner() {
+  const router = useRouter()
+  const { createTask } = useTasks()
+
+  const onCancel = () => { try { router.push('/admin/tasks') } catch {} }
 
   const onSave = async (task: CreateTaskData) => {
-    const payload = {
+    const result = await createTask({
       title: task.title,
-      priority: mapUiPriorityToDb(task.priority),
-      status: 'OPEN',
-      dueAt: task.dueDate ? new Date(task.dueDate).toISOString() : null,
-      assigneeId: task.assigneeId || null,
-    }
-    const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-    if (!res.ok) throw new Error('Failed to create')
+      priority: (() => { const p = String(task.priority).toLowerCase(); if (p === 'low') return 'low'; if (p === 'high' || p === 'critical') return 'high'; return 'medium' })(),
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString() : undefined,
+      assigneeId: task.assigneeId || undefined,
+    })
+    if (!result) throw new Error('Failed to create')
     try { router.push('/admin/tasks') } catch {}
   }
 
+  return <CreateTaskPage onSave={onSave} onCancel={onCancel} />
+}
+
+export default function AdminNewTaskPage() {
   return (
-    <CreateTaskPage onSave={onSave} onCancel={onCancel} />
+    <TaskProvider>
+      <NewTaskInner />
+    </TaskProvider>
   )
 }
