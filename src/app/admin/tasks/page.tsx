@@ -23,6 +23,7 @@ import { sortTasks, calculateTaskStatistics } from '@/lib/tasks/utils'
 import { Button } from '@/components/ui/button'
 
 function TasksInner() {
+  const router = useRouter()
   const { tasks, loading, error, updateTask, deleteTask, createTask, refresh } = useTasks()
   const { filteredTasks, filters, setFilters } = useFilterContext()
   const { viewMode, setViewMode } = useViewContext()
@@ -95,7 +96,7 @@ function TasksInner() {
         totalTasks={stats.total}
         overdueTasks={stats.overdue}
         completedTasks={stats.completed}
-        onNewTask={() => onTaskEdit()}
+        onNewTask={() => { try { router.push('/admin/tasks/new') } catch { onTaskEdit() } }}
         onBulkActions={() => { /* panel appears when items are selected */ }}
         onExport={() => setShowExport(true)}
       />
