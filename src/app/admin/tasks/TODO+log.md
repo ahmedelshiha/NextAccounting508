@@ -14,5 +14,7 @@ Date: ${new Date().toISOString()}
 - Notes: Revenue/Compliance require backend schema changes; UI shows placeholders until data exists
 
 ## Next Steps
-- Extend TaskDetailsModal with watchers/reminders/dependencies (read-only)
-- Consider DB schema updates to support compliance/revenue fields 
+- Consider DB schema updates to support compliance/revenue fields
+
+## Completed
+- Added read-only Watchers, Reminders, Dependencies sections to TaskDetailsModal 
