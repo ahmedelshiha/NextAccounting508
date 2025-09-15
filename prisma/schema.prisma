@@ -29,6 +29,8 @@ model User {
   bookings Booking[]
   tasks    Task[]
   teamMembers TeamMember[]
+  taskComments TaskComment[]
+  taskTemplates TaskTemplate[]
 
   @@map("users")
 }
@@ -275,6 +277,9 @@ model Task {
   complianceRequired Boolean  @default(false)
   complianceDeadline DateTime?
   complianceRecords   ComplianceRecord[]
+
+  // Relations
+  comments TaskComment[]
 
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
