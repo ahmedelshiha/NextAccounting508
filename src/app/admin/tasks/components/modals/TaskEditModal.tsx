@@ -441,7 +441,21 @@ function useAssignees() {
         const response = await apiFetch('/api/admin/team-members', { signal: abortController.signal })
         const data = await response.json().catch(() => ({}))
         const list = Array.isArray(data) ? data : (data?.teamMembers || [])
-        const mapped: UserItem[] = list.map((member: any) => ({ id: member.userId || member.id, name: member.name || member.email || 'Unknown', email: member.email || '', avatar: member.avatar, role: member.role || 'STAFF' })).filter((u: any) => !!u.id)
+        let mapped: UserItem[] = list
+          .map((member: any) => ({ id: member.userId, name: member.name || member.email || 'Unknown', email: member.email || '', avatar: member.avatar, role: member.role || 'STAFF' }))
+          .filter((u: any) => !!u.id)
+
+        if (!mapped.length) {
+          try {
+            const resUsers = await apiFetch('/api/admin/users', { signal: abortController.signal })
+            const usersJson = await resUsers.json().catch(() => ({}))
+            const users = Array.isArray(usersJson) ? usersJson : (usersJson?.users || [])
+            mapped = users
+              .filter((u: any) => ['ADMIN','STAFF'].includes(String(u.role || '').toUpperCase()))
+              .map((u: any) => ({ id: u.id, name: u.name || u.email || 'User', email: u.email || '', role: u.role || 'STAFF' }))
+          } catch {}
+        }
+
         setItems(mapped)
       } catch {}
     })()
