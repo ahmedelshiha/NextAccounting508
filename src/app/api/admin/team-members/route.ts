@@ -7,7 +7,7 @@ export async function GET() {
       orderBy: { name: 'asc' },
       include: { user: { select: { id: true, name: true, email: true, role: true } } }
     })
-    const teamMembers = rows.map(r => ({
+    let teamMembers = rows.map(r => ({
       id: r.id,
       userId: r.userId || r.user?.id || null,
       name: r.name,
@@ -20,6 +20,30 @@ export async function GET() {
       workingHours: r.workingHours || null,
       specialties: Array.isArray(r.specialties) ? r.specialties : [],
     }))
+
+    if (!teamMembers.length) {
+      try {
+        const users = await prisma.user.findMany({
+          where: { role: { in: ['ADMIN','STAFF'] as any } },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, name: true, email: true, role: true }
+        })
+        teamMembers = users.map(u => ({
+          id: `user_${u.id}`,
+          userId: u.id,
+          name: u.name || u.email || 'User',
+          email: u.email || '',
+          title: null,
+          role: u.role || 'STAFF',
+          department: null,
+          isAvailable: true,
+          status: 'active',
+          workingHours: null,
+          specialties: [],
+        }))
+      } catch {}
+    }
+
     return NextResponse.json({ teamMembers })
   } catch (err) {
     console.error('GET /api/admin/team-members error', err)
