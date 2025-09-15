@@ -43,6 +43,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!existing || existing.clientId !== session.user.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
+  if (body.action === 'approve') {
+    if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
+      return NextResponse.json({ error: 'Cannot approve at current status' }, { status: 400 })
+    }
+    if (!['SUBMITTED','IN_REVIEW','APPROVED'].includes(existing.status as any)) {
+      return NextResponse.json({ error: 'Approval not applicable' }, { status: 400 })
+    }
+    allowed.clientApprovalAt = new Date()
+    allowed.status = 'APPROVED'
+  }
   if (allowed.status === 'CANCELLED' && ['IN_PROGRESS','COMPLETED','CANCELLED'].includes(existing.status as any)) {
     return NextResponse.json({ error: 'Cannot cancel at current status' }, { status: 400 })
   }
