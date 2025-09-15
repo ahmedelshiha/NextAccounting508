@@ -120,5 +120,13 @@ export async function POST(request: Request) {
     },
   })
 
+  // Auto-assign to a team member based on skills and workload
+  try {
+    const { autoAssignServiceRequest } = await import('@/lib/service-requests/assignment')
+    await autoAssignServiceRequest(created.id)
+  } catch {
+    // best-effort; ignore assignment failures
+  }
+
   return NextResponse.json({ success: true, data: created }, { status: 201 })
 }
