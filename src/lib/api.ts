@@ -21,8 +21,17 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
       // Provide a reason when aborting so error messages include context (avoids "signal is aborted without reason").
       // Use DOMException where available so the abort reason has the 'AbortError' name and is compatible with fetch implementations.
       timeout = setTimeout(() => {
-        // Abort the request on timeout. Avoid constructing DOMException for maximum cross-browser compatibility.
-        try { controller.abort() } catch {}
+        // Abort the request on timeout. Provide a reason where supported to produce a better error message.
+        try {
+          const ReasonCtor = (typeof (globalThis as any).DOMException !== 'undefined') ? (globalThis as any).DOMException : undefined
+          if (ReasonCtor) {
+            try { controller.abort(new ReasonCtor('Request timed out', 'AbortError')) } catch { controller.abort() }
+          } else {
+            try { controller.abort() } catch {}
+          }
+        } catch {
+          try { controller.abort() } catch {}
+        }
       }, timeoutMs)
     }
     try {
