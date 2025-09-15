@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'notifications.json')
 
@@ -25,11 +27,19 @@ function writeSettings(s: any) {
 }
 
 export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   return NextResponse.json(readSettings())
 }
 
 export async function PATCH(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await request.json().catch(() => ({}))
     const s = { ...readSettings(), ...body, updatedAt: new Date().toISOString() }
     writeSettings(s)
