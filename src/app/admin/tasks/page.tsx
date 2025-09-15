@@ -222,12 +222,16 @@ function TasksContent() {
   )
 }
 
+import { ErrorBoundary } from '@/components/providers/error-boundary'
+
 export default function AdminTasksPage() {
   return (
     <div className="p-6">
-      <TaskProvider>
-        <TasksContent />
-      </TaskProvider>
+      <ErrorBoundary>
+        <TaskProvider>
+          <TasksContent />
+        </TaskProvider>
+      </ErrorBoundary>
     </div>
   )
 }
