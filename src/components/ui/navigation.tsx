@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useClientNotifications } from '@/hooks/useClientNotifications'
 
 const navigation = [
   { name: 'Home', href: '/' },
