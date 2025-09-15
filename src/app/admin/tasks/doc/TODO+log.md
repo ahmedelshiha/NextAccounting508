@@ -20,3 +20,6 @@ Scope: End-to-end task system (API, UI, dashboard integration)
 - 2025-09-15: Enhanced GET /api/admin/tasks (src/app/api/admin/tasks/route.ts)
   - Added filters: status, priority, assigneeId, search
   - Added pagination via page+limit (response remains array for backward compatibility)
+- 2025-09-15: Added dashboard integration hook (src/app/admin/tasks/hooks/useDashboardTasks.ts)
+  - Consumes /api/admin/tasks/statistics
+  - Provides quick task creation and status updates
