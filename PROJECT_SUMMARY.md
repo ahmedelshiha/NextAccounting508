@@ -1,5 +1,16 @@
 # Project Summary: Accounting Firm Management Platform
 
+Status: Paused (as of 2025-09-15)
+
+Remaining work (paused):
+- Service Portal: complete Prisma extensions (User, Service, UserPermission), migrations and seeds
+- APIs: team-management (availability, skills, workload, assignments) and task-templates
+- Realtime: per-user event filtering and durable transport plan
+- Admin UI: Service Requests pages/components and dashboard KPIs integration with realtime and RBAC
+- Client Portal: service-requests list/detail/create, client approvals, notifications
+- Cleanup: consolidate duplicate libs, migrate file-based task data to DB, rate limiting, audit events, replace mock data
+- Testing/Docs: unit tests, route tests, e2e, documentation updates
+
 ## 🎯 Project Overview
 
 This is a comprehensive, production-ready Next.js application designed specifically for accounting firms to manage their business operations, client relationships, and service delivery. The platform combines modern web technologies with business-focused features to create a complete solution for professional accounting practices.

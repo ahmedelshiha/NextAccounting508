@@ -330,6 +330,71 @@ model TaskTemplate {
   @@map("task_templates")
 }
 
+model ServiceRequest {
+  id                    String          @id @default(cuid())
+  uuid                  String          @unique @default(uuid())
+  clientId              String
+  serviceId             String
+  title                 String          @db.VarChar(300)
+  description           String?         @db.Text
+  priority              RequestPriority @default(MEDIUM)
+  status                RequestStatus   @default(DRAFT)
+  budgetMin             Decimal?
+  budgetMax             Decimal?
+  deadline              DateTime?
+  requirements          Json?
+  attachments           Json?
+  assignedTeamMemberId  String?
+  assignedAt            DateTime?
+  assignedBy            String?
+  completedAt           DateTime?
+  clientApprovalAt      DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  client                User            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  assignedTeamMember    TeamMember?     @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
+  assignedByUser        User?           @relation("ServiceRequestAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+  requestTasks          RequestTask[]
+  comments              ServiceRequestComment[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTeamMemberId])
+  @@index([deadline])
+  @@map("service_requests")
+}
+
+model RequestTask {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  taskId           String
+  createdAt        DateTime       @default(now())
+
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  task             Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceRequestId, taskId], name: "unique_request_task")
+  @@map("request_tasks")
+}
+
+model ServiceRequestComment {
+  id                 String          @id @default(cuid())
+  serviceRequestId   String
+  serviceRequest     ServiceRequest  @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  authorId           String?
+  author             User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content            String
+  attachments        Json?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([serviceRequestId])
+  @@map("service_request_comments")
+}
+
 model TeamMember {
   id                 String   @id @default(cuid())
   userId             String?
@@ -399,6 +464,24 @@ enum TaskStatus {
   OPEN
   IN_PROGRESS
   DONE
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum RequestStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 enum PostStatus {
