@@ -18,10 +18,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Users,
   Target,
   Activity
 } from 'lucide-react'
+
+import dynamic from 'next/dynamic'
 
 // Core Providers
 import { TaskProvider, useTasks } from './providers/TaskProvider'
@@ -34,7 +35,6 @@ import {
 } from './components/providers'
 
 // Layout Components
-import { TasksHeader, TasksToolbar, TasksStats } from './components/layout'
 
 // View Components
 import { TaskListView } from './components/views/TaskListView'
@@ -45,7 +45,6 @@ import { TaskGanttView } from './components/views/TaskGanttView'
 
 // Action Components
 import BulkActionsPanel from './components/bulk/BulkActionsPanel'
-import ExportPanel from './components/export/ExportPanel'
 import TaskFiltersPanel from './components/filters/TaskFiltersPanel'
 
 // Modal Components
@@ -54,16 +53,13 @@ import TaskDetailsModal from './components/modals/TaskDetailsModal'
 import TaskDeleteModal from './components/modals/TaskDeleteModal'
 
 // Analytics Components
-import TaskAnalytics from './components/analytics/TaskAnalytics'
-import AdvancedAnalytics from './components/analytics/AdvancedAnalytics'
 
 // UI Components
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -76,6 +72,10 @@ import {
 import type { Task, TaskStatus, SortOption } from '@/lib/tasks/types'
 import { sortTasks, calculateTaskStatistics } from '@/lib/tasks/utils'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
+
+const TaskAnalytics = dynamic(() => import('./components/analytics/TaskAnalytics'), { ssr: false })
+const AdvancedAnalytics = dynamic(() => import('./components/analytics/AdvancedAnalytics'), { ssr: false })
+const ExportPanel = dynamic(() => import('./components/export/ExportPanel'), { ssr: false })
 
 // Enhanced Quick Stats Card Component
 function QuickStatsCard({ 
@@ -217,7 +217,6 @@ function TasksInner() {
   const [showExport, setShowExport] = useState(false)
   const [showFiltersPanel, setShowFiltersPanel] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
-  const [showBulkActions, setShowBulkActions] = useState(false)
 
   const [editOpen, setEditOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -288,7 +287,6 @@ function TasksInner() {
 
   const clearSelection = useCallback(() => {
     setSelectedIds([])
-    setShowBulkActions(false)
   }, [])
 
   const handleDeleteConfirm = useCallback(async () => {
@@ -489,7 +487,7 @@ function TasksInner() {
 
         {/* Bulk Actions - Enhanced with better UX */}
         <AnimatePresence>
-          {(selectedIds.length > 0 || showBulkActions) && (
+          {selectedIds.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
