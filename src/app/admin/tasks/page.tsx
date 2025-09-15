@@ -38,7 +38,9 @@ function TasksInner() {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const [calendarDate, setCalendarDate] = useState<Date>(new Date())
+  const [mounted, setMounted] = useState(false)
 
+  React.useEffect(() => { setMounted(true) }, [])
   React.useEffect(() => { setFilters((f: any) => ({ ...f, search: searchQuery })) }, [searchQuery, setFilters])
 
   const visible = useMemo(() => sortTasks(filteredTasks as Task[], sortBy, true), [filteredTasks, sortBy])
