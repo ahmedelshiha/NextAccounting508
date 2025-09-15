@@ -21,18 +21,18 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Seed minimal data for templates/permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
 
 ### 2) Admin API: Service Requests
-- [ ] Create folder structure src/app/api/admin/service-requests/
-- [ ] Implement route.ts (GET list w/ filters, POST create w/ zod validation)
-- [ ] Implement [id]/route.ts (GET, PATCH, DELETE)
-- [ ] Implement [id]/assign/route.ts (POST assign to team member + audit)
-- [ ] Implement [id]/tasks/route.ts (GET related tasks, POST create from template/plain)
+- [x] Create folder structure src/app/api/admin/service-requests/
+- [x] Implement route.ts (GET list w/ filters, POST create w/ zod validation)
+- [x] Implement [id]/route.ts (GET, PATCH, DELETE)
+- [x] Implement [id]/assign/route.ts (POST assign to team member + audit)
+- [x] Implement [id]/tasks/route.ts (GET related tasks, POST create from template/plain)
 - [ ] Implement [id]/comments/route.ts (GET/POST comments) including attachment handling
-- [ ] Implement [id]/status/route.ts (PATCH status transitions) with server-side validation of workflow
-- [ ] Implement bulk/route.ts (bulk operations)
-- [ ] Implement export/route.ts (CSV export)
-- [ ] Implement analytics/route.ts (aggregates for dashboard)
+- [x] Implement [id]/status/route.ts (PATCH status transitions) with server-side validation of workflow
+- [x] Implement bulk/route.ts (bulk operations)
+- [x] Implement export/route.ts (CSV export)
+- [x] Implement analytics/route.ts (aggregates for dashboard)
 - [ ] Implement auto-assignment logic (skills, availability, workload) with unit tests and fallbacks
-- [ ] Enforce RBAC via permissions.ts on all endpoints; consistent error shapes
+- [x] Enforce RBAC via permissions.ts on all endpoints; consistent error shapes
 
 ### 3) Admin API: Team Management and Templates
 - [ ] Create src/app/api/admin/team-management/{availability,skills,workload,assignments}/route.ts
@@ -101,3 +101,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Added enums RequestPriority and RequestStatus
   - Added models ServiceRequest and RequestTask with relations to User, Service, TeamMember, Task
   - Added indexes on clientId, status, priority, assignedTeamMemberId, deadline
+- [x] 2025-09-15: Implemented core Service Requests API.
+  - Added list/create, id get/patch/delete
+  - Added status, assign, tasks, analytics, bulk, export endpoints
+  - RBAC enforced via NextAuth role checks
