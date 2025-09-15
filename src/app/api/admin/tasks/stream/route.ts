@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 import { subscribe } from '@/lib/realtime'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 
 export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   let unsub: any = null
   let h: any = null
   const stream = new ReadableStream({
