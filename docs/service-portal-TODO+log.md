@@ -31,7 +31,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Implement bulk/route.ts (bulk operations)
 - [x] Implement export/route.ts (CSV export)
 - [x] Implement analytics/route.ts (aggregates for dashboard)
-- [ ] Implement auto-assignment logic (skills, availability, workload) with unit tests and fallbacks
+- [x] Implement auto-assignment logic (skills, availability, workload) with unit tests and fallbacks
 - [x] Enforce RBAC via permissions.ts on all endpoints; consistent error shapes
 
 ### 3) Admin API: Team Management and Templates
@@ -105,3 +105,5 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Added list/create, id get/patch/delete
   - Added status, assign, tasks, analytics, bulk, export endpoints
   - RBAC enforced via NextAuth role checks
+- [x] 2025-09-15: Added auto-assignment utility.
+  - Created src/lib/service-requests/assignment.ts and wired into POST create
