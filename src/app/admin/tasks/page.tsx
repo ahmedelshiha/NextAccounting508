@@ -96,6 +96,7 @@ function TasksInner() {
         totalTasks={stats.total}
         overdueTasks={stats.overdue}
         completedTasks={stats.completed}
+        onNewTask={() => { try { router.push('/admin/tasks/new') } catch { onTaskEdit() } }}
         onBulkActions={() => { /* panel appears when items are selected */ }}
         onExport={() => setShowExport(true)}
       />
