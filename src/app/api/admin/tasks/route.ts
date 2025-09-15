@@ -4,8 +4,29 @@ import prisma from '@/lib/prisma'
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
-    const limit = Number(url.searchParams.get('limit') || '50')
-    const tasks = await prisma.task.findMany({ take: limit, orderBy: { updatedAt: 'desc' } })
+    const limit = Math.max(1, Math.min(200, Number(url.searchParams.get('limit') || '50')))
+    const page = Math.max(1, Number(url.searchParams.get('page') || '1'))
+    const skip = (page - 1) * limit
+
+    // Basic filters (optional, non-breaking)
+    const status = url.searchParams.getAll('status').map(s => String(s).toUpperCase())
+    const priority = url.searchParams.getAll('priority').map(p => String(p).toUpperCase())
+    const assignee = url.searchParams.getAll('assigneeId')
+    const search = (url.searchParams.get('search') || '').trim()
+
+    const where: any = {}
+    if (status.length) where.status = { in: status }
+    if (priority.length) where.priority = { in: priority }
+    if (assignee.length) where.assigneeId = { in: assignee }
+    if (search) where.title = { contains: search, mode: 'insensitive' }
+
+    const tasks = await prisma.task.findMany({
+      where,
+      take: limit,
+      skip,
+      orderBy: { updatedAt: 'desc' },
+    })
+
     return NextResponse.json(tasks)
   } catch (err) {
     console.error('GET /api/admin/tasks error', err)
