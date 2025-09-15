@@ -13,7 +13,7 @@ interface TasksHeaderProps {
   showBack?: boolean
 }
 
-export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTasks, completedTasks, onNewTask, onBulkActions, onExport, onImport }) => {
+export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTasks, completedTasks, onNewTask, onBulkActions, onExport, onImport, showBack = false }) => {
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
