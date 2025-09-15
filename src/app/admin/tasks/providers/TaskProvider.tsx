@@ -187,13 +187,22 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         assigneeId: input && typeof input.assigneeId !== 'undefined' ? (input.assigneeId || null) : null,
       }
       const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error('Failed to create')
+      if (!res.ok) {
+        // try to extract server error details
+        let detail = ''
+        try {
+          const json = await res.json()
+          detail = json?.error || (json?.message ? json.message : JSON.stringify(json))
+        } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to create task: ${detail}`)
+      }
       const created = toUiTask(await res.json())
       setTasks(prev => [created, ...prev.filter(t => t.id !== tempId)])
       return created
     } catch (e) {
       setTasks(prev => prev.filter(t => t.id !== tempId))
-      setError(e instanceof Error ? e.message : 'Failed to create')
+      const message = e instanceof Error ? e.message : 'Failed to create'
+      setError(message)
       return null
     }
   }, [])
