@@ -100,13 +100,14 @@ function TasksInner() {
       <TasksStats stats={stats} />
 
       <TaskAnalytics />
+      <AdvancedAnalytics />
 
       <div className="flex items-center justify-between">
         <TasksToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           showFilters={true}
-          onFiltersToggle={() => {}}
+          onFiltersToggle={() => setShowFiltersPanel(v => !v)}
           filtersActive={filtersActive}
           viewMode={viewMode as any}
           onViewModeChange={(m) => setViewMode(m as any)}
@@ -115,6 +116,8 @@ function TasksInner() {
         />
         <a href="/admin/tasks/new" className="ml-4"><Button>New Task</Button></a>
       </div>
+
+      {showFiltersPanel && (<TaskFiltersPanel />)}
 
       {selectedIds.length > 0 && (
         <BulkActionsPanel selectedIds={selectedIds} onClear={() => setSelectedIds([])} onRefresh={refresh} />
