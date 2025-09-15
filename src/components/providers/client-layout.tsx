@@ -3,8 +3,13 @@
 import React, { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Toaster } from '@/components/ui/sonner'
-import { Navigation } from '@/components/ui/navigation'
+import dynamic from 'next/dynamic'
 import { Footer } from '@/components/ui/footer'
+
+const NavigationDynamic: any = dynamic(
+  () => import('@/components/ui/navigation').then(m => m.Navigation),
+  { ssr: false }
+)
 
 // Avoid importing next-auth/react on the server to prevent SSR errors when NEXTAUTH_URL is misconfigured
 const DynamicSessionProvider: any = dynamic(
