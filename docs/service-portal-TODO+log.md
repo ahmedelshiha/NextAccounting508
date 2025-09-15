@@ -47,9 +47,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
 
 ### 5) Real-time
-- [ ] Add enhanced realtime service src/lib/realtime-enhanced.ts
-- [ ] Add SSE endpoint src/app/api/admin/realtime/route.ts
-- [ ] Create client hook src/hooks/useRealtime.ts and test basic events
+- [x] Add enhanced realtime service src/lib/realtime-enhanced.ts
+- [x] Add SSE endpoint src/app/api/admin/realtime/route.ts
+- [x] Create client hook src/hooks/useRealtime.ts and test basic events
 - [ ] Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
 - [ ] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
 
