@@ -10,6 +10,7 @@ interface TasksHeaderProps {
   onBulkActions?: () => void
   onExport?: () => void
   onImport?: () => void
+  showBack?: boolean
 }
 
 export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTasks, completedTasks, onNewTask, onBulkActions, onExport, onImport }) => {
