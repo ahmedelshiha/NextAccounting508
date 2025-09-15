@@ -1,8 +1,13 @@
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+
+const hasDb = !!process.env.NETLIFY_DATABASE_URL
+
+// In-memory fallback store (non-persistent) used only when DB is not configured
+const mem: { tasks: any[] } = { tasks: [] }
 
 const PriorityEnum = z.enum(['LOW','MEDIUM','HIGH'])
 const StatusEnum = z.enum(['OPEN','IN_PROGRESS','DONE'])
@@ -49,6 +54,37 @@ export async function GET(request: Request) {
     const orderByField = (url.searchParams.get('orderBy') || 'updatedAt') as 'createdAt'|'updatedAt'|'dueAt'
     const order = (url.searchParams.get('order') || 'desc') as 'asc'|'desc'
 
+    if (!hasDb) {
+      let rows = mem.tasks.slice()
+      if (status.length) {
+        const set = new Set(status.map(s => mapStatus(s)))
+        rows = rows.filter(r => set.has(r.status))
+      }
+      if (priority.length) {
+        const set = new Set(priority.map(p => mapPriority(p)))
+        rows = rows.filter(r => set.has(r.priority))
+      }
+      if (assigneeId) rows = rows.filter(r => r.assigneeId === assigneeId)
+      if (q) rows = rows.filter(r => (r.title || '').toLowerCase().includes(q.toLowerCase()))
+      if (dueFrom || dueTo) {
+        rows = rows.filter(r => {
+          const d = r.dueAt ? new Date(r.dueAt) : null
+          if (!d) return false
+          if (dueFrom && d < new Date(dueFrom)) return false
+          if (dueTo && d > new Date(dueTo)) return false
+          return true
+        })
+      }
+      rows.sort((a, b) => {
+        const av = new Date(a[orderByField] || 0).getTime()
+        const bv = new Date(b[orderByField] || 0).getTime()
+        return order === 'asc' ? av - bv : bv - av
+      })
+      const paged = rows.slice(offset, offset + limit)
+      // mimic include: { assignee }
+      return NextResponse.json(paged)
+    }
+
     const where: any = {}
     if (status.length) where.status = { in: status.map(s => mapStatus(s)) }
     if (priority.length) where.priority = { in: priority.map(p => mapPriority(p)) }
@@ -87,6 +123,31 @@ export async function POST(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
 
     const body = parsed.data
+
+    if (!hasDb) {
+      const now = new Date()
+      const id = (globalThis as any).crypto && typeof (globalThis as any).crypto.randomUUID === 'function'
+        ? (globalThis as any).crypto.randomUUID()
+        : Math.random().toString(36).slice(2)
+      const row = {
+        id,
+        title: String(body.title),
+        priority: (mapPriority(body.priority as any) || 'MEDIUM'),
+        status: (mapStatus(body.status as any) || 'OPEN'),
+        dueAt: body.dueAt ? new Date(body.dueAt).toISOString() : null,
+        assigneeId: body.assigneeId ?? null,
+        assignee: null,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+      }
+      mem.tasks.unshift(row)
+      try {
+        const { broadcast } = await import('@/lib/realtime')
+        broadcast({ type: 'task.created', payload: row })
+      } catch {}
+      return NextResponse.json(row, { status: 201 })
+    }
+
     const created = await prisma.task.create({
       data: {
         title: String(body.title),

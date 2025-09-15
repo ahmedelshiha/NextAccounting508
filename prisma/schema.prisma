@@ -29,6 +29,8 @@ model User {
   bookings Booking[]
   tasks    Task[]
   teamMembers TeamMember[]
+  taskComments TaskComment[]
+  taskTemplates TaskTemplate[]
 
   @@map("users")
 }
@@ -276,6 +278,9 @@ model Task {
   complianceDeadline DateTime?
   complianceRecords   ComplianceRecord[]
 
+  // Relations
+  comments TaskComment[]
+
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 }
@@ -294,6 +299,35 @@ model ComplianceRecord {
   updatedAt   DateTime @updatedAt
 
   @@index([taskId])
+}
+
+model TaskComment {
+  id          String        @id @default(cuid())
+  taskId      String
+  task        Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId    String?
+  author      User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  parentId    String?
+  parent      TaskComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies     TaskComment[] @relation("CommentReplies")
+  content     String
+  attachments Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([taskId])
+}
+
+model TaskTemplate {
+  id         String   @id @default(cuid())
+  name       String
+  content    String   @db.Text
+  createdById String?
+  createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("task_templates")
 }
 
 model TeamMember {
