@@ -17,3 +17,6 @@ Scope: End-to-end task system (API, UI, dashboard integration)
   - Returns totals, overdue/dueToday/dueSoon, byPriority, byAssignee
   - Includes recentTasks and urgentTasks arrays for dashboard feeds
   - Adds performance block with onTimeCompletion and averageTaskAge
+- 2025-09-15: Enhanced GET /api/admin/tasks (src/app/api/admin/tasks/route.ts)
+  - Added filters: status, priority, assigneeId, search
+  - Added pagination via page+limit (response remains array for backward compatibility)
