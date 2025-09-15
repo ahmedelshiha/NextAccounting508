@@ -97,3 +97,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Added src/app/api/admin/permissions/route.ts (GET roles, permissions)
   - Added src/app/api/admin/permissions/roles/route.ts (GET roles mapping)
   - Added src/app/api/admin/permissions/[userId]/route.ts (GET user permissions; supports 'me')
+- [x] 2025-09-15: Extended Prisma schema for Service Requests.
+  - Added enums RequestPriority and RequestStatus
+  - Added models ServiceRequest and RequestTask with relations to User, Service, TeamMember, Task
+  - Added indexes on clientId, status, priority, assignedTeamMemberId, deadline
