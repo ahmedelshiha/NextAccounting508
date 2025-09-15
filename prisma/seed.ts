@@ -415,6 +415,88 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('✅ Currencies & baseline exchange rates created')
 
+  // Create sample tasks with compliance requirements
+  const now = new Date()
+  const past = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10) // 10 days ago
+  const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7) // in 7 days
+
+  const t1 = await prisma.task.upsert({
+    where: { id: 'task_c1' },
+    update: {},
+    create: {
+      id: 'task_c1',
+      title: 'File Quarterly Compliance Report',
+      description: 'Prepare and file the quarterly compliance report for client X',
+      dueAt: past.toISOString(),
+      priority: 'HIGH',
+      status: 'OPEN',
+      complianceRequired: true,
+      complianceDeadline: past,
+    },
+  })
+
+  const t2 = await prisma.task.upsert({
+    where: { id: 'task_c2' },
+    update: {},
+    create: {
+      id: 'task_c2',
+      title: 'Submit AML Documentation',
+      description: 'Collect and submit AML documents for onboarding',
+      dueAt: future.toISOString(),
+      priority: 'MEDIUM',
+      status: 'IN_PROGRESS',
+      complianceRequired: true,
+      complianceDeadline: future,
+    },
+  })
+
+  const t3 = await prisma.task.upsert({
+    where: { id: 'task_c3' },
+    update: {},
+    create: {
+      id: 'task_c3',
+      title: 'Annual Tax Compliance Review',
+      description: 'Review annual tax compliance and close items',
+      dueAt: future.toISOString(),
+      priority: 'MEDIUM',
+      status: 'OPEN',
+      complianceRequired: false,
+    },
+  })
+
+  // Create ComplianceRecords for tasks
+  await prisma.complianceRecord.upsert({
+    where: { id: 'cr_1' },
+    update: {},
+    create: {
+      id: 'cr_1',
+      taskId: t1.id,
+      type: 'REPORTING',
+      status: 'COMPLETED',
+      dueAt: past,
+      completedAt: new Date(past.getTime() + 1000 * 60 * 60 * 24 * 2), // completed 2 days after created
+      riskScore: 3,
+      notes: 'Filed successfully',
+    },
+  })
+
+  await prisma.complianceRecord.upsert({
+    where: { id: 'cr_2' },
+    update: {},
+    create: {
+      id: 'cr_2',
+      taskId: t2.id,
+      type: 'KYC',
+      status: 'PENDING',
+      dueAt: future,
+      completedAt: null,
+      riskScore: 5,
+      notes: 'Waiting for client documents',
+    },
+  })
+
+  console.log('✅ Sample tasks and compliance records created')
+
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
