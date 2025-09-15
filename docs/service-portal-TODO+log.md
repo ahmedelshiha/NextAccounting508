@@ -40,11 +40,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Seed and manage template categories; filter by requiredSkills when creating from template
 
 ### 4) Permissions and Middleware
-- [ ] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
+- [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
 - [ ] Implement permissions API: src/app/api/admin/permissions/{route.ts,[userId]/route.ts,roles/route.ts}
 - [ ] Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
 - [ ] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
-- [ ] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
+- [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
 
 ### 5) Real-time
 - [ ] Add enhanced realtime service src/lib/realtime-enhanced.ts
