@@ -86,3 +86,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ## Change Log
 - [ ] YYYY-MM-DD: Created this TODO+log; no code changes yet. Next: start with Prisma schema updates.
 - [ ] YYYY-MM-DD: Reviewed service_portal_implementation_guide.md and expanded TODO with multi-tenancy, permissions API, auto-assign, realtime wiring, client approval, rate limiting, and audit events.
+- [x] 2025-09-15: Added permissions and realtime foundation.
+  - Created src/lib/permissions.ts with PERMISSIONS and ROLE_PERMISSIONS (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN) and helpers
+  - Added src/components/PermissionGate.tsx for RBAC-based rendering
+  - Implemented src/lib/realtime-enhanced.ts (emit/broadcast helpers)
+  - Added SSE endpoint at src/app/api/admin/realtime/route.ts
+  - Added client hook src/hooks/useRealtime.ts; retains last 100 events
