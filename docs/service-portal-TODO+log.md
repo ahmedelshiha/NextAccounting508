@@ -10,11 +10,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ## TODO (unchecked)
 
 ### 1) Database and Prisma schema
-- [ ] Extend prisma/schema.prisma with models/enums: ServiceRequest, RequestTask, TaskTemplate, TaskComment, UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, Priority, RequestStatus, DefaultRole
-- [ ] Add fields to User and Service models per guide (employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service.category, basePrice, estimatedDurationHours, requiredSkills, status)
+- [x] Add models ServiceRequest and RequestTask with enums RequestPriority, RequestStatus (prisma/schema.prisma)
+- [ ] Extend prisma/schema.prisma with remaining models/fields: TaskTemplate extensions, TaskComment (service-requests), UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
+- [ ] Add fields to User and Service models per guide (employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service.requiredSkills/status)
 - [ ] Plan multi-tenancy: introduce tenantId/orgId on relevant tables (users, services, service_requests, tasks) with indexes; scope queries behind feature flag
 - [ ] Define attachments storage strategy (provider, size limits, virus scan) and persist attachment metadata schema
-- [ ] Add DB indexes as in guide (status, priority, assigned_team_member_id, deadline, client_id)
+- [x] Add DB indexes as in guide (status, priority, assigned_team_member_id, deadline, client_id)
 - [ ] Generate and verify Prisma client (pnpm prisma generate)
 - [ ] Create migration for new tables/columns and run locally (db push or migrate)
 - [ ] Seed minimal data for templates/permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
