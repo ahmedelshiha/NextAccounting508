@@ -242,11 +242,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks(prev => { const found = prev.find(t => t.id === id); removed = found; return prev.filter(t => t.id !== id) })
     try {
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete')
+      if (!res.ok) {
+        let detail = ''
+        try { const json = await res.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to delete task: ${detail}`)
+      }
       return true
     } catch (e) {
       if (removed) setTasks(prev => [removed as Task, ...prev])
-      setError(e instanceof Error ? e.message : 'Failed to delete')
+      const message = e instanceof Error ? e.message : 'Failed to delete'
+      setError(message)
       return false
     }
   }, [])
