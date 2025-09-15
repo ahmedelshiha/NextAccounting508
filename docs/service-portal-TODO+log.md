@@ -1,11 +1,22 @@
 # Service Portal — TODO + Change Log
 
+Status: Paused (as of 2025-09-15)
+
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
 - docs/website-audit.md
 - docs/admin-dashboard-audit.md
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
+
+## Remaining work (paused)
+- Prisma: extend User and Service models; add UserPermission model; finalize attachments strategy; plan multi-tenancy; run migrations and seeds
+- APIs: implement team-management (availability, skills, workload, assignments) and task-templates CRUD with categories; finalize enhanced middleware/roles alignment
+- Realtime: per-user event filtering and durable transport plan
+- Admin UI: integrate KPIs into admin dashboard; build Service Requests pages/components with realtime and permission-gated actions
+- Client Portal: list/detail/create service requests, client approvals, notifications
+- Cleanup: consolidate src/app/lib duplicates; migrate file-based task data to DB; replace mock dashboard data; add rate limiting and audit events
+- Testing/Docs: unit tests (auto-assign, RBAC), route tests, e2e for client/admin flows; docs updates
 
 ## TODO (unchecked)
 
