@@ -78,7 +78,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
 - [ ] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests with attachments)
 - [x] Add client approval action and status view (sets clientApprovalAt)
-- [x] Notify client on assignment/status updates — email implemented; in-app notifications pending
+- [x] Notify client on assignment/status updates — email + in-app notifications implemented
 
 ### 8) Cleanup and Consistency (from audits)
 - [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
@@ -131,6 +131,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Assignment emails to client on team assignment
   - Status change emails to client on updates
   - Realtime events emitted for admin dashboards
+
+- [x] 2025-09-15: Implemented in-app notifications for clients.
+  - SSE-based notifications with bell icon in navigation
+  - Shows assignment, status changes, and new comments
+  - Mark-as-read and unread badge
 
     Status: Paused (as of 2025-09-15)
 
