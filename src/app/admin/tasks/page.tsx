@@ -298,9 +298,11 @@ function TasksInner() {
 
   const handleSave = useCallback(async (data: any) => {
     if (activeTask) {
-      await updateTask(activeTask.id, data)
+      const updated = await updateTask(activeTask.id, data)
+      if (!updated) throw new Error('Failed to update task')
     } else {
-      await createTask(data)
+      const created = await createTask(data)
+      if (!created) throw new Error('Failed to create task')
     }
   }, [activeTask, updateTask, createTask])
 
