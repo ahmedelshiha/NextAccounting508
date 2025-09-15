@@ -107,3 +107,6 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - RBAC enforced via NextAuth role checks
 - [x] 2025-09-15: Added auto-assignment utility.
   - Created src/lib/service-requests/assignment.ts and wired into POST create
+- [x] 2025-09-15: Implemented Service Request comments.
+  - Added prisma model ServiceRequestComment and relation on ServiceRequest
+  - Added API: GET/POST /api/admin/service-requests/[id]/comments with attachments support and realtime broadcast
