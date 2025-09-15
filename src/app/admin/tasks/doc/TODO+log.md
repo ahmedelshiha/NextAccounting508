@@ -26,3 +26,4 @@ Scope: End-to-end task system (API, UI, dashboard integration)
 - 2025-09-15: Hardened POST /api/admin/tasks validation/coercion
   - Whitelist and map priority/status values
   - Safe date parsing for dueAt
+- 2025-09-15: apiFetch fallback returns valid JSON body to avoid JSON.parse errors on network failures
