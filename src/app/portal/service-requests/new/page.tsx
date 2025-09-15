@@ -1,0 +1,143 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { apiFetch } from '@/lib/api'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { toast } from 'sonner'
+
+interface Service { id: string; name: string }
+
+export default function NewServiceRequestPage() {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [services, setServices] = useState<Service[]>([])
+  const [serviceId, setServiceId] = useState('')
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [priority, setPriority] = useState<'LOW'|'MEDIUM'|'HIGH'|'URGENT'>('MEDIUM')
+  const [deadline, setDeadline] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    async function loadServices() {
+      try {
+        const res = await apiFetch('/api/services')
+        if (!res.ok) throw new Error('Failed')
+        const json = await res.json()
+        const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
+        setServices(list.map((s: any) => ({ id: s.id, name: s.name })))
+      } catch {
+        // ignore
+      }
+    }
+    if (session) loadServices()
+  }, [session])
+
+  const canSubmit = serviceId && title.trim().length >= 5
+
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    try {
+      const res = await apiFetch('/api/portal/service-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceId, title, description: description || undefined, priority, deadline: deadline ? new Date(deadline).toISOString() : undefined })
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to create request')
+        return
+      }
+      const json = await res.json()
+      toast.success('Request created')
+      router.push(`/portal/service-requests/${json.data.id}`)
+    } catch {
+      toast.error('Failed to create request')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">New Service Request</h1>
+            <p className="text-gray-600">Provide details to help us process your request.</p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/portal/service-requests">Cancel</Link>
+          </Button>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Request Details</CardTitle>
+            <CardDescription>Fill in the required fields to submit your request.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label>Service</Label>
+                <Select onValueChange={setServiceId}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select a service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1" placeholder="Describe your request" />
+              </div>
+
+              <div>
+                <Label htmlFor="desc">Description</Label>
+                <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={5} placeholder="Add additional details" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Priority</Label>
+                  <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LOW">Low</SelectItem>
+                      <SelectItem value="MEDIUM">Medium</SelectItem>
+                      <SelectItem value="HIGH">High</SelectItem>
+                      <SelectItem value="URGENT">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="deadline">Desired deadline</Label>
+                  <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>{submitting ? 'Submitting...' : 'Submit Request'}</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
