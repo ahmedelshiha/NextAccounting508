@@ -39,15 +39,15 @@ export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTas
             Bulk Actions
           </Button>
         )}
-        {showBack && (
-          <Button asChild variant="outline" size="sm">
-            <a href="/admin">Back to Dashboard</a>
-          </Button>
-        )}
         {onNewTask && (
           <Button size="sm" onClick={onNewTask}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
+          </Button>
+        )}
+        {showBack && (
+          <Button asChild variant="outline" size="sm">
+            <a href="/admin">Back to Dashboard</a>
           </Button>
         )}
       </div>
