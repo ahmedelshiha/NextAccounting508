@@ -177,20 +177,10 @@ export default function TaskEditModal({ open, onClose, task, onSave, availableUs
     try {
       const payload: any = {
         title: formData.title.trim(),
-        description: formData.description?.trim() || '',
         priority: formData.priority,
-        category: formData.category,
         status: formData.status,
         dueDate: new Date(formData.dueDate).toISOString(),
-        estimatedHours: Number(formData.estimatedHours),
         assigneeId: formData.assigneeId || undefined,
-        clientId: formData.clientId || undefined,
-        bookingId: formData.bookingId || undefined,
-        tags: formData.tags,
-        complianceRequired: formData.complianceRequired,
-        complianceDeadline: formData.complianceDeadline ? new Date(formData.complianceDeadline).toISOString() : undefined,
-        dependencies: formData.dependencies,
-        collaborators: formData.collaboratorIds,
       }
       await onSave(payload)
       onClose()
