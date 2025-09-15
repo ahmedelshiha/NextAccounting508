@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 interface Props {
   selectedIds: string[]
@@ -14,14 +15,19 @@ export default function BulkActionsPanel({ selectedIds, onClear, onRefresh }: Pr
     if (!confirm(`Run '${action}' for ${selectedIds.length} tasks?`)) return
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, taskIds: selectedIds, updates }) })
-      if (!res.ok) throw new Error('Bulk action failed')
+      const res = await apiFetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, taskIds: selectedIds, updates }) })
+      if (!res.ok) {
+        let detail = ''
+        try { const json = await res.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(detail || 'Bulk action failed')
+      }
       alert('Bulk action succeeded')
       onRefresh()
       onClear()
     } catch (e) {
       console.error(e)
-      alert('Bulk action failed')
+      const msg = e instanceof Error ? e.message : 'Bulk action failed'
+      alert(msg)
     } finally { setLoading(false) }
   }
 
