@@ -18,7 +18,8 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     const signal = options && (options as any).signal ? (options as any).signal : controller.signal
     let timeout: ReturnType<typeof setTimeout> | null = null
     if (timeoutMs && !(options && (options as any).signal)) {
-      timeout = setTimeout(() => controller.abort(), timeoutMs)
+      // Provide a reason when aborting so error messages include context (avoids "signal is aborted without reason").
+      timeout = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs)
     }
     try {
       return await fetch(info as RequestInfo, { ...defaultOpts, signal })
