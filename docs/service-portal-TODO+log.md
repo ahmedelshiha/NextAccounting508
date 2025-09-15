@@ -77,7 +77,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
 - [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
 - [ ] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests with attachments)
-- [ ] Add client approval action and status view (sets clientApprovalAt)
+- [x] Add client approval action and status view (sets clientApprovalAt)
 - [ ] Notify client on assignment/status updates (email + in-app)
 
 ### 8) Cleanup and Consistency (from audits)
@@ -125,7 +125,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] 2025-09-15: Implemented Client Portal service requests (APIs and pages).
   - Added API: /api/portal/service-requests (list/create), /api/portal/service-requests/[id] (GET/PATCH), /api/portal/service-requests/[id]/comments (GET/POST)
   - Added pages: src/app/portal/service-requests/{page.tsx,[id]/page.tsx,new/page.tsx}
-  - Clients can create requests, view details, comment, and cancel before progress
+  - Clients can create requests, view details, comment, approve, and cancel before progress
 
     Status: Paused (as of 2025-09-15)
 
