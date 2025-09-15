@@ -3,10 +3,13 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const rows = await prisma.teamMember.findMany({ orderBy: { name: 'asc' } })
+    const rows = await prisma.teamMember.findMany({
+      orderBy: { name: 'asc' },
+      include: { user: { select: { id: true, name: true, email: true, role: true } } }
+    })
     const teamMembers = rows.map(r => ({
       id: r.id,
-      userId: r.userId || null,
+      userId: r.userId || r.user?.id || null,
       name: r.name,
       email: r.email,
       title: r.title || null,
