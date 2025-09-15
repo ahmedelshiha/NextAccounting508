@@ -1,13 +1,15 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const rows = await prisma.teamMember.findMany({ orderBy: { name: 'asc' } })
-    const teamMembers = rows.map(r => ({
+    const rows = await prisma.teamMember.findMany({
+      orderBy: { name: 'asc' },
+      include: { user: { select: { id: true, name: true, email: true, role: true } } }
+    })
+    let teamMembers = rows.map(r => ({
       id: r.id,
-      userId: r.userId || null,
+      userId: r.userId || r.user?.id || null,
       name: r.name,
       email: r.email,
       title: r.title || null,
@@ -18,6 +20,30 @@ export async function GET() {
       workingHours: r.workingHours || null,
       specialties: Array.isArray(r.specialties) ? r.specialties : [],
     }))
+
+    if (!teamMembers.length) {
+      try {
+        const users = await prisma.user.findMany({
+          where: { role: { in: ['ADMIN','STAFF'] as any } },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, name: true, email: true, role: true }
+        })
+        teamMembers = users.map(u => ({
+          id: `user_${u.id}`,
+          userId: u.id,
+          name: u.name || u.email || 'User',
+          email: u.email || '',
+          title: null,
+          role: u.role || 'STAFF',
+          department: null,
+          isAvailable: true,
+          status: 'active',
+          workingHours: null,
+          specialties: [],
+        }))
+      } catch {}
+    }
+
     return NextResponse.json({ teamMembers })
   } catch (err) {
     console.error('GET /api/admin/team-members error', err)
