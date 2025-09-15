@@ -1,10 +1,16 @@
 "use client"
 
 import React, { useEffect } from 'react'
-import { SessionProvider } from 'next-auth/react'
+import dynamic from 'next/dynamic'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
+
+// Avoid importing next-auth/react on the server to prevent SSR errors when NEXTAUTH_URL is misconfigured
+const DynamicSessionProvider: any = dynamic(
+  () => import('next-auth/react').then(m => m.SessionProvider),
+  { ssr: false }
+)
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -20,6 +26,42 @@ declare global {
 export function ClientLayout({ children }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
+
+    // Wrap fetch to rewrite absolute localhost calls (caused by NEXTAUTH_URL) to relative, preserving same-origin
+    const originalFetch: typeof fetch = window.fetch.bind(window)
+    window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
+      try {
+        const [input, init] = args
+        const normalize = (u: string) => {
+          try {
+            const m = u.match(/^https?:\/\/(?:localhost|127\.0\.0\.1):3000(\/.*)?$/i)
+            if (m) return m[1] || '/'
+          } catch {}
+          return u
+        }
+
+        if (typeof input === 'string') {
+          const url = normalize(input)
+          return await originalFetch(url as RequestInfo, init)
+        }
+        if (input instanceof URL) {
+          const url = new URL(input.toString())
+          const rewritten = normalize(url.toString())
+          return await originalFetch(rewritten as unknown as RequestInfo, init)
+        }
+        if (input instanceof Request) {
+          const rewritten = normalize(input.url)
+          if (rewritten !== input.url) {
+            const req = new Request(rewritten, input)
+            return await originalFetch(req, init)
+          }
+          return await originalFetch(input, init)
+        }
+        return await originalFetch(input as any, init)
+      } catch (err) {
+        return Promise.reject(err)
+      }
+    }
 
     const handleError = (event: ErrorEvent) => {
       try {
@@ -84,16 +126,15 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     }
 
     // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
-    const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once and only when explicitly enabled
     if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !window.__fetchLogged) {
       window.__fetchLogged = true
+      const debugFetch: typeof fetch = window.fetch.bind(window)
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
           const [i0, init] = args
           const input = i0
           // Delegate to the original (already proxy-wrapped) fetch without altering URL shape
-          const res = await originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
+          const res = await debugFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
           if (!res.ok) {
             try {
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
@@ -141,7 +182,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     return () => {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
-      // restore fetch flag
+      // Note: keep fetch wrapper active to ensure URL rewriting persists
       try {
         if (window.__fetchLogged) {
           delete window.__fetchLogged
@@ -155,7 +196,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, [])
 
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
+    <DynamicSessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1">
@@ -164,6 +205,6 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         <Footer />
       </div>
       <Toaster />
-    </SessionProvider>
+    </DynamicSessionProvider>
   )
 }
