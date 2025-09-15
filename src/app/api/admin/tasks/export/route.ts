@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {
@@ -17,10 +19,14 @@ function toCSV(rows: any[], headers: string[]) {
 
 export async function GET(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const url = new URL(request.url)
     const format = (url.searchParams.get('format') || 'csv').toLowerCase()
 
-    // Basic filters (optional)
     const status = url.searchParams.getAll('status')
     const priority = url.searchParams.getAll('priority')
 
@@ -37,16 +43,15 @@ export async function GET(request: Request) {
     const rows = tasks.map(t => ({
       id: t.id,
       title: t.title,
-      description: t.description || '',
       priority: t.priority,
       status: t.status,
       assignee: t.assignee?.name || t.assignee?.email || '',
       dueAt: t.dueAt ? t.dueAt.toISOString() : '',
-      tags: (t.tags || []).join('|'),
       createdAt: t.createdAt.toISOString(),
+      updatedAt: t.updatedAt.toISOString(),
     }))
 
-    const headers = ['id','title','description','priority','status','assignee','dueAt','tags','createdAt']
+    const headers = ['id','title','priority','status','assignee','dueAt','createdAt','updatedAt']
     const csv = toCSV(rows, headers)
 
     const filename = `tasks-export-${new Date().toISOString().slice(0,10)}.${format === 'xlsx' ? 'xlsx' : 'csv'}`
