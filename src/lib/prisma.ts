@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client'
+import type { PrismaClient as PrismaClientType } from '@prisma/client'
 
 declare global {
-  var __prisma__: PrismaClient | undefined;
+  // eslint-disable-next-line no-var
+  var __prisma__: PrismaClientType | undefined;
 }
 
 let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
@@ -11,12 +12,15 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 }
 
 function createClient(url: string) {
+  // Lazily require to avoid loading @prisma/client when DB is not configured
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
   return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
 }
 
 // Export a proxy that lazily creates Prisma client on first use
-const prisma: PrismaClient = (() => {
-  let client: PrismaClient | undefined = (typeof global !== 'undefined' && global.__prisma__) as any
+const prisma: PrismaClientType = (() => {
+  let client: PrismaClientType | undefined = (typeof global !== 'undefined' && (global as any).__prisma__) as any
 
   const handler: ProxyHandler<any> = {
     get(_target, prop) {
@@ -34,7 +38,7 @@ const prisma: PrismaClient = (() => {
     }
   }
 
-  return new Proxy({}, handler) as unknown as PrismaClient
+  return new Proxy({}, handler) as unknown as PrismaClientType
 })();
 
 export default prisma;
