@@ -31,7 +31,11 @@ export function ServicesSection() {
   useEffect(() => {
     async function fetchServices() {
       try {
-        const response = await apiFetch('/api/services')
+        const response = await apiFetch('/api/services', { ...(typeof window !== 'undefined' ? { cache: 'no-store' as const } : {}), // ensure fresh data
+          // Keep UX snappy: fail fast and fallback if slow
+          // 2.5s is enough for local/fallback; DB-backed deployments can adjust via api.ts if needed
+          timeout: 2500 as unknown as number
+        } as any)
         if (response.ok) {
           let data: unknown = null
           try {
