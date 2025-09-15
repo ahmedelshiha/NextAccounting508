@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { TaskProvider, useTasks } from './providers/TaskProvider'
 import { FilterProvider, useFilterContext, ViewProvider, useViewContext, NotificationProvider } from './components/providers'
 import { TasksHeader, TasksToolbar, TasksStats } from './components/layout'
