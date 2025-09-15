@@ -23,6 +23,45 @@ const navigation = [
   { name: 'Contact', href: '/contact' },
 ]
 
+function ClientNotificationsBadge() {
+  const { unreadCount } = useClientNotifications()
+  if (!unreadCount) return null
+  return (
+    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-medium leading-none text-white bg-red-600 rounded-full">
+      {unreadCount}
+    </span>
+  )
+}
+
+function ClientNotificationsList() {
+  const { notifications, markAllRead, markRead } = useClientNotifications()
+  return (
+    <div className="p-2">
+      <div className="flex items-center justify-between px-2 py-1">
+        <span className="text-sm font-medium text-gray-700">Notifications</span>
+        <button onClick={markAllRead} className="text-xs text-blue-600 hover:underline">Mark all as read</button>
+      </div>
+      <div className="max-h-80 overflow-auto">
+        {notifications.length === 0 ? (
+          <div className="px-3 py-6 text-sm text-gray-500">No new notifications</div>
+        ) : (
+          notifications.map((n) => (
+            <Link
+              key={n.id}
+              href={n.href || '#'}
+              onClick={() => markRead(n.id)}
+              className={`block px-3 py-2 rounded-md transition-colors ${n.read ? 'text-gray-600 hover:bg-gray-50' : 'bg-blue-50 text-blue-800 hover:bg-blue-100'}`}
+            >
+              <div className="text-sm truncate">{n.message}</div>
+              <div className="text-xs text-gray-500">{new Date(n.createdAt).toLocaleString()}</div>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
