@@ -14,7 +14,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - APIs: implement team-management (availability, skills, workload, assignments) and task-templates CRUD with categories; finalize enhanced middleware/roles alignment
 - Realtime: per-user event filtering and durable transport plan
 - Admin UI: integrate KPIs into admin dashboard; build Service Requests pages/components with realtime and permission-gated actions
-- Client Portal: list/detail/create service requests, client approvals, notifications
+- Client Portal: client approvals, notifications
 - Cleanup: consolidate src/app/lib duplicates; migrate file-based task data to DB; replace mock dashboard data; add rate limiting and audit events
 - Testing/Docs: unit tests (auto-assign, RBAC), route tests, e2e for client/admin flows; docs updates
 
@@ -74,11 +74,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
 
 ### 7) Client Portal
-- [ ] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
-- [ ] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
+- [x] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
+- [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
 - [ ] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests with attachments)
-- [ ] Add client approval action and status view (sets clientApprovalAt)
-- [ ] Notify client on assignment/status updates (email + in-app)
+- [x] Add client approval action and status view (sets clientApprovalAt)
+- [x] Notify client on assignment/status updates — email + in-app notifications implemented
 
 ### 8) Cleanup and Consistency (from audits)
 - [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
@@ -122,6 +122,21 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Added prisma model ServiceRequestComment and relation on ServiceRequest
   - Added API: GET/POST /api/admin/service-requests/[id]/comments with attachments support and realtime broadcast
      
+- [x] 2025-09-15: Implemented Client Portal service requests (APIs and pages).
+  - Added API: /api/portal/service-requests (list/create), /api/portal/service-requests/[id] (GET/PATCH), /api/portal/service-requests/[id]/comments (GET/POST)
+  - Added pages: src/app/portal/service-requests/{page.tsx,[id]/page.tsx,new/page.tsx}
+  - Clients can create requests, view details, comment, approve, and cancel before progress
+
+- [x] 2025-09-15: Implemented email notifications for service requests.
+  - Assignment emails to client on team assignment
+  - Status change emails to client on updates
+  - Realtime events emitted for admin dashboards
+
+- [x] 2025-09-15: Implemented in-app notifications for clients.
+  - SSE-based notifications with bell icon in navigation
+  - Shows assignment, status changes, and new comments
+  - Mark-as-read and unread badge
+
     Status: Paused (as of 2025-09-15)
 
 Remaining work (paused):
@@ -129,6 +144,6 @@ Remaining work (paused):
 - APIs: team-management (availability, skills, workload, assignments) and task-templates
 - Realtime: per-user event filtering and durable transport plan
 - Admin UI: Service Requests pages/components and dashboard KPIs integration with realtime and RBAC
-- Client Portal: service-requests list/detail/create, client approvals, notifications
+- Client Portal: client approvals, notifications
 - Cleanup: consolidate duplicate libs, migrate file-based task data to DB, rate limiting, audit events, replace mock data
 - Testing/Docs: unit tests, route tests, e2e, documentation updates
