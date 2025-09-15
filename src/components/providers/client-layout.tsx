@@ -203,7 +203,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <DynamicSessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        <NavigationDynamic />
         <main className="flex-1">
           {children}
         </main>
