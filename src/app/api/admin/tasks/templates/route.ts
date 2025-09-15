@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
 
@@ -25,12 +27,20 @@ function writeTemplates(tmpls: any[]) {
 }
 
 export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const templates = readTemplates()
   return NextResponse.json(templates)
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await request.json().catch(() => ({}))
     const templates = readTemplates()
     const now = new Date().toISOString()
@@ -47,6 +57,10 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await request.json().catch(() => ({}))
     const templates = readTemplates()
     const idx = templates.findIndex((t: any) => t.id === body.id)
@@ -62,6 +76,10 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const url = new URL(request.url)
     const id = url.searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
