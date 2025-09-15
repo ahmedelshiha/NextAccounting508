@@ -219,14 +219,19 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.dueDate) { body.dueAt = updates.dueDate; delete body.dueDate }
 
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        let detail = ''
+        try { const json = await res.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to update task: ${detail}`)
+      }
       const updated = toUiTask(await res.json())
       setTasks(prev => prev.map(t => t.id === id ? updated : t))
       return updated
     } catch (e) {
       // rollback
       if (previous) setTasks(prev => prev.map(t => t.id === id ? previous as Task : t))
-      setError(e instanceof Error ? e.message : 'Failed to update')
+      const message = e instanceof Error ? e.message : 'Failed to update'
+      setError(message)
       return null
     }
   }, [])
