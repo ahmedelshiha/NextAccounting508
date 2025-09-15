@@ -93,7 +93,8 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     }
 
     try {
-      const body = typeof lastErr === 'string' ? lastErr : JSON.stringify({ error: 'Network error', detail: String(lastErr) })
+      const bodyObj = { error: 'Network error', detail: typeof lastErr === 'string' ? lastErr : String(lastErr) }
+      const body = JSON.stringify(bodyObj)
       return new Response(body, { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'application/json' } })
     } catch (e) {
       // Fallback: rethrow if Response construction fails
