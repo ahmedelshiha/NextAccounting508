@@ -105,6 +105,27 @@ export default function PortalServiceRequestDetailPage() {
     }
   }
 
+  const approveRequest = async () => {
+    if (!id) return
+    try {
+      const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve' })
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Unable to approve')
+        return
+      }
+      toast.success('Request approved')
+      router.refresh()
+      await load()
+    } catch (e) {
+      toast.error('Unable to approve')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,6 +138,9 @@ export default function PortalServiceRequestDetailPage() {
             <Button variant="outline" asChild>
               <Link href="/portal/service-requests">Back</Link>
             </Button>
+            {reqData && ['SUBMITTED','IN_REVIEW'].includes(reqData.status) && (
+              <Button onClick={approveRequest}>Approve</Button>
+            )}
             {reqData && !['COMPLETED','CANCELLED'].includes(reqData.status) && (
               <Button variant="destructive" onClick={cancelRequest}>Cancel</Button>
             )}
