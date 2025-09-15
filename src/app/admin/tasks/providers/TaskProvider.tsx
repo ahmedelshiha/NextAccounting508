@@ -48,6 +48,7 @@ const mapPriorityToDb = (p: TaskPriority): string => {
 
 // Normalize DB task to UI Task shape to avoid runtime crashes
 const toUiTask = (row: any): Task => {
+  const assignee = row.assignee ? { id: row.assignee.id, name: row.assignee.name || row.assignee.email || 'User', email: row.assignee.email || '', role: 'STAFF' } : undefined
   return {
     id: row.id,
     title: row.title || 'Untitled',
@@ -61,8 +62,8 @@ const toUiTask = (row: any): Task => {
     completedAt: undefined,
     estimatedHours: 0,
     actualHours: undefined,
-    assignee: undefined,
-    assigneeId: row.assigneeId || undefined,
+    assignee,
+    assigneeId: row.assigneeId || assignee?.id || undefined,
     collaborators: [],
     createdBy: { id: 'system', name: 'System', email: 'system@local', role: 'system' },
     completionPercentage: mapStatusFromDb(row.status) === 'completed' ? 100 : 0,
