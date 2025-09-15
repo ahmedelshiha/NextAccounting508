@@ -96,7 +96,6 @@ function TasksInner() {
         totalTasks={stats.total}
         overdueTasks={stats.overdue}
         completedTasks={stats.completed}
-        onNewTask={() => { try { router.push('/admin/tasks/new') } catch { onTaskEdit() } }}
         onBulkActions={() => { /* panel appears when items are selected */ }}
         onExport={() => setShowExport(true)}
       />
@@ -118,7 +117,6 @@ function TasksInner() {
           sortBy={sortBy}
           onSortChange={(s) => setSortBy(s as SortOption)}
         />
-        <a href="/admin/tasks/new" className="ml-4"><Button>New Task</Button></a>
       </div>
 
       {showFiltersPanel && (<TaskFiltersPanel />)}
