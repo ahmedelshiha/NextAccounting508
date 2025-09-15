@@ -15,6 +15,8 @@ import TaskEditModal from './components/modals/TaskEditModal'
 import TaskDetailsModal from './components/modals/TaskDetailsModal'
 import TaskDeleteModal from './components/modals/TaskDeleteModal'
 import TaskAnalytics from './components/analytics/TaskAnalytics'
+import AdvancedAnalytics from './components/analytics/AdvancedAnalytics'
+import TaskFiltersPanel from './components/filters/TaskFiltersPanel'
 import type { Task, TaskStatus, SortOption } from '@/lib/tasks/types'
 import { sortTasks, calculateTaskStatistics } from '@/lib/tasks/utils'
 import { Button } from '@/components/ui/button'
@@ -28,6 +30,7 @@ function TasksInner() {
   const [sortBy, setSortBy] = useState<SortOption>('dueDate')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [showExport, setShowExport] = useState(false)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   const [editOpen, setEditOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -35,7 +38,9 @@ function TasksInner() {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const [calendarDate, setCalendarDate] = useState<Date>(new Date())
+  const [mounted, setMounted] = useState(false)
 
+  React.useEffect(() => { setMounted(true) }, [])
   React.useEffect(() => { setFilters((f: any) => ({ ...f, search: searchQuery })) }, [searchQuery, setFilters])
 
   const visible = useMemo(() => sortTasks(filteredTasks as Task[], sortBy, true), [filteredTasks, sortBy])
@@ -96,14 +101,15 @@ function TasksInner() {
 
       <TasksStats stats={stats} />
 
-      <TaskAnalytics />
+      {mounted && <TaskAnalytics />}
+      {mounted && <AdvancedAnalytics />}
 
       <div className="flex items-center justify-between">
         <TasksToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           showFilters={true}
-          onFiltersToggle={() => {}}
+          onFiltersToggle={() => setShowFiltersPanel(v => !v)}
           filtersActive={filtersActive}
           viewMode={viewMode as any}
           onViewModeChange={(m) => setViewMode(m as any)}
@@ -112,6 +118,8 @@ function TasksInner() {
         />
         <a href="/admin/tasks/new" className="ml-4"><Button>New Task</Button></a>
       </div>
+
+      {showFiltersPanel && (<TaskFiltersPanel />)}
 
       {selectedIds.length > 0 && (
         <BulkActionsPanel selectedIds={selectedIds} onClear={() => setSelectedIds([])} onRefresh={refresh} />
@@ -222,12 +230,16 @@ function TasksContent() {
   )
 }
 
+import { ErrorBoundary } from '@/components/providers/error-boundary'
+
 export default function AdminTasksPage() {
   return (
     <div className="p-6">
-      <TaskProvider>
-        <TasksContent />
-      </TaskProvider>
+      <ErrorBoundary>
+        <TaskProvider>
+          <TasksContent />
+        </TaskProvider>
+      </ErrorBoundary>
     </div>
   )
 }

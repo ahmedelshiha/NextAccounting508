@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { apiFetch } from '@/lib/api'
 import type { Task, TaskPriority, TaskStatus } from '@/lib/tasks/types'
@@ -186,7 +184,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         priority: mapPriorityToDb(tempTask.priority),
         status: mapStatusToDb(tempTask.status),
         dueAt: tempTask.dueDate,
-        assigneeId: null,
+        assigneeId: input && typeof input.assigneeId !== 'undefined' ? (input.assigneeId || null) : null,
       }
       const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error('Failed to create')
