@@ -30,6 +30,7 @@ function TasksInner() {
   const [sortBy, setSortBy] = useState<SortOption>('dueDate')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [showExport, setShowExport] = useState(false)
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false)
 
   const [editOpen, setEditOpen] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
