@@ -12,30 +12,29 @@ interface TaskCardFooterProps {
 export const TaskCardFooter: React.FC<TaskCardFooterProps> = ({ task, onStatusChange, onEdit, onView }) => {
   return (
     <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-      <div className="flex gap-1">
+      <div className="flex gap-2">
         {task.status !== 'completed' && onStatusChange && (
           <Button
             aria-label={`Advance ${task.title}`}
             variant="ghost"
-            size="sm"
-            className="text-xs"
             onClick={(e) => {
               e.stopPropagation()
               const next = task.status === 'in_progress' ? 'completed' : 'in_progress'
               onStatusChange(task.id, next)
             }}
+            className="px-3 py-1 text-sm"
           >
             {task.status === 'in_progress' ? 'Complete' : 'Start'}
           </Button>
         )}
         {onEdit && (
-          <Button aria-label={`Edit ${task.title}`} variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onEdit(task) }}>
+          <Button aria-label={`Edit ${task.title}`} variant="ghost" onClick={(e) => { e.stopPropagation(); onEdit(task) }} className="px-3 py-1 text-sm">
             Edit
           </Button>
         )}
       </div>
       {onView && (
-        <Button aria-label={`View details for ${task.title}`} variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); onView(task) }}>
+        <Button aria-label={`View details for ${task.title}`} variant="ghost" onClick={(e) => { e.stopPropagation(); onView(task) }} className="px-3 py-1 text-sm">
           Details
         </Button>
       )}

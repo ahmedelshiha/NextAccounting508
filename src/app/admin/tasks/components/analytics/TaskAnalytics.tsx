@@ -21,9 +21,7 @@ function titleCase(input: string): string {
 export default function TaskAnalytics() {
   const { loading, error, stats } = useTaskAnalytics()
 
-  if (loading) return <div className="p-4 bg-white border rounded">Loading analytics...</div>
-  if (error) return <div className="p-4 bg-red-50 border rounded text-red-700">{error}</div>
-
+  // derive data early so hooks (useMemo) are called unconditionally
   const status = stats?.byStatus || []
   const priority = stats?.byPriority || []
 
@@ -59,11 +57,14 @@ export default function TaskAnalytics() {
     }
   }, [priority])
 
+  if (loading) return <div className="p-4 bg-white border rounded">Loading analytics...</div>
+  if (error) return <div className="p-4 bg-red-50 border rounded text-red-700">{error}</div>
+
   return (
     <div className="bg-white border rounded p-4">
       <h3 className="text-lg font-semibold mb-3">Task Analytics</h3>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <div className="text-sm text-gray-600">Total tasks</div>
           <div className="text-2xl font-bold">{stats?.total ?? 0}</div>
@@ -72,6 +73,11 @@ export default function TaskAnalytics() {
           <div className="text-sm text-gray-600">Completed</div>
           <div className="text-2xl font-bold">{stats?.completed ?? 0}</div>
         </div>
+        <div>
+          <div className="text-sm text-gray-600">Compliance Rate</div>
+          <div className="text-2xl font-bold">{stats?.compliance?.complianceRate ?? 0}%</div>
+          <div className="text-xs text-gray-500">Overdue: {stats?.compliance?.overdueCompliance ?? 0}</div>
+        </div>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-6">
@@ -79,14 +85,16 @@ export default function TaskAnalytics() {
           <div className="p-3 border rounded">
             <div className="text-sm text-gray-600 mb-2">By status</div>
             {status.length ? (
-              <Doughnut
-                data={statusData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom' as const } },
-                }}
-              />
+              <div className="h-48">
+                <Doughnut
+                  data={statusData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' as const } },
+                  }}
+                />
+              </div>
             ) : (
               <div className="text-sm text-gray-500">No status data</div>
             )}

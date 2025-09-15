@@ -42,23 +42,30 @@ export default function CommentsPanel({ taskId }: { taskId: string }) {
     })
   }
 
-  const postComment = async (parentId?: string | null) => {
-    if (!content.trim() && attachments.length === 0) return
-    const payload = { content: content.trim(), parentId: parentId || null, attachments }
+  const postComment = async (parentId?: string | null, text?: string) => {
+    const bodyContent = (typeof text === 'string' ? text : content || '').trim()
+    if (!bodyContent && attachments.length === 0) return
+    const payload = { content: bodyContent, parentId: parentId || null, attachments }
     // optimistic UI
     const temp = { id: 'tmp_' + Date.now(), authorName: 'You', content: payload.content, attachments: payload.attachments, createdAt: new Date().toISOString(), pending: true }
     setComments(prev => [...prev, temp])
-    setContent('')
+    // only clear the composer if we're posting from composer (no explicit text passed)
+    if (typeof text !== 'string') setContent('')
     setAttachments([])
     try {
       const r = await fetch(`/api/admin/tasks/${encodeURIComponent(taskId)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!r.ok) throw new Error('Failed')
+      if (!r.ok) {
+        let detail = ''
+        try { const json = await r.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${r.status} ${r.statusText}` }
+        throw new Error(detail || 'Failed to post comment')
+      }
       const saved = await r.json()
       setComments(prev => prev.map(c => c.id === temp.id ? saved : c))
     } catch (e) {
       console.error(e)
       setComments(prev => prev.filter(c => c.id !== temp.id))
-      alert('Failed to post comment')
+      const msg = e instanceof Error ? e.message : 'Failed to post comment'
+      alert(msg)
     }
   }
 
@@ -79,7 +86,7 @@ export default function CommentsPanel({ taskId }: { taskId: string }) {
           <button onClick={async () => {
             const reply = prompt('Reply')
             if (!reply) return
-            await postComment(c.id)
+            await postComment(c.id, reply)
           }} className="text-xs text-blue-600">Reply</button>
         </div>
         <div className="mt-3">{renderThread(c.id, level + 1)}</div>

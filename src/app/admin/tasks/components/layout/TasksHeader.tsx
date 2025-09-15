@@ -10,9 +10,10 @@ interface TasksHeaderProps {
   onBulkActions?: () => void
   onExport?: () => void
   onImport?: () => void
+  showBack?: boolean
 }
 
-export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTasks, completedTasks, onNewTask, onBulkActions, onExport, onImport }) => {
+export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTasks, completedTasks, onNewTask, onBulkActions, onExport, onImport, showBack = false }) => {
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
@@ -42,6 +43,11 @@ export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTas
           <Button size="sm" onClick={onNewTask}>
             <Plus className="h-4 w-4 mr-2" />
             New Task
+          </Button>
+        )}
+        {showBack && (
+          <Button asChild variant="outline" size="sm">
+            <a href="/admin">Back to Dashboard</a>
           </Button>
         )}
       </div>

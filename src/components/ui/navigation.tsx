@@ -139,17 +139,11 @@ export function Navigation() {
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button asChild>
-                  <Link href="/booking">Book Consultation</Link>
-                </Button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" asChild>
                   <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/booking">Book Consultation</Link>
                 </Button>
               </div>
             )}
@@ -269,13 +263,6 @@ export function Navigation() {
                     </Link>
                   </div>
                 )}
-                <div className="pt-2">
-                  <Button asChild className="w-full">
-                    <Link href="/booking" onClick={() => setMobileMenuOpen(false)}>
-                      Book Consultation
-                    </Link>
-                  </Button>
-                </div>
               </div>
             </div>
           </div>

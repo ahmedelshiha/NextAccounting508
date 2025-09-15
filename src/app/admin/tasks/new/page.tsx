@@ -123,7 +123,7 @@ function CreateTaskPage({
     try {
       if (onSave) await onSave(formData)
     } catch (error) {
-      setErrors({ submit: 'Failed to save task. Please try again.' })
+      setErrors({ submit: error instanceof Error ? error.message : 'Failed to save task. Please try again.' })
     } finally { setIsLoading(false) }
   }
 
@@ -500,7 +500,7 @@ import { TaskProvider, useTasks } from '../providers/TaskProvider'
 
 function NewTaskInner() {
   const router = useRouter()
-  const { createTask } = useTasks()
+  const { createTask, error: providerError } = useTasks()
 
   const onCancel = () => { try { router.push('/admin/tasks') } catch {} }
 
@@ -511,7 +511,7 @@ function NewTaskInner() {
       dueDate: task.dueDate ? new Date(task.dueDate).toISOString() : undefined,
       assigneeId: task.assigneeId || undefined,
     })
-    if (!result) throw new Error('Failed to create')
+    if (!result) throw new Error(providerError || 'Failed to create')
     try { router.push('/admin/tasks') } catch {}
   }
 

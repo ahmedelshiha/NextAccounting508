@@ -187,13 +187,22 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         assigneeId: input && typeof input.assigneeId !== 'undefined' ? (input.assigneeId || null) : null,
       }
       const res = await apiFetch('/api/admin/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error('Failed to create')
+      if (!res.ok) {
+        // try to extract server error details
+        let detail = ''
+        try {
+          const json = await res.json()
+          detail = json?.error || (json?.message ? json.message : JSON.stringify(json))
+        } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to create task: ${detail}`)
+      }
       const created = toUiTask(await res.json())
       setTasks(prev => [created, ...prev.filter(t => t.id !== tempId)])
       return created
     } catch (e) {
       setTasks(prev => prev.filter(t => t.id !== tempId))
-      setError(e instanceof Error ? e.message : 'Failed to create')
+      const message = e instanceof Error ? e.message : 'Failed to create'
+      setError(message)
       return null
     }
   }, [])
@@ -210,14 +219,19 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (updates.dueDate) { body.dueAt = updates.dueDate; delete body.dueDate }
 
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Failed to update')
+      if (!res.ok) {
+        let detail = ''
+        try { const json = await res.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to update task: ${detail}`)
+      }
       const updated = toUiTask(await res.json())
       setTasks(prev => prev.map(t => t.id === id ? updated : t))
       return updated
     } catch (e) {
       // rollback
       if (previous) setTasks(prev => prev.map(t => t.id === id ? previous as Task : t))
-      setError(e instanceof Error ? e.message : 'Failed to update')
+      const message = e instanceof Error ? e.message : 'Failed to update'
+      setError(message)
       return null
     }
   }, [])
@@ -228,11 +242,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks(prev => { const found = prev.find(t => t.id === id); removed = found; return prev.filter(t => t.id !== id) })
     try {
       const res = await apiFetch(`/api/admin/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to delete')
+      if (!res.ok) {
+        let detail = ''
+        try { const json = await res.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${res.status} ${res.statusText}` }
+        throw new Error(`Failed to delete task: ${detail}`)
+      }
       return true
     } catch (e) {
       if (removed) setTasks(prev => [removed as Task, ...prev])
-      setError(e instanceof Error ? e.message : 'Failed to delete')
+      const message = e instanceof Error ? e.message : 'Failed to delete'
+      setError(message)
       return false
     }
   }, [])

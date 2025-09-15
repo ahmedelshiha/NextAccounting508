@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { TaskProvider, useTasks } from './providers/TaskProvider'
 import { FilterProvider, useFilterContext, ViewProvider, useViewContext, NotificationProvider } from './components/providers'
 import { TasksHeader, TasksToolbar, TasksStats } from './components/layout'
@@ -22,6 +23,7 @@ import { sortTasks, calculateTaskStatistics } from '@/lib/tasks/utils'
 import { Button } from '@/components/ui/button'
 
 function TasksInner() {
+  const router = useRouter()
   const { tasks, loading, error, updateTask, deleteTask, createTask, refresh } = useTasks()
   const { filteredTasks, filters, setFilters } = useFilterContext()
   const { viewMode, setViewMode } = useViewContext()
@@ -94,15 +96,13 @@ function TasksInner() {
         totalTasks={stats.total}
         overdueTasks={stats.overdue}
         completedTasks={stats.completed}
-        onNewTask={() => onTaskEdit()}
+        showBack={true}
+        onNewTask={() => { try { router.push('/admin/tasks/new') } catch { onTaskEdit() } }}
         onBulkActions={() => { /* panel appears when items are selected */ }}
         onExport={() => setShowExport(true)}
       />
 
       <TasksStats stats={stats} />
-
-      {mounted && <TaskAnalytics />}
-      {mounted && <AdvancedAnalytics />}
 
       <div className="flex items-center justify-between">
         <TasksToolbar
@@ -116,7 +116,6 @@ function TasksInner() {
           sortBy={sortBy}
           onSortChange={(s) => setSortBy(s as SortOption)}
         />
-        <a href="/admin/tasks/new" className="ml-4"><Button>New Task</Button></a>
       </div>
 
       {showFiltersPanel && (<TaskFiltersPanel />)}
@@ -179,6 +178,9 @@ function TasksInner() {
           onTaskView={onTaskView}
         />
       )}
+
+      {mounted && <TaskAnalytics />}
+      {mounted && <AdvancedAnalytics />}
 
       {showExport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
