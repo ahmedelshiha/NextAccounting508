@@ -4,6 +4,12 @@
   - Why: Throwing new Error(object) produced "Error: [object Object]" in the UI. Now shows clear validation/auth messages.
   - Next: Audit other forms for similar patterns; consider a small helper to extractApiError(res) for consistency.
 
+- [x] 2025-09-16: Admin Create Service Request — fixed "Invalid payload" on deadline.
+  - Updated: src/app/admin/service-requests/new/page.tsx
+  - What: Convert datetime-local value to ISO (toISOString) before POST so it matches z.string().datetime() in API schema.
+  - Why: zod datetime() requires RFC3339; browser datetime-local lacks timezone.
+  - Next: Add a shared date serialization helper and apply across forms.
+
 - [x] 2025-09-16: Client Portal — added filters, search (debounced), and pagination to Service Requests list.
   - Updated: src/app/portal/service-requests/page.tsx
   - What: Added status/priority filters, debounced search by title/description, and page/limit-driven pagination using API meta.pagination. Realtime refresh preserved; added manual refresh.
