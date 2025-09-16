@@ -100,6 +100,23 @@ Notes & Current state snapshot:
 - Templates endpoints now prefer DB at runtime and fall back to file for local dev/tests.
 
 Change Log: recent (high level):
+- [x] 2025-09-16: Added Vitest config and fixed bulk route tests to unblock CI.
+  - Added: vitest.config.ts
+  - Updated: src/app/admin/tasks/tests/api.bulk.route.test.ts (use @ alias, mock '@/lib/prisma')
+  - Notes: Resolves module resolution errors in Vitest; route/API tests pass locally. No runtime changes.
+  - Next: Run tests in CI, then raise coverage thresholds and add realtime smoke test.
+
+- [x] 2025-09-16: Admin dashboard: surface unauthorized state and prevent empty zeroed UI when APIs return 401.
+  - Updated: src/app/admin/page.tsx
+  - What: Detect 401 responses during dashboard data load and show a clear banner with sign-in and CI/db hints instead of rendering empty zeroed cards.
+  - Why: Users visiting /admin without a valid session (deployed env) saw blank/zero dashboard; this improves UX and points operators to fix auth/DB in CI.
+  - Next: If you want, I can add an automated health-check endpoint that validates DB connectivity and auth session in staging and include it in the dashboard's systemHealth display.
+
+- [x] 2025-09-16: Added Service Requests to Smart Actions
+  - Updated: src/app/admin/page.tsx
+  - What: Added 'Service Requests' and 'Assign Requests' entries under Smart Actions > management and 'New Service Request' under primary actions. Uses badge counts from dashboard stats where available.
+  - Why: Provide quick access to service-request workflows for admins and improve discoverability.
+  - Next: Wire badge to service-requests analytics (newThisWeek/activeRequests) if preferred, and add an 'Export Requests' quick action.
 - 2025-09-16: Fixed Netlify TSC error TS2304 in /api/admin/tasks/templates DELETE handler by replacing stray hasDb with await dbAvailable(); build should proceed.
 - 2025-09-16: DB-first templates endpoints implemented; demo permissions seeded; realtime table verified; seed updated to include Team Lead; local DB push & seed executed.
 

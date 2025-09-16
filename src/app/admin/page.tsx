@@ -802,6 +802,14 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         variant: 'outline' as const,
         description: 'Create urgent task',
         urgent: data.stats.tasks.overdue > 0
+      },
+      {
+        label: 'New Service Request',
+        href: '/admin/service-requests/new',
+        icon: Plus,
+        variant: 'default' as const,
+        description: 'Create new client service request',
+        badge: data.stats.tasks.overdue > 0 ? `${data.stats.tasks.overdue} overdue` : undefined
       }
     ],
     management: [
@@ -846,6 +854,19 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         href: '/admin/bookings',
         icon: Calendar,
         description: 'Manage client appointments'
+      },
+      {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        description: 'Manage client requests',
+        badge: `${data.stats.tasks.total} tasks`
+      },
+      {
+        label: 'Assign Requests',
+        href: '/admin/service-requests/assignments',
+        icon: Target,
+        description: 'Auto-assign and manage workloads',
       },
       {
         label: 'Posts',
@@ -1760,6 +1781,14 @@ export default function ProfessionalAdminDashboard() {
         fetch('/api/admin/bookings?limit=20')
       ])
 
+      // Inspect responses for authorization errors and surface to UI
+      const anyUnauthorized = [bookingsRes, usersRes, tasksRes, bookingsListRes].some(r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<Response>).value.status === 401)
+      if (anyUnauthorized) {
+        setError('unauthorized')
+        setLoading(false)
+        return
+      }
+
       const okJson = async (r: PromiseSettledResult<Response>) => {
         if (r.status === 'fulfilled' && r.value.ok) return r.value.json()
         return null
@@ -1970,6 +1999,24 @@ export default function ProfessionalAdminDashboard() {
     return () => clearInterval(interval)
   }, [autoRefresh, loadDashboardData])
 
+  if (error === 'unauthorized') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-6 shadow-sm">
+            <h2 className="text-lg font-semibold">Admin access required</h2>
+            <p className="mt-2">The dashboard API returned an unauthorized response. Please sign in with an admin account to view dashboard metrics.</p>
+            <div className="mt-4 flex gap-3">
+              <a className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded" href="/login">Sign in</a>
+              <button className="inline-block px-4 py-2 border rounded" onClick={() => window.location.reload()}>Retry</button>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">If you expect this to be available, confirm that the deployment has DATABASE_URL / NETLIFY_DATABASE_URL set and that prisma migrations & seed have been applied in CI.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -1988,7 +2035,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-lg p-6 shadow-sm">
@@ -2004,7 +2051,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               ))}
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
                 <div className="h-64 bg-gray-200 rounded"></div>
