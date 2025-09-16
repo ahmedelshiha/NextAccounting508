@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { respond } from '@/lib/api-response'
 
 export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`
-    return NextResponse.json({ status: 'ok' })
+    return respond.ok({ status: 'ok' })
   } catch (error) {
     console.error('DB health check failed:', error)
-    return NextResponse.json({ status: 'error' }, { status: 500 })
+    return respond.serverError('Database health check failed')
   }
 }

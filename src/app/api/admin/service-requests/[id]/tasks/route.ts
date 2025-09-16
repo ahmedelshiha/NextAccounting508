@@ -7,6 +7,7 @@ import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const CreateTaskSchema = z.object({
   title: z.string().min(3),
@@ -19,7 +20,7 @@ const CreateTaskSchema = z.object({
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) return respond.unauthorized()
 
   const relations = await prisma.requestTask.findMany({
     where: { serviceRequestId: params.id },
@@ -31,21 +32,21 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json({ success: true, data: relations.map((r) => r.task) })
+  return respond.ok(relations.map((r) => r.task))
 }
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return respond.unauthorized()
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:task-create:${params.id}:${ip}`, 20, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
   const parsed = CreateTaskSchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const createdTask = await prisma.task.create({
     data: {
@@ -72,5 +73,5 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   } catch {}
 
   try { await logAudit({ action: 'service-request:task:create', actorId: (session.user as any).id ?? null, targetId: params.id, details: { taskId: createdTask.id } }) } catch {}
-  return NextResponse.json({ success: true, data: createdTask }, { status: 201 })
+  return respond.created(createdTask)
 }

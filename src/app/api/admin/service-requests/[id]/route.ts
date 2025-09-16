@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const UpdateSchema = z.object({
   title: z.string().min(3).max(300).optional(),
@@ -24,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const item = await prisma.serviceRequest.findUnique({
@@ -37,25 +38,25 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     },
   })
 
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json({ success: true, data: item })
+  if (!item) return respond.notFound('Service request not found')
+  return respond.ok(item)
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:update:${params.id}:${ip}`, 20, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
   const updates: any = { ...parsed.data }
@@ -68,19 +69,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
   try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: updated.id, action: 'updated' }, timestamp: new Date().toISOString() }) } catch {}
   try { await logAudit({ action: 'service-request:update', actorId: (session.user as any).id ?? null, targetId: params.id, details: { updates } }) } catch {}
-  return NextResponse.json({ success: true, data: updated })
+  return respond.ok(updated)
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_DELETE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(_req)
   if (!rateLimit(`service-requests:delete:${params.id}:${ip}`, 10, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
@@ -88,5 +89,5 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
   try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: params.id, action: 'deleted' }, timestamp: new Date().toISOString() }) } catch {}
   try { await logAudit({ action: 'service-request:delete', actorId: (session.user as any).id ?? null, targetId: params.id }) } catch {}
-  return NextResponse.json({ success: true })
+  return respond.ok({})
 }

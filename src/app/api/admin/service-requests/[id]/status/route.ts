@@ -8,6 +8,7 @@ import { logAudit } from '@/lib/audit'
 import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const Schema = z.object({ status: z.enum(['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED']) })
 
@@ -15,16 +16,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:status:${params.id}:${ip}`, 30, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const updated = await prisma.serviceRequest.update({
     where: { id: params.id },
@@ -58,5 +59,5 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   } catch {}
 
   try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: params.id, details: { status: updated.status } }) } catch {}
-  return NextResponse.json({ success: true, data: updated })
+  return respond.ok(updated)
 }

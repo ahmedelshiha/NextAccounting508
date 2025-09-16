@@ -8,24 +8,25 @@ import { logAudit } from '@/lib/audit'
 import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const Schema = z.object({ teamMemberId: z.string().min(1) })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return respond.unauthorized()
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:assign:${params.id}:${ip}`, 20, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+  if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const tm = await prisma.teamMember.findUnique({ where: { id: parsed.data.teamMemberId } })
-  if (!tm) return NextResponse.json({ error: 'Team member not found' }, { status: 404 })
+  if (!tm) return respond.notFound('Team member not found')
 
   const updated = await prisma.serviceRequest.update({
     where: { id: params.id },
@@ -67,5 +68,5 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   } catch {}
 
   try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: params.id, details: { teamMemberId: tm.id } }) } catch {}
-  return NextResponse.json({ success: true, data: updated })
+  return respond.ok(updated)
 }

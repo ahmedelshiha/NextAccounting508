@@ -3,11 +3,12 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { respond } from '@/lib/api-response'
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const item = await prisma.serviceRequest.findUnique({
@@ -22,22 +23,22 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   })
 
   if (!item || item.clientId !== session.user.id) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return respond.notFound('Service request not found')
   }
 
-  return NextResponse.json({ success: true, data: item })
+  return respond.ok(item)
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   // Allow client to perform limited updates like adding description or cancelling (if allowed)
   const ip = getClientIp(req)
   if (!rateLimit(`portal:service-requests:update:${ip}`, 10, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => ({} as any))
   const allowed: any = {}
@@ -46,22 +47,22 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const existing = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true, status: true } })
   if (!existing || existing.clientId !== session.user.id) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return respond.notFound('Service request not found')
   }
   if (body.action === 'approve') {
     if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
-      return NextResponse.json({ error: 'Cannot approve at current status' }, { status: 400 })
+      return respond.badRequest('Cannot approve at current status')
     }
     if (!['SUBMITTED','IN_REVIEW','APPROVED'].includes(existing.status as any)) {
-      return NextResponse.json({ error: 'Approval not applicable' }, { status: 400 })
+      return respond.badRequest('Approval not applicable')
     }
     allowed.clientApprovalAt = new Date()
     allowed.status = 'APPROVED'
   }
   if (allowed.status === 'CANCELLED' && ['IN_PROGRESS','COMPLETED','CANCELLED'].includes(existing.status as any)) {
-    return NextResponse.json({ error: 'Cannot cancel at current status' }, { status: 400 })
+    return respond.badRequest('Cannot cancel at current status')
   }
 
   const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: allowed })
-  return NextResponse.json({ success: true, data: updated })
+  return respond.ok(updated)
 }
