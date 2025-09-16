@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
@@ -38,7 +39,8 @@ function mapStatus(v?: string | null) {
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -114,7 +116,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
