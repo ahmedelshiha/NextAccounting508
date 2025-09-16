@@ -33,6 +33,7 @@ model User {
   hireDate              DateTime?
   managerId             String?
   tenantId              String?
+  tenant                Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   // Relations
   accounts Account[]
@@ -52,6 +53,7 @@ model User {
   grantedPermissions UserPermission[] @relation("GrantedBy")
   userPermissions    UserPermission[] @relation("UserPermissions")
 
+  @@index([tenantId])
   @@map("users")
 }
 
@@ -159,11 +161,13 @@ model Service {
   requiredSkills String[]
   status        ServiceStatus @default(ACTIVE)
   tenantId      String?
+  tenant        Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   // Relations
   bookings Booking[]
   serviceRequests ServiceRequest[]
 
+  @@index([tenantId])
   @@map("services")
 }
 
@@ -358,6 +362,7 @@ model TaskTemplate {
   requiredSkills      String[]
   defaultAssigneeRole String?
   tenantId            String?
+  tenant              Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   createdById String?
   createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
@@ -389,6 +394,7 @@ model ServiceRequest {
   completedAt           DateTime?
   clientApprovalAt      DateTime?
   tenantId              String?
+  tenant                Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
