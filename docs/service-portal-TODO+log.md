@@ -132,6 +132,14 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Updated: src/app/portal/service-requests/page.tsx (list auto-refresh)
   - Updated: src/app/portal/service-requests/[id]/page.tsx (detail auto-refresh)
   - Notes: Uses EventSource with exponential backoff; filters by user via realtimeService.
+- [x] 2025-09-16: Targeted per-user realtime broadcasts for client portal.
+  - Updated: src/app/api/admin/service-requests/route.ts (broadcast created to client)
+  - Updated: src/app/api/admin/service-requests/[id]/route.ts (broadcast updated/deleted to client)
+  - Updated: src/app/api/admin/service-requests/[id]/status/route.ts (broadcast status change to client)
+  - Updated: src/app/api/admin/service-requests/[id]/assign/route.ts (broadcast assignment to client)
+  - Updated: src/app/api/admin/service-requests/[id]/comments/route.ts (broadcast comment to client)
+  - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts (broadcast task+SR updates to client)
+  - Notes: Reduces noise by delivering only relevant events to the owning client.
 - [x] 2025-09-16: Added rate limiting to client portal service-requests endpoints.
   - Updated: src/app/api/portal/service-requests/route.ts (POST)
   - Updated: src/app/api/portal/service-requests/[id]/route.ts (PATCH)
