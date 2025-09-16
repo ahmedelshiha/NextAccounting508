@@ -38,6 +38,10 @@ export default function AdminServiceRequestDetailPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<typeof STATUSES[number] | ''>('')
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string }>>([])
+  const [assignee, setAssignee] = useState<string>('')
+  const [assigning, setAssigning] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const load = async () => {
     try {
