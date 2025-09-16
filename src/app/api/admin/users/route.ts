@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export async function GET(request: NextRequest) {
   void request
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
-    if (!session?.user || !hasPermission(role, 'manage_users')) {
+    if (!session?.user || !hasPermission(role, PERMISSIONS.USERS_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
