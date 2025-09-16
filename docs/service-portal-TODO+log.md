@@ -130,6 +130,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Configured Neon DB connection env vars.
+  - Set: NETLIFY_DATABASE_URL and DATABASE_URL via dev server env
+  - Blocker: prisma generate/db push/seed cannot run here due to ACL; will run during CI/CD or when shell access is enabled.
 - [x] 2025-09-16: Implemented client portal attachments in create flow; display attachments in request detail.
   - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx
   - Notes: Stores attachment metadata (name, size, type). Binary upload/storage pending strategy decision.
