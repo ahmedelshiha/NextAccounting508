@@ -35,8 +35,6 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Components: table, filters, bulk-actions, overview, team-workload-chart, request-status-distribution
   - Wire realtime updates and permission-gated actions; integrate ServiceRequestTaskCreator
 
-- [ ] Client Portal
-  - Enhance create flow with attachments handling and validations as needed
 
 - [ ] Cleanup & Consistency
   - Consolidate src/app/lib duplicates into src/lib and fix imports
@@ -114,6 +112,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests; attachments enhancement pending)
 - [x] Add client approval action and status view (sets clientApprovalAt)
 - [x] Notify client on assignment/status updates — email + in-app notifications implemented
+- [x] Implement attachments handling in create flow with validations; display in detail view
 
 ### 8) Cleanup and Consistency (from audits)
 - [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
@@ -131,6 +130,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Implemented client portal attachments in create flow; display attachments in request detail.
+  - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx
+  - Notes: Stores attachment metadata (name, size, type). Binary upload/storage pending strategy decision.
 - [x] 2025-09-16: Project paused; updated status and clarified "Remaining work (paused)" checklist.
 - [x] 2025-09-16: Role alignment completed across schema, seeds, and permissions usage.
   - Updated: prisma/schema.prisma (UserRole enum adds TEAM_MEMBER, TEAM_LEAD; kept STAFF for legacy), prisma/seed.ts (TEAM_MEMBER, added TEAM_LEAD user), src/lib/use-permissions.ts (map STAFF->TEAM_MEMBER for permission checks), src/app/api/bookings/[id]/confirm/route.ts (team roles allowed), src/app/admin/tasks/hooks/useTaskPermissions.tsx (TEAM_MEMBER/TEAM_LEAD support), src/app/admin/users/page.tsx (role filters/options/colors updated).
