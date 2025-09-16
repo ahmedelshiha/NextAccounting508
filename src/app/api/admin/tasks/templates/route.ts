@@ -218,7 +218,8 @@ export async function DELETE(request: Request) {
     const id = url.searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const remaining = templates.filter((t: any) => t.id !== id)
       writeTemplates(remaining)
