@@ -779,18 +779,18 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   
   const actions = {
     primary: [
-      { 
-        label: 'New Booking', 
-        href: '/admin/bookings/new', 
-        icon: Plus, 
+      {
+        label: 'New Booking',
+        href: '/admin/bookings/new',
+        icon: Plus,
         variant: 'default' as const,
         description: 'Schedule client appointment',
         urgent: data.stats.bookings.pending > 15
       },
-      { 
-        label: 'Add Client', 
-        href: '/admin/clients/new', 
-        icon: Users, 
+      {
+        label: 'Add Client',
+        href: '/admin/clients/new',
+        icon: Users,
         variant: 'outline' as const,
         description: 'Register new client',
         badge: `${data.stats.clients.new} new this month`
@@ -810,6 +810,13 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         variant: 'default' as const,
         description: 'Create new client service request',
         badge: data.stats.tasks.overdue > 0 ? `${data.stats.tasks.overdue} overdue` : undefined
+      },
+      {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        variant: 'outline' as const,
+        description: 'Manage client requests'
       }
     ],
     management: [
@@ -1925,68 +1932,66 @@ export default function ProfessionalAdminDashboard() {
     setDashboardData(prev => ({ ...prev, notifications: prev.notifications.map(n => ({ ...n, read: true })) }))
   }
 
-  // Live updates via SSE
+  // Live updates via SSE (admin realtime)
   useEffect(() => {
     if (!autoRefresh) return
-    const es = new EventSource('/api/admin/updates')
+    const es = new EventSource('/api/admin/realtime?events=service-request-updated,task-updated,team-assignment')
 
-    es.addEventListener('booking_update', (ev) => {
+    es.onmessage = (ev) => {
       try {
-        const dataRaw = JSON.parse((ev as MessageEvent).data) as unknown
-        const data = dataRaw as BookingUpdateEvent
-        const newBooking: Booking = {
-          id: data.id,
-          clientId: 'live',
-          clientName: data.clientName || 'Live Client',
-          clientEmail: 'live@example.com',
-          service: data.service || 'Service',
-          serviceCategory: 'Live',
-          scheduledAt: data.scheduledAt,
-          duration: data.duration || 60,
-          status: (data.status || 'confirmed') as Booking['status'],
-          revenue: Number(data.revenue || 0),
-          priority: (data.priority || 'normal') as Booking['priority'],
-          location: (data.location || 'office') as Booking['location'],
-          isRecurring: false,
-          source: 'direct'
+        const evt = JSON.parse((ev as MessageEvent).data) as { type?: string; data?: any; timestamp?: string }
+        if (!evt || !evt.type) return
+        if (evt.type === 'service-request-updated') {
+          const srId = String(evt?.data?.serviceRequestId || '')
+          const notif: Notification = {
+            id: `${evt.timestamp || Date.now()}-${srId}`,
+            type: 'info',
+            category: 'task',
+            title: 'Service Request updated',
+            message: srId ? `Request #${srId} changed` : 'A service request was updated',
+            timestamp: new Date().toISOString(),
+            read: false,
+            actionRequired: false,
+            priority: 3,
+          }
+          setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
+        } else if (evt.type === 'task-updated') {
+          const taskId = String(evt?.data?.taskId || '')
+          const notif: Notification = {
+            id: `${evt.timestamp || Date.now()}-${taskId}`,
+            type: 'success',
+            category: 'task',
+            title: 'Task activity',
+            message: taskId ? `Task #${taskId} updated` : 'A task was updated',
+            timestamp: new Date().toISOString(),
+            read: false,
+            actionRequired: false,
+            priority: 4,
+          }
+          setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
+        } else if (evt.type === 'team-assignment') {
+          const member = evt?.data?.assigneeName || 'Team member'
+          const notif: Notification = {
+            id: `${evt.timestamp || Date.now()}-assign`,
+            type: 'info',
+            category: 'task',
+            title: 'Team assignment',
+            message: `New assignment for ${member}`,
+            timestamp: new Date().toISOString(),
+            read: false,
+            actionRequired: false,
+            priority: 4,
+          }
+          setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
         }
-        setDashboardData(prev => ({ ...prev, recentBookings: [newBooking, ...prev.recentBookings].slice(0, 20) }))
       } catch {}
-    })
-
-    es.addEventListener('task_completed', (ev) => {
-      try {
-        const data = JSON.parse((ev as MessageEvent).data) as unknown as TaskCompletedEvent
-        setDashboardData(prev => ({
-          ...prev,
-          urgentTasks: prev.urgentTasks.map(t => t.id === data.id ? { ...t, status: 'completed', completionPercentage: 100 } : t)
-        }))
-      } catch {}
-    })
-
-    es.addEventListener('system_alert', (ev) => {
-      try {
-        const data = JSON.parse((ev as MessageEvent).data) as unknown as SystemAlertEvent
-        const notif: Notification = {
-          id: data.id,
-          type: (data.severity || 'info') as Notification['type'],
-          category: 'system',
-          title: data.title || 'System Alert',
-          message: data.message || 'Update received',
-          timestamp: new Date().toISOString(),
-          read: false,
-          actionRequired: false,
-          priority: 5,
-        }
-        setDashboardData(prev => ({ ...prev, notifications: [notif, ...prev.notifications].slice(0, 50) }))
-      } catch {}
-    })
-
-    es.onerror = () => {
-      es.close()
     }
 
-    return () => es.close()
+    es.onerror = () => {
+      try { es.close() } catch {}
+    }
+
+    return () => { try { es.close() } catch {} }
   }, [autoRefresh])
 
   useEffect(() => {
