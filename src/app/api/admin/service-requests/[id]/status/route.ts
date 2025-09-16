@@ -56,5 +56,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   } catch {}
 
+  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: params.id, details: { status: updated.status } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
