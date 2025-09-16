@@ -111,8 +111,20 @@ export default function AdminServiceRequestDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">{item.title}</CardTitle>
-            <CardDescription>Service request details</CardDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-2xl">{item.title}</CardTitle>
+                <CardDescription>Service request details</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                {perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE) && (
+                  <Button variant="outline" onClick={() => router.push(`/admin/service-requests/${params.id}/edit`)} className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Edit</Button>
+                )}
+                {perms.has(PERMISSIONS.SERVICE_REQUESTS_DELETE) && (
+                  <Button variant="destructive" onClick={() => setConfirmDelete(true)} className="flex items-center gap-2"><Trash2 className="h-4 w-4" /> Delete</Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2 items-center">
