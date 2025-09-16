@@ -65,5 +65,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   } catch {}
 
+  try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: params.id, details: { teamMemberId: tm.id } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
