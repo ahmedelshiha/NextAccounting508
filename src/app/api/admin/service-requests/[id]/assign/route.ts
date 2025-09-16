@@ -9,16 +9,18 @@ import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
+import { NextRequest } from 'next/server'
 
 const Schema = z.object({ teamMemberId: z.string().min(1) })
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return respond.unauthorized()
 
   const ip = getClientIp(req)
-  if (!rateLimit(`service-requests:assign:${params.id}:${ip}`, 20, 60_000)) {
+  if (!rateLimit(`service-requests:assign:${id}:${ip}`, 20, 60_000)) {
     return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
@@ -29,7 +31,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!tm) return respond.notFound('Team member not found')
 
   const updated = await prisma.serviceRequest.update({
-    where: { id: params.id },
+    where: { id: id },
     data: {
       assignedTeamMemberId: tm.id,
       assignedAt: new Date(),
@@ -67,6 +69,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: params.id, details: { teamMemberId: tm.id } }) } catch {}
+  try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: id, details: { teamMemberId: tm.id } }) } catch {}
   return respond.ok(updated)
 }
