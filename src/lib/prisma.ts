@@ -25,9 +25,10 @@ function createClient(url: string) {
   // (or extend to pass tenant via a request-scoped Prisma client in future).
   try {
     const enabled = String(process.env.MULTI_TENANCY_ENABLED || 'false').toLowerCase() === 'true'
-    if (enabled && typeof client.$use === 'function') {
+    const pclient: any = client as any
+    if (enabled && typeof pclient.$use === 'function') {
       const tenantModels = new Set(['ServiceRequest','Service','TaskTemplate','User','TeamMember','Booking','Post','Template'])
-      client.$use(async (params: any, next: any) => {
+      pclient.$use(async (params: any, next: any) => {
         const model = params.model
         const action = params.action
         const tenantId = process.env.REQUEST_TENANT_ID || process.env.MULTI_TENANCY_DEFAULT
@@ -60,7 +61,7 @@ function createClient(url: string) {
           const data = params.args.data || {}
           if (tenantId && !Object.prototype.hasOwnProperty.call(data, 'tenantId')) {
             if (Array.isArray(data)) {
-              params.args.data = data.map(d => ({ ...d, tenantId }))
+              params.args.data = data.map((d: any) => ({ ...d, tenantId }))
             } else {
               params.args.data = { ...data, tenantId }
             }
