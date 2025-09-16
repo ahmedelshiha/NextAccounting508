@@ -100,9 +100,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ### 6) Admin UI: Dashboard and Pages
 - [x] Update src/app/admin/page.tsx to render service request KPIs and charts (calls new analytics/workload endpoints)
-- [ ] Add admin pages: src/app/admin/service-requests/{page.tsx,[id]/page.tsx,edit/page.tsx,new/page.tsx}
-- [ ] Build components: components/admin/service-requests/{table.tsx,filters.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
-- [ ] Wire realtime updates on service-requests page using useRealtime
+- [x] Add admin pages: src/app/admin/service-requests/{page.tsx,[id]/page.tsx,new/page.tsx}
+- [ ] Add admin page: src/app/admin/service-requests/edit/page.tsx
+- [x] Build components: components/admin/service-requests/{table.tsx,filters.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
+- [x] Wire realtime updates on service-requests page using useRealtime
 - [ ] Permission-gate actions (assign, delete, export) and show disabled tooltips when lacking rights
 - [ ] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
 
@@ -130,6 +131,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Implemented Admin Service Requests list, detail, and create pages with filters, table, bulk actions, overview widgets, realtime refresh, and permission gating for create/export/bulk.
+  - Added: src/app/admin/service-requests/page.tsx, src/app/admin/service-requests/[id]/page.tsx, src/app/admin/service-requests/new/page.tsx
+  - Added: src/components/admin/service-requests/{filters.tsx,table.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
+  - Notes: Realtime wired via useRealtime; Export gated by ANALYTICS_EXPORT; Edit page pending.
 - [x] 2025-09-16: Added Service Requests KPIs and status chart to Admin Dashboard.
   - Updated: src/app/admin/page.tsx (ServiceRequestsSummary with KPIs + Pie chart from /api/admin/service-requests/analytics)
   - Notes: Reuses existing Card styles; integrates alongside TeamWorkloadSummary.
