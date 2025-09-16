@@ -1760,6 +1760,14 @@ export default function ProfessionalAdminDashboard() {
         fetch('/api/admin/bookings?limit=20')
       ])
 
+      // Inspect responses for authorization errors and surface to UI
+      const anyUnauthorized = [bookingsRes, usersRes, tasksRes, bookingsListRes].some(r => r.status === 'fulfilled' && (r as PromiseFulfilledResult<Response>).value.status === 401)
+      if (anyUnauthorized) {
+        setError('unauthorized')
+        setLoading(false)
+        return
+      }
+
       const okJson = async (r: PromiseSettledResult<Response>) => {
         if (r.status === 'fulfilled' && r.value.ok) return r.value.json()
         return null
