@@ -48,8 +48,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 3) Admin API: Team Management and Templates
 - [x] Create src/app/api/admin/team-management/{availability,skills,workload,assignments}/route.ts
 - [x] Compute utilization and workload using maxConcurrentProjects; include active assignments detail
-- [ ] Create src/app/api/admin/task-templates/{route.ts,[id]/route.ts,categories/route.ts}
-- [ ] Seed and manage template categories; filter by requiredSkills when creating from template
+- [x] Create admin task templates endpoints (using existing path /api/admin/tasks/templates with categories).}
+- [x] Seed and manage template categories endpoint; filter by requiredSkills when creating from template (pending UI integration)
 
 ### 4) Permissions and Middleware
 - [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
@@ -96,6 +96,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Enhanced task templates API (fallback) and dashboard integration.
+  - Extended /api/admin/tasks/templates (file fallback) to support metadata: description, defaultPriority, defaultCategory, estimatedHours, checklistItems, category, requiredSkills, defaultAssigneeRole
+  - Added Team Workload widget to /admin dashboard using /api/admin/team-management/workload
+  - Kept DB path backward-compatible; meta fields will be enabled after Prisma schema update
 - [x] 2025-09-16: Implemented admin team-management endpoints and template categories.
   - Added /api/admin/team-management/{availability,skills,workload,assignments}
   - Added /api/admin/tasks/templates/categories for category listing
