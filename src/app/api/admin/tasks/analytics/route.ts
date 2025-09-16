@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     if (!hasDb) {
       return NextResponse.json({
         total: 0,
@@ -18,7 +28,9 @@ export async function GET() {
           complianceRate: 0,
           overdueCompliance: 0,
           avgTimeToCompliance: 0
-        }
+        },
+        dailyTotals: Array.from({ length: 7 }).map(() => 0),
+        dailyCompleted: Array.from({ length: 7 }).map(() => 0),
       })
     }
 
@@ -57,7 +69,20 @@ export async function GET() {
 
     const complianceRate = complianceTotal > 0 ? Math.round((complianceCompleted / complianceTotal) * 1000) / 10 : 0
 
-    return NextResponse.json({ total, completed, byStatus, byPriority, avgAgeDays, compliance: { complianceTotal, complianceCompleted, complianceRate, overdueCompliance, avgTimeToCompliance } })
+    // Daily trends (last 7 days)
+    const start = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)
+    const created = await prisma.task.findMany({ select: { createdAt: true }, where: { createdAt: { gte: start } } })
+    const dones = await prisma.task.findMany({ select: { updatedAt: true }, where: { updatedAt: { gte: start }, status: 'DONE' as any } })
+    const dayKey = (d: Date) => d.toISOString().slice(0, 10)
+    const keys = Array.from({ length: 7 }).map((_, i) => dayKey(new Date(start.getTime() + i * 24 * 60 * 60 * 1000)))
+    const totalsMap = Object.fromEntries(keys.map(k => [k, 0])) as Record<string, number>
+    const completedMap = Object.fromEntries(keys.map(k => [k, 0])) as Record<string, number>
+    created.forEach(c => { const k = dayKey(new Date(c.createdAt)); if (k in totalsMap) totalsMap[k] += 1 })
+    dones.forEach(d => { const k = dayKey(new Date(d.updatedAt)); if (k in completedMap) completedMap[k] += 1 })
+    const dailyTotals = keys.map(k => totalsMap[k] || 0)
+    const dailyCompleted = keys.map(k => completedMap[k] || 0)
+
+    return NextResponse.json({ total, completed, byStatus, byPriority, avgAgeDays, compliance: { complianceTotal, complianceCompleted, complianceRate, overdueCompliance, avgTimeToCompliance }, dailyTotals, dailyCompleted })
   } catch (err) {
     console.error('GET /api/admin/tasks/analytics error', err)
     return NextResponse.json({ error: 'Failed to compute analytics' }, { status: 500 })
