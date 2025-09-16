@@ -6,15 +6,23 @@ import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
-const hasDb = !!process.env.NETLIFY_DATABASE_URL
-
-// Fallback file paths (only used when DB is not configured)
+// Prefer DB when available, but keep a file fallback for local/dev when DB is not configured or unreachable.
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
 function readTemplates() {
   try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
 }
 function writeTemplates(tmpls: any[]) {
   try { fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(tmpls, null, 2), 'utf-8'); return true } catch (e) { console.error('Failed to write templates', e); return false }
+}
+
+async function dbAvailable() {
+  try {
+    // quick lightweight check
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
 export async function GET() {
