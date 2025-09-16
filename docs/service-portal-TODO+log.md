@@ -142,6 +142,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Updated seed demo accounts — added Team Lead credentials and seed log entry.
+  - Updated: prisma/seed.ts, src/app/login/page.tsx
+  - Notes: Added Team Lead user (lead@accountingfirm.com / lead123) to repo seed and displayed on login page. Netlify build logs indicate the CI run earlier used the previous seed; please push this commit to the branch Netlify builds or trigger a redeploy so CI/CD runs the updated seed. Verify Netlify build logs show the Team Lead line.
+
 - [x] 2025-09-16: Added Prisma models (Tenant, Template, RealtimeEvent), migration SQL, seed updates, GH Actions workflow, Netlify config, /api/templates endpoints, multi-tenancy middleware.
   - Updated: prisma/schema.prisma, prisma/migrations/20250916_add_templates_realtime_tenant/migration.sql, prisma/seed.ts, .github/workflows/prisma-migrate-and-deploy.yml, netlify.toml, src/lib/prisma.ts, src/app/api/templates/*, tests/templates.route.test.ts
   - Notes: tenantId columns added as nullable for safe rollout; MULTI_TENANCY_ENABLED toggles middleware; CI workflow will run migrations + seed and trigger Netlify via NETLIFY_BUILD_HOOK.
