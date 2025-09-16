@@ -142,6 +142,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Fixed Next.js 15 route handler signatures and a dashboard variable bug.
+  - Updated: admin/permissions [userId] route to NextRequest with context.params Promise; multiple admin/portal service-requests [id] routes (assign, comments, status, tasks) similarly.
+  - Fixed: duplicate NextResponse import in /api/admin/tasks/analytics; corrected undefined analyticsFallback/dashboard vars in admin/page.tsx.
+  - Notes: Addresses Netlify TSC failures. Prisma client generation happens on Netlify prior to typecheck.
 - [x] 2025-09-16: Added route tests for admin and portal service-requests, and unit tests for permissions helpers.
   - Added: tests/admin-service-requests.route.test.ts, tests/portal-service-requests.route.test.ts, tests/permissions.test.ts
   - Notes: Prisma, auth, audit, realtime, and rate-limit mocked; responses validated against standardized { success, data, ... } shape.
