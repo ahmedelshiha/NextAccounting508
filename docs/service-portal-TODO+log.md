@@ -126,7 +126,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 8) Cleanup and Consistency (from audits)
 - [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
-- [ ] Replace mock dashboard data with real API and guards
+- [x] Replace mock dashboard data with real API and guards
 - [x] Standardize zod validation and error shapes across new routes
   - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
 - [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
@@ -140,6 +140,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Replaced dashboard mock data with real APIs and added RBAC guards.
+  - Updated: src/app/admin/page.tsx (removed mock fallbacks; uses /api/admin/stats/* and /api/admin/analytics)
+  - Updated: src/app/api/admin/tasks/analytics/route.ts (RBAC + daily trends)
+  - Updated: src/app/admin/tasks/components/analytics/TaskAnalytics.tsx (uses real trends)
+  - Updated: src/app/api/admin/health-history/route.ts (RBAC + DB-backed buckets with fallback)
 - [x] 2025-09-16: Switched task notifications endpoint to DB-backed with file fallback.
   - Updated: prisma/schema.prisma (added NotificationSettings model)
   - Updated: src/app/api/admin/tasks/notifications/route.ts (uses Prisma with fallback to file; RBAC preserved)
