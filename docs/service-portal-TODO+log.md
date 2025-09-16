@@ -4,6 +4,12 @@
   - Why: Throwing new Error(object) produced "Error: [object Object]" in the UI. Now shows clear validation/auth messages.
   - Next: Audit other forms for similar patterns; consider a small helper to extractApiError(res) for consistency.
 
+- [x] 2025-09-16: Admin navigation — added notification bell with live SSE updates.
+  - Updated: src/components/ui/navigation.tsx, added src/hooks/useAdminNotifications.ts
+  - What: Replicated client bell experience for admins using /api/admin/realtime (service-request-updated, task-updated, team-assignment), unread badge, and dropdown list.
+  - Why: Consistent notifications across admin pages, not just dashboard.
+  - Next: Centralize notification item shape and message builders to a shared util.
+
 - [x] 2025-09-16: Admin Create Service Request — fixed "Invalid payload" on deadline.
   - Updated: src/app/admin/service-requests/new/page.tsx
   - What: Convert datetime-local value to ISO (toISOString) before POST so it matches z.string().datetime() in API schema.
