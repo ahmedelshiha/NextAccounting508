@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
-    if (!session?.user || !hasPermission(role, 'manage_users')) {
+    if (!session?.user || !hasPermission(role, PERMISSIONS.USERS_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

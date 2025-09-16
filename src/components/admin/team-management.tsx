@@ -207,7 +207,7 @@ function TeamMemberForm({ member, onSave, onCancel }: {
   const [formData, setFormData] = useState<Partial<TeamMember>>(() => {
     if (member) return { ...member }
     return {
-      role: 'STAFF',
+      role: 'TEAM_MEMBER',
       department: 'tax',
       title: '',
       specialties: [],
@@ -268,9 +268,9 @@ function TeamMemberForm({ member, onSave, onCancel }: {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
-                    <select value={formData.role || 'STAFF'} onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="STAFF">Staff Member</option>
-                      <option value="MANAGER">Manager</option>
+                    <select value={formData.role || 'TEAM_MEMBER'} onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option value="TEAM_MEMBER">Team Member</option>
+                      <option value="TEAM_LEAD">Team Lead</option>
                       <option value="ADMIN">Administrator</option>
                     </select>
                   </div>
