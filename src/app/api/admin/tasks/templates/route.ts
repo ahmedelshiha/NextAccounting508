@@ -32,6 +32,14 @@ export async function GET() {
       id: t.id,
       name: t.name,
       content: t.content,
+      description: (t as any).description ?? null,
+      category: (t as any).category ?? null,
+      defaultPriority: (t as any).defaultPriority ?? 'MEDIUM',
+      defaultCategory: (t as any).defaultCategory ?? null,
+      estimatedHours: (t as any).estimatedHours ?? null,
+      checklistItems: (t as any).checklistItems ?? [],
+      requiredSkills: (t as any).requiredSkills ?? [],
+      defaultAssigneeRole: (t as any).defaultAssigneeRole ?? null,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
     }))
@@ -54,7 +62,21 @@ export async function POST(request: Request) {
       const templates = readTemplates()
       const now = new Date().toISOString()
       const id = 'tmpl_' + Math.random().toString(36).slice(2, 9)
-      const t = { id, name: body.name || `Template ${templates.length+1}`, content: body.content || '', createdAt: now, updatedAt: now }
+      const t = {
+        id,
+        name: body.name || `Template ${templates.length+1}`,
+        content: body.content || '',
+        description: body.description || '',
+        defaultPriority: body.defaultPriority || 'MEDIUM',
+        defaultCategory: body.defaultCategory || 'system',
+        estimatedHours: typeof body.estimatedHours === 'number' ? body.estimatedHours : 1,
+        checklistItems: Array.isArray(body.checklistItems) ? body.checklistItems : [],
+        category: body.category || null,
+        requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
+        defaultAssigneeRole: body.defaultAssigneeRole || null,
+        createdAt: now,
+        updatedAt: now,
+      }
       templates.unshift(t)
       writeTemplates(templates)
       return NextResponse.json(t, { status: 201 })
@@ -64,10 +86,32 @@ export async function POST(request: Request) {
       data: {
         name: String(body.name || 'Template'),
         content: String(body.content || ''),
+        description: body.description ?? null,
+        category: body.category ?? null,
+        defaultPriority: body.defaultPriority ?? 'MEDIUM',
+        defaultCategory: body.defaultCategory ?? null,
+        estimatedHours: typeof body.estimatedHours === 'number' ? body.estimatedHours : null,
+        checklistItems: Array.isArray(body.checklistItems) ? body.checklistItems : [],
+        requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
+        defaultAssigneeRole: body.defaultAssigneeRole ?? null,
         createdById: session.user.id as string | undefined,
       } as any
     })
-    const mapped = { id: created.id, name: created.name, content: created.content, createdAt: created.createdAt.toISOString(), updatedAt: created.updatedAt.toISOString() }
+    const mapped = {
+      id: created.id,
+      name: created.name,
+      content: created.content,
+      description: (created as any).description ?? null,
+      category: (created as any).category ?? null,
+      defaultPriority: (created as any).defaultPriority ?? 'MEDIUM',
+      defaultCategory: (created as any).defaultCategory ?? null,
+      estimatedHours: (created as any).estimatedHours ?? null,
+      checklistItems: (created as any).checklistItems ?? [],
+      requiredSkills: (created as any).requiredSkills ?? [],
+      defaultAssigneeRole: (created as any).defaultAssigneeRole ?? null,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString()
+    }
     return NextResponse.json(mapped, { status: 201 })
   } catch (e) {
     console.error('Create template error', e)
@@ -87,14 +131,54 @@ export async function PATCH(request: Request) {
       const templates = readTemplates()
       const idx = templates.findIndex((t: any) => t.id === body.id)
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-      templates[idx] = { ...templates[idx], ...body, updatedAt: new Date().toISOString() }
+      const prev = templates[idx]
+      const next = {
+        ...prev,
+        ...(body.name !== undefined ? { name: body.name } : {}),
+        ...(body.content !== undefined ? { content: body.content } : {}),
+        ...(body.description !== undefined ? { description: body.description } : {}),
+        ...(body.defaultPriority !== undefined ? { defaultPriority: body.defaultPriority } : {}),
+        ...(body.defaultCategory !== undefined ? { defaultCategory: body.defaultCategory } : {}),
+        ...(body.estimatedHours !== undefined ? { estimatedHours: body.estimatedHours } : {}),
+        ...(Array.isArray(body.checklistItems) ? { checklistItems: body.checklistItems } : {}),
+        ...(body.category !== undefined ? { category: body.category } : {}),
+        ...(Array.isArray(body.requiredSkills) ? { requiredSkills: body.requiredSkills } : {}),
+        ...(body.defaultAssigneeRole !== undefined ? { defaultAssigneeRole: body.defaultAssigneeRole } : {}),
+        updatedAt: new Date().toISOString(),
+      }
+      templates[idx] = next
       writeTemplates(templates)
-      return NextResponse.json(templates[idx])
+      return NextResponse.json(next)
     }
 
     if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
-    const updated = await prisma.taskTemplate.update({ where: { id: String(body.id) }, data: { name: body.name, content: body.content } })
-    const mapped = { id: updated.id, name: updated.name, content: updated.content, createdAt: updated.createdAt.toISOString(), updatedAt: updated.updatedAt.toISOString() }
+    const updated = await prisma.taskTemplate.update({ where: { id: String(body.id) }, data: {
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.content !== undefined ? { content: body.content } : {}),
+      ...(body.description !== undefined ? { description: body.description } : {}),
+      ...(body.category !== undefined ? { category: body.category } : {}),
+      ...(body.defaultPriority !== undefined ? { defaultPriority: body.defaultPriority } : {}),
+      ...(body.defaultCategory !== undefined ? { defaultCategory: body.defaultCategory } : {}),
+      ...(body.estimatedHours !== undefined ? { estimatedHours: body.estimatedHours } : {}),
+      ...(Array.isArray(body.checklistItems) ? { checklistItems: body.checklistItems } : {}),
+      ...(Array.isArray(body.requiredSkills) ? { requiredSkills: body.requiredSkills } : {}),
+      ...(body.defaultAssigneeRole !== undefined ? { defaultAssigneeRole: body.defaultAssigneeRole } : {}),
+    } })
+    const mapped = {
+      id: updated.id,
+      name: updated.name,
+      content: updated.content,
+      description: (updated as any).description ?? null,
+      category: (updated as any).category ?? null,
+      defaultPriority: (updated as any).defaultPriority ?? 'MEDIUM',
+      defaultCategory: (updated as any).defaultCategory ?? null,
+      estimatedHours: (updated as any).estimatedHours ?? null,
+      checklistItems: (updated as any).checklistItems ?? [],
+      requiredSkills: (updated as any).requiredSkills ?? [],
+      defaultAssigneeRole: (updated as any).defaultAssigneeRole ?? null,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString()
+    }
     return NextResponse.json(mapped)
   } catch (e) {
     console.error('Update template error', e)

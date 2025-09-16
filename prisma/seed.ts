@@ -312,6 +312,74 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('✅ Blog posts created')
 
+  // Create default task templates
+  const templates = [
+    {
+      id: 'tmpl_client_onboarding',
+      name: 'Client Onboarding Checklist',
+      content: 'Collect KYC documents; Set up client in CRM; Configure billing; Schedule kickoff call',
+      description: 'Standard onboarding steps for new clients',
+      category: 'Operations',
+      defaultPriority: 'MEDIUM',
+      defaultCategory: 'client',
+      estimatedHours: 4,
+      checklistItems: [
+        'Collect KYC documents',
+        'Set up client in CRM',
+        'Configure billing & invoicing',
+        'Schedule kickoff call'
+      ],
+      requiredSkills: ['Compliance','CRM'],
+      defaultAssigneeRole: 'TEAM_MEMBER',
+    },
+    {
+      id: 'tmpl_vat_return',
+      name: 'Monthly VAT Return',
+      content: 'Collect invoices; Reconcile transactions; Prepare VAT report; Submit return',
+      description: 'Recurring VAT filing workflow',
+      category: 'Compliance',
+      defaultPriority: 'HIGH',
+      defaultCategory: 'compliance',
+      estimatedHours: 3,
+      checklistItems: [
+        'Collect invoices',
+        'Reconcile transactions',
+        'Prepare VAT report',
+        'Submit return',
+        'Archive documentation'
+      ],
+      requiredSkills: ['VAT','Bookkeeping'],
+      defaultAssigneeRole: 'TEAM_MEMBER',
+    },
+    {
+      id: 'tmpl_quarterly_audit',
+      name: 'Quarterly Audit Review',
+      content: 'Plan audit; Sample transactions; Draft findings; Review with client',
+      description: 'Quarterly audit review steps',
+      category: 'Audit',
+      defaultPriority: 'MEDIUM',
+      defaultCategory: 'finance',
+      estimatedHours: 8,
+      checklistItems: [
+        'Plan audit scope',
+        'Sample transactions',
+        'Draft findings',
+        'Review with client'
+      ],
+      requiredSkills: ['Audit','Risk Assessment'],
+      defaultAssigneeRole: 'TEAM_LEAD',
+    }
+  ]
+
+  for (const t of templates) {
+    await prisma.taskTemplate.upsert({
+      where: { id: t.id },
+      update: {},
+      create: t as any,
+    })
+  }
+
+  console.log('✅ Default task templates created')
 
   // Create contact submissions
   const contactSubmissions = [

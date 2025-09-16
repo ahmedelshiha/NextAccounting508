@@ -319,14 +319,24 @@ model TaskComment {
 }
 
 model TaskTemplate {
-  id         String   @id @default(cuid())
-  name       String
-  content    String   @db.Text
+  id                  String        @id @default(cuid())
+  name                String
+  content             String        @db.Text
+  description         String?       @db.Text
+  category            String?
+  defaultPriority     TaskPriority  @default(MEDIUM)
+  defaultCategory     String?
+  estimatedHours      Int?
+  checklistItems      String[]
+  requiredSkills      String[]
+  defaultAssigneeRole String?
+
   createdById String?
   createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([category])
   @@map("task_templates")
 }
 
