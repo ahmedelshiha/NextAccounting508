@@ -46,8 +46,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Enforce RBAC via permissions.ts on all endpoints; consistent error shapes
 
 ### 3) Admin API: Team Management and Templates
-- [ ] Create src/app/api/admin/team-management/{availability,skills,workload,assignments}/route.ts
-- [ ] Compute utilization and workload using maxConcurrentProjects; include active assignments detail
+- [x] Create src/app/api/admin/team-management/{availability,skills,workload,assignments}/route.ts
+- [x] Compute utilization and workload using maxConcurrentProjects; include active assignments detail
 - [ ] Create src/app/api/admin/task-templates/{route.ts,[id]/route.ts,categories/route.ts}
 - [ ] Seed and manage template categories; filter by requiredSkills when creating from template
 
@@ -96,6 +96,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Implemented admin team-management endpoints and template categories.
+  - Added /api/admin/team-management/{availability,skills,workload,assignments}
+  - Added /api/admin/tasks/templates/categories for category listing
+  - Workload computes utilization with assumption of 3 concurrent capacity pending schema field
+  - Availability includes active assignment counts from service requests
 - [ ] YYYY-MM-DD: Created this TODO+log; no code changes yet. Next: start with Prisma schema updates.
 - [ ] YYYY-MM-DD: Reviewed service_portal_implementation_guide.md and expanded TODO with multi-tenancy, permissions API, auto-assign, realtime wiring, client approval, rate limiting, and audit events.
 - [x] 2025-09-15: Added permissions and realtime foundation.
