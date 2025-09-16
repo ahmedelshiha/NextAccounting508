@@ -66,7 +66,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session, status } = useSession()
-  const isAdminUser = (session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF')
+  const isAdminUser = ['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '')
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -174,7 +174,7 @@ export function Navigation() {
                             Settings
                           </Link>
                         </DropdownMenuItem>
-                        {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
+                        {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
                           <DropdownMenuItem asChild>
                             <Link href="/admin" className="flex items-center">
                               <Settings className="mr-2 h-4 w-4" />
@@ -279,7 +279,7 @@ export function Navigation() {
                         >
                           Settings
                         </Link>
-                        {(session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF') && (
+                        {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
                           <Link
                             href="/admin"
                             className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"

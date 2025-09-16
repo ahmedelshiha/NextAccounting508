@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {
@@ -20,7 +21,8 @@ function toCSV(rows: any[], headers: string[]) {
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

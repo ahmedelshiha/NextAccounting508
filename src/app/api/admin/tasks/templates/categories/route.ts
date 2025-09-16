@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
@@ -13,7 +14,8 @@ function readTemplates() {
 
 export async function GET() {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {

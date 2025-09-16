@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const Schema = z.object({
   action: z.enum(['delete','status']),
@@ -12,7 +13,8 @@ const Schema = z.object({
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes((session.user as any).role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)

@@ -1,8 +1,16 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const rows = await prisma.teamMember.findMany({
       orderBy: { name: 'asc' },
       include: { user: { select: { id: true, name: true, email: true, role: true } } }
@@ -24,7 +32,7 @@ export async function GET() {
     if (!teamMembers.length) {
       try {
         const users = await prisma.user.findMany({
-          where: { role: { in: ['ADMIN','STAFF'] as any } },
+          where: { role: { in: ['ADMIN','TEAM_MEMBER','TEAM_LEAD'] as any } },
           orderBy: { createdAt: 'desc' },
           select: { id: true, name: true, email: true, role: true }
         })
@@ -34,7 +42,7 @@ export async function GET() {
           name: u.name || u.email || 'User',
           email: u.email || '',
           title: null,
-          role: u.role || 'STAFF',
+          role: u.role || 'TEAM_MEMBER',
           department: null,
           isAvailable: true,
           status: 'active',
@@ -53,8 +61,13 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions)
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await req.json().catch(() => ({}))
-    const { name, email, role = 'STAFF', department = 'tax', title = '', userId = null } = body || {}
+    const { name, email, role = 'TEAM_MEMBER', department = 'tax', title = '', userId = null } = body || {}
     if (!name || !email) return NextResponse.json({ error: 'Missing name or email' }, { status: 400 })
     const created = await prisma.teamMember.create({ data: { name, email, role, department, title, userId } as any })
     return NextResponse.json({ teamMember: created }, { status: 201 })
