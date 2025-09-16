@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 const CreateSchema = z.object({
   clientId: z.string().min(1),
@@ -130,6 +131,8 @@ export async function POST(request: Request) {
   } catch {
     // best-effort; ignore assignment failures
   }
+
+  try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
 
   return NextResponse.json({ success: true, data: created }, { status: 201 })
 }
