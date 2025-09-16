@@ -99,7 +99,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
 
 ### 6) Admin UI: Dashboard and Pages
-- [ ] Update src/app/admin/page.tsx to render service request KPIs and charts (calls new analytics/workload endpoints)
+- [x] Update src/app/admin/page.tsx to render service request KPIs and charts (calls new analytics/workload endpoints)
 - [ ] Add admin pages: src/app/admin/service-requests/{page.tsx,[id]/page.tsx,edit/page.tsx,new/page.tsx}
 - [ ] Build components: components/admin/service-requests/{table.tsx,filters.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
 - [ ] Wire realtime updates on service-requests page using useRealtime
@@ -130,6 +130,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added Service Requests KPIs and status chart to Admin Dashboard.
+  - Updated: src/app/admin/page.tsx (ServiceRequestsSummary with KPIs + Pie chart from /api/admin/service-requests/analytics)
+  - Notes: Reuses existing Card styles; integrates alongside TeamWorkloadSummary.
 - [x] 2025-09-16: Added generic uploads API and wired portal UI.
   - Added: src/app/api/uploads/route.ts (multipart POST, validations, provider switch via UPLOADS_PROVIDER)
   - Updated: src/app/portal/service-requests/new/page.tsx (upload to /api/uploads, include URLs in attachments)
