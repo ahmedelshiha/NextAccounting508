@@ -76,7 +76,8 @@ export async function POST(request: Request) {
     }
     const body = await request.json().catch(() => ({}))
 
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const now = new Date().toISOString()
       const id = 'tmpl_' + Math.random().toString(36).slice(2, 9)
@@ -146,7 +147,8 @@ export async function PATCH(request: Request) {
     }
     const body = await request.json().catch(() => ({}))
 
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const idx = templates.findIndex((t: any) => t.id === body.id)
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
