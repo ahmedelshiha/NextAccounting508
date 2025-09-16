@@ -25,6 +25,9 @@ export default function NewServiceRequestPage() {
   const [priority, setPriority] = useState<'LOW'|'MEDIUM'|'HIGH'|'URGENT'>('MEDIUM')
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [files, setFiles] = useState<File[]>([])
+  const maxFiles = 5
+  const maxFileSize = 10 * 1024 * 1024
 
   useEffect(() => {
     async function loadServices() {
@@ -46,10 +49,18 @@ export default function NewServiceRequestPage() {
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
+      const attachments = files.map(f => ({ name: f.name, size: f.size, type: f.type, lastModified: f.lastModified }))
       const res = await apiFetch('/api/portal/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, title, description: description || undefined, priority, deadline: deadline ? new Date(deadline).toISOString() : undefined })
+        body: JSON.stringify({
+          serviceId,
+          title,
+          description: description || undefined,
+          priority,
+          deadline: deadline ? new Date(deadline).toISOString() : undefined,
+          attachments
+        })
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -129,6 +140,48 @@ export default function NewServiceRequestPage() {
                   <Label htmlFor="deadline">Desired deadline</Label>
                   <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1" />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="attachments">Attachments</Label>
+                <Input
+                  id="attachments"
+                  type="file"
+                  multiple
+                  className="mt-1"
+                  onChange={(e) => {
+                    const incoming = Array.from(e.target.files || [])
+                    const filtered = incoming.filter(f => f.size <= maxFileSize)
+                    if (filtered.length < incoming.length) {
+                      toast.error('Some files exceeded 10MB and were skipped')
+                    }
+                    const next = [...files, ...filtered].slice(0, maxFiles)
+                    if (next.length < files.length + filtered.length) {
+                      toast.error(`Maximum ${maxFiles} files allowed`)
+                    }
+                    setFiles(next)
+                  }}
+                />
+                {files.length > 0 && (
+                  <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
+                    {files.map((f, idx) => (
+                      <li key={`${f.name}-${idx}`} className="flex items-center justify-between px-3 py-2 text-sm">
+                        <span className="truncate">
+                          {f.name} <span className="text-gray-500">({Math.round(f.size/1024)} KB)</span>
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                        >
+                          Remove
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-1 text-xs text-gray-500">Up to {maxFiles} files, 10MB each.</p>
               </div>
 
               <div className="flex justify-end">
