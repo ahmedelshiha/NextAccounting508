@@ -3,8 +3,9 @@
 Status: Paused (as of 2025-09-16)
 
 Paused Notes:
-- Verified RBAC migration: all admin API routes use src/lib/permissions with hasPermission and PERMISSIONS; no src/lib/rbac or ADMIN/STAFF string checks remain; 401 responses standardized.
-- The plan step "Plan and update remaining API routes to use permissions.ts consistently" is complete and documented below; do not proceed to seeds/UI/validation/realtime until seeds and use-permissions are aligned.
+- Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
+- prisma generate/migrate/seed cannot run in this environment due to ACL; run in CI/CD or dev shell when available.
+- On resume: generate Prisma client, apply migrations, seed roles/permissions, then implement realtime filtering/durable transport.
 
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
@@ -22,18 +23,14 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Run prisma generate/migrate; seed permissions and default roles
 
 - [ ] Permissions/Middleware
-  - Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
-  - Enhance middleware checks for /admin and /portal service routes
+  - No remaining items here; roles aligned and middleware checks completed.
 
 - [ ] Realtime
   - Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
   - Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
 
 - [ ] Admin UI
-  - Update /admin dashboard to render service request KPIs and charts (analytics/workload endpoints)
-  - Build pages: /admin/service-requests/{page,[id]/page,edit/page,new/page}
-  - Components: table, filters, bulk-actions, overview, team-workload-chart, request-status-distribution
-  - Wire realtime updates and permission-gated actions; integrate ServiceRequestTaskCreator
+  - Integrate ServiceRequestTaskCreator into admin/task flows
 
 
 - [ ] Cleanup & Consistency
@@ -131,6 +128,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Re-paused project; refreshed "Remaining work (paused)" after Admin Service Requests UI shipped.
+  - Notes: Focus next on DB migrations/seeds and realtime per-user filtering/durable transport.
 - [x] 2025-09-16: Extended Admin Service Requests with edit page, assignment, and delete actions.
   - Added: src/app/admin/service-requests/[id]/edit/page.tsx
   - Updated: src/app/admin/service-requests/[id]/page.tsx (assignment UI, delete confirm, edit navigation)
