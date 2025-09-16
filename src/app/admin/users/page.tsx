@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
   const [exporting, setExporting] = useState(false)
 
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'STAFF' | 'CLIENT'>('ALL')
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'TEAM_LEAD' | 'TEAM_MEMBER' | 'STAFF' | 'CLIENT'>('ALL')
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL')
   
   // Profile dialog state
