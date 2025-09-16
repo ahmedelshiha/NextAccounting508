@@ -21,7 +21,7 @@ const CreateSchema = z.object({
   budgetMin: z.number().optional(),
   budgetMax: z.number().optional(),
   deadline: z.string().datetime().optional(),
-  requirements: z.record(z.any()).optional(),
+  requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
 })
 

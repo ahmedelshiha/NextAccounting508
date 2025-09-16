@@ -18,7 +18,7 @@ const UpdateSchema = z.object({
   budgetMin: z.number().nullable().optional(),
   budgetMax: z.number().nullable().optional(),
   deadline: z.string().datetime().nullable().optional(),
-  requirements: z.record(z.any()).optional(),
+  requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
 })
 
