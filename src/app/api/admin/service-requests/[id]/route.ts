@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 
 const UpdateSchema = z.object({
@@ -46,6 +48,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:update:${params.id}:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) {
@@ -59,6 +65,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: updates })
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
+  try { await logAudit({ action: 'service-request:update', actorId: (session.user as any).id ?? null, targetId: params.id, details: { updates } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
 
@@ -69,8 +76,13 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const ip = getClientIp(_req)
+  if (!rateLimit(`service-requests:delete:${params.id}:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
   await prisma.serviceRequest.delete({ where: { id: params.id } })
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
+  try { await logAudit({ action: 'service-request:delete', actorId: (session.user as any).id ?? null, targetId: params.id }) } catch {}
   return NextResponse.json({ success: true })
 }

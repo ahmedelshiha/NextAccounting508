@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const Schema = z.object({
@@ -16,6 +18,10 @@ export async function POST(req: Request) {
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:bulk:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
@@ -24,11 +30,13 @@ export async function POST(req: Request) {
   if (action === 'delete') {
     await prisma.requestTask.deleteMany({ where: { serviceRequestId: { in: ids } } })
     const result = await prisma.serviceRequest.deleteMany({ where: { id: { in: ids } } })
+    try { await logAudit({ action: 'service-request:bulk:delete', actorId: (session.user as any).id ?? null, details: { ids, deleted: result.count } }) } catch {}
     return NextResponse.json({ success: true, data: { deleted: result.count } })
   }
 
   if (action === 'status' && status) {
     const result = await prisma.serviceRequest.updateMany({ where: { id: { in: ids } }, data: { status: status as any } })
+    try { await logAudit({ action: 'service-request:bulk:status', actorId: (session.user as any).id ?? null, details: { ids, status, updated: result.count } }) } catch {}
     return NextResponse.json({ success: true, data: { updated: result.count } })
   }
 

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
@@ -14,6 +16,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:assign:${params.id}:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
@@ -59,5 +65,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   } catch {}
 
+  try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: params.id, details: { teamMemberId: tm.id } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }

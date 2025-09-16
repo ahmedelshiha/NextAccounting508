@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { realtimeService } from '@/lib/realtime-enhanced'
 
 const ACTIVE_STATUSES = ['ASSIGNED','IN_PROGRESS'] as const

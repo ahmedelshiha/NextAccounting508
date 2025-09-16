@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: In progress (resumed 2025-09-16)
+Status: Paused (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -26,18 +26,16 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - No remaining items here; roles aligned and middleware checks completed.
 
 - [ ] Realtime
-  - Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
-  - Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
+  - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
+  - Add connection health checks, reconnection backoff, and idempotency for multi-instance delivery
 
 - [ ] Admin UI
-  - Integrate ServiceRequestTaskCreator into admin/task flows
+  - No remaining items here.
 
 
 - [ ] Cleanup & Consistency
-  - Consolidate src/app/lib duplicates into src/lib and fix imports
   - Replace file-based task comments/templates/notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
-  - Apply rate limiting and emit audit events (surface in /admin/audits)
 
 - [ ] Testing & Docs
   - Unit tests (permissions, auto-assign, status transitions, RBAC)
@@ -113,12 +111,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Implement attachments handling in create flow with validations; display in detail view
 
 ### 8) Cleanup and Consistency (from audits)
-- [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
+- [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [ ] Replace mock dashboard data with real API and guards
 - [ ] Standardize zod validation and error shapes across new routes
-- [ ] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
-- [ ] Emit audit events for create/assign/status changes (surface in /admin/audits)
+- [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
+- [x] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
 ### 9) Testing and docs
 - [ ] Add unit tests for new lib/permissions and helpers
@@ -128,6 +126,17 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Consolidated app/lib duplicates into src/lib and fixed prisma imports.
+  - Removed: src/app/lib/{auth.ts,email.ts,i18n.ts,prisma.ts,utils.ts}
+  - Updated imports: use default import prisma from '@/lib/prisma' across admin service-requests endpoints and permissions routes; fixed lib auto-assignment.
+  - Notes: Avoids ambiguous duplicates and runtime import mismatch.
+- [x] 2025-09-16: Added rate limiting to mutation-heavy endpoints.
+  - Added: getClientIp/rateLimit checks to POST/PUT/PATCH/DELETE handlers
+  - Updated: /api/admin/service-requests (POST), [id]/assign (POST), [id]/status (PATCH), [id]/comments (POST), [id]/tasks (POST), bulk (POST), [id] (PATCH/DELETE)
+  - Notes: Token-bucket in-memory limiter; safe for single instance; can swap to durable adapter later.
+- [x] 2025-09-16: Added audit logging for key actions.
+  - Updated: create/update/delete, assign, status, comment, task-create, bulk actions to call logAudit()
+  - Notes: Persists to DB when available; logs to console otherwise. Visible in /admin/audits once surfaced.
 - [x] 2025-09-16: Integrated task creation into Service Request detail page.
   - Updated: src/app/admin/service-requests/[id]/page.tsx (task list, create task via TaskForm, realtime refresh)
   - Uses: POST /api/admin/service-requests/[id]/tasks; maps critical->HIGH; dueDate->dueAt
