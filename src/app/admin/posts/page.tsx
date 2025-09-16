@@ -419,7 +419,7 @@ export default function ProfessionalPostManagement() {
         await loadPosts()
       } else {
         const err = await res.json().catch(() => ({}))
-        setErrorMessage(err.error || 'Failed to create post')
+        setErrorMessage(err?.error?.message || err?.error || 'Failed to create post')
       }
     } catch {
       setErrorMessage('Network error. Please try again.')
@@ -456,7 +456,7 @@ export default function ProfessionalPostManagement() {
         await loadPosts()
       } else {
         const err = await res.json().catch(() => ({}))
-        setErrorMessage(err.error || 'Failed to update post')
+        setErrorMessage(err?.error?.message || err?.error || 'Failed to update post')
       }
     } catch {
       setErrorMessage('Network error. Please try again.')
@@ -475,7 +475,7 @@ export default function ProfessionalPostManagement() {
         await loadPosts()
       } else {
         const err = await res.json().catch(() => ({}))
-        setErrorMessage(err.error || 'Failed to delete post')
+        setErrorMessage(err?.error?.message || err?.error || 'Failed to delete post')
       }
     } catch {
       setErrorMessage('Network error. Please try again.')

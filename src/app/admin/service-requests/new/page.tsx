@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -21,6 +21,68 @@ export default function AdminNewServiceRequestPage() {
   const [form, setForm] = useState<{ clientId: string; serviceId: string; title: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', title: '', description: '', priority: 'MEDIUM' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [clients, setClients] = useState<{ id: string; name: string; email?: string }[]>([])
+  const [services, setServices] = useState<{ id: string; name: string }[]>([])
+
+  // load clients and services for selects
+  const [clientQuery, setClientQuery] = useState('')
+  const [serviceQuery, setServiceQuery] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    async function loadInitial() {
+      try {
+        // initial small fetch for clients (page 1)
+        const [uRes, sRes] = await Promise.all([apiFetch('/api/admin/users?page=1&limit=50'), apiFetch('/api/services')])
+        if (!mounted) return
+        if (uRes.ok) {
+          const uj = await uRes.json().catch(() => ({}))
+          const users = Array.isArray(uj?.users) ? uj.users : Array.isArray(uj) ? uj : []
+          setClients(users.map((u: any) => ({ id: u.id, name: u.name, email: u.email })))
+          if (users.length && !form.clientId) setForm(f => ({ ...f, clientId: users[0].id }))
+        }
+        if (sRes.ok) {
+          const sj = await sRes.json().catch(() => ({}))
+          const list = Array.isArray(sj?.data) ? sj.data : Array.isArray(sj) ? sj : []
+          setServices(list.map((s: any) => ({ id: s.id, name: s.name })))
+          if (list.length && !form.serviceId) setForm(f => ({ ...f, serviceId: list[0].id }))
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    loadInitial()
+    return () => { mounted = false }
+  }, [])
+
+  // server-backed filtered clients
+  const filteredClients = clients.filter(c => (c.name || '').toLowerCase().includes(clientQuery.toLowerCase()) || (c.email || '').toLowerCase().includes(clientQuery.toLowerCase()))
+  const filteredServices = services.filter(s => (s.name || '').toLowerCase().includes(serviceQuery.toLowerCase()))
+
+  useEffect(() => {
+    let mounted = true
+    const t = setTimeout(() => {
+      if (!mounted) return
+      // only query server when query length >= 2 to avoid unnecessary calls
+      if (clientQuery && clientQuery.trim().length >= 2) {
+        (async () => {
+          try {
+            const q = encodeURIComponent(clientQuery.trim())
+            const res = await apiFetch(`/api/admin/users?q=${q}&page=1&limit=50`)
+            if (!mounted) return
+            if (!res.ok) return
+            const j = await res.json().catch(() => ({}))
+            const users = Array.isArray(j?.users) ? j.users : []
+            setClients(users.map((u: any) => ({ id: u.id, name: u.name, email: u.email })))
+            if (users.length && !form.clientId) setForm(f => ({ ...f, clientId: users[0].id }))
+          } catch (e) {
+            // ignore
+          }
+        })()
+      }
+    }, 300)
+    return () => { mounted = false; clearTimeout(t) }
+  }, [clientQuery])
 
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
@@ -50,12 +112,32 @@ export default function AdminNewServiceRequestPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm text-gray-700">Client ID</label>
-                <Input value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} placeholder="client id" />
+                <label className="text-sm text-gray-700">Client</label>
+                <Select value={form.clientId} onValueChange={(v) => setForm({ ...form, clientId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <div className="px-2 py-2">
+                      <input aria-label="Search clients" className="w-full rounded border px-2 py-1 text-sm" placeholder="Search clients" value={clientQuery} onChange={(e) => setClientQuery(e.target.value)} />
+                    </div>
+                    {filteredClients.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` — ${c.email}` : ''}</SelectItem>))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-gray-700">Service ID</label>
-                <Input value={form.serviceId} onChange={(e) => setForm({ ...form, serviceId: e.target.value })} placeholder="service id" />
+                <label className="text-sm text-gray-700">Service</label>
+                <Select value={form.serviceId} onValueChange={(v) => setForm({ ...form, serviceId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <div className="px-2 py-2">
+                      <input aria-label="Search services" className="w-full rounded border px-2 py-1 text-sm" placeholder="Search services" value={serviceQuery} onChange={(e) => setServiceQuery(e.target.value)} />
+                    </div>
+                    {filteredServices.map(s => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

@@ -96,7 +96,7 @@ export default function PortalPage() {
         toast.success('Appointment cancelled')
       } else {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to cancel appointment')
+        toast.error(err?.error?.message || err?.error || 'Failed to cancel appointment')
       }
     } catch (e) {
       console.error('Cancel error', e)
