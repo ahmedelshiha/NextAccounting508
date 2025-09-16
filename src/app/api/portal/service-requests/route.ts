@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 const CreateSchema = z.object({
   serviceId: z.string().min(1),
@@ -69,6 +70,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const ip = getClientIp(request)
+  if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
