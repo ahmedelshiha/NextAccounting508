@@ -83,6 +83,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 4) Permissions and Middleware
 - [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
 - [x] Implement permissions API: src/app/api/admin/permissions/{route.ts,[userId]/route.ts,roles/route.ts}
+- [x] Migrate remaining admin API routes to use permissions.ts consistently; remove legacy rbac usage
 - [ ] Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
 - [x] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
 - [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
