@@ -590,3 +590,46 @@ model NotificationSettings {
 
   @@map("notification_settings")
 }
+
+// Multi-tenancy: Tenant model and tenantId scaffolding
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  services Service[]
+  templates TaskTemplate[]
+  serviceRequests ServiceRequest[]
+
+  @@map("tenants")
+}
+
+model RealtimeEvent {
+  id        String   @id @default(cuid())
+  type      String
+  data      Json
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@map("realtime_events")
+}
+
+// Template model for task/email templates and other DB-backed templates
+model Template {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  content     String   @db.Text
+  metadata    Json?
+  tenantId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("templates")
+}
