@@ -10,6 +10,12 @@
   - Why: Faster access from the main Smart Actions pane.
   - Next: Optionally display active request count badge when analytics are available.
 
+- [x] 2025-09-16: Admin Dashboard — implemented notifications via SSE using /api/admin/realtime.
+  - Updated: src/app/admin/page.tsx
+  - What: Replaced unused /api/admin/updates EventSource with /api/admin/realtime and mapped events (service-request-updated, task-updated, team-assignment) into the header notification dropdown. Unread badge updates live; styles unchanged.
+  - Why: Existing realtime bus already emits these events; wiring them enables live admin notifications.
+  - Next: Add DB-backed persistence (optional) by reading recent events from RealtimeEvents and surface a /api/admin/notifications list endpoint.
+
 # Service Portal — TODO + Change Log
 
 Status: Active (as of 2025-09-16)
