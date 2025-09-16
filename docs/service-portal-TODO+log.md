@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Active (resumed 2025-09-16)
+Status: Paused (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -15,6 +15,16 @@ This file tracks the full implementation plan derived from:
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
 ## Remaining work (paused)
+
+- Resume checklist (ordered):
+  1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
+  2. Seed roles/permissions and default templates; verify RBAC via permissions API.
+  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
+  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
+  5. Replace file-based templates/notifications with DB-backed endpoints.
+  6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
+  7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
+  8. Update docs to reflect endpoints, flows, and ops runbooks.
 
 - [ ] Database/Prisma
   - Extend User and Service models; add UserPermission model; add enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
@@ -126,6 +136,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; refreshed Remaining work (paused) with an actionable resume checklist.
+  - Notes: Blocked on Prisma generate/migrate/seed due to environment ACL; to be run in CI/CD or dev shell.
 - [x] 2025-09-16: Status updated to Active; resuming implementation.
 - [x] 2025-09-16: Added client portal realtime SSE and wired UI auto-refresh.
   - Added: src/app/api/portal/realtime/route.ts
