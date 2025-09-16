@@ -117,7 +117,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [ ] Replace mock dashboard data with real API and guards
 - [ ] Standardize zod validation and error shapes across new routes
-- [ ] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
+- [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
 - [ ] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
 ### 9) Testing and docs
