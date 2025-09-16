@@ -78,6 +78,25 @@ export default function AdminServiceRequestDetailPage() {
     } finally { setSaving(false) }
   }
 
+  const assignNow = async () => {
+    if (!assignee || !perms.has(PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return
+    setAssigning(true)
+    try {
+      const res = await apiFetch(`/api/admin/service-requests/${params.id}/assign`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teamMemberId: assignee }) })
+      if (!res.ok) throw new Error('Assign failed')
+      await load()
+    } finally { setAssigning(false) }
+  }
+
+  const deleteNow = async () => {
+    if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_DELETE)) return
+    try {
+      const res = await apiFetch(`/api/admin/service-requests/${params.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      router.push('/admin/service-requests')
+    } finally { setConfirmDelete(false) }
+  }
+
   const statusBadge = (s: Item['status']) => (
     <Badge className={{ COMPLETED: 'bg-green-100 text-green-800 border-green-200', CANCELLED: 'bg-red-100 text-red-800 border-red-200', IN_PROGRESS: 'bg-blue-100 text-blue-800 border-blue-200', ASSIGNED: 'bg-purple-100 text-purple-800 border-purple-200', APPROVED: 'bg-emerald-100 text-emerald-800 border-emerald-200', IN_REVIEW: 'bg-amber-100 text-amber-800 border-amber-200', SUBMITTED: 'bg-sky-100 text-sky-800 border-sky-200', DRAFT: 'bg-gray-100 text-gray-800 border-gray-200' }[s] || ''}>{s.replace('_',' ')}</Badge>
   )
