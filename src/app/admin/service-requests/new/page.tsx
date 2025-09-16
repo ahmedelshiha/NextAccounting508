@@ -105,7 +105,10 @@ export default function AdminNewServiceRequestPage() {
                     <SelectValue placeholder="Select service" />
                   </SelectTrigger>
                   <SelectContent>
-                    {services.map(s => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
+                    <div className="px-2 py-2">
+                      <input aria-label="Search services" className="w-full rounded border px-2 py-1 text-sm" placeholder="Search services" value={serviceQuery} onChange={(e) => setServiceQuery(e.target.value)} />
+                    </div>
+                    {filteredServices.map(s => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
