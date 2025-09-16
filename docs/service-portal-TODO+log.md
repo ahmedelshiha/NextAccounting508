@@ -4,6 +4,12 @@
   - Why: Throwing new Error(object) produced "Error: [object Object]" in the UI. Now shows clear validation/auth messages.
   - Next: Audit other forms for similar patterns; consider a small helper to extractApiError(res) for consistency.
 
+- [x] 2025-09-16: Fix Netlify build error (TS implicit any) in portal new request prefill.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - What: Typed mapped services array and callback param to satisfy noImplicitAny during Next.js typecheck.
+  - Why: Build failed at mapped.some(s => ...) with "Parameter 's' implicitly has an 'any' type".
+  - Next: Enable strict lint rule to prevent implicit anys in callbacks.
+
 - [x] 2025-09-16: Client Portal — added Request Service CTA + tracking list on portal home, and prefill support.
   - Updated: src/app/portal/page.tsx, src/app/portal/service-requests/new/page.tsx
   - What: Added quick actions: Request Service, Track Requests, and a “My Service Requests” section showing recent requests with status chips. New page now accepts ?serviceId= to preselect service.
