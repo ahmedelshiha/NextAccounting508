@@ -16,6 +16,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:assign:${params.id}:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
