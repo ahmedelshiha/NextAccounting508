@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 
 interface Service { id: string; name: string }
 
-export default function NewServiceRequestPage() {
+function NewServiceRequestForm() {
   const { data: session } = useSession()
   const router = useRouter()
   const [services, setServices] = useState<Service[]>([])
@@ -41,16 +41,13 @@ export default function NewServiceRequestPage() {
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
         const mapped: Service[] = list.map((s: any) => ({ id: s.id, name: s.name }))
         setServices(mapped)
-        // Prefill serviceId from query param if present and valid
         const pre = searchParams?.get('serviceId')
         if (pre && mapped.some((s: Service) => s.id === pre)) setServiceId(pre)
       } catch {
-        // ignore
       }
     }
     if (session) loadServices()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session])
+  }, [session, searchParams])
 
   const canSubmit = serviceId && title.trim().length >= 5
 
@@ -243,5 +240,13 @@ export default function NewServiceRequestPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function NewServiceRequestPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 py-8" />}> 
+      <NewServiceRequestForm />
+    </Suspense>
   )
 }
