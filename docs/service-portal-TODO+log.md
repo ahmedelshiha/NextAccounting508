@@ -27,7 +27,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 - [ ] Realtime
   - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
-  - Add connection health checks, reconnection backoff, and idempotency for multi-instance delivery
+  - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
 
 - [ ] Admin UI
   - No remaining items here.
@@ -127,6 +127,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ## Change Log
 - [x] 2025-09-16: Status updated to Active; resuming implementation.
+- [x] 2025-09-16: Added client portal realtime SSE and wired UI auto-refresh.
+  - Added: src/app/api/portal/realtime/route.ts
+  - Updated: src/app/portal/service-requests/page.tsx (list auto-refresh)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (detail auto-refresh)
+  - Notes: Uses EventSource with exponential backoff; filters by user via realtimeService.
 - [x] 2025-09-16: Added rate limiting to client portal service-requests endpoints.
   - Updated: src/app/api/portal/service-requests/route.ts (POST)
   - Updated: src/app/api/portal/service-requests/[id]/route.ts (PATCH)
