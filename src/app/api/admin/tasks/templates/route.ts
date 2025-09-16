@@ -101,9 +101,24 @@ export async function PATCH(request: Request) {
       const templates = readTemplates()
       const idx = templates.findIndex((t: any) => t.id === body.id)
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-      templates[idx] = { ...templates[idx], ...body, updatedAt: new Date().toISOString() }
+      const prev = templates[idx]
+      const next = {
+        ...prev,
+        ...(body.name !== undefined ? { name: body.name } : {}),
+        ...(body.content !== undefined ? { content: body.content } : {}),
+        ...(body.description !== undefined ? { description: body.description } : {}),
+        ...(body.defaultPriority !== undefined ? { defaultPriority: body.defaultPriority } : {}),
+        ...(body.defaultCategory !== undefined ? { defaultCategory: body.defaultCategory } : {}),
+        ...(body.estimatedHours !== undefined ? { estimatedHours: body.estimatedHours } : {}),
+        ...(Array.isArray(body.checklistItems) ? { checklistItems: body.checklistItems } : {}),
+        ...(body.category !== undefined ? { category: body.category } : {}),
+        ...(Array.isArray(body.requiredSkills) ? { requiredSkills: body.requiredSkills } : {}),
+        ...(body.defaultAssigneeRole !== undefined ? { defaultAssigneeRole: body.defaultAssigneeRole } : {}),
+        updatedAt: new Date().toISOString(),
+      }
+      templates[idx] = next
       writeTemplates(templates)
-      return NextResponse.json(templates[idx])
+      return NextResponse.json(next)
     }
 
     if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
