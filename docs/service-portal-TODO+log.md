@@ -1,3 +1,9 @@
+- [x] 2025-09-16: Admin Create Service Request — fixed opaque error message "Error: [object Object]".
+  - Updated: src/app/admin/service-requests/new/page.tsx
+  - What: Properly read standardized API error shape ({ success:false, error:{ code, message, details } }) and surface error.message instead of throwing the error object.
+  - Why: Throwing new Error(object) produced "Error: [object Object]" in the UI. Now shows clear validation/auth messages.
+  - Next: Audit other forms for similar patterns; consider a small helper to extractApiError(res) for consistency.
+
 - [x] 2025-09-16: Client Portal — added filters, search (debounced), and pagination to Service Requests list.
   - Updated: src/app/portal/service-requests/page.tsx
   - What: Added status/priority filters, debounced search by title/description, and page/limit-driven pagination using API meta.pagination. Realtime refresh preserved; added manual refresh.
