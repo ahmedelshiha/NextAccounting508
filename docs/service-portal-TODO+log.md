@@ -143,6 +143,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ## Change Log
 - [x] 2025-09-16: Fixed remaining Netlify TypeScript build errors (admin UI and API routes).
+- [x] 2025-09-16: Resolved TS2554 by making z.record schema explicit.
+  - Updated: src/app/api/admin/service-requests/[id]/route.ts (z.record(z.string(), z.any()))
+  - Updated: src/app/api/admin/service-requests/route.ts (z.record(z.string(), z.any()))
+  - Updated: src/app/api/portal/service-requests/route.ts (z.record(z.string(), z.any()))
+  - Notes: Aligns with zod v4 typings expecting 2 args in strict mode.
   - Updated: src/app/admin/page.tsx (replaced dashboardData.* with dashboard.* in BusinessIntelligence section)
   - Updated: src/app/admin/users/page.tsx (expanded updateUserRole type to include 'TEAM_MEMBER' and 'TEAM_LEAD')
   - Fixed: src/app/api/admin/permissions/[userId]/route.ts (removed duplicate NextResponse import)
