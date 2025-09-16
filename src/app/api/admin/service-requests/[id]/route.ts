@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 const UpdateSchema = z.object({
   title: z.string().min(3).max(300).optional(),
@@ -57,6 +58,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: updates })
+  try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
 
@@ -69,5 +71,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
 
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
   await prisma.serviceRequest.delete({ where: { id: params.id } })
+  try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
   return NextResponse.json({ success: true })
 }
