@@ -113,7 +113,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Implement attachments handling in create flow with validations; display in detail view
 
 ### 8) Cleanup and Consistency (from audits)
-- [ ] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
+- [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [ ] Replace mock dashboard data with real API and guards
 - [ ] Standardize zod validation and error shapes across new routes
