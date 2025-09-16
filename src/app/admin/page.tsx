@@ -848,6 +848,19 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         description: 'Manage client appointments'
       },
       {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        description: 'Manage client requests',
+        badge: `${data.stats.tasks.total} tasks`
+      },
+      {
+        label: 'Assign Requests',
+        href: '/admin/service-requests/assignments',
+        icon: Target,
+        description: 'Auto-assign and manage workloads',
+      },
+      {
         label: 'Posts',
         href: '/admin/posts',
         icon: FileText,
