@@ -22,7 +22,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ### 1) Database and Prisma schema
 - [x] Add models ServiceRequest and RequestTask with enums RequestPriority, RequestStatus (prisma/schema.prisma)
-- [ ] Extend prisma/schema.prisma with remaining models/fields: TaskTemplate extensions, TaskComment (service-requests), UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
+- [ ] Extend prisma/schema.prisma with remaining models/fields: TaskComment (service-requests), UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
+- [x] Extend TaskTemplate model with service-portal fields (description, category, defaultPriority, defaultCategory, estimatedHours, checklistItems, requiredSkills, defaultAssigneeRole)
 - [ ] Add fields to User and Service models per guide (employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service.requiredSkills/status)
 - [ ] Plan multi-tenancy: introduce tenantId/orgId on relevant tables (users, services, service_requests, tasks) with indexes; scope queries behind feature flag
 - [ ] Define attachments storage strategy (provider, size limits, virus scan) and persist attachment metadata schema
@@ -96,6 +97,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Extended Prisma TaskTemplate model and aligned templates API.
+  - prisma/schema.prisma: added fields to TaskTemplate + category index
+  - /api/admin/tasks/templates: include/persist new fields (DB + file fallback)
+  - Note: DB migration required; connect to database to run prisma migrate/generate
 - [x] 2025-09-16: Enhanced task templates API (fallback) and dashboard integration.
   - Extended /api/admin/tasks/templates (file fallback) to support metadata: description, defaultPriority, defaultCategory, estimatedHours, checklistItems, category, requiredSkills, defaultAssigneeRole
   - Added Team Workload widget to /admin dashboard using /api/admin/team-management/workload
