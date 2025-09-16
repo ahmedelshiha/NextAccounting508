@@ -25,6 +25,9 @@ export default function AdminNewServiceRequestPage() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([])
 
   // load clients and services for selects
+  const [clientQuery, setClientQuery] = useState('')
+  const [serviceQuery, setServiceQuery] = useState('')
+
   useEffect(() => {
     let mounted = true
     async function load() {
@@ -50,6 +53,9 @@ export default function AdminNewServiceRequestPage() {
     load()
     return () => { mounted = false }
   }, [])
+
+  const filteredClients = clients.filter(c => (c.name || '').toLowerCase().includes(clientQuery.toLowerCase()) || (c.email || '').toLowerCase().includes(clientQuery.toLowerCase()))
+  const filteredServices = services.filter(s => (s.name || '').toLowerCase().includes(serviceQuery.toLowerCase()))
 
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
