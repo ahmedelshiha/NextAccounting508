@@ -76,6 +76,10 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const ip = getClientIp(_req)
+  if (!rateLimit(`service-requests:delete:${params.id}:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
   await prisma.serviceRequest.delete({ where: { id: params.id } })
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
