@@ -215,7 +215,7 @@ export default function ProfessionalAddClientPage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'Failed to create client')
+        throw new Error(err?.error?.message || err?.error || 'Failed to create client')
       }
       setTempPassword(password)
       setSuccess('Client account created successfully!')
