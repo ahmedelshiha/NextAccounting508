@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const CreateTaskSchema = z.object({
   title: z.string().min(3),
@@ -14,7 +15,8 @@ const CreateTaskSchema = z.object({
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes((session.user as any).role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const relations = await prisma.requestTask.findMany({
     where: { serviceRequestId: params.id },
@@ -31,7 +33,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes((session.user as any).role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)
   const parsed = CreateTaskSchema.safeParse(body)
