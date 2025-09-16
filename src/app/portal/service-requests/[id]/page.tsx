@@ -183,12 +183,16 @@ export default function PortalServiceRequestDetailPage() {
                         <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
                           <span className="truncate">
                             {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                            {a.url ? (
+                              <>
+                                {' '}
+                                <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                              </>
+                            ) : null}
+                            {a.uploadError ? (
+                              <span className="ml-2 text-red-600">{a.uploadError}</span>
+                            ) : null}
                           </span>
-                          {a.url ? (
-                            <Button asChild variant="outline" size="sm">
-                              <a href={a.url} target="_blank" rel="noopener noreferrer">View</a>
-                            </Button>
-                          ) : null}
                         </li>
                       ))}
                     </ul>
