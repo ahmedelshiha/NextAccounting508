@@ -4,6 +4,12 @@
   - Why: Improve UX for clients with many requests; leverage existing API query parameters without requiring DB migrations.
   - Next: Persist user filter prefs (localStorage), add page size selector, and optional infinite scroll. Consider small route tests validating pagination meta.
 
+- [x] 2025-09-16: Admin Dashboard — surfaced Service Requests in Smart Actions (Primary).
+  - Updated: src/app/admin/page.tsx
+  - What: Added a "Service Requests" shortcut under Smart Actions > Primary linking to /admin/service-requests (management already had entries for Service Requests and Assign Requests). Keeps existing styles and variants.
+  - Why: Faster access from the main Smart Actions pane.
+  - Next: Optionally display active request count badge when analytics are available.
+
 # Service Portal — TODO + Change Log
 
 Status: Active (as of 2025-09-16)
