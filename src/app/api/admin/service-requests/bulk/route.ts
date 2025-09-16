@@ -30,11 +30,13 @@ export async function POST(req: Request) {
   if (action === 'delete') {
     await prisma.requestTask.deleteMany({ where: { serviceRequestId: { in: ids } } })
     const result = await prisma.serviceRequest.deleteMany({ where: { id: { in: ids } } })
+    try { await logAudit({ action: 'service-request:bulk:delete', actorId: (session.user as any).id ?? null, details: { ids, deleted: result.count } }) } catch {}
     return NextResponse.json({ success: true, data: { deleted: result.count } })
   }
 
   if (action === 'status' && status) {
     const result = await prisma.serviceRequest.updateMany({ where: { id: { in: ids } }, data: { status: status as any } })
+    try { await logAudit({ action: 'service-request:bulk:status', actorId: (session.user as any).id ?? null, details: { ids, status, updated: result.count } }) } catch {}
     return NextResponse.json({ success: true, data: { updated: result.count } })
   }
 
