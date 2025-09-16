@@ -377,3 +377,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Updated: src/app/api/admin/tasks/templates/route.ts, src/app/api/admin/tasks/templates/categories/route.ts
   - Notes: Endpoints now attempt a lightweight DB probe at runtime (prisma.$queryRaw`SELECT 1`) and use the Prisma-backed TaskTemplate table when available. If DB is unreachable or not configured, endpoints fall back to the local file at src/app/admin/tasks/data/templates.json. This preserves local dev/tests that mock the file system while enabling DB-backed behavior in CI/CD and production.
 
+- [x] 2025-09-16: Seeded demo user permissions for ADMIN, TEAM_MEMBER, TEAM_LEAD.
+  - Updated: prisma/seed.ts
+  - Notes: Seed now creates UserPermission records for demo accounts (admin, staff, lead) based on ROLE_PERMISSIONS mapping in src/lib/permissions.ts. This simplifies local demo testing and verifies RBAC mappings are present in DB once seeds run in CI/CD.
+
