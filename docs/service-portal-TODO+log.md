@@ -1,11 +1,12 @@
 # Service Portal — TODO + Change Log
 
-Status: Active (as of 2025-09-16)
+Status: Paused (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
 - prisma generate/migrate/seed cannot run in this environment due to ACL; run in CI/CD or dev shell when available.
 - On resume: generate Prisma client, apply migrations, seed roles/permissions, then implement realtime filtering/durable transport.
+- Neon DATABASE_URL configured in env; pending CI/CD run to execute prisma generate/migrate/seed.
 
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
@@ -14,7 +15,7 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
-## Remaining work
+## Remaining work (paused)
 
 - Resume checklist (ordered):
   1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
@@ -137,6 +138,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; updated status and refreshed "Remaining work (paused)" checklist.
+  - Notes: Env configured; awaiting CI/CD to run prisma tasks before resuming implementation.
 - [x] 2025-09-16: Added unit tests for api-response and zodDetails.
   - Added: tests/api-response.test.ts
   - Notes: Verifies success/error shapes, status codes, meta fields, and zod flatten handling.
