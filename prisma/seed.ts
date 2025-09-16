@@ -35,7 +35,7 @@ async function main() {
       email: 'staff@accountingfirm.com',
       name: 'Staff Member',
       password: staffPassword,
-      role: UserRole.STAFF,
+      role: UserRole.TEAM_MEMBER,
       emailVerified: new Date(),
     },
   })
