@@ -142,6 +142,14 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Fixed remaining Netlify TypeScript build errors (admin UI and API routes).
+  - Updated: src/app/admin/page.tsx (replaced dashboardData.* with dashboard.* in BusinessIntelligence section)
+  - Updated: src/app/admin/users/page.tsx (expanded updateUserRole type to include 'TEAM_MEMBER' and 'TEAM_LEAD')
+  - Fixed: src/app/api/admin/permissions/[userId]/route.ts (removed duplicate NextResponse import)
+  - Fixed: src/app/api/admin/team-members/[id]/route.ts (removed duplicate prisma import)
+  - Fixed: src/app/api/admin/team-members/route.ts (resolved "Cannot redeclare block-scoped variable 'role'" by aliasing memberRole)
+  - Fixed: src/app/api/{admin,portal}/service-requests/route.ts (cast JSON fields requirements/attachments to any to satisfy Prisma JSON typing)
+  - Notes: Addresses TS2552, TS2451, TS2300, and TS2322 reported in Netlify logs; should allow build to proceed to Next.js compile.
 - [x] 2025-09-16: Fixed Next.js 15 route handler signatures and a dashboard variable bug.
   - Updated: admin/permissions [userId] route to NextRequest with context.params Promise; multiple admin/portal service-requests [id] routes (assign, comments, status, tasks) similarly.
   - Fixed: duplicate NextResponse import in /api/admin/tasks/analytics; corrected undefined analyticsFallback/dashboard vars in admin/page.tsx.
