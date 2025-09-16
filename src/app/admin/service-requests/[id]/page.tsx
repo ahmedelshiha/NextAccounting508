@@ -174,8 +174,40 @@ export default function AdminServiceRequestDetailPage() {
                 </Button>
               </div>
             </div>
+
+            {perms.has(PERMISSIONS.SERVICE_REQUESTS_ASSIGN) && (
+              <div className="pt-2">
+                <div className="text-sm text-gray-500 mb-1">Assign to Team Member</div>
+                <div className="flex items-center gap-3">
+                  <Select value={assignee} onValueChange={(v) => setAssignee(v)}>
+                    <SelectTrigger className="w-[280px]">
+                      <SelectValue placeholder={item.assignedTeamMember?.name || 'Select team member'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teamMembers.map(tm => (<SelectItem key={tm.id} value={tm.id}>{tm.name} {tm.email ? `(${tm.email})` : ''}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={assignNow} disabled={!assignee || assigning}>
+                    {assigning ? (<Loader2 className="h-4 w-4 animate-spin" />) : 'Assign'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this request?</AlertDialogTitle>
+              <AlertDialogDescription>This action cannot be undone. The request and its tasks will be permanently removed.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={deleteNow} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
