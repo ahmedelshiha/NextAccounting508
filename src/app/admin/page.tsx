@@ -956,6 +956,104 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   )
 }
 
+function ServiceRequestsSummary() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<{
+    total: number;
+    newThisWeek: number;
+    completedThisMonth: number;
+    pipelineValue: number;
+    statusDistribution: Record<string, number>;
+    priorityDistribution: Record<string, number>;
+    activeRequests: number;
+    completionRate: number;
+  } | null>(null)
+
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/service-requests/analytics')
+        const j = await r.json().catch(() => null)
+        if (!ignore) {
+          if (j && j.data) setData(j.data)
+          else setData(null)
+          setError(null)
+        }
+      } catch (e) {
+        if (!ignore) setError('Failed to load service requests analytics')
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [])
+
+  const pieData: ChartData<'pie'> | null = data ? {
+    labels: Object.keys(data.statusDistribution || {}),
+    datasets: [
+      {
+        label: 'Requests',
+        data: Object.values(data.statusDistribution || {}),
+        backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#6366f1','#22c55e','#eab308','#94a3b8'],
+        borderWidth: 1,
+      }
+    ]
+  } : null
+
+  const pieOptions: ChartOptions<'pie'> = { plugins: { legend: { position: 'bottom' } } }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Service Requests</CardTitle>
+            <CardDescription>Work in progress across client requests</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (<div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />))}
+          </div>
+        ) : error ? (
+          <div className="text-sm text-red-600">{error}</div>
+        ) : data ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+            <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-lg border bg-white">
+                <div className="text-xs text-gray-600">Active</div>
+                <div className="text-2xl font-bold">{data.activeRequests}</div>
+                <div className="text-xs text-gray-500">of {data.total} total</div>
+              </div>
+              <div className="p-4 rounded-lg border bg-white">
+                <div className="text-xs text-gray-600">New This Week</div>
+                <div className="text-2xl font-bold">{data.newThisWeek}</div>
+              </div>
+              <div className="p-4 rounded-lg border bg-white">
+                <div className="text-xs text-gray-600">Completion Rate</div>
+                <div className="text-2xl font-bold">{data.completionRate}%</div>
+              </div>
+              <div className="p-4 rounded-lg border bg-white">
+                <div className="text-xs text-gray-600">Pipeline Value</div>
+                <div className="text-2xl font-bold">${Number(data.pipelineValue || 0).toLocaleString()}</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-4 border">
+              {pieData ? <Pie data={pieData} options={pieOptions} /> : (
+                <div className="h-40 bg-gray-100 rounded" />
+              )}
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
 function TeamWorkloadSummary() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
