@@ -3,13 +3,15 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 // GET /api/admin/services - List all services (active and inactive)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
