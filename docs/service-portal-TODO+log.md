@@ -100,6 +100,11 @@ Notes & Current state snapshot:
 - Templates endpoints now prefer DB at runtime and fall back to file for local dev/tests.
 
 Change Log: recent (high level):
+- [x] 2025-09-16: Added Vitest config and fixed bulk route tests to unblock CI.
+  - Added: vitest.config.ts
+  - Updated: src/app/admin/tasks/tests/api.bulk.route.test.ts (use @ alias, mock '@/lib/prisma')
+  - Notes: Resolves module resolution errors in Vitest; route/API tests pass locally. No runtime changes.
+  - Next: Run tests in CI, then raise coverage thresholds and add realtime smoke test.
 - 2025-09-16: Fixed Netlify TSC error TS2304 in /api/admin/tasks/templates DELETE handler by replacing stray hasDb with await dbAvailable(); build should proceed.
 - 2025-09-16: DB-first templates endpoints implemented; demo permissions seeded; realtime table verified; seed updated to include Team Lead; local DB push & seed executed.
 
