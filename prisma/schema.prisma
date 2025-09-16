@@ -22,6 +22,17 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessionVersion Int       @default(0)
 
+  employeeId            String?  @unique
+  department            String?
+  position              String?
+  skills                String[]
+  expertiseLevel        ExpertiseLevel?
+  hourlyRate            Decimal?
+  availabilityStatus    AvailabilityStatus @default(AVAILABLE)
+  maxConcurrentProjects Int?     @default(3)
+  hireDate              DateTime?
+  managerId             String?
+
   // Relations
   accounts Account[]
   sessions Session[]
@@ -31,6 +42,10 @@ model User {
   teamMembers TeamMember[]
   taskComments TaskComment[]
   taskTemplates TaskTemplate[]
+  manager     User?            @relation("ManagerEmployee", fields: [managerId], references: [id], onDelete: SetNull)
+  employees   User[]           @relation("ManagerEmployee")
+  grantedPermissions UserPermission[] @relation("GrantedBy")
+  userPermissions    UserPermission[] @relation("UserPermissions")
 
   @@map("users")
 }
@@ -134,6 +149,10 @@ model Service {
   image       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  basePrice     Decimal?
+  estimatedDurationHours Int?
+  requiredSkills String[]
+  status        ServiceStatus @default(ACTIVE)
 
   // Relations
   bookings Booking[]
@@ -448,6 +467,48 @@ model TeamMemberStats {
   updatedAt        DateTime    @updatedAt
 
   @@map("team_member_stats")
+}
+
+model UserPermission {
+  id             String   @id @default(cuid())
+  userId         String
+  permissionType String
+  resourceId     String?
+  grantedBy      String?
+  grantedAt      DateTime @default(now())
+  expiresAt      DateTime?
+
+  user           User     @relation("UserPermissions", fields: [userId], references: [id], onDelete: Cascade)
+  grantedByUser  User?    @relation("GrantedBy", fields: [grantedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId, permissionType])
+}
+
+enum ExpertiseLevel {
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  EXPERT
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+  ON_LEAVE
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+  DEPRECATED
+}
+
+enum DefaultRole {
+  TEAM_MEMBER
+  TEAM_LEAD
+  ADMIN
 }
 
 enum UserRole {
