@@ -48,6 +48,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:update:${params.id}:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) {
