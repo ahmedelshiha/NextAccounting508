@@ -115,6 +115,9 @@ Please let me know if you want me to automatically push the branch & trigger Net
 - [ ] Permissions/Middleware
   - No remaining items here; roles aligned and middleware checks completed.
 
+Recent fixes:
+- 2025-09-16: Admin Create Service Request page updated to populate Client and Service selects from /api/admin/users and /api/services. This fixes empty Client ID/Service ID when creating requests and improves UX by letting admins pick existing records. (What: replaced free-text inputs with selects; Why: avoid missing IDs and reduce errors; Next: add search/autocomplete for large user lists)
+
 - [x] Realtime
   - Implement durable transport adapter (Postgres polling via Neon) and env toggle REALTIME_TRANSPORT=postgres; falls back to in-memory when DB is unavailable
   - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
