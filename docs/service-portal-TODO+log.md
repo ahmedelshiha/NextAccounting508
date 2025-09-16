@@ -117,7 +117,7 @@ Please let me know if you want me to automatically push the branch & trigger Net
 
 Recent fixes:
 - 2025-09-16: Admin Create Service Request page updated to populate Client and Service selects from /api/admin/users and /api/services. This fixes empty Client ID/Service ID when creating requests and improves UX by letting admins pick existing records. (What: replaced free-text inputs with selects; Why: avoid missing IDs and reduce errors; Next: add search/autocomplete for large user lists)
-- 2025-09-16: Added basic search inputs inside Client and Service selects (client-side filtering). What: small search boxes in SelectContent to filter loaded lists; Why: improves UX for medium lists and reduces selection time; Next: implement server-side search/autocomplete for large userbases and debounce input.
+- 2025-09-16: Added basic search inputs inside Client and Service selects (client-side filtering). What: small search boxes in SelectContent to filter loaded lists; Why: improves UX for medium lists and reduces selection time; Next: implemented server-side paginated search for users and client-side debounce to reduce load; Next: consider server-side autocomplete endpoint for services and add tests.
 
 - [x] Realtime
   - Implement durable transport adapter (Postgres polling via Neon) and env toggle REALTIME_TRANSPORT=postgres; falls back to in-memory when DB is unavailable
