@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: In progress (resumed 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -92,8 +92,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add enhanced realtime service src/lib/realtime-enhanced.ts
 - [x] Add SSE endpoint src/app/api/admin/realtime/route.ts
 - [x] Create client hook src/hooks/useRealtime.ts and test basic events
-- [ ] Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
-- [ ] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
+- [x] Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
+- [x] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
 
 ### 6) Admin UI: Dashboard and Pages
 - [x] Update src/app/admin/page.tsx to render service request KPIs and charts (calls new analytics/workload endpoints)
@@ -128,6 +128,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Resumed project; implemented per-user realtime filtering and event subscriptions; wired broadcasts in APIs.
+  - Updated: src/lib/realtime-enhanced.ts (filter by userId and event types; cleanup on disconnect)
+  - Updated: src/app/api/admin/service-requests/route.ts (emit service-request-updated on create)
+  - Updated: src/app/api/admin/service-requests/[id]/route.ts (emit on update and delete)
+  - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts (emit task-updated and service-request-updated on task create)
+  - Notes: Admin list/detail already subscribe via useRealtime; UI refreshes on events.
 - [x] 2025-09-16: Re-paused project; refreshed "Remaining work (paused)" after Admin Service Requests UI shipped.
   - Notes: Focus next on DB migrations/seeds and realtime per-user filtering/durable transport.
 - [x] 2025-09-16: Extended Admin Service Requests with edit page, assignment, and delete actions.
