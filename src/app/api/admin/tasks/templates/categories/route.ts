@@ -6,10 +6,13 @@ import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
-const hasDb = !!process.env.NETLIFY_DATABASE_URL
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
 function readTemplates() {
   try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
+}
+
+async function dbAvailable() {
+  try { await prisma.$queryRaw`SELECT 1`; return true } catch (e) { return false }
 }
 
 export async function GET() {
@@ -20,7 +23,8 @@ export async function GET() {
   }
   try {
     let categories: string[] = []
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const set = new Set<string>()
       for (const t of templates) {

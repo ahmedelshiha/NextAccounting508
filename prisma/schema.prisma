@@ -32,6 +32,8 @@ model User {
   maxConcurrentProjects Int?     @default(3)
   hireDate              DateTime?
   managerId             String?
+  tenantId              String?
+  tenant                Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   // Relations
   accounts Account[]
@@ -51,6 +53,7 @@ model User {
   grantedPermissions UserPermission[] @relation("GrantedBy")
   userPermissions    UserPermission[] @relation("UserPermissions")
 
+  @@index([tenantId])
   @@map("users")
 }
 
@@ -157,11 +160,14 @@ model Service {
   estimatedDurationHours Int?
   requiredSkills String[]
   status        ServiceStatus @default(ACTIVE)
+  tenantId      String?
+  tenant        Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   // Relations
   bookings Booking[]
   serviceRequests ServiceRequest[]
 
+  @@index([tenantId])
   @@map("services")
 }
 
@@ -355,6 +361,8 @@ model TaskTemplate {
   checklistItems      String[]
   requiredSkills      String[]
   defaultAssigneeRole String?
+  tenantId            String?
+  tenant              Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   createdById String?
   createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
@@ -362,6 +370,7 @@ model TaskTemplate {
   updatedAt  DateTime @updatedAt
 
   @@index([category])
+  @@index([tenantId])
   @@map("task_templates")
 }
 
@@ -384,6 +393,8 @@ model ServiceRequest {
   assignedBy            String?
   completedAt           DateTime?
   clientApprovalAt      DateTime?
+  tenantId              String?
+  tenant                Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
@@ -399,6 +410,7 @@ model ServiceRequest {
   @@index([priority])
   @@index([assignedTeamMemberId])
   @@index([deadline])
+  @@index([tenantId])
   @@map("service_requests")
 }
 
@@ -454,6 +466,7 @@ model TeamMember {
   notes              String?
   joinDate           DateTime @default(now())
   lastActive         DateTime @default(now())
+  tenantId           String?
   assignedBookings     Booking[]
   // Back-relation for ServiceRequest assignment
   assignedServiceRequests ServiceRequest[]
@@ -589,4 +602,47 @@ model NotificationSettings {
   updatedAt     DateTime @updatedAt
 
   @@map("notification_settings")
+}
+
+// Multi-tenancy: Tenant model and tenantId scaffolding
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  services Service[]
+  templates TaskTemplate[]
+  serviceRequests ServiceRequest[]
+
+  @@map("tenants")
+}
+
+model RealtimeEvent {
+  id        String   @id @default(cuid())
+  type      String
+  data      Json
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@map("realtime_events")
+}
+
+// Template model for task/email templates and other DB-backed templates
+model Template {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  content     String   @db.Text
+  metadata    Json?
+  tenantId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("templates")
 }

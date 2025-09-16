@@ -1,0 +1,54 @@
+name: Prisma Migrate, Seed and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  migrate-and-seed:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max_old_space_size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run migrations
+        run: npx prisma migrate deploy --accept-data-loss
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run seed
+        run: npm run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Run tests
+        run: npm test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Trigger Netlify build
+        if: success()
+        run: |
+          echo "Triggering Netlify build hook..."
+          curl -X POST -sSf ${{ secrets.NETLIFY_BUILD_HOOK }} || true
+
+    # Recommended repository secrets to configure in GitHub
+    # DATABASE_URL - the neon/postgres connection string used by prisma migrate & seed
+    # NEXTAUTH_SECRET - secret for NextAuth
+    # NETLIFY_BUILD_HOOK - Netlify build hook URL to trigger site deploy after migrations

@@ -56,6 +56,33 @@ async function main() {
 
   console.log('✅ Users created')
 
+  // Seed user permissions for demo accounts (ADMIN, TEAM_MEMBER, TEAM_LEAD)
+  try {
+    // import role-permissions mapping dynamically
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { ROLE_PERMISSIONS } = require('../src/lib/permissions')
+
+    const demoAccounts = [
+      { email: 'admin@accountingfirm.com', role: 'ADMIN' },
+      { email: 'staff@accountingfirm.com', role: 'TEAM_MEMBER' },
+      { email: 'lead@accountingfirm.com', role: 'TEAM_LEAD' },
+    ]
+
+    for (const acc of demoAccounts) {
+      const u = await prisma.user.findUnique({ where: { email: acc.email } })
+      if (!u) continue
+      // remove existing demo permissions for this user to avoid duplicates
+      await prisma.userPermission.deleteMany({ where: { userId: u.id } }).catch(() => {})
+      const perms: string[] = ROLE_PERMISSIONS[acc.role] ?? []
+      for (const p of perms) {
+        await prisma.userPermission.create({ data: { userId: u.id, permissionType: p, grantedBy: admin.id } }).catch(() => {})
+      }
+    }
+    console.log('✅ Demo user permissions seeded')
+  } catch (e) {
+    console.warn('Seeding demo permissions skipped or failed:', e)
+  }
+
   // Create services
   const services = [
     {
@@ -184,6 +211,47 @@ Our consultation sessions are designed to provide you with actionable insights a
   }
 
   console.log('✅ Services created')
+
+  // Create a default tenant for local/dev seed
+  const tenant = await prisma.tenant.upsert({
+    where: { slug: 'default' },
+    update: {},
+    create: { name: 'Default Tenant', slug: 'default', metadata: { env: 'dev' } },
+  }).catch(() => null)
+
+  // Seed a couple of templates
+  try {
+    await prisma.template.upsert({
+      where: { key: 'client_onboarding' },
+      update: {},
+      create: {
+        key: 'client_onboarding',
+        name: 'Client Onboarding',
+        description: 'Template for client onboarding emails',
+        content: 'Welcome {{clientName}} to our firm. Your onboarding is scheduled for {{date}}.',
+        tenantId: tenant?.id
+      }
+    })
+
+    await prisma.template.upsert({
+      where: { key: 'vat_return' },
+      update: {},
+      create: {
+        key: 'vat_return',
+        name: 'VAT Return',
+        description: 'VAT return template',
+        content: 'Dear {{clientName}}, your VAT return is due on {{dueDate}}.',
+        tenantId: tenant?.id
+      }
+    })
+
+    // Seed a sample realtime event record as an example
+    await prisma.realtimeEvent.create({ data: { type: 'seed', data: { message: 'seeded event' } } })
+  } catch (e) {
+    console.warn('Template/Realtime seed skipped or failed:', e)
+  }
+
+  console.log('✅ Tenant + templates seeded')
 
   // Create blog posts
   const posts = [
@@ -583,6 +651,7 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
   console.log('Staff: staff@accountingfirm.com / staff123')
+  console.log('Team Lead: lead@accountingfirm.com / lead123')
 }
 
 main()

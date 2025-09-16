@@ -6,15 +6,23 @@ import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
-const hasDb = !!process.env.NETLIFY_DATABASE_URL
-
-// Fallback file paths (only used when DB is not configured)
+// Prefer DB when available, but keep a file fallback for local/dev when DB is not configured or unreachable.
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
 function readTemplates() {
   try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
 }
 function writeTemplates(tmpls: any[]) {
   try { fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(tmpls, null, 2), 'utf-8'); return true } catch (e) { console.error('Failed to write templates', e); return false }
+}
+
+async function dbAvailable() {
+  try {
+    // quick lightweight check
+    await prisma.$queryRaw`SELECT 1`
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
 export async function GET() {
@@ -24,7 +32,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       return NextResponse.json(templates)
     }
@@ -48,7 +57,13 @@ export async function GET() {
     return NextResponse.json(mapped)
   } catch (e) {
     console.error('GET templates error', e)
-    return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 })
+    // Fallback to file if DB fails at runtime
+    try {
+      const templates = readTemplates()
+      return NextResponse.json(templates)
+    } catch (e2) {
+      return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 })
+    }
   }
 }
 
@@ -61,7 +76,8 @@ export async function POST(request: Request) {
     }
     const body = await request.json().catch(() => ({}))
 
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const now = new Date().toISOString()
       const id = 'tmpl_' + Math.random().toString(36).slice(2, 9)
@@ -131,7 +147,8 @@ export async function PATCH(request: Request) {
     }
     const body = await request.json().catch(() => ({}))
 
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const idx = templates.findIndex((t: any) => t.id === body.id)
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 })
