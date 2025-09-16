@@ -96,7 +96,7 @@ export default function PortalSettingsPage() {
         }
       } else {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to update profile')
+        toast.error(err?.error?.message || err?.error || 'Failed to update profile')
       }
     } catch (e) {
       console.error('Save profile error', e)
