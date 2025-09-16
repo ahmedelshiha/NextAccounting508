@@ -39,6 +39,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const ip = getClientIp(req)
+  if (!rateLimit(`service-requests:task-create:${params.id}:${ip}`, 20, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => null)
   const parsed = CreateTaskSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
