@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 const CreateTaskSchema = z.object({
   title: z.string().min(3),
@@ -52,6 +53,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   })
 
   await prisma.requestTask.create({ data: { serviceRequestId: params.id, taskId: createdTask.id } })
+
+  try { realtimeService.emitTaskUpdate(createdTask.id, { action: 'created', serviceRequestId: params.id }) } catch {}
+  try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'task-created', taskId: createdTask.id }) } catch {}
 
   return NextResponse.json({ success: true, data: createdTask }, { status: 201 })
 }
