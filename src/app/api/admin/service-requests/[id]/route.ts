@@ -65,6 +65,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: updates })
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
+  try { await logAudit({ action: 'service-request:update', actorId: (session.user as any).id ?? null, targetId: params.id, details: { updates } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
 
