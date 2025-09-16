@@ -364,3 +364,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
   - Recommendation: Push this repo commit and trigger CI/CD (Netlify) to keep environments consistent and ensure subsequent builds match DB state.
 
+- [x] 2025-09-16: Verified Postgres "RealtimeEvents" table exists and is writable; inserted test event.
+  - Updated: scripts/test-realtime.js (helper script to verify table and publish test event)
+  - Notes: Executed test script which created the table (if missing), inserted a test payload, and returned recent rows. Script output:
+
+    Inserted id: 1
+    Recent rows: [ { id: '1', payload: { test: 'ping', ts: '2025-09-16T13:20:50.454Z' }, created_at: 2025-09-16T13:20:50.475Z } ]
+
+  - Next: Run cross-instance validation by observing the polling adapter in a long-running instance (CI or staging) subscribing to events. If desired, I can add an automated smoke test that starts the polling adapter, publishes an event, and asserts delivery.
+
