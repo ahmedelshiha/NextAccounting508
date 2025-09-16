@@ -779,18 +779,18 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   
   const actions = {
     primary: [
-      { 
-        label: 'New Booking', 
-        href: '/admin/bookings/new', 
-        icon: Plus, 
+      {
+        label: 'New Booking',
+        href: '/admin/bookings/new',
+        icon: Plus,
         variant: 'default' as const,
         description: 'Schedule client appointment',
         urgent: data.stats.bookings.pending > 15
       },
-      { 
-        label: 'Add Client', 
-        href: '/admin/clients/new', 
-        icon: Users, 
+      {
+        label: 'Add Client',
+        href: '/admin/clients/new',
+        icon: Users,
         variant: 'outline' as const,
         description: 'Register new client',
         badge: `${data.stats.clients.new} new this month`
@@ -810,6 +810,13 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         variant: 'default' as const,
         description: 'Create new client service request',
         badge: data.stats.tasks.overdue > 0 ? `${data.stats.tasks.overdue} overdue` : undefined
+      },
+      {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        variant: 'outline' as const,
+        description: 'Manage client requests'
       }
     ],
     management: [
