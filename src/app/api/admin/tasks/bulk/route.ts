@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 function mapStatusToDb(s?: string): any {
   if (!s) return undefined
@@ -22,7 +23,8 @@ const BulkSchema = z.object({
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
