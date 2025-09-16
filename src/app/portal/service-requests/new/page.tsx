@@ -39,11 +39,11 @@ export default function NewServiceRequestPage() {
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
-        const mapped = list.map((s: any) => ({ id: s.id, name: s.name }))
+        const mapped: Service[] = list.map((s: any) => ({ id: s.id, name: s.name }))
         setServices(mapped)
         // Prefill serviceId from query param if present and valid
         const pre = searchParams?.get('serviceId')
-        if (pre && mapped.some(s => s.id === pre)) setServiceId(pre)
+        if (pre && mapped.some((s: Service) => s.id === pre)) setServiceId(pre)
       } catch {
         // ignore
       }
