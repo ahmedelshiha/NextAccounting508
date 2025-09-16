@@ -30,7 +30,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add DB indexes as in guide (status, priority, assigned_team_member_id, deadline, client_id)
 - [ ] Generate and verify Prisma client (pnpm prisma generate)
 - [ ] Create migration for new tables/columns and run locally (db push or migrate)
-- [ ] Seed minimal data for templates/permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
+- [x] Seed minimal data for templates (client onboarding, VAT return, quarterly audit)
+- [ ] Seed permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
 
 ### 2) Admin API: Service Requests
 - [x] Create folder structure src/app/api/admin/service-requests/
@@ -97,6 +98,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added default TaskTemplate seeds with new fields.
+  - prisma/seed.ts: upserts three templates (onboarding, VAT return, quarterly audit)
+  - Note: run seeds after connecting DB
 - [x] 2025-09-16: Extended Prisma TaskTemplate model and aligned templates API.
   - prisma/schema.prisma: added fields to TaskTemplate + category index
   - /api/admin/tasks/templates: include/persist new fields (DB + file fallback)
