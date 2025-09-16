@@ -56,6 +56,33 @@ async function main() {
 
   console.log('✅ Users created')
 
+  // Seed user permissions for demo accounts (ADMIN, TEAM_MEMBER, TEAM_LEAD)
+  try {
+    // import role-permissions mapping dynamically
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { ROLE_PERMISSIONS } = require('../src/lib/permissions')
+
+    const demoAccounts = [
+      { email: 'admin@accountingfirm.com', role: 'ADMIN' },
+      { email: 'staff@accountingfirm.com', role: 'TEAM_MEMBER' },
+      { email: 'lead@accountingfirm.com', role: 'TEAM_LEAD' },
+    ]
+
+    for (const acc of demoAccounts) {
+      const u = await prisma.user.findUnique({ where: { email: acc.email } })
+      if (!u) continue
+      // remove existing demo permissions for this user to avoid duplicates
+      await prisma.userPermission.deleteMany({ where: { userId: u.id } }).catch(() => {})
+      const perms: string[] = ROLE_PERMISSIONS[acc.role] ?? []
+      for (const p of perms) {
+        await prisma.userPermission.create({ data: { userId: u.id, permissionType: p, grantedBy: admin.id } }).catch(() => {})
+      }
+    }
+    console.log('✅ Demo user permissions seeded')
+  } catch (e) {
+    console.warn('Seeding demo permissions skipped or failed:', e)
+  }
+
   // Create services
   const services = [
     {
