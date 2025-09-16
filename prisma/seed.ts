@@ -185,6 +185,47 @@ Our consultation sessions are designed to provide you with actionable insights a
 
   console.log('✅ Services created')
 
+  // Create a default tenant for local/dev seed
+  const tenant = await prisma.tenant.upsert({
+    where: { slug: 'default' },
+    update: {},
+    create: { name: 'Default Tenant', slug: 'default', metadata: { env: 'dev' } },
+  }).catch(() => null)
+
+  // Seed a couple of templates
+  try {
+    await prisma.template.upsert({
+      where: { key: 'client_onboarding' },
+      update: {},
+      create: {
+        key: 'client_onboarding',
+        name: 'Client Onboarding',
+        description: 'Template for client onboarding emails',
+        content: 'Welcome {{clientName}} to our firm. Your onboarding is scheduled for {{date}}.',
+        tenantId: tenant?.id
+      }
+    })
+
+    await prisma.template.upsert({
+      where: { key: 'vat_return' },
+      update: {},
+      create: {
+        key: 'vat_return',
+        name: 'VAT Return',
+        description: 'VAT return template',
+        content: 'Dear {{clientName}}, your VAT return is due on {{dueDate}}.',
+        tenantId: tenant?.id
+      }
+    })
+
+    // Seed a sample realtime event record as an example
+    await prisma.realtimeEvent.create({ data: { type: 'seed', message: 'seeded event' } as any })
+  } catch (e) {
+    console.warn('Template/Realtime seed skipped or failed:', e)
+  }
+
+  console.log('✅ Tenant + templates seeded')
+
   // Create blog posts
   const posts = [
     {
