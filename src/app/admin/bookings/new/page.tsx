@@ -869,7 +869,7 @@ export default function ProfessionalNewBooking() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || 'Failed to create booking')
+        throw new Error(err?.error?.message || err?.error || 'Failed to create booking')
       }
       const booking = await res.json()
       console.log('Booking created:', booking)
