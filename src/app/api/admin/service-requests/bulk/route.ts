@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const Schema = z.object({
