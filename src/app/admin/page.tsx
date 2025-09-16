@@ -1652,7 +1652,7 @@ function BusinessIntelligence({ dashboard }: { dashboard: DashboardData }) {
           </div>
         </div>
         <div className="text-xs text-gray-600">
-          Current: ${dashboardData.stats.revenue.current.toLocaleString()} • Target: ${dashboardData.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{dashboardData.stats.revenue.trend}%</span>
+          Current: ${dashboard.stats.revenue.current.toLocaleString()} • Target: ${dashboard.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{dashboard.stats.revenue.trend}%</span>
         </div>
       </div>
 
@@ -1668,25 +1668,25 @@ function BusinessIntelligence({ dashboard }: { dashboard: DashboardData }) {
             <span className="text-sm text-gray-600">Booking Utilization</span>
             <div className="flex items-center gap-2">
               <div className="w-24 bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboardData.performanceMetrics.efficiency.bookingUtilization}%` }} />
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboard.performanceMetrics.efficiency.bookingUtilization}%` }} />
               </div>
-              <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.bookingUtilization}%</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.bookingUtilization}%</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Client Satisfaction</span>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Task Completion Rate</span>
-            <span className="text-sm font-medium text-green-600">{dashboardData.performanceMetrics.efficiency.taskCompletionRate}%</span>
+            <span className="text-sm font-medium text-green-600">{dashboard.performanceMetrics.efficiency.taskCompletionRate}%</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Show Rate</span>
-            <span className="text-sm font-medium">{dashboardData.performanceMetrics.operational.appointmentShowRate}%</span>
+            <span className="text-sm font-medium">{dashboard.performanceMetrics.operational.appointmentShowRate}%</span>
           </div>
         </div>
       </div>

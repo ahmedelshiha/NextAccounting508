@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
     }
   }, [])
 
-  const updateUserRole = useCallback(async (userId: string, newRole: 'ADMIN'|'STAFF'|'CLIENT') => {
+  const updateUserRole = useCallback(async (userId: string, newRole: 'ADMIN'|'TEAM_LEAD'|'TEAM_MEMBER'|'STAFF'|'CLIENT') => {
     const original = users.find(u => u.id === userId)
     if (!original) return
     setUsers(prev => prev.map(u => (u.id === userId ? { ...u, role: newRole } : u)))

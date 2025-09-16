@@ -120,8 +120,8 @@ export async function POST(request: Request) {
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
       budgetMax: data.budgetMax != null ? data.budgetMax : null,
       deadline: data.deadline ? new Date(data.deadline) : null,
-      requirements: data.requirements ?? undefined,
-      attachments: data.attachments ?? undefined,
+      requirements: (data.requirements as any) ?? undefined,
+      attachments: (data.attachments as any) ?? undefined,
     },
     include: {
       client: { select: { id: true, name: true, email: true } },
