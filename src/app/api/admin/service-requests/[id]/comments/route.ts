@@ -58,5 +58,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   realtimeService.emitServiceRequestUpdate(params.id, { commentId: created.id, event: 'comment-created' })
 
+  try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: params.id, details: { commentId: created.id } }) } catch {}
   return NextResponse.json({ success: true, data: created }, { status: 201 })
 }
