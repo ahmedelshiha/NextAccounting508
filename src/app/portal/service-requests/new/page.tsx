@@ -96,7 +96,7 @@ export default function NewServiceRequestPage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to create request')
+        toast.error(err?.error?.message || err?.error || 'Failed to create request')
         return
       }
       const json = await res.json()
