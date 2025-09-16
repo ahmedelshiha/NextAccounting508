@@ -54,6 +54,18 @@ export default function AdminServiceRequestDetailPage() {
 
   useEffect(() => { void load() }, [])
 
+  useEffect(() => {
+    if (!perms.has(PERMISSIONS.TEAM_VIEW)) return
+    ;(async () => {
+      try {
+        const r = await apiFetch('/api/admin/team-members')
+        const j = await r.json().catch(() => ({})) as any
+        const list = Array.isArray(j?.teamMembers) ? j.teamMembers as Array<any> : []
+        setTeamMembers(list.map(tm => ({ id: tm.id, name: tm.name || tm.email || 'Member', email: tm.email || '' })))
+      } catch {}
+    })()
+  }, [perms])
+
   const saveStatus = async () => {
     if (!status || !perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return
     setSaving(true)
