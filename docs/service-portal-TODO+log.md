@@ -2,6 +2,10 @@
 
 Status: Paused (as of 2025-09-16)
 
+Paused Notes:
+- Verified RBAC migration: all admin API routes use src/lib/permissions with hasPermission and PERMISSIONS; no src/lib/rbac or ADMIN/STAFF string checks remain; 401 responses standardized.
+- The plan step "Plan and update remaining API routes to use permissions.ts consistently" is complete and documented below; do not proceed to seeds/UI/validation/realtime until seeds and use-permissions are aligned.
+
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
 - docs/website-audit.md
@@ -84,6 +88,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
 - [x] Implement permissions API: src/app/api/admin/permissions/{route.ts,[userId]/route.ts,roles/route.ts}
 - [x] Migrate remaining admin API routes to use permissions.ts consistently; remove legacy rbac usage
+- [x] Verify RBAC migration across admin routes (imports from src/lib/permissions, no ADMIN/STAFF string guards, standardized 401 responses)
 - [ ] Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
 - [x] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
 - [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
