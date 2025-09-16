@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
+function isStaffRole(role: string | undefined | null) {
+  return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
+}
+
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const isAuth = !!token
@@ -12,14 +16,14 @@ export async function middleware(req: NextRequest) {
 
   if (isAuthPage && isAuth) {
     const role = (token as unknown as { role?: string } | null)?.role
-    const dest = role === 'ADMIN' || role === 'STAFF' ? '/admin' : '/portal'
+    const dest = isStaffRole(role) ? '/admin' : '/portal'
     return NextResponse.redirect(new URL(dest, req.url))
   }
 
   if (isAdminPage) {
     if (!isAuth) return NextResponse.redirect(new URL('/login', req.url))
     const role = (token as unknown as { role?: string } | null)?.role
-    if (role !== 'ADMIN' && role !== 'STAFF') {
+    if (!isStaffRole(role)) {
       return NextResponse.redirect(new URL('/portal', req.url))
     }
   }

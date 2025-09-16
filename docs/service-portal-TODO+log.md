@@ -84,7 +84,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
 - [x] Implement permissions API: src/app/api/admin/permissions/{route.ts,[userId]/route.ts,roles/route.ts}
 - [ ] Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
-- [ ] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
+- [x] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
 - [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
 
 ### 5) Real-time
@@ -125,6 +125,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Aligned middleware and navigation to new roles and updated permissions usage.
+  - Updated: src/app/middleware.ts, src/components/ui/navigation.tsx, src/lib/use-permissions.ts, src/app/api/admin/service-requests/[id]/status/route.ts, src/app/types/next-auth.d.ts
+  - Notes: Admin access now allowed for ADMIN, TEAM_LEAD, TEAM_MEMBER; API uses permissions.ts for status updates
 - [x] 2025-09-16: Project marked paused; refreshed Remaining work (paused) checklist to reflect current state.
 - [x] 2025-09-16: Added default TaskTemplate seeds with new fields.
   - prisma/seed.ts: upserts three templates (onboarding, VAT return, quarterly audit)
