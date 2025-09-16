@@ -30,9 +30,10 @@ export default function AdminNewServiceRequestPage() {
 
   useEffect(() => {
     let mounted = true
-    async function load() {
+    async function loadInitial() {
       try {
-        const [uRes, sRes] = await Promise.all([apiFetch('/api/admin/users'), apiFetch('/api/services')])
+        // initial small fetch for clients (page 1)
+        const [uRes, sRes] = await Promise.all([apiFetch('/api/admin/users?page=1&limit=50'), apiFetch('/api/services')])
         if (!mounted) return
         if (uRes.ok) {
           const uj = await uRes.json().catch(() => ({}))
@@ -50,12 +51,38 @@ export default function AdminNewServiceRequestPage() {
         // ignore
       }
     }
-    load()
+    loadInitial()
     return () => { mounted = false }
   }, [])
 
+  // server-backed filtered clients
   const filteredClients = clients.filter(c => (c.name || '').toLowerCase().includes(clientQuery.toLowerCase()) || (c.email || '').toLowerCase().includes(clientQuery.toLowerCase()))
   const filteredServices = services.filter(s => (s.name || '').toLowerCase().includes(serviceQuery.toLowerCase()))
+
+  useEffect(() => {
+    let mounted = true
+    const t = setTimeout(() => {
+      if (!mounted) return
+      // only query server when query length >= 2 to avoid unnecessary calls
+      if (clientQuery && clientQuery.trim().length >= 2) {
+        (async () => {
+          try {
+            const q = encodeURIComponent(clientQuery.trim())
+            const res = await apiFetch(`/api/admin/users?q=${q}&page=1&limit=50`)
+            if (!mounted) return
+            if (!res.ok) return
+            const j = await res.json().catch(() => ({}))
+            const users = Array.isArray(j?.users) ? j.users : []
+            setClients(users.map((u: any) => ({ id: u.id, name: u.name, email: u.email })))
+            if (users.length && !form.clientId) setForm(f => ({ ...f, clientId: users[0].id }))
+          } catch (e) {
+            // ignore
+          }
+        })()
+      }
+    }, 300)
+    return () => { mounted = false; clearTimeout(t) }
+  }, [clientQuery])
 
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
