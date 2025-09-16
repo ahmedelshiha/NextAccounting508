@@ -32,7 +32,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       return NextResponse.json(templates)
     }
@@ -56,7 +57,13 @@ export async function GET() {
     return NextResponse.json(mapped)
   } catch (e) {
     console.error('GET templates error', e)
-    return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 })
+    // Fallback to file if DB fails at runtime
+    try {
+      const templates = readTemplates()
+      return NextResponse.json(templates)
+    } catch (e2) {
+      return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 })
+    }
   }
 }
 
