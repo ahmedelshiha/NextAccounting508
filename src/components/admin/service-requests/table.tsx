@@ -56,7 +56,7 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
         <TableHeader>
           <TableRow>
             <TableHead className="w-10">
-              <Checkbox checked={allSelected} onCheckedChange={(v) => onToggleAll(Boolean(v))} aria-label="Select all" />
+              <input type="checkbox" checked={allSelected} onChange={(e) => onToggleAll(e.target.checked)} aria-label="Select all" />
             </TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Client</TableHead>
@@ -72,7 +72,7 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
           {items.map((r) => (
             <TableRow key={r.id} className="hover:bg-gray-50">
               <TableCell className="w-10">
-                <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => onToggle(r.id)} aria-label={`Select ${r.title}`} />
+                <input type="checkbox" checked={selectedIds.has(r.id)} onChange={() => onToggle(r.id)} aria-label={`Select ${r.title}`} />
               </TableCell>
               <TableCell>
                 <div className="font-medium text-gray-900 truncate max-w-[280px]">{r.title}</div>
