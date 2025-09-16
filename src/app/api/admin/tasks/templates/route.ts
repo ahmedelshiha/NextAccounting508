@@ -54,7 +54,21 @@ export async function POST(request: Request) {
       const templates = readTemplates()
       const now = new Date().toISOString()
       const id = 'tmpl_' + Math.random().toString(36).slice(2, 9)
-      const t = { id, name: body.name || `Template ${templates.length+1}`, content: body.content || '', createdAt: now, updatedAt: now }
+      const t = {
+        id,
+        name: body.name || `Template ${templates.length+1}`,
+        content: body.content || '',
+        description: body.description || '',
+        defaultPriority: body.defaultPriority || 'MEDIUM',
+        defaultCategory: body.defaultCategory || 'system',
+        estimatedHours: typeof body.estimatedHours === 'number' ? body.estimatedHours : 1,
+        checklistItems: Array.isArray(body.checklistItems) ? body.checklistItems : [],
+        category: body.category || null,
+        requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
+        defaultAssigneeRole: body.defaultAssigneeRole || null,
+        createdAt: now,
+        updatedAt: now,
+      }
       templates.unshift(t)
       writeTemplates(templates)
       return NextResponse.json(t, { status: 201 })
