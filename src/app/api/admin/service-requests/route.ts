@@ -139,6 +139,7 @@ export async function POST(request: Request) {
   }
 
   try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
+  try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
 
   return NextResponse.json({ success: true, data: created }, { status: 201 })
 }
