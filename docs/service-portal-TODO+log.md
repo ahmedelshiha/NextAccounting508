@@ -128,6 +128,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added durable transport design and adapter foundation.
+  - Added: docs/realtime-durable-transport.md (Redis vs Postgres design, rollout plan, envs)
+  - Updated: src/lib/realtime-enhanced.ts (pub/sub adapter pattern; REALTIME_TRANSPORT flag)
+  - Notes: Default remains in-memory; safe for single instance; multi-instance ready once adapter added.
 - [x] 2025-09-16: Resumed project; implemented per-user realtime filtering and event subscriptions; wired broadcasts in APIs.
   - Updated: src/lib/realtime-enhanced.ts (filter by userId and event types; cleanup on disconnect)
   - Updated: src/app/api/admin/service-requests/route.ts (emit service-request-updated on create)
