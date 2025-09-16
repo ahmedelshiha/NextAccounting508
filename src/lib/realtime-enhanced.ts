@@ -10,38 +10,39 @@ interface RealtimeEvent {
 }
 
 class EnhancedRealtimeService extends EventEmitter {
-  private connections = new Map<string, Set<StreamController>>()
-  private userSubscriptions = new Map<string, Set<string>>() // userId -> event types
+  private connections = new Map<string, { controller: StreamController; userId: string; eventTypes: Set<string> }>()
 
   subscribe(controller: StreamController, userId: string, eventTypes: string[]): string {
     const connectionId = Math.random().toString(36).slice(2)
-
-    if (!this.connections.has(connectionId)) this.connections.set(connectionId, new Set())
-    this.connections.get(connectionId)!.add(controller)
-
-    if (!this.userSubscriptions.has(userId)) this.userSubscriptions.set(userId, new Set())
-    eventTypes.forEach((t) => this.userSubscriptions.get(userId)!.add(t))
-
+    const types = new Set(eventTypes && eventTypes.length ? eventTypes : ['all'])
+    this.connections.set(connectionId, { controller, userId, eventTypes: types })
     return connectionId
+  }
+
+  private shouldDeliver(conn: { userId: string; eventTypes: Set<string> }, event: RealtimeEvent) {
+    const typeAllowed = conn.eventTypes.has('all') || (event.type && conn.eventTypes.has(event.type))
+    const userAllowed = !event.userId || event.userId === conn.userId
+    return typeAllowed && userAllowed
   }
 
   broadcast(event: RealtimeEvent) {
     const payload = `data: ${JSON.stringify(event)}\n\n`
     const bytes = new TextEncoder().encode(payload)
-    this.connections.forEach((controllers) => {
-      controllers.forEach((c) => {
-        try {
-          c.enqueue(bytes)
-        } catch {
-          // drop broken controller
-        }
-      })
-    })
+
+    for (const [id, conn] of this.connections.entries()) {
+      if (!this.shouldDeliver(conn, event)) continue
+      try {
+        conn.controller.enqueue(bytes)
+      } catch {
+        this.connections.delete(id)
+        try { conn.controller.close?.() } catch {}
+      }
+    }
   }
 
   broadcastToUser(userId: string, event: RealtimeEvent) {
-    // Basic per-user broadcast by filtering subscriptions; for now, reuse global broadcast
-    this.broadcast({ ...event, userId })
+    const ev = { ...event, userId }
+    this.broadcast(ev)
   }
 
   emitServiceRequestUpdate(serviceRequestId: string | number, data: any = {}) {
@@ -57,6 +58,10 @@ class EnhancedRealtimeService extends EventEmitter {
   }
 
   cleanup(connectionId: string) {
+    const conn = this.connections.get(connectionId)
+    if (conn) {
+      try { conn.controller.close?.() } catch {}
+    }
     this.connections.delete(connectionId)
   }
 }
