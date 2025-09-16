@@ -137,13 +137,4 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Shows assignment, status changes, and new comments
   - Mark-as-read and unread badge
 
-    Status: Paused (as of 2025-09-15)
 
-Remaining work (paused):
-- Service Portal: complete Prisma extensions (User, Service, UserPermission), migrations and seeds
-- APIs: team-management (availability, skills, workload, assignments) and task-templates
-- Realtime: per-user event filtering and durable transport plan
-- Admin UI: Service Requests pages/components and dashboard KPIs integration with realtime and RBAC
-- Client Portal: client approvals, notifications
-- Cleanup: consolidate duplicate libs, migrate file-based task data to DB, rate limiting, audit events, replace mock data
-- Testing/Docs: unit tests, route tests, e2e, documentation updates
