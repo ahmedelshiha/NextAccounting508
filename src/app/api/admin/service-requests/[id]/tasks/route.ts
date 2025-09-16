@@ -63,5 +63,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try { realtimeService.emitTaskUpdate(createdTask.id, { action: 'created', serviceRequestId: params.id }) } catch {}
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'task-created', taskId: createdTask.id }) } catch {}
 
+  try { await logAudit({ action: 'service-request:task:create', actorId: (session.user as any).id ?? null, targetId: params.id, details: { taskId: createdTask.id } }) } catch {}
   return NextResponse.json({ success: true, data: createdTask }, { status: 201 })
 }
