@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: In progress (resumed 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -92,8 +92,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Add enhanced realtime service src/lib/realtime-enhanced.ts
 - [x] Add SSE endpoint src/app/api/admin/realtime/route.ts
 - [x] Create client hook src/hooks/useRealtime.ts and test basic events
-- [ ] Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
-- [ ] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
+- [x] Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
+- [x] Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
 
 ### 6) Admin UI: Dashboard and Pages
 - [x] Update src/app/admin/page.tsx to render service request KPIs and charts (calls new analytics/workload endpoints)
@@ -102,7 +102,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Build components: components/admin/service-requests/{table.tsx,filters.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
 - [x] Wire realtime updates on service-requests page using useRealtime
 - [x] Permission-gate actions (assign, delete, export)
-- [ ] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
+- [x] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
 
 ### 7) Client Portal
 - [x] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
@@ -128,6 +128,20 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Integrated task creation into Service Request detail page.
+  - Updated: src/app/admin/service-requests/[id]/page.tsx (task list, create task via TaskForm, realtime refresh)
+  - Uses: POST /api/admin/service-requests/[id]/tasks; maps critical->HIGH; dueDate->dueAt
+  - Notes: Respects TASKS_CREATE permission; reloads on task-updated/service-request-updated events.
+- [x] 2025-09-16: Added durable transport design and adapter foundation.
+  - Added: docs/realtime-durable-transport.md (Redis vs Postgres design, rollout plan, envs)
+  - Updated: src/lib/realtime-enhanced.ts (pub/sub adapter pattern; REALTIME_TRANSPORT flag)
+  - Notes: Default remains in-memory; safe for single instance; multi-instance ready once adapter added.
+- [x] 2025-09-16: Resumed project; implemented per-user realtime filtering and event subscriptions; wired broadcasts in APIs.
+  - Updated: src/lib/realtime-enhanced.ts (filter by userId and event types; cleanup on disconnect)
+  - Updated: src/app/api/admin/service-requests/route.ts (emit service-request-updated on create)
+  - Updated: src/app/api/admin/service-requests/[id]/route.ts (emit on update and delete)
+  - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts (emit task-updated and service-request-updated on task create)
+  - Notes: Admin list/detail already subscribe via useRealtime; UI refreshes on events.
 - [x] 2025-09-16: Re-paused project; refreshed "Remaining work (paused)" after Admin Service Requests UI shipped.
   - Notes: Focus next on DB migrations/seeds and realtime per-user filtering/durable transport.
 - [x] 2025-09-16: Extended Admin Service Requests with edit page, assignment, and delete actions.

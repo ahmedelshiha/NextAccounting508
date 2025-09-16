@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Loader2, Trash2, Pencil } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, Pencil, Plus } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import TaskForm from '@/app/admin/tasks/components/forms/TaskForm'
+import { useRealtime } from '@/hooks/useRealtime'
 
 const STATUSES = ['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED'] as const
 
@@ -43,6 +45,12 @@ export default function AdminServiceRequestDetailPage() {
   const [assigning, setAssigning] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  const [tasks, setTasks] = useState<Array<any>>([])
+  const [tasksLoading, setTasksLoading] = useState(true)
+  const [showCreateTask, setShowCreateTask] = useState(false)
+
+  const rt = useRealtime(['service-request-updated','task-updated'])
+
   const load = async () => {
     try {
       const res = await apiFetch(`/api/admin/service-requests/${params.id}`)
@@ -53,6 +61,29 @@ export default function AdminServiceRequestDetailPage() {
   }
 
   useEffect(() => { void load() }, [])
+
+  const loadTasks = async () => {
+    setTasksLoading(true)
+    try {
+      const res = await apiFetch(`/api/admin/service-requests/${params.id}/tasks`)
+      const j = await res.json().catch(() => ({}))
+      setTasks(Array.isArray(j?.data) ? j.data : [])
+    } finally { setTasksLoading(false) }
+  }
+
+  useEffect(() => { void loadTasks() }, [])
+
+  useEffect(() => {
+    if (!rt.events.length) return
+    const last = rt.events[rt.events.length - 1]
+    const srId = (last?.data?.serviceRequestId ?? last?.data?.id) && String(last?.data?.serviceRequestId ?? last?.data?.id)
+    if (last?.type === 'task-updated' || last?.type === 'service-request-updated') {
+      if (!srId || srId === String(params.id)) {
+        void loadTasks()
+        void load()
+      }
+    }
+  }, [rt.events])
 
   useEffect(() => {
     if (!perms.has(PERMISSIONS.TEAM_VIEW)) return
@@ -191,6 +222,66 @@ export default function AdminServiceRequestDetailPage() {
                     {assigning ? (<Loader2 className="h-4 w-4 animate-spin" />) : 'Assign'}
                   </Button>
                 </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">Tasks</CardTitle>
+                <CardDescription>Tasks linked to this service request</CardDescription>
+              </div>
+              {perms.has(PERMISSIONS.TASKS_CREATE) && (
+                <Button onClick={() => setShowCreateTask(v => !v)} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> {showCreateTask ? 'Close' : 'New Task'}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {showCreateTask && perms.has(PERMISSIONS.TASKS_CREATE) && (
+              <div className="border rounded-lg p-4 bg-white">
+                <TaskForm
+                  mode="create"
+                  availableUsers={teamMembers.map(tm => ({ id: tm.id, name: tm.name }))}
+                  onSave={async (data) => {
+                    const priority = String(data.priority || 'medium').toUpperCase()
+                    const payload = {
+                      title: data.title,
+                      description: data.description,
+                      priority: priority === 'CRITICAL' ? 'HIGH' : priority,
+                      dueAt: data.dueDate,
+                      assigneeId: data.assigneeId || undefined,
+                    }
+                    const res = await apiFetch(`/api/admin/service-requests/${params.id}/tasks`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                    if (!res.ok) throw new Error('Failed to create task')
+                    setShowCreateTask(false)
+                    await loadTasks()
+                  }}
+                  onCancel={() => setShowCreateTask(false)}
+                />
+              </div>
+            )}
+
+            {tasksLoading ? (
+              <div className="text-gray-400">Loading tasks…</div>
+            ) : tasks.length === 0 ? (
+              <div className="text-gray-500">No tasks linked yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {tasks.map((t: any) => (
+                  <div key={t.id} className="border rounded-lg p-3 bg-white flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{t.title}</div>
+                      <div className="text-sm text-gray-600">
+                        {(t.priority || '').toString()} • {t.dueAt ? new Date(t.dueAt).toLocaleDateString() : 'No due date'} • {t.assignee?.name || 'Unassigned'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
