@@ -41,6 +41,20 @@ async function main() {
   })
 
 
+  // Create team lead user
+  const leadPassword = await bcrypt.hash('lead123', 12)
+  await prisma.user.upsert({
+    where: { email: 'lead@accountingfirm.com' },
+    update: {},
+    create: {
+      email: 'lead@accountingfirm.com',
+      name: 'Team Lead',
+      password: leadPassword,
+      role: UserRole.TEAM_LEAD,
+      emailVerified: new Date(),
+    },
+  })
+
   console.log('✅ Users created')
 
   // Create services
