@@ -219,7 +219,7 @@ Our consultation sessions are designed to provide you with actionable insights a
     })
 
     // Seed a sample realtime event record as an example
-    await prisma.realtimeEvent.create({ data: { type: 'seed', message: 'seeded event' } as any })
+    await prisma.realtimeEvent.create({ data: { type: 'seed', data: { message: 'seeded event' } } })
   } catch (e) {
     console.warn('Template/Realtime seed skipped or failed:', e)
   }
