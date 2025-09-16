@@ -597,7 +597,7 @@ export default function AdminUsersPage() {
                             {u.role}
                           </Badge>
                           {perms.canManageUsers && (
-                            <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
+                            <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'TEAM_LEAD'|'TEAM_MEMBER'|'STAFF'|'CLIENT')}>
                               <SelectTrigger className="w-28 h-8">
                                 <SelectValue />
                               </SelectTrigger>
