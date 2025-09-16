@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: Active (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -135,11 +135,16 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 9) Testing and docs
 - [ ] Add unit tests for new lib/permissions and helpers
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
-- [ ] Add route tests for service-requests, team-management, and templates
+- [x] Add route tests for service-requests
+- [ ] Add route tests for team-management
+- [ ] Add route tests for templates
 - [ ] Add e2e tests for client create/approve request and admin assign/complete
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added route tests for admin and portal service-requests, and unit tests for permissions helpers.
+  - Added: tests/admin-service-requests.route.test.ts, tests/portal-service-requests.route.test.ts, tests/permissions.test.ts
+  - Notes: Prisma, auth, audit, realtime, and rate-limit mocked; responses validated against standardized { success, data, ... } shape.
 - [x] 2025-09-16: Project paused; refreshed "Remaining work (paused)" checklist and updated status.
 - [x] 2025-09-16: Replaced dashboard mock data with real APIs and added RBAC guards.
   - Updated: src/app/admin/page.tsx (removed mock fallbacks; uses /api/admin/stats/* and /api/admin/analytics)
