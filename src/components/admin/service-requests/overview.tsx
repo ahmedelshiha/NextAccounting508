@@ -27,6 +27,7 @@ interface AnalyticsResponse {
 export default function ServiceRequestsOverview() {
   const [analytics, setAnalytics] = useState<AnalyticsResponse['data'] | null>(null)
   const [loading, setLoading] = useState(true)
+  const perms = usePermissions()
 
   useEffect(() => {
     let ignore = false
