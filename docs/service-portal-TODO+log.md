@@ -128,6 +128,17 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Consolidated app/lib duplicates into src/lib and fixed prisma imports.
+  - Removed: src/app/lib/{auth.ts,email.ts,i18n.ts,prisma.ts,utils.ts}
+  - Updated imports: use default import prisma from '@/lib/prisma' across admin service-requests endpoints and permissions routes; fixed lib auto-assignment.
+  - Notes: Avoids ambiguous duplicates and runtime import mismatch.
+- [x] 2025-09-16: Added rate limiting to mutation-heavy endpoints.
+  - Added: getClientIp/rateLimit checks to POST/PUT/PATCH/DELETE handlers
+  - Updated: /api/admin/service-requests (POST), [id]/assign (POST), [id]/status (PATCH), [id]/comments (POST), [id]/tasks (POST), bulk (POST), [id] (PATCH/DELETE)
+  - Notes: Token-bucket in-memory limiter; safe for single instance; can swap to durable adapter later.
+- [x] 2025-09-16: Added audit logging for key actions.
+  - Updated: create/update/delete, assign, status, comment, task-create, bulk actions to call logAudit()
+  - Notes: Persists to DB when available; logs to console otherwise. Visible in /admin/audits once surfaced.
 - [x] 2025-09-16: Integrated task creation into Service Request detail page.
   - Updated: src/app/admin/service-requests/[id]/page.tsx (task list, create task via TaskForm, realtime refresh)
   - Uses: POST /api/admin/service-requests/[id]/tasks; maps critical->HIGH; dueDate->dueAt
