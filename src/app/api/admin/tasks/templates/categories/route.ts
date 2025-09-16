@@ -23,7 +23,8 @@ export async function GET() {
   }
   try {
     let categories: string[] = []
-    if (!hasDb) {
+    const useDb = await dbAvailable()
+    if (!useDb) {
       const templates = readTemplates()
       const set = new Set<string>()
       for (const t of templates) {
