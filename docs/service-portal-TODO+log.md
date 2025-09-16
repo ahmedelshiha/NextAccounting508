@@ -1,3 +1,8 @@
+- [x] 2025-09-16: Portal Create Service Request — wrapped useSearchParams in Suspense to satisfy Next.js CSR bailout requirement.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Netlify build failed with "useSearchParams() should be wrapped in a suspense boundary" during prerender of /portal/service-requests/new.
+  - Next: None.
+
 - [x] 2025-09-16: Admin Create Service Request — fixed opaque error message "Error: [object Object]".
   - Updated: src/app/admin/service-requests/new/page.tsx
   - What: Properly read standardized API error shape ({ success:false, error:{ code, message, details } }) and surface error.message instead of throwing the error object.
