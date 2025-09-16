@@ -15,7 +15,67 @@ function createClient(url: string) {
   // Lazily require to avoid loading @prisma/client when DB is not configured
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  const client = new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+
+  // Multi-tenancy middleware: when enabled, automatically scope read/update/delete queries
+  // to the tenantId present in process.env.REQUEST_TENANT_ID or MULTI_TENANCY_DEFAULT.
+  // This is intentionally conservative: tenantId columns are nullable, so migrations
+  // can be applied safely and backfilled later. Per-request tenant scoping should
+  // be provided by setting process.env.REQUEST_TENANT_ID prior to executing DB calls
+  // (or extend to pass tenant via a request-scoped Prisma client in future).
+  try {
+    const enabled = String(process.env.MULTI_TENANCY_ENABLED || 'false').toLowerCase() === 'true'
+    if (enabled && typeof client.$use === 'function') {
+      const tenantModels = new Set(['ServiceRequest','Service','TaskTemplate','User','TeamMember','Booking','Post','Template'])
+      client.$use(async (params: any, next: any) => {
+        const model = params.model
+        const action = params.action
+        const tenantId = process.env.REQUEST_TENANT_ID || process.env.MULTI_TENANCY_DEFAULT
+
+        if (!model || !tenantModels.has(model)) {
+          return next(params)
+        }
+
+        // For read/update/delete operations, inject tenantId into where clause if not present
+        const readOps = new Set(['findUnique','findFirst','findMany','count'])
+        const writeOps = new Set(['updateMany','deleteMany','update','delete'])
+
+        if (readOps.has(action) || writeOps.has(action)) {
+          params.args = params.args || {}
+          const where = params.args.where || {}
+          // If where already contains tenantId, respect it
+          if (!Object.prototype.hasOwnProperty.call(where, 'tenantId')) {
+            if (tenantId) {
+              params.args.where = { AND: [where, { tenantId }] }
+            } else {
+              // If no tenant provided, do not silently restrict reads; allow existing behaviour
+              params.args.where = where
+            }
+          }
+        }
+
+        // For create actions, set tenantId if provided via env and not specified in data
+        if (action === 'create' || action === 'createMany') {
+          params.args = params.args || {}
+          const data = params.args.data || {}
+          if (tenantId && !Object.prototype.hasOwnProperty.call(data, 'tenantId')) {
+            if (Array.isArray(data)) {
+              params.args.data = data.map(d => ({ ...d, tenantId }))
+            } else {
+              params.args.data = { ...data, tenantId }
+            }
+          }
+        }
+
+        return next(params)
+      })
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('Prisma tenant middleware setup failed:', e)
+  }
+
+  return client
 }
 
 // Export a proxy that lazily creates Prisma client on first use
