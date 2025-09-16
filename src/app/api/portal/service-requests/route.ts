@@ -17,7 +17,7 @@ const CreateSchema = z.object({
   budgetMin: z.number().optional(),
   budgetMax: z.number().optional(),
   deadline: z.string().datetime().optional(),
-  requirements: z.record(z.any()).optional(),
+  requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
 })
 
@@ -95,8 +95,8 @@ export async function POST(request: Request) {
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
       budgetMax: data.budgetMax != null ? data.budgetMax : null,
       deadline: data.deadline ? new Date(data.deadline) : null,
-      requirements: data.requirements ?? undefined,
-      attachments: data.attachments ?? undefined,
+      requirements: (data.requirements as any) ?? undefined,
+      attachments: (data.attachments as any) ?? undefined,
       status: 'SUBMITTED',
     },
     include: {

@@ -1137,7 +1137,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
     return true
   })
 
-  const prioritizedTasks = [...data.urgentTasks].sort((a, b) => {
+  const prioritizedTasks = [...(data.urgentTasks || [])].sort((a, b) => {
     const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
     return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
            (priorityOrder[a.priority as keyof typeof priorityOrder] || 0)
@@ -1155,7 +1155,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
               {([
                 { key: 'schedule', label: 'Schedule', count: data.recentBookings.length } as const,
-                { key: 'tasks', label: 'Tasks', count: data.urgentTasks.length } as const,
+                { key: 'tasks', label: 'Tasks', count: (data.urgentTasks?.length ?? 0) } as const,
                 { key: 'deadlines', label: 'Deadlines', count: data.upcomingDeadlines.length } as const
               ] as const).map((tab) => (
                 <Button
@@ -1652,7 +1652,7 @@ function BusinessIntelligence({ dashboard }: { dashboard: DashboardData }) {
           </div>
         </div>
         <div className="text-xs text-gray-600">
-          Current: ${dashboardData.stats.revenue.current.toLocaleString()} • Target: ${dashboardData.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{dashboardData.stats.revenue.trend}%</span>
+          Current: ${dashboard.stats.revenue.current.toLocaleString()} • Target: ${dashboard.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{dashboard.stats.revenue.trend}%</span>
         </div>
       </div>
 
@@ -1668,25 +1668,25 @@ function BusinessIntelligence({ dashboard }: { dashboard: DashboardData }) {
             <span className="text-sm text-gray-600">Booking Utilization</span>
             <div className="flex items-center gap-2">
               <div className="w-24 bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboardData.performanceMetrics.efficiency.bookingUtilization}%` }} />
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${dashboard.performanceMetrics.efficiency.bookingUtilization}%` }} />
               </div>
-              <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.bookingUtilization}%</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.bookingUtilization}%</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Client Satisfaction</span>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-medium">{dashboardData.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Task Completion Rate</span>
-            <span className="text-sm font-medium text-green-600">{dashboardData.performanceMetrics.efficiency.taskCompletionRate}%</span>
+            <span className="text-sm font-medium text-green-600">{dashboard.performanceMetrics.efficiency.taskCompletionRate}%</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Show Rate</span>
-            <span className="text-sm font-medium">{dashboardData.performanceMetrics.operational.appointmentShowRate}%</span>
+            <span className="text-sm font-medium">{dashboard.performanceMetrics.operational.appointmentShowRate}%</span>
           </div>
         </div>
       </div>
@@ -1701,7 +1701,7 @@ export default function ProfessionalAdminDashboard() {
     clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
     tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
   }
-  const initialDashboardData: DashboardData = { ...({} as any), stats: zeroStats, recentBookings: [], notifications: [], systemHealth: {
+  const initialDashboardData: DashboardData = { ...({} as any), stats: zeroStats, recentBookings: [], urgentTasks: [], notifications: [], systemHealth: {
     overall: 'healthy',
     database: { status: 'healthy', responseTime: 0, connections: 0, lastBackup: '' },
     email: { status: 'healthy', deliveryRate: 0, bounceRate: 0, lastSent: '' },

@@ -67,9 +67,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await req.json().catch(() => ({}))
-    const { name, email, role = 'TEAM_MEMBER', department = 'tax', title = '', userId = null } = body || {}
+    const { name, email, role: memberRole = 'TEAM_MEMBER', department = 'tax', title = '', userId = null } = body || {}
     if (!name || !email) return NextResponse.json({ error: 'Missing name or email' }, { status: 400 })
-    const created = await prisma.teamMember.create({ data: { name, email, role, department, title, userId } as any })
+    const created = await prisma.teamMember.create({ data: { name, email, role: memberRole, department, title, userId } as any })
     return NextResponse.json({ teamMember: created }, { status: 201 })
   } catch (err) {
     console.error('POST /api/admin/team-members error', err)
