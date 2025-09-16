@@ -373,3 +373,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
   - Next: Run cross-instance validation by observing the polling adapter in a long-running instance (CI or staging) subscribing to events. If desired, I can add an automated smoke test that starts the polling adapter, publishes an event, and asserts delivery.
 
+- [x] 2025-09-16: Implemented DB-first templates endpoints with file fallback for local/dev.
+  - Updated: src/app/api/admin/tasks/templates/route.ts, src/app/api/admin/tasks/templates/categories/route.ts
+  - Notes: Endpoints now attempt a lightweight DB probe at runtime (prisma.$queryRaw`SELECT 1`) and use the Prisma-backed TaskTemplate table when available. If DB is unreachable or not configured, endpoints fall back to the local file at src/app/admin/tasks/data/templates.json. This preserves local dev/tests that mock the file system while enabling DB-backed behavior in CI/CD and production.
+
