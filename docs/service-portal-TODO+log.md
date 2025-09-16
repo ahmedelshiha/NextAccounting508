@@ -15,18 +15,96 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
-## Remaining work (paused)
+## Remaining Work (Paused) — Actionable Checklist
 
-- Resume checklist (ordered):
-  1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
-  2. Seed roles/permissions and default templates; verify RBAC via permissions API.
-  3. Enable durable realtime in environments by setting REALTIME_TRANSPORT=postgres and configure DB (Neon). Optional: tune REALTIME_PG_POLL_MS.
-  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
-  5. Replace file-based templates with DB-backed endpoints (notifications done).
-  6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
-  7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
-  8. Update docs to reflect endpoints, flows, and ops runbooks.
+Current status: PAUSED (as of 2025-09-16). The team resumed work to complete DB migrations/seeds and realtime durable transport, then re-paused to consolidate CI/CD and multi-tenancy plans.
 
+Summary of what is already completed (high level):
+- Prisma schema extended for service-portal foundations (TaskTemplate, ServiceRequest, UserPermission, enums, indexes).
+- Admin and Portal Service Requests APIs implemented (list/create, id endpoints, comments, assign, tasks, status, analytics, export, bulk).
+- Realtime foundation implemented with Postgres polling adapter and in-memory fallback; verified RealtimeEvents table and writable.
+- Admin templates endpoints switched to DB-first with file fallback; demo template seeds present.
+- Demo accounts and permissions seeded locally (admin, staff/TEAM_MEMBER, lead/TEAM_LEAD); login page updated to display accounts.
+- RBAC migration and permission helpers implemented; PermissionGate component added.
+
+Actionable Remaining Work (for resume):
+1) CI/CD: run migrations, generate client, and run seeds in CI (Netlify)
+   - Why: Ensure production/staging DB schema and seeds match repo (roles, templates, demo users).
+   - Steps:
+     a. Ensure Neon connection is available and envs NETLIFY_DATABASE_URL/DATABASE_URL are set in Netlify site settings.
+     b. Push branch with latest changes (ai_main_3f3fbea2b33a) or trigger deploy hook.
+     c. CI will run: npm run db:push -- --accept-data-loss && npm run db:seed && npm run build (per netlify.toml).
+     d. Verify Netlify build logs show seed output (Team Lead: lead@accountingfirm.com / lead123) and no migration errors.
+   - Owner: DevOps / Maintainer (can be run from CI pipeline).
+
+2) Multi-tenancy rollout (tenantId/orgId)
+   - Why: Scope data by tenant and add indexes; required for production isolation.
+   - Steps:
+     a. Finalize tenantId columns and nullable rollout strategy in schema (already present as nullable).
+     b. Create migration that adds tenantId indexes and backfills if needed.
+     c. Add feature-flag gating (MULTI_TENANCY_ENABLED) and middleware checks.
+   - Owner: Backend engineer
+
+3) Attachments & Uploads provider + virus-scan policy
+   - Why: Production-safe file uploads for portal/admin flows.
+   - Steps:
+     a. Decide provider (S3/Minio/Netlify/Cloud) and add UPLOADS_PROVIDER env.
+     b. Implement server-side size/type limits; integrate virus scanning (clamav or 3rd-party) in upload pipeline.
+     c. Persist attachment metadata in DB and migrate file-fallbacks to DB-backed storage.
+   - Owner: Backend engineer / Security
+
+4) Replace file-based comments/templates/notifications with DB-backed endpoints (complete migration)
+   - Why: Remove file fallbacks and enable consistent DB-backed behavior across environments.
+   - Steps:
+     a. Create and apply migrations for task/template/comment models (schema already updated but ensure migrations applied).
+     b. Migrate existing file-based data into DB where applicable.
+     c. Remove file-fallback code paths once DB is verified in CI.
+   - Owner: Backend engineer
+
+5) Realtime durable transport verification (cross-instance)
+   - Why: Ensure Postgres polling adapter reliably delivers events across instances.
+   - Steps:
+     a. Run a long-running staging instance (or CI job) that subscribes via polling adapter.
+     b. Publish test events and assert delivery to subscriber(s).
+     c. Add an automated smoke test (optional) that starts adapter, publishes an event, and verifies delivery.
+   - Owner: Backend / QA
+
+6) Testing: unit, route, and E2E
+   - Why: Ensure regressions are detected and enforce quality gates in CI.
+   - Steps:
+     a. Add unit tests for lib/permissions, auto-assignment, and other helpers.
+     b. Add route tests for templates (DB + file fallback), service-requests, and team-management.
+     c. Add E2E scenarios: client create/approve request, admin assign/complete, file uploads, realtime notifications.
+     d. Run tests in CI and raise thresholds for coverage where appropriate.
+   - Owner: QA / Developers
+
+7) Documentation and runbooks
+   - Why: Operators must know how to run migrations/seeds, connect Neon, configure REALTIME_TRANSPORT, and handle incidents.
+   - Steps:
+     a. Update docs/service_portal_implementation_guide.md and ops runbooks with precise CI commands, required envs, and rollback steps.
+     b. Document uploads provider configuration and virus-scan operational steps.
+   - Owner: Developer / Ops
+
+Quick checklist to unpause and continue work:
+- [ ] Push latest commits to ai_main_3f3fbea2b33a and open/refresh PR
+- [ ] Trigger Netlify deploy (or let CI run) and confirm prisma db push/seed completes with seed outputs
+- [ ] Mark environment REALTIME_TRANSPORT=postgres and validate cross-instance delivery in staging
+- [ ] Run migration to add tenantId indexes (if required) and confirm operations
+- [ ] Replace any remaining file fallbacks after DB confirmed
+- [ ] Merge tests and enable test job in CI
+
+Notes & Current state snapshot:
+- Repo branch: ai_main_3f3fbea2b33a (local commits ahead; push required to update PR)
+- Neon DB envs present in environment variables (NETLIFY_DATABASE_URL / DATABASE_URL). Connectivity tested from this environment (RealtimeEvents table created and writable).
+- Prisma schema updated; seeds updated (demo users + demo permissions + templates).
+- Templates endpoints now prefer DB at runtime and fall back to file for local dev/tests.
+
+Change Log: recent (high level):
+- 2025-09-16: DB-first templates endpoints implemented; demo permissions seeded; realtime table verified; seed updated to include Team Lead; local DB push & seed executed.
+
+------
+
+Please let me know if you want me to automatically push the branch & trigger Netlify deploy and/or open a PR update now — I can perform those steps if you want me to proceed autonomously.
 - [ ] Database/Prisma
   - Extend User and Service models; add UserPermission model; add enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
   - Plan multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
