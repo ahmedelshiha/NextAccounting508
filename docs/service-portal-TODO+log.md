@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: Active (resumed 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -126,6 +126,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Status updated to Active; resuming implementation.
+- [x] 2025-09-16: Added rate limiting to client portal service-requests endpoints.
+  - Updated: src/app/api/portal/service-requests/route.ts (POST)
+  - Updated: src/app/api/portal/service-requests/[id]/route.ts (PATCH)
+  - Updated: src/app/api/portal/service-requests/[id]/comments/route.ts (POST)
+  - Notes: Uses getClientIp/rateLimit; protects from abuse; consistent with admin endpoints.
 - [x] 2025-09-16: Consolidated app/lib duplicates into src/lib and fixed prisma imports.
   - Removed: src/app/lib/{auth.ts,email.ts,i18n.ts,prisma.ts,utils.ts}
   - Updated imports: use default import prisma from '@/lib/prisma' across admin service-requests endpoints and permissions routes; fixed lib auto-assignment.
