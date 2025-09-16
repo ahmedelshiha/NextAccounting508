@@ -91,7 +91,10 @@ export default function AdminNewServiceRequestPage() {
                     <SelectValue placeholder="Select client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` — ${c.email}` : ''}</SelectItem>))}
+                    <div className="px-2 py-2">
+                      <input aria-label="Search clients" className="w-full rounded border px-2 py-1 text-sm" placeholder="Search clients" value={clientQuery} onChange={(e) => setClientQuery(e.target.value)} />
+                    </div>
+                    {filteredClients.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}{c.email ? ` — ${c.email}` : ''}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
