@@ -159,6 +159,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Updated: admin/permissions [userId] route to NextRequest with context.params Promise; multiple admin/portal service-requests [id] routes (assign, comments, status, tasks) similarly.
   - Fixed: duplicate NextResponse import in /api/admin/tasks/analytics; corrected undefined analyticsFallback/dashboard vars in admin/page.tsx.
   - Notes: Addresses Netlify TSC failures. Prisma client generation happens on Netlify prior to typecheck.
+- [x] 2025-09-16: Fixed admin dashboard runtime crash when urgentTasks is undefined.
+  - Updated: src/app/admin/page.tsx (default urgentTasks: [], null-safe uses for spread and length)
+  - Notes: Prevents 'is not iterable' client error on first load.
 - [x] 2025-09-16: Added route tests for admin and portal service-requests, and unit tests for permissions helpers.
   - Added: tests/admin-service-requests.route.test.ts, tests/portal-service-requests.route.test.ts, tests/permissions.test.ts
   - Notes: Prisma, auth, audit, realtime, and rate-limit mocked; responses validated against standardized { success, data, ... } shape.

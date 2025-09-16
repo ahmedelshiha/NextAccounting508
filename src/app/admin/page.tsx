@@ -1137,7 +1137,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
     return true
   })
 
-  const prioritizedTasks = [...data.urgentTasks].sort((a, b) => {
+  const prioritizedTasks = [...(data.urgentTasks || [])].sort((a, b) => {
     const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
     return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
            (priorityOrder[a.priority as keyof typeof priorityOrder] || 0)
@@ -1155,7 +1155,7 @@ function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: 
             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
               {([
                 { key: 'schedule', label: 'Schedule', count: data.recentBookings.length } as const,
-                { key: 'tasks', label: 'Tasks', count: data.urgentTasks.length } as const,
+                { key: 'tasks', label: 'Tasks', count: (data.urgentTasks?.length ?? 0) } as const,
                 { key: 'deadlines', label: 'Deadlines', count: data.upcomingDeadlines.length } as const
               ] as const).map((tab) => (
                 <Button
@@ -1701,7 +1701,7 @@ export default function ProfessionalAdminDashboard() {
     clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
     tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
   }
-  const initialDashboardData: DashboardData = { ...({} as any), stats: zeroStats, recentBookings: [], notifications: [], systemHealth: {
+  const initialDashboardData: DashboardData = { ...({} as any), stats: zeroStats, recentBookings: [], urgentTasks: [], notifications: [], systemHealth: {
     overall: 'healthy',
     database: { status: 'healthy', responseTime: 0, connections: 0, lastBackup: '' },
     email: { status: 'healthy', deliveryRate: 0, bounceRate: 0, lastSent: '' },
