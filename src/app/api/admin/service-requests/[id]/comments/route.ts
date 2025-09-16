@@ -7,6 +7,7 @@ import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const CreateCommentSchema = z.object({
   content: z.string().min(1),
@@ -17,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const comments = await prisma.serviceRequestComment.findMany({
@@ -26,24 +27,24 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     orderBy: { createdAt: 'asc' },
   })
 
-  return NextResponse.json({ success: true, data: comments })
+  return respond.ok(comments)
 }
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:comment:${params.id}:${ip}`, 30, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
   const parsed = CreateCommentSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
   const created = await prisma.serviceRequestComment.create({
@@ -65,5 +66,5 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   } catch {}
 
   try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: params.id, details: { commentId: created.id } }) } catch {}
-  return NextResponse.json({ success: true, data: created }, { status: 201 })
+  return respond.created(created)
 }

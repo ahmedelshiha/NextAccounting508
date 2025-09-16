@@ -6,6 +6,7 @@ Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
 - prisma generate/migrate/seed cannot run in this environment due to ACL; run in CI/CD or dev shell when available.
 - On resume: generate Prisma client, apply migrations, seed roles/permissions, then implement realtime filtering/durable transport.
+- Neon DATABASE_URL configured in env; pending CI/CD run to execute prisma generate/migrate/seed.
 
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
@@ -124,7 +125,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [ ] Replace mock dashboard data with real API and guards
-- [ ] Standardize zod validation and error shapes across new routes
+- [x] Standardize zod validation and error shapes across new routes
+  - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
 - [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
 - [x] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
@@ -136,6 +138,23 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; updated status and refreshed "Remaining work (paused)" checklist.
+  - Notes: Env configured; awaiting CI/CD to run prisma tasks before resuming implementation.
+- [x] 2025-09-16: Added unit tests for api-response and zodDetails.
+  - Added: tests/api-response.test.ts
+  - Notes: Verifies success/error shapes, status codes, meta fields, and zod flatten handling.
+- [x] 2025-09-16: Extended standardization to remaining service-requests endpoints (admin/portal) and db-check.
+  - Updated: src/app/api/admin/service-requests/[id]/{route,comments,assign,status,tasks}/route.ts
+  - Updated: src/app/api/portal/service-requests/[id]/{route,comments}/route.ts
+  - Updated: src/app/api/db-check/route.ts
+  - Notes: All return { success, data | error } with consistent codes; zod details standardized.
+- [x] 2025-09-16: Set Neon database env vars (NETLIFY_DATABASE_URL, DATABASE_URL) from provided credentials (value hidden).
+  - Notes: CI/CD will run prisma generate/migrate/seed via netlify.toml.
+- [x] 2025-09-16: Standardized API responses and validation for service-requests (admin/portal) list/create.
+  - Added: src/lib/api-response.ts (respond helpers, zodDetails)
+  - Updated: src/app/api/admin/service-requests/route.ts (GET/POST)
+  - Updated: src/app/api/portal/service-requests/route.ts (GET/POST)
+  - Notes: Consistent { success, data | error } shape; rate limit and auth use unified helpers.
 - [x] 2025-09-16: Project paused; refreshed Remaining work (paused) with an actionable resume checklist.
   - Notes: Blocked on Prisma generate/migrate/seed due to environment ACL; to be run in CI/CD or dev shell.
 - [x] 2025-09-16: Status updated to Active; resuming implementation.
