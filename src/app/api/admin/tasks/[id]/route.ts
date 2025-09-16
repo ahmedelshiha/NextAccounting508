@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const PriorityEnum = z.enum(['LOW','MEDIUM','HIGH'])
 const StatusEnum = z.enum(['OPEN','IN_PROGRESS','DONE'])
@@ -33,7 +34,8 @@ export async function GET(request: Request, context: any) {
   const params = context?.params || context
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const { id } = params
@@ -50,7 +52,8 @@ export async function PATCH(request: Request, context: any) {
   const params = context?.params || context
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -83,7 +86,8 @@ export async function DELETE(request: Request, context: any) {
   const params = context?.params || context
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN','STAFF'].includes(session.user.role as string)) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const { id } = params
