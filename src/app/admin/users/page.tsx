@@ -378,6 +378,10 @@ export default function AdminUsersPage() {
     switch (role) {
       case 'ADMIN':
         return 'bg-red-100 text-red-800 border-red-200'
+      case 'TEAM_MEMBER':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'TEAM_LEAD':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
       case 'STAFF':
         return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'CLIENT':
