@@ -122,7 +122,7 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Unable to cancel')
+        toast.error(err?.error?.message || err?.error || 'Unable to cancel')
         return
       }
       toast.success('Request cancelled')
