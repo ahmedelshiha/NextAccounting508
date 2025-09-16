@@ -62,9 +62,11 @@ export default function ServiceRequestsOverview() {
           <h2 className="text-2xl font-semibold text-gray-900">Service Requests</h2>
           <p className="text-gray-600">Overview and management</p>
         </div>
-        <Button variant="outline" onClick={exportCsv} className="flex items-center gap-2">
-          <Download className="h-4 w-4" /> Export CSV
-        </Button>
+        {perms.has(PERMISSIONS.ANALYTICS_EXPORT) && (
+          <Button variant="outline" onClick={exportCsv} className="flex items-center gap-2">
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
