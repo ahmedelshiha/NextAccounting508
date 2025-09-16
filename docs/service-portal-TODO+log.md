@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: Active (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -45,7 +45,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 
 - [ ] Cleanup & Consistency
-  - Replace file-based task comments/templates/notifications with DB-backed endpoints
+  - [ ] Replace file-based task comments with DB-backed endpoints
+  - [ ] Replace file-based templates with DB-backed endpoints
+  - [x] Replace file-based notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
 
 - [ ] Testing & Docs
@@ -138,6 +140,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Switched task notifications endpoint to DB-backed with file fallback.
+  - Updated: prisma/schema.prisma (added NotificationSettings model)
+  - Updated: src/app/api/admin/tasks/notifications/route.ts (uses Prisma with fallback to file; RBAC preserved)
+  - Notes: CI/CD will run prisma db push. Existing file-based settings remain as fallback when DB not configured.
 - [x] 2025-09-16: Project paused; updated status and refreshed "Remaining work (paused)" checklist.
   - Notes: Env configured; awaiting CI/CD to run prisma tasks before resuming implementation.
 - [x] 2025-09-16: Added unit tests for api-response and zodDetails.

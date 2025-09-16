@@ -578,3 +578,15 @@ enum PostPriority {
   HIGH
   URGENT
 }
+
+model NotificationSettings {
+  id            String   @id @default(cuid())
+  emailEnabled  Boolean  @default(false)
+  emailFrom     String?
+  webhookUrl    String?
+  templates     Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("notification_settings")
+}
