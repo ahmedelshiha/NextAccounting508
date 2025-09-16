@@ -1952,8 +1952,9 @@ export default function ProfessionalAdminDashboard() {
         />
         <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
+        <TeamWorkloadSummary />
         <IntelligentActivityFeed data={dashboardData} thresholds={thresholds} history={history} saveThresholds={saveThresholds} />
-        
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
