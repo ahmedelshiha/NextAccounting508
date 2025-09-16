@@ -137,6 +137,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Set Neon database env vars (NETLIFY_DATABASE_URL, DATABASE_URL) from provided credentials (value hidden).
+  - Notes: CI/CD will run prisma generate/migrate/seed via netlify.toml.
 - [x] 2025-09-16: Standardized API responses and validation for service-requests (admin/portal) list/create.
   - Added: src/lib/api-response.ts (respond helpers, zodDetails)
   - Updated: src/app/api/admin/service-requests/route.ts (GET/POST)
