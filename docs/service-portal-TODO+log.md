@@ -137,6 +137,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added unit tests for api-response and zodDetails.
+  - Added: tests/api-response.test.ts
+  - Notes: Verifies success/error shapes, status codes, meta fields, and zod flatten handling.
 - [x] 2025-09-16: Extended standardization to remaining service-requests endpoints (admin/portal) and db-check.
   - Updated: src/app/api/admin/service-requests/[id]/{route,comments,assign,status,tasks}/route.ts
   - Updated: src/app/api/portal/service-requests/[id]/{route,comments}/route.ts
