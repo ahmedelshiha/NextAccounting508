@@ -63,8 +63,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     updates.deadline = parsed.data.deadline ? new Date(parsed.data.deadline as any) : null
   }
 
+  const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
   const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: updates })
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
+  try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: updated.id, action: 'updated' }, timestamp: new Date().toISOString() }) } catch {}
   try { await logAudit({ action: 'service-request:update', actorId: (session.user as any).id ?? null, targetId: params.id, details: { updates } }) } catch {}
   return NextResponse.json({ success: true, data: updated })
 }
@@ -80,9 +82,11 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if (!rateLimit(`service-requests:delete:${params.id}:${ip}`, 10, 60_000)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
+  const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
   await prisma.serviceRequest.delete({ where: { id: params.id } })
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
+  try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: params.id, action: 'deleted' }, timestamp: new Date().toISOString() }) } catch {}
   try { await logAudit({ action: 'service-request:delete', actorId: (session.user as any).id ?? null, targetId: params.id }) } catch {}
   return NextResponse.json({ success: true })
 }

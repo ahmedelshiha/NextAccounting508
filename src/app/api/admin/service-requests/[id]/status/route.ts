@@ -34,6 +34,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   // Realtime broadcast
   try { realtimeService.emitServiceRequestUpdate(updated.id, { status: updated.status }) } catch {}
+  try { if (updated.client?.id) realtimeService.broadcastToUser(String(updated.client.id), { type: 'service-request-updated', data: { serviceRequestId: updated.id, status: updated.status }, timestamp: new Date().toISOString() }) } catch {}
 
   // Email client on status changes (best-effort)
   try {

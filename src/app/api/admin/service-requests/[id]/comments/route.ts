@@ -56,7 +56,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     include: { author: { select: { id: true, name: true, email: true } } },
   })
 
-  realtimeService.emitServiceRequestUpdate(params.id, { commentId: created.id, event: 'comment-created' })
+  try { realtimeService.emitServiceRequestUpdate(params.id, { commentId: created.id, event: 'comment-created' }) } catch {}
+  try {
+    const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
+    if (sr?.clientId) {
+      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: params.id, commentId: created.id, event: 'comment-created' }, timestamp: new Date().toISOString() })
+    }
+  } catch {}
 
   try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: params.id, details: { commentId: created.id } }) } catch {}
   return NextResponse.json({ success: true, data: created }, { status: 201 })

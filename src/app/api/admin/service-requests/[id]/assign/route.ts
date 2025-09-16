@@ -44,6 +44,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // Fire realtime event
   try { realtimeService.emitTeamAssignment({ serviceRequestId: updated.id, teamMemberId: tm.id }) } catch {}
   try { realtimeService.emitServiceRequestUpdate(updated.id, { status: 'ASSIGNED' }) } catch {}
+  try { if (updated.client?.id) realtimeService.broadcastToUser(String(updated.client.id), { type: 'service-request-updated', data: { serviceRequestId: updated.id, status: 'ASSIGNED' }, timestamp: new Date().toISOString() }) } catch {}
 
   // Email notifications (best-effort)
   try {
