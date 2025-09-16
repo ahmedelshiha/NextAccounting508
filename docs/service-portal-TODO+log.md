@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Active (as of 2025-09-16)
+Status: Paused (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -22,7 +22,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
   3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
   4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
-  5. Replace file-based templates/notifications with DB-backed endpoints.
+  5. Replace file-based templates with DB-backed endpoints (notifications done).
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
   7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
   8. Update docs to reflect endpoints, flows, and ops runbooks.
@@ -140,6 +140,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; refreshed "Remaining work (paused)" checklist and updated status.
 - [x] 2025-09-16: Replaced dashboard mock data with real APIs and added RBAC guards.
   - Updated: src/app/admin/page.tsx (removed mock fallbacks; uses /api/admin/stats/* and /api/admin/analytics)
   - Updated: src/app/api/admin/tasks/analytics/route.ts (RBAC + daily trends)
