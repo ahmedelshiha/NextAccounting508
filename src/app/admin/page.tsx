@@ -956,6 +956,79 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   )
 }
 
+function TeamWorkloadSummary() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [data, setData] = useState<{ utilization: number; activeMembers: number; distribution: Array<{ memberId: string; assigned: number; inProgress: number; completed: number }> } | null>(null)
+
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/team-management/workload')
+        const j = await r.json().catch(() => null)
+        if (!ignore) {
+          if (j && j.data) setData(j.data)
+          else setData({ utilization: 0, activeMembers: 0, distribution: [] })
+          setError(null)
+        }
+      } catch (e) {
+        if (!ignore) setError('Failed to load team workload')
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [])
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Team Workload</CardTitle>
+            <CardDescription>Utilization based on active assignments</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="h-16 bg-gray-100 rounded animate-pulse" />
+        ) : error ? (
+          <div className="text-sm text-red-600">{error}</div>
+        ) : data ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-center">
+            <div className="space-y-1">
+              <div className="text-sm text-gray-600">Utilization</div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(Math.max(data.utilization, 0), 100)}%` }} />
+              </div>
+              <div className="text-sm font-medium">{data.utilization}%</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-sm text-gray-600">Active Members</div>
+              <div className="text-2xl font-bold">{data.activeMembers}</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm text-gray-600">Active Assignments</div>
+              <div className="flex flex-wrap gap-2">
+                {data.distribution.slice(0, 5).map((d) => (
+                  <Badge key={d.memberId} variant="outline" className="text-xs">
+                    {d.memberId.slice(0, 6)} • {d.assigned + d.inProgress}
+                  </Badge>
+                ))}
+                {data.distribution.length === 0 && (
+                  <span className="text-sm text-gray-500">No assignments</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
 function IntelligentActivityFeed({ data, thresholds, history, saveThresholds }: { data: DashboardData; thresholds: { responseTime: number; errorRate: number; storageGrowth: number }; history?: { timestamp: string; databaseResponseTime: number; apiErrorRate: number }[]; saveThresholds?: (t: { responseTime: number; errorRate: number; storageGrowth: number }) => void }) {
   const [activeTab, setActiveTab] = useState<'schedule' | 'tasks' | 'deadlines'>('schedule')
   const [filterStatus, setFilterStatus] = useState<string>('all')
