@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-16)
+Status: Active (as of 2025-09-16)
 
 Paused Notes:
 - Verified RBAC migration: all admin API routes use src/lib/permissions with hasPermission and PERMISSIONS; no src/lib/rbac or ADMIN/STAFF string checks remain; 401 responses standardized.
@@ -53,9 +53,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ### 1) Database and Prisma schema
 - [x] Add models ServiceRequest and RequestTask with enums RequestPriority, RequestStatus (prisma/schema.prisma)
-- [ ] Extend prisma/schema.prisma with remaining models/fields: TaskComment (service-requests), UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
+- [x] Extend prisma/schema.prisma with remaining models/fields: TaskComment (service-requests), UserPermission; enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
 - [x] Extend TaskTemplate model with service-portal fields (description, category, defaultPriority, defaultCategory, estimatedHours, checklistItems, requiredSkills, defaultAssigneeRole)
-- [ ] Add fields to User and Service models per guide (employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service.requiredSkills/status)
+- [x] Add fields to User and Service models per guide (employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service.requiredSkills/status)
 - [ ] Plan multi-tenancy: introduce tenantId/orgId on relevant tables (users, services, service_requests, tasks) with indexes; scope queries behind feature flag
 - [ ] Define attachments storage strategy (provider, size limits, virus scan) and persist attachment metadata schema
 - [x] Add DB indexes as in guide (status, priority, assigned_team_member_id, deadline, client_id)
@@ -131,6 +131,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Prisma schema extended for service portal foundations.
+  - Updated: prisma/schema.prisma (User: employeeId, department, position, skills, expertiseLevel, hourlyRate, availabilityStatus, maxConcurrentProjects, hireDate, manager relation; Service: basePrice, estimatedDurationHours, requiredSkills, status; added UserPermission model; added enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole)
+  - Notes: No DB migration run here. Run pnpm prisma generate and apply migrations when DB is connected.
 - [x] 2025-09-16: Aligned middleware and navigation to new roles and updated permissions usage.
   - Updated: src/app/middleware.ts, src/components/ui/navigation.tsx, src/lib/use-permissions.ts, src/app/api/admin/service-requests/[id]/status/route.ts, src/app/types/next-auth.d.ts
   - Notes: Admin access now allowed for ADMIN, TEAM_LEAD, TEAM_MEMBER; API uses permissions.ts for status updates
