@@ -1,6 +1,7 @@
 import { PrismaClient, UserRole, BookingStatus } from '@prisma/client'
 import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { UserRole } from '@prisma/client'
 
 async function main() {
   console.log('🌱 Starting seed...')
