@@ -125,7 +125,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [ ] Replace mock dashboard data with real API and guards
 - [x] Standardize zod validation and error shapes across new routes
-  - Applied to service-requests (admin/portal) list/create endpoints via src/lib/api-response.ts
+  - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
 - [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
 - [x] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
@@ -137,6 +137,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Extended standardization to remaining service-requests endpoints (admin/portal) and db-check.
+  - Updated: src/app/api/admin/service-requests/[id]/{route,comments,assign,status,tasks}/route.ts
+  - Updated: src/app/api/portal/service-requests/[id]/{route,comments}/route.ts
+  - Updated: src/app/api/db-check/route.ts
+  - Notes: All return { success, data | error } with consistent codes; zod details standardized.
 - [x] 2025-09-16: Set Neon database env vars (NETLIFY_DATABASE_URL, DATABASE_URL) from provided credentials (value hidden).
   - Notes: CI/CD will run prisma generate/migrate/seed via netlify.toml.
 - [x] 2025-09-16: Standardized API responses and validation for service-requests (admin/portal) list/create.
