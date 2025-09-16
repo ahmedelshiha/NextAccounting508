@@ -86,10 +86,32 @@ export async function POST(request: Request) {
       data: {
         name: String(body.name || 'Template'),
         content: String(body.content || ''),
+        description: body.description ?? null,
+        category: body.category ?? null,
+        defaultPriority: body.defaultPriority ?? 'MEDIUM',
+        defaultCategory: body.defaultCategory ?? null,
+        estimatedHours: typeof body.estimatedHours === 'number' ? body.estimatedHours : null,
+        checklistItems: Array.isArray(body.checklistItems) ? body.checklistItems : [],
+        requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
+        defaultAssigneeRole: body.defaultAssigneeRole ?? null,
         createdById: session.user.id as string | undefined,
       } as any
     })
-    const mapped = { id: created.id, name: created.name, content: created.content, createdAt: created.createdAt.toISOString(), updatedAt: created.updatedAt.toISOString() }
+    const mapped = {
+      id: created.id,
+      name: created.name,
+      content: created.content,
+      description: (created as any).description ?? null,
+      category: (created as any).category ?? null,
+      defaultPriority: (created as any).defaultPriority ?? 'MEDIUM',
+      defaultCategory: (created as any).defaultCategory ?? null,
+      estimatedHours: (created as any).estimatedHours ?? null,
+      checklistItems: (created as any).checklistItems ?? [],
+      requiredSkills: (created as any).requiredSkills ?? [],
+      defaultAssigneeRole: (created as any).defaultAssigneeRole ?? null,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString()
+    }
     return NextResponse.json(mapped, { status: 201 })
   } catch (e) {
     console.error('Create template error', e)
