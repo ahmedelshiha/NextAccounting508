@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const CreateSchema = z.object({
   serviceId: z.string().min(1),
@@ -23,7 +24,7 @@ const CreateSchema = z.object({
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
   const { searchParams } = new URL(request.url)
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
@@ -57,35 +58,31 @@ export async function GET(request: Request) {
     prisma.serviceRequest.count({ where }),
   ])
 
-  return NextResponse.json({
-    success: true,
-    data: items,
-    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-  })
+  return respond.ok(items, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
 }
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(request)
   if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
   const data = parsed.data
 
   // Validate service exists and active
   const svc = await prisma.service.findUnique({ where: { id: data.serviceId } })
-  if (!svc || svc.active === false) {
-    return NextResponse.json({ error: 'Service not found or inactive' }, { status: 400 })
+  if (!svc || (svc as any).active === false) {
+    return respond.badRequest('Service not found or inactive')
   }
 
   const created = await prisma.serviceRequest.create({
@@ -107,5 +104,5 @@ export async function POST(request: Request) {
     },
   })
 
-  return NextResponse.json({ success: true, data: created }, { status: 201 })
+  return respond.created(created)
 }

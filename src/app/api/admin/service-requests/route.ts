@@ -7,6 +7,7 @@ import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { respond, zodDetails } from '@/lib/api-response'
 
 const CreateSchema = z.object({
   clientId: z.string().min(1),
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const { searchParams } = new URL(request.url)
@@ -81,9 +82,7 @@ export async function GET(request: Request) {
     prisma.serviceRequest.count({ where }),
   ])
 
-  return NextResponse.json({
-    success: true,
-    data: items,
+  return respond.ok(items, {
     pagination: {
       page: filters.page,
       limit: filters.limit,
@@ -97,17 +96,17 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_CREATE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const ip = getClientIp(request)
   if (!rateLimit(`service-requests:create:${ip}`, 10, 60_000)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    return respond.tooMany()
   }
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
   const data = parsed.data
@@ -142,5 +141,5 @@ export async function POST(request: Request) {
   try { realtimeService.broadcastToUser(String(created.clientId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
   try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
 
-  return NextResponse.json({ success: true, data: created }, { status: 201 })
+  return respond.created(created)
 }
