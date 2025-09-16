@@ -100,6 +100,7 @@ Notes & Current state snapshot:
 - Templates endpoints now prefer DB at runtime and fall back to file for local dev/tests.
 
 Change Log: recent (high level):
+- 2025-09-16: Fixed Netlify TSC error TS2304 in /api/admin/tasks/templates DELETE handler by replacing stray hasDb with await dbAvailable(); build should proceed.
 - 2025-09-16: DB-first templates endpoints implemented; demo permissions seeded; realtime table verified; seed updated to include Team Lead; local DB push & seed executed.
 
 ------
