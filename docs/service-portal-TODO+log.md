@@ -130,6 +130,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added generic uploads API and wired portal UI.
+  - Added: src/app/api/uploads/route.ts (multipart POST, validations, provider switch via UPLOADS_PROVIDER)
+  - Updated: src/app/portal/service-requests/new/page.tsx (upload to /api/uploads, include URLs in attachments)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (render attachment links and errors)
+  - Notes: Storage provider not configured locally; set UPLOADS_PROVIDER and creds on deploy.
 - [x] 2025-09-16: Configured Neon DB connection env vars.
   - Set: NETLIFY_DATABASE_URL and DATABASE_URL via dev server env
   - Blocker: prisma generate/db push/seed cannot run here due to ACL; will run during CI/CD or when shell access is enabled.
