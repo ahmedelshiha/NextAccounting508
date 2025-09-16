@@ -603,6 +603,8 @@ export default function AdminUsersPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="CLIENT">Client</SelectItem>
+                                <SelectItem value="TEAM_MEMBER">Team Member</SelectItem>
+                                <SelectItem value="TEAM_LEAD">Team Lead</SelectItem>
                                 <SelectItem value="STAFF">Staff</SelectItem>
                                 <SelectItem value="ADMIN">Admin</SelectItem>
                               </SelectContent>
