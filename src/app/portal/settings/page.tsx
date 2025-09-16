@@ -120,7 +120,7 @@ export default function PortalSettingsPage() {
         await signOut({ callbackUrl: '/' })
       } else {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to delete account')
+        toast.error(err?.error?.message || err?.error || 'Failed to delete account')
       }
     } catch (e) {
       console.error('Delete account error', e)
