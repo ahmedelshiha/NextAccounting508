@@ -48,7 +48,7 @@ interface UserItem {
   id: string
   name: string | null
   email: string
-  role: 'ADMIN' | 'STAFF' | 'CLIENT'
+  role: 'ADMIN' | 'TEAM_MEMBER' | 'TEAM_LEAD' | 'STAFF' | 'CLIENT'
   createdAt: string
   lastLoginAt?: string
   isActive?: boolean
@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
   const [exporting, setExporting] = useState(false)
 
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'STAFF' | 'CLIENT'>('ALL')
+  const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'TEAM_LEAD' | 'TEAM_MEMBER' | 'STAFF' | 'CLIENT'>('ALL')
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ALL')
   
   // Profile dialog state
@@ -378,6 +378,10 @@ export default function AdminUsersPage() {
     switch (role) {
       case 'ADMIN':
         return 'bg-red-100 text-red-800 border-red-200'
+      case 'TEAM_MEMBER':
+        return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'TEAM_LEAD':
+        return 'bg-purple-100 text-purple-800 border-purple-200'
       case 'STAFF':
         return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'CLIENT':
@@ -541,6 +545,8 @@ export default function AdminUsersPage() {
                   <SelectContent>
                     <SelectItem value="ALL">All Roles</SelectItem>
                     <SelectItem value="ADMIN">Admin</SelectItem>
+                    <SelectItem value="TEAM_LEAD">Team Lead</SelectItem>
+                    <SelectItem value="TEAM_MEMBER">Team Member</SelectItem>
                     <SelectItem value="STAFF">Staff</SelectItem>
                     <SelectItem value="CLIENT">Client</SelectItem>
                   </SelectContent>
@@ -591,12 +597,14 @@ export default function AdminUsersPage() {
                             {u.role}
                           </Badge>
                           {perms.canManageUsers && (
-                            <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'STAFF'|'CLIENT')}>
+                            <Select value={u.role} onValueChange={(val) => updateUserRole(u.id, val as 'ADMIN'|'TEAM_LEAD'|'TEAM_MEMBER'|'STAFF'|'CLIENT')}>
                               <SelectTrigger className="w-28 h-8">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="CLIENT">Client</SelectItem>
+                                <SelectItem value="TEAM_MEMBER">Team Member</SelectItem>
+                                <SelectItem value="TEAM_LEAD">Team Lead</SelectItem>
                                 <SelectItem value="STAFF">Staff</SelectItem>
                                 <SelectItem value="ADMIN">Admin</SelectItem>
                               </SelectContent>

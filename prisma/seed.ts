@@ -1,6 +1,7 @@
 import { PrismaClient, UserRole, BookingStatus } from '@prisma/client'
 import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { UserRole } from '@prisma/client'
 
 async function main() {
   console.log('🌱 Starting seed...')
@@ -34,11 +35,25 @@ async function main() {
       email: 'staff@accountingfirm.com',
       name: 'Staff Member',
       password: staffPassword,
-      role: UserRole.STAFF,
+      role: UserRole.TEAM_MEMBER,
       emailVerified: new Date(),
     },
   })
 
+
+  // Create team lead user
+  const leadPassword = await bcrypt.hash('lead123', 12)
+  await prisma.user.upsert({
+    where: { email: 'lead@accountingfirm.com' },
+    update: {},
+    create: {
+      email: 'lead@accountingfirm.com',
+      name: 'Team Lead',
+      password: leadPassword,
+      role: UserRole.TEAM_LEAD,
+      emailVerified: new Date(),
+    },
+  })
 
   console.log('✅ Users created')
 
