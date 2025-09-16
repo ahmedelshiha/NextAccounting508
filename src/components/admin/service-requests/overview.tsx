@@ -7,6 +7,8 @@ import { Download } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import RequestStatusDistribution from './request-status-distribution'
 import TeamWorkloadChart from './team-workload-chart'
+import { usePermissions } from '@/lib/use-permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface AnalyticsResponse {
   success?: boolean
