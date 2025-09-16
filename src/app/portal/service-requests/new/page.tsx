@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -30,6 +30,8 @@ export default function NewServiceRequestPage() {
   const maxFiles = 5
   const maxFileSize = 10 * 1024 * 1024
 
+  const searchParams = useSearchParams()
+
   useEffect(() => {
     async function loadServices() {
       try {
@@ -37,12 +39,17 @@ export default function NewServiceRequestPage() {
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
-        setServices(list.map((s: any) => ({ id: s.id, name: s.name })))
+        const mapped: Service[] = list.map((s: any) => ({ id: s.id, name: s.name }))
+        setServices(mapped)
+        // Prefill serviceId from query param if present and valid
+        const pre = searchParams?.get('serviceId')
+        if (pre && mapped.some((s: Service) => s.id === pre)) setServiceId(pre)
       } catch {
         // ignore
       }
     }
     if (session) loadServices()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session])
 
   const canSubmit = serviceId && title.trim().length >= 5

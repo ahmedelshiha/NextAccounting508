@@ -88,10 +88,14 @@ export default function AdminNewServiceRequestPage() {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
     setSaving(true); setError(null)
     try {
-      const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline || undefined }
+      const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined }
       const res = await apiFetch('/api/admin/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(j?.error || 'Failed to create')
+      if (!res.ok) {
+        const message = (j && j.error && (j.error.message || j.error)) ? (j.error.message || j.error) : 'Failed to create'
+        setError(typeof message === 'string' ? message : 'Failed to create')
+        return
+      }
       const id = j?.data?.id
       if (id) router.push(`/admin/service-requests/${id}`)
     } catch (e) {

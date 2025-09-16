@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Calendar, Clock, DollarSign, FileText, Plus, Eye } from 'lucide-react'
+import { Calendar, Clock, DollarSign, FileText, Plus, Eye, ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +23,14 @@ interface Booking {
   notes?: string
 }
 
+interface ServiceRequestItem {
+  id: string
+  title: string
+  status: string
+  createdAt: string
+  service?: { name: string } | null
+}
+
 const statusColors = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   CONFIRMED: 'bg-green-100 text-green-800',
@@ -34,6 +42,8 @@ export default function PortalPage() {
   const { data: session } = useSession()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequestItem[]>([])
+  const [loadingRequests, setLoadingRequests] = useState(true)
 
   useEffect(() => {
     async function fetchBookings() {
@@ -50,8 +60,23 @@ export default function PortalPage() {
       }
     }
 
+    async function fetchServiceRequests() {
+      try {
+        const res = await apiFetch('/api/portal/service-requests?limit=5&page=1')
+        if (!res.ok) return
+        const j = await res.json().catch(() => ({}))
+        const items = Array.isArray(j?.data) ? j.data : []
+        setServiceRequests(items.map((r: any) => ({ id: r.id, title: r.title, status: r.status, createdAt: r.createdAt, service: r.service ? { name: r.service.name } : null })))
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoadingRequests(false)
+      }
+    }
+
     if (session) {
       fetchBookings()
+      fetchServiceRequests()
     }
   }, [session])
 
@@ -143,15 +168,27 @@ export default function PortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Book New Service</CardTitle>
+              <CardTitle className="text-sm font-medium">Get Help Fast</CardTitle>
               <Plus className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
-                <Link href="/booking">
-                  Schedule Consultation
-                </Link>
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button asChild className="w-full">
+                  <Link href="/portal/service-requests/new">
+                    Request Service
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/portal/service-requests">
+                    Track Requests
+                  </Link>
+                </Button>
+                <Button variant="ghost" asChild className="w-full">
+                  <Link href="/booking">
+                    Schedule Consultation
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -266,6 +303,68 @@ export default function PortalPage() {
                   <Link href="/booking">
                     Book Appointment
                   </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* My Service Requests */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">My Service Requests</h2>
+            <Button variant="outline" asChild>
+              <Link href="/portal/service-requests">View All</Link>
+            </Button>
+          </div>
+          {loadingRequests ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(2)].map((_, i) => (<div key={i} className="bg-gray-200 animate-pulse rounded-lg h-20"></div>))}
+            </div>
+          ) : serviceRequests.length > 0 ? (
+            <div className="space-y-3">
+              {serviceRequests.map((r) => (
+                <Card key={r.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <ClipboardList className="h-4 w-4 text-blue-600" />
+                          <h3 className="font-medium text-gray-900 truncate">{r.title}</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">{r.service?.name || 'Service'}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={
+                          r.status === 'SUBMITTED' ? 'bg-blue-100 text-blue-800' :
+                          r.status === 'IN_REVIEW' ? 'bg-yellow-100 text-yellow-800' :
+                          r.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' :
+                          r.status === 'ASSIGNED' ? 'bg-indigo-100 text-indigo-800' :
+                          r.status === 'IN_PROGRESS' ? 'bg-sky-100 text-sky-800' :
+                          r.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                          r.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }>
+                          {r.status}
+                        </Badge>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/portal/service-requests/${r.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-10">
+                <ClipboardList className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600 mb-4">You dont have any requests yet.</p>
+                <Button asChild>
+                  <Link href="/portal/service-requests/new">Request a Service</Link>
                 </Button>
               </CardContent>
             </Card>
