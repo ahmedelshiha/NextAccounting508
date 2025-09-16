@@ -102,7 +102,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] Build components: components/admin/service-requests/{table.tsx,filters.tsx,bulk-actions.tsx,overview.tsx,team-workload-chart.tsx,request-status-distribution.tsx}
 - [x] Wire realtime updates on service-requests page using useRealtime
 - [x] Permission-gate actions (assign, delete, export)
-- [ ] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
+- [x] Integrate ServiceRequestTaskCreator into admin/task flows where relevant
 
 ### 7) Client Portal
 - [x] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
@@ -128,6 +128,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Integrated task creation into Service Request detail page.
+  - Updated: src/app/admin/service-requests/[id]/page.tsx (task list, create task via TaskForm, realtime refresh)
+  - Uses: POST /api/admin/service-requests/[id]/tasks; maps critical->HIGH; dueDate->dueAt
+  - Notes: Respects TASKS_CREATE permission; reloads on task-updated/service-request-updated events.
 - [x] 2025-09-16: Added durable transport design and adapter foundation.
   - Added: docs/realtime-durable-transport.md (Redis vs Postgres design, rollout plan, envs)
   - Updated: src/lib/realtime-enhanced.ts (pub/sub adapter pattern; REALTIME_TRANSPORT flag)
