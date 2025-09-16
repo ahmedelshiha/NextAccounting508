@@ -514,6 +514,8 @@ enum DefaultRole {
 enum UserRole {
   CLIENT
   ADMIN
+  TEAM_MEMBER
+  TEAM_LEAD
   STAFF
 }
 

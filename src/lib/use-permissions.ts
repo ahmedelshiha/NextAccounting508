@@ -4,7 +4,8 @@ import { hasPermission, getRolePermissions, PERMISSIONS, type Permission } from 
 
 export function usePermissions() {
   const { data } = useSession()
-  const role = (data?.user as any)?.role as string | undefined
+  const rawRole = (data?.user as any)?.role as string | undefined
+  const role = rawRole === 'STAFF' ? 'TEAM_MEMBER' : rawRole
 
   const has = (p: Permission) => hasPermission(role, p)
 
