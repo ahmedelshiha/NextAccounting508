@@ -152,8 +152,33 @@ export async function PATCH(request: Request) {
     }
 
     if (!body.id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
-    const updated = await prisma.taskTemplate.update({ where: { id: String(body.id) }, data: { name: body.name, content: body.content } })
-    const mapped = { id: updated.id, name: updated.name, content: updated.content, createdAt: updated.createdAt.toISOString(), updatedAt: updated.updatedAt.toISOString() }
+    const updated = await prisma.taskTemplate.update({ where: { id: String(body.id) }, data: {
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.content !== undefined ? { content: body.content } : {}),
+      ...(body.description !== undefined ? { description: body.description } : {}),
+      ...(body.category !== undefined ? { category: body.category } : {}),
+      ...(body.defaultPriority !== undefined ? { defaultPriority: body.defaultPriority } : {}),
+      ...(body.defaultCategory !== undefined ? { defaultCategory: body.defaultCategory } : {}),
+      ...(body.estimatedHours !== undefined ? { estimatedHours: body.estimatedHours } : {}),
+      ...(Array.isArray(body.checklistItems) ? { checklistItems: body.checklistItems } : {}),
+      ...(Array.isArray(body.requiredSkills) ? { requiredSkills: body.requiredSkills } : {}),
+      ...(body.defaultAssigneeRole !== undefined ? { defaultAssigneeRole: body.defaultAssigneeRole } : {}),
+    } })
+    const mapped = {
+      id: updated.id,
+      name: updated.name,
+      content: updated.content,
+      description: (updated as any).description ?? null,
+      category: (updated as any).category ?? null,
+      defaultPriority: (updated as any).defaultPriority ?? 'MEDIUM',
+      defaultCategory: (updated as any).defaultCategory ?? null,
+      estimatedHours: (updated as any).estimatedHours ?? null,
+      checklistItems: (updated as any).checklistItems ?? [],
+      requiredSkills: (updated as any).requiredSkills ?? [],
+      defaultAssigneeRole: (updated as any).defaultAssigneeRole ?? null,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString()
+    }
     return NextResponse.json(mapped)
   } catch (e) {
     console.error('Update template error', e)
