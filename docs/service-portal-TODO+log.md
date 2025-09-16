@@ -142,6 +142,11 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Added Prisma models (Tenant, Template, RealtimeEvent), migration SQL, seed updates, GH Actions workflow, Netlify config, /api/templates endpoints, multi-tenancy middleware.
+  - Updated: prisma/schema.prisma, prisma/migrations/20250916_add_templates_realtime_tenant/migration.sql, prisma/seed.ts, .github/workflows/prisma-migrate-and-deploy.yml, netlify.toml, src/lib/prisma.ts, src/app/api/templates/*, tests/templates.route.test.ts
+  - Notes: tenantId columns added as nullable for safe rollout; MULTI_TENANCY_ENABLED toggles middleware; CI workflow will run migrations + seed and trigger Netlify via NETLIFY_BUILD_HOOK.
+
+## Change Log
 - [x] 2025-09-16: Implemented durable realtime transport (Postgres polling via Neon) with env toggle.
   - Updated: src/lib/realtime-enhanced.ts (added PostgresPollingPubSub; REALTIME_TRANSPORT=postgres, REALTIME_PG_POLL_MS)
   - Notes: Uses table "RealtimeEvents" for cross-instance event fanout; gracefully falls back to in-memory when DB is unavailable.
