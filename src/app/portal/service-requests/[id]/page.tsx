@@ -24,6 +24,7 @@ interface ServiceRequest {
   createdAt: string
   updatedAt: string
   service: ServiceSummary
+  attachments?: any
   comments?: Comment[]
 }
 
@@ -173,6 +174,25 @@ export default function PortalServiceRequestDetailPage() {
               <CardContent>
                 {reqData.description && (
                   <p className="text-gray-800 whitespace-pre-line">{reqData.description}</p>
+                )}
+                {Array.isArray(reqData.attachments) && reqData.attachments.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-900">Attachments</h4>
+                    <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
+                      {reqData.attachments.map((a: any, i: number) => (
+                        <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
+                          <span className="truncate">
+                            {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                          </span>
+                          {a.url ? (
+                            <Button asChild variant="outline" size="sm">
+                              <a href={a.url} target="_blank" rel="noopener noreferrer">View</a>
+                            </Button>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </CardContent>
             </Card>
