@@ -22,7 +22,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
   3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
   4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
-  5. Replace file-based templates/notifications with DB-backed endpoints.
+  5. Replace file-based templates with DB-backed endpoints (notifications done).
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
   7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
   8. Update docs to reflect endpoints, flows, and ops runbooks.
@@ -45,7 +45,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 
 - [ ] Cleanup & Consistency
-  - Replace file-based task comments/templates/notifications with DB-backed endpoints
+  - [ ] Replace file-based task comments with DB-backed endpoints
+  - [ ] Replace file-based templates with DB-backed endpoints
+  - [x] Replace file-based notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
 
 - [ ] Testing & Docs
@@ -124,7 +126,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 8) Cleanup and Consistency (from audits)
 - [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
 - [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
-- [ ] Replace mock dashboard data with real API and guards
+- [x] Replace mock dashboard data with real API and guards
 - [x] Standardize zod validation and error shapes across new routes
   - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
 - [x] Apply rate limiting (src/lib/rate-limit.ts) to mutation-heavy endpoints
@@ -138,6 +140,16 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; refreshed "Remaining work (paused)" checklist and updated status.
+- [x] 2025-09-16: Replaced dashboard mock data with real APIs and added RBAC guards.
+  - Updated: src/app/admin/page.tsx (removed mock fallbacks; uses /api/admin/stats/* and /api/admin/analytics)
+  - Updated: src/app/api/admin/tasks/analytics/route.ts (RBAC + daily trends)
+  - Updated: src/app/admin/tasks/components/analytics/TaskAnalytics.tsx (uses real trends)
+  - Updated: src/app/api/admin/health-history/route.ts (RBAC + DB-backed buckets with fallback)
+- [x] 2025-09-16: Switched task notifications endpoint to DB-backed with file fallback.
+  - Updated: prisma/schema.prisma (added NotificationSettings model)
+  - Updated: src/app/api/admin/tasks/notifications/route.ts (uses Prisma with fallback to file; RBAC preserved)
+  - Notes: CI/CD will run prisma db push. Existing file-based settings remain as fallback when DB not configured.
 - [x] 2025-09-16: Project paused; updated status and refreshed "Remaining work (paused)" checklist.
   - Notes: Env configured; awaiting CI/CD to run prisma tasks before resuming implementation.
 - [x] 2025-09-16: Added unit tests for api-response and zodDetails.

@@ -42,6 +42,10 @@ model User {
   teamMembers TeamMember[]
   taskComments TaskComment[]
   taskTemplates TaskTemplate[]
+  // Back-relations for ServiceRequest
+  clientServiceRequests      ServiceRequest[] @relation("ServiceRequestClient")
+  assignedByServiceRequests  ServiceRequest[] @relation("ServiceRequestAssignedBy")
+  serviceRequestComments     ServiceRequestComment[]
   manager     User?            @relation("ManagerEmployee", fields: [managerId], references: [id], onDelete: SetNull)
   employees   User[]           @relation("ManagerEmployee")
   grantedPermissions UserPermission[] @relation("GrantedBy")
@@ -156,6 +160,7 @@ model Service {
 
   // Relations
   bookings Booking[]
+  serviceRequests ServiceRequest[]
 
   @@map("services")
 }
@@ -299,6 +304,7 @@ model Task {
 
   // Relations
   comments TaskComment[]
+  requestTasks RequestTask[]
 
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
@@ -381,7 +387,7 @@ model ServiceRequest {
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
-  client                User            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client                User            @relation("ServiceRequestClient", fields: [clientId], references: [id], onDelete: Cascade)
   service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   assignedTeamMember    TeamMember?     @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
   assignedByUser        User?           @relation("ServiceRequestAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
@@ -449,6 +455,8 @@ model TeamMember {
   joinDate           DateTime @default(now())
   lastActive         DateTime @default(now())
   assignedBookings     Booking[]
+  // Back-relation for ServiceRequest assignment
+  assignedServiceRequests ServiceRequest[]
   stats              TeamMemberStats?
 
   @@map("team_members")
@@ -569,4 +577,16 @@ enum PostPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+model NotificationSettings {
+  id            String   @id @default(cuid())
+  emailEnabled  Boolean  @default(false)
+  emailFrom     String?
+  webhookUrl    String?
+  templates     Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("notification_settings")
 }

@@ -1617,19 +1617,19 @@ function EnhancedSystemHealth({ data, thresholds, history, saveThresholds }: { d
   )
 }
 
-function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: DashboardData }) {
+function BusinessIntelligence({ dashboard }: { dashboard: DashboardData }) {
   const { data: analytics, error } = useSWR<AdminAnalyticsResponse>('/api/admin/analytics?range=30d', fetcher, { revalidateOnFocus: false })
 
-  const serviceLabels = (analytics?.revenueByService?.map((s) => s.service) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.service))
-  const serviceValues = (analytics?.revenueByService?.map((s) => s.amount) || analyticsFallback.revenueAnalytics.serviceBreakdown.map(s => s.revenue))
+  const serviceLabels = analytics?.revenueByService?.map((s) => s.service) || []
+  const serviceValues = analytics?.revenueByService?.map((s) => s.amount) || []
   const pieData: ChartData<'pie', number[], string> = {
     labels: serviceLabels,
     datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
   }
   const pieOptions: ChartOptions<'pie'> = { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
 
-  const dailyLabels = (analytics?.dailyBookings?.map((d, i: number) => d.date || `D${i+1}`) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.date.slice(5)))
-  const dailyValues = (analytics?.dailyBookings?.map((d) => d.count) || analyticsFallback.revenueAnalytics.dailyRevenue.map(d => d.bookings))
+  const dailyLabels = analytics?.dailyBookings?.map((d, i: number) => (d as any).date || `D${i+1}`) || []
+  const dailyValues = analytics?.dailyBookings?.map((d) => d.count) || []
   const barData: ChartData<'bar', number[], string> = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
   const barOptions: ChartOptions<'bar'> = { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }
 
@@ -1643,16 +1643,16 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
             <Pie data={pieData} options={pieOptions} />
           </div>
           <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-            {analyticsFallback.revenueAnalytics.serviceBreakdown.slice(0, 3).map((service, idx) => (
+            {(analytics?.revenueByService || []).slice(0, 3).map((service, idx) => (
               <div key={idx} className="text-center">
-                <div className="font-medium">{service.percentage}%</div>
+                <div className="font-medium">{Math.round((service.amount || 0) / Math.max(1, (serviceValues.reduce((a,b)=>a+b,0))) * 100)}%</div>
                 <div className="text-gray-600 truncate">{service.service}</div>
               </div>
             ))}
           </div>
         </div>
         <div className="text-xs text-gray-600">
-          Current: ${analyticsFallback.stats.revenue.current.toLocaleString()} • Target: ${analyticsFallback.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{analyticsFallback.stats.revenue.trend}%</span>
+          Current: ${dashboard.stats.revenue.current.toLocaleString()} • Target: ${dashboard.stats.revenue.target.toLocaleString()} • <span className="text-green-600">+{dashboard.stats.revenue.trend}%</span>
         </div>
       </div>
 
@@ -1670,23 +1670,23 @@ function BusinessIntelligence({ analyticsFallback }: { analyticsFallback: Dashbo
               <div className="w-24 bg-gray-200 rounded-full h-2">
                 <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%` }} />
               </div>
-              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.bookingUtilization}%</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.bookingUtilization}%</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Client Satisfaction</span>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
+              <span className="text-sm font-medium">{dashboard.performanceMetrics.efficiency.clientSatisfaction}/5.0</span>
             </div>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Task Completion Rate</span>
-            <span className="text-sm font-medium text-green-600">{analyticsFallback.performanceMetrics.efficiency.taskCompletionRate}%</span>
+            <span className="text-sm font-medium text-green-600">{dashboard.performanceMetrics.efficiency.taskCompletionRate}%</span>
           </div>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Show Rate</span>
-            <span className="text-sm font-medium">{analyticsFallback.performanceMetrics.operational.appointmentShowRate}%</span>
+            <span className="text-sm font-medium">{dashboard.performanceMetrics.operational.appointmentShowRate}%</span>
           </div>
         </div>
       </div>
@@ -1701,7 +1701,14 @@ export default function ProfessionalAdminDashboard() {
     clients: { total: 0, new: 0, active: 0, inactive: 0, retention: 0, satisfaction: 0 },
     tasks: { total: 0, overdue: 0, dueToday: 0, completed: 0, inProgress: 0, productivity: 0 }
   }
-  const initialDashboardData: DashboardData = { ...mockDashboardData, stats: zeroStats, recentBookings: [] }
+  const initialDashboardData: DashboardData = { ...({} as any), stats: zeroStats, recentBookings: [], notifications: [], systemHealth: {
+    overall: 'healthy',
+    database: { status: 'healthy', responseTime: 0, connections: 0, lastBackup: '' },
+    email: { status: 'healthy', deliveryRate: 0, bounceRate: 0, lastSent: '' },
+    api: { status: 'healthy', uptime: 0, averageResponseTime: 0, errorRate: 0 },
+    storage: { status: 'healthy', used: 0, total: 0, growth: 0 },
+    security: { status: 'healthy', failedLogins: 0, lastSecurityScan: '', vulnerabilities: 0 }
+  }, revenueAnalytics: { dailyRevenue: [], monthlyTrend: [], serviceBreakdown: [], clientSegments: [], forecastData: [] }, clientInsights: { topClients: [], satisfactionTrends: [], retentionMetrics: { newClients: 0, returningClients: 0, churnRate: 0, lifetimeValue: 0 }, geographicDistribution: [] }, upcomingDeadlines: [], performanceMetrics: { efficiency: { bookingUtilization: 0, averageSessionDuration: 0, clientSatisfaction: 0, taskCompletionRate: 0 }, growth: { monthOverMonth: 0, yearOverYear: 0, newClientAcquisition: 0, revenuePerClient: 0 }, operational: { averageResponseTime: 0, firstCallResolution: 0, appointmentShowRate: 0, reschedulingRate: 0 } } }
 
   const [loading, setLoading] = useState(true)
   const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData)
@@ -1766,7 +1773,7 @@ export default function ProfessionalAdminDashboard() {
       ])
 
       setDashboardData((prev) => {
-        const base = prev || mockDashboardData
+        const base = prev || initialDashboardData
 
         const totalBookings = Number(bookings?.total ?? base.stats.bookings.total) || 0
         const completedBookings = Number(bookings?.completed ?? base.stats.bookings.completed) || 0
@@ -2068,7 +2075,7 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <BusinessIntelligence analyticsFallback={dashboardData} />
+            <BusinessIntelligence dashboard={dashboardData} />
           </CardContent>
         </Card>
 

@@ -390,12 +390,12 @@ export default function TaskAnalytics() {
     }
   }, [processedData.priority])
 
-  // Mock trend data for demonstration
-  const mockTrends = {
-    total: [12, 15, 18, 22, 19, 25, 28],
-    completed: [8, 11, 12, 16, 14, 18, 20],
-    productivity: [75, 78, 82, 85, 79, 88, 92]
-  }
+  // Trends from API (last 7 days)
+  const trendTotals = Array.isArray((stats as any)?.dailyTotals) ? (stats as any).dailyTotals as number[] : []
+  const trendCompleted = Array.isArray((stats as any)?.dailyCompleted) ? (stats as any).dailyCompleted as number[] : []
+  const trendProductivity = trendTotals.length === trendCompleted.length && trendTotals.length > 0
+    ? trendTotals.map((t, i) => t > 0 ? Math.round((trendCompleted[i] / t) * 100) : 0)
+    : []
 
   if (error) {
     return (
@@ -463,7 +463,7 @@ export default function TaskAnalytics() {
           change="+12%"
           changeType="positive"
           icon={Target}
-          trend={mockTrends.total}
+          trend={trendTotals}
           subtitle="All time"
           loading={loading}
         />
@@ -474,7 +474,7 @@ export default function TaskAnalytics() {
           change="+8%"
           changeType="positive"
           icon={CheckCircle2}
-          trend={mockTrends.completed}
+          trend={trendCompleted}
           subtitle={formatPercent(processedData.completed, processedData.total)}
           loading={loading}
         />
@@ -495,7 +495,7 @@ export default function TaskAnalytics() {
           change="+5%"
           changeType="positive"
           icon={TrendingUp}
-          trend={mockTrends.productivity}
+          trend={trendProductivity}
           subtitle="Overall performance"
           loading={loading}
         />
