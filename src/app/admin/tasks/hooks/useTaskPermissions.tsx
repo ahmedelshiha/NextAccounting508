@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useMemo } from 'react'
 
-type Role = 'ADMIN' | 'STAFF' | 'USER' | string
+type Role = 'ADMIN' | 'TEAM_MEMBER' | 'TEAM_LEAD' | 'STAFF' | 'USER' | string
 
 export function useTaskPermissions() {
   const { data: session } = useSession()
@@ -26,7 +26,7 @@ export function useTaskPermissions() {
       return p
     }
 
-    if (role === 'STAFF') {
+    if (role === 'TEAM_MEMBER' || role === 'STAFF') {
       p.canCreate = true
       p.canEdit = true
       p.canAssign = true
@@ -35,6 +35,17 @@ export function useTaskPermissions() {
       p.canDelete = false
       p.canBulk = false
       return p
+    }
+
+    if (role === 'TEAM_LEAD') {
+      const p2 = { ...p }
+      p2.canCreate = true
+      p2.canEdit = true
+      p2.canAssign = true
+      p2.canComment = true
+      p2.canBulk = true
+      p2.canDelete = false
+      return p2
     }
 
     if (role === 'USER') {
