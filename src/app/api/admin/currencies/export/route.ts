@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 
 export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, 'view_currencies')) {
+    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

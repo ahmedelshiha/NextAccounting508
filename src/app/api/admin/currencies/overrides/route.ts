@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 
 export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, 'view_currencies')) {
+    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -28,7 +28,7 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, 'manage_price_overrides')) {
+    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

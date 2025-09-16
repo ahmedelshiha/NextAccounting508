@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 // GET /api/admin/stats/users - Get user statistics
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    const role = (session?.user as any)?.role as string | undefined
+    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -28,11 +30,13 @@ export async function GET(request: NextRequest) {
     const total = await prisma.user.count()
 
     // Get users by role
-    const [clients, staff, admins] = await Promise.all([
+    const [clients, teamMembers, teamLeads, admins] = await Promise.all([
       prisma.user.count({ where: { role: 'CLIENT' } }),
-      prisma.user.count({ where: { role: 'STAFF' } }),
+      prisma.user.count({ where: { role: 'TEAM_MEMBER' } }),
+      prisma.user.count({ where: { role: 'TEAM_LEAD' } }),
       prisma.user.count({ where: { role: 'ADMIN' } })
     ])
+    const staff = teamMembers + teamLeads
 
     // Get new users this month
     const newThisMonth = await prisma.user.count({

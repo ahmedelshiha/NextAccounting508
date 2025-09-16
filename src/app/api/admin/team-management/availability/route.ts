@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
 export async function GET() {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes(String(session.user.role))) {
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

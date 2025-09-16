@@ -2,6 +2,10 @@
 
 Status: Paused (as of 2025-09-16)
 
+Paused Notes:
+- Verified RBAC migration: all admin API routes use src/lib/permissions with hasPermission and PERMISSIONS; no src/lib/rbac or ADMIN/STAFF string checks remain; 401 responses standardized.
+- The plan step "Plan and update remaining API routes to use permissions.ts consistently" is complete and documented below; do not proceed to seeds/UI/validation/realtime until seeds and use-permissions are aligned.
+
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
 - docs/website-audit.md
@@ -83,6 +87,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 4) Permissions and Middleware
 - [x] Add src/lib/permissions.ts (PERMISSIONS, ROLE_PERMISSIONS, helpers)
 - [x] Implement permissions API: src/app/api/admin/permissions/{route.ts,[userId]/route.ts,roles/route.ts}
+- [x] Migrate remaining admin API routes to use permissions.ts consistently; remove legacy rbac usage
+- [x] Verify RBAC migration across admin routes (imports from src/lib/permissions, no ADMIN/STAFF string guards, standardized 401 responses)
 - [ ] Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
 - [x] Wire enhanced checks inside src/app/middleware.ts for /admin and /portal service routes
 - [x] Add PermissionGate component (src/components/PermissionGate.tsx) and use in admin UIs (tables, action buttons)
@@ -128,6 +134,15 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] 2025-09-16: Aligned middleware and navigation to new roles and updated permissions usage.
   - Updated: src/app/middleware.ts, src/components/ui/navigation.tsx, src/lib/use-permissions.ts, src/app/api/admin/service-requests/[id]/status/route.ts, src/app/types/next-auth.d.ts
   - Notes: Admin access now allowed for ADMIN, TEAM_LEAD, TEAM_MEMBER; API uses permissions.ts for status updates
+- [x] 2025-09-16: Completed RBAC migration across remaining admin API routes to use permissions.ts consistently; removed legacy rbac checks and ADMIN/STAFF string guards.
+  - Updated: src/app/api/admin/{activity,analytics,export,services,perf-metrics,system/health}.ts routes
+  - Updated: src/app/api/admin/stats/{users,bookings,posts}/route.ts (use ANALYTICS_VIEW; users staff now = TEAM_MEMBER + TEAM_LEAD)
+  - Updated: src/app/api/admin/currencies/{route,export,overrides,[code],refresh}.ts (mapped to ANALYTICS_VIEW/TEAM_MANAGE)
+  - Updated: src/app/api/admin/bookings/route.ts (TEAM_MANAGE)
+  - Updated: src/app/api/admin/users/route.ts (USERS_MANAGE)
+  - Updated: src/app/api/admin/team-management/{workload,availability,skills,assignments}/route.ts (TEAM_VIEW/PATCH TEAM_MANAGE)
+  - Updated: src/app/api/admin/team-members/[id]/route.ts now guarded (TEAM_VIEW/TEAM_MANAGE)
+  - Updated: src/app/api/admin/permissions/{route.ts,roles/route.ts,[userId]/route.ts} (ANALYTICS_VIEW)
 - [x] 2025-09-16: Project marked paused; refreshed Remaining work (paused) checklist to reflect current state.
 - [x] 2025-09-16: Added default TaskTemplate seeds with new fields.
   - prisma/seed.ts: upserts three templates (onboarding, VAT return, quarterly audit)
@@ -170,7 +185,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [x] 2025-09-15: Implemented Service Request comments.
   - Added prisma model ServiceRequestComment and relation on ServiceRequest
   - Added API: GET/POST /api/admin/service-requests/[id]/comments with attachments support and realtime broadcast
-     
+
 - [x] 2025-09-15: Implemented Client Portal service requests (APIs and pages).
   - Added API: /api/portal/service-requests (list/create), /api/portal/service-requests/[id] (GET/PATCH), /api/portal/service-requests/[id]/comments (GET/POST)
   - Added pages: src/app/portal/service-requests/{page.tsx,[id]/page.tsx,new/page.tsx}

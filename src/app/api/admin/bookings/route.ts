@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { BookingStatus } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
-import { hasPermission } from '@/lib/rbac'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 
 // GET /api/admin/bookings - Get all bookings for admin
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -229,7 +229,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -311,7 +311,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || !hasPermission(session.user?.role, 'manage_bookings')) {
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json(
         { error: 'Unauthorized - Admin access required' },
         { status: 401 }
