@@ -351,3 +351,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Mark-as-read and unread badge
 
 
+- [ ] 2025-09-16: Run prisma generate/migrate/seed in CI/CD to apply updated seed and verify Team Lead appears in build logs.
+  - Steps:
+    1. Connect to Neon via MCP: [Connect to Neon](#open-mcp-popover)
+    2. Ensure NETLIFY_DATABASE_URL and DATABASE_URL env vars are set in Netlify (they are present in the project envs; confirm values in Netlify site settings)
+    3. Push the updated branch (ai_main_3f3fbea2b33a) or trigger the Netlify deploy hook so CI runs the following commands per netlify.toml: npm run db:push -- --accept-data-loss && npm run db:seed && npm run build
+    4. Confirm Netlify build logs show the seed output line: "Team Lead: lead@accountingfirm.com / lead123" and that migrations applied successfully.
+
