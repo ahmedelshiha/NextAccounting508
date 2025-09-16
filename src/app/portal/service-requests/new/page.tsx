@@ -26,6 +26,7 @@ export default function NewServiceRequestPage() {
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [files, setFiles] = useState<File[]>([])
+  const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
   const maxFiles = 5
   const maxFileSize = 10 * 1024 * 1024
 
@@ -46,10 +47,41 @@ export default function NewServiceRequestPage() {
 
   const canSubmit = serviceId && title.trim().length >= 5
 
+  const uploadFile = async (file: File): Promise<{ url?: string; error?: string }> => {
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      form.append('folder', 'service-requests')
+      const res = await fetch('/api/uploads', { method: 'POST', body: form })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        return { error: json?.error || 'Upload failed' }
+      }
+      return { url: json.url }
+    } catch (e) {
+      return { error: 'Upload failed' }
+    }
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const attachments = files.map(f => ({ name: f.name, size: f.size, type: f.type, lastModified: f.lastModified }))
+      const results = await Promise.all(files.map(async (f) => {
+        const key = `${f.name}-${f.lastModified}`
+        const result = await uploadFile(f)
+        setUploaded(prev => ({ ...prev, [key]: result }))
+        return { file: f, result }
+      }))
+
+      const attachments = results.map(({ file, result }) => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        url: result.url,
+        uploadError: result.error,
+      }))
+
       const res = await apiFetch('/api/portal/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -164,21 +196,33 @@ export default function NewServiceRequestPage() {
                 />
                 {files.length > 0 && (
                   <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
-                    {files.map((f, idx) => (
-                      <li key={`${f.name}-${idx}`} className="flex items-center justify-between px-3 py-2 text-sm">
-                        <span className="truncate">
-                          {f.name} <span className="text-gray-500">({Math.round(f.size/1024)} KB)</span>
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
-                        >
-                          Remove
-                        </Button>
-                      </li>
-                    ))}
+                    {files.map((f, idx) => {
+                      const key = `${f.name}-${f.lastModified}`
+                      const info = uploaded[key]
+                      return (
+                        <li key={`${f.name}-${idx}`} className="flex items-center justify-between px-3 py-2 text-sm">
+                          <span className="truncate">
+                            {f.name} <span className="text-gray-500">({Math.round(f.size/1024)} KB)</span>
+                            {info?.url && (
+                              <>
+                                {' '}
+                                <a href={info.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                              </>
+                            )}
+                            {info?.error && (
+                              <span className="ml-2 text-red-600">{info.error}</span>
+                            )}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                          >
+                            Remove
+                          </Button>
+                        </li>
+                      )})}
                   </ul>
                 )}
                 <p className="mt-1 text-xs text-gray-500">Up to {maxFiles} files, 10MB each.</p>
