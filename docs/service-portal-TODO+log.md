@@ -4,6 +4,12 @@
   - Why: Throwing new Error(object) produced "Error: [object Object]" in the UI. Now shows clear validation/auth messages.
   - Next: Audit other forms for similar patterns; consider a small helper to extractApiError(res) for consistency.
 
+- [x] 2025-09-16: Client Portal — added Request Service CTA + tracking list on portal home, and prefill support.
+  - Updated: src/app/portal/page.tsx, src/app/portal/service-requests/new/page.tsx
+  - What: Added quick actions: Request Service, Track Requests, and a “My Service Requests” section showing recent requests with status chips. New page now accepts ?serviceId= to preselect service.
+  - Why: Streamline client flow to create and track service requests from the portal landing page.
+  - Next: Add deep links from service detail pages to prefilled request form; persist list filters; add tests for prefill.
+
 - [x] 2025-09-16: Admin navigation — added notification bell with live SSE updates.
   - Updated: src/components/ui/navigation.tsx, added src/hooks/useAdminNotifications.ts
   - What: Replicated client bell experience for admins using /api/admin/realtime (service-request-updated, task-updated, team-assignment), unread badge, and dropdown list.
