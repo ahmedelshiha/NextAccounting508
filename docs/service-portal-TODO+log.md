@@ -20,7 +20,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Resume checklist (ordered):
   1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
-  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
+  3. Enable durable realtime in environments by setting REALTIME_TRANSPORT=postgres and configure DB (Neon). Optional: tune REALTIME_PG_POLL_MS.
   4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
   5. Replace file-based templates with DB-backed endpoints (notifications done).
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
@@ -36,8 +36,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Permissions/Middleware
   - No remaining items here; roles aligned and middleware checks completed.
 
-- [ ] Realtime
-  - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
+- [x] Realtime
+  - Implement durable transport adapter (Postgres polling via Neon) and env toggle REALTIME_TRANSPORT=postgres; falls back to in-memory when DB is unavailable
   - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
 
 - [ ] Admin UI
@@ -136,12 +136,18 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Add unit tests for new lib/permissions and helpers
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
 - [x] Add route tests for service-requests
-- [ ] Add route tests for team-management
+- [x] Add route tests for team-management
 - [ ] Add route tests for templates
 - [ ] Add e2e tests for client create/approve request and admin assign/complete
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Implemented durable realtime transport (Postgres polling via Neon) with env toggle.
+  - Updated: src/lib/realtime-enhanced.ts (added PostgresPollingPubSub; REALTIME_TRANSPORT=postgres, REALTIME_PG_POLL_MS)
+  - Notes: Uses table "RealtimeEvents" for cross-instance event fanout; gracefully falls back to in-memory when DB is unavailable.
+- [x] 2025-09-16: Added route tests for team-management endpoints.
+  - Added: tests/team-management.routes.test.ts (availability, workload, assignments, skills PATCH)
+  - Notes: Mocks prisma and next-auth; toggles NETLIFY_DATABASE_URL in-module to cover both fallback and DB code paths.
 - [x] 2025-09-16: Fixed remaining Netlify TypeScript build errors (admin UI and API routes).
 - [x] 2025-09-16: Resolved TS2554 by making z.record schema explicit.
   - Updated: src/app/api/admin/service-requests/[id]/route.ts (z.record(z.string(), z.any()))
