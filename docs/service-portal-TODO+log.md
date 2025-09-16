@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: In progress (resumed 2025-09-16)
+Status: Paused (as of 2025-09-16)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -26,18 +26,16 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - No remaining items here; roles aligned and middleware checks completed.
 
 - [ ] Realtime
-  - Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
-  - Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
+  - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
+  - Add connection health checks, reconnection backoff, and idempotency for multi-instance delivery
 
 - [ ] Admin UI
-  - Integrate ServiceRequestTaskCreator into admin/task flows
+  - No remaining items here.
 
 
 - [ ] Cleanup & Consistency
-  - Consolidate src/app/lib duplicates into src/lib and fix imports
   - Replace file-based task comments/templates/notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
-  - Apply rate limiting and emit audit events (surface in /admin/audits)
 
 - [ ] Testing & Docs
   - Unit tests (permissions, auto-assign, status transitions, RBAC)
