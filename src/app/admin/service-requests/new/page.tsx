@@ -21,6 +21,8 @@ export default function AdminNewServiceRequestPage() {
   const [form, setForm] = useState<{ clientId: string; serviceId: string; title: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', title: '', description: '', priority: 'MEDIUM' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [clients, setClients] = useState<{ id: string; name: string; email?: string }[]>([])
+  const [services, setServices] = useState<{ id: string; name: string }[]>([])
 
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
