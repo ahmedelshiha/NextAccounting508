@@ -32,6 +32,7 @@ model User {
   maxConcurrentProjects Int?     @default(3)
   hireDate              DateTime?
   managerId             String?
+  tenantId              String?
 
   // Relations
   accounts Account[]
@@ -157,6 +158,7 @@ model Service {
   estimatedDurationHours Int?
   requiredSkills String[]
   status        ServiceStatus @default(ACTIVE)
+  tenantId      String?
 
   // Relations
   bookings Booking[]
@@ -355,6 +357,7 @@ model TaskTemplate {
   checklistItems      String[]
   requiredSkills      String[]
   defaultAssigneeRole String?
+  tenantId            String?
 
   createdById String?
   createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
@@ -362,6 +365,7 @@ model TaskTemplate {
   updatedAt  DateTime @updatedAt
 
   @@index([category])
+  @@index([tenantId])
   @@map("task_templates")
 }
 
@@ -384,6 +388,7 @@ model ServiceRequest {
   assignedBy            String?
   completedAt           DateTime?
   clientApprovalAt      DateTime?
+  tenantId              String?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
 
@@ -399,6 +404,7 @@ model ServiceRequest {
   @@index([priority])
   @@index([assignedTeamMemberId])
   @@index([deadline])
+  @@index([tenantId])
   @@map("service_requests")
 }
 
@@ -454,6 +460,7 @@ model TeamMember {
   notes              String?
   joinDate           DateTime @default(now())
   lastActive         DateTime @default(now())
+  tenantId           String?
   assignedBookings     Booking[]
   // Back-relation for ServiceRequest assignment
   assignedServiceRequests ServiceRequest[]
