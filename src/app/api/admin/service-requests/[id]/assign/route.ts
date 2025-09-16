@@ -5,12 +5,14 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const Schema = z.object({ teamMemberId: z.string().min(1) })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user || !['ADMIN','STAFF'].includes((session.user as any).role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_ASSIGN)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
