@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-15)
+Status: Paused (as of 2025-09-16)
 
 This file tracks the full implementation plan derived from:
 - docs/service_portal_implementation_guide.md
@@ -10,13 +10,40 @@ This file tracks the full implementation plan derived from:
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
 ## Remaining work (paused)
-- Prisma: extend User and Service models; add UserPermission model; finalize attachments strategy; plan multi-tenancy; run migrations and seeds
-- APIs: implement team-management (availability, skills, workload, assignments) and task-templates CRUD with categories; finalize enhanced middleware/roles alignment
-- Realtime: per-user event filtering and durable transport plan
-- Admin UI: integrate KPIs into admin dashboard; build Service Requests pages/components with realtime and permission-gated actions
-- Client Portal: client approvals, notifications
-- Cleanup: consolidate src/app/lib duplicates; migrate file-based task data to DB; replace mock dashboard data; add rate limiting and audit events
-- Testing/Docs: unit tests (auto-assign, RBAC), route tests, e2e for client/admin flows; docs updates
+
+- Database/Prisma
+  - Extend User and Service models; add UserPermission model; add enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
+  - Plan multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
+  - Define attachments storage strategy and persist attachment metadata schema
+  - Run prisma generate/migrate; seed permissions and default roles
+
+- Permissions/Middleware
+  - Align roles to CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN; update seeds and use-permissions hook
+  - Enhance middleware checks for /admin and /portal service routes
+
+- Realtime
+  - Broadcast events: service-request-updated, task-updated, team-assignment; subscribe in admin pages
+  - Implement per-user event filtering and clean shutdowns; plan durable transport for multi-instance
+
+- Admin UI
+  - Update /admin dashboard to render service request KPIs and charts (analytics/workload endpoints)
+  - Build pages: /admin/service-requests/{page,[id]/page,edit/page,new/page}
+  - Components: table, filters, bulk-actions, overview, team-workload-chart, request-status-distribution
+  - Wire realtime updates and permission-gated actions; integrate ServiceRequestTaskCreator
+
+- Client Portal
+  - Enhance create flow with attachments handling and validations as needed
+
+- Cleanup & Consistency
+  - Consolidate src/app/lib duplicates into src/lib and fix imports
+  - Replace file-based task comments/templates/notifications with DB-backed endpoints
+  - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
+  - Apply rate limiting and emit audit events (surface in /admin/audits)
+
+- Testing & Docs
+  - Unit tests (permissions, auto-assign, status transitions, RBAC)
+  - Route tests (service-requests, team-management, templates)
+  - E2E tests for client/admin flows; docs updates
 
 ## TODO (unchecked)
 
@@ -78,7 +105,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 ### 7) Client Portal
 - [x] Add portal listings: src/app/portal/service-requests/page.tsx (client-only list)
 - [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
-- [ ] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests with attachments)
+- [x] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests; attachments enhancement pending)
 - [x] Add client approval action and status view (sets clientApprovalAt)
 - [x] Notify client on assignment/status updates — email + in-app notifications implemented
 
@@ -98,6 +125,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project marked paused; refreshed Remaining work (paused) checklist to reflect current state.
 - [x] 2025-09-16: Added default TaskTemplate seeds with new fields.
   - prisma/seed.ts: upserts three templates (onboarding, VAT return, quarterly audit)
   - Note: run seeds after connecting DB
