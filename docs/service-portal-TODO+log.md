@@ -16,6 +16,16 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ## Remaining work (paused)
 
+- Resume checklist (ordered):
+  1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
+  2. Seed roles/permissions and default templates; verify RBAC via permissions API.
+  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
+  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
+  5. Replace file-based templates/notifications with DB-backed endpoints.
+  6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
+  7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
+  8. Update docs to reflect endpoints, flows, and ops runbooks.
+
 - [ ] Database/Prisma
   - Extend User and Service models; add UserPermission model; add enums ExpertiseLevel, AvailabilityStatus, ServiceStatus, DefaultRole
   - Plan multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
@@ -27,7 +37,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 - [ ] Realtime
   - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
-  - Add connection health checks, reconnection backoff, and idempotency for multi-instance delivery
+  - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
 
 - [ ] Admin UI
   - No remaining items here.
@@ -126,6 +136,27 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-16: Project paused; refreshed Remaining work (paused) with an actionable resume checklist.
+  - Notes: Blocked on Prisma generate/migrate/seed due to environment ACL; to be run in CI/CD or dev shell.
+- [x] 2025-09-16: Status updated to Active; resuming implementation.
+- [x] 2025-09-16: Added client portal realtime SSE and wired UI auto-refresh.
+  - Added: src/app/api/portal/realtime/route.ts
+  - Updated: src/app/portal/service-requests/page.tsx (list auto-refresh)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (detail auto-refresh)
+  - Notes: Uses EventSource with exponential backoff; filters by user via realtimeService.
+- [x] 2025-09-16: Targeted per-user realtime broadcasts for client portal.
+  - Updated: src/app/api/admin/service-requests/route.ts (broadcast created to client)
+  - Updated: src/app/api/admin/service-requests/[id]/route.ts (broadcast updated/deleted to client)
+  - Updated: src/app/api/admin/service-requests/[id]/status/route.ts (broadcast status change to client)
+  - Updated: src/app/api/admin/service-requests/[id]/assign/route.ts (broadcast assignment to client)
+  - Updated: src/app/api/admin/service-requests/[id]/comments/route.ts (broadcast comment to client)
+  - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts (broadcast task+SR updates to client)
+  - Notes: Reduces noise by delivering only relevant events to the owning client.
+- [x] 2025-09-16: Added rate limiting to client portal service-requests endpoints.
+  - Updated: src/app/api/portal/service-requests/route.ts (POST)
+  - Updated: src/app/api/portal/service-requests/[id]/route.ts (PATCH)
+  - Updated: src/app/api/portal/service-requests/[id]/comments/route.ts (POST)
+  - Notes: Uses getClientIp/rateLimit; protects from abuse; consistent with admin endpoints.
 - [x] 2025-09-16: Consolidated app/lib duplicates into src/lib and fixed prisma imports.
   - Removed: src/app/lib/{auth.ts,email.ts,i18n.ts,prisma.ts,utils.ts}
   - Updated imports: use default import prisma from '@/lib/prisma' across admin service-requests endpoints and permissions routes; fixed lib auto-assignment.

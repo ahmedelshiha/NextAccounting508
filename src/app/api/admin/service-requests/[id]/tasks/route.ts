@@ -62,6 +62,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   try { realtimeService.emitTaskUpdate(createdTask.id, { action: 'created', serviceRequestId: params.id }) } catch {}
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'task-created', taskId: createdTask.id }) } catch {}
+  try {
+    const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
+    if (sr?.clientId) {
+      const ts = new Date().toISOString()
+      realtimeService.broadcastToUser(String(sr.clientId), { type: 'task-updated', data: { taskId: createdTask.id, serviceRequestId: params.id, action: 'created' }, timestamp: ts })
+      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: params.id, action: 'task-created', taskId: createdTask.id }, timestamp: ts })
+    }
+  } catch {}
 
   try { await logAudit({ action: 'service-request:task:create', actorId: (session.user as any).id ?? null, targetId: params.id, details: { taskId: createdTask.id } }) } catch {}
   return NextResponse.json({ success: true, data: createdTask }, { status: 201 })

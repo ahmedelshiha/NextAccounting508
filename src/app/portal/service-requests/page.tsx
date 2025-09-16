@@ -55,7 +55,30 @@ export default function PortalServiceRequestsPage() {
         setLoading(false)
       }
     }
-    if (session) load()
+    if (!session) return
+    load()
+
+    let es: EventSource | null = null
+    let retry = 0
+    const connect = () => {
+      es = new EventSource('/api/portal/realtime?events=service-request-updated')
+      es.onmessage = (e) => {
+        try {
+          const evt = JSON.parse(e.data)
+          if (evt?.type === 'service-request-updated') {
+            load()
+          }
+        } catch {}
+      }
+      es.onerror = () => {
+        try { es?.close() } catch {}
+        es = null
+        const timeout = Math.min(30000, 1000 * Math.pow(2, retry++))
+        setTimeout(connect, timeout)
+      }
+    }
+    connect()
+    return () => { try { es?.close() } catch {} }
   }, [session])
 
   return (

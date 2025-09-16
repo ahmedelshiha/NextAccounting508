@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -34,6 +35,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   // Allow client to perform limited updates like adding description or cancelling (if allowed)
+  const ip = getClientIp(req)
+  if (!rateLimit(`portal:service-requests:update:${ip}`, 10, 60_000)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
   const body = await req.json().catch(() => ({} as any))
   const allowed: any = {}
   if (typeof body.description === 'string') allowed.description = body.description
