@@ -2050,6 +2050,7 @@ export default function ProfessionalAdminDashboard() {
         />
         <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
+        <ServiceRequestsSummary />
         <TeamWorkloadSummary />
         <IntelligentActivityFeed data={dashboardData} thresholds={thresholds} history={history} saveThresholds={saveThresholds} />
 
