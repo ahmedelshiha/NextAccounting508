@@ -802,6 +802,14 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         variant: 'outline' as const,
         description: 'Create urgent task',
         urgent: data.stats.tasks.overdue > 0
+      },
+      {
+        label: 'New Service Request',
+        href: '/admin/service-requests/new',
+        icon: Plus,
+        variant: 'default' as const,
+        description: 'Create new client service request',
+        badge: data.stats.tasks.overdue > 0 ? `${data.stats.tasks.overdue} overdue` : undefined
       }
     ],
     management: [
