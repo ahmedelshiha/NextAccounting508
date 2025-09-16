@@ -83,5 +83,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: params.id } })
   await prisma.serviceRequest.delete({ where: { id: params.id } })
   try { realtimeService.emitServiceRequestUpdate(params.id, { action: 'deleted' }) } catch {}
+  try { await logAudit({ action: 'service-request:delete', actorId: (session.user as any).id ?? null, targetId: params.id }) } catch {}
   return NextResponse.json({ success: true })
 }
