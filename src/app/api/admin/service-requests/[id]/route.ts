@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 
 const UpdateSchema = z.object({
