@@ -8,13 +8,15 @@ import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
+import { NextRequest } from 'next/server'
 
 const CreateCommentSchema = z.object({
   content: z.string().min(1),
   attachments: z.any().optional(),
 })
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
@@ -22,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 
   const comments = await prisma.serviceRequestComment.findMany({
-    where: { serviceRequestId: params.id },
+    where: { serviceRequestId: id },
     include: { author: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: 'asc' },
   })
@@ -30,7 +32,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return respond.ok(comments)
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
@@ -38,7 +41,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const ip = getClientIp(req)
-  if (!rateLimit(`service-requests:comment:${params.id}:${ip}`, 30, 60_000)) {
+  if (!rateLimit(`service-requests:comment:${id}:${ip}`, 30, 60_000)) {
     return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
@@ -49,7 +52,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const created = await prisma.serviceRequestComment.create({
     data: {
-      serviceRequestId: params.id,
+      serviceRequestId: id,
       authorId: (session.user as any).id ?? null,
       content: parsed.data.content,
       attachments: parsed.data.attachments ?? undefined,
@@ -57,14 +60,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     include: { author: { select: { id: true, name: true, email: true } } },
   })
 
-  try { realtimeService.emitServiceRequestUpdate(params.id, { commentId: created.id, event: 'comment-created' }) } catch {}
+  try { realtimeService.emitServiceRequestUpdate(id, { commentId: created.id, event: 'comment-created' }) } catch {}
   try {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
+    const sr = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
     if (sr?.clientId) {
-      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: params.id, commentId: created.id, event: 'comment-created' }, timestamp: new Date().toISOString() })
+      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: id, commentId: created.id, event: 'comment-created' }, timestamp: new Date().toISOString() })
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: params.id, details: { commentId: created.id } }) } catch {}
+  try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: id, details: { commentId: created.id } }) } catch {}
   return respond.created(created)
 }

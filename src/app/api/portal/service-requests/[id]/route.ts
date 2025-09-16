@@ -4,15 +4,17 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond } from '@/lib/api-response'
+import { NextRequest } from 'next/server'
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return respond.unauthorized()
   }
 
   const item = await prisma.serviceRequest.findUnique({
-    where: { id: params.id },
+    where: { id: id },
     include: {
       service: { select: { id: true, name: true, slug: true, category: true } },
       comments: {
@@ -29,7 +31,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return respond.ok(item)
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return respond.unauthorized()
@@ -45,7 +48,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (typeof body.description === 'string') allowed.description = body.description
   if (body.action === 'cancel') allowed.status = 'CANCELLED'
 
-  const existing = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true, status: true } })
+  const existing = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, status: true } })
   if (!existing || existing.clientId !== session.user.id) {
     return respond.notFound('Service request not found')
   }
@@ -63,6 +66,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return respond.badRequest('Cannot cancel at current status')
   }
 
-  const updated = await prisma.serviceRequest.update({ where: { id: params.id }, data: allowed })
+  const updated = await prisma.serviceRequest.update({ where: { id: id }, data: allowed })
   return respond.ok(updated)
 }

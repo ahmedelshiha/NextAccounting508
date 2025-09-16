@@ -9,10 +9,12 @@ import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
+import { NextRequest } from 'next/server'
 
 const Schema = z.object({ status: z.enum(['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED']) })
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
@@ -20,7 +22,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   const ip = getClientIp(req)
-  if (!rateLimit(`service-requests:status:${params.id}:${ip}`, 30, 60_000)) {
+  if (!rateLimit(`service-requests:status:${id}:${ip}`, 30, 60_000)) {
     return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
@@ -28,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const updated = await prisma.serviceRequest.update({
-    where: { id: params.id },
+    where: { id: id },
     data: { status: parsed.data.status as any },
     include: { client: { select: { id: true, name: true, email: true } }, service: { select: { id: true, name: true } } }
   })
@@ -58,6 +60,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: params.id, details: { status: updated.status } }) } catch {}
+  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: id, details: { status: updated.status } }) } catch {}
   return respond.ok(updated)
 }

@@ -3,8 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { ROLE_PERMISSIONS, PERMISSIONS, hasPermission } from '@/lib/permissions'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(_req: Request, { params }: { params: { userId: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ userId: string }> }) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
@@ -12,7 +13,8 @@ export async function GET(_req: Request, { params }: { params: { userId: string 
   }
 
   try {
-    const idStr = params.userId
+    const { userId } = await context.params
+    const idStr = userId
     const isMe = idStr === 'me'
 
     let user: any = null

@@ -5,23 +5,25 @@ import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
+import { NextRequest } from 'next/server'
 
 const CreateSchema = z.object({
   content: z.string().min(1).max(5000),
   attachments: z.any().optional(),
 })
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
+  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
   if (!reqRow || reqRow.clientId !== session.user.id) {
     return respond.notFound('Service request not found')
   }
 
   const comments = await prisma.serviceRequestComment.findMany({
-    where: { serviceRequestId: params.id },
+    where: { serviceRequestId: id },
     orderBy: { createdAt: 'asc' },
     include: { author: { select: { id: true, name: true, email: true } } },
   })
@@ -29,11 +31,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return respond.ok(comments)
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: params.id }, select: { clientId: true } })
+  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
   if (!reqRow || reqRow.clientId !== session.user.id) {
     return respond.notFound('Service request not found')
   }
@@ -50,7 +53,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const created = await prisma.serviceRequestComment.create({
     data: {
-      serviceRequestId: params.id,
+      serviceRequestId: id,
       authorId: session.user.id,
       content: parsed.data.content,
       attachments: parsed.data.attachments ?? undefined,
