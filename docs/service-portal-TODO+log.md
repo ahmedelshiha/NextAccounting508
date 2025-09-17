@@ -223,6 +223,11 @@ How to Resume
   - Updated: src/app/admin/audits/page.tsx (server-side filtering, pagination controls; CSV export kept)
   - Why: Improve performance and scalability for large audit volumes.
   - Next: Add server-side CSV export and DB indexes on checkedAt and status.
+- [x] 2025-09-17: Reduced client fetch aborts causing Failed to fetch in app router.
+  - Updated: src/lib/api.ts (browser timeout 45s; DOMException reason preserved)
+  - Updated: src/app/status/page.tsx (use apiFetch with retries)
+  - Why: Mitigate transient network/slow dev responses and avoid AbortError noise.
+  - Next: Set NEXTAUTH_URL and NEXTAUTH_SECRET in deploy env to silence NextAuth warnings.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
