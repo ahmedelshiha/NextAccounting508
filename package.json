@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build --turbopack",
+    "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
