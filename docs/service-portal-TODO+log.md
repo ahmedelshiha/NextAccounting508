@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Active (as of 2025-09-16)
+Status: Paused (as of 2025-09-17)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -14,6 +14,46 @@ This file tracks the full implementation plan derived from:
 - docs/admin-dashboard-audit.md
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
+
+## Current Status (Paused)
+- Waiting on CI/CD to run Prisma generate/migrate/seed against Neon. Env configured; migrations not yet applied in this environment.
+- Uploads provider chosen: Netlify Blobs. Provider wiring in API pending; need NETLIFY_BLOBS_TOKEN in env and key-generation in /api/uploads.
+- Realtime durable adapter implemented (Postgres LISTEN/NOTIFY). Needs REALTIME_TRANSPORT=postgres and staging validation for multi-instance delivery.
+- Tests in place for key routes; unit/e2e coverage pending; thresholds require tightening.
+
+## Remaining Work (Paused)
+1) Database and Migrations
+- [ ] Run Prisma generate/migrate/seed in CI/CD; verify tables/enums and seed data applied
+- [ ] Seed permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
+- [ ] Implement multi-tenancy scoping behind feature flag; add tenantId/orgId to models and indexes; scope queries
+
+2) Uploads and File Storage
+- [ ] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
+- [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
+- [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
+
+3) Realtime and Ops
+- [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
+- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+
+4) QA and Testing
+- [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
+- [ ] Tighten coverage thresholds in tests/thresholds.test.ts and ensure passing locally/CI
+- [ ] Add e2e tests for client request create/approve and admin assign/progress/complete flows
+
+5) Documentation and Runbooks
+- [ ] Document required env vars and values: DATABASE_URL, NETLIFY_BLOBS_TOKEN, REALTIME_*; provider setup steps
+- [ ] Add deployment checklist (preflight, migration, health checks) and rollback steps
+
+6) Nice-to-haves
+- [ ] Integrate Sentry for error/perf monitoring; add alerting on API error rates
+- [ ] Surface audit log UI under /admin/audits with filters and export
+
+How to Resume
+- Step 1: Connect to Neon and run CI/CD build to apply Prisma migrations/seeds
+- Step 2: Configure Netlify envs (NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT=postgres) and redeploy
+- Step 3: Implement Netlify Blobs code path in /api/uploads and push PR; validate uploads in staging
+- Step 4: Add missing tests and raise thresholds; merge PR after green CI
 
 ## Remaining work (paused)
 
