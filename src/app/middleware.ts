@@ -32,7 +32,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  return NextResponse.next()
+  const res = NextResponse.next()
+
+  // Prevent caching of sensitive pages
+  if (isAdminPage || isPortalPage) {
+    res.headers.set('Cache-Control', 'no-store')
+    res.headers.set('Pragma', 'no-cache')
+  }
+
+  return res
 }
 
 export const config = {
