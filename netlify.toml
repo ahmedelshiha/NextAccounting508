@@ -1,6 +1,6 @@
 [build]
-  command = "npm run db:push -- --accept-data-loss && npm run db:seed && npm run build"
-  publish = ".next"
+  command = "npm run db:push -- --accept-data-loss && npm run db:seed"
+  publish = ".netlify/build"
 
 [build.environment]
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
@@ -14,7 +14,7 @@
   NPM_CONFIG_PROGRESS = "false"
 
 [[plugins]]
-  package = "@netlify/next-runtime"
+  package = "@netlify/plugin-nextjs"
 
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
