@@ -37,7 +37,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - No remaining items here; roles aligned and middleware checks completed.
 
 - [ ] Realtime
-  - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
+  - [x] Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
   - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
 
 - [ ] Admin UI
