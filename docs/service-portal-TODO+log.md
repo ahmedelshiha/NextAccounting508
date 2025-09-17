@@ -1,3 +1,9 @@
+- [x] 2025-09-17: Netlify build fix — install required plugins and enable Next.js runtime.
+  - Updated: netlify.toml, package.json
+  - What: Added @netlify/next-runtime to plugins in netlify.toml and added both @netlify/next-runtime and @netlify/plugin-lighthouse as devDependencies so Netlify can resolve plugins.
+  - Why: Deploy failed with “Plugins must be installed either in the Netlify App or in package.json”.
+  - Next: Push code to trigger a new deploy. If still failing, install plugins via Netlify App UI as an alternative.
+
 - [x] 2025-09-17: Client Portal — persist filters and page size selector in Service Requests list.
   - Updated: src/app/portal/service-requests/page.tsx
   - What: Saved q/status/priority/limit to localStorage; restored on load; added page-size Select (10/20/50) to drive API limit; kept styles and breakpoints.
