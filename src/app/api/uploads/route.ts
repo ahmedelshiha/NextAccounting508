@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
+import { logAudit } from '@/lib/audit'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -80,8 +81,15 @@ export async function POST(request: Request) {
       }
       try {
         const { randomUUID } = await import('node:crypto')
-        const mod = (await import('@netlify/blobs')) as any
-        const Blobs = mod.Blobs || mod.default?.Blobs || mod
+        const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
+        const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
+        if (!mod) {
+          return NextResponse.json({
+            error: 'Netlify Blobs SDK not available',
+            hint: 'Install @netlify/blobs or enable the Netlify Blobs runtime, then redeploy',
+          }, { status: 501 })
+        }
+        const Blobs = (mod as any).Blobs || (mod as any).default?.Blobs || mod
         const store = new Blobs({ token })
         const safeName = typeof (file as any).name === 'string' ? String((file as any).name).replace(/[^a-zA-Z0-9._-]/g, '_') : 'upload.bin'
         const key = `${folder}/${Date.now()}-${(randomUUID?.() || Math.random().toString(36).slice(2))}-${safeName}`

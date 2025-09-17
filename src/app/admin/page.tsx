@@ -422,8 +422,25 @@ const mockDashboardData: DashboardData = {
 function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh, onExport, onMarkAllRead }: { data: DashboardData; autoRefresh: boolean; onToggleAutoRefresh: () => void; onRefresh: () => void; onExport: () => void; onMarkAllRead: () => void; }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [dashboardView, setDashboardView] = useState<'overview' | 'detailed'>('overview')
+  const [rtTransport, setRtTransport] = useState<string>('')
+  const [rtConn, setRtConn] = useState<number>(0)
   const router = useRouter()
-  
+
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/system/health')
+        const j = await r.json().catch(() => null)
+        if (!ignore && j?.realtime) {
+          setRtTransport(j.realtime.transport || '')
+          setRtConn(j.realtime.connectionCount || 0)
+        }
+      } catch {}
+    })()
+    return () => { ignore = true }
+  }, [])
+
   const unreadCount = data.notifications.filter(n => !n.read).length
   const urgentNotifications = data.notifications.filter(n => n.type === 'urgent' && !n.read)
 
@@ -457,6 +474,12 @@ function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh,
                 <Activity className="h-3 w-3 text-green-500" />
                 <span className="text-green-600">Live</span>
               </div>
+            </>
+          )}
+          {rtTransport && (
+            <>
+              <span>•</span>
+              <span className="text-sm text-gray-600">Realtime: {rtTransport}{rtConn ? ` (${rtConn})` : ''}</span>
             </>
           )}
         </div>
@@ -779,18 +802,25 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   
   const actions = {
     primary: [
-      { 
-        label: 'New Booking', 
-        href: '/admin/bookings/new', 
-        icon: Plus, 
+      {
+        label: 'New Booking',
+        href: '/admin/bookings/new',
+        icon: Plus,
         variant: 'default' as const,
         description: 'Schedule client appointment',
         urgent: data.stats.bookings.pending > 15
       },
-      { 
-        label: 'Add Client', 
-        href: '/admin/clients/new', 
-        icon: Users, 
+      {
+        label: 'New Service Request',
+        href: '/admin/service-requests/new',
+        icon: Plus,
+        variant: 'outline' as const,
+        description: 'Create client request'
+      },
+      {
+        label: 'Add Client',
+        href: '/admin/clients/new',
+        icon: Users,
         variant: 'outline' as const,
         description: 'Register new client',
         badge: `${data.stats.clients.new} new this month`
@@ -840,6 +870,18 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         href: '/admin/services',
         icon: Settings,
         description: 'Create and manage services'
+      },
+      {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        description: 'Manage client requests'
+      },
+      {
+        label: 'Audit Logs',
+        href: '/admin/audits',
+        icon: Activity,
+        description: 'Review system and admin audits'
       },
       {
         label: 'Bookings',

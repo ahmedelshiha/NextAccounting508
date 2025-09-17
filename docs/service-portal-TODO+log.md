@@ -21,6 +21,23 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Realtime durable adapter implemented (Postgres LISTEN/NOTIFY). Needs REALTIME_TRANSPORT=postgres and staging validation for multi-instance delivery.
 - Tests in place for key routes; unit/e2e coverage pending; thresholds require tightening.
 
+## Remaining Work (Paused) — Checklist (At a glance)
+- Database
+  - [ ] Run prisma migrate/seed in CI/CD and verify seeds (roles/permissions)
+  - [ ] Add multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
+- Realtime
+  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify; confirm 'postgres' transport in /admin header and cross-instance event delivery
+- Uploads
+  - [ ] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
+- QA & Testing
+  - [ ] Tighten coverage thresholds; add unit tests (RBAC, auto-assign, status transitions) and e2e for client/admin flows
+- Docs & Runbooks
+  - [ ] Document required env vars and deployment checklist; add rollback steps
+- Observability
+  - [ ] Integrate Sentry for error/perf monitoring and alerts
+- Admin UI
+  - [ ] Add pagination and server-side search to /admin/audits
+
 ## Remaining Work (Paused)
 1) Database and Migrations
 - [ ] Run Prisma generate/migrate/seed in CI/CD; verify tables/enums and seed data applied
@@ -34,7 +51,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
-- [x] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; confirm cross-instance events
 
 4) QA and Testing
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
@@ -182,6 +199,33 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
+  - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
+  - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
+  - Why: Netlify build failed with TS2304 (logAudit not found) and TS2300 (Duplicate identifier 'prisma').
+  - Next: Push to origin and redeploy on Netlify. Ensure UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN are set. Validate build passes; then proceed to enable REALTIME_TRANSPORT=postgres and verify multi-instance delivery.
+- [x] 2025-09-17: Removed Turbopack warning for @netlify/blobs by deferring import fully.
+  - Updated: src/app/api/uploads/route.ts (use Function('return import(...)') to avoid static resolution; returns 501 with hint if SDK unavailable)
+  - Why: Build warned "Module not found: Can't resolve '@netlify/blobs'" though deploy succeeded.
+  - Next: Optionally add @netlify/blobs to dependencies for local dev; keep UPLOADS_PROVIDER=netlify + NETLIFY_BLOBS_TOKEN in Netlify env. Set REALTIME_TRANSPORT=postgres and (optional) REALTIME_PG_URL.
+- [x] 2025-09-17: Implemented Admin Audits UI with filters and CSV export.
+  - Updated: src/app/admin/audits/page.tsx (service/status filters, RBAC-backed /api/admin/activity, CSV export)
+  - Why: Surface audit logs for operators; leverage existing healthLog store and permissions.
+  - Next: Add pagination and server-side CSV export if logs grow; continue with REALTIME_TRANSPORT=postgres validation.
+- [x] 2025-09-17: Added Smart Actions entries for audits and service requests.
+  - Updated: src/app/admin/page.tsx (SmartQuickActions)
+    - Management tab: added Service Requests (/admin/service-requests) and Audit Logs (/admin/audits)
+    - Primary tab: added New Service Request (/admin/service-requests/new)
+  - Why: Faster operator access to audits and request workflows.
+  - Next: Track usage and consider role-based visibility for Smart Actions.
+- [x] 2025-09-17: Surfaced realtime transport/connection metrics in Admin header.
+  - Updated: src/app/admin/page.tsx (ProfessionalHeader fetches /api/admin/system/health and displays transport + connection count)
+  - Why: Aid validation of multi-instance realtime (LISTEN/NOTIFY) on Netlify.
+  - Next: Manually verify shows 'postgres' in staging; then add simple heartbeat emit on key actions.
+- [x] 2025-09-17: Fixed Admin Audits page Select crash (empty value not allowed).
+  - Updated: src/app/admin/audits/page.tsx (status Select uses 'ALL' instead of empty string; filtering updated accordingly)
+  - Why: Radix Select requires non-empty value for SelectItem; empty caused client-side exception.
+  - Next: Add pagination and server-side search for audits if volume grows.
 - [x] 2025-09-17: Added SSE runtime and realtime health metrics.
   - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
   - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
