@@ -205,7 +205,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
       where: { id },
-      data: { status: BookingStatus.CANCELLED }
+      data: { status: $Enums.BookingStatus.CANCELLED }
     })
 
     return NextResponse.json({ message: 'Booking cancelled successfully' })
