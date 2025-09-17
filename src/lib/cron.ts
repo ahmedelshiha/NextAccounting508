@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
 import { $Enums } from '@prisma/client'
+import prisma from '@/lib/prisma'
 
 // Send booking reminders for appointments tomorrow
 export async function sendBookingReminders() {
