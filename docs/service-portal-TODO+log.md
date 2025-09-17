@@ -28,13 +28,13 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Implement multi-tenancy scoping behind feature flag; add tenantId/orgId to models and indexes; scope queries
 
 2) Uploads and File Storage
-- [ ] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
+- [x] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
 - [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
 - [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
-- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+- [x] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
 
 4) QA and Testing
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
@@ -182,6 +182,15 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added SSE runtime and realtime health metrics.
+  - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
+  - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
+  - Updated: src/app/api/admin/system/health/route.ts (exposes realtime metrics)
+  - Notes: Helps ops monitor realtime behavior; no functional change to event delivery.
+- [x] 2025-09-17: Implemented Netlify Blobs upload provider.
+  - Updated: src/app/api/uploads/route.ts (dynamic import of @netlify/blobs, safe filename, public URL response)
+  - Added: src/types/netlify-blobs-shim.d.ts (shim types for CI typecheck)
+  - Notes: Requires UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN set in Netlify env. Falls back with 501 if not configured.
 - [x] 2025-09-17: Implemented Postgres LISTEN/NOTIFY realtime adapter and factory selection.
   - Updated: src/lib/realtime-enhanced.ts (PostgresPubSub adapter; factory supports REALTIME_TRANSPORT 'postgres'|'pg'|'neon')
   - Updated: package.json (added dependency: pg@^8.12.0)

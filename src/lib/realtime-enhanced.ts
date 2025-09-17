@@ -14,7 +14,7 @@ interface PubSubAdapter {
   onMessage: (handler: (event: RealtimeEvent) => void) => void
 }
 
-class InMemoryPubSub implements PubSubAdapter {
+class InMemoryPubSub implements PubSubAdapter { public name = 'memory'
   private handlers = new Set<(e: RealtimeEvent) => void>()
   publish(event: RealtimeEvent) {
     for (const h of this.handlers) {
@@ -26,7 +26,7 @@ class InMemoryPubSub implements PubSubAdapter {
   }
 }
 
-class PostgresPubSub implements PubSubAdapter {
+class PostgresPubSub implements PubSubAdapter { public name = 'postgres'
   private channel: string
   private url?: string
   private handlers = new Set<(e: RealtimeEvent) => void>()
@@ -107,6 +107,8 @@ function createAdapterFromEnv(): PubSubAdapter {
 class EnhancedRealtimeService extends EventEmitter {
   private connections = new Map<string, { controller: StreamController; userId: string; eventTypes: Set<string> }>()
   private adapter: PubSubAdapter
+  private totalEvents = 0
+  private lastEventAt: string | null = null
 
   constructor(adapter?: PubSubAdapter) {
     super()
@@ -130,6 +132,8 @@ class EnhancedRealtimeService extends EventEmitter {
   }
 
   private dispatch(event: RealtimeEvent, fromBus = false) {
+    this.totalEvents++
+    this.lastEventAt = new Date().toISOString()
     this.broadcastLocal(event)
     if (!fromBus) {
       try { void this.adapter.publish(event) } catch {}
@@ -178,6 +182,12 @@ class EnhancedRealtimeService extends EventEmitter {
     }
     this.connections.delete(connectionId)
   }
+  getMetrics() {
+    const connectionCount = this.connections.size
+    const transport = (this.adapter as any)?.name || 'unknown'
+    return { connectionCount, totalEvents: this.totalEvents, lastEventAt: this.lastEventAt, transport }
+  }
 }
 
 export const realtimeService = new EnhancedRealtimeService()
+export const getRealtimeMetrics = () => realtimeService.getMetrics()

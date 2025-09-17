@@ -3,8 +3,11 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getRealtimeMetrics } from '@/lib/realtime-enhanced'
 
-export async function GET(_request: NextRequest) {
+export const runtime = 'nodejs'
+
+export async function GET(_request: Request) {
   try {
     const session = await getServerSession(authOptions)
     const role = (session?.user as any)?.role as string | undefined
@@ -39,12 +42,14 @@ export async function GET(_request: NextRequest) {
       { name: 'Neon', status: process.env.NETLIFY_DATABASE_URL ? 'healthy' : 'degraded', message: process.env.NETLIFY_DATABASE_URL ? undefined : 'NETLIFY_DATABASE_URL missing' },
     ]
 
+    const realtime = getRealtimeMetrics()
+
     const summary = {
       overall: db.status === 'healthy' && email.status === 'healthy' && auth.status === 'healthy' ? 'operational' : 'degraded',
       timestamp: new Date().toISOString(),
     }
 
-    return NextResponse.json({ summary, db, email, auth, externalApis })
+    return NextResponse.json({ summary, db, email, auth, externalApis, realtime })
   } catch (error) {
     console.error('System health rollup error:', error)
     return NextResponse.json({ error: 'Failed to load system health' }, { status: 500 })

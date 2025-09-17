@@ -32,9 +32,37 @@ export async function POST(request: Request) {
 
   const buf = Buffer.from(await file.arrayBuffer())
   const sniff = await fileTypeFromBuffer(buf).catch(() => null as any)
-  const detectedMime = sniff?.mime || file.type || ''
-  if (ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) {
+  const detectedMime = sniff?.mime || (file as any).type || ''
+
+  // Stricter extension policy
+  const ALLOWED_EXTS = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'txt'] as const
+  const name = typeof (file as any).name === 'string' ? String((file as any).name) : ''
+  const extFromName = name.includes('.') ? name.split('.').pop()!.toLowerCase() : ''
+  const extFromSniff = (sniff as any)?.ext ? String((sniff as any).ext).toLowerCase() : ''
+  const ext = extFromSniff || extFromName
+
+  if ((ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) || (ext && !ALLOWED_EXTS.includes(ext as any))) {
+    try { await logAudit({ action: 'upload:reject', details: { reason: 'unsupported_type', detectedMime, ext, size: buf.length } }) } catch {}
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
+  }
+
+  // Optional antivirus scan webhook
+  if (process.env.UPLOADS_AV_SCAN_URL) {
+    try {
+      const ac = new AbortController()
+      const t = setTimeout(() => ac.abort(), 5000)
+      const res = await fetch(process.env.UPLOADS_AV_SCAN_URL, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf, signal: ac.signal })
+      clearTimeout(t)
+      const json = await res.json().catch(() => ({})) as any
+      if (!res.ok || json?.clean === false) {
+        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed', status: res.status } }) } catch {}
+        return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
+      }
+    } catch (e) {
+      console.error('AV scan error', e)
+      try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_error' } }) } catch {}
+      return NextResponse.json({ error: 'File scan error' }, { status: 502 })
+    }
   }
 
   const provider = process.env.UPLOADS_PROVIDER || ''
@@ -43,15 +71,28 @@ export async function POST(request: Request) {
   // configure UPLOADS_PROVIDER and related env vars, and extend the switch below.
   switch (provider.toLowerCase()) {
     case 'netlify': {
-      // Example (requires @netlify/blobs at deploy-time):
-      // const store = new Blobs({ token: process.env.NETLIFY_BLOBS_TOKEN! })
-      // const key = `${folder}/${Date.now()}-${crypto.randomUUID()}`
-      // await store.set(key, Buffer.from(await file.arrayBuffer()), { contentType: file.type })
-      // const url = store.getPublicUrl(key)
-      return NextResponse.json({
-        error: 'Storage provider not configured in this environment',
-        hint: 'Set UPLOADS_PROVIDER=netlify and required credentials on deploy',
-      }, { status: 501 })
+      const token = process.env.NETLIFY_BLOBS_TOKEN
+      if (!token) {
+        return NextResponse.json({
+          error: 'Missing NETLIFY_BLOBS_TOKEN',
+          hint: 'Set NETLIFY_BLOBS_TOKEN and UPLOADS_PROVIDER=netlify in your deploy environment',
+        }, { status: 501 })
+      }
+      try {
+        const { randomUUID } = await import('node:crypto')
+        const mod = (await import('@netlify/blobs')) as any
+        const Blobs = mod.Blobs || mod.default?.Blobs || mod
+        const store = new Blobs({ token })
+        const safeName = typeof (file as any).name === 'string' ? String((file as any).name).replace(/[^a-zA-Z0-9._-]/g, '_') : 'upload.bin'
+        const key = `${folder}/${Date.now()}-${(randomUUID?.() || Math.random().toString(36).slice(2))}-${safeName}`
+        await store.set(key, buf, { contentType: detectedMime || (file as any).type || 'application/octet-stream' })
+        const url = typeof store.getPublicUrl === 'function' ? store.getPublicUrl(key) : undefined
+        try { await logAudit({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
+        return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
+      } catch (e) {
+        console.error('Netlify Blobs upload failed', e)
+        return NextResponse.json({ error: 'Upload failed', details: 'Provider error' }, { status: 502 })
+      }
     }
     case 'supabase': {
       // Example (requires @supabase/supabase-js at deploy-time):
