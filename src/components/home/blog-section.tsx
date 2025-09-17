@@ -65,11 +65,11 @@ export async function BlogSection() {
     <section className="py-12 sm:py-16 bg-white" suppressHydrationWarning>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" suppressHydrationWarning>
         {/* Section Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-10" suppressHydrationWarning>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4" suppressHydrationWarning>
             Latest Insights & Tips
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto" suppressHydrationWarning>
             Stay informed with our latest articles on tax strategies, financial planning,
             and business growth tips from our expert team.
           </p>
