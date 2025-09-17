@@ -45,8 +45,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 
 - [ ] Cleanup & Consistency
-  - [ ] Replace file-based task comments with DB-backed endpoints
-  - [ ] Replace file-based templates with DB-backed endpoints
+  - [x] Replace file-based task comments with DB-backed endpoints
+  - [x] Replace file-based templates with DB-backed endpoints
   - [x] Replace file-based notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
 
