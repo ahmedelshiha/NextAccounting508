@@ -2,6 +2,41 @@
 
 Status: Paused (as of 2025-09-17)
 
+Pause Summary
+- Awaiting CI/CD to run Prisma generate/migrate/seed and to finalize multi-tenancy plan before further UI/realtime work.
+- Envs are set for DB, uploads, realtime, and optional Sentry. Safe to resume by following the checklist below.
+
+Remaining Work (Paused) — Actionable Checklist (Consolidated)
+- [ ] Database & Migrations
+  - [ ] Run Prisma generate/migrate/seed in CI/CD; verify seeds for roles/permissions/templates
+  - [ ] Implement multi-tenancy (tenantId/orgId + indexes) behind feature flag and scope queries
+  - [ ] Finalize/persist attachments metadata schema and migrate
+- [ ] Realtime & Ops
+  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify with REALTIME_TRANSPORT=postgres
+  - [ ] Emit and verify periodic heartbeat events across instances; observe reconnection/backoff
+- [ ] Uploads
+  - [ ] Document AV webhook (UPLOADS_AV_SCAN_URL), size limits, and provider settings; add retry/remove UI controls
+  - [ ] Ensure end-to-end audit trail for uploads and failures in admin audits (review aggregation/filters)
+- [ ] QA & Testing
+  - [ ] Add unit tests: auto-assignment, status transitions, RBAC guards
+  - [ ] Tighten coverage thresholds and ensure green locally/CI
+  - [ ] Add e2e tests for client create/approve and admin assign/progress/complete flows
+- [ ] Docs & Runbooks
+  - [ ] Document required env vars and deployment checklist; add rollback steps
+  - [ ] Update API docs for service-requests, team-management, templates
+- [ ] Observability
+  - [ ] Configure Sentry DSN in staging/prod; verify error/performance capture and set alerts
+- [ ] Staging Validation
+  - [ ] Smoke test portal/admin flows against DB; validate uploads provider and CSV exports
+
+Completed (Highlights)
+- Admin Audits: server-side pagination/search, server CSV export, and UI wiring
+- Realtime: Postgres adapter with SSE keepalive pings; metrics surfaced in Admin
+- Uploads: Netlify Blobs provider with magic-byte sniffing, AV webhook support, stricter MIME/ext; portal shows per-file errors
+- Observability: Optional Sentry integration with dynamic import; routed error capture in key endpoints
+- Tests: Route/unit tests added for templates, team-management, service-requests; new admin-activity shape test
+- Performance/Stability: Increased client fetch timeout with retries; hydration warning fix in BlogSection
+
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
 - prisma generate/migrate/seed cannot run in this environment due to ACL; run in CI/CD or dev shell when available.
@@ -28,7 +63,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Realtime
   - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify; confirm 'postgres' transport in /admin header and cross-instance event delivery
 - Uploads
-  - [ ] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
+  - [x] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
 - QA & Testing
   - [ ] Tighten coverage thresholds; add unit tests (RBAC, auto-assign, status transitions) and e2e for client/admin flows
 - Docs & Runbooks
@@ -36,7 +71,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Observability
   - [ ] Integrate Sentry for error/perf monitoring and alerts
 - Admin UI
-  - [ ] Add pagination and server-side search to /admin/audits
+  - [x] Add pagination and server-side search to /admin/audits
 
 ## Remaining Work (Paused)
 1) Database and Migrations
@@ -199,6 +234,47 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added server-side CSV export for audits with filters.
+  - Updated: src/app/api/admin/export/route.ts (supports entity=audits with type/status/q/limit)
+  - Updated: src/app/admin/audits/page.tsx (export button uses server endpoint)
+  - Why: Handle large datasets and ensure RBAC via server.
+  - Next: Consider streaming for very large exports.
+- [x] 2025-09-17: Optional Sentry integration (server/client) guarded by SENTRY_DSN.
+  - Added: src/lib/observability.ts (dynamic import of @sentry/*; captureError helper)
+  - Updated: activity/export/uploads routes to capture errors when present
+  - Why: Improve error visibility without hard runtime dependency.
+  - Next: If desired, add @sentry/nextjs dependency and wrap next.config.js.
+- [x] 2025-09-17: Added Prisma indexes for HealthLog queries.
+  - Updated: prisma/schema.prisma (indexes on checkedAt and service/status)
+  - Why: Improve performance for audits listing/export queries.
+  - Note: Requires prisma migrate in CI/CD to take effect.
+- [x] 2025-09-17: Completed antivirus scan + stricter MIME/extension policy; surfaced upload errors in portal UI.
+  - Updated: src/app/api/uploads/route.ts (AV scan via UPLOADS_AV_SCAN_URL; strong type/extension checks)
+  - Updated: src/app/portal/service-requests/new/page.tsx (per-file error display)
+  - Why: Security and UX.
+  - Next: Consider async AV callbacks and quarantine storage.
+- [x] 2025-09-17: Added server-side pagination and search for Admin Audits.
+  - Updated: src/app/api/admin/activity/route.ts (page, limit, q, status; returns data+pagination)
+  - Updated: src/app/admin/audits/page.tsx (server-side filtering, pagination controls; CSV export kept)
+  - Why: Improve performance and scalability for large audit volumes.
+  - Next: Add server-side CSV export and DB indexes on checkedAt and status.
+- [x] 2025-09-17: Reduced client fetch aborts causing Failed to fetch in app router.
+  - Updated: src/lib/api.ts (browser timeout 45s; DOMException reason preserved)
+  - Updated: src/app/status/page.tsx (use apiFetch with retries)
+  - Why: Mitigate transient network/slow dev responses and avoid AbortError noise.
+  - Next: Set NEXTAUTH_URL and NEXTAUTH_SECRET in deploy env to silence NextAuth warnings.
+- [x] 2025-09-17: Fixed hydration warnings in BlogSection caused by dev data-loc attributes.
+  - Updated: src/components/home/blog-section.tsx (suppressHydrationWarning on header nodes)
+  - Why: Prevent SSR/client attribute mismatches in dev overlays.
+  - Next: Consider dynamic import with ssr:false if further mismatches surface.
+- [x] 2025-09-17: Added unit test for Admin Activity pagination/search shape.
+  - Added: tests/admin-activity.route.test.ts
+  - Why: Guard regression on API shape as volume grows.
+  - Next: Add more tests for filters and DB-backed path when CI runs Prisma.
+- [x] 2025-09-17: Added SSE keepalive pings to admin/portal realtime endpoints.
+  - Updated: src/app/api/{admin,portal}/realtime/route.ts (': ping' every 25s; clean on abort)
+  - Why: Prevent idle timeouts and improve multi-instance validation stability.
+  - Next: Emit periodic heartbeat events to test cross-instance delivery in staging.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)

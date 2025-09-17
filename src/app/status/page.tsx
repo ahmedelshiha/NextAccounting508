@@ -29,9 +29,9 @@ export default function StatusPage() {
   async function load() {
     try {
       const [dbRes, emailRes, logsRes] = await Promise.all([
-        fetch('/api/db-check', { cache: 'no-store' }),
-        fetch('/api/email-check', { cache: 'no-store' }),
-        fetch('/api/health/logs?limit=50', { cache: 'no-store' }),
+        (await import('@/lib/api')).apiFetch('/api/db-check'),
+        (await import('@/lib/api')).apiFetch('/api/email-check'),
+        (await import('@/lib/api')).apiFetch('/api/health/logs?limit=50'),
       ])
       setDbOk(dbRes.ok)
       setEmailOk(emailRes.ok)
