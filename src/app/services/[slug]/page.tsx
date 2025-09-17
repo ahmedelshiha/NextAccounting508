@@ -152,6 +152,9 @@ export default async function ServicePage({ params }: PageProps) {
                     <Button asChild className="w-full">
                       <Link href={`/booking?service=${encodeURIComponent(service.slug)}`}>Book This Service</Link>
                     </Button>
+                    <Button asChild className="w-full">
+                      <Link href={`/portal/service-requests/new?serviceSlug=${encodeURIComponent(service.slug)}`}>Request This Service</Link>
+                    </Button>
                     <Button variant="outline" asChild className="w-full">
                       <Link href={`/contact?service=${encodeURIComponent(service.slug)}`}>Contact Us</Link>
                     </Button>
