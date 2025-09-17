@@ -125,7 +125,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ### 8) Cleanup and Consistency (from audits)
 - [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
-- [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
+- [x] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [x] Replace mock dashboard data with real API and guards
 - [x] Standardize zod validation and error shapes across new routes
   - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
