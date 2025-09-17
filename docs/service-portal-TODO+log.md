@@ -182,6 +182,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added SSE runtime and realtime health metrics.
+  - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
+  - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
+  - Updated: src/app/api/admin/system/health/route.ts (exposes realtime metrics)
+  - Notes: Helps ops monitor realtime behavior; no functional change to event delivery.
 - [x] 2025-09-17: Implemented Netlify Blobs upload provider.
   - Updated: src/app/api/uploads/route.ts (dynamic import of @netlify/blobs, safe filename, public URL response)
   - Added: src/types/netlify-blobs-shim.d.ts (shim types for CI typecheck)
