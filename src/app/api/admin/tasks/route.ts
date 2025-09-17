@@ -4,8 +4,6 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import prisma from '@/lib/prisma'
-
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
 // In-memory fallback store (non-persistent) used only when DB is not configured
