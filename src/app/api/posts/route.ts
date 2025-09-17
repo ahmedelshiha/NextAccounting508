@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Compute status & dates
     const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : undefined
-    let finalStatus: $Enums.PostStatus = (normalizedStatus as PostStatus) || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
+    let finalStatus: $Enums.PostStatus = (normalizedStatus as $Enums.PostStatus) || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
     if (archived) finalStatus = 'ARCHIVED'
 
     const createData: Prisma.PostUncheckedCreateInput = {
