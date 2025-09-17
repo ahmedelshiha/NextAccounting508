@@ -142,6 +142,12 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Connected Neon DB in dev via dev-server env; increased fetch timeout; fixed prisma import in tasks API.
+  - Updated: src/lib/api.ts (default client timeout 15s; env override NEXT_PUBLIC_FETCH_TIMEOUT)
+  - Updated: src/app/api/admin/tasks/route.ts (added prisma import)
+  - Set env: NETLIFY_DATABASE_URL, DATABASE_URL (restart applied). Secrets not committed.
+  - Notes: Prisma generate/migrate/seed will run in Netlify build per netlify.toml.
+  - Next: Trigger Netlify build to apply migrations/seeds; verify analytics and portal flows against DB.
 - [x] 2025-09-16: Fixed remaining Netlify TypeScript build errors (admin UI and API routes).
 - [x] 2025-09-16: Resolved TS2554 by making z.record schema explicit.
   - Updated: src/app/api/admin/service-requests/[id]/route.ts (z.record(z.string(), z.any()))
