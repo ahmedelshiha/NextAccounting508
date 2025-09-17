@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { Prisma, $Enums } from '@prisma/client'
 
 // GET /api/posts - Get blog posts
 export async function GET(request: NextRequest) {
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Compute status & dates
     const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : undefined
-    let finalStatus: PostStatus = (normalizedStatus as PostStatus) || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
+    let finalStatus: $Enums.PostStatus = (normalizedStatus as $Enums.PostStatus) || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
     if (archived) finalStatus = 'ARCHIVED'
 
     const createData: Prisma.PostUncheckedCreateInput = {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
       status: finalStatus,
       archived,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-      priority: typeof priority === 'string' ? (priority.toUpperCase() as PostPriority) : (priority as PostPriority | undefined),
+      priority: typeof priority === 'string' ? (priority.toUpperCase() as $Enums.PostPriority) : (priority as $Enums.PostPriority | undefined),
       category: category ?? null,
       reviewRequired,
       isCompliant,

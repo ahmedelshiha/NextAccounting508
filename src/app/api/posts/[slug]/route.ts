@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { Prisma, $Enums } from '@prisma/client'
 
 // GET /api/posts/[slug] - Get post by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
@@ -122,10 +122,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     if (readTime !== undefined) updateData.readTime = readTime ? parseInt(readTime) : null
 
     // Advanced updates
-    if (status !== undefined) updateData.status = (typeof status === 'string' ? (status.toUpperCase() as PostStatus) : (status as PostStatus))
+    if (status !== undefined) updateData.status = (typeof status === 'string' ? (status.toUpperCase() as $Enums.PostStatus) : (status as $Enums.PostStatus))
     if (archived !== undefined) updateData.archived = archived
     if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null
-    if (priority !== undefined) updateData.priority = (typeof priority === 'string' ? (priority.toUpperCase() as PostPriority) : (priority as PostPriority))
+    if (priority !== undefined) updateData.priority = (typeof priority === 'string' ? (priority.toUpperCase() as $Enums.PostPriority) : (priority as $Enums.PostPriority))
     if (category !== undefined) updateData.category = category
     if (reviewRequired !== undefined) updateData.reviewRequired = reviewRequired
     if (isCompliant !== undefined) updateData.isCompliant = isCompliant

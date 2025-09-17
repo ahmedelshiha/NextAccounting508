@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import { $Enums } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendBookingConfirmation } from '@/lib/email'
@@ -61,7 +61,7 @@ export async function POST(
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
-        status: BookingStatus.CONFIRMED,
+        status: $Enums.BookingStatus.CONFIRMED,
         confirmed: true
       },
       include: {

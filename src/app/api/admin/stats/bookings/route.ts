@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import { $Enums } from '@prisma/client'
 import { sumDecimals } from '@/lib/decimal-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
@@ -32,10 +32,10 @@ export async function GET(request: NextRequest) {
 
     // Get bookings by status
     const [pending, confirmed, completed, cancelled] = await Promise.all([
-      prisma.booking.count({ where: { status: BookingStatus.PENDING } }),
-      prisma.booking.count({ where: { status: BookingStatus.CONFIRMED } }),
-      prisma.booking.count({ where: { status: BookingStatus.COMPLETED } }),
-      prisma.booking.count({ where: { status: BookingStatus.CANCELLED } })
+      prisma.booking.count({ where: { status: $Enums.BookingStatus.PENDING } }),
+      prisma.booking.count({ where: { status: $Enums.BookingStatus.CONFIRMED } }),
+      prisma.booking.count({ where: { status: $Enums.BookingStatus.COMPLETED } }),
+      prisma.booking.count({ where: { status: $Enums.BookingStatus.CANCELLED } })
     ])
 
     // Get today's bookings
@@ -75,13 +75,13 @@ export async function GET(request: NextRequest) {
 
     // Get revenue statistics
     const completedBookings = (await prisma.booking.findMany({
-      where: { status: BookingStatus.COMPLETED },
+      where: { status: $Enums.BookingStatus.COMPLETED },
       include: {
         service: {
           select: { price: true }
         }
       }
-    })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
+    }))
 
     // Use shared decimal utilities to convert and sum prices
     const priceValues = completedBookings.map(
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
           lte: nextWeek
         },
         status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
+          in: [$Enums.BookingStatus.PENDING, $Enums.BookingStatus.CONFIRMED]
         }
       }
     })
@@ -131,15 +131,15 @@ export async function GET(request: NextRequest) {
       const bookingsPrevRange = await prisma.booking.count({ where: { createdAt: { gte: prevStart, lt: start } } })
 
       const completedInRange = (await prisma.booking.findMany({
-        where: { status: BookingStatus.COMPLETED, createdAt: { gte: start } },
+        where: { status: $Enums.BookingStatus.COMPLETED, createdAt: { gte: start } },
         include: { service: { select: { price: true } } }
-      })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
+      }))
       const revenueInRange = sumDecimals(completedInRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
 
       const completedPrevRange = (await prisma.booking.findMany({
-        where: { status: BookingStatus.COMPLETED, createdAt: { gte: prevStart, lt: start } },
+        where: { status: $Enums.BookingStatus.COMPLETED, createdAt: { gte: prevStart, lt: start } },
         include: { service: { select: { price: true } } }
-      })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
+      }))
       const _revenuePrevRange = sumDecimals(completedPrevRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
 
       const growthRange = bookingsPrevRange > 0 ? ((bookingsInRange - bookingsPrevRange) / bookingsPrevRange) * 100 : 0

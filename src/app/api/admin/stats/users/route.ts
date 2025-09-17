@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
         }
       },
       take: 5
-    })) as Array<import('@prisma/client').User & { _count: { bookings: number } }>
+    }))
 
     let ranged: { range?: string; newUsers?: number; growth?: number } = {}
     if (days > 0) {
