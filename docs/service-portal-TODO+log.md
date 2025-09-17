@@ -191,6 +191,10 @@ How to Resume
   - Updated: src/app/api/uploads/route.ts (use Function('return import(...)') to avoid static resolution; returns 501 with hint if SDK unavailable)
   - Why: Build warned "Module not found: Can't resolve '@netlify/blobs'" though deploy succeeded.
   - Next: Optionally add @netlify/blobs to dependencies for local dev; keep UPLOADS_PROVIDER=netlify + NETLIFY_BLOBS_TOKEN in Netlify env. Set REALTIME_TRANSPORT=postgres and (optional) REALTIME_PG_URL.
+- [x] 2025-09-17: Implemented Admin Audits UI with filters and CSV export.
+  - Updated: src/app/admin/audits/page.tsx (service/status filters, RBAC-backed /api/admin/activity, CSV export)
+  - Why: Surface audit logs for operators; leverage existing healthLog store and permissions.
+  - Next: Add pagination and server-side CSV export if logs grow; continue with REALTIME_TRANSPORT=postgres validation.
 - [x] 2025-09-17: Added SSE runtime and realtime health metrics.
   - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
   - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
