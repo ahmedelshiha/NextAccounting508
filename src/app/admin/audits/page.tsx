@@ -18,43 +18,43 @@ export default function AdminAuditsPage() {
   const [q, setQ] = useState('')
   const [type, setType] = useState<(typeof TYPES)[number]>('AUDIT')
   const [status, setStatus] = useState<string>('ALL')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
+  const [total, setTotal] = useState(0)
 
   async function load() {
     setLoading(true)
     try {
-      const url = `/api/admin/activity?type=${encodeURIComponent(type)}&limit=200`
-      const res = await apiFetch(url)
+      const params = new URLSearchParams({
+        type,
+        page: String(page),
+        limit: String(limit),
+      })
+      if (q) params.set('q', q)
+      if (status) params.set('status', status)
+      const res = await apiFetch(`/api/admin/activity?${params.toString()}`)
       if (res.ok) {
-        const data = await res.json()
+        const json = await res.json()
+        const data = Array.isArray(json) ? json : json.data
         setLogs(Array.isArray(data) ? data : [])
+        const meta = (json && json.pagination) ? json.pagination : { total: Array.isArray(data) ? data.length : 0 }
+        setTotal(meta.total || 0)
       } else {
         setLogs([])
+        setTotal(0)
       }
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [type])
+  useEffect(() => { load() }, [type, page])
 
-  const filtered = useMemo(() => {
-    return logs.filter(l => {
-      if (status !== 'ALL' && l.status !== status) return false
-      if (!q) return true
-      const t = `${l.message || ''}`.toLowerCase()
-      return t.includes(q.toLowerCase())
-    })
-  }, [logs, q, status])
+  const pageCount = useMemo(() => Math.max(1, Math.ceil((total || 0) / limit)), [total, limit])
 
   function exportCsv() {
-    const rows = filtered.map(l => {
+    const rows = logs.map(l => {
       let action = ''
       try { action = JSON.parse(l.message || '{}')?.action || '' } catch {}
-      return {
-        id: l.id,
-        service: l.service,
-        status: l.status,
-        action,
-        checkedAt: l.checkedAt,
-      }
+      return { id: l.id, service: l.service, status: l.status, action, checkedAt: l.checkedAt }
     })
     const header = Object.keys(rows[0] || { id: '', service: '', status: '', action: '', checkedAt: '' })
     const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify((r as any)[k] ?? '')).join(','))].join('\n')
@@ -62,10 +62,13 @@ export default function AdminAuditsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `audits-${type.toLowerCase()}.csv`
+    a.download = `audits-${type.toLowerCase()}-p${page}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
+
+  const canPrev = page > 1
+  const canNext = page < pageCount
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -84,16 +87,16 @@ export default function AdminAuditsPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 flex gap-2">
                 <Input placeholder="Search message..." value={q} onChange={e => setQ(e.target.value)} />
-                <Button variant="outline" onClick={load}>Refresh</Button>
+                <Button variant="outline" onClick={() => { setPage(1); load() }}>Search</Button>
               </div>
               <div className="flex gap-2">
-                <Select value={type} onValueChange={v => setType(v as any)}>
+                <Select value={type} onValueChange={v => { setType(v as any); setPage(1) }}>
                   <SelectTrigger className="w-[160px]"><SelectValue placeholder="Type" /></SelectTrigger>
                   <SelectContent>
                     {TYPES.map(t => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
                   </SelectContent>
                 </Select>
-                <Select value={status} onValueChange={v => setStatus(v)}>
+                <Select value={status} onValueChange={v => { setStatus(v); setPage(1); setTimeout(load, 0) }}>
                   <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">ALL</SelectItem>
@@ -109,16 +112,18 @@ export default function AdminAuditsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent Events</CardTitle>
-            <CardDescription>Latest {filtered.length} entries</CardDescription>
+            <CardDescription>
+              Page {page} of {pageCount} • Total {total}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[...Array(8)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-16" />))}
               </div>
-            ) : filtered.length ? (
+            ) : logs.length ? (
               <div className="divide-y divide-gray-100">
-                {filtered.map(l => {
+                {logs.map(l => {
                   type AuditMessage = { action?: string; targetId?: string; details?: unknown }
                   let parsed: AuditMessage = {}
                   try { parsed = l.message ? (JSON.parse(l.message) as AuditMessage) : {} } catch { parsed = {} }
@@ -135,6 +140,14 @@ export default function AdminAuditsPage() {
                     </div>
                   )
                 })}
+
+                <div className="flex items-center justify-between pt-4">
+                  <div className="text-sm text-gray-600">Showing {logs.length} of {total}</div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" disabled={!canPrev} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</Button>
+                    <Button variant="outline" disabled={!canNext} onClick={() => setPage(p => p + 1)}>Next</Button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-gray-500">No audits found.</div>
