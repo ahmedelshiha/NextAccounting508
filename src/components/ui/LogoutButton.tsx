@@ -28,6 +28,9 @@ export default function LogoutButton({ className = '', after, ...rest }: Props) 
         void fetch('/api/admin/auth/logout', { method: 'POST' })
       } catch {}
 
+      // Dispatch global logout event so stores can clear themselves
+      try { window?.dispatchEvent(new Event('app:logout')) } catch {}
+
       // Use NextAuth signOut which will clear session cookies and redirect
       await signOut({ callbackUrl: '/login' })
 
@@ -36,7 +39,8 @@ export default function LogoutButton({ className = '', after, ...rest }: Props) 
 
       if (after) after()
     } catch (err) {
-      // best-effort: still redirect
+      // best-effort: still dispatch & redirect
+      try { window?.dispatchEvent(new Event('app:logout')) } catch {}
       try { await signOut({ callbackUrl: '/login' }) } catch {}
     }
   }
