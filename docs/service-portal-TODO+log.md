@@ -20,9 +20,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Resume checklist (ordered):
   1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
-  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
+  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT. [Adapter implemented: Postgres; enable via REALTIME_TRANSPORT=postgres]
   4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
-  5. Replace file-based templates with DB-backed endpoints (notifications done).
+  5. Replace file-based templates with DB-backed endpoints — completed.
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
   7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
   8. Update docs to reflect endpoints, flows, and ops runbooks.
