@@ -21,6 +21,23 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Realtime durable adapter implemented (Postgres LISTEN/NOTIFY). Needs REALTIME_TRANSPORT=postgres and staging validation for multi-instance delivery.
 - Tests in place for key routes; unit/e2e coverage pending; thresholds require tightening.
 
+## Remaining Work (Paused) — Checklist (At a glance)
+- Database
+  - [ ] Run prisma migrate/seed in CI/CD and verify seeds (roles/permissions)
+  - [ ] Add multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
+- Realtime
+  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify; confirm 'postgres' transport in /admin header and cross-instance event delivery
+- Uploads
+  - [ ] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
+- QA & Testing
+  - [ ] Tighten coverage thresholds; add unit tests (RBAC, auto-assign, status transitions) and e2e for client/admin flows
+- Docs & Runbooks
+  - [ ] Document required env vars and deployment checklist; add rollback steps
+- Observability
+  - [ ] Integrate Sentry for error/perf monitoring and alerts
+- Admin UI
+  - [ ] Add pagination and server-side search to /admin/audits
+
 ## Remaining Work (Paused)
 1) Database and Migrations
 - [ ] Run Prisma generate/migrate/seed in CI/CD; verify tables/enums and seed data applied
@@ -34,7 +51,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
-- [x] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; confirm cross-instance events
 
 4) QA and Testing
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
