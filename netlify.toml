@@ -1,10 +1,9 @@
 [build]
   command = "npm run db:push -- --accept-data-loss && npm run db:seed && npm run build"
-  publish = "out"
+  publish = "" # leave empty so runtime takes over
 
 [build.environment]
   DATABASE_URL = "${NETLIFY_DATABASE_URL}"
-  # Increase npm network resiliency on Netlify
   NPM_CONFIG_FETCH_RETRIES = "5"
   NPM_CONFIG_FETCH_RETRY_MINTIMEOUT = "20000"
   NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT = "120000"
