@@ -199,6 +199,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added server-side pagination and search for Admin Audits.
+  - Updated: src/app/api/admin/activity/route.ts (page, limit, q, status; returns data+pagination)
+  - Updated: src/app/admin/audits/page.tsx (server-side filtering, pagination controls; CSV export kept)
+  - Why: Improve performance and scalability for large audit volumes.
+  - Next: Add server-side CSV export and DB indexes on checkedAt and status.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
