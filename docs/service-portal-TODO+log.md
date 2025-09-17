@@ -150,6 +150,9 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Updated: src/app/api/uploads/route.ts (file-type detection, MIME whitelist, size checks)
   - Updated: package.json (added dependency: file-type@^18.7.0)
   - Notes: Choose provider (Netlify Blobs or Supabase Storage) and set UPLOADS_PROVIDER on deploy.
+- [x] 2025-09-17: Added route tests for templates and team-management endpoints (fallback mode).
+  - Added: tests/templates.route.test.ts, tests/team-management.routes.test.ts
+  - Notes: Mocks permissions, auth, fs, and DB disabled path; validates responses and structures.
 - [x] 2025-09-17: Connected Neon DB in dev via dev-server env; increased fetch timeout; fixed prisma import in tasks API.
   - Updated: src/lib/api.ts (default client timeout 15s; env override NEXT_PUBLIC_FETCH_TIMEOUT)
   - Updated: src/app/api/admin/tasks/route.ts (added prisma import)
