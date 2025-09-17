@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
-    const where: import('@prisma/client').Prisma.NewsletterWhereInput = {}
+    const where: Prisma.NewsletterWhereInput = {}
 
     if (subscribed !== null) {
       where.subscribed = subscribed === 'true'

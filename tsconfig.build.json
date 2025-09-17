@@ -9,6 +9,8 @@
     "backup/**",
     "temp/**",
     "tests/**",
+    "prisma/**",
+    "scripts/**",
     "src/**/__tests__/**",
     "src/**/*.test.*",
     "src/app/admin/tasks/tests/**",

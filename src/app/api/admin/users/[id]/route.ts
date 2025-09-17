@@ -6,6 +6,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { $Enums } from '@prisma/client'
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -34,10 +35,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
-    const data: { name?: string; email?: string; role?: import('@prisma/client').UserRole } = {}
+    const data: { name?: string; email?: string; role?: $Enums.UserRole } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
     if (parsed.data.email !== undefined) data.email = parsed.data.email
-    if (parsed.data.role !== undefined) data.role = parsed.data.role as import('@prisma/client').UserRole
+    if (parsed.data.role !== undefined) data.role = parsed.data.role as $Enums.UserRole
 
     const updated = await prisma.user.update({
       where: { id },

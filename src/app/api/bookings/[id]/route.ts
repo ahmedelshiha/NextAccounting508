@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import { Prisma, $Enums } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -109,11 +109,11 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     // Prepare update data based on user role
-    const updateData: Partial<import('@prisma/client').Prisma.BookingUpdateInput> = {}
+    const updateData: Partial<Prisma.BookingUpdateInput> = {}
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
-      if (status) updateData.status = status as BookingStatus
+      if (status) updateData.status = status as $Enums.BookingStatus
       if (scheduledAt) updateData.scheduledAt = new Date(scheduledAt)
       if (adminNotes !== undefined) updateData.adminNotes = adminNotes
       if (confirmed !== undefined) updateData.confirmed = confirmed

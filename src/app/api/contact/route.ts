@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { Prisma } from '@prisma/client'
 
 // POST /api/contact - Submit contact form
 export async function POST(request: NextRequest) {
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const skip = searchParams.get('skip')
 
-    const where: import('@prisma/client').Prisma.ContactSubmissionWhereInput = {}
+    const where: Prisma.ContactSubmissionWhereInput = {}
     
     if (responded !== null) {
       where.responded = responded === 'true'

@@ -1,8 +1,7 @@
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import { Prisma, $Enums } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import type { Prisma } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/bookings - Get bookings (filtered by user role)
@@ -34,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       // Cast incoming status string to BookingStatus enum
-      where.status = status as BookingStatus
+      where.status = status as $Enums.BookingStatus
     }
 
     const bookings = await prisma.booking.findMany({
@@ -135,7 +134,7 @@ export async function POST(request: NextRequest) {
           }
         },
         status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
+          in: [$Enums.BookingStatus.PENDING, $Enums.BookingStatus.CONFIRMED]
         }
       }
     })
@@ -160,7 +159,7 @@ export async function POST(request: NextRequest) {
         clientName,
         clientEmail,
         clientPhone,
-        status: BookingStatus.PENDING,
+        status: $Enums.BookingStatus.PENDING,
         assignedTeamMemberId: assignedTeamMemberId || null
       },
       include: {
