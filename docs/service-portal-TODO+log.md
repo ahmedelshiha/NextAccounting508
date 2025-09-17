@@ -142,6 +142,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Implemented Postgres LISTEN/NOTIFY realtime adapter and factory selection.
+  - Updated: src/lib/realtime-enhanced.ts (PostgresPubSub adapter; factory supports REALTIME_TRANSPORT 'postgres'|'pg'|'neon')
+  - Updated: package.json (added dependency: pg@^8.12.0)
+  - Notes: Default remains in-memory; to enable durable transport set REALTIME_TRANSPORT=postgres and optionally REALTIME_PG_URL/REALTIME_PG_CHANNEL. Next: set env on Netlify and validate multi-instance delivery.
 - [x] 2025-09-17: Connected Neon DB in dev via dev-server env; increased fetch timeout; fixed prisma import in tasks API.
   - Updated: src/lib/api.ts (default client timeout 15s; env override NEXT_PUBLIC_FETCH_TIMEOUT)
   - Updated: src/app/api/admin/tasks/route.ts (added prisma import)
