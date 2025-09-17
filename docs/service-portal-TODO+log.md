@@ -18,7 +18,8 @@ Remaining Work (Paused) — Actionable Checklist (Consolidated)
   - [ ] Document AV webhook (UPLOADS_AV_SCAN_URL), size limits, and provider settings; add retry/remove UI controls
   - [ ] Ensure end-to-end audit trail for uploads and failures in admin audits (review aggregation/filters)
 - [ ] QA & Testing
-  - [ ] Add unit tests: auto-assignment, status transitions, RBAC guards
+  - [ ] Add unit tests: status transitions, RBAC guards
+  - [x] Add unit tests: auto-assignment
   - [ ] Tighten coverage thresholds and ensure green locally/CI
   - [ ] Add e2e tests for client create/approve and admin assign/progress/complete flows
 - [ ] Docs & Runbooks
@@ -89,7 +90,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; confirm cross-instance events
 
 4) QA and Testing
-- [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
+- [x] Add unit tests for auto-assignment
+- [ ] Add unit tests for status transitions and RBAC guards
 - [ ] Tighten coverage thresholds in tests/thresholds.test.ts and ensure passing locally/CI
 - [ ] Add e2e tests for client request create/approve and admin assign/progress/complete flows
 
@@ -226,7 +228,8 @@ How to Resume
 
 ### 9) Testing and docs
 - [ ] Add unit tests for new lib/permissions and helpers
-- [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
+- [x] Add unit tests for auto-assignment
+- [ ] Add unit tests for status transitions and RBAC guards
 - [x] Add route tests for service-requests
 - [x] Add route tests for team-management
 - [x] Add route tests for templates
@@ -234,6 +237,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added unit tests for auto-assignment logic.
+  - Added: tests/auto-assignment.test.ts
+  - Why: Validate skill-match preference and least-workload fallback.
+  - Next: Add tests for status transitions and RBAC guards
 - [x] 2025-09-17: Added server-side CSV export for audits with filters.
   - Updated: src/app/api/admin/export/route.ts (supports entity=audits with type/status/q/limit)
   - Updated: src/app/admin/audits/page.tsx (export button uses server endpoint)
