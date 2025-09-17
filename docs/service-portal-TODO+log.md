@@ -182,6 +182,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Implemented Netlify Blobs upload provider.
+  - Updated: src/app/api/uploads/route.ts (dynamic import of @netlify/blobs, safe filename, public URL response)
+  - Added: src/types/netlify-blobs-shim.d.ts (shim types for CI typecheck)
+  - Notes: Requires UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN set in Netlify env. Falls back with 501 if not configured.
 - [x] 2025-09-17: Implemented Postgres LISTEN/NOTIFY realtime adapter and factory selection.
   - Updated: src/lib/realtime-enhanced.ts (PostgresPubSub adapter; factory supports REALTIME_TRANSPORT 'postgres'|'pg'|'neon')
   - Updated: package.json (added dependency: pg@^8.12.0)
