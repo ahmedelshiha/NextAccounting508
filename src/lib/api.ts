@@ -3,7 +3,7 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
   const debug = typeof process !== 'undefined' && process.env && (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1')
 
   const envTimeout = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FETCH_TIMEOUT) ? Number(process.env.NEXT_PUBLIC_FETCH_TIMEOUT) : undefined
-  const defaultTimeout = typeof window === 'undefined' ? 0 : (Number.isFinite(envTimeout as number) && (envTimeout as number) > 0 ? (envTimeout as number) : 15000)
+  const defaultTimeout = typeof window === 'undefined' ? 0 : (Number.isFinite(envTimeout as number) && (envTimeout as number) > 0 ? (envTimeout as number) : 45000)
   const timeoutMs = (options && (options as any).timeout) || defaultTimeout
 
   const isNetworkError = (err: unknown) => {
