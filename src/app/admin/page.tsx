@@ -422,8 +422,25 @@ const mockDashboardData: DashboardData = {
 function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh, onExport, onMarkAllRead }: { data: DashboardData; autoRefresh: boolean; onToggleAutoRefresh: () => void; onRefresh: () => void; onExport: () => void; onMarkAllRead: () => void; }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [dashboardView, setDashboardView] = useState<'overview' | 'detailed'>('overview')
+  const [rtTransport, setRtTransport] = useState<string>('')
+  const [rtConn, setRtConn] = useState<number>(0)
   const router = useRouter()
-  
+
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        const r = await fetch('/api/admin/system/health')
+        const j = await r.json().catch(() => null)
+        if (!ignore && j?.realtime) {
+          setRtTransport(j.realtime.transport || '')
+          setRtConn(j.realtime.connectionCount || 0)
+        }
+      } catch {}
+    })()
+    return () => { ignore = true }
+  }, [])
+
   const unreadCount = data.notifications.filter(n => !n.read).length
   const urgentNotifications = data.notifications.filter(n => n.type === 'urgent' && !n.read)
 
@@ -457,6 +474,12 @@ function ProfessionalHeader({ data, autoRefresh, onToggleAutoRefresh, onRefresh,
                 <Activity className="h-3 w-3 text-green-500" />
                 <span className="text-green-600">Live</span>
               </div>
+            </>
+          )}
+          {rtTransport && (
+            <>
+              <span>•</span>
+              <span className="text-sm text-gray-600">Realtime: {rtTransport}{rtConn ? ` (${rtConn})` : ''}</span>
             </>
           )}
         </div>
