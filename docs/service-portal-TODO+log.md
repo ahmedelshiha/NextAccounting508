@@ -136,8 +136,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Add unit tests for new lib/permissions and helpers
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
 - [x] Add route tests for service-requests
-- [ ] Add route tests for team-management
-- [ ] Add route tests for templates
+- [x] Add route tests for team-management
+- [x] Add route tests for templates
 - [ ] Add e2e tests for client create/approve request and admin assign/complete
 - [ ] Update docs/ to reflect new endpoints and flows
 
