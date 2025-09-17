@@ -779,18 +779,25 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
   
   const actions = {
     primary: [
-      { 
-        label: 'New Booking', 
-        href: '/admin/bookings/new', 
-        icon: Plus, 
+      {
+        label: 'New Booking',
+        href: '/admin/bookings/new',
+        icon: Plus,
         variant: 'default' as const,
         description: 'Schedule client appointment',
         urgent: data.stats.bookings.pending > 15
       },
-      { 
-        label: 'Add Client', 
-        href: '/admin/clients/new', 
-        icon: Users, 
+      {
+        label: 'New Service Request',
+        href: '/admin/service-requests/new',
+        icon: Plus,
+        variant: 'outline' as const,
+        description: 'Create client request'
+      },
+      {
+        label: 'Add Client',
+        href: '/admin/clients/new',
+        icon: Users,
         variant: 'outline' as const,
         description: 'Register new client',
         badge: `${data.stats.clients.new} new this month`
@@ -840,6 +847,18 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
         href: '/admin/services',
         icon: Settings,
         description: 'Create and manage services'
+      },
+      {
+        label: 'Service Requests',
+        href: '/admin/service-requests',
+        icon: FileText,
+        description: 'Manage client requests'
+      },
+      {
+        label: 'Audit Logs',
+        href: '/admin/audits',
+        icon: Activity,
+        description: 'Review system and admin audits'
       },
       {
         label: 'Bookings',
