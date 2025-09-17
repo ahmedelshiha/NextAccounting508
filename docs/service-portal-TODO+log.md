@@ -34,7 +34,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
-- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+- [x] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
 
 4) QA and Testing
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
