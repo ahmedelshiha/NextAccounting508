@@ -21,7 +21,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
   3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT. [Adapter implemented: Postgres; enable via REALTIME_TRANSPORT=postgres]
-  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
+  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits. [Server-side content-type sniffing added; choose Netlify Blobs or Supabase Storage for production].
   5. Replace file-based templates with DB-backed endpoints — completed.
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
   7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
@@ -146,6 +146,10 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - Updated: src/lib/realtime-enhanced.ts (PostgresPubSub adapter; factory supports REALTIME_TRANSPORT 'postgres'|'pg'|'neon')
   - Updated: package.json (added dependency: pg@^8.12.0)
   - Notes: Default remains in-memory; to enable durable transport set REALTIME_TRANSPORT=postgres and optionally REALTIME_PG_URL/REALTIME_PG_CHANNEL. Next: set env on Netlify and validate multi-instance delivery.
+- [x] 2025-09-17: Hardened uploads endpoint with magic-byte content sniffing and stricter validation.
+  - Updated: src/app/api/uploads/route.ts (file-type detection, MIME whitelist, size checks)
+  - Updated: package.json (added dependency: file-type@^18.7.0)
+  - Notes: Choose provider (Netlify Blobs or Supabase Storage) and set UPLOADS_PROVIDER on deploy.
 - [x] 2025-09-17: Connected Neon DB in dev via dev-server env; increased fetch timeout; fixed prisma import in tasks API.
   - Updated: src/lib/api.ts (default client timeout 15s; env override NEXT_PUBLIC_FETCH_TIMEOUT)
   - Updated: src/app/api/admin/tasks/route.ts (added prisma import)
