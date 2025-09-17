@@ -87,6 +87,7 @@ export async function POST(request: Request) {
         const key = `${folder}/${Date.now()}-${(randomUUID?.() || Math.random().toString(36).slice(2))}-${safeName}`
         await store.set(key, buf, { contentType: detectedMime || (file as any).type || 'application/octet-stream' })
         const url = typeof store.getPublicUrl === 'function' ? store.getPublicUrl(key) : undefined
+        try { await logAudit({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
         return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
       } catch (e) {
         console.error('Netlify Blobs upload failed', e)
