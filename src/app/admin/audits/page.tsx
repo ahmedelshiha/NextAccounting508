@@ -17,7 +17,7 @@ export default function AdminAuditsPage() {
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [type, setType] = useState<(typeof TYPES)[number]>('AUDIT')
-  const [status, setStatus] = useState<string>('')
+  const [status, setStatus] = useState<string>('ALL')
 
   async function load() {
     setLoading(true)
@@ -37,7 +37,7 @@ export default function AdminAuditsPage() {
 
   const filtered = useMemo(() => {
     return logs.filter(l => {
-      if (status && l.status !== status) return false
+      if (status !== 'ALL' && l.status !== status) return false
       if (!q) return true
       const t = `${l.message || ''}`.toLowerCase()
       return t.includes(q.toLowerCase())
@@ -96,7 +96,7 @@ export default function AdminAuditsPage() {
                 <Select value={status} onValueChange={v => setStatus(v)}>
                   <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">ALL</SelectItem>
+                    <SelectItem value="ALL">ALL</SelectItem>
                     {STATUSES.map(s => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
                   </SelectContent>
                 </Select>
