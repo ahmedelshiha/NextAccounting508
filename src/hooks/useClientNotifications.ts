@@ -62,7 +62,16 @@ export function useClientNotifications() {
     }
 
     esRef.current = es
-    return () => { es.close(); esRef.current = null }
+
+    // Clear notifications and close ES on global logout
+    const onLogout = () => {
+      try { es.close() } catch {}
+      esRef.current = null
+      setItems([])
+    }
+    window?.addEventListener?.('app:logout', onLogout)
+
+    return () => { try { es.close() } catch {} ; esRef.current = null; window?.removeEventListener?.('app:logout', onLogout) }
   }, [session?.user])
 
   const unreadCount = useMemo(() => items.filter((i) => !i.read).length, [items])
