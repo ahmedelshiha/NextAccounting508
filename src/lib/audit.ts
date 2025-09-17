@@ -1,7 +1,5 @@
 import prisma from '@/lib/prisma'
 
-import prisma from '@/lib/prisma'
-
 interface AuditEntry {
   action: string
   actorId?: string | null
