@@ -232,6 +232,10 @@ How to Resume
   - Updated: src/components/home/blog-section.tsx (suppressHydrationWarning on header nodes)
   - Why: Prevent SSR/client attribute mismatches in dev overlays.
   - Next: Consider dynamic import with ssr:false if further mismatches surface.
+- [x] 2025-09-17: Added unit test for Admin Activity pagination/search shape.
+  - Added: tests/admin-activity.route.test.ts
+  - Why: Guard regression on API shape as volume grows.
+  - Next: Add more tests for filters and DB-backed path when CI runs Prisma.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
