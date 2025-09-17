@@ -28,7 +28,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Realtime
   - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify; confirm 'postgres' transport in /admin header and cross-instance event delivery
 - Uploads
-  - [ ] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
+  - [x] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
 - QA & Testing
   - [ ] Tighten coverage thresholds; add unit tests (RBAC, auto-assign, status transitions) and e2e for client/admin flows
 - Docs & Runbooks
@@ -36,7 +36,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - Observability
   - [ ] Integrate Sentry for error/perf monitoring and alerts
 - Admin UI
-  - [ ] Add pagination and server-side search to /admin/audits
+  - [x] Add pagination and server-side search to /admin/audits
 
 ## Remaining Work (Paused)
 1) Database and Migrations
@@ -199,6 +199,25 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Added server-side CSV export for audits with filters.
+  - Updated: src/app/api/admin/export/route.ts (supports entity=audits with type/status/q/limit)
+  - Updated: src/app/admin/audits/page.tsx (export button uses server endpoint)
+  - Why: Handle large datasets and ensure RBAC via server.
+  - Next: Consider streaming for very large exports.
+- [x] 2025-09-17: Optional Sentry integration (server/client) guarded by SENTRY_DSN.
+  - Added: src/lib/observability.ts (dynamic import of @sentry/*; captureError helper)
+  - Updated: activity/export/uploads routes to capture errors when present
+  - Why: Improve error visibility without hard runtime dependency.
+  - Next: If desired, add @sentry/nextjs dependency and wrap next.config.js.
+- [x] 2025-09-17: Added Prisma indexes for HealthLog queries.
+  - Updated: prisma/schema.prisma (indexes on checkedAt and service/status)
+  - Why: Improve performance for audits listing/export queries.
+  - Note: Requires prisma migrate in CI/CD to take effect.
+- [x] 2025-09-17: Completed antivirus scan + stricter MIME/extension policy; surfaced upload errors in portal UI.
+  - Updated: src/app/api/uploads/route.ts (AV scan via UPLOADS_AV_SCAN_URL; strong type/extension checks)
+  - Updated: src/app/portal/service-requests/new/page.tsx (per-file error display)
+  - Why: Security and UX.
+  - Next: Consider async AV callbacks and quarantine storage.
 - [x] 2025-09-17: Added server-side pagination and search for Admin Audits.
   - Updated: src/app/api/admin/activity/route.ts (page, limit, q, status; returns data+pagination)
   - Updated: src/app/admin/audits/page.tsx (server-side filtering, pagination controls; CSV export kept)

@@ -60,6 +60,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
       }
     } catch (e) {
+      try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan' }) } catch {}
       console.error('AV scan error', e)
       try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_error' } }) } catch {}
       return NextResponse.json({ error: 'File scan error' }, { status: 502 })
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
         try { await logAudit({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
         return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
       } catch (e) {
+        try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', provider: 'netlify' }) } catch {}
         console.error('Netlify Blobs upload failed', e)
         return NextResponse.json({ error: 'Upload failed', details: 'Provider error' }, { status: 502 })
       }

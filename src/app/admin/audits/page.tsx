@@ -51,20 +51,14 @@ export default function AdminAuditsPage() {
   const pageCount = useMemo(() => Math.max(1, Math.ceil((total || 0) / limit)), [total, limit])
 
   function exportCsv() {
-    const rows = logs.map(l => {
-      let action = ''
-      try { action = JSON.parse(l.message || '{}')?.action || '' } catch {}
-      return { id: l.id, service: l.service, status: l.status, action, checkedAt: l.checkedAt }
-    })
-    const header = Object.keys(rows[0] || { id: '', service: '', status: '', action: '', checkedAt: '' })
-    const csv = [header.join(','), ...rows.map(r => header.map(k => JSON.stringify((r as any)[k] ?? '')).join(','))].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
+    const params = new URLSearchParams({ entity: 'audits', type, status, q, limit: '10000', format: 'csv' })
+    const url = `/api/admin/export?${params.toString()}`
     const a = document.createElement('a')
     a.href = url
     a.download = `audits-${type.toLowerCase()}-p${page}.csv`
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    a.remove()
   }
 
   const canPrev = page > 1

@@ -229,6 +229,10 @@ model HealthLog {
   status    String
   message   String?
   checkedAt DateTime @default(now())
+
+  @@index([checkedAt])
+  @@index([service, checkedAt])
+  @@index([service, status, checkedAt])
 }
 
 // Health thresholds stored in DB for admin-configurable alerts

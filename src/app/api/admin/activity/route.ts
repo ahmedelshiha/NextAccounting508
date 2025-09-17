@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
+    try { const { captureError } = await import('@/lib/observability'); await captureError(error, { route: 'admin/activity' }) } catch {}
     console.error('Activity API error:', error)
     return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 })
   }
