@@ -56,6 +56,27 @@ export default function PortalServiceRequestsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_LIMIT)
 
+  // Load saved filters
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('portalServiceRequestsFilters')
+      if (raw) {
+        const saved = JSON.parse(raw)
+        if (typeof saved.q === 'string') setQ(saved.q)
+        if (typeof saved.status === 'string') setStatus(saved.status)
+        if (typeof saved.priority === 'string') setPriority(saved.priority)
+        if (typeof saved.limit === 'number' && [10,20,50,100].includes(saved.limit)) setLimit(saved.limit)
+      }
+    } catch {}
+  }, [])
+
+  // Persist filters
+  useEffect(() => {
+    try {
+      localStorage.setItem('portalServiceRequestsFilters', JSON.stringify({ q, status, priority, limit }))
+    } catch {}
+  }, [q, status, priority, limit])
+
   const debouncedQ = useDebouncedValue(q, 300)
 
   const buildQuery = () => {
@@ -158,7 +179,7 @@ export default function PortalServiceRequestsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
               <div className="md:col-span-2">
                 <Input
                   placeholder="Search by title or description"
@@ -192,6 +213,16 @@ export default function PortalServiceRequestsPage() {
                   <SelectItem value="MEDIUM">Medium</SelectItem>
                   <SelectItem value="HIGH">High</SelectItem>
                   <SelectItem value="URGENT">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={String(limit)} onValueChange={(v) => { setPage(1); setLimit(parseInt(v, 10) || DEFAULT_LIMIT) }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Items per page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 / page</SelectItem>
+                  <SelectItem value="20">20 / page</SelectItem>
+                  <SelectItem value="50">50 / page</SelectItem>
                 </SelectContent>
               </Select>
             </div>
