@@ -228,6 +228,10 @@ How to Resume
   - Updated: src/app/status/page.tsx (use apiFetch with retries)
   - Why: Mitigate transient network/slow dev responses and avoid AbortError noise.
   - Next: Set NEXTAUTH_URL and NEXTAUTH_SECRET in deploy env to silence NextAuth warnings.
+- [x] 2025-09-17: Fixed hydration warnings in BlogSection caused by dev data-loc attributes.
+  - Updated: src/components/home/blog-section.tsx (suppressHydrationWarning on header nodes)
+  - Why: Prevent SSR/client attribute mismatches in dev overlays.
+  - Next: Consider dynamic import with ssr:false if further mismatches surface.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
