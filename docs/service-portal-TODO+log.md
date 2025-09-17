@@ -236,6 +236,10 @@ How to Resume
   - Added: tests/admin-activity.route.test.ts
   - Why: Guard regression on API shape as volume grows.
   - Next: Add more tests for filters and DB-backed path when CI runs Prisma.
+- [x] 2025-09-17: Added SSE keepalive pings to admin/portal realtime endpoints.
+  - Updated: src/app/api/{admin,portal}/realtime/route.ts (': ping' every 25s; clean on abort)
+  - Why: Prevent idle timeouts and improve multi-instance validation stability.
+  - Next: Emit periodic heartbeat events to test cross-instance delivery in staging.
 - [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
   - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
   - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
