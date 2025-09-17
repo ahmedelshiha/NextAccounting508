@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { fileTypeFromBuffer } from 'file-type'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -29,7 +30,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 413 })
   }
 
-  if (ALLOWED_TYPES.length && file.type && !ALLOWED_TYPES.includes(file.type)) {
+  const buf = Buffer.from(await file.arrayBuffer())
+  const sniff = await fileTypeFromBuffer(buf).catch(() => null as any)
+  const detectedMime = sniff?.mime || file.type || ''
+  if (ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) {
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
   }
 
