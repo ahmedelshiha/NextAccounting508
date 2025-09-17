@@ -15,4 +15,7 @@ NPM_CONFIG_FUND = "false"
 NPM_CONFIG_PROGRESS = "false"
 
 [[plugins]]
+package = "@netlify/next-runtime"
+
+[[plugins]]
 package = "@netlify/plugin-lighthouse"
