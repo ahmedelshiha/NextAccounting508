@@ -15,9 +15,14 @@ export async function GET(request: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\n\n`))
+      const enc = new TextEncoder()
+      controller.enqueue(enc.encode(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\n\n`))
       const connectionId = realtimeService.subscribe(controller as any, userId, eventTypes)
+      const pingId = setInterval(() => {
+        try { controller.enqueue(enc.encode(`: ping ${Date.now()}\n\n`)) } catch {}
+      }, 25000)
       const onAbort = () => {
+        try { clearInterval(pingId) } catch {}
         realtimeService.cleanup(connectionId)
         try { controller.close() } catch {}
       }
