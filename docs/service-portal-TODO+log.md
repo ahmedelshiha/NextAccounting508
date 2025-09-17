@@ -2,6 +2,41 @@
 
 Status: Paused (as of 2025-09-17)
 
+Pause Summary
+- Awaiting CI/CD to run Prisma generate/migrate/seed and to finalize multi-tenancy plan before further UI/realtime work.
+- Envs are set for DB, uploads, realtime, and optional Sentry. Safe to resume by following the checklist below.
+
+Remaining Work (Paused) — Actionable Checklist (Consolidated)
+- [ ] Database & Migrations
+  - [ ] Run Prisma generate/migrate/seed in CI/CD; verify seeds for roles/permissions/templates
+  - [ ] Implement multi-tenancy (tenantId/orgId + indexes) behind feature flag and scope queries
+  - [ ] Finalize/persist attachments metadata schema and migrate
+- [ ] Realtime & Ops
+  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify with REALTIME_TRANSPORT=postgres
+  - [ ] Emit and verify periodic heartbeat events across instances; observe reconnection/backoff
+- [ ] Uploads
+  - [ ] Document AV webhook (UPLOADS_AV_SCAN_URL), size limits, and provider settings; add retry/remove UI controls
+  - [ ] Ensure end-to-end audit trail for uploads and failures in admin audits (review aggregation/filters)
+- [ ] QA & Testing
+  - [ ] Add unit tests: auto-assignment, status transitions, RBAC guards
+  - [ ] Tighten coverage thresholds and ensure green locally/CI
+  - [ ] Add e2e tests for client create/approve and admin assign/progress/complete flows
+- [ ] Docs & Runbooks
+  - [ ] Document required env vars and deployment checklist; add rollback steps
+  - [ ] Update API docs for service-requests, team-management, templates
+- [ ] Observability
+  - [ ] Configure Sentry DSN in staging/prod; verify error/performance capture and set alerts
+- [ ] Staging Validation
+  - [ ] Smoke test portal/admin flows against DB; validate uploads provider and CSV exports
+
+Completed (Highlights)
+- Admin Audits: server-side pagination/search, server CSV export, and UI wiring
+- Realtime: Postgres adapter with SSE keepalive pings; metrics surfaced in Admin
+- Uploads: Netlify Blobs provider with magic-byte sniffing, AV webhook support, stricter MIME/ext; portal shows per-file errors
+- Observability: Optional Sentry integration with dynamic import; routed error capture in key endpoints
+- Tests: Route/unit tests added for templates, team-management, service-requests; new admin-activity shape test
+- Performance/Stability: Increased client fetch timeout with retries; hydration warning fix in BlogSection
+
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
 - prisma generate/migrate/seed cannot run in this environment due to ACL; run in CI/CD or dev shell when available.
