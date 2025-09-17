@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => ({ user: { id: 'u1', role: 'ADMIN' } }))
 }))
