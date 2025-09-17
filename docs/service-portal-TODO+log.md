@@ -1,3 +1,15 @@
+- [x] 2025-09-17: Client Portal — persist filters and page size selector in Service Requests list.
+  - Updated: src/app/portal/service-requests/page.tsx
+  - What: Saved q/status/priority/limit to localStorage; restored on load; added page-size Select (10/20/50) to drive API limit; kept styles and breakpoints.
+  - Why: Improves UX by remembering preferences and allowing larger pages without changing API.
+  - Next: Add optional infinite scroll; add route test validating pagination meta and limit handling.
+
+- [x] 2025-09-17: Service detail deep link — add "Request This Service" CTA and prefill by slug.
+  - Updated: src/app/services/[slug]/page.tsx, src/app/portal/service-requests/new/page.tsx
+  - What: Added CTA linking to /portal/service-requests/new?serviceSlug=...; new page now maps slug->serviceId from /api/services and preselects the service.
+  - Why: Streamlines the flow from marketing pages to the portal request form; works with DB and fallback data.
+  - Next: Add similar deep links from featured services on homepage; add a smoke test for prefill.
+
 - [x] 2025-09-16: Portal Create Service Request — wrapped useSearchParams in Suspense to satisfy Next.js CSR bailout requirement.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Netlify build failed with "useSearchParams() should be wrapped in a suspense boundary" during prerender of /portal/service-requests/new.
