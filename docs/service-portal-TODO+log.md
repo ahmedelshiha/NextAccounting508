@@ -28,7 +28,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Implement multi-tenancy scoping behind feature flag; add tenantId/orgId to models and indexes; scope queries
 
 2) Uploads and File Storage
-- [ ] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
+- [x] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
 - [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
 - [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
 
