@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Active (as of 2025-09-16)
+Status: Paused (as of 2025-09-17)
 
 Paused Notes:
 - Project paused to complete database migrations/seeds and plan multi-tenancy before further UI/realtime work.
@@ -15,14 +15,54 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
+## Current Status (Paused)
+- Waiting on CI/CD to run Prisma generate/migrate/seed against Neon. Env configured; migrations not yet applied in this environment.
+- Uploads provider chosen: Netlify Blobs. Provider wiring in API pending; need NETLIFY_BLOBS_TOKEN in env and key-generation in /api/uploads.
+- Realtime durable adapter implemented (Postgres LISTEN/NOTIFY). Needs REALTIME_TRANSPORT=postgres and staging validation for multi-instance delivery.
+- Tests in place for key routes; unit/e2e coverage pending; thresholds require tightening.
+
+## Remaining Work (Paused)
+1) Database and Migrations
+- [ ] Run Prisma generate/migrate/seed in CI/CD; verify tables/enums and seed data applied
+- [ ] Seed permissions and default roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN)
+- [ ] Implement multi-tenancy scoping behind feature flag; add tenantId/orgId to models and indexes; scope queries
+
+2) Uploads and File Storage
+- [ ] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
+- [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
+- [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
+
+3) Realtime and Ops
+- [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
+- [ ] Validate multi-instance delivery in staging; monitor reconnect/backoff; add basic health metrics
+
+4) QA and Testing
+- [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
+- [ ] Tighten coverage thresholds in tests/thresholds.test.ts and ensure passing locally/CI
+- [ ] Add e2e tests for client request create/approve and admin assign/progress/complete flows
+
+5) Documentation and Runbooks
+- [ ] Document required env vars and values: DATABASE_URL, NETLIFY_BLOBS_TOKEN, REALTIME_*; provider setup steps
+- [ ] Add deployment checklist (preflight, migration, health checks) and rollback steps
+
+6) Nice-to-haves
+- [ ] Integrate Sentry for error/perf monitoring; add alerting on API error rates
+- [ ] Surface audit log UI under /admin/audits with filters and export
+
+How to Resume
+- Step 1: Connect to Neon and run CI/CD build to apply Prisma migrations/seeds
+- Step 2: Configure Netlify envs (NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT=postgres) and redeploy
+- Step 3: Implement Netlify Blobs code path in /api/uploads and push PR; validate uploads in staging
+- Step 4: Add missing tests and raise thresholds; merge PR after green CI
+
 ## Remaining work (paused)
 
 - Resume checklist (ordered):
   1. Connect database (Neon) and run prisma generate/migrate/seed in CI/CD.
   2. Seed roles/permissions and default templates; verify RBAC via permissions API.
-  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT.
-  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits.
-  5. Replace file-based templates with DB-backed endpoints (notifications done).
+  3. Implement durable realtime adapter (Redis or Postgres LISTEN/NOTIFY) and set REALTIME_TRANSPORT. [Adapter implemented: Postgres; enable via REALTIME_TRANSPORT=postgres]
+  4. Decide/uploads provider and virus-scan policy; enable production uploads with limits. [Server-side content-type sniffing added; choose Netlify Blobs or Supabase Storage for production].
+  5. Replace file-based templates with DB-backed endpoints — completed.
   6. Replace mock dashboard data with real APIs and guards; standardize zod error shapes.
   7. Add unit, route, and e2e tests; fix failures; enforce thresholds.
   8. Update docs to reflect endpoints, flows, and ops runbooks.
@@ -37,7 +77,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
   - No remaining items here; roles aligned and middleware checks completed.
 
 - [ ] Realtime
-  - Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
+  - [x] Implement durable transport adapter (Redis or Postgres) and configure REALTIME_TRANSPORT for multi-instance
   - [x] Add connection health checks and reconnection backoff in portal/admin SSE clients; plan idempotency for multi-instance delivery
 
 - [ ] Admin UI
@@ -45,8 +85,8 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 
 - [ ] Cleanup & Consistency
-  - [ ] Replace file-based task comments with DB-backed endpoints
-  - [ ] Replace file-based templates with DB-backed endpoints
+  - [x] Replace file-based task comments with DB-backed endpoints
+  - [x] Replace file-based templates with DB-backed endpoints
   - [x] Replace file-based notifications with DB-backed endpoints
   - Replace mock dashboard data with real APIs and guards; standardize zod validation/error shapes
 
@@ -125,7 +165,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ### 8) Cleanup and Consistency (from audits)
 - [x] Remove or consolidate src/app/lib/* duplicates into src/lib/* and fix imports
-- [ ] Replace file-based task comments/templates/notifications with DB-backed endpoints
+- [x] Replace file-based task comments/templates/notifications with DB-backed endpoints
 - [x] Replace mock dashboard data with real API and guards
 - [x] Standardize zod validation and error shapes across new routes
   - Applied to service-requests (admin/portal) list/create and id/comment/assign/status/tasks endpoints via src/lib/api-response.ts
@@ -136,12 +176,25 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Add unit tests for new lib/permissions and helpers
 - [ ] Add unit tests for auto-assignment, status transitions, and RBAC guards
 - [x] Add route tests for service-requests
-- [ ] Add route tests for team-management
-- [ ] Add route tests for templates
+- [x] Add route tests for team-management
+- [x] Add route tests for templates
 - [ ] Add e2e tests for client create/approve request and admin assign/complete
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Implemented Postgres LISTEN/NOTIFY realtime adapter and factory selection.
+  - Updated: src/lib/realtime-enhanced.ts (PostgresPubSub adapter; factory supports REALTIME_TRANSPORT 'postgres'|'pg'|'neon')
+  - Updated: package.json (added dependency: pg@^8.12.0)
+  - Notes: Default remains in-memory; to enable durable transport set REALTIME_TRANSPORT=postgres and optionally REALTIME_PG_URL/REALTIME_PG_CHANNEL. Next: set env on Netlify and validate multi-instance delivery.
+- [x] 2025-09-17: Hardened uploads endpoint with magic-byte content sniffing and stricter validation.
+  - Updated: src/app/api/uploads/route.ts (file-type detection, MIME whitelist, size checks)
+  - Updated: package.json (added dependency: file-type@^18.7.0)
+  - Notes: Choose provider (Netlify Blobs or Supabase Storage) and set UPLOADS_PROVIDER on deploy.
+- [x] 2025-09-17: Added route tests for templates and team-management endpoints (fallback mode).
+  - Added: tests/templates.route.test.ts, tests/team-management.routes.test.ts
+  - Notes: Mocks permissions, auth, fs, and DB disabled path; validates responses and structures.
+- [x] 2025-09-17: Portal comments now emit realtime refresh for related service request.
+  - Updated: src/app/api/portal/service-requests/[id]/comments/route.ts (emit service-request-updated after create)
 - [x] 2025-09-17: Connected Neon DB in dev via dev-server env; increased fetch timeout; fixed prisma import in tasks API.
   - Updated: src/lib/api.ts (default client timeout 15s; env override NEXT_PUBLIC_FETCH_TIMEOUT)
   - Updated: src/app/api/admin/tasks/route.ts (added prisma import)

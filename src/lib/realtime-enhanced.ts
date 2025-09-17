@@ -26,9 +26,79 @@ class InMemoryPubSub implements PubSubAdapter {
   }
 }
 
+class PostgresPubSub implements PubSubAdapter {
+  private channel: string
+  private url?: string
+  private handlers = new Set<(e: RealtimeEvent) => void>()
+  private listenClient: any
+  private pool: any
+  private reconnecting = false
+  constructor() {
+    this.channel = sanitizeChannel(String(process.env.REALTIME_PG_CHANNEL || 'realtime_events'))
+    this.url = process.env.REALTIME_PG_URL || process.env.DATABASE_URL
+    this.init().catch((e) => { console.error('Realtime PG init error', e) })
+  }
+  onMessage(handler: (event: RealtimeEvent) => void) {
+    this.handlers.add(handler)
+  }
+  async init() {
+    try {
+      const pg = await import('pg')
+      const { Client, Pool } = pg as any
+      this.pool = new Pool({ connectionString: this.url })
+      await this.startListener(Client)
+    } catch (e) {
+      console.error('Realtime PG adapter init failed', e)
+    }
+  }
+  private async startListener(ClientCtor: any) {
+    if (!this.url) return
+    const client = new ClientCtor({ connectionString: this.url })
+    this.listenClient = client
+    client.on('error', () => this.scheduleReconnect(ClientCtor))
+    client.on('end', () => this.scheduleReconnect(ClientCtor))
+    await client.connect()
+    await client.query(`LISTEN ${this.channel}`)
+    client.on('notification', (msg: any) => {
+      if (!msg?.payload) return
+      try {
+        const evt = JSON.parse(msg.payload)
+        if (evt && evt.type) {
+          for (const h of this.handlers) { try { h(evt) } catch {} }
+        }
+      } catch {}
+    })
+  }
+  private scheduleReconnect(ClientCtor: any) {
+    if (this.reconnecting) return
+    this.reconnecting = true
+    setTimeout(() => {
+      this.reconnecting = false
+      this.startListener(ClientCtor).catch(() => this.scheduleReconnect(ClientCtor))
+    }, 1000)
+  }
+  async publish(event: RealtimeEvent) {
+    try {
+      if (!this.pool) return
+      const payload = JSON.stringify(event)
+      await this.pool.query('SELECT pg_notify($1, $2)', [this.channel, payload])
+    } catch (e) {
+      console.error('Realtime PG publish error', e)
+    }
+  }
+}
+
+function sanitizeChannel(name: string) {
+  return name.replace(/[^a-zA-Z0-9_]/g, '_')
+}
+
 function createAdapterFromEnv(): PubSubAdapter {
   const transport = String(process.env.REALTIME_TRANSPORT || 'memory').toLowerCase()
   switch (transport) {
+    case 'postgres':
+    case 'pg':
+    case 'neon':
+      return new PostgresPubSub()
     default:
       return new InMemoryPubSub()
   }
