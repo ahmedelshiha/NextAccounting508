@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
 
-interface Service { id: string; name: string }
+interface Service { id: string; name: string; slug?: string }
 
 function NewServiceRequestForm() {
   const { data: session } = useSession()
@@ -39,10 +39,15 @@ function NewServiceRequestForm() {
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
-        const mapped: Service[] = list.map((s: any) => ({ id: s.id, name: s.name }))
+        const mapped: Service[] = list.map((s: any) => ({ id: s.id, name: s.name, slug: s.slug }))
         setServices(mapped)
         const pre = searchParams?.get('serviceId')
         if (pre && mapped.some((s: Service) => s.id === pre)) setServiceId(pre)
+        const preSlug = searchParams?.get('serviceSlug')
+        if (!pre && preSlug) {
+          const found = mapped.find((s: Service) => s.slug === preSlug)
+          if (found) setServiceId(found.id)
+        }
       } catch {
       }
     }
