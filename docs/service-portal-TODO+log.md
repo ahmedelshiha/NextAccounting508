@@ -182,6 +182,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-17: Fixed Netlify TypeScript build errors in uploads/audit.
+  - Updated: src/app/api/uploads/route.ts (added missing import { logAudit } from '@/lib/audit')
+  - Updated: src/lib/audit.ts (removed duplicate prisma import causing TS2300)
+  - Why: Netlify build failed with TS2304 (logAudit not found) and TS2300 (Duplicate identifier 'prisma').
+  - Next: Push to origin and redeploy on Netlify. Ensure UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN are set. Validate build passes; then proceed to enable REALTIME_TRANSPORT=postgres and verify multi-instance delivery.
 - [x] 2025-09-17: Added SSE runtime and realtime health metrics.
   - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
   - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
