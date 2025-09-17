@@ -201,6 +201,10 @@ How to Resume
     - Primary tab: added New Service Request (/admin/service-requests/new)
   - Why: Faster operator access to audits and request workflows.
   - Next: Track usage and consider role-based visibility for Smart Actions.
+- [x] 2025-09-17: Surfaced realtime transport/connection metrics in Admin header.
+  - Updated: src/app/admin/page.tsx (ProfessionalHeader fetches /api/admin/system/health and displays transport + connection count)
+  - Why: Aid validation of multi-instance realtime (LISTEN/NOTIFY) on Netlify.
+  - Next: Manually verify shows 'postgres' in staging; then add simple heartbeat emit on key actions.
 - [x] 2025-09-17: Added SSE runtime and realtime health metrics.
   - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
   - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
