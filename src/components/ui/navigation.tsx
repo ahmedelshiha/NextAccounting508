@@ -153,12 +153,11 @@ export function Navigation() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => signOut()}
-                          className="flex items-center text-red-600"
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
+                        <DropdownMenuItem asChild>
+                          <LogoutButton className="flex items-center text-red-600 w-full text-left">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                          </LogoutButton>
                         </DropdownMenuItem>
                       </>
                     ) : (
@@ -184,12 +183,11 @@ export function Navigation() {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => signOut()}
-                          className="flex items-center text-red-600"
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
+                        <DropdownMenuItem asChild>
+                          <LogoutButton className="flex items-center text-red-600 w-full text-left">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                          </LogoutButton>
                         </DropdownMenuItem>
                       </>
                     )}
