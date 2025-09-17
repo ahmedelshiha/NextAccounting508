@@ -14,6 +14,7 @@ NPM_CONFIG_AUDIT = "false"
 NPM_CONFIG_FUND = "false"
 NPM_CONFIG_PROGRESS = "false"
 NPM_CONFIG_FROZEN_LOCKFILE = "false"
+UPLOADS_PROVIDER = "netlify"
 
 # Enable Netlify's official Next.js runtime to serve App Router/SSR/API routes
 [[plugins]]
