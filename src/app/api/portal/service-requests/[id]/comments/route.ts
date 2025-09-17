@@ -61,5 +61,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     include: { author: { select: { id: true, name: true, email: true } } },
   })
 
+  try {
+    const { realtimeService } = await import('@/lib/realtime-enhanced')
+    realtimeService.emitServiceRequestUpdate(id)
+  } catch {}
+
   return respond.created(created)
 }
