@@ -1,5 +1,5 @@
 [build]
-  command = "npm run db:push -- --accept-data-loss && npm run db:seed"
+  command = "npm run db:push -- --accept-data-loss && npm run db:seed && npx --yes @opennextjs/netlify build"
   publish = ".netlify/build"
 
 [build.environment]
