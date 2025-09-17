@@ -32,9 +32,37 @@ export async function POST(request: Request) {
 
   const buf = Buffer.from(await file.arrayBuffer())
   const sniff = await fileTypeFromBuffer(buf).catch(() => null as any)
-  const detectedMime = sniff?.mime || file.type || ''
-  if (ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) {
+  const detectedMime = sniff?.mime || (file as any).type || ''
+
+  // Stricter extension policy
+  const ALLOWED_EXTS = ['pdf', 'png', 'jpg', 'jpeg', 'webp', 'txt'] as const
+  const name = typeof (file as any).name === 'string' ? String((file as any).name) : ''
+  const extFromName = name.includes('.') ? name.split('.').pop()!.toLowerCase() : ''
+  const extFromSniff = (sniff as any)?.ext ? String((sniff as any).ext).toLowerCase() : ''
+  const ext = extFromSniff || extFromName
+
+  if ((ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) || (ext && !ALLOWED_EXTS.includes(ext as any))) {
+    try { await logAudit({ action: 'upload:reject', details: { reason: 'unsupported_type', detectedMime, ext, size: buf.length } }) } catch {}
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
+  }
+
+  // Optional antivirus scan webhook
+  if (process.env.UPLOADS_AV_SCAN_URL) {
+    try {
+      const ac = new AbortController()
+      const t = setTimeout(() => ac.abort(), 5000)
+      const res = await fetch(process.env.UPLOADS_AV_SCAN_URL, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf, signal: ac.signal })
+      clearTimeout(t)
+      const json = await res.json().catch(() => ({})) as any
+      if (!res.ok || json?.clean === false) {
+        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed', status: res.status } }) } catch {}
+        return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
+      }
+    } catch (e) {
+      console.error('AV scan error', e)
+      try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_error' } }) } catch {}
+      return NextResponse.json({ error: 'File scan error' }, { status: 502 })
+    }
   }
 
   const provider = process.env.UPLOADS_PROVIDER || ''
