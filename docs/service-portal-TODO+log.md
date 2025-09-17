@@ -205,6 +205,10 @@ How to Resume
   - Updated: src/app/admin/page.tsx (ProfessionalHeader fetches /api/admin/system/health and displays transport + connection count)
   - Why: Aid validation of multi-instance realtime (LISTEN/NOTIFY) on Netlify.
   - Next: Manually verify shows 'postgres' in staging; then add simple heartbeat emit on key actions.
+- [x] 2025-09-17: Fixed Admin Audits page Select crash (empty value not allowed).
+  - Updated: src/app/admin/audits/page.tsx (status Select uses 'ALL' instead of empty string; filtering updated accordingly)
+  - Why: Radix Select requires non-empty value for SelectItem; empty caused client-side exception.
+  - Next: Add pagination and server-side search for audits if volume grows.
 - [x] 2025-09-17: Added SSE runtime and realtime health metrics.
   - Updated: src/app/api/{admin,portal}/realtime/route.ts (runtime='nodejs' to ensure Node runtime on Netlify)
   - Updated: src/lib/realtime-enhanced.ts (metrics: connectionCount, totalEvents, lastEventAt)
