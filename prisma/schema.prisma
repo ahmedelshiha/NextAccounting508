@@ -136,6 +136,32 @@ model Post {
   @@map("posts")
 }
 
+// Newsletter subscribers
+model Newsletter {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  subscribed  Boolean  @default(true)
+  source      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("newsletter")
+}
+
+// Notification settings for tasks/alerts
+model NotificationSettings {
+  id           String   @id @default(cuid())
+  emailEnabled Boolean  @default(false)
+  emailFrom    String?
+  webhookUrl   String?
+  templates    Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("notification_settings")
+}
+
 // Services offered by the accounting firm
 model Service {
   id          String    @id @default(cuid())
