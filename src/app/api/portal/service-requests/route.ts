@@ -71,7 +71,7 @@ export async function GET(request: Request) {
         const pageItems = filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
         return respond.ok(pageItems, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
       } catch {
-        return respond.internal()
+        return respond.serverError()
       }
     }
     throw e
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         svc = list.find((s: any) => s.id === data.serviceId) || null
         if (!svc) return respond.badRequest('Service not found or inactive')
       } catch {
-        return respond.internal()
+        return respond.serverError()
       }
     } else {
       throw e
@@ -191,7 +191,7 @@ export async function POST(request: Request) {
         addRequest(id, created)
         return respond.created(created)
       } catch {
-        return respond.internal()
+        return respond.serverError()
       }
     }
     throw e
