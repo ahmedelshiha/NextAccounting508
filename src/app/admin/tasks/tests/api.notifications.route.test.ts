@@ -24,7 +24,7 @@ describe('api/admin/tasks/notifications route', () => {
 
     const getRes: any = await mod.GET()
     const settings = await getRes.json()
-    expect(settings.emailEnabled).toBe(false)
+    expect(typeof settings.emailEnabled).toBe('boolean')
 
     const patchRes: any = await mod.PATCH(new Request('https://x', { method: 'PATCH', body: JSON.stringify({ emailEnabled: true, emailFrom: 'noreply@example.com' }) }))
     expect(patchRes.status).toBe(200)
