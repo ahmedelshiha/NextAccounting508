@@ -497,10 +497,48 @@ export default function TeamManagement() {
     const loadMembers = async () => {
       try {
         const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
+        if (res.status === 401) {
+          setTeamMembers([])
+          return
+        }
         const data = await res.json().catch(() => ({}))
-        setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
+        const list = Array.isArray((data as any).teamMembers) ? (data as any).teamMembers : []
+        const normalized = list.map((r: any) => ({
+          id: String(r.id),
+          userId: r.userId ?? null,
+          name: r.name || 'User',
+          email: r.email || '',
+          role: r.role || 'TEAM_MEMBER',
+          department: (r.department as any) || 'tax',
+          status: (r.status as any) || 'active',
+          phone: r.phone || '',
+          title: r.title || '',
+          certifications: Array.isArray(r.certifications) ? r.certifications : [],
+          specialties: Array.isArray(r.specialties) ? r.specialties : [],
+          experienceYears: typeof r.experienceYears === 'number' ? r.experienceYears : 0,
+          hourlyRate: typeof r.hourlyRate === 'number' ? r.hourlyRate : undefined,
+          workingHours: r.workingHours || { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] },
+          isAvailable: typeof r.isAvailable === 'boolean' ? r.isAvailable : true,
+          availabilityNotes: r.availabilityNotes || '',
+          stats: r.stats || {
+            totalBookings: r.totalBookings || 0,
+            completedBookings: r.completedBookings || 0,
+            averageRating: r.averageRating || 0,
+            totalRatings: r.totalRatings || 0,
+            revenueGenerated: r.revenueGenerated || 0,
+            utilizationRate: r.utilizationRate || 0,
+          },
+          canManageBookings: !!r.canManageBookings,
+          canViewAllClients: !!r.canViewAllClients,
+          notificationSettings: r.notificationSettings || { email: true, sms: false, inApp: true },
+          joinDate: r.joinDate || new Date().toISOString(),
+          lastActive: r.lastActive || new Date().toISOString(),
+          notes: r.notes || ''
+        })) as TeamMember[]
+        setTeamMembers(normalized)
       } catch (err) {
         console.error('Failed to load team members', err)
+        setTeamMembers([])
       }
     }
     loadMembers()
