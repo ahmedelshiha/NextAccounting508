@@ -5,6 +5,7 @@ const mem = { data: '' as string }
 vi.mock('fs', async () => {
   const actual = await vi.importActual('fs')
   return {
+    default: actual,
     ...actual,
     readFileSync: vi.fn(() => (mem.data || '[]')),
     writeFileSync: vi.fn((_p: string, content: string) => { mem.data = content }),
