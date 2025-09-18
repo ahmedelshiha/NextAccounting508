@@ -1,7 +1,10 @@
 (async function(){
   try{
-    const fetch = require('node-fetch')
     const { spawnSync } = require('child_process')
+    const fetch = globalThis.fetch || (async (...args) => {
+      const nodeFetch = await import('node-fetch')
+      return nodeFetch.default(...args)
+    })
     const loginRes = await fetch('http://localhost:3000/api/_dev/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'staff@accountingfirm.com' }) })
     const json = await loginRes.json().catch(()=>null)
     if (!loginRes.ok || !json) {
