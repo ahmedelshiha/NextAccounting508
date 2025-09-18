@@ -302,6 +302,18 @@ How to Resume
   - Added: tests/portal-comments.route.test.ts
   - Why: Remove external localhost dependency in serverless envs and strengthen coverage of client comment flow.
   - Next: Add e2e covering client approve -> admin assign -> complete with realtime assertions.
+
+- [x] 2025-09-18: Portal SR detail PATCH now supports DB-disabled fallback and emits realtime updates.
+  - Updated: src/app/api/portal/service-requests/[id]/route.ts (fallback update via dev store, realtime emit)
+  - Updated: src/lib/dev-fallbacks.ts (updateRequest helper)
+  - Added: tests/portal-service-request-id.route.test.ts
+  - Why: Ensure client approvals/cancellations work without DB and keep UI synced via SSE.
+  - Next: Add UI toast on approval and refine status badges.
+
+- [x] 2025-09-18: Netlify CI build runs Prisma migrate/seed when NETLIFY_DATABASE_URL is set.
+  - Updated: netlify.toml ([build].command conditional db:generate/migrate/seed + app build)
+  - Why: Automate schema application and seeds in CI; skips when DB env not present to avoid failures.
+  - Next: Set NETLIFY_DATABASE_URL in Netlify and redeploy; verify seeds via /api/admin/permissions.
 - [x] 2025-09-18: Portal New Service Request — added upload progress indicator, debounced service search, and auto pre-upload on selection.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
