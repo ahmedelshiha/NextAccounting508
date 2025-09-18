@@ -273,6 +273,10 @@ How to Resume
   - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts
   - Why: Creating tasks failed when DB not configured; also accept flexible priority (low/medium/high/critical) and dueDate alias.
   - Next: Add UI error surface for API validation details; e2e test for create-task flow (admin).
+- [x] 2025-09-18: Enhanced Admin View Service Request page: attachments viewer and comments panel wired to API.
+  - Updated: src/app/admin/service-requests/[id]/page.tsx
+  - Why: Ensure all features (attachments, comments, realtime refresh) are visible and usable from the detail view.
+  - Next: Add comment editing/deletion and pagination for long threads; consider template-based task creation.
 - [x] 2025-09-17: Added unit tests for auto-assignment logic.
   - Added: tests/auto-assignment.test.ts
   - Why: Validate skill-match preference and least-workload fallback.
