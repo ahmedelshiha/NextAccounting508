@@ -234,18 +234,6 @@ model ContactSubmission {
   @@map("contact_submissions")
 }
 
-// Newsletter subscribers
-model Newsletter {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  subscribed  Boolean  @default(true)
-  source      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("newsletter")
-}
 
 // Health monitoring logs
 model HealthLog {
