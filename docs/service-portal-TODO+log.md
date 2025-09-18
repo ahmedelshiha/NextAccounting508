@@ -306,6 +306,11 @@ How to Resume
   - Updated: netlify.toml ([build.environment] SECRETS_SCAN_OMIT_KEYS = "UPLOADS_PROVIDER,REALTIME_TRANSPORT")
   - Why: Netlify secrets scanner flagged these env keys across build output, causing exit code 2.
   - Next: Monitor deploy; if additional keys or paths are flagged, extend SECRETS_SCAN_OMIT_KEYS or add SECRETS_SCAN_OMIT_PATHS for build artifacts.
+
+- [x] 2025-09-18: Added optional Netlify deploy workflow from GitHub Actions.
+  - Added: .github/workflows/deploy-netlify.yml (build + deploy via netlify/actions/cli when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID are set)
+  - Why: Enable deploy-on-push to main or manual dispatch directly from GitHub.
+  - Next: Set required secrets in GitHub repo and test a manual dispatch in staging.
 - [x] 2025-09-18: Portal create fallback now uses internal services route; added tests for portal comments.
   - Updated: src/app/api/portal/service-requests/route.ts (fallback no longer fetches localhost)
   - Added: tests/portal-comments.route.test.ts
