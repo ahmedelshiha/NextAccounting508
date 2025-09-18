@@ -37,6 +37,16 @@ export function addRequest(id: string, obj: any) {
   writeData(data)
 }
 
+export function updateRequest(id: string, patch: any) {
+  const data = readData()
+  const current = data.requests[id] || null
+  if (!current) return null
+  const next = { ...current, ...patch, updatedAt: new Date().toISOString() }
+  data.requests[id] = next
+  writeData(data)
+  return next
+}
+
 export function getComments(id: string) {
   return readData().comments[id] || []
 }

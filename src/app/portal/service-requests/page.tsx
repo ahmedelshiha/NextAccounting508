@@ -43,6 +43,27 @@ export default function PortalServiceRequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([])
   const [loading, setLoading] = useState(true)
 
+  const exportCSV = () => {
+    if (!items.length) return
+    const rows = items.map((r) => ({
+      id: r.id,
+      title: r.title,
+      service: r.service?.name,
+      priority: r.priority,
+      status: r.status,
+      createdAt: new Date(r.createdAt).toISOString(),
+    }))
+    const header = Object.keys(rows[0]).join(',')
+    const csv = [header, ...rows.map((row) => Object.values(row).map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `service-requests-${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   useEffect(() => {
     async function load() {
       try {
@@ -92,11 +113,14 @@ export default function PortalServiceRequestsPage() {
               <p className="text-gray-600">Track your service requests and their status.</p>
             </div>
           </div>
-          <Button asChild>
-            <Link href="/portal/service-requests/new">
-              <Plus className="h-4 w-4 mr-2" /> New Request
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={exportCSV}>Export CSV</Button>
+            <Button asChild>
+              <Link href="/portal/service-requests/new">
+                <Plus className="h-4 w-4 mr-2" /> New Request
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {loading ? (

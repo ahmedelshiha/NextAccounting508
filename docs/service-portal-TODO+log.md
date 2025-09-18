@@ -297,10 +297,51 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Portal create fallback now uses internal services route; added tests for portal comments.
+  - Updated: src/app/api/portal/service-requests/route.ts (fallback no longer fetches localhost)
+  - Added: tests/portal-comments.route.test.ts
+  - Why: Remove external localhost dependency in serverless envs and strengthen coverage of client comment flow.
+  - Next: Add e2e covering client approve -> admin assign -> complete with realtime assertions.
+
+- [x] 2025-09-18: Portal SR detail PATCH now supports DB-disabled fallback and emits realtime updates.
+  - Updated: src/app/api/portal/service-requests/[id]/route.ts (fallback update via dev store, realtime emit)
+  - Updated: src/lib/dev-fallbacks.ts (updateRequest helper)
+  - Added: tests/portal-service-request-id.route.test.ts
+  - Why: Ensure client approvals/cancellations work without DB and keep UI synced via SSE.
+  - Next: Add UI toast on approval and refine status badges.
+
+- [x] 2025-09-18: Netlify CI build runs Prisma migrate/seed when NETLIFY_DATABASE_URL is set.
+  - Updated: netlify.toml ([build].command conditional db:generate/migrate/seed + app build)
+  - Why: Automate schema application and seeds in CI; skips when DB env not present to avoid failures.
+  - Next: Set NETLIFY_DATABASE_URL in Netlify and redeploy; verify seeds via /api/admin/permissions.
 - [x] 2025-09-18: Portal New Service Request — added upload progress indicator, debounced service search, and auto pre-upload on selection.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
   - Next: Consider resumable/chunked uploads, surface AV scan status per file, and optionally disable submit while required uploads are pending.
+
+- [x] 2025-09-18: Disable submit while uploads are pending on Portal New Request.
+  - Updated: src/app/portal/service-requests/new/page.tsx (canSubmit guards pending uploads; button label reflects state; helper text)
+  - Why: Prevent submitting before files finish uploading, avoiding missing attachments.
+  - Next: Show AV scan status when callback updates are received.
+
+- [x] 2025-09-18: Portal SR detail now surfaces AV status for attachments when available.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (shows Clean/Infected/pending based on avStatus/avDetails)
+  - Why: Improve transparency of virus-scan results for client attachments.
+  - Next: Add admin quarantine controls link from client view when infected.
+
+- [x] 2025-09-18: Enforced Node runtime and added error capture in portal routes.
+  - Updated: src/app/api/portal/service-requests/route.ts; src/app/api/portal/service-requests/[id]/route.ts; src/app/api/portal/service-requests/[id]/comments/route.ts (export runtime='nodejs', captureError calls)
+  - Why: Ensure Prisma-compatible runtime on Netlify and better observability.
+
+- [x] 2025-09-18: Added CSV export to client portal service-requests list.
+  - Updated: src/app/portal/service-requests/page.tsx (Export CSV button)
+  - Why: Allow clients to download their requests for records.
+
+- [x] 2025-09-18: Portal comments support attachments with upload progress and validation.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (comment file uploads, progress, disabled while pending)
+  - Updated: tests/portal-comments.route.test.ts (attachments accepted)
+  - Why: Enable sharing supporting docs within the discussion thread with proper UX.
+  - Next: Show AV scan status per comment attachment once callback updates the record.
 
 - [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
   - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.

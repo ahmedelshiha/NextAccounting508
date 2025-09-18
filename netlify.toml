@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm build"
+  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then pnpm db:migrate && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
   publish = ".next"
 
 [build.environment]
