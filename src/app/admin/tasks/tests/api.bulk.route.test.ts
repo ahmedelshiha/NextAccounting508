@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from 'vitest'
 
 const calls: any = { deleteMany: 0, updateMany: 0 }
 
-vi.mock('../prisma/client', () => {
+vi.mock('@/lib/prisma', () => {
   return {
-    prisma: {
+    default: {
       task: {
         deleteMany: vi.fn(async () => { calls.deleteMany++; return { count: 1 } }),
         updateMany: vi.fn(async () => { calls.updateMany++; return { count: 1 } })
