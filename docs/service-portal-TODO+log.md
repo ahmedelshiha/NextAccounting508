@@ -82,7 +82,7 @@ Actionable "Remaining Work (Paused)" Checklist — Priority ordered
 
 5. QA & Tests (required before merge)
    - [ ] Tighten coverage thresholds and enable tests in CI. Fix any failing tests related to DB expectations.
-   - [ ] Add unit tests for status transitions and RBAC guards (some added: auto-assignment tests done).
+   - [x] Add unit tests for status transitions and RBAC guards (some added: auto-assignment tests done).
    - [ ] Add end-to-end tests for full client create -> admin assign -> complete flows.
 
 6. Docs & Runbooks (required)
@@ -119,7 +119,7 @@ Notes
 
 4) QA and Testing
 - [x] Add unit tests for auto-assignment
-- [ ] Add unit tests for status transitions and RBAC guards
+- [x] Add unit tests for status transitions and RBAC guards
 - [ ] Tighten coverage thresholds in tests/thresholds.test.ts and ensure passing locally/CI
 - [ ] Add e2e tests for client request create/approve and admin assign/progress/complete flows
 
@@ -257,7 +257,7 @@ How to Resume
 ### 9) Testing and docs
 - [ ] Add unit tests for new lib/permissions and helpers
 - [x] Add unit tests for auto-assignment
-- [ ] Add unit tests for status transitions and RBAC guards
+- [x] Add unit tests for status transitions and RBAC guards
 - [x] Add route tests for service-requests
 - [x] Add route tests for team-management
 - [x] Add route tests for templates
