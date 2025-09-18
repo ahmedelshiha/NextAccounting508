@@ -337,6 +337,12 @@ How to Resume
   - Updated: src/app/portal/service-requests/page.tsx (Export CSV button)
   - Why: Allow clients to download their requests for records.
 
+- [x] 2025-09-18: Portal comments support attachments with upload progress and validation.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (comment file uploads, progress, disabled while pending)
+  - Updated: tests/portal-comments.route.test.ts (attachments accepted)
+  - Why: Enable sharing supporting docs within the discussion thread with proper UX.
+  - Next: Show AV scan status per comment attachment once callback updates the record.
+
 - [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
   - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
   - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts
