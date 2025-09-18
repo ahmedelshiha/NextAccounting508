@@ -2,11 +2,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 const mem = { data: '' as string }
 
-vi.mock('fs', () => ({
-  readFileSync: vi.fn(() => (mem.data || '[]')),
-  writeFileSync: vi.fn((_p: string, content: string) => { mem.data = content }),
-  mkdirSync: vi.fn(() => {})
-}))
+vi.mock('fs', async () => {
+  const actual = await vi.importActual('fs')
+  return {
+    default: actual,
+    ...actual,
+    readFileSync: vi.fn(() => (mem.data || '[]')),
+    writeFileSync: vi.fn((_p: string, content: string) => { mem.data = content }),
+    mkdirSync: vi.fn(() => {})
+  }
+})
 
 vi.mock('path', async (orig) => {
   const mod: any = await orig()
