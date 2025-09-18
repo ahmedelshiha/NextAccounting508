@@ -2,7 +2,9 @@ import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
-import { BlogSection } from '@/components/home/blog-section'
+import dynamic from 'next/dynamic'
+
+const BlogSectionClient = dynamic(() => import('@/components/home/blog-section.client').then(m => m.BlogSectionClient), { ssr: false })
 
 export const revalidate = 60
 
@@ -13,7 +15,7 @@ export default function HomePage() {
       <ServicesSection />
       <TestimonialsSection />
       <Suspense fallback={null}>
-        <BlogSection />
+        <BlogSectionClient />
       </Suspense>
     </main>
   )
