@@ -64,8 +64,8 @@ export async function GET(request: Request) {
     // Prisma errors (no table / column) — fallback to in-memory dev store
     if (String(e?.code || '').startsWith('P20')) {
       try {
-        const { devServiceRequests } = await import('@/lib/dev-fallbacks')
-        const all = Array.from(devServiceRequests.values())
+        const { getAllRequests } = await import('@/lib/dev-fallbacks')
+        const all = getAllRequests()
         const filtered = all.filter((r: any) => r.clientId === session.user.id)
         const total = filtered.length
         const pageItems = filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
