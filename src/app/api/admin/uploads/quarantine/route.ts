@@ -21,18 +21,30 @@ export async function GET(req: Request) {
   if (provider !== 'netlify') return NextResponse.json({ error: 'Quarantine listing not supported for provider' }, { status: 501 })
 
   try {
+    // Fetch DB attachments flagged as infected/quarantined
+    const { default: prisma } = await import('@/lib/prisma')
+    const dbItems = await prisma.attachment.findMany({ where: { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }] }, orderBy: { uploadedAt: 'desc' }, take: 200 })
+
+    // Try provider listing as well (optional)
     const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
     const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
-    if (!mod) return NextResponse.json({ error: 'Netlify Blobs SDK not available' }, { status: 501 })
-    const Blobs = mod.Blobs || mod.default || mod
-    const token = process.env.NETLIFY_BLOBS_TOKEN
-    if (!token) return NextResponse.json({ error: 'Missing token' }, { status: 501 })
-    const store = new Blobs({ token })
+    let providerItems: any[] = []
+    if (mod) {
+      try {
+        const Blobs = mod.Blobs || mod.default || mod
+        const token = process.env.NETLIFY_BLOBS_TOKEN
+        if (token) {
+          const store = new Blobs({ token })
+          if (typeof store.list === 'function') {
+            providerItems = await store.list({ prefix: 'quarantine/' }).catch(() => [])
+          }
+        }
+      } catch (e) {
+        await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', step: 'provider-list' })
+      }
+    }
 
-    if (typeof store.list !== 'function') return NextResponse.json({ error: 'Provider list not supported' }, { status: 501 })
-
-    const items = await store.list({ prefix: 'quarantine/' }).catch((e: any) => { throw e })
-    return NextResponse.json({ success: true, data: items })
+    return NextResponse.json({ success: true, data: { db: dbItems, provider: providerItems } })
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine' })
     return NextResponse.json({ error: 'Failed to list quarantine' }, { status: 500 })
