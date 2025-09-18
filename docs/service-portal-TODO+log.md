@@ -276,6 +276,13 @@ How to Resume
   - Why: Allow optional automated deploy when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID are provided, and document quarantine/AV handling.
   - Next: Implement admin quarantine UI and AV callback endpoint; add background retry queue for avStatus: 'error'.
 
+- [x] 2025-09-20: Implemented AV callback endpoint and admin quarantine UI (best-effort, provider-dependent).
+  - Added: src/app/api/uploads/av-callback/route.ts
+  - Added: src/app/api/admin/uploads/quarantine/route.ts
+  - Added: src/app/admin/uploads/quarantine/page.tsx
+  - Why: Allow AV providers to notify server of scan results and provide admins tools to inspect, delete, or release quarantined files.
+  - Next: Persist attachment avStatus in DB and add background retry queue for avStatus 'error'.
+
 - [x] 2025-09-18: Portal New Service Request — added per-file upload retry controls and service typeahead search.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
