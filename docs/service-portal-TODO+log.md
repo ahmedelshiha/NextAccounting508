@@ -111,7 +111,7 @@ Notes
 2) Uploads and File Storage
 - [x] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
 - [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
-- [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
+- [x] Update portal UI to display per-file upload status/errors; retry/remove controls
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
@@ -265,6 +265,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Portal New Service Request — added per-file upload retry controls and service typeahead search.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
+  - Next: Add upload progress indicator and debounce search; consider pre-uploading files on selection.
 - [x] 2025-09-18: Enhanced Admin New Service Request page to fetch clients and services; replaced raw ID inputs with selects.
   - Updated: src/app/admin/service-requests/new/page.tsx
   - Why: Client ID and Service ID did not fetch any data; aligns with service_portal_implementation_guide.md to ensure proper wiring and UX.
