@@ -488,12 +488,36 @@ enum PostStatus {
   ARCHIVED
 }
 
-enum PostPriority { LOW MEDIUM HIGH }
+enum PostPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
 
-enum BookingStatus { PENDING CONFIRMED COMPLETED CANCELLED }
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
 
-enum TaskPriority { LOW MEDIUM HIGH }
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
 
-enum TaskStatus { OPEN IN_PROGRESS REVIEW COMPLETED BLOCKED }
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  BLOCKED
+}
 
-enum UserRole { CLIENT TEAM_MEMBER TEAM_LEAD ADMIN }
+enum UserRole {
+  CLIENT
+  TEAM_MEMBER
+  TEAM_LEAD
+  ADMIN
+}
