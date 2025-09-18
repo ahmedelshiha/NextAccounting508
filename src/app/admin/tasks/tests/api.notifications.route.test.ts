@@ -13,6 +13,9 @@ vi.mock('fs', async () => {
   }
 })
 
+// Ensure DB fallback is used
+process.env.NETLIFY_DATABASE_URL = ''
+
 describe('api/admin/tasks/notifications route', () => {
   beforeEach(() => { mem.data = '' })
 
