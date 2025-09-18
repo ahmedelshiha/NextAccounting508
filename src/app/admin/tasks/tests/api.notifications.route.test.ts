@@ -15,7 +15,7 @@ describe('api/admin/tasks/notifications route', () => {
   beforeEach(() => { mem.data = '' })
 
   it('reads and updates notification settings', async () => {
-    const mod: any = await import('../api/admin/tasks/notifications/route')
+    const mod: any = await import('@/app/api/admin/tasks/notifications/route')
 
     const getRes: any = await mod.GET()
     const settings = await getRes.json()
