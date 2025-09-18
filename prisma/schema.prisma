@@ -568,6 +568,7 @@ enum DefaultRole {
 enum PostStatus {
   DRAFT
   PUBLISHED
+  SCHEDULED
   ARCHIVED
 }
 
