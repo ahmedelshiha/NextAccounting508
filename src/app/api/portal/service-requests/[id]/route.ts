@@ -92,6 +92,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     } catch {}
     return respond.ok(updated)
   } catch (e: any) {
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:[id]:PATCH' }) } catch {}
     if (String(e?.code || '').startsWith('P20')) {
       try {
         const { getRequest, updateRequest } = await import('@/lib/dev-fallbacks')
