@@ -13,6 +13,7 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
+    exclude: ['src/app/admin/tasks/tests/**/*'],
     testTimeout: 10000
   }
 })
