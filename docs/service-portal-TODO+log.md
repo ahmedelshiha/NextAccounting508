@@ -297,6 +297,15 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Added GitHub Actions CI with pnpm to fix missing pnpm error and enforce build/tests.
+  - Added: .github/workflows/ci.yml (checkout, setup-node, pnpm/action-setup, install, prisma generate/migrate/seed, typecheck, lint, tests, build, artifact upload)
+  - Why: GitHub runs failed with "Unable to locate executable file: pnpm"; ensures CI parity and reliable builds.
+  - Next: Add deploy-on-merge job and caching for Prisma if needed.
+
+- [x] 2025-09-18: Fixed Netlify build failure due to secrets scanning false-positives.
+  - Updated: netlify.toml ([build.environment] SECRETS_SCAN_OMIT_KEYS = "UPLOADS_PROVIDER,REALTIME_TRANSPORT")
+  - Why: Netlify secrets scanner flagged these env keys across build output, causing exit code 2.
+  - Next: Monitor deploy; if additional keys or paths are flagged, extend SECRETS_SCAN_OMIT_KEYS or add SECRETS_SCAN_OMIT_PATHS for build artifacts.
 - [x] 2025-09-18: Portal create fallback now uses internal services route; added tests for portal comments.
   - Updated: src/app/api/portal/service-requests/route.ts (fallback no longer fetches localhost)
   - Added: tests/portal-comments.route.test.ts
