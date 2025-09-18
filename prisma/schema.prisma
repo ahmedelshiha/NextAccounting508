@@ -444,7 +444,7 @@ model TeamMember {
   workingHours Json?
   stats       Json?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now()) @updatedAt
 
   user        User?    @relation("UserTeamMember", fields: [userId], references: [id], onDelete: SetNull)
 
