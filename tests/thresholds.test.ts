@@ -36,8 +36,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // clean up
-  await prisma.healthThreshold.deleteMany()
-  await prisma.$disconnect()
+  const prisma = await import('@/lib/prisma')
+  await prisma.default.healthThreshold.deleteMany()
+  await prisma.default.$disconnect()
 })
 
 describe('Thresholds API (unit/integration style)', () => {
