@@ -45,20 +45,37 @@ export async function GET(request: Request) {
     }),
   }
 
-  const [items, total] = await Promise.all([
-    prisma.serviceRequest.findMany({
-      where,
-      include: {
-        service: { select: { id: true, name: true, slug: true, category: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.serviceRequest.count({ where }),
-  ])
+  try {
+    const [items, total] = await Promise.all([
+      prisma.serviceRequest.findMany({
+        where,
+        include: {
+          service: { select: { id: true, name: true, slug: true, category: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.serviceRequest.count({ where }),
+    ])
 
-  return respond.ok(items, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
+    return respond.ok(items, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
+  } catch (e: any) {
+    // Prisma errors (no table / column) — fallback to in-memory dev store
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { devServiceRequests } = await import('@/lib/dev-fallbacks')
+        const all = Array.from(devServiceRequests.values())
+        const filtered = all.filter((r: any) => r.clientId === session.user.id)
+        const total = filtered.length
+        const pageItems = filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
+        return respond.ok(pageItems, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
+      } catch {
+        return respond.internal()
+      }
+    }
+    throw e
+  }
 }
 
 export async function POST(request: Request) {
