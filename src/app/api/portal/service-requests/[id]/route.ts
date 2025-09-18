@@ -63,24 +63,60 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   if (typeof body.description === 'string') allowed.description = body.description
   if (body.action === 'cancel') allowed.status = 'CANCELLED'
 
-  const existing = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, status: true } })
-  if (!existing || existing.clientId !== session.user.id) {
-    return respond.notFound('Service request not found')
-  }
-  if (body.action === 'approve') {
-    if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
-      return respond.badRequest('Cannot approve at current status')
+  try {
+    const existing = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, status: true } })
+    if (!existing || existing.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
     }
-    if (!['SUBMITTED','IN_REVIEW','APPROVED'].includes(existing.status as any)) {
-      return respond.badRequest('Approval not applicable')
+    if (body.action === 'approve') {
+      if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
+        return respond.badRequest('Cannot approve at current status')
+      }
+      if (!['SUBMITTED','IN_REVIEW','APPROVED'].includes(existing.status as any)) {
+        return respond.badRequest('Approval not applicable')
+      }
+      allowed.clientApprovalAt = new Date()
+      allowed.status = 'APPROVED'
     }
-    allowed.clientApprovalAt = new Date()
-    allowed.status = 'APPROVED'
-  }
-  if (allowed.status === 'CANCELLED' && ['IN_PROGRESS','COMPLETED','CANCELLED'].includes(existing.status as any)) {
-    return respond.badRequest('Cannot cancel at current status')
-  }
+    if (allowed.status === 'CANCELLED' && ['IN_PROGRESS','COMPLETED','CANCELLED'].includes(existing.status as any)) {
+      return respond.badRequest('Cannot cancel at current status')
+    }
 
-  const updated = await prisma.serviceRequest.update({ where: { id: id }, data: allowed })
-  return respond.ok(updated)
+    const updated = await prisma.serviceRequest.update({ where: { id: id }, data: allowed })
+    try {
+      const { realtimeService } = await import('@/lib/realtime-enhanced')
+      realtimeService.emitServiceRequestUpdate(id)
+    } catch {}
+    return respond.ok(updated)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { getRequest, updateRequest } = await import('@/lib/dev-fallbacks')
+        const existing = getRequest(id)
+        if (!existing || existing.clientId !== session.user.id) return respond.notFound('Service request not found')
+        if (body.action === 'approve') {
+          if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
+            return respond.badRequest('Cannot approve at current status')
+          }
+          if (!['SUBMITTED','IN_REVIEW','APPROVED'].includes(existing.status as any)) {
+            return respond.badRequest('Approval not applicable')
+          }
+          allowed.clientApprovalAt = new Date().toISOString()
+          allowed.status = 'APPROVED'
+        }
+        if (allowed.status === 'CANCELLED' && ['IN_PROGRESS','COMPLETED','CANCELLED'].includes(existing.status as any)) {
+          return respond.badRequest('Cannot cancel at current status')
+        }
+        const updated = updateRequest(id, allowed)
+        try {
+          const { realtimeService } = await import('@/lib/realtime-enhanced')
+          realtimeService.emitServiceRequestUpdate(id)
+        } catch {}
+        return respond.ok(updated)
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
+  }
 }
