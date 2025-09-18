@@ -269,6 +269,17 @@ How to Resume
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
   - Next: Consider resumable/chunked uploads, surface AV scan status per file, and optionally disable submit while required uploads are pending.
+
+- [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
+  - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
+  - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts
+  - Why: Bring local dev DB to a seeded state for smoke testing.
+  - Next: Run full CI migration pipeline and validate in staging.
+
+- [x] 2025-09-18: Dev login endpoint and in-memory fallback for service-requests added to enable smoke tests without full DB schema.
+  - Updated: src/app/api/dev-login/route.ts, src/lib/dev-fallbacks.ts, src/app/api/portal/service-requests/route.ts, src/app/api/portal/service-requests/[id]/route.ts, src/app/api/portal/service-requests/[id]/comments/route.ts
+  - Why: Allow automated smoke tests and local validation when some DB tables/columns are not yet migrated. The endpoint issues a dev session cookie for staff user; the fallback persists entries to temp/dev-fallbacks.json.
+  - Next: Remove dev-login and fallback code after CI migrations complete and staging validated.
 - [x] 2025-09-19: Documented required env vars and Netlify deployment checklist.
   - Updated: docs/netlify-deployment-and-envs.md
   - Why: Provide clear deployment steps and required env vars for CI/CD (Prisma generate/migrate/seed), uploads provider config, and realtime settings to resume project.
