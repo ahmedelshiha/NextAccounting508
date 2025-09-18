@@ -283,6 +283,11 @@ How to Resume
   - Why: Allow AV providers to notify server of scan results and provide admins tools to inspect, delete, or release quarantined files.
   - Next: Persist attachment avStatus in DB and add background retry queue for avStatus 'error'.
 
+- [x] 2025-09-20: Persisted AV scan results to ServiceRequest.attachments when matches found (best-effort JSON update).
+  - Updated: src/app/api/uploads/av-callback/route.ts
+  - Why: Improve traceability — attachments now receive avStatus and avDetails when AV callback includes object key.
+  - Next: Add background retry queue for avStatus 'error' and consider an Attachment DB model + migration for stronger guarantees.
+
 - [x] 2025-09-18: Portal New Service Request — added per-file upload retry controls and service typeahead search.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
