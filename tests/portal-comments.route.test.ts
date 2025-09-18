@@ -25,6 +25,7 @@ const prismaMock = {
         serviceRequestId: data.serviceRequestId,
         authorId: data.authorId,
         content: data.content,
+        attachments: data.attachments || [],
         createdAt: new Date().toISOString(),
         author: { id: 'client1', name: 'Test Client', email: 'client@example.com' },
       }
@@ -63,5 +64,16 @@ describe('api/portal/service-requests/[id]/comments route', () => {
     const json = await ok.json()
     expect(json.success).toBe(true)
     expect(json.data).toHaveProperty('content', 'New message')
+  })
+
+  it('POST accepts attachments metadata', async () => {
+    const { POST }: any = await import('@/app/api/portal/service-requests/[id]/comments/route')
+    const payload = { content: 'With file', attachments: [{ name: 'doc.pdf', size: 1234, type: 'application/pdf', url: 'https://example.com/doc.pdf' }] }
+    const res: any = await POST(new Request('https://x', { method: 'POST', body: JSON.stringify(payload) }), { params: Promise.resolve({ id: 'sr1' }) })
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.success).toBe(true)
+    expect(Array.isArray(json.data.attachments)).toBe(true)
+    expect(json.data.attachments[0].name).toBe('doc.pdf')
   })
 })
