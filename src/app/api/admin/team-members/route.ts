@@ -11,6 +11,12 @@ export async function GET() {
     if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const hasDb = !!process.env.NETLIFY_DATABASE_URL
+    if (!hasDb) {
+      return NextResponse.json({ teamMembers: [] })
+    }
+
     const rows = await prisma.teamMember.findMany({
       orderBy: { name: 'asc' },
       include: { user: { select: { id: true, name: true, email: true, role: true } } }
