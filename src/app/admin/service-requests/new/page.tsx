@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,6 +14,9 @@ import { PERMISSIONS } from '@/lib/permissions'
 
 const PRIORITIES = ['LOW','MEDIUM','HIGH','URGENT'] as const
 
+type ClientItem = { id: string; name: string; tier?: string }
+type ServiceItem = { id: string; name: string }
+
 export default function AdminNewServiceRequestPage() {
   const router = useRouter()
   const perms = usePermissions()
@@ -21,9 +24,42 @@ export default function AdminNewServiceRequestPage() {
   const [form, setForm] = useState<{ clientId: string; serviceId: string; title: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', title: '', description: '', priority: 'MEDIUM' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [clients, setClients] = useState<ClientItem[]>([])
+  const [services, setServices] = useState<ServiceItem[]>([])
+  const [loadingLists, setLoadingLists] = useState(false)
+
+  useEffect(() => {
+    const abort = new AbortController()
+    ;(async () => {
+      try {
+        setLoadingLists(true)
+        // Fetch clients (admin-only endpoint)
+        try {
+          const resUsers = await apiFetch('/api/admin/users', { signal: abort.signal })
+          const jsonUsers = await resUsers.json().catch(() => ({}))
+          const users = Array.isArray(jsonUsers) ? jsonUsers : (jsonUsers?.users || [])
+          const onlyClients = users.filter((u: any) => String(u.role || '').toUpperCase() === 'CLIENT')
+          const mappedClients: ClientItem[] = onlyClients.map((u: any) => ({ id: u.id, name: u.name || u.email || 'Client', tier: (() => { const cnt = Number(u.totalBookings || 0); if (cnt >= 20) return 'Enterprise'; if (cnt >= 1) return 'SMB'; return 'Individual' })() }))
+          setClients(mappedClients)
+        } catch {}
+        // Fetch services (public endpoint)
+        try {
+          const resSvcs = await apiFetch('/api/services', { signal: abort.signal })
+          const jsonSvcs = await resSvcs.json().catch(() => [])
+          const list = Array.isArray(jsonSvcs) ? jsonSvcs : (jsonSvcs?.data || [])
+          const mapped: ServiceItem[] = list.map((s: any) => ({ id: s.id, name: s.name || 'Service' }))
+          setServices(mapped)
+        } catch {}
+      } finally {
+        setLoadingLists(false)
+      }
+    })()
+    return () => abort.abort()
+  }, [])
 
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
+    if (!form.clientId || !form.serviceId) { setError('Select client and service'); return }
     setSaving(true); setError(null)
     try {
       const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline || undefined }
@@ -50,12 +86,30 @@ export default function AdminNewServiceRequestPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm text-gray-700">Client ID</label>
-                <Input value={form.clientId} onChange={(e) => setForm({ ...form, clientId: e.target.value })} placeholder="client id" />
+                <label className="text-sm text-gray-700">Client</label>
+                <Select value={form.clientId} onValueChange={(v) => setForm({ ...form, clientId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingLists ? 'Loading...' : 'Select client'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}{c.tier ? ` (${c.tier})` : ''}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-gray-700">Service ID</label>
-                <Input value={form.serviceId} onChange={(e) => setForm({ ...form, serviceId: e.target.value })} placeholder="service id" />
+                <label className="text-sm text-gray-700">Service</label>
+                <Select value={form.serviceId} onValueChange={(v) => setForm({ ...form, serviceId: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingLists ? 'Loading...' : 'Select service'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
