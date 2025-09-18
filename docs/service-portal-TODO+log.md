@@ -255,7 +255,7 @@ How to Resume
 - [x] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
 ### 9) Testing and docs
-- [ ] Add unit tests for new lib/permissions and helpers
+- [x] Add unit tests for new lib/permissions and helpers
 - [x] Add unit tests for auto-assignment
 - [x] Add unit tests for status transitions and RBAC guards
 - [x] Add route tests for service-requests
