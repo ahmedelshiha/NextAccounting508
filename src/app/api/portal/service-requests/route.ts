@@ -169,7 +169,7 @@ export async function POST(request: Request) {
     if (String(e?.code || '').startsWith('P20')) {
       // Fallback: store in-memory for dev
       try {
-        const { devServiceRequests } = await import('@/lib/dev-fallbacks')
+        const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
         const created: any = {
           id,
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
-        devServiceRequests.set(id, created)
+        addRequest(id, created)
         return respond.created(created)
       } catch {
         return respond.internal()
