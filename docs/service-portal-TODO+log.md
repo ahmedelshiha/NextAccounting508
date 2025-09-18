@@ -329,6 +329,14 @@ How to Resume
   - Why: Improve transparency of virus-scan results for client attachments.
   - Next: Add admin quarantine controls link from client view when infected.
 
+- [x] 2025-09-18: Enforced Node runtime and added error capture in portal routes.
+  - Updated: src/app/api/portal/service-requests/route.ts; [id]/route.ts; [id]/comments/route.ts (export runtime='nodejs', captureError calls)
+  - Why: Ensure Prisma-compatible runtime on Netlify and better observability.
+
+- [x] 2025-09-18: Added CSV export to client portal service-requests list.
+  - Updated: src/app/portal/service-requests/page.tsx (Export CSV button)
+  - Why: Allow clients to download their requests for records.
+
 - [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
   - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
   - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts

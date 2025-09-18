@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 
+export const runtime = 'nodejs'
+
 const CreateSchema = z.object({
   serviceId: z.string().min(1),
   title: z.string().min(5).max(300),
@@ -105,6 +107,7 @@ export async function POST(request: Request) {
       return respond.badRequest('Service not found or inactive')
     }
   } catch (e: any) {
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:POST:service-lookup' }) } catch {}
     // Prisma issues — fall back to internal services route (no network assumptions)
     if (String(e?.code || '').startsWith('P20')) {
       try {
@@ -167,6 +170,7 @@ export async function POST(request: Request) {
 
     return respond.created(created)
   } catch (e: any) {
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:POST:create' }) } catch {}
     if (String(e?.code || '').startsWith('P20')) {
       // Fallback: store in-memory for dev
       try {
