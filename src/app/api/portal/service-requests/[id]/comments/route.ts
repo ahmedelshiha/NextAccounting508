@@ -66,20 +66,42 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
-  const created = await prisma.serviceRequestComment.create({
-    data: {
-      serviceRequestId: id,
-      authorId: session.user.id,
-      content: parsed.data.content,
-      attachments: parsed.data.attachments ?? undefined,
-    },
-    include: { author: { select: { id: true, name: true, email: true } } },
-  })
-
   try {
-    const { realtimeService } = await import('@/lib/realtime-enhanced')
-    realtimeService.emitServiceRequestUpdate(id)
-  } catch {}
+    const created = await prisma.serviceRequestComment.create({
+      data: {
+        serviceRequestId: id,
+        authorId: session.user.id,
+        content: parsed.data.content,
+        attachments: parsed.data.attachments ?? undefined,
+      },
+      include: { author: { select: { id: true, name: true, email: true } } },
+    })
 
-  return respond.created(created)
+    try {
+      const { realtimeService } = await import('@/lib/realtime-enhanced')
+      realtimeService.emitServiceRequestUpdate(id)
+    } catch {}
+
+    return respond.created(created)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { devComments, devServiceRequests } = await import('@/lib/dev-fallbacks')
+        const reqRow = devServiceRequests.get(id)
+        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const comment = { id: `dev-c-${Date.now().toString()}`, content: parsed.data.content, createdAt: new Date().toISOString(), author: { id: session.user.id, name: session.user.name } }
+        const list = devComments.get(id) || []
+        list.push(comment)
+        devComments.set(id, list)
+        try {
+          const { realtimeService } = await import('@/lib/realtime-enhanced')
+          realtimeService.emitServiceRequestUpdate(id)
+        } catch {}
+        return respond.created(comment)
+      } catch {
+        return respond.internal()
+      }
+    }
+    throw e
+  }
 }
