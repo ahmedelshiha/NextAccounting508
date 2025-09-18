@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const state = { comments: [{ id: 'c1', content: 'hi', createdAt: new Date().toISOString() }] as any[] }
 
-vi.mock('../prisma/client', () => {
+vi.mock('@/lib/prisma', () => {
   return {
-    prisma: {
+    default: {
       task: {
         findUnique: vi.fn(async () => ({ comments: state.comments })),
         update: vi.fn(async ({ data }: any) => { state.comments = data.comments; return { id: '1' } })
