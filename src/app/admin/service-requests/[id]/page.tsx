@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Loader2, Trash2, Pencil, Plus } from 'lucide-react'
+import { ArrowLeft, Loader2, Trash2, Pencil, Plus, Paperclip } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import TaskForm from '@/app/admin/tasks/components/forms/TaskForm'
 import { useRealtime } from '@/hooks/useRealtime'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 const STATUSES = ['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED'] as const
 
@@ -28,6 +30,7 @@ interface Item {
   budgetMin?: number | null
   budgetMax?: number | null
   deadline?: string | null
+  attachments?: Array<{ name?: string; url?: string; type?: string; size?: number; uploadError?: string }> | null
   createdAt?: string | null
 }
 
@@ -48,6 +51,12 @@ export default function AdminServiceRequestDetailPage() {
   const [tasks, setTasks] = useState<Array<any>>([])
   const [tasksLoading, setTasksLoading] = useState(true)
   const [showCreateTask, setShowCreateTask] = useState(false)
+
+  const [comments, setComments] = useState<Array<any>>([])
+  const [commentsLoading, setCommentsLoading] = useState(true)
+  const [commentText, setCommentText] = useState('')
+  const [commentFiles, setCommentFiles] = useState<any[]>([])
+  const [postingComment, setPostingComment] = useState(false)
 
   const rt = useRealtime(['service-request-updated','task-updated'])
 
@@ -71,7 +80,16 @@ export default function AdminServiceRequestDetailPage() {
     } finally { setTasksLoading(false) }
   }
 
-  useEffect(() => { void loadTasks() }, [])
+  const loadComments = async () => {
+    setCommentsLoading(true)
+    try {
+      const res = await apiFetch(`/api/admin/service-requests/${params.id}/comments`)
+      const j = await res.json().catch(() => ({}))
+      setComments(Array.isArray(j?.data) ? j.data : [])
+    } finally { setCommentsLoading(false) }
+  }
+
+  useEffect(() => { void loadTasks(); void loadComments() }, [])
 
   useEffect(() => {
     if (!rt.events.length) return
@@ -80,6 +98,7 @@ export default function AdminServiceRequestDetailPage() {
     if (last?.type === 'task-updated' || last?.type === 'service-request-updated') {
       if (!srId || srId === String(params.id)) {
         void loadTasks()
+        void loadComments()
         void load()
       }
     }
@@ -189,6 +208,23 @@ export default function AdminServiceRequestDetailPage() {
               </div>
             )}
 
+            {Array.isArray(item.attachments) && item.attachments.length > 0 && (
+              <div>
+                <div className="text-sm text-gray-500 mb-1 flex items-center gap-2"><Paperclip className="h-4 w-4" /> Attachments</div>
+                <ul className="space-y-1">
+                  {item.attachments.map((a, idx) => (
+                    <li key={idx} className="text-sm">
+                      {a.uploadError ? (
+                        <span className="text-red-600">{a.name || 'file'} — {a.uploadError}</span>
+                      ) : (
+                        a.url ? <a href={a.url} target="_blank" rel="noreferrer" className="text-blue-600 underline">{a.name || a.url}</a> : <span>{a.name || 'file'}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <div className="pt-2">
               <div className="text-sm text-gray-500 mb-1">Update Status</div>
               <div className="flex items-center gap-3">
@@ -282,6 +318,62 @@ export default function AdminServiceRequestDetailPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Comments</CardTitle>
+            <CardDescription>Discussion on this service request</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {commentsLoading ? (
+              <div className="text-gray-400">Loading comments…</div>
+            ) : comments.length === 0 ? (
+              <div className="text-gray-500">No comments yet.</div>
+            ) : (
+              <div className="space-y-3">
+                {comments.map((c: any) => (
+                  <div key={c.id} className="border rounded-lg p-3 bg-white">
+                    <div className="text-sm text-gray-700 font-medium">{c.author?.name || c.author?.email || 'User'} <span className="text-xs text-gray-500">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</span></div>
+                    <div className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{c.content}</div>
+                    {Array.isArray(c.attachments) && c.attachments.length > 0 && (
+                      <div className="mt-2 flex gap-2 flex-wrap">
+                        {c.attachments.map((a: any, i: number) => (
+                          <a key={i} href={a.url || a.dataUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline">{a.name || 'attachment'}</a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE) && (
+              <div className="space-y-2 border rounded-lg p-3 bg-white">
+                <Textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment..." />
+                <Input type="file" onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (!f) return
+                  const reader = new FileReader()
+                  reader.onload = () => setCommentFiles(prev => [...prev, { name: f.name, size: f.size, type: f.type, dataUrl: reader.result }])
+                  reader.readAsDataURL(f)
+                }} />
+                <div className="flex justify-end">
+                  <Button disabled={postingComment || (!commentText.trim() && commentFiles.length===0)} onClick={async () => {
+                    setPostingComment(true)
+                    try {
+                      const payload = { content: commentText.trim(), attachments: commentFiles }
+                      const res = await apiFetch(`/api/admin/service-requests/${params.id}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                      if (!res.ok) throw new Error('Failed to post comment')
+                      setCommentText('')
+                      setCommentFiles([])
+                      await loadComments()
+                    } finally { setPostingComment(false) }
+                  }}>Post</Button>
+                </div>
               </div>
             )}
           </CardContent>
