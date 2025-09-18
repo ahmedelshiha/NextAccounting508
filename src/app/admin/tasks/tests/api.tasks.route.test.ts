@@ -13,7 +13,7 @@ vi.mock('../prisma/client', () => {
 
 describe('api/admin/tasks route', () => {
   it('GET returns tasks', async () => {
-    const { GET } = await import('../api/admin/tasks/route')
+    const { GET } = await import('@/app/api/admin/tasks/route')
     const res: any = await GET(new Request('https://example.com/api/admin/tasks?limit=10'))
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)
