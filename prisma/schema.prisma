@@ -447,9 +447,10 @@ model TeamMember {
   email       String?
   userId      String?
   title       String?
-  role        DefaultRole?  @default(TEAM_MEMBER)
+  role        UserRole?  @default(TEAM_MEMBER)
   department  String?
   specialties String[]
+  hourlyRate  Decimal?
   isAvailable Boolean  @default(true)
   status      String?  @default("active")
   workingHours Json?
