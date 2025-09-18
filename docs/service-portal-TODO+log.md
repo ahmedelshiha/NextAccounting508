@@ -319,6 +319,11 @@ How to Resume
   - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
   - Next: Consider resumable/chunked uploads, surface AV scan status per file, and optionally disable submit while required uploads are pending.
 
+- [x] 2025-09-18: Disable submit while uploads are pending on Portal New Request.
+  - Updated: src/app/portal/service-requests/new/page.tsx (canSubmit guards pending uploads; button label reflects state; helper text)
+  - Why: Prevent submitting before files finish uploading, avoiding missing attachments.
+  - Next: Show AV scan status when callback updates are received.
+
 - [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
   - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
   - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts
