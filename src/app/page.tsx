@@ -2,9 +2,7 @@ import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
-
-const BlogSectionClient = dynamic(() => import('@/components/home/blog-section.client').then(m => m.BlogSectionClient), { ssr: false })
+import { BlogSectionClient } from '@/components/home/blog-section.client'
 
 export const revalidate = 60
 
