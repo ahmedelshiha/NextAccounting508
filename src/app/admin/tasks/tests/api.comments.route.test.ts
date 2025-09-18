@@ -25,7 +25,7 @@ describe('api/admin/tasks/[id]/comments route', () => {
   })
 
   it('POST validates payload and appends comment', async () => {
-    const { POST }: any = await import('../api/admin/tasks/[id]/comments/route')
+    const { POST }: any = await import('@/app/api/admin/tasks/[id]/comments/route')
     const bad: any = await POST(new Request('https://x', { method: 'POST', body: JSON.stringify({}) }), { params: { id: '1' } } as any)
     expect(bad.status).toBe(400)
 
