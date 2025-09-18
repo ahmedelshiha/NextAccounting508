@@ -297,6 +297,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Portal create fallback now uses internal services route; added tests for portal comments.
+  - Updated: src/app/api/portal/service-requests/route.ts (fallback no longer fetches localhost)
+  - Added: tests/portal-comments.route.test.ts
+  - Why: Remove external localhost dependency in serverless envs and strengthen coverage of client comment flow.
+  - Next: Add e2e covering client approve -> admin assign -> complete with realtime assertions.
 - [x] 2025-09-18: Portal New Service Request — added upload progress indicator, debounced service search, and auto pre-upload on selection.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
