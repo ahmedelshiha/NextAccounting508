@@ -51,28 +51,56 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
-## Current Status (Paused)
-- Waiting on CI/CD to run Prisma generate/migrate/seed against Neon. Env configured; migrations not yet applied in this environment.
-- Uploads provider chosen: Netlify Blobs. Provider wiring in API pending; need NETLIFY_BLOBS_TOKEN in env and key-generation in /api/uploads.
-- Realtime durable adapter implemented (Postgres LISTEN/NOTIFY). Needs REALTIME_TRANSPORT=postgres and staging validation for multi-instance delivery.
-- Tests in place for key routes; unit/e2e coverage pending; thresholds require tightening.
+## Current Status: Paused (2025-09-18)
 
-## Remaining Work (Paused) — Checklist (At a glance)
-- Database
-  - [ ] Run prisma migrate/seed in CI/CD and verify seeds (roles/permissions)
-  - [ ] Add multi-tenancy (tenantId/orgId + indexes) and scope queries behind a flag
-- Realtime
-  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify; confirm 'postgres' transport in /admin header and cross-instance event delivery
-- Uploads
-  - [x] Enable antivirus scan webhook and enforce stricter MIME/extension policy; surface upload errors in portal UI
-- QA & Testing
-  - [ ] Tighten coverage thresholds; add unit tests (RBAC, auto-assign, status transitions) and e2e for client/admin flows
-- Docs & Runbooks
-  - [ ] Document required env vars and deployment checklist; add rollback steps
-- Observability
-  - [ ] Integrate Sentry for error/perf monitoring and alerts
-- Admin UI
-  - [x] Add pagination and server-side search to /admin/audits
+Summary
+- Project is paused pending CI/CD execution of Prisma generate/migrate/seed and validation in staging.
+- Local environment supports DB-disabled fallbacks; full feature verification requires NETLIFY_DATABASE_URL + CI migration run (Neon recommended).
+- Uploads provider: Netlify Blobs implemented (requires NETLIFY_BLOBS_TOKEN in Netlify env to enable). Realtime Postgres adapter implemented but requires REALTIME_TRANSPORT=postgres in staging.
+- Recent changes: logout/realtime cleanup, middleware cache-control, tests added for many APIs. Some UI unit tests are excluded from local runs and run in CI.
+
+Actionable "Remaining Work (Paused)" Checklist — Priority ordered
+1. Database & Migrations (critical)
+   - [ ] Ensure CI runs Prisma client generation and migrations: configure Netlify build to run "pnpm db:generate && pnpm db:migrate && pnpm db:seed".
+   - [ ] Verify seed data applied: roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN), default templates, and permissions.
+   - [ ] Run smoke queries against staging DB and validate RBAC via /api/admin/permissions endpoints.
+
+2. Multi-tenancy (high)
+   - [ ] Implement tenantId/orgId fields and indexes in Prisma schema behind a feature flag.
+   - [ ] Add middleware and API scoping to ensure all admin/portal queries filter by tenant when enabled.
+   - [ ] Add DB indexes for tenant scoping and performance testing.
+
+3. Uploads & AV (high)
+   - [ ] Set NETLIFY_BLOBS_TOKEN in Netlify env and enable UPLOADS_PROVIDER=netlify.
+   - [ ] Validate Netlify Blobs uploads end-to-end (upload, AV webhook response handling, UI per-file error display, retry/remove controls).
+   - [ ] Add runbook for upload failures and quarantine flow.
+
+4. Realtime & Ops (high)
+   - [ ] Set REALTIME_TRANSPORT=postgres and (optional) REALTIME_PG_URL/REALTIME_PG_CHANNEL in staging env.
+   - [ ] Validate cross-instance LISTEN/NOTIFY delivery, heartbeat events, and reconnection/backoff in staging.
+   - [ ] Instrument metrics/alerts for realtime errors and connection count.
+
+5. QA & Tests (required before merge)
+   - [ ] Tighten coverage thresholds and enable tests in CI. Fix any failing tests related to DB expectations.
+   - [ ] Add unit tests for status transitions and RBAC guards (some added: auto-assignment tests done).
+   - [ ] Add end-to-end tests for full client create -> admin assign -> complete flows.
+
+6. Docs & Runbooks (required)
+   - [ ] Document required env vars and values (NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, REALTIME_* , NEXTAUTH_SECRET/URL).
+   - [ ] Add deployment checklist for Netlify: preflight checks, run migrations, verify health endpoints, run smoke tests, rollback steps.
+
+7. Observability & Audit (recommended)
+   - [ ] Configure Sentry DSN in staging and production; verify error/performance capture and set alerts.
+   - [ ] Ensure logout/audit events are persisted when DB is available; add queries to surface logout events in /admin/audits.
+
+8. Final smoke & staging validation
+   - [ ] Smoke test portal and admin flows end-to-end in staging with DB and uploads enabled.
+   - [ ] Verify CSV export, realtime updates, and attachments.
+
+Notes
+- Many code paths already support DB-disabled fallback (file-based templates/notifications) to allow local dev without secrets.
+- To resume: connect Neon in Netlify, set required envs, trigger Netlify build to run migrations and seeds, then run smoke tests.
+
 
 ## Remaining Work (Paused)
 1) Database and Migrations
