@@ -330,7 +330,7 @@ How to Resume
   - Next: Add admin quarantine controls link from client view when infected.
 
 - [x] 2025-09-18: Enforced Node runtime and added error capture in portal routes.
-  - Updated: src/app/api/portal/service-requests/route.ts; [id]/route.ts; [id]/comments/route.ts (export runtime='nodejs', captureError calls)
+  - Updated: src/app/api/portal/service-requests/route.ts; src/app/api/portal/service-requests/[id]/route.ts; src/app/api/portal/service-requests/[id]/comments/route.ts (export runtime='nodejs', captureError calls)
   - Why: Ensure Prisma-compatible runtime on Netlify and better observability.
 
 - [x] 2025-09-18: Added CSV export to client portal service-requests list.
