@@ -33,10 +33,10 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
   } catch (e: any) {
     if (String(e?.code || '').startsWith('P20')) {
       try {
-        const { devServiceRequests, devComments } = await import('@/lib/dev-fallbacks')
-        const reqRow = devServiceRequests.get(id)
+        const { getRequest, getComments } = await import('@/lib/dev-fallbacks')
+        const reqRow = getRequest(id)
         if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
-        const comments = devComments.get(id) || []
+        const comments = getComments(id) || []
         return respond.ok(comments)
       } catch {
         return respond.internal()
