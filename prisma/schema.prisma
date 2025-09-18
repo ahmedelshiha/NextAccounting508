@@ -591,6 +591,7 @@ enum TaskStatus {
 enum UserRole {
   CLIENT
   TEAM_MEMBER
+  STAFF
   TEAM_LEAD
   ADMIN
 }
