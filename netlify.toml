@@ -1,13 +1,15 @@
 [build]
   # If you rely on CI to run migrations/seeds, keep build simple.
   command = "pnpm build"
-  publish = ".next"
 
 # If you prefer Netlify to run migrations and seed during build, change command to:
 # command = "pnpm db:generate && pnpm db:migrate && pnpm db:seed && pnpm build"
 
 [build.environment]
   NODE_VERSION = "18"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [dev]
   # Local dev settings if using netlify dev
