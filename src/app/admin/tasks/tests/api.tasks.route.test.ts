@@ -20,7 +20,7 @@ describe('api/admin/tasks route', () => {
   })
 
   it('POST validates and creates', async () => {
-    const { POST } = await import('../api/admin/tasks/route')
+    const { POST } = await import('@/app/api/admin/tasks/route')
     const resBad: any = await POST(new Request('https://example.com/api/admin/tasks', { method: 'POST', body: JSON.stringify({}) }))
     expect(resBad.status).toBe(400)
 
