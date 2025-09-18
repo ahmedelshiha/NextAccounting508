@@ -206,22 +206,32 @@ export default function PortalServiceRequestDetailPage() {
                   <div className="mt-4">
                     <h4 className="text-sm font-medium text-gray-900">Attachments</h4>
                     <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
-                      {reqData.attachments.map((a: any, i: number) => (
-                        <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
-                          <span className="truncate">
-                            {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
-                            {a.url ? (
-                              <>
-                                {' '}
-                                <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
-                              </>
-                            ) : null}
-                            {a.uploadError ? (
-                              <span className="ml-2 text-red-600">{a.uploadError}</span>
-                            ) : null}
-                          </span>
-                        </li>
-                      ))}
+                      {reqData.attachments.map((a: any, i: number) => {
+                        const avStatus: string | undefined = a?.avStatus ?? (typeof a?.avDetails?.clean === 'boolean' ? (a.avDetails.clean ? 'clean' : 'infected') : undefined)
+                        return (
+                          <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
+                            <span className="truncate">
+                              {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                              {a.url ? (
+                                <>
+                                  {' '}
+                                  <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                                </>
+                              ) : null}
+                              {a.uploadError ? (
+                                <span className="ml-2 text-red-600">{a.uploadError}</span>
+                              ) : null}
+                            </span>
+                            {avStatus && (
+                              <span className={
+                                avStatus === 'clean' ? 'text-green-600' : avStatus === 'infected' ? 'text-red-600' : 'text-yellow-600'
+                              }>
+                                {avStatus === 'clean' ? 'Clean' : avStatus === 'infected' ? 'Infected' : avStatus}
+                              </span>
+                            )}
+                          </li>
+                        )
+                      })}
                     </ul>
                   </div>
                 )}
