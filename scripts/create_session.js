@@ -14,12 +14,11 @@
     form.append('email', email)
     form.append('password', password)
 
-    const res = await fetch('http://localhost:3000/api/auth/callback/credentials', { method: 'POST', body: form, redirect: 'follow', headers: { cookie: csrfSet } })
+    const res = await fetch('http://localhost:3000/api/auth/signin/credentials', { method: 'POST', body: form, redirect: 'follow', headers: { cookie: csrfSet } })
     const setCookie = res.headers.get('set-cookie') || res.headers.get('Set-Cookie')
     console.log('signin final status', res.status)
     console.log('set-cookie:', setCookie)
 
-    // Try to get session using returned cookies
     const cookies = []
     if (csrfSet) cookies.push(csrfSet)
     if (setCookie) cookies.push(setCookie)
