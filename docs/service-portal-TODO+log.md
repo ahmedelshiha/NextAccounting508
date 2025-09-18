@@ -270,6 +270,12 @@ How to Resume
   - Why: Provide clear deployment steps and required env vars for CI/CD (Prisma generate/migrate/seed), uploads provider config, and realtime settings to resume project.
   - Next: Add runbook for upload failure handling and Sentry staging configuration.
 
+- [x] 2025-09-20: Added GitHub Action for optional Netlify deploy and uploads runbook.
+  - Added: .github/workflows/deploy-netlify.yml
+  - Added: docs/uploads-runbook.md
+  - Why: Allow optional automated deploy when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID are provided, and document quarantine/AV handling.
+  - Next: Implement admin quarantine UI and AV callback endpoint; add background retry queue for avStatus: 'error'.
+
 - [x] 2025-09-18: Portal New Service Request — added per-file upload retry controls and service typeahead search.
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
