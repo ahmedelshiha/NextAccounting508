@@ -13,7 +13,8 @@
       picture: user.image || null,
       sub: user.id,
       role: user.role,
-      iat: Math.floor(Date.now()/1000)
+      iat: Math.floor(Date.now()/1000),
+      sessionVersion: user.sessionVersion ?? 0
     }
     const encoded = await encode({ token, secret })
     const cookieName = '__Secure-next-auth.session-token'
