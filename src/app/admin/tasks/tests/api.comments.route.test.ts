@@ -17,7 +17,7 @@ describe('api/admin/tasks/[id]/comments route', () => {
   beforeEach(() => { state.comments = [{ id: 'c1', content: 'hi', createdAt: new Date().toISOString() }] })
 
   it('GET returns list', async () => {
-    const { GET }: any = await import('../api/admin/tasks/[id]/comments/route')
+    const { GET }: any = await import('@/app/api/admin/tasks/[id]/comments/route')
     const res: any = await GET(new Request('https://x'), { params: { id: '1' } } as any)
     const json = await res.json()
     expect(Array.isArray(json)).toBe(true)
