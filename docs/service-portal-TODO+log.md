@@ -1,34 +1,66 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-17)
+Status: Paused (as of 2025-09-18)
 
-Pause Summary
-- Awaiting CI/CD to run Prisma generate/migrate/seed and to finalize multi-tenancy plan before further UI/realtime work.
-- Envs are set for DB, uploads, realtime, and optional Sentry. Safe to resume by following the checklist below.
+Pause reason
+- Paused pending CI/CD-run Prisma migrations and seed (ensure DB schema, enums, and seed data applied) and a finalized multi-tenancy rollout plan before further realtime and production uploads work.
 
-Remaining Work (Paused) — Actionable Checklist (Consolidated)
-- [ ] Database & Migrations
-  - [ ] Run Prisma generate/migrate/seed in CI/CD; verify seeds for roles/permissions/templates
-  - [ ] Implement multi-tenancy (tenantId/orgId + indexes) behind feature flag and scope queries
-  - [ ] Finalize/persist attachments metadata schema and migrate
-- [ ] Realtime & Ops
-  - [ ] Validate multi-instance LISTEN/NOTIFY on Netlify with REALTIME_TRANSPORT=postgres
-  - [ ] Emit and verify periodic heartbeat events across instances; observe reconnection/backoff
-- [ ] Uploads
-  - [ ] Document AV webhook (UPLOADS_AV_SCAN_URL), size limits, and provider settings; add retry/remove UI controls
-  - [ ] Ensure end-to-end audit trail for uploads and failures in admin audits (review aggregation/filters)
-- [ ] QA & Testing
-  - [ ] Add unit tests: status transitions, RBAC guards
-  - [x] Add unit tests: auto-assignment
-  - [ ] Tighten coverage thresholds and ensure green locally/CI
-  - [ ] Add e2e tests for client create/approve and admin assign/progress/complete flows
-- [ ] Docs & Runbooks
-  - [ ] Document required env vars and deployment checklist; add rollback steps
-  - [ ] Update API docs for service-requests, team-management, templates
-- [ ] Observability
-  - [ ] Configure Sentry DSN in staging/prod; verify error/performance capture and set alerts
-- [ ] Staging Validation
-  - [ ] Smoke test portal/admin flows against DB; validate uploads provider and CSV exports
+Current status
+- Local dev: Prisma client generated and seed applied locally; temporary dev-login and in-memory fallbacks added to allow smoke testing without full production schema.
+- CI/staging: Awaiting Netlify/CI to run authoritative pnpm db:generate && pnpm db:migrate && pnpm db:seed with NETLIFY_DATABASE_URL (Neon) set.
+- Realtime/uploads: Postgres adapter implemented (enable via REALTIME_TRANSPORT=postgres). Netlify Blobs provider implemented (requires NETLIFY_BLOBS_TOKEN).
+
+Completed (high level)
+- Core service-requests APIs (admin + portal) implemented and wired with RBAC, realtime broadcasts, attachments, and comments.
+- Prisma schema extended and seeds added; local seed applied after resolving enum baseline.
+- Uploads endpoint with provider switch, AV sniffing, and per-file error reporting implemented.
+- Dev helpers added to enable local smoke tests (dev-login, dev-fallbacks persisted to temp/dev-fallbacks.json).
+- Unit & route tests added for permissions, auto-assignment, status transitions; some tests skipped until CI DB is authoritative.
+
+Remaining Work (Paused) — Actionable checklist (for resuming)
+1. Database & Migrations (critical)
+   - [ ] Run migrations + seed in CI (Netlify): add Netlify build step to run `pnpm db:generate && pnpm db:migrate && pnpm db:seed` and verify exit code 0.
+     - How: In Netlify CI settings / netlify.toml, ensure NETLIFY_DATABASE_URL points to Neon and include the command above in build hooks.
+   - [ ] Validate seeds: confirm users (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN), templates, permissions exist via `/api/admin/permissions` and direct DB queries.
+   - [ ] Remove or rework dev-only fallbacks after CI seed confirmed.
+
+2. Multi-tenancy (high)
+   - [ ] Implement tenantId/orgId fields and indexes behind feature flag in Prisma schema; add migration; scope all admin/portal queries by tenant when flag enabled.
+   - [ ] Add middleware to derive tenant from request (header/subdomain/auth) and enforce DB scoping.
+   - Next command: update prisma schema + `pnpm db:migrate` in CI and verify queries are correctly filtered.
+
+3. Uploads & AV (high)
+   - [ ] Set `NETLIFY_BLOBS_TOKEN` and `UPLOADS_PROVIDER=netlify` in Netlify env for staging/prod.
+   - [ ] Verify upload end-to-end: upload -> Netlify Blobs -> AV webhook -> attachments AV status persisted -> UI shows per-file result.
+   - [ ] Add retry/remediation runbook for AV 'error' and quarantine flow.
+
+4. Realtime & Ops (high)
+   - [ ] Enable durable transport in staging: set `REALTIME_TRANSPORT=postgres` and optional `REALTIME_PG_URL`/`REALTIME_PG_CHANNEL`.
+   - [ ] Validate LISTEN/NOTIFY cross-instance delivery, heartbeat events, reconnection/backoff, and monitor metrics surfaced in /api/admin/system/health.
+
+5. QA & Tests (required before merge)
+   - [ ] Tighten coverage thresholds and enable tests in CI; fix any DB-related test failures.
+   - [ ] Add e2e tests for client create -> admin assign -> complete flows (playwright/cypress/puppeteer) and include in CI pipeline.
+
+6. Docs & Runbooks
+   - [ ] Publish deployment checklist: required env vars, build steps, migrations, smoke tests, rollback steps (add to docs/netlify-deployment-and-envs.md).
+   - [ ] Document upload provider setup and AV webhook contract (docs/uploads-runbook.md).
+
+7. Clean-up (post-migration)
+   - [ ] Remove dev helpers (`/api/dev-login`, `src/lib/dev-fallbacks`, `temp/dev-fallbacks.json`) after CI migrations validated.
+   - [ ] Convert any remaining fallback code paths to DB-backed implementations and add migrations where needed.
+
+Quick resume steps (recommended order)
+- Step A: Ensure Neon is connected in Netlify & set NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL.
+- Step B: Trigger CI build that runs `pnpm db:generate && pnpm db:migrate && pnpm db:seed` and confirm seed data.
+- Step C: Run smoke tests in staging: create portal request, assign via admin, progress status, verify realtime and CSV export.
+- Step D: Remove dev helpers and push cleanup commit; re-run CI and verify tests pass.
+
+Notes
+- Dev fallbacks were intentionally added to enable offline smoke testing; keep them only while migrations are in flight. They persist to `temp/dev-fallbacks.json`.
+- When resuming, prefer running migrations in CI (Netlify) rather than local ad-hoc migrations to keep schema consistent across environments.
+
+
 
 Completed (Highlights)
 - Admin Audits: server-side pagination/search, server CSV export, and UI wiring
@@ -265,6 +297,21 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Portal New Service Request — added upload progress indicator, debounced service search, and auto pre-upload on selection.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
+  - Next: Consider resumable/chunked uploads, surface AV scan status per file, and optionally disable submit while required uploads are pending.
+
+- [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
+  - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
+  - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts
+  - Why: Bring local dev DB to a seeded state for smoke testing.
+  - Next: Run full CI migration pipeline and validate in staging.
+
+- [x] 2025-09-18: Dev login endpoint and in-memory fallback for service-requests added to enable smoke tests without full DB schema.
+  - Updated: src/app/api/dev-login/route.ts, src/lib/dev-fallbacks.ts, src/app/api/portal/service-requests/route.ts, src/app/api/portal/service-requests/[id]/route.ts, src/app/api/portal/service-requests/[id]/comments/route.ts
+  - Why: Allow automated smoke tests and local validation when some DB tables/columns are not yet migrated. The endpoint issues a dev session cookie for staff user; the fallback persists entries to temp/dev-fallbacks.json.
+  - Next: Remove dev-login and fallback code after CI migrations complete and staging validated.
 - [x] 2025-09-19: Documented required env vars and Netlify deployment checklist.
   - Updated: docs/netlify-deployment-and-envs.md
   - Why: Provide clear deployment steps and required env vars for CI/CD (Prisma generate/migrate/seed), uploads provider config, and realtime settings to resume project.

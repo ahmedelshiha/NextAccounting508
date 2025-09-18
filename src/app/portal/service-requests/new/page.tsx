@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -15,6 +15,8 @@ import { toast } from 'sonner'
 
 interface Service { id: string; name: string }
 
+type Priority = 'LOW'|'MEDIUM'|'HIGH'|'URGENT'
+
 export default function NewServiceRequestPage() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -22,15 +24,31 @@ export default function NewServiceRequestPage() {
   const [serviceId, setServiceId] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState<'LOW'|'MEDIUM'|'HIGH'|'URGENT'>('MEDIUM')
+  const [priority, setPriority] = useState<Priority>('MEDIUM')
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
   const [files, setFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
   const [uploadingKeys, setUploadingKeys] = useState<Record<string, boolean>>({})
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+
   const [serviceQuery, setServiceQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+
   const maxFiles = 5
   const maxFileSize = 10 * 1024 * 1024
+
+  // Debounce service search input to reduce re-renders and improve UX on large lists
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(serviceQuery.trim().toLowerCase()), 250)
+    return () => clearTimeout(t)
+  }, [serviceQuery])
+
+  const filteredServices = useMemo(() => {
+    if (!debouncedQuery) return services
+    return services.filter((s) => s.name.toLowerCase().includes(debouncedQuery))
+  }, [services, debouncedQuery])
 
   useEffect(() => {
     async function loadServices() {
@@ -49,45 +67,79 @@ export default function NewServiceRequestPage() {
 
   const canSubmit = serviceId && title.trim().length >= 5
 
-  const uploadFile = async (file: File): Promise<{ url?: string; error?: string }> => {
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      form.append('folder', 'service-requests')
-      const res = await fetch('/api/uploads', { method: 'POST', body: form })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        return { error: json?.error || 'Upload failed' }
+  // XMLHttpRequest-based upload to surface progress events
+  const uploadFile = async (file: File, key: string): Promise<{ url?: string; error?: string }> => {
+    return new Promise((resolve) => {
+      try {
+        const form = new FormData()
+        form.append('file', file)
+        form.append('folder', 'service-requests')
+
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', '/api/uploads')
+
+        xhr.upload.addEventListener('progress', (evt) => {
+          if (evt.lengthComputable) {
+            const pct = Math.min(100, Math.round((evt.loaded / evt.total) * 100))
+            setUploadProgress((prev) => ({ ...prev, [key]: pct }))
+          }
+        })
+
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === XMLHttpRequest.DONE) {
+            try {
+              const ok = xhr.status >= 200 && xhr.status < 300
+              const resp = (() => { try { return JSON.parse(xhr.responseText || '{}') } catch { return {} } })()
+              if (ok) {
+                setUploadProgress((prev) => ({ ...prev, [key]: 100 }))
+                resolve({ url: (resp as any).url })
+              } else {
+                resolve({ error: (resp as any)?.error || 'Upload failed' })
+              }
+            } catch {
+              resolve({ error: 'Upload failed' })
+            }
+          }
+        }
+
+        xhr.onerror = () => resolve({ error: 'Upload failed' })
+        xhr.send(form)
+      } catch {
+        resolve({ error: 'Upload failed' })
       }
-      return { url: json.url }
-    } catch (e) {
-      return { error: 'Upload failed' }
-    }
+    })
   }
 
   const uploadSingle = async (file: File) => {
     const key = `${file.name}-${file.lastModified}`
     try {
-      setUploadingKeys(prev => ({ ...prev, [key]: true }))
-      const result = await uploadFile(file)
-      setUploaded(prev => ({ ...prev, [key]: result }))
+      setUploadingKeys((prev) => ({ ...prev, [key]: true }))
+      setUploadProgress((prev) => ({ ...prev, [key]: 0 }))
+      const result = await uploadFile(file, key)
+      setUploaded((prev) => ({ ...prev, [key]: result }))
+      if (result.error) {
+        toast.error(`${file.name}: ${result.error}`)
+      }
     } finally {
-      setUploadingKeys(prev => ({ ...prev, [key]: false }))
+      setUploadingKeys((prev) => ({ ...prev, [key]: false }))
     }
   }
 
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
-      const results = await Promise.all(files.map(async (f) => {
-        const key = `${f.name}-${f.lastModified}`
-        let result = uploaded[key]
-        if (!result?.url) {
-          result = await uploadFile(f)
-          setUploaded(prev => ({ ...prev, [key]: result }))
-        }
-        return { file: f, result }
-      }))
+      // Ensure all files attempted; upload any pending
+      const results = await Promise.all(
+        files.map(async (f) => {
+          const key = `${f.name}-${f.lastModified}`
+          let result = uploaded[key]
+          if (!result?.url && !uploadingKeys[key]) {
+            result = await uploadFile(f, key)
+            setUploaded((prev) => ({ ...prev, [key]: result }))
+          }
+          return { file: f, result }
+        })
+      )
 
       const attachments = results.map(({ file, result }) => ({
         name: file.name,
@@ -107,12 +159,12 @@ export default function NewServiceRequestPage() {
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
-          attachments
-        })
+          attachments,
+        }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to create request')
+        toast.error((err as any).error || 'Failed to create request')
         return
       }
       const json = await res.json()
@@ -153,16 +205,14 @@ export default function NewServiceRequestPage() {
                     value={serviceQuery}
                     onChange={(e) => setServiceQuery(e.target.value)}
                   />
-                  <Select onValueChange={setServiceId}>
+                  <Select onValueChange={setServiceId} value={serviceId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
                     <SelectContent>
-                      {services
-                        .filter((s) => !serviceQuery.trim() || s.name.toLowerCase().includes(serviceQuery.toLowerCase()))
-                        .map((s) => (
-                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                        ))}
+                      {filteredServices.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -181,7 +231,7 @@ export default function NewServiceRequestPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Priority</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
+                  <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
@@ -208,7 +258,7 @@ export default function NewServiceRequestPage() {
                   className="mt-1"
                   onChange={(e) => {
                     const incoming = Array.from(e.target.files || [])
-                    const filtered = incoming.filter(f => f.size <= maxFileSize)
+                    const filtered = incoming.filter((f) => f.size <= maxFileSize)
                     if (filtered.length < incoming.length) {
                       toast.error('Some files exceeded 10MB and were skipped')
                     }
@@ -216,7 +266,12 @@ export default function NewServiceRequestPage() {
                     if (next.length < files.length + filtered.length) {
                       toast.error(`Maximum ${maxFiles} files allowed`)
                     }
+                    // Determine which files are new
+                    const existingKeys = new Set(files.map((f) => `${f.name}-${f.lastModified}`))
+                    const newFiles = next.filter((f) => !existingKeys.has(`${f.name}-${f.lastModified}`))
                     setFiles(next)
+                    // Auto start upload for new files
+                    newFiles.forEach((f) => uploadSingle(f))
                   }}
                 />
                 {files.length > 0 && (
@@ -225,43 +280,50 @@ export default function NewServiceRequestPage() {
                       const key = `${f.name}-${f.lastModified}`
                       const info = uploaded[key]
                       const isUploading = !!uploadingKeys[key]
+                      const pct = typeof uploadProgress[key] === 'number' ? uploadProgress[key] : (info?.url ? 100 : 0)
                       return (
-                        <li key={`${f.name}-${idx}`} className="flex items-center justify-between px-3 py-2 text-sm">
-                          <span className="truncate">
-                            {f.name} <span className="text-gray-500">({Math.round(f.size/1024)} KB)</span>
-                            {info?.url && (
-                              <>
-                                {' '}
-                                <a href={info.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
-                              </>
-                            )}
-                            {info?.error && (
-                              <span className="ml-2 text-red-600">{info.error}</span>
-                            )}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {!info?.url && !isUploading && (
+                        <li key={`${f.name}-${idx}`} className="px-3 py-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="truncate">
+                              {f.name} <span className="text-gray-500">({Math.round(f.size / 1024)} KB)</span>
+                              {info?.url && (
+                                <>
+                                  {' '}
+                                  <a href={info.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                                </>
+                              )}
+                              {info?.error && (
+                                <span className="ml-2 text-red-600">{info.error}</span>
+                              )}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {!info?.url && !isUploading && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => uploadSingle(f)}
+                                >
+                                  {info?.error ? 'Retry Upload' : 'Upload'}
+                                </Button>
+                              )}
+                              {isUploading && <span className="text-gray-600">Uploading...</span>}
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => uploadSingle(f)}
+                                onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
                               >
-                                {info?.error ? 'Retry Upload' : 'Upload'}
+                                Remove
                               </Button>
-                            )}
-                            {isUploading && (
-                              <span className="text-gray-600">Uploading...</span>
-                            )}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
-                            >
-                              Remove
-                            </Button>
+                            </div>
                           </div>
+                          {(isUploading || info?.url) && (
+                            <div className="mt-2 flex items-center gap-3">
+                              <progress value={pct} max={100} className="w-40 h-2"></progress>
+                              <span className="text-xs text-gray-600">{pct}%</span>
+                            </div>
+                          )}
                         </li>
                       )})}
                   </ul>

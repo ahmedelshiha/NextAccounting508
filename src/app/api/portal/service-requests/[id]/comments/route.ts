@@ -17,18 +17,33 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
-  if (!reqRow || reqRow.clientId !== session.user.id) {
-    return respond.notFound('Service request not found')
+  try {
+    const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
+    if (!reqRow || reqRow.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+
+    const comments = await prisma.serviceRequestComment.findMany({
+      where: { serviceRequestId: id },
+      orderBy: { createdAt: 'asc' },
+      include: { author: { select: { id: true, name: true, email: true } } },
+    })
+
+    return respond.ok(comments)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { getRequest, getComments } = await import('@/lib/dev-fallbacks')
+        const reqRow = getRequest(id)
+        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const comments = getComments(id) || []
+        return respond.ok(comments)
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
   }
-
-  const comments = await prisma.serviceRequestComment.findMany({
-    where: { serviceRequestId: id },
-    orderBy: { createdAt: 'asc' },
-    include: { author: { select: { id: true, name: true, email: true } } },
-  })
-
-  return respond.ok(comments)
 }
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -51,20 +66,40 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
-  const created = await prisma.serviceRequestComment.create({
-    data: {
-      serviceRequestId: id,
-      authorId: session.user.id,
-      content: parsed.data.content,
-      attachments: parsed.data.attachments ?? undefined,
-    },
-    include: { author: { select: { id: true, name: true, email: true } } },
-  })
-
   try {
-    const { realtimeService } = await import('@/lib/realtime-enhanced')
-    realtimeService.emitServiceRequestUpdate(id)
-  } catch {}
+    const created = await prisma.serviceRequestComment.create({
+      data: {
+        serviceRequestId: id,
+        authorId: session.user.id,
+        content: parsed.data.content,
+        attachments: parsed.data.attachments ?? undefined,
+      },
+      include: { author: { select: { id: true, name: true, email: true } } },
+    })
 
-  return respond.created(created)
+    try {
+      const { realtimeService } = await import('@/lib/realtime-enhanced')
+      realtimeService.emitServiceRequestUpdate(id)
+    } catch {}
+
+    return respond.created(created)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { addComment, getRequest } = await import('@/lib/dev-fallbacks')
+        const reqRow = getRequest(id)
+        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const comment = { id: `dev-c-${Date.now().toString()}`, content: parsed.data.content, createdAt: new Date().toISOString(), author: { id: session.user.id, name: session.user.name } }
+        addComment(id, comment)
+        try {
+          const { realtimeService } = await import('@/lib/realtime-enhanced')
+          realtimeService.emitServiceRequestUpdate(id)
+        } catch {}
+        return respond.created(comment)
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
+  }
 }

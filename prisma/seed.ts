@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client'
 import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
 
@@ -20,7 +19,7 @@ async function main() {
       email: 'admin@accountingfirm.com',
       name: 'Admin User',
       password: adminPassword,
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       emailVerified: new Date(),
     },
   })
@@ -34,7 +33,7 @@ async function main() {
       email: 'staff@accountingfirm.com',
       name: 'Staff Member',
       password: staffPassword,
-      role: UserRole.TEAM_MEMBER,
+      role: 'TEAM_MEMBER',
       emailVerified: new Date(),
     },
   })
@@ -49,7 +48,7 @@ async function main() {
       email: 'lead@accountingfirm.com',
       name: 'Team Lead',
       password: leadPassword,
-      role: UserRole.TEAM_LEAD,
+      role: 'TEAM_LEAD',
       emailVerified: new Date(),
     },
   })
