@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('../prisma/client', () => {
+vi.mock('@/lib/prisma', () => {
   return {
-    prisma: {
+    default: {
       task: {
         findMany: vi.fn(async () => ([
           {
