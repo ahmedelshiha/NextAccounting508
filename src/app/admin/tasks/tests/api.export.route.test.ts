@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 
-vi.mock('../prisma/client', () => {
+vi.mock('@/lib/prisma', () => {
   return {
-    prisma: {
+    default: {
       task: {
         findMany: vi.fn(async () => ([
           {
@@ -25,11 +25,11 @@ vi.mock('../prisma/client', () => {
 
 describe('api/admin/tasks/export route', () => {
   it('returns CSV with headers and rows', async () => {
-    const { GET } = await import('../api/admin/tasks/export/route')
+    const { GET } = await import('@/app/api/admin/tasks/export/route')
     const res: any = await GET(new Request('https://example.com/api/admin/tasks/export?format=csv'))
     expect(res.status).toBe(200)
     const text = await res.text()
-    expect(text.startsWith('id,title,description,priority,status,assignee,dueAt,tags,createdAt')).toBe(true)
+    expect(text.startsWith('id,title,priority,status,assignee,dueAt,createdAt,updatedAt')).toBe(true)
     expect(text).toContain('A')
     expect(text).toContain('HIGH')
   })

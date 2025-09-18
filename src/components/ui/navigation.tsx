@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import LogoutButton from '@/components/ui/LogoutButton'
 import { Menu, X, User, LogOut, Settings, Calendar, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -152,12 +153,11 @@ export function Navigation() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => signOut()}
-                          className="flex items-center text-red-600"
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
+                        <DropdownMenuItem asChild>
+                          <LogoutButton className="flex items-center text-red-600 w-full text-left">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                          </LogoutButton>
                         </DropdownMenuItem>
                       </>
                     ) : (
@@ -183,12 +183,11 @@ export function Navigation() {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => signOut()}
-                          className="flex items-center text-red-600"
-                        >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
+                        <DropdownMenuItem asChild>
+                          <LogoutButton className="flex items-center text-red-600 w-full text-left">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                          </LogoutButton>
                         </DropdownMenuItem>
                       </>
                     )}
@@ -290,15 +289,10 @@ export function Navigation() {
                         )}
                       </>
                     )}
-                    <button
-                      onClick={() => {
-                        signOut()
-                        setMobileMenuOpen(false)
-                      }}
+                    <LogoutButton
                       className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md"
-                    >
-                      Sign Out
-                    </button>
+                      after={() => setMobileMenuOpen(false)}
+                    />
                   </div>
                 ) : (
                   <div className="space-y-2">

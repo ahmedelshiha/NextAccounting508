@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mem = { data: '' as string }
 
-vi.mock('fs', () => {
+vi.mock('fs', async () => {
+  const actual = await vi.importActual('fs')
   return {
-    default: {},
+    default: actual,
+    ...actual,
     readFileSync: vi.fn(() => (mem.data || '[]')),
     writeFileSync: vi.fn((_p: string, content: string) => { mem.data = content }),
     mkdirSync: vi.fn(() => {})
@@ -15,7 +17,7 @@ describe('api/admin/tasks/templates route', () => {
   beforeEach(() => { mem.data = '[]' })
 
   it('supports CRUD operations', async () => {
-    const mod: any = await import('../api/admin/tasks/templates/route')
+    const mod: any = await import('@/app/api/admin/tasks/templates/route')
 
     const get1: any = await mod.GET()
     let list = await get1.json()

@@ -9,6 +9,15 @@ export interface RealtimeEvent<T = any> {
   timestamp: string
 }
 
+const ES_SET = new Set<EventSource>()
+
+export function disconnectRealtimeClients() {
+  for (const es of Array.from(ES_SET)) {
+    try { es.close() } catch {}
+    ES_SET.delete(es)
+  }
+}
+
 export function useRealtime(eventTypes: string[] = ['all']) {
   const [events, setEvents] = useState<RealtimeEvent[]>([])
   const [connected, setConnected] = useState(false)
@@ -30,8 +39,11 @@ export function useRealtime(eventTypes: string[] = ['all']) {
     }
 
     esRef.current = es
+    ES_SET.add(es)
+
     return () => {
-      es.close()
+      try { es.close() } catch {}
+      ES_SET.delete(es)
       setConnected(false)
     }
   }, [eventTypes.join(',')])

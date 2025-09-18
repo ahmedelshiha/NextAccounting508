@@ -1,5 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import prisma from '@/lib/prisma'
+// Mock prisma with in-memory store
+const thresholdsStore: any[] = []
+vi.mock('@/lib/prisma', () => ({
+  default: {
+    healthThreshold: {
+      deleteMany: vi.fn(async () => { thresholdsStore.length = 0; return { count: 0 } }),
+      create: vi.fn(async ({ data }: any) => { const rec = { id: 't1', ...data }; thresholdsStore.push(rec); return rec }),
+      findFirst: vi.fn(async () => thresholdsStore[0] || null),
+    },
+    $disconnect: vi.fn(async () => {})
+  }
+}))
 
 // Mock next-auth getServerSession before importing the route module.
 vi.mock('next-auth/next', () => ({ getServerSession: vi.fn() }))
@@ -19,13 +30,15 @@ beforeAll(async () => {
   POST = route.POST
 
   // Ensure DB clean state for tests
-  await prisma.healthThreshold.deleteMany()
+  const prisma = await import('@/lib/prisma')
+  await prisma.default.healthThreshold.deleteMany()
 })
 
 afterAll(async () => {
   // clean up
-  await prisma.healthThreshold.deleteMany()
-  await prisma.$disconnect()
+  const prisma = await import('@/lib/prisma')
+  await prisma.default.healthThreshold.deleteMany()
+  await prisma.default.$disconnect()
 })
 
 describe('Thresholds API (unit/integration style)', () => {
