@@ -15,13 +15,13 @@ vi.mock('../prisma/client', () => {
 
 describe('api/admin/tasks/bulk route', () => {
   it('validates input', async () => {
-    const { POST }: any = await import('../api/admin/tasks/bulk/route')
+    const { POST }: any = await import('@/app/api/admin/tasks/bulk/route')
     const res: any = await POST(new Request('https://x', { method: 'POST', body: JSON.stringify({}) }))
     expect(res.status).toBe(400)
   })
 
   it('performs delete/update/assign actions', async () => {
-    const { POST }: any = await import('../api/admin/tasks/bulk/route')
+    const { POST }: any = await import('@/app/api/admin/tasks/bulk/route')
 
     const del: any = await POST(new Request('https://x', { method: 'POST', body: JSON.stringify({ action: 'delete', taskIds: ['1'] }) }))
     expect(del.status).toBe(200)
