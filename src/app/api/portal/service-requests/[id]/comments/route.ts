@@ -86,13 +86,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   } catch (e: any) {
     if (String(e?.code || '').startsWith('P20')) {
       try {
-        const { devComments, devServiceRequests } = await import('@/lib/dev-fallbacks')
-        const reqRow = devServiceRequests.get(id)
+        const { addComment, getRequest } = await import('@/lib/dev-fallbacks')
+        const reqRow = getRequest(id)
         if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
         const comment = { id: `dev-c-${Date.now().toString()}`, content: parsed.data.content, createdAt: new Date().toISOString(), author: { id: session.user.id, name: session.user.name } }
-        const list = devComments.get(id) || []
-        list.push(comment)
-        devComments.set(id, list)
+        addComment(id, comment)
         try {
           const { realtimeService } = await import('@/lib/realtime-enhanced')
           realtimeService.emitServiceRequestUpdate(id)
