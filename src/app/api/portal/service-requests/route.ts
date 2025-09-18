@@ -104,5 +104,28 @@ export async function POST(request: Request) {
     },
   })
 
+  // Persist attachments as Attachment records if provided
+  try {
+    if (Array.isArray(data.attachments) && data.attachments.length > 0) {
+      const { default: prismaClient } = await import('@/lib/prisma')
+      const toCreate = data.attachments.map((a: any) => ({
+        key: a.key || undefined,
+        url: a.url || undefined,
+        name: a.name || undefined,
+        size: typeof a.size === 'number' ? a.size : undefined,
+        contentType: a.type || undefined,
+        provider: process.env.UPLOADS_PROVIDER || undefined,
+        serviceRequestId: created.id,
+        avStatus: a.uploadError ? 'error' : undefined,
+      }))
+      // Bulk create, ignoring duplicates via try/catch per item
+      for (const item of toCreate) {
+        try { await prismaClient.attachment.create({ data: item }) } catch {}
+      }
+    }
+  } catch (e) {
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:create:attachments' }) } catch {}
+  }
+
   return respond.created(created)
 }

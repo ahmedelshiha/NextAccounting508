@@ -27,6 +27,8 @@ export default function NewServiceRequestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
+  const [uploadingKeys, setUploadingKeys] = useState<Record<string, boolean>>({})
+  const [serviceQuery, setServiceQuery] = useState('')
   const maxFiles = 5
   const maxFileSize = 10 * 1024 * 1024
 
@@ -63,13 +65,27 @@ export default function NewServiceRequestPage() {
     }
   }
 
+  const uploadSingle = async (file: File) => {
+    const key = `${file.name}-${file.lastModified}`
+    try {
+      setUploadingKeys(prev => ({ ...prev, [key]: true }))
+      const result = await uploadFile(file)
+      setUploaded(prev => ({ ...prev, [key]: result }))
+    } finally {
+      setUploadingKeys(prev => ({ ...prev, [key]: false }))
+    }
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
       const results = await Promise.all(files.map(async (f) => {
         const key = `${f.name}-${f.lastModified}`
-        const result = await uploadFile(f)
-        setUploaded(prev => ({ ...prev, [key]: result }))
+        let result = uploaded[key]
+        if (!result?.url) {
+          result = await uploadFile(f)
+          setUploaded(prev => ({ ...prev, [key]: result }))
+        }
         return { file: f, result }
       }))
 
@@ -131,16 +147,25 @@ export default function NewServiceRequestPage() {
             <div className="space-y-4">
               <div>
                 <Label>Service</Label>
-                <Select onValueChange={setServiceId}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select a service" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="mt-1 flex flex-col gap-2">
+                  <Input
+                    placeholder="Search services..."
+                    value={serviceQuery}
+                    onChange={(e) => setServiceQuery(e.target.value)}
+                  />
+                  <Select onValueChange={setServiceId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services
+                        .filter((s) => !serviceQuery.trim() || s.name.toLowerCase().includes(serviceQuery.toLowerCase()))
+                        .map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
@@ -199,6 +224,7 @@ export default function NewServiceRequestPage() {
                     {files.map((f, idx) => {
                       const key = `${f.name}-${f.lastModified}`
                       const info = uploaded[key]
+                      const isUploading = !!uploadingKeys[key]
                       return (
                         <li key={`${f.name}-${idx}`} className="flex items-center justify-between px-3 py-2 text-sm">
                           <span className="truncate">
@@ -213,14 +239,29 @@ export default function NewServiceRequestPage() {
                               <span className="ml-2 text-red-600">{info.error}</span>
                             )}
                           </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
-                          >
-                            Remove
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            {!info?.url && !isUploading && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => uploadSingle(f)}
+                              >
+                                {info?.error ? 'Retry Upload' : 'Upload'}
+                              </Button>
+                            )}
+                            {isUploading && (
+                              <span className="text-gray-600">Uploading...</span>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                            >
+                              Remove
+                            </Button>
+                          </div>
                         </li>
                       )})}
                   </ul>

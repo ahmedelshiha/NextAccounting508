@@ -82,7 +82,7 @@ Actionable "Remaining Work (Paused)" Checklist — Priority ordered
 
 5. QA & Tests (required before merge)
    - [ ] Tighten coverage thresholds and enable tests in CI. Fix any failing tests related to DB expectations.
-   - [ ] Add unit tests for status transitions and RBAC guards (some added: auto-assignment tests done).
+   - [x] Add unit tests for status transitions and RBAC guards (some added: auto-assignment tests done).
    - [ ] Add end-to-end tests for full client create -> admin assign -> complete flows.
 
 6. Docs & Runbooks (required)
@@ -111,7 +111,7 @@ Notes
 2) Uploads and File Storage
 - [x] Implement Netlify Blobs in /api/uploads (use NETLIFY_BLOBS_TOKEN); generate object key, set contentType, return public URL
 - [ ] Add optional antivirus scan step and stricter extension policy; audit log uploads and failures
-- [ ] Update portal UI to display per-file upload status/errors; retry/remove controls
+- [x] Update portal UI to display per-file upload status/errors; retry/remove controls
 
 3) Realtime and Ops
 - [ ] Set REALTIME_TRANSPORT=postgres (and REALTIME_PG_URL/REALTIME_PG_CHANNEL if different from DATABASE_URL)
@@ -119,12 +119,12 @@ Notes
 
 4) QA and Testing
 - [x] Add unit tests for auto-assignment
-- [ ] Add unit tests for status transitions and RBAC guards
+- [x] Add unit tests for status transitions and RBAC guards
 - [ ] Tighten coverage thresholds in tests/thresholds.test.ts and ensure passing locally/CI
 - [ ] Add e2e tests for client request create/approve and admin assign/progress/complete flows
 
 5) Documentation and Runbooks
-- [ ] Document required env vars and values: DATABASE_URL, NETLIFY_BLOBS_TOKEN, REALTIME_*; provider setup steps
+- [x] Document required env vars and values: DATABASE_URL, NETLIFY_BLOBS_TOKEN, REALTIME_*; provider setup steps
 - [ ] Add deployment checklist (preflight, migration, health checks) and rollback steps
 
 6) Nice-to-haves
@@ -255,9 +255,9 @@ How to Resume
 - [x] Emit audit events for create/assign/status changes (surface in /admin/audits)
 
 ### 9) Testing and docs
-- [ ] Add unit tests for new lib/permissions and helpers
+- [x] Add unit tests for new lib/permissions and helpers
 - [x] Add unit tests for auto-assignment
-- [ ] Add unit tests for status transitions and RBAC guards
+- [x] Add unit tests for status transitions and RBAC guards
 - [x] Add route tests for service-requests
 - [x] Add route tests for team-management
 - [x] Add route tests for templates
@@ -265,6 +265,41 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Documented required env vars and Netlify deployment checklist.
+  - Updated: docs/netlify-deployment-and-envs.md
+  - Why: Provide clear deployment steps and required env vars for CI/CD (Prisma generate/migrate/seed), uploads provider config, and realtime settings to resume project.
+  - Next: Add runbook for upload failure handling and Sentry staging configuration.
+
+- [x] 2025-09-20: Added GitHub Action for optional Netlify deploy and uploads runbook.
+  - Added: .github/workflows/deploy-netlify.yml
+  - Added: docs/uploads-runbook.md
+  - Why: Allow optional automated deploy when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID are provided, and document quarantine/AV handling.
+  - Next: Implement admin quarantine UI and AV callback endpoint; add background retry queue for avStatus: 'error'.
+
+- [x] 2025-09-20: Implemented AV callback endpoint and admin quarantine UI (best-effort, provider-dependent).
+  - Added: src/app/api/uploads/av-callback/route.ts
+  - Added: src/app/api/admin/uploads/quarantine/route.ts
+  - Added: src/app/admin/uploads/quarantine/page.tsx
+  - Why: Allow AV providers to notify server of scan results and provide admins tools to inspect, delete, or release quarantined files.
+  - Next: Persist attachment avStatus in DB and add background retry queue for avStatus 'error'.
+
+- [x] 2025-09-20: Persisted AV scan results to ServiceRequest.attachments when matches found (best-effort JSON update).
+  - Updated: src/app/api/uploads/av-callback/route.ts
+  - Why: Improve traceability — attachments now receive avStatus and avDetails when AV callback includes object key.
+  - Next: Add background retry queue for avStatus 'error' and consider an Attachment DB model + migration for stronger guarantees.
+
+- [x] 2025-09-18: Portal New Service Request — added per-file upload retry controls and service typeahead search.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
+  - Next: Add upload progress indicator and debounce search; consider pre-uploading files on selection.
+
+- [x] 2025-09-19: Added unit tests for service-request status transitions and RBAC guards.
+  - Added: tests/status-transitions.test.ts
+  - Why: Ensure server-side status update endpoint enforces RBAC and validates payloads (unauthenticated, client, team_member, admin cases).
+  - Next: Add route-level tests for bulk actions and full status workflow (admin assign -> in_progress -> complete) and integrate into CI thresholds.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
+  - Next: Add upload progress indicator and debounce search; consider pre-uploading files on selection.
 - [x] 2025-09-18: Enhanced Admin New Service Request page to fetch clients and services; replaced raw ID inputs with selects.
   - Updated: src/app/admin/service-requests/new/page.tsx
   - Why: Client ID and Service ID did not fetch any data; aligns with service_portal_implementation_guide.md to ensure proper wiring and UX.

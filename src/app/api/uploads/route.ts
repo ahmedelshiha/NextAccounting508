@@ -97,6 +97,22 @@ export async function POST(request: Request) {
         await store.set(key, buf, { contentType: detectedMime || (file as any).type || 'application/octet-stream' })
         const url = typeof store.getPublicUrl === 'function' ? store.getPublicUrl(key) : undefined
         try { await logAudit({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
+        // Persist Attachment record in DB (best-effort)
+        try {
+          const { default: prisma } = await import('@/lib/prisma')
+          await prisma.attachment.create({
+            data: {
+              key,
+              url: url || undefined,
+              name: safeName,
+              size: buf.length,
+              contentType: detectedMime || undefined,
+              provider: 'netlify',
+            }
+          })
+        } catch (e) {
+          try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'persist-attachment' }) } catch {}
+        }
         return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
       } catch (e) {
         try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', provider: 'netlify' }) } catch {}
