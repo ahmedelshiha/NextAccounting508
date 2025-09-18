@@ -25,6 +25,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true })
     }
 
+    // Persist avStatus to any ServiceRequest attachments that reference this key/url
+    try {
+      const { default: prisma } = await import('@/lib/prisma')
+      // Find possible requests where attachments JSON contains the key (string match in JSON text)
+      const rows: any[] = await prisma.$queryRaw`
+        SELECT id, attachments FROM service_requests WHERE attachments IS NOT NULL AND attachments::text LIKE ${'%' + key + '%'} LIMIT 50
+      `
+      for (const row of rows) {
+        try {
+          const attachments = Array.isArray(row.attachments) ? row.attachments : JSON.parse(row.attachments || '[]')
+          let modified = false
+          const updated = attachments.map((a: any) => {
+            const matches = (a.key === key) || (a.url && String(a.url).includes(key)) || (a.name && String(a.name).includes(key))
+            if (matches) {
+              modified = true
+              return { ...a, avStatus: clean ? 'clean' : 'infected', avDetails: result }
+            }
+            return a
+          })
+          if (modified) {
+            await prisma.serviceRequest.update({ where: { id: row.id }, data: { attachments: updated } })
+            try { await logAuditSafe({ action: 'upload:av_update', details: { key, serviceRequestId: row.id, avStatus: clean ? 'clean' : 'infected' } }) } catch {}
+          }
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'av-callback', step: 'persist-attachments', key })
+        }
+      }
+    } catch (e) {
+      await captureErrorIfAvailable(e, { route: 'av-callback', step: 'find-requests' })
+    }
+
     // Infected -> attempt to move to quarantine if provider supports it
     const provider = (process.env.UPLOADS_PROVIDER || '').toLowerCase()
     if (provider === 'netlify') {
