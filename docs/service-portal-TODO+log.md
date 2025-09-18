@@ -269,6 +269,10 @@ How to Resume
   - Updated: src/app/admin/service-requests/new/page.tsx
   - Why: Client ID and Service ID did not fetch any data; aligns with service_portal_implementation_guide.md to ensure proper wiring and UX.
   - Next: Add typeahead search for large lists; debounce queries; preselect client when navigated from client context.
+- [x] 2025-09-18: Fixed SR-linked task creation (DB fallback + schema).
+  - Updated: src/app/api/admin/service-requests/[id]/tasks/route.ts
+  - Why: Creating tasks failed when DB not configured; also accept flexible priority (low/medium/high/critical) and dueDate alias.
+  - Next: Add UI error surface for API validation details; e2e test for create-task flow (admin).
 - [x] 2025-09-17: Added unit tests for auto-assignment logic.
   - Added: tests/auto-assignment.test.ts
   - Why: Validate skill-match preference and least-workload fallback.
