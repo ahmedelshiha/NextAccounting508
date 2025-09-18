@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
         const comments = getComments(id) || []
         return respond.ok(comments)
       } catch {
-        return respond.internal()
+        return respond.serverError()
       }
     }
     throw e
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
         } catch {}
         return respond.created(comment)
       } catch {
-        return respond.internal()
+        return respond.serverError()
       }
     }
     throw e
