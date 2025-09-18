@@ -269,6 +269,14 @@ How to Resume
   - Updated: src/app/portal/service-requests/new/page.tsx
   - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
   - Next: Add upload progress indicator and debounce search; consider pre-uploading files on selection.
+
+- [x] 2025-09-19: Added unit tests for service-request status transitions and RBAC guards.
+  - Added: tests/status-transitions.test.ts
+  - Why: Ensure server-side status update endpoint enforces RBAC and validates payloads (unauthenticated, client, team_member, admin cases).
+  - Next: Add route-level tests for bulk actions and full status workflow (admin assign -> in_progress -> complete) and integrate into CI thresholds.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX and fulfill uploads UI checklist (status/errors + retry/remove). Helps users verify uploads before submit and find services faster.
+  - Next: Add upload progress indicator and debounce search; consider pre-uploading files on selection.
 - [x] 2025-09-18: Enhanced Admin New Service Request page to fetch clients and services; replaced raw ID inputs with selects.
   - Updated: src/app/admin/service-requests/new/page.tsx
   - Why: Client ID and Service ID did not fetch any data; aligns with service_portal_implementation_guide.md to ensure proper wiring and UX.
