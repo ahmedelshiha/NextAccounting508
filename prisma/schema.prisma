@@ -413,6 +413,59 @@ model RequestTask {
   @@map("request_tasks")
 }
 
+// Team member model for assigning tasks and bookings
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  userId      String?
+  title       String?
+  role        DefaultRole?  @default(TEAM_MEMBER)
+  department  String?
+  specialties String[]
+  isAvailable Boolean  @default(true)
+  status      String?  @default("active")
+  workingHours Json?
+  stats       Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User?    @relation("UserTeamMember", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("team_members")
+}
+
+// Comments on service requests
+model ServiceRequestComment {
+  id               String   @id @default(cuid())
+  serviceRequestId String
+  authorId         String?
+  content          String   @db.Text
+  attachments      Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  author           User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@map("service_request_comments")
+}
+
+// User granted permissions
+model UserPermission {
+  id          String   @id @default(cuid())
+  userId      String
+  grantedById String?
+  permission  String
+  scope       String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation("UserPermissions", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy   User?    @relation("GrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+
+  @@map("user_permissions")
+}
+
 // Attachment model to persist uploads and AV status
 model Attachment {
   id            String   @id @default(cuid())
