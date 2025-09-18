@@ -324,6 +324,11 @@ How to Resume
   - Why: Prevent submitting before files finish uploading, avoiding missing attachments.
   - Next: Show AV scan status when callback updates are received.
 
+- [x] 2025-09-18: Portal SR detail now surfaces AV status for attachments when available.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (shows Clean/Infected/pending based on avStatus/avDetails)
+  - Why: Improve transparency of virus-scan results for client attachments.
+  - Next: Add admin quarantine controls link from client view when infected.
+
 - [x] 2025-09-18: Database migrations & seed run in dev; resolved enum and baseline issues.
   - Actions: Ran prisma generate, prisma migrate deploy (baseline resolved), and prisma db:seed.
   - Files: prisma/schema.prisma (added STAFF enum), prisma/migrations/0001_add_attachment_table, prisma/seed.ts
