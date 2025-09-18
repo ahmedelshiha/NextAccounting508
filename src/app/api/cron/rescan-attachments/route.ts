@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         try {
           const ac = new AbortController()
           const t = setTimeout(() => ac.abort(), 10_000)
-          const r = await fetch(scanUrl, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf, signal: ac.signal })
+          const r = await fetch(scanUrl, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf as unknown as BodyInit, signal: ac.signal })
           clearTimeout(t)
           const json = await r.json().catch(() => ({})) as any
           const clean = r.ok && json?.clean !== false
