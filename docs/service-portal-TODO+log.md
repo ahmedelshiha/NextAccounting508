@@ -265,6 +265,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Portal New Service Request — added upload progress indicator, debounced service search, and auto pre-upload on selection.
+  - Updated: src/app/portal/service-requests/new/page.tsx
+  - Why: Improve UX by surfacing upload progress, reducing search re-renders, and accelerating readiness by uploading on selection.
+  - Next: Consider resumable/chunked uploads, surface AV scan status per file, and optionally disable submit while required uploads are pending.
 - [x] 2025-09-19: Documented required env vars and Netlify deployment checklist.
   - Updated: docs/netlify-deployment-and-envs.md
   - Why: Provide clear deployment steps and required env vars for CI/CD (Prisma generate/migrate/seed), uploads provider config, and realtime settings to resume project.
