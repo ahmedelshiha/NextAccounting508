@@ -312,7 +312,7 @@ export default function NewServiceRequestPage() {
                                   {info?.error ? 'Retry Upload' : 'Upload'}
                                 </Button>
                               )}
-                              {isUploading && <span className="text-gray-600">Uploading...</span>}
+                              {isUploading && <span className="text-gray-600">Uploading…</span>}
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -336,8 +336,14 @@ export default function NewServiceRequestPage() {
                 <p className="mt-1 text-xs text-gray-500">Up to {maxFiles} files, 10MB each.</p>
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>{submitting ? 'Submitting...' : 'Submit Request'}</Button>
+              <div className="flex items-center justify-between">
+                {hasPendingUploads && (
+                  <p className="text-xs text-gray-600">Please wait for uploads to finish or remove files before submitting.</p>
+                )}
+                <div className="flex-1"></div>
+                <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>
+                  {submitting ? 'Submitting...' : hasPendingUploads ? 'Uploading…' : 'Submit Request'}
+                </Button>
               </div>
             </div>
           </CardContent>
