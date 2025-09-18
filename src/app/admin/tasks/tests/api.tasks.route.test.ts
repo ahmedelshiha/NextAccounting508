@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('../prisma/client', () => {
+vi.mock('@/lib/prisma', () => {
   return {
-    prisma: {
+    default: {
       task: {
         findMany: vi.fn(async () => [{ id: '1' }]),
-        create: vi.fn(async ({ data }) => ({ id: '2', ...data }))
+        create: vi.fn(async ({ data }: any) => ({ id: '2', ...data }))
       }
     }
   }
