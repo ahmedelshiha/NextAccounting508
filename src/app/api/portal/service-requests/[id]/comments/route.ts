@@ -17,18 +17,33 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
-  if (!reqRow || reqRow.clientId !== session.user.id) {
-    return respond.notFound('Service request not found')
+  try {
+    const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
+    if (!reqRow || reqRow.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+
+    const comments = await prisma.serviceRequestComment.findMany({
+      where: { serviceRequestId: id },
+      orderBy: { createdAt: 'asc' },
+      include: { author: { select: { id: true, name: true, email: true } } },
+    })
+
+    return respond.ok(comments)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { devServiceRequests, devComments } = await import('@/lib/dev-fallbacks')
+        const reqRow = devServiceRequests.get(id)
+        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const comments = devComments.get(id) || []
+        return respond.ok(comments)
+      } catch {
+        return respond.internal()
+      }
+    }
+    throw e
   }
-
-  const comments = await prisma.serviceRequestComment.findMany({
-    where: { serviceRequestId: id },
-    orderBy: { createdAt: 'asc' },
-    include: { author: { select: { id: true, name: true, email: true } } },
-  })
-
-  return respond.ok(comments)
 }
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
