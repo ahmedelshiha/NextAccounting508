@@ -37,7 +37,7 @@ model User {
   posts    Post[]
   bookings Booking[]
   tasks    Task[]
-  teamMembers TeamMember[]
+  teamMembers TeamMember[] @relation("UserTeamMember")
   taskComments TaskComment[]
   taskTemplates TaskTemplate[]
   // Back-relations for ServiceRequest
@@ -408,6 +408,7 @@ model RequestTask {
   createdAt        DateTime       @default(now())
 
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  task              Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([serviceRequestId, taskId], name: "unique_request_task")
   @@map("request_tasks")
@@ -431,6 +432,9 @@ model TeamMember {
   updatedAt   DateTime @updatedAt
 
   user        User?    @relation("UserTeamMember", fields: [userId], references: [id], onDelete: SetNull)
+
+  bookings    Booking[]
+  assignedServiceRequests ServiceRequest[]
 
   @@map("team_members")
 }
