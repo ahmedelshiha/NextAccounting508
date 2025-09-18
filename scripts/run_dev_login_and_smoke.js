@@ -5,7 +5,7 @@
       const nodeFetch = await import('node-fetch')
       return nodeFetch.default(...args)
     })
-    const loginRes = await fetch('http://localhost:3000/api/_dev/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'staff@accountingfirm.com' }) })
+    const loginRes = await fetch('http://localhost:3000/api/dev-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'staff@accountingfirm.com' }) })
     const json = await loginRes.json().catch(()=>null)
     if (!loginRes.ok || !json) {
       console.error('dev login failed', loginRes.status, json)
