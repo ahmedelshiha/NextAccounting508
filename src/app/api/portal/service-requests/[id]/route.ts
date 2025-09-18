@@ -13,22 +13,37 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
     return respond.unauthorized()
   }
 
-  const item = await prisma.serviceRequest.findUnique({
-    where: { id: id },
-    include: {
-      service: { select: { id: true, name: true, slug: true, category: true } },
-      comments: {
-        orderBy: { createdAt: 'asc' },
-        include: { author: { select: { id: true, name: true, email: true } } },
+  try {
+    const item = await prisma.serviceRequest.findUnique({
+      where: { id: id },
+      include: {
+        service: { select: { id: true, name: true, slug: true, category: true } },
+        comments: {
+          orderBy: { createdAt: 'asc' },
+          include: { author: { select: { id: true, name: true, email: true } } },
+        },
       },
-    },
-  })
+    })
 
-  if (!item || item.clientId !== session.user.id) {
-    return respond.notFound('Service request not found')
+    if (!item || item.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+
+    return respond.ok(item)
+  } catch (e: any) {
+    if (String(e?.code || '').startsWith('P20')) {
+      try {
+        const { devServiceRequests, devComments } = await import('@/lib/dev-fallbacks')
+        const item = devServiceRequests.get(id)
+        if (!item || item.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const comments = devComments.get(id) || []
+        return respond.ok({ ...item, comments })
+      } catch {
+        return respond.internal()
+      }
+    }
+    throw e
   }
-
-  return respond.ok(item)
 }
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
