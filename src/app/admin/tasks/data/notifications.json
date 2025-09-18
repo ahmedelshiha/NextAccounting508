@@ -1,6 +1,7 @@
 {
-  "emailEnabled": false,
-  "emailFrom": "",
+  "emailEnabled": true,
+  "emailFrom": "noreply@example.com",
   "webhookUrl": "",
-  "templates": []
+  "templates": [],
+  "updatedAt": "2025-09-18T00:21:52.845Z"
 }
