@@ -133,9 +133,22 @@ Note: The list above includes all recommended MCP servers (Neon, Netlify, Zapier
 
 ---
 
-If you want, I can:
-- Add a netlify.toml example file to the repo
-- Add a CI step (GitHub Actions) to run migrations & seeds before Netlify build
-- Create a runbook doc for uploads quarantine and AV webhook handling
+What I implemented for you in this repo:
 
-Tell me which of these you'd like next, or I will add the netlify.toml example as a follow-up.
+- Added a GitHub Actions workflow: .github/workflows/ci.yml
+  - Runs: pnpm install, pnpm db:generate, pnpm db:migrate, pnpm db:seed, typecheck, lint, unit tests, pnpm build
+  - Requires GitHub Secrets: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET (and optional SENTRY_DSN, NETLIFY_BLOBS_TOKEN, REALTIME_PG_URL)
+
+- Added a sample Netlify config: netlify.toml
+  - Use this if you want Netlify to build the app. CI handles migrations in this repository; Netlify can keep build command as `pnpm build`.
+
+Configuration steps (quick):
+1. Add the following GitHub repository secrets: DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL, NETLIFY_BLOBS_TOKEN (if using Netlify Blobs), REALTIME_PG_URL (if different), SENTRY_DSN (optional).
+2. Review .github/workflows/ci.yml and adjust branch names and secrets as needed.
+3. In Netlify, set build command to `pnpm build` and publish directory `.next`, and add the same env vars in Netlify site settings for runtime.
+
+If you'd like, I can now:
+- Create a lightweight runbook for upload quarantine and AV webhook handling (recommended), or
+- Add a GitHub Action step to deploy to Netlify using NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID (requires you to provide/connect).
+
+Tell me which of these you'd like me to implement next.
