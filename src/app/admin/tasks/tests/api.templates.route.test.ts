@@ -15,7 +15,7 @@ describe('api/admin/tasks/templates route', () => {
   beforeEach(() => { mem.data = '[]' })
 
   it('supports CRUD operations', async () => {
-    const mod: any = await import('../api/admin/tasks/templates/route')
+    const mod: any = await import('@/app/api/admin/tasks/templates/route')
 
     const get1: any = await mod.GET()
     let list = await get1.json()
