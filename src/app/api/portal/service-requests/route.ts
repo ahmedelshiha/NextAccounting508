@@ -105,11 +105,12 @@ export async function POST(request: Request) {
       return respond.badRequest('Service not found or inactive')
     }
   } catch (e: any) {
-    // Prisma issues — fall back to file/seeded services list
+    // Prisma issues — fall back to internal services route (no network assumptions)
     if (String(e?.code || '').startsWith('P20')) {
       try {
-        const res = await fetch('http://localhost:3000/api/services')
-        const json = await res.json().catch(() => null)
+        const mod = await import('@/app/api/services/route')
+        const resp: any = await mod.GET(new Request('https://internal/api/services') as any)
+        const json = await resp.json().catch(() => null)
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
         svc = list.find((s: any) => s.id === data.serviceId) || null
         if (!svc) return respond.badRequest('Service not found or inactive')
