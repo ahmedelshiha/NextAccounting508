@@ -7,6 +7,8 @@ import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
 
+export const runtime = 'nodejs'
+
 const CreateSchema = z.object({
   content: z.string().min(1).max(5000),
   attachments: z.any().optional(),
