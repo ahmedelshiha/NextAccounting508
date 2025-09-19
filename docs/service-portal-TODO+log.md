@@ -368,7 +368,7 @@ How to Resume
   - Next: Add bulk actions and preselect filter from admin SR detail page.
   - Updated: src/app/portal/service-requests/[id]/page.tsx (shows red notice; if user role is not CLIENT, provides button linking to /admin/uploads/quarantine)
   - Why: Streamline operator remediation flow from context; clients still see status without elevated controls.
-  - Next: Surface same notice on admin detail page; add bulk actions for delete/release with confirmation.
+  - Next: Consider provider pagination and DB-driven sorting; add confirm modals with counts.
   - Added: src/app/portal/service-requests/ServiceRequestsClient.tsx (client component)
   - Updated: src/app/portal/service-requests/page.tsx (server component wraps <ServiceRequestsClient /> in <Suspense> with skeleton fallback)
   - Why: Next.js 15 requires useSearchParams within a Suspense boundary to avoid CSR bailout during static generation; Netlify build failed.
