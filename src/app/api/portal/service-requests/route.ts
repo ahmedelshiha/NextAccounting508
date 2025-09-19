@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
   const priority = searchParams.get('priority')
   const q = searchParams.get('q')?.trim()
 
+  const tenantId = getTenantFromRequest(request as any)
   const where: any = {
     clientId: session.user.id,
     ...(status && { status }),
@@ -45,6 +47,7 @@ export async function GET(request: Request) {
         { description: { contains: q, mode: 'insensitive' } },
       ],
     }),
+    ...tenantFilter(tenantId),
   }
 
   try {
@@ -68,7 +71,7 @@ export async function GET(request: Request) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         const all = getAllRequests()
-        const filtered = all.filter((r: any) => r.clientId === session.user.id)
+        const filtered = all.filter((r: any) => r.clientId === session.user.id && (!isMultiTenancyEnabled() || !tenantId || r.tenantId === tenantId))
         const total = filtered.length
         const pageItems = filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
         return respond.ok(pageItems, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
@@ -126,20 +129,23 @@ export async function POST(request: Request) {
   }
 
   try {
+    const dataObj: any = {
+      clientId: session.user.id,
+      serviceId: data.serviceId,
+      title: data.title,
+      description: data.description ?? null,
+      priority: data.priority as any,
+      budgetMin: data.budgetMin != null ? data.budgetMin : null,
+      budgetMax: data.budgetMax != null ? data.budgetMax : null,
+      deadline: data.deadline ? new Date(data.deadline) : null,
+      requirements: (data.requirements as any) ?? undefined,
+      attachments: (data.attachments as any) ?? undefined,
+      status: 'SUBMITTED',
+    }
+    if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
+
     const created = await prisma.serviceRequest.create({
-      data: {
-        clientId: session.user.id,
-        serviceId: data.serviceId,
-        title: data.title,
-        description: data.description ?? null,
-        priority: data.priority as any,
-        budgetMin: data.budgetMin != null ? data.budgetMin : null,
-        budgetMax: data.budgetMax != null ? data.budgetMax : null,
-        deadline: data.deadline ? new Date(data.deadline) : null,
-        requirements: (data.requirements as any) ?? undefined,
-        attachments: (data.attachments as any) ?? undefined,
-        status: 'SUBMITTED',
-      },
+      data: dataObj,
       include: {
         service: { select: { id: true, name: true, slug: true, category: true } },
       },
@@ -193,6 +199,7 @@ export async function POST(request: Request) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
+        if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
         return respond.created(created)
       } catch {
