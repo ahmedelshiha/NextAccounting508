@@ -72,7 +72,7 @@ export default function NewServiceRequestPage() {
     const info = uploaded[key]
     return !info?.url && (uploadingKeys[key] || !info)
   })
-  const canSubmit = !!serviceId && title.trim().length >= 5 && !hasPendingUploads
+  const canSubmit = !!serviceId && description.trim().length >= 3 && !hasPendingUploads
 
   // XMLHttpRequest-based upload to surface progress events
   const uploadFile = async (file: File, key: string): Promise<{ url?: string; error?: string }> => {
