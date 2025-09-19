@@ -77,7 +77,6 @@ export default function AdminNewServiceRequestPage() {
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
     if (!form.clientId || !form.serviceId) { setError('Select client and service'); return }
-    if (!form.title || form.title.trim().length < 5) { setError('Title must be at least 5 characters'); return }
     setSaving(true); setError(null)
     try {
       const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name, price: selectedService.price ?? null, slug: selectedService.slug ?? null, shortDesc: selectedService.shortDesc ?? null } : undefined
