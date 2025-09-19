@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
+import { scanBuffer } from '@/lib/clamav'
 
 export const runtime = 'nodejs'
 
@@ -62,13 +63,8 @@ export async function POST(req: Request) {
 
         // Call AV scan
         try {
-          const ac = new AbortController()
-          const t = setTimeout(() => ac.abort(), 10_000)
-          const r = await fetch(scanUrl, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf as unknown as BodyInit, signal: ac.signal })
-          clearTimeout(t)
-          const json = await r.json().catch(() => ({})) as any
-          const clean = r.ok && json?.clean !== false
-          await prisma.attachment.update({ where: { id: it.id }, data: { avStatus: clean ? 'clean' : 'infected', avDetails: json } })
+          const { clean, details } = await scanBuffer(buf)
+          await prisma.attachment.update({ where: { id: it.id }, data: { avStatus: clean ? 'clean' : 'infected', avDetails: details } })
           results.push({ id: it.id, key: it.key, status: clean ? 'clean' : 'infected' })
           try { await logAuditSafe({ action: 'upload:rescan', details: { id: it.id, key: it.key, status: clean ? 'clean' : 'infected' } }) } catch {}
 
