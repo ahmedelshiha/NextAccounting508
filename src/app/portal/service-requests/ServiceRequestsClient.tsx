@@ -1,5 +1,7 @@
 'use client'
 
+// Client-only implementation of the Portal Service Requests list.
+// Separated from the server page so hooks like useSearchParams are inside a Suspense boundary per Next.js 15 requirements.
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'

@@ -1,6 +1,9 @@
 import { Suspense } from 'react'
 import ServiceRequestsClient from './ServiceRequestsClient'
 
+// Server component wrapper that provides a Suspense boundary required for
+// client hooks like useSearchParams used inside ServiceRequestsClient.
+
 export default function PortalServiceRequestsPage() {
   return (
     <Suspense fallback={

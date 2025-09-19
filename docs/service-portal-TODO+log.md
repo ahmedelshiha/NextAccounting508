@@ -357,6 +357,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Fixed Next.js build error (missing Suspense with useSearchParams) on portal/service-requests.
+  - Added: src/app/portal/service-requests/ServiceRequestsClient.tsx (client component)
+  - Updated: src/app/portal/service-requests/page.tsx (server component wraps <ServiceRequestsClient /> in <Suspense> with skeleton fallback)
+  - Why: Next.js 15 requires useSearchParams within a Suspense boundary to avoid CSR bailout during static generation; Netlify build failed.
+  - Next: Monitor Netlify build; scan for other useSearchParams usages in pages and apply the same pattern if needed.
 - [x] 2025-09-19: Added ClamAV client utility and refactored upload/rescan to use it.
   - Added: src/lib/clamav.ts (scanBuffer with retries, timeout, API key header support)
   - Updated: src/app/api/uploads/route.ts (uses scanBuffer; preserves strict type checks)
