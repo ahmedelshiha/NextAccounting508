@@ -141,6 +141,13 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 Note: These ClamAV steps are required before enabling full production uploads and quarantine automation. Follow the Quick Resume Checklist afterwards to complete remaining paused work.
 
+Added helper scripts and workflows
+- scripts/check-required-envs.sh: prints required environment variables and exits non-zero if missing (useful in CI pre-checks).
+- .github/workflows/clamav-rescan.yml: cron workflow (every 30m) that pre-checks CRON_TARGET_URL/CRON_SECRET before POSTing to /api/cron/rescan-attachments.
+- .github/workflows/deploy-netlify.yml: Netlify deploy workflow with pre-check for NETLIFY_AUTH_TOKEN/NETLIFY_SITE_ID; runs migrations/seeds when NETLIFY_DATABASE_URL present.
+
+Next: Set secrets in GitHub (CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID) and Netlify (NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY).
+
 ## Current Status: Paused (2025-09-20)
 
 ClamAV Deployment Plan (Analyze & Plan)
