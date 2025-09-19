@@ -34,7 +34,7 @@ Notes:
    - [ ] Backfill tenantId for existing rows if applicable
 3. Uploads & Antivirus
    - [ ] Set NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER=netlify, UPLOADS_AV_SCAN_URL
-   - [ ] Verify upload → AV callback → quarantine → UI statuses (client + admin)
+   - [ ] Verify upload �� AV callback → quarantine → UI statuses (client + admin)
    - [x] Implement background retry for avStatus: 'error' (via /api/cron/rescan-attachments)
 4. Realtime durability
    - [ ] Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed)
@@ -125,6 +125,20 @@ This file tracks the full implementation plan derived from:
 - docs/admin-dashboard-audit.md
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
+
+## Current Status: Paused (2025-09-20)
+
+### ClamAV Integration — Deployment TODOs (added 2025-09-20)
+- [ ] Deploy ClamAV service (Docker) and expose /health, /scan, /update endpoints; configure CLAMAV_API_URL/UPLOADS_AV_SCAN_URL and API key.
+- [ ] Set upload provider envs (UPLOADS_PROVIDER, NETLIFY_BLOBS_TOKEN or Supabase vars) and NEXTAUTH secrets in staging/Netlify.
+- [ ] Add GitHub Actions secrets CRON_TARGET_URL and CRON_SECRET; update clamav-rescan workflow pre-check to avoid failing when secrets are absent.
+- [ ] Run CI to execute pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify Attachment/Quarantine models and seeds applied.
+- [ ] Validate staging flows: upload clean/infected files, AV callback handling, quarantine moves, and cron rescans.
+- [ ] Decide AV failure policy (strict reject vs lenient enqueue) and implement chosen policy in uploads route.
+- [ ] Configure monitoring (Sentry/SLA alerts) and add runbook for AV incidents and quarantine handling.
+- [ ] Remove dev fallbacks (dev-login, temp/dev-fallbacks.json) after CI validation.
+
+Note: These ClamAV steps are required before enabling full production uploads and quarantine automation. Follow the Quick Resume Checklist afterwards to complete remaining paused work.
 
 ## Current Status: Paused (2025-09-20)
 
