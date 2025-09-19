@@ -27,21 +27,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-          cache-dependency-path: pnpm-lock.yaml
-
+      # Setup pnpm before Node.js setup-node cache
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 'latest'
           run_install: false
 
-      - name: Install pnpm globally (fallback fix)
-        run: npm install -g pnpm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify pnpm
         run: pnpm -v
