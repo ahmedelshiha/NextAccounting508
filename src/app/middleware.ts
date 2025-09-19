@@ -33,7 +33,20 @@ export async function middleware(req: any) {
     return NextServer.NextResponse.redirect(new URL('/login', req.url))
   }
 
-  const res = NextServer.NextResponse.next()
+  // Forward tenant header when multi-tenancy is enabled
+  const requestHeaders = new Headers(req.headers)
+  try {
+    if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
+      const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
+      const host = String(hostname).split(':')[0]
+      const parts = host.split('.')
+      let sub = parts.length >= 3 ? parts[0] : ''
+      if (sub === 'www' && parts.length >= 4) sub = parts[1]
+      if (sub) requestHeaders.set('x-tenant-id', sub)
+    }
+  } catch {}
+
+  const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
 
   // Prevent caching of sensitive pages
   if (isAdminPage || isPortalPage) {
