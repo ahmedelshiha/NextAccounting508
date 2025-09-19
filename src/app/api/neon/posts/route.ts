@@ -23,6 +23,17 @@ export type PostRow = {
 
 export async function GET(request: NextRequest) {
   try {
+    if (!sql) {
+      try {
+        const mod = await import('@netlify/neon')
+        sql = mod.neon()
+      } catch (e) {
+        console.warn('Neon client not initialized (NETLIFY_DATABASE_URL missing?):', e)
+        // return empty array rather than failing the build in preview contexts
+        return NextResponse.json([], { status: 200 })
+      }
+    }
+
     const { searchParams } = new URL(request.url)
     const publishedParam = searchParams.get('published')
     const featuredParam = searchParams.get('featured')
