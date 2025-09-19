@@ -11,6 +11,20 @@ Current status
 - Realtime/uploads: Postgres adapter implemented (enable via REALTIME_TRANSPORT=postgres). Netlify Blobs provider implemented (requires NETLIFY_BLOBS_TOKEN).
 
 Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
+
+Quick Resume Checklist (Paused) — Actionable steps to resume safely:
+- [ ] Connect Neon in Netlify and set required envs: NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL. (owner: infra/ops)
+- [ ] Trigger CI build that runs: pnpm db:generate && pnpm db:migrate && pnpm db:seed. Verify exit code 0 and seed contents (roles, templates, permissions). (owner: infra/backend)
+- [ ] Apply tenant fields behind feature flag: add tenantId/orgId migrations, run migrate in CI, and enable MULTI_TENANCY_ENABLED in staging when ready. Verify API scoping. (owner: backend)
+- [ ] Configure uploads in staging: set UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN; validate upload → Netlify Blobs → AV callback → attachments persisted and UI shows per-file status. (owner: backend/ops)
+- [ ] Enable durable realtime: set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed) and validate LISTEN/NOTIFY cross-instance delivery, heartbeat, and reconnection behavior. (owner: backend/ops)
+- [ ] Run smoke scenarios in staging: client create -> admin assign -> status transitions -> realtime events -> CSV export -> uploads/AV flow. Document findings. (owner: QA)
+- [ ] Remove dev helpers and in-memory fallbacks (api/dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json) after CI seeds validated. (owner: dev)
+- [ ] Tighten tests & coverage: unskip DB tests, add e2e (client/admin full flows), fix failures, and enforce thresholds in CI. (owner: dev/QA)
+- [ ] Configure observability: set SENTRY_DSN and verify error/perf capture in staging; add runbook for alerts. (owner: ops)
+
+Notes:
+- Each checklist item below the quick resume checklist contains the detailed subtasks and file references. Follow the Quick Resume Checklist first to minimize drift between environments.
 1. CI/CD: Prisma migrations & seeds
    - [ ] Run pnpm db:generate && pnpm db:migrate && pnpm db:seed in Netlify (staging/prod) and confirm exit code 0
    - [ ] Apply tenantId/orgId columns + indexes via migration; verify in staging DB
@@ -364,7 +378,9 @@ How to Resume
 - [x] 2025-09-20: Added portal CSV export API and updated UI to prefer server export with client fallback.
   - Added: src/app/api/portal/service-requests/export/route.ts; Updated: src/app/portal/service-requests/page.tsx
   - Why: Handle large exports reliably server-side; preserve UX by falling back to client CSV when needed.
-  - Next: Add filters (status/q) passthrough to export button and validate in staging.
+  - Updated: src/app/portal/service-requests/page.tsx (filters UI for status/q; passthrough to server export; debounced search; URL sync)
+  - Why: Ensure CSV export reflects current filtered view and improve usability.
+  - Next: Validate in staging.
 - [x] 2025-09-20: Added background AV re-scan cron and marked TODO complete.
   - Updated: docs/service-portal-TODO+log.md; implemented via src/app/api/cron/rescan-attachments/route.ts
   - Why: Automatically retry avStatus 'error' items and support quarantine workflow per uploads runbook.
