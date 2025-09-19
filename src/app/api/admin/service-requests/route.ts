@@ -19,8 +19,16 @@ const CreateSchema = z.object({
     z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
     z.enum(['low', 'medium', 'high', 'urgent']).transform((v) => v.toUpperCase() as 'LOW'|'MEDIUM'|'HIGH'|'URGENT'),
   ]).default('MEDIUM'),
-  budgetMin: z.number().optional(),
-  budgetMax: z.number().optional(),
+  budgetMin: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
+  budgetMax: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
   deadline: z.string().datetime().optional(),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
