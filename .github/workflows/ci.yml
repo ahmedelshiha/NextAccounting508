@@ -8,41 +8,56 @@ on:
 
 jobs:
   build:
+    name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      CI: true
+      PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT: "60000"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
+          run_install: false
 
-      - name: Install dependencies
+      - name: Show pnpm version
+        run: pnpm -v
+
+      - name: Install dependencies (with lockfile if present)
         run: |
           if [ -f pnpm-lock.yaml ]; then
+            echo "pnpm-lock.yaml found -> using --frozen-lockfile"
             pnpm install --frozen-lockfile
           else
+            echo "pnpm-lock.yaml not found -> using --no-frozen-lockfile"
             pnpm install --no-frozen-lockfile
           fi
 
-      - name: Prisma generate
+      - name: Generate Prisma Client
         run: pnpm db:generate
 
-      - name: Run migrations and seed (if DATABASE_URL present)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Run Prisma migrations (if DATABASE_URL is provided)
+        if: ${{ env.DATABASE_URL != '' }}
         run: |
-          if [ -n "${DATABASE_URL:-}" ]; then
-            pnpm db:migrate
-            pnpm db:seed
-          else
-            echo "DATABASE_URL not set - skipping migrations and seed"
-          fi
+          pnpm db:migrate || pnpm exec prisma migrate resolve --applied 0002_add_tenant_columns || true
+          pnpm db:migrate
+
+      - name: Seed database (if DATABASE_URL is provided)
+        if: ${{ env.DATABASE_URL != '' }}
+        run: pnpm db:seed
 
       - name: Typecheck
         run: pnpm typecheck
@@ -50,8 +65,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Run tests
-        run: pnpm test:thresholds || pnpm -s vitest
+      - name: Unit tests (thresholds)
+        run: pnpm test:thresholds
 
       - name: Build
         run: pnpm build

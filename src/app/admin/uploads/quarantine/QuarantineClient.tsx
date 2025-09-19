@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 
 interface DbItem { id: string; key?: string | null; url?: string | null; name?: string | null; size?: number | null; contentType?: string | null; avStatus?: string | null; uploadedAt?: string | null; serviceRequestId?: string | null }
@@ -26,8 +27,10 @@ export default function QuarantineClient() {
   const q = sp.get('q') || ''
   const dbPage = Math.max(1, parseInt(sp.get('dbPage') || '1', 10))
   const dbLimit = Math.min(200, Math.max(1, parseInt(sp.get('dbLimit') || '25', 10)))
+  const dbSort = (sp.get('dbSort') || 'uploadedAt_desc')
   const providerPage = Math.max(1, parseInt(sp.get('providerPage') || '1', 10))
   const providerLimit = Math.min(200, Math.max(1, parseInt(sp.get('providerLimit') || '25', 10)))
+  const providerSort = (sp.get('providerSort') || 'created_desc')
 
   const setParam = (name: string, value: string) => {
     const params = new URLSearchParams(sp.toString())
@@ -45,6 +48,8 @@ export default function QuarantineClient() {
       qs.set('dbLimit', String(dbLimit))
       qs.set('providerPage', String(providerPage))
       qs.set('providerLimit', String(providerLimit))
+      if (dbSort) qs.set('dbSort', dbSort)
+      if (providerSort) qs.set('providerSort', providerSort)
       const res = await fetch(`/api/admin/uploads/quarantine${qs.toString() ? `?${qs}` : ''}`)
       if (!res.ok) throw new Error('Failed')
       const json = await res.json()
@@ -109,6 +114,28 @@ export default function QuarantineClient() {
         <div className="flex items-center gap-2">
           <Input placeholder="Filter by Service Request ID" className="w-64" value={serviceRequestId} onChange={(e) => setParam('serviceRequestId', e.target.value)} />
           <Input placeholder="Search (name/key)" className="w-56" value={q} onChange={(e) => setParam('q', e.target.value)} />
+          <Select value={dbSort} onValueChange={(v) => setParam('dbSort', v)}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Sort DB" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="uploadedAt_desc">Newest first</SelectItem>
+              <SelectItem value="uploadedAt_asc">Oldest first</SelectItem>
+              <SelectItem value="name_asc">Name A–Z</SelectItem>
+              <SelectItem value="name_desc">Name Z–A</SelectItem>
+              <SelectItem value="size_desc">Size big→small</SelectItem>
+              <SelectItem value="size_asc">Size small→big</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={providerSort} onValueChange={(v) => setParam('providerSort', v)}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Sort Provider" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="created_desc">Newest first</SelectItem>
+              <SelectItem value="created_asc">Oldest first</SelectItem>
+              <SelectItem value="key_asc">Key A–Z</SelectItem>
+              <SelectItem value="key_desc">Key Z–A</SelectItem>
+              <SelectItem value="size_desc">Size big→small</SelectItem>
+              <SelectItem value="size_asc">Size small→big</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={fetchItems} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</Button>
           {(serviceRequestId || q) && (
             <Button variant="outline" onClick={() => { setParam('serviceRequestId',''); setParam('q','') }}>Clear</Button>
