@@ -306,6 +306,14 @@ How to Resume
   - Updated: src/app/portal/service-requests/new/page.tsx (extract server error.message from API error shape)
   - Why: API returns { error: { code, message } }; UI was passing the whole object to toast, showing [object Object].
   - Next: Audit other pages for similar pattern and standardize with a small helper.
+
+- [x] 2025-09-18: Hardened Netlify Prisma migrate to avoid advisory lock timeouts (P1002) in previews.
+  - Updated: netlify.toml
+    - Use unpooled connection for migrate when NETLIFY_DATABASE_URL_UNPOOLED is available
+    - Skip migrate/seed on deploy-preview and branch-deploy contexts
+    - Increase PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT to 60000ms
+  - Why: Netlify deploy-previews failed with P1002 acquiring advisory lock on Neon. This avoids running migrations in previews and reduces lock contention in prod.
+  - Next: Verify deploy-preview builds succeed; confirm production deploy runs migrate/seed successfully.
 - [x] 2025-09-18: Added GitHub Actions CI with pnpm to fix missing pnpm error and enforce build/tests.
   - Added: .github/workflows/ci.yml (checkout, setup-node, pnpm/action-setup, install, prisma generate/migrate/seed, typecheck, lint, tests, build, artifact upload)
   - Why: GitHub runs failed with "Unable to locate executable file: pnpm"; ensures CI parity and reliable builds.
