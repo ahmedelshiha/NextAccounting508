@@ -13,7 +13,7 @@ import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib
 const CreateSchema = z.object({
   clientId: z.string().min(1),
   serviceId: z.string().min(1),
-  title: z.string().min(5).max(300),
+  title: z.string().min(5).max(300).optional(),
   description: z.string().optional(),
   priority: z.union([
     z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
@@ -114,11 +114,25 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data
+  // Generate title if missing
+  let titleToUse = data.title
+  if (!titleToUse) {
+    try {
+      const svc = await prisma.service.findUnique({ where: { id: data.serviceId } })
+      const client = await prisma.user.findUnique({ where: { id: data.clientId } })
+      const clientName = client?.name || data.clientId
+      const svcName = svc?.name || data.serviceId
+      titleToUse = `${svcName} request — ${clientName} — ${new Date().toISOString().slice(0,10)}`
+    } catch {
+      titleToUse = `${data.serviceId} request — ${data.clientId} — ${new Date().toISOString().slice(0,10)}`
+    }
+  }
+
   const created = await prisma.serviceRequest.create({
     data: {
       clientId: data.clientId,
       serviceId: data.serviceId,
-      title: data.title,
+      title: titleToUse,
       description: data.description ?? null,
       priority: data.priority as any,
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
