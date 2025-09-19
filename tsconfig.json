@@ -24,5 +24,5 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "backup", "temp", "docs", "src/app/admin/tasks/tests", "src/app/admin/tasks/doc"]
+  "exclude": ["node_modules", "backup", "temp", "docs", "scripts", "src/app/admin/tasks/tests", "src/app/admin/tasks/doc"]
 }
