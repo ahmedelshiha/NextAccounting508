@@ -25,6 +25,14 @@ export async function GET(req: Request) {
     const serviceRequestId = url.searchParams.get('serviceRequestId') || undefined
     const q = url.searchParams.get('q') || undefined
 
+    // Optional pagination params for DB list
+    const dbPage = Math.max(1, parseInt(url.searchParams.get('dbPage') || url.searchParams.get('page') || '1', 10))
+    const dbLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('dbLimit') || url.searchParams.get('limit') || '25', 10)))
+
+    // Optional pagination params for provider list (client-side slice)
+    const providerPage = Math.max(1, parseInt(url.searchParams.get('providerPage') || '1', 10))
+    const providerLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('providerLimit') || '25', 10)))
+
     // Fetch DB attachments flagged as infected/quarantined with optional filters
     const { default: prisma } = await import('@/lib/prisma')
     const where: any = { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }] }
@@ -36,7 +44,11 @@ export async function GET(req: Request) {
         { key: { contains: q, mode: 'insensitive' } },
       ]
     }
-    const dbItems = await prisma.attachment.findMany({ where, orderBy: { uploadedAt: 'desc' }, take: 200 })
+
+    const [dbTotal, dbItems] = await Promise.all([
+      prisma.attachment.count({ where }),
+      prisma.attachment.findMany({ where, orderBy: { uploadedAt: 'desc' }, skip: (dbPage - 1) * dbLimit, take: dbLimit }),
+    ])
 
     // Try provider listing as well (optional)
     const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
@@ -57,7 +69,22 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, data: { db: dbItems, provider: providerItems } })
+    // Apply simple server-side filtering for provider list (by key) and paginate in-memory
+    const providerFilter = (serviceRequestId || q || '').toLowerCase()
+    const filteredProvider = providerFilter
+      ? providerItems.filter((p: any) => String(p?.key || '').toLowerCase().includes(providerFilter))
+      : providerItems
+    const providerTotal = filteredProvider.length
+    const providerPaged = filteredProvider.slice((providerPage - 1) * providerLimit, (providerPage - 1) * providerLimit + providerLimit)
+
+    return NextResponse.json({
+      success: true,
+      data: { db: dbItems, provider: providerPaged },
+      meta: {
+        db: { total: dbTotal, page: dbPage, limit: dbLimit, totalPages: Math.ceil(dbTotal / dbLimit) },
+        provider: { total: providerTotal, page: providerPage, limit: providerLimit, totalPages: Math.ceil(providerTotal / providerLimit) },
+      },
+    })
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine' })
     return NextResponse.json({ error: 'Failed to list quarantine' }, { status: 500 })
