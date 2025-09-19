@@ -200,11 +200,12 @@ export async function POST(request: Request) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
+        const genTitle = data.title || `${svc?.name || data.serviceId} request — ${session.user?.name || session.user.id} — ${new Date().toISOString().slice(0,10)}`
         const created: any = {
           id,
           clientId: session.user.id,
           serviceId: data.serviceId,
-          title: data.title,
+          title: genTitle,
           description: data.description ?? null,
           priority: data.priority,
           budgetMin: data.budgetMin ?? null,
