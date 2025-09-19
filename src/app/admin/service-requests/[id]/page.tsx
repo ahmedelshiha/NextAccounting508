@@ -64,8 +64,23 @@ export default function AdminServiceRequestDetailPage() {
     try {
       const res = await apiFetch(`/api/admin/service-requests/${params.id}`)
       const j = await res.json().catch(() => ({}))
-      setItem(j?.data ?? null)
-      setStatus((j?.data?.status as typeof STATUSES[number]) || '')
+      if (j?.data) {
+        setItem(j.data)
+        setStatus((j.data.status as typeof STATUSES[number]) || '')
+      } else if (String(params.id || '').startsWith('dev-')) {
+        try {
+          const cached = typeof window !== 'undefined' ? localStorage.getItem(`sr:${params.id}`) : null
+          if (cached) {
+            const obj = JSON.parse(cached)
+            setItem(obj)
+            setStatus((obj?.status as typeof STATUSES[number]) || '')
+          } else {
+            setItem(null)
+          }
+        } catch { setItem(null) }
+      } else {
+        setItem(null)
+      }
     } finally { setLoading(false) }
   }
 
