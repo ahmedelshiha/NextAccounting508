@@ -6,19 +6,28 @@ import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 
 const CreateSchema = z.object({
   serviceId: z.string().min(1),
-  title: z.string().min(5).max(300),
+  title: z.string().min(5).max(300).optional(),
   description: z.string().optional(),
   priority: z.union([
     z.enum(['LOW','MEDIUM','HIGH','URGENT']),
     z.enum(['low','medium','high','urgent']).transform(v => v.toUpperCase() as 'LOW'|'MEDIUM'|'HIGH'|'URGENT'),
   ]).default('MEDIUM'),
-  budgetMin: z.number().optional(),
-  budgetMax: z.number().optional(),
+  budgetMin: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
+  budgetMax: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
   deadline: z.string().datetime().optional(),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
@@ -130,10 +139,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    // If title not provided, generate a friendly title using service name + client
+    let titleToUse = data.title
+    if (!titleToUse) {
+      try {
+        const clientName = (session.user as any)?.name || session.user.id
+        titleToUse = `${svc.name} request — ${clientName} — ${new Date().toISOString().slice(0,10)}`
+      } catch {
+        titleToUse = `${svc.name} request — ${session.user.id} — ${new Date().toISOString().slice(0,10)}`
+      }
+    }
+
     const dataObj: any = {
       clientId: session.user.id,
       serviceId: data.serviceId,
-      title: data.title,
+      title: titleToUse,
       description: data.description ?? null,
       priority: data.priority as any,
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
@@ -179,6 +199,7 @@ export async function POST(request: Request) {
       try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:create:attachments' }) } catch {}
     }
 
+    try { await logAudit({ action: 'service-request:create', actorId: session.user.id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
     return respond.created(created)
   } catch (e: any) {
     try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:POST:create' }) } catch {}
@@ -187,11 +208,12 @@ export async function POST(request: Request) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
+        const genTitle = data.title || `${svc?.name || data.serviceId} request — ${session.user?.name || session.user.id} — ${new Date().toISOString().slice(0,10)}`
         const created: any = {
           id,
           clientId: session.user.id,
           serviceId: data.serviceId,
-          title: data.title,
+          title: genTitle,
           description: data.description ?? null,
           priority: data.priority,
           budgetMin: data.budgetMin ?? null,

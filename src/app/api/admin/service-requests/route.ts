@@ -13,14 +13,22 @@ import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib
 const CreateSchema = z.object({
   clientId: z.string().min(1),
   serviceId: z.string().min(1),
-  title: z.string().min(5).max(300),
+  title: z.string().min(5).max(300).optional(),
   description: z.string().optional(),
   priority: z.union([
     z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
     z.enum(['low', 'medium', 'high', 'urgent']).transform((v) => v.toUpperCase() as 'LOW'|'MEDIUM'|'HIGH'|'URGENT'),
   ]).default('MEDIUM'),
-  budgetMin: z.number().optional(),
-  budgetMax: z.number().optional(),
+  budgetMin: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
+  budgetMax: z.preprocess((v) => {
+    if (v === undefined || v === null || v === '') return undefined
+    if (typeof v === 'string') return Number(v)
+    return v
+  }, z.number().optional()),
   deadline: z.string().datetime().optional(),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
@@ -114,11 +122,25 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data
+  // Generate title if missing
+  let titleToUse = data.title
+  if (!titleToUse) {
+    try {
+      const svc = await prisma.service.findUnique({ where: { id: data.serviceId } })
+      const client = await prisma.user.findUnique({ where: { id: data.clientId } })
+      const clientName = client?.name || data.clientId
+      const svcName = svc?.name || data.serviceId
+      titleToUse = `${svcName} request — ${clientName} — ${new Date().toISOString().slice(0,10)}`
+    } catch {
+      titleToUse = `${data.serviceId} request — ${data.clientId} — ${new Date().toISOString().slice(0,10)}`
+    }
+  }
+
   const created = await prisma.serviceRequest.create({
     data: {
       clientId: data.clientId,
       serviceId: data.serviceId,
-      title: data.title,
+      title: titleToUse,
       description: data.description ?? null,
       priority: data.priority as any,
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
@@ -144,7 +166,7 @@ export async function POST(request: Request) {
 
   try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
   try { realtimeService.broadcastToUser(String(created.clientId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
-  try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
+  try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
 
   return respond.created(created)
 }

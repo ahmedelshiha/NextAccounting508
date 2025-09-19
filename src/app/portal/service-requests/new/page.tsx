@@ -23,8 +23,9 @@ export default function NewServiceRequestPage() {
   const router = useRouter()
   const [services, setServices] = useState<Service[]>([])
   const [serviceId, setServiceId] = useState('')
-  const [title, setTitle] = useState('')
+  // Title will be auto-generated server-side; keep notes in `description` field
   const [description, setDescription] = useState('')
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [priority, setPriority] = useState<Priority>('MEDIUM')
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -71,7 +72,7 @@ export default function NewServiceRequestPage() {
     const info = uploaded[key]
     return !info?.url && (uploadingKeys[key] || !info)
   })
-  const canSubmit = !!serviceId && title.trim().length >= 5 && !hasPendingUploads
+  const canSubmit = !!serviceId && description.trim().length >= 3 && !hasPendingUploads
 
   // XMLHttpRequest-based upload to surface progress events
   const uploadFile = async (file: File, key: string): Promise<{ url?: string; error?: string }> => {
@@ -156,15 +157,18 @@ export default function NewServiceRequestPage() {
         uploadError: result.error,
       }))
 
+      const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name } : undefined
+
       const res = await apiFetch('/api/portal/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId,
-          title,
+          // title will be auto-generated server-side when omitted
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
+          requirements: { serviceSnapshot },
           attachments,
         }),
       })
@@ -211,7 +215,7 @@ export default function NewServiceRequestPage() {
                     value={serviceQuery}
                     onChange={(e) => setServiceQuery(e.target.value)}
                   />
-                  <Select onValueChange={setServiceId} value={serviceId}>
+                  <Select onValueChange={(v) => { setServiceId(v); const found = services.find(s => s.id === v) || null; setSelectedService(found) }} value={serviceId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
@@ -225,12 +229,7 @@ export default function NewServiceRequestPage() {
               </div>
 
               <div>
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1" placeholder="Describe your request" />
-              </div>
-
-              <div>
-                <Label htmlFor="desc">Description</Label>
+                <Label htmlFor="desc">Notes</Label>
                 <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={5} placeholder="Add additional details" />
               </div>
 

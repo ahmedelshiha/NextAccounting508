@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { apiFetch } from '@/lib/api'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { Loader2 } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -15,18 +16,19 @@ import { PERMISSIONS } from '@/lib/permissions'
 const PRIORITIES = ['LOW','MEDIUM','HIGH','URGENT'] as const
 
 type ClientItem = { id: string; name: string; tier?: string }
-type ServiceItem = { id: string; name: string }
+type ServiceItem = { id: string; name: string; price?: number | null; slug?: string; shortDesc?: string; features?: string[] }
 
 export default function AdminNewServiceRequestPage() {
   const router = useRouter()
   const perms = usePermissions()
 
-  const [form, setForm] = useState<{ clientId: string; serviceId: string; title: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', title: '', description: '', priority: 'MEDIUM' })
+  const [form, setForm] = useState<{ clientId: string; serviceId: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', description: '', priority: 'MEDIUM' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<ClientItem[]>([])
   const [services, setServices] = useState<ServiceItem[]>([])
   const [loadingLists, setLoadingLists] = useState(false)
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   useEffect(() => {
     const abort = new AbortController()
@@ -47,7 +49,7 @@ export default function AdminNewServiceRequestPage() {
           const resSvcs = await apiFetch('/api/services', { signal: abort.signal })
           const jsonSvcs = await resSvcs.json().catch(() => [])
           const list = Array.isArray(jsonSvcs) ? jsonSvcs : (jsonSvcs?.data || [])
-          const mapped: ServiceItem[] = list.map((s: any) => ({ id: s.id, name: s.name || 'Service' }))
+          const mapped: ServiceItem[] = list.map((s: any) => ({ id: s.id, name: s.name || 'Service', price: s.price ?? null, slug: s.slug, shortDesc: s.shortDesc, features: s.features }))
           setServices(mapped)
         } catch {}
       } finally {
@@ -57,19 +59,44 @@ export default function AdminNewServiceRequestPage() {
     return () => abort.abort()
   }, [])
 
+  useEffect(() => {
+    if (!form.serviceId) { setSelectedService(null); return }
+    const found = services.find(s => String(s.id) === String(form.serviceId)) || null
+    setSelectedService(found)
+    // If service has a price and user didn't specify budgets, pre-fill suggested bands
+    if (found && found.price != null) {
+      const price = Number(found.price)
+      setForm((prev) => ({
+        ...prev,
+        budgetMin: prev.budgetMin || String(Math.round(price)),
+        budgetMax: prev.budgetMax || String(Math.round(price * 1.5)),
+      }))
+    }
+  }, [form.serviceId, services])
+
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
     if (!form.clientId || !form.serviceId) { setError('Select client and service'); return }
     setSaving(true); setError(null)
     try {
-      const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline || undefined }
+      const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name, price: selectedService.price ?? null, slug: selectedService.slug ?? null, shortDesc: selectedService.shortDesc ?? null } : undefined
+      const payload: any = {
+        ...form,
+        budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined,
+        budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined,
+        deadline: form.deadline || undefined,
+        requirements: {
+          ...(form as any).requirements,
+          serviceSnapshot,
+        }
+      }
       const res = await apiFetch('/api/admin/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(j?.error || 'Failed to create')
+      if (!res.ok) { setError(getApiErrorMessage(j, 'Failed to create')); return }
       const id = j?.data?.id
       if (id) router.push(`/admin/service-requests/${id}`)
     } catch (e) {
-      setError(String(e))
+      setError(getApiErrorMessage(e, 'Failed to create'))
     } finally { setSaving(false) }
   }
 
@@ -106,7 +133,7 @@ export default function AdminNewServiceRequestPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {services.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id}>{s.name}{s.price != null ? ` — $${s.price}` : ''}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -114,14 +141,25 @@ export default function AdminNewServiceRequestPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-gray-700">Title</label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Quarterly Audit for ABC" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-gray-700">Description</label>
+              <label className="text-sm text-gray-700">Notes</label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} placeholder="Describe the request" />
             </div>
+
+            {selectedService && (
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded">
+                <p className="text-sm font-medium">Selected service: {selectedService.name}{selectedService.price != null ? ` — $${selectedService.price}` : ''}</p>
+                {selectedService.shortDesc && <p className="text-sm text-gray-700 mt-1">{selectedService.shortDesc}</p>}
+                {selectedService.features && selectedService.features.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs font-medium text-gray-600">Features:</p>
+                    <ul className="list-disc list-inside text-sm text-gray-700">
+                      {selectedService.features.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {selectedService.price == null && <p className="text-xs text-yellow-700 mt-2">Note: this service does not have a price set.</p>}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
