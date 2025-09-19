@@ -12,7 +12,10 @@ export async function POST(req: Request) {
 
     const { default: prisma } = await import('@/lib/prisma')
     const scanUrl = process.env.UPLOADS_AV_SCAN_URL
-    if (!scanUrl) return NextResponse.json({ error: 'No AV scan URL configured' }, { status: 400 })
+    if (!scanUrl) {
+      try { await logAuditSafe({ action: 'cron:rescan:skipped', details: { reason: 'no_av_config' } }) } catch {}
+      return NextResponse.json({ success: true, processed: 0, note: 'No AV scan URL configured; skipping rescan' })
+    }
 
     const provider = (process.env.UPLOADS_PROVIDER || '').toLowerCase()
 
