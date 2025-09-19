@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 function toCsv(rows: Record<string, unknown>[]) {
   if (!rows.length) return ''
@@ -27,6 +30,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const entity = (searchParams.get('entity') || '').toLowerCase()
     const format = (searchParams.get('format') || 'csv').toLowerCase()
+    const tenantId = getTenantFromRequest(request as unknown as Request)
 
     if (format !== 'csv') return new NextResponse('Only CSV is supported', { status: 400 })
 
@@ -36,13 +40,13 @@ export async function GET(request: NextRequest) {
     let rows: Record<string, unknown>[] = []
 
     if (entity === 'users') {
-      const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, role: true, createdAt: true } })
+      const users = await prisma.user.findMany({ where: tenantFilter(tenantId), select: { id: true, name: true, email: true, role: true, createdAt: true } })
       rows = users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt.toISOString() }))
     } else if (entity === 'bookings') {
-      const bookings = await prisma.booking.findMany({ include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
+      const bookings = await prisma.booking.findMany({ where: tenantFilter(tenantId), include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
       rows = bookings.map(b => ({ id: b.id, clientName: b.client?.name, clientEmail: b.client?.email, service: b.service?.name, status: b.status, scheduledAt: b.scheduledAt.toISOString(), duration: b.duration }))
     } else if (entity === 'services') {
-      const services = await prisma.service.findMany({ select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
+      const services = await prisma.service.findMany({ where: tenantFilter(tenantId), select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
       rows = services.map(s => {
         const priceUnknown = s.price as unknown
         let priceStr = ''
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest) {
         return { id: s.id, name: s.name, slug: s.slug, price: priceStr, active: s.active, category: s.category ?? '' }
       })
     } else if (entity === 'audits') {
-      const logs = await prisma.healthLog.findMany({ where: { service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
+      const logs = await prisma.healthLog.findMany({ where: { ...tenantFilter(tenantId), service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
       rows = logs.map(l => ({ id: l.id, checkedAt: l.checkedAt.toISOString(), service: l.service, status: l.status, message: l.message ?? '' }))
     } else {
       return new NextResponse('Unknown entity', { status: 400 })
