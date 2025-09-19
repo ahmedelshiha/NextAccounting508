@@ -298,6 +298,12 @@ How to Resume
 
 ## Change Log
 - [x] 2025-09-19: Standardized API error handling and improved portal comments attachments UI.
+- [x] 2025-09-19: Multi-tenancy scaffolding behind feature flag (no DB changes yet).
+  - Added: src/lib/tenant.ts (helpers: isMultiTenancyEnabled, getTenantFromRequest, tenantFilter)
+  - Updated: src/app/middleware.ts (inject x-tenant-id from subdomain when enabled)
+  - Updated: src/app/api/portal/service-requests/{route.ts,[id]/route.ts} (tenant-aware list/create and detail checks, safe until schema adds tenantId)
+  - Why: Prepare for tenant scoping without breaking current schema; enables gradual rollout.
+  - Next: Add tenantId columns + indexes via Prisma migration; extend scoping across admin APIs and seeds.
   - Updated: src/lib/api-error.ts (new helper getApiErrorMessage)
   - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx, src/app/portal/page.tsx (use helper for toasts; clearer messages)
   - Updated: src/app/portal/service-requests/[id]/page.tsx (render comment attachments with AV status indicators)
