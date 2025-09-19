@@ -50,19 +50,22 @@ export async function POST(request: Request) {
   }
 
   // Optional antivirus scan (best-effort) before storing
+  // Lenient policy: on AV errors we persist the upload with avStatus='error' and rely on cron rescan.
   let avScanResult: any = null
+  let avScanError: any = null
   if (process.env.UPLOADS_AV_SCAN_URL) {
     try {
       avScanResult = await scanBuffer(buf)
       if (!avScanResult?.clean) {
-        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed' } }) } catch {}
-        return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
+        try { await logAudit({ action: 'upload:infected', details: { reason: 'antivirus_failed', detected: avScanResult?.details || avScanResult } }) } catch {}
+        // continue to store but mark as infected; admin quarantine/actions handle further steps
       }
     } catch (e) {
+      avScanError = e
       try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan' }) } catch {}
-      console.error('AV scan error', e)
-      try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_error' } }) } catch {}
-      return NextResponse.json({ error: 'File scan error' }, { status: 502 })
+      console.warn('AV scan failed, persisting file with avStatus=ERROR for later rescan', e)
+      try { await logAudit({ action: 'upload:av_error', details: { error: String(e) } }) } catch {}
+      // proceed with upload and persist avStatus: 'error'
     }
   }
 
@@ -101,13 +104,23 @@ export async function POST(request: Request) {
           const { default: prisma } = await import('@/lib/prisma')
           const tenantId = getTenantFromRequest(request)
 
-          const avData = avScanResult ? {
-            avStatus: avScanResult.clean ? 'clean' : 'infected',
-            avDetails: avScanResult.details || avScanResult,
-            avScanAt: new Date(),
-            avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
-            avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
-          } : {}
+          const avData = (avScanResult || avScanError) ? (() => {
+            if (avScanResult) {
+              return {
+                avStatus: avScanResult.clean ? 'clean' : 'infected',
+                avDetails: avScanResult.details || avScanResult,
+                avScanAt: new Date(),
+                avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
+                avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
+              }
+            }
+            // avScanError path: persist error state for later rescan
+            return {
+              avStatus: 'error',
+              avDetails: { error: String(avScanError) },
+              avScanAt: new Date()
+            }
+          })() : {}
 
           await prisma.attachment.create({
             data: {

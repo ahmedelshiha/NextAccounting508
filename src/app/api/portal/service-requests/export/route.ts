@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -15,6 +16,11 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return new NextResponse('Unauthorized', { status: 401 })
+  }
+
+  const ip = getClientIp(req as any)
+  if (!rateLimit(`portal:service-requests:export:${ip}`, 3, 60_000)) {
+    return new NextResponse('Too many requests', { status: 429 })
   }
 
   const { searchParams } = new URL(req.url)

@@ -52,6 +52,10 @@ export default function ServiceRequestsClient() {
   const [status, setStatus] = useState<string>(searchParams.get('status') || 'ALL')
   const [q, setQ] = useState<string>(searchParams.get('q') || '')
   const [debouncedQ, setDebouncedQ] = useState<string>(q)
+  const [page, setPage] = useState<number>(parseInt(searchParams.get('page') || '1', 10) || 1)
+  const [limit, setLimit] = useState<number>(parseInt(searchParams.get('limit') || '10', 10) || 10)
+  const [totalPages, setTotalPages] = useState<number>(1)
+  const [total, setTotal] = useState<number>(0)
 
   const exportCSV = async () => {
     if (!items.length) return
@@ -99,9 +103,15 @@ export default function ServiceRequestsClient() {
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
     if (debouncedQ) params.set('q', debouncedQ)
+    params.set('page', String(page))
+    params.set('limit', String(limit))
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [status, debouncedQ, router])
+  }, [status, debouncedQ, page, limit, router])
+
+  useEffect(() => {
+    setPage(1)
+  }, [status, debouncedQ, limit])
 
   useEffect(() => {
     async function load() {
@@ -110,10 +120,20 @@ export default function ServiceRequestsClient() {
         const params = new URLSearchParams()
         if (status && status !== 'ALL') params.set('status', status)
         if (debouncedQ) params.set('q', debouncedQ)
+        params.set('page', String(page))
+        params.set('limit', String(limit))
         const res = await apiFetch(`/api/portal/service-requests${params.toString() ? `?${params}` : ''}`)
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         setItems(Array.isArray(json.data) ? json.data : [])
+        const pg = (json as any).pagination || (json as any).meta?.pagination
+        if (pg) {
+          setTotalPages(Number(pg.totalPages) || 1)
+          setTotal(Number(pg.total) || 0)
+        } else {
+          setTotalPages(1)
+          setTotal(Array.isArray(json.data) ? json.data.length : 0)
+        }
       } finally {
         setLoading(false)
       }
@@ -189,6 +209,16 @@ export default function ServiceRequestsClient() {
                 <SelectItem value="DRAFT">Draft</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
+              <SelectTrigger className="w-28">
+                <SelectValue placeholder="Per page" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="20">20 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {(q || (status && status !== 'ALL')) && (
             <button
@@ -249,6 +279,17 @@ export default function ServiceRequestsClient() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+        {!loading && items.length > 0 && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-600">
+              Page {page} of {totalPages}{total ? ` • ${total} total` : ''}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+            </div>
           </div>
         )}
       </div>
