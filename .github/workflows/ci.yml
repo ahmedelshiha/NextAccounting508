@@ -15,6 +15,7 @@ jobs:
     env:
       CI: true
       PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT: "60000"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - name: Checkout
