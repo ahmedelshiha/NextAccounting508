@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 // GET /api/admin/stats/posts - Get blog post statistics
 export async function GET(request: NextRequest) {
@@ -18,6 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const tenantId = getTenantFromRequest(request as unknown as Request)
     const rangeParam = (searchParams.get('range') || '').toLowerCase()
     const days = rangeParam === '7d' ? 7 : rangeParam === '30d' ? 30 : rangeParam === '90d' ? 90 : rangeParam === '1y' ? 365 : 0
 
@@ -27,17 +31,18 @@ export async function GET(request: NextRequest) {
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
     // Get total posts count
-    const total = await prisma.post.count()
+    const total = await prisma.post.count({ where: tenantFilter(tenantId) })
 
     // Get posts by status
     const [published, drafts] = await Promise.all([
-      prisma.post.count({ where: { published: true } }),
-      prisma.post.count({ where: { published: false } })
+      prisma.post.count({ where: { ...tenantFilter(tenantId), published: true } }),
+      prisma.post.count({ where: { ...tenantFilter(tenantId), published: false } })
     ])
 
     // Get posts created this month
     const thisMonth = await prisma.post.count({
       where: {
+        ...tenantFilter(tenantId),
         createdAt: {
           gte: startOfMonth
         }
@@ -47,6 +52,7 @@ export async function GET(request: NextRequest) {
     // Get posts created last month for comparison
     const lastMonth = await prisma.post.count({
       where: {
+        ...tenantFilter(tenantId),
         createdAt: {
           gte: startOfLastMonth,
           lte: endOfLastMonth
@@ -60,6 +66,7 @@ export async function GET(request: NextRequest) {
     // Get posts published this month
     const publishedThisMonth = await prisma.post.count({
       where: {
+        ...tenantFilter(tenantId),
         published: true,
         publishedAt: {
           gte: startOfMonth
@@ -69,6 +76,7 @@ export async function GET(request: NextRequest) {
 
     // Get most recent posts
     const recentPosts = await prisma.post.findMany({
+      where: tenantFilter(tenantId),
       orderBy: {
         createdAt: 'desc'
       },
@@ -87,6 +95,7 @@ export async function GET(request: NextRequest) {
     // Group posts by author with count, ordered by count desc (cast orderBy for Prisma v6)
     const postsByAuthor = await prisma.post.groupBy({
       by: ['authorId'],
+      where: tenantFilter(tenantId),
       _count: { id: true },
     })
 
@@ -96,6 +105,7 @@ export async function GET(request: NextRequest) {
     const authorIds = postsByAuthor.map(item => item.authorId).filter((id): id is string => !!id)
     const authors = (await prisma.user.findMany({
       where: {
+        ...tenantFilter(tenantId),
         id: {
           in: authorIds
         }
@@ -123,6 +133,7 @@ export async function GET(request: NextRequest) {
       
       const count = await prisma.post.count({
         where: {
+          ...tenantFilter(tenantId),
           published: true,
           publishedAt: {
             gte: monthStart,
@@ -139,7 +150,7 @@ export async function GET(request: NextRequest) {
 
     // Get posts by category/tags (if you have categories)
     const postsByCategory = (await prisma.post.findMany({
-      where: { published: true },
+      where: { ...tenantFilter(tenantId), published: true },
       select: { tags: true }
     })) as Array<{ tags: string[] | null }>
 
@@ -162,8 +173,8 @@ export async function GET(request: NextRequest) {
     if (days > 0) {
       const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
       const prevStart = new Date(start.getTime() - days * 24 * 60 * 60 * 1000)
-      const inRange = await prisma.post.count({ where: { createdAt: { gte: start } } })
-      const prevRange = await prisma.post.count({ where: { createdAt: { gte: prevStart, lt: start } } })
+      const inRange = await prisma.post.count({ where: { ...tenantFilter(tenantId), createdAt: { gte: start } } })
+      const prevRange = await prisma.post.count({ where: { ...tenantFilter(tenantId), createdAt: { gte: prevStart, lt: start } } })
       const growthRange = prevRange > 0 ? ((inRange - prevRange) / prevRange) * 100 : 0
       ranged = { range: rangeParam, posts: inRange, growth: Math.round(growthRange * 100) / 100 }
     }

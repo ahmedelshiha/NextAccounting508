@@ -6,6 +6,9 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
@@ -21,6 +24,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
 
     const { id } = await context.params
+
+    // Tenant guard: ensure the target user belongs to current tenant when enabled
+    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const existing = await prisma.user.findFirst({ where: { id, ...tenantFilter(tenantId) }, select: { id: true } })
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
 
     // Rate limit role updates by client IP
     const ip = getClientIp(request as unknown as Request)
