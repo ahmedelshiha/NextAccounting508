@@ -30,7 +30,13 @@ export async function POST(req: Request) {
       const { default: prisma } = await import('@/lib/prisma')
       const attach = await prisma.attachment.findUnique({ where: { key } }).catch(() => null)
       if (attach) {
-        await prisma.attachment.update({ where: { id: attach.id }, data: { avStatus: clean ? 'clean' : 'infected', avDetails: result } })
+        await prisma.attachment.update({ where: { id: attach.id }, data: {
+          avStatus: clean ? 'clean' : 'infected',
+          avDetails: result,
+          avScanAt: new Date(),
+          avThreatName: result?.threat_name || result?.threatName || null,
+          avScanTime: typeof result?.scan_time === 'number' ? result.scan_time : (typeof result?.scanTime === 'number' ? result.scanTime : null)
+        } })
         try { await logAuditSafe({ action: 'upload:av_update', details: { key, attachmentId: attach.id, avStatus: clean ? 'clean' : 'infected' } }) } catch {}
       } else {
         // Fallback: try text-search on service_requests.attachments JSON
