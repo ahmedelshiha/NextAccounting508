@@ -114,6 +114,23 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ## Current Status: Paused (2025-09-20)
 
+ClamAV Deployment Plan (Analyze & Plan)
+- Setup ClamAV service (container) behind a simple HTTP API (/health, /scan, /update)
+- Configure hosting env vars: UPLOADS_PROVIDER, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, (optional) UPLOADS_AV_API_KEY
+- Wire Next.js APIs:
+  - /api/uploads runs pre-store AV scan against UPLOADS_AV_SCAN_URL
+  - /api/uploads/av-callback handles async provider callbacks (optional)
+  - /api/cron/rescan-attachments retries avStatus: 'error' and quarantines infected
+- Schedule rescans with GitHub Actions (clamav-rescan.yml) using secrets CRON_TARGET_URL and CRON_SECRET
+- Netlify/Vercel: add CRON_SECRET; set envs; map AV service URL (proxy if needed)
+- Optional: add /api/cron/av-update to trigger signature refresh when desired
+
+Dependencies
+- ClamAV container (Docker) and simple wrapper service with API key
+- Hosting env variables (Netlify/GitHub secrets) set
+- Storage provider configured (Netlify Blobs) for quarantine moves
+
+
 Summary
 - Project is paused pending CI/CD execution of Prisma generate/migrate/seed and validation in staging.
 - Local environment supports DB-disabled fallbacks; full feature verification requires NETLIFY_DATABASE_URL + CI migration run (Neon recommended).
