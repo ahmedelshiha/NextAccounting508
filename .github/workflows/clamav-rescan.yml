@@ -1,34 +1,24 @@
-name: ClamAV Rescan Cron
+name: ClamAV Rescan
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # every 30 minutes
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
-  trigger:
+  rescan:
     runs-on: ubuntu-latest
     steps:
-      - name: Pre-check required secrets
+      - name: Pre-check secrets
         run: |
           if [ -z "${{ secrets.CRON_TARGET_URL }}" ] || [ -z "${{ secrets.CRON_SECRET }}" ]; then
-            echo "CRON_TARGET_URL or CRON_SECRET not set - skipping run"
-            exit 0
+            echo "CRON secrets missing; skipping run." && exit 0
           fi
-
       - name: Trigger rescan endpoint
-        env:
-          CRON_TARGET_URL: ${{ secrets.CRON_TARGET_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          set -euo pipefail
-          echo "Calling $CRON_TARGET_URL/api/cron/rescan-attachments"
-          # Send POST and capture HTTP status
-          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$CRON_TARGET_URL/api/cron/rescan-attachments" -H "x-cron-secret: $CRON_SECRET") || true
-          echo "HTTP status: $STATUS"
-          if [ "$STATUS" -ge 500 ]; then
-            echo "Server error when calling rescan endpoint (HTTP $STATUS)" >&2
-            exit 1
-          fi
-          # Consider non-5xx as informational (e.g., 401/400) - workflow will not fail to avoid noise
-          echo "Rescan triggered (status $STATUS)"
+          set -e
+          curl -sS -X POST "${{ secrets.CRON_TARGET_URL }}/api/cron/rescan-attachments" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "\nStatus: %{http_code}\n"
