@@ -326,6 +326,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Marked project as Paused and added a consolidated "Remaining Work (Paused)" checklist for quick resumption.
+  - Updated: docs/service-portal-TODO+log.md (status/date, consolidated checklist)
+  - Why: Provide a single, actionable list of unfinished items and clear current status for future resume.
+  - Next: Connect CI (Netlify + Neon) and run migrations/seeds; proceed through checklist in order.
 - [x] 2025-09-19: Scoped team-management endpoints by tenant and added Node runtime.
   - Updated: src/app/api/admin/team-management/{workload,availability,skills,assignments}/route.ts
   - Why: Enforce tenant isolation consistently across admin APIs; safe no-op unless MULTI_TENANCY_ENABLED is true.
