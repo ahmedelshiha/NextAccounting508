@@ -49,7 +49,7 @@ export default function AdminNewServiceRequestPage() {
           const resSvcs = await apiFetch('/api/services', { signal: abort.signal })
           const jsonSvcs = await resSvcs.json().catch(() => [])
           const list = Array.isArray(jsonSvcs) ? jsonSvcs : (jsonSvcs?.data || [])
-          const mapped: ServiceItem[] = list.map((s: any) => ({ id: s.id, name: s.name || 'Service' }))
+          const mapped: ServiceItem[] = list.map((s: any) => ({ id: s.id, name: s.name || 'Service', price: s.price ?? null, slug: s.slug, shortDesc: s.shortDesc, features: s.features }))
           setServices(mapped)
         } catch {}
       } finally {
