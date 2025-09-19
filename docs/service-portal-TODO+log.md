@@ -13,6 +13,61 @@ Current status
 Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
 
 Quick Resume Checklist (Paused) — Actionable steps to resume safely:
+
+## Remaining Work (Paused) — Actionable Checklist
+Below is a concise, prioritized list of unfinished tasks required to resume full production work. Each item is actionable, owner-assigned, and includes the next command or verification step.
+
+1. Connect Database & Provider (infra/ops)
+   - What: Connect Neon/Postgres in Netlify and set NETLIFY_DATABASE_URL (and DATABASE_URL), NETLIFY_DATABASE_URL_UNPOOLED (optional), NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, NEXTAUTH_SECRET, NEXTAUTH_URL.
+   - Why: CI migration/seed and runtime DB-backed features require a real DB and provider tokens.
+   - Next: In Netlify site settings add envs OR use [Open MCP popover](#open-mcp-popover) to connect Neon and Netlify. Verify `pnpm db:generate` runs locally or in CI.
+
+2. Add CI/GitHub Secrets (infra)
+   - What: Add DATABASE_URL, CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID to GitHub repository secrets.
+   - Why: CI workflows (.github/workflows/ci.yml, clamav-rescan.yml, deploy-netlify.yml) require these to run migrations, scheduled rescans, and deploys.
+   - Next: Add secrets in GitHub > Settings > Secrets, then trigger CI (push or manual dispatch).
+
+3. Run CI Migrations & Seed (infra/backend)
+   - What: Run `pnpm db:generate && pnpm db:migrate && pnpm db:seed` in CI (GitHub Actions or Netlify build). Ensure exit code 0.
+   - Why: Applies schema changes (Attachment, QuarantineItem, AVScanLog) and seeds roles/templates/permissions needed by APIs and UI.
+   - Next: Trigger CI; verify /api/admin/permissions and direct DB queries show seeded roles CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN.
+
+4. Configure Uploads & AV (infra/backend)
+   - What: Set UPLOADS_PROVIDER=netlify (or supabase) and provide NETLIFY_BLOBS_TOKEN (or Supabase vars). Set UPLOADS_AV_SCAN_URL and UPLOADS_AV_API_KEY (CLAMAV_API_KEY) to point at the ClamAV service.
+   - Why: Enables production uploads, AV scanning, and quarantine moves.
+   - Next: Deploy ClamAV service (see clamav-service/) or point to hosted AV endpoint; set UPLOADS_* envs in Netlify.
+
+5. Validate Staging End-to-End (QA)
+   - What: Smoke tests: create portal request, upload attachments (clean & infected test payloads), verify AV webhook updates or quarantine moves, assign via admin, progress status, realtime events, CSV export.
+   - Why: Confirms DB, uploads, AV, realtime, and export behavior before production.
+   - Next: Run manual scenarios and automated e2e if available; log issues and retest.
+
+6. Enable Durable Realtime (ops)
+   - What: Set REALTIME_TRANSPORT=postgres and REALTIME_PG_URL in staging; validate LISTEN/NOTIFY cross-instance delivery and reconnection/backoff.
+   - Why: Required for multi-instance realtime reliability in production.
+   - Next: Set envs, deploy, and exercise multi-node scenario in staging.
+
+7. Schedule Cron Rescans (ops)
+   - What: Add CRON_TARGET_URL and CRON_SECRET; enable/dispatch .github/workflows/clamav-rescan.yml (every 30m) to POST /api/cron/rescan-attachments.
+   - Why: Retry avStatus='error' attachments and quarantine infected results automatically.
+   - Next: Add secrets, dispatch workflow, and verify run logs and endpoint responses.
+
+8. Observability & Alerts (ops)
+   - What: Set SENTRY_DSN, configure health checks for ClamAV and critical endpoints, create alerts for high error/infected rates.
+   - Why: Operational visibility and incident response.
+   - Next: Add SENTRY_DSN in Netlify and GitHub secrets; verify errors appear in Sentry after a staging test.
+
+9. Tests & e2e (dev/QA)
+   - What: Add e2e tests (Playwright/Cypress) covering upload->AV->quarantine + admin triage flows; unskip DB tests and increase coverage thresholds.
+   - Why: Ensure regressions are caught in CI before production changes.
+   - Next: Add tests to tests/ and include in .github/workflows/ci.yml run steps.
+
+10. Cleanup Dev Fallbacks (dev)
+    - What: Remove dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json once CI seeds validated and staging is green.
+    - Why: Prevent accidental use of dev-only paths in production.
+    - Next: Remove code and run full CI; retain migration/rollback plan.
+
+---
 - [ ] Connect Neon in Netlify and set required envs: NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL. (owner: infra/ops)
 - [ ] Set UPLOADS_PROVIDER and provider secrets (NETLIFY_BLOBS_TOKEN or SUPABASE_*). Set UPLOADS_AV_SCAN_URL and UPLOADS_AV_API_KEY (or CLAMAV_API_KEY) and CRON_TARGET_URL/CRON_SECRET in repo secrets (owner: infra/ops)
 - [ ] Trigger CI build that runs: pnpm db:generate && pnpm db:migrate && pnpm db:seed. Verify exit code 0 and seed contents (roles, templates, permissions). (owner: infra/backend)
