@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 // GET /api/admin/activity?type=AUDIT&status=INFO&q=text&page=1&limit=20
 export async function GET(request: NextRequest) {
@@ -14,6 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const tenantId = getTenantFromRequest(request as unknown as Request)
     const limitParam = searchParams.get('limit')
     const pageParam = searchParams.get('page')
     const statusParam = searchParams.get('status')
@@ -43,7 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data, pagination: { page, limit: take, total, totalPages: Math.max(1, Math.ceil(total / take)) } })
     }
 
-    const where: any = { service: type }
+    const where: any = { ...tenantFilter(tenantId), service: type }
     if (statusParam && statusParam !== 'ALL') where.status = statusParam
     if (q) where.message = { contains: q, mode: 'insensitive' as const }
 
