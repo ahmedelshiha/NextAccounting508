@@ -89,6 +89,7 @@ export async function POST(request: Request) {
     return respond.unauthorized()
   }
 
+  const tenantId = getTenantFromRequest(request as any)
   const ip = getClientIp(request)
   if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
     return respond.tooMany()
