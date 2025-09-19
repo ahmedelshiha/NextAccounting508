@@ -1,7 +1,9 @@
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 
-const FILE = path.resolve(process.cwd(), 'temp', 'dev-fallbacks.json')
+const TMPDIR = process.env.NETLIFY_TEMP_DIR || process.env.TMPDIR || os.tmpdir()
+const FILE = path.resolve(TMPDIR, 'dev-fallbacks.json')
 
 function readData() {
   try {
