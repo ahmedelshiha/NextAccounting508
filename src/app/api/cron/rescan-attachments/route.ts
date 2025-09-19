@@ -64,7 +64,16 @@ export async function POST(req: Request) {
         // Call AV scan
         try {
           const { clean, details } = await scanBuffer(buf)
-          await prisma.attachment.update({ where: { id: it.id }, data: { avStatus: clean ? 'clean' : 'infected', avDetails: details } })
+          await prisma.attachment.update({
+            where: { id: it.id },
+            data: {
+              avStatus: clean ? 'clean' : 'infected',
+              avDetails: details,
+              avScanAt: new Date(),
+              avThreatName: details?.threat_name || details?.threatName || null,
+              avScanTime: typeof details?.scan_time === 'number' ? details.scan_time : (typeof details?.scanTime === 'number' ? details.scanTime : null)
+            }
+          })
           results.push({ id: it.id, key: it.key, status: clean ? 'clean' : 'infected' })
           try { await logAuditSafe({ action: 'upload:rescan', details: { id: it.id, key: it.key, status: clean ? 'clean' : 'infected' } }) } catch {}
 
