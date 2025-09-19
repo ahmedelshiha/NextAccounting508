@@ -50,17 +50,13 @@ jobs:
         run: pnpm db:generate
 
       - name: Run Prisma migrations (if DATABASE_URL is provided)
-        if: ${{ secrets.DATABASE_URL != '' }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: |
           pnpm db:migrate || pnpm exec prisma migrate resolve --applied 0002_add_tenant_columns || true
           pnpm db:migrate
 
       - name: Seed database (if DATABASE_URL is provided)
-        if: ${{ secrets.DATABASE_URL != '' }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:seed
 
       - name: Typecheck
