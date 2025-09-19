@@ -258,6 +258,6 @@ export async function POST(request: Request) {
         return respond.serverError()
       }
     }
-    return respond.serverError('Failed to create service request')
+    return respond.serverError('Failed to create service request', { code, message: msg })
   }
 }
