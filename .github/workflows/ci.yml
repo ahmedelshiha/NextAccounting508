@@ -33,6 +33,15 @@ jobs:
           version: 10
           run_install: false
 
+      - name: Ensure pnpm in PATH
+        run: |
+          if command -v pnpm >/dev/null 2>&1; then
+            echo "$(pnpm bin)" >> $GITHUB_PATH
+          else
+            corepack enable && corepack prepare pnpm@latest --activate
+            echo "$(pnpm bin)" >> $GITHUB_PATH
+          fi
+
       - name: Show pnpm version
         run: pnpm -v
 
