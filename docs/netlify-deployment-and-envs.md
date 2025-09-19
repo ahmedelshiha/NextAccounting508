@@ -8,6 +8,24 @@ Important: Do NOT commit secrets. Set them in Netlify dashboard or via the Build
 
 ## Required environment variables
 
+- UPLOADS_PROVIDER
+  - Provider name; e.g. `netlify` or `supabase`. Must be set to enable uploads flow.
+- NETLIFY_BLOBS_TOKEN
+  - Token for Netlify Blobs provider when UPLOADS_PROVIDER=netlify. Required to enable production uploads and quarantine moves.
+- UPLOADS_AV_SCAN_URL (optional)
+  - URL of antivirus webhook to scan uploaded files (POST callback). The uploads endpoint supports best-effort AV webhook. Example: https://clamav.example.com/scan
+- UPLOADS_AV_API_KEY or CLAMAV_API_KEY (optional)
+  - API key for the AV service; sent to AV endpoint as X-API-KEY. Keep secret.
+- UPLOADS_AV_CALLBACK_SECRET (optional)
+  - Secret expected by /api/uploads/av-callback to authenticate provider callbacks.
+- CRON_SECRET (optional)
+  - Secret used by scheduled jobs (GitHub Actions) to authenticate requests to /api/cron/rescan-attachments.
+- CRON_TARGET_URL (optional)
+  - Public base URL used by GitHub Actions workflow to POST to /api/cron/rescan-attachments.
+
+
+## Netlify build settings (recommended)
+
 - DATABASE_URL (or NETLIFY_DATABASE_URL)
   - Production DB connection (Neon/Postgres). Example: postgres://user:pass@host:5432/db
   - Used by Prisma (generate/migrate/seed) and runtime Prisma client.
