@@ -3,7 +3,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 
 const compat = new FlatCompat({ baseDirectory: process.cwd() });
 
-export default [
+const config = [
   // Global ignores (prevents parsing of temporary/generated folders)
   {
     ignores: [
@@ -51,6 +51,14 @@ export default [
     },
   },
 
+  // Allow require in prisma wrapper for lazy client creation
+  {
+    files: ["src/lib/prisma.ts"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+
   // Declaration files and Next generated env types
   {
     files: ["**/*.d.ts", "next-env.d.ts"],
@@ -60,3 +68,5 @@ export default [
     },
   },
 ];
+
+export default config;
