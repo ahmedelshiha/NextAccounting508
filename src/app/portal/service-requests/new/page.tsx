@@ -157,15 +157,18 @@ export default function NewServiceRequestPage() {
         uploadError: result.error,
       }))
 
+      const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name } : undefined
+
       const res = await apiFetch('/api/portal/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serviceId,
-          title,
+          // title will be auto-generated server-side when omitted
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
+          requirements: { serviceSnapshot },
           attachments,
         }),
       })
