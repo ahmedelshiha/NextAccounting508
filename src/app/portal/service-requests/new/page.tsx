@@ -23,8 +23,9 @@ export default function NewServiceRequestPage() {
   const router = useRouter()
   const [services, setServices] = useState<Service[]>([])
   const [serviceId, setServiceId] = useState('')
-  const [title, setTitle] = useState('')
+  // Title will be auto-generated server-side; keep notes in `description` field
   const [description, setDescription] = useState('')
+  const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [priority, setPriority] = useState<Priority>('MEDIUM')
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
