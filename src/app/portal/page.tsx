@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 interface Booking {
   id: string
@@ -95,8 +96,8 @@ export default function PortalPage() {
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b))
         toast.success('Appointment cancelled')
       } else {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to cancel appointment')
+        const errBody = await res.json().catch(() => ({}))
+        toast.error(getApiErrorMessage(errBody, 'Failed to cancel appointment'))
       }
     } catch (e) {
       console.error('Cancel error', e)
