@@ -50,10 +50,11 @@ export async function POST(request: Request) {
   }
 
   // Optional antivirus scan (best-effort) before storing
+  let avScanResult: any = null
   if (process.env.UPLOADS_AV_SCAN_URL) {
     try {
-      const { clean } = await scanBuffer(buf)
-      if (!clean) {
+      avScanResult = await scanBuffer(buf)
+      if (!avScanResult?.clean) {
         try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed' } }) } catch {}
         return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
       }
