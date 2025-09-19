@@ -357,6 +357,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Portal list pagination UI and CSV export rate limiting.
+  - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx (server-driven pagination: page/limit state, URL sync, controls)
+  - Updated: src/app/api/portal/service-requests/export/route.ts (IP-based rate limit to protect CSV export)
+  - Why: Improve usability and performance for large lists; protect export endpoint from abuse.
+  - Next: Add e2e tests for export filtering and pagination; consider streaming CSV for very large datasets.
 - [x] 2025-09-19: Added pagination and result counts to Admin Quarantine console and API.
   - Updated: src/app/api/admin/uploads/quarantine/route.ts (db pagination: page/limit, provider in-memory paging; returns meta)
   - Updated: src/app/admin/uploads/quarantine/QuarantineClient.tsx (UI pagers, totals, query-param sync for db/provider pages)
