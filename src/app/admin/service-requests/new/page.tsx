@@ -80,11 +80,12 @@ export default function AdminNewServiceRequestPage() {
     setSaving(true); setError(null)
     try {
       const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name, price: selectedService.price ?? null, slug: selectedService.slug ?? null, shortDesc: selectedService.shortDesc ?? null } : undefined
+      const deadlineIso = form.deadline ? new Date(form.deadline).toISOString() : undefined
       const payload: any = {
         ...form,
         budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined,
         budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined,
-        deadline: form.deadline || undefined,
+        deadline: deadlineIso,
         requirements: {
           ...(form as any).requirements,
           serviceSnapshot,
