@@ -395,6 +395,24 @@ export default function PortalServiceRequestDetailPage() {
                                   )
                                 })}
                               </ul>
+                              {(() => {
+                                const hasInfected = c.attachments.some((a: any) => {
+                                  const s: string | undefined = a?.avStatus ?? (typeof a?.avDetails?.clean === 'boolean' ? (a.avDetails.clean ? 'clean' : 'infected') : undefined)
+                                  return s === 'infected'
+                                })
+                                const role = (session as any)?.user?.role
+                                if (!hasInfected) return null
+                                return (
+                                  <div className="mt-2 flex items-center justify-between rounded-md bg-red-50 px-3 py-2">
+                                    <p className="text-xs text-red-700">A comment contains an infected file.</p>
+                                    {role && role !== 'CLIENT' && (
+                                      <Button variant="destructive" size="sm" asChild>
+                                        <Link href="/admin/uploads/quarantine">Open Quarantine Console</Link>
+                                      </Button>
+                                    )}
+                                  </div>
+                                )
+                              })()}
                             </div>
                           )}
                         </div>
