@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+
+type ServiceRequestWithRelations = Prisma.ServiceRequestGetPayload<{
+  include: {
+    client: { select: { id: true; name: true; email: true } };
+    service: { select: { id: true; name: true; slug: true } };
+    assignedTeamMember: { select: { id: true; name: true; email: true } };
+  };
+}>;
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
@@ -54,7 +63,7 @@ export async function GET(request: Request) {
       // Page through results to avoid loading all in memory
       // Order by createdAt desc for deterministic pagination
       for (;;) {
-        const batch = await prisma.serviceRequest.findMany({
+        const batch: ServiceRequestWithRelations[] = await prisma.serviceRequest.findMany({
           where,
           include: {
             client: { select: { id: true, name: true, email: true } },
