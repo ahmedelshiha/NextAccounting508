@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
