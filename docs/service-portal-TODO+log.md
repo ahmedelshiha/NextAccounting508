@@ -297,6 +297,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Scoped team-management endpoints by tenant and added Node runtime.
+  - Updated: src/app/api/admin/team-management/{workload,availability,skills,assignments}/route.ts
+  - Why: Enforce tenant isolation consistently across admin APIs; safe no-op unless MULTI_TENANCY_ENABLED is true.
+  - Next: Extend tenant scoping to remaining admin endpoints (users, stats) and run Prisma migration in CI to add tenantId fields.
 - [x] 2025-09-20: Scoped remaining admin service-requests routes for multi-tenancy.
   - Updated: src/app/api/admin/service-requests/[id]/assign/route.ts, [id]/status/route.ts, [id]/tasks/route.ts, [id]/comments/route.ts, bulk/route.ts, export/route.ts, analytics/route.ts
   - Why: Enforce tenant isolation across admin APIs; safe no-op when MULTI_TENANCY_ENABLED is false or schema lacks tenantId.
