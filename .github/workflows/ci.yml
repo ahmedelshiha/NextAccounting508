@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup pnpm before Node.js setup-node cache
+      # Setup pnpm (set the version only here)
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
