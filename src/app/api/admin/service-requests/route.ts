@@ -184,6 +184,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Validate foreign keys explicitly to return clear errors instead of 500
+    const [clientExists, serviceExists] = await Promise.all([
+      prisma.user.findUnique({ where: { id: data.clientId }, select: { id: true } }),
+      prisma.service.findUnique({ where: { id: data.serviceId }, select: { id: true } }),
+    ])
+    if (!clientExists) return respond.badRequest('Invalid clientId')
+    if (!serviceExists) return respond.badRequest('Invalid serviceId')
+
     const created = await prisma.serviceRequest.create({
       data: {
         clientId: data.clientId,
