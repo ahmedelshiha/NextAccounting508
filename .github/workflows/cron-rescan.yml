@@ -1,0 +1,37 @@
+name: Cron - Rescan Attachments
+
+on:
+  schedule:
+    # Daily at 03:00 UTC — adjust as needed in Netlify/staging timezone
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  rescan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Call rescan endpoint
+        env:
+          CRON_TARGET_URL: ${{ secrets.CRON_TARGET_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_TARGET_URL" ]; then
+            echo "CRON_TARGET_URL secret is not set. Set this to the base URL of the app (e.g. https://staging.example.com)" >&2
+            exit 1
+          fi
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET secret is not set. Set to the same value as NEXT_CRON_SECRET/CRON_SECRET used by the app." >&2
+            exit 1
+          fi
+
+          echo "Posting to $CRON_TARGET_URL/api/cron/rescan-attachments"
+          HTTP_STATUS=$(curl -s -o /tmp/cron_resp.txt -w "%{http_code}" -X POST "$CRON_TARGET_URL/api/cron/rescan-attachments" -H "x-cron-secret: $CRON_SECRET" -H "Accept: application/json")
+          echo "Response status: $HTTP_STATUS"
+          cat /tmp/cron_resp.txt || true
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "Rescan endpoint returned non-2xx" >&2
+            exit 1
+          fi
