@@ -336,7 +336,7 @@ export default function PortalServiceRequestDetailPage() {
                           <p className="text-sm text-red-700">One or more files appear infected and may be quarantined.</p>
                           {role && role !== 'CLIENT' && (
                             <Button variant="destructive" asChild>
-                              <Link href="/admin/uploads/quarantine">Open Quarantine Console</Link>
+                              <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>Open Quarantine Console</Link>
                             </Button>
                           )}
                         </div>
@@ -407,7 +407,7 @@ export default function PortalServiceRequestDetailPage() {
                                     <p className="text-xs text-red-700">A comment contains an infected file.</p>
                                     {role && role !== 'CLIENT' && (
                                       <Button variant="destructive" size="sm" asChild>
-                                        <Link href="/admin/uploads/quarantine">Open Quarantine Console</Link>
+                                        <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>Open Quarantine Console</Link>
                                       </Button>
                                     )}
                                   </div>
