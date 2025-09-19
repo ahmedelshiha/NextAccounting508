@@ -101,6 +101,7 @@ export async function POST(request: Request) {
         // Persist Attachment record in DB (best-effort)
         try {
           const { default: prisma } = await import('@/lib/prisma')
+          const tenantId = getTenantFromRequest(request)
           await prisma.attachment.create({
             data: {
               key,
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
               size: buf.length,
               contentType: detectedMime || undefined,
               provider: 'netlify',
+              ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
             }
           })
         } catch (e) {
