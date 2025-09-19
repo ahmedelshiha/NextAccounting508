@@ -28,6 +28,7 @@ export default function AdminNewServiceRequestPage() {
   const [clients, setClients] = useState<ClientItem[]>([])
   const [services, setServices] = useState<ServiceItem[]>([])
   const [loadingLists, setLoadingLists] = useState(false)
+  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null)
 
   useEffect(() => {
     const abort = new AbortController()
