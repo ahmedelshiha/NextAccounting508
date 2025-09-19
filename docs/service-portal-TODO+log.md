@@ -303,7 +303,7 @@ How to Resume
   - Updated: src/app/middleware.ts (inject x-tenant-id from subdomain when enabled)
   - Updated: src/app/api/portal/service-requests/{route.ts,[id]/route.ts} (tenant-aware list/create and detail checks, safe until schema adds tenantId)
   - Why: Prepare for tenant scoping without breaking current schema; enables gradual rollout.
-  - Next: Add tenantId columns + indexes via Prisma migration; extend scoping across admin APIs and seeds.
+  - Next: Extend scoping across remaining admin/portal APIs and seeds; run Prisma migrate in CI to apply tenantId fields.
   - Updated: src/lib/api-error.ts (new helper getApiErrorMessage)
   - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx, src/app/portal/page.tsx (use helper for toasts; clearer messages)
   - Updated: src/app/portal/service-requests/[id]/page.tsx (render comment attachments with AV status indicators)
