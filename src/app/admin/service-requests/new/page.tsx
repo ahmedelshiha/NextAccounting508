@@ -70,7 +70,17 @@ export default function AdminNewServiceRequestPage() {
     if (!form.clientId || !form.serviceId) { setError('Select client and service'); return }
     setSaving(true); setError(null)
     try {
-      const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline || undefined }
+      const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name, price: selectedService.price ?? null, slug: selectedService.slug ?? null, shortDesc: selectedService.shortDesc ?? null } : undefined
+      const payload: any = {
+        ...form,
+        budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined,
+        budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined,
+        deadline: form.deadline || undefined,
+        requirements: {
+          ...(form as any).requirements,
+          serviceSnapshot,
+        }
+      }
       const res = await apiFetch('/api/admin/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) { setError(getApiErrorMessage(j, 'Failed to create')); return }
