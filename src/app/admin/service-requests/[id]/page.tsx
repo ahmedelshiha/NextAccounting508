@@ -210,7 +210,10 @@ export default function AdminServiceRequestDetailPage() {
 
             {Array.isArray(item.attachments) && item.attachments.length > 0 && (
               <div>
-                <div className="text-sm text-gray-500 mb-1 flex items-center gap-2"><Paperclip className="h-4 w-4" /> Attachments</div>
+                <div className="text-sm text-gray-500 mb-1 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2"><Paperclip className="h-4 w-4" /> Attachments</span>
+                  <Button variant="outline" onClick={() => router.push(`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(params.id))}`)}>Open Quarantine</Button>
+                </div>
                 <ul className="space-y-1">
                   {item.attachments.map((a, idx) => (
                     <li key={idx} className="text-sm">
