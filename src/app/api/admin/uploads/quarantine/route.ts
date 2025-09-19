@@ -28,10 +28,12 @@ export async function GET(req: Request) {
     // Optional pagination params for DB list
     const dbPage = Math.max(1, parseInt(url.searchParams.get('dbPage') || url.searchParams.get('page') || '1', 10))
     const dbLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('dbLimit') || url.searchParams.get('limit') || '25', 10)))
+    const dbSort = (url.searchParams.get('dbSort') || 'uploadedAt_desc').toLowerCase()
 
     // Optional pagination params for provider list (client-side slice)
     const providerPage = Math.max(1, parseInt(url.searchParams.get('providerPage') || '1', 10))
     const providerLimit = Math.min(200, Math.max(1, parseInt(url.searchParams.get('providerLimit') || '25', 10)))
+    const providerSort = (url.searchParams.get('providerSort') || 'created_desc').toLowerCase()
 
     // Fetch DB attachments flagged as infected/quarantined with optional filters
     const { default: prisma } = await import('@/lib/prisma')
@@ -45,9 +47,17 @@ export async function GET(req: Request) {
       ]
     }
 
+    // Map dbSort to Prisma orderBy
+    let orderBy: any = { uploadedAt: 'desc' }
+    if (dbSort === 'uploadedat_asc') orderBy = { uploadedAt: 'asc' }
+    else if (dbSort === 'name_asc') orderBy = { name: 'asc' }
+    else if (dbSort === 'name_desc') orderBy = { name: 'desc' }
+    else if (dbSort === 'size_asc') orderBy = { size: 'asc' }
+    else if (dbSort === 'size_desc') orderBy = { size: 'desc' }
+
     const [dbTotal, dbItems] = await Promise.all([
       prisma.attachment.count({ where }),
-      prisma.attachment.findMany({ where, orderBy: { uploadedAt: 'desc' }, skip: (dbPage - 1) * dbLimit, take: dbLimit }),
+      prisma.attachment.findMany({ where, orderBy, skip: (dbPage - 1) * dbLimit, take: dbLimit }),
     ])
 
     // Try provider listing as well (optional)
@@ -74,8 +84,28 @@ export async function GET(req: Request) {
     const filteredProvider = providerFilter
       ? providerItems.filter((p: any) => String(p?.key || '').toLowerCase().includes(providerFilter))
       : providerItems
-    const providerTotal = filteredProvider.length
-    const providerPaged = filteredProvider.slice((providerPage - 1) * providerLimit, (providerPage - 1) * providerLimit + providerLimit)
+    // Sort provider list in-memory
+    const sortedProvider = (() => {
+      const arr = [...filteredProvider]
+      const cmp = (a: any, b: any) => 0
+      if (providerSort === 'created_desc') {
+        arr.sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime())
+      } else if (providerSort === 'created_asc') {
+        arr.sort((a, b) => new Date(a?.createdAt || 0).getTime() - new Date(b?.createdAt || 0).getTime())
+      } else if (providerSort === 'key_asc') {
+        arr.sort((a, b) => String(a?.key || '').localeCompare(String(b?.key || '')))
+      } else if (providerSort === 'key_desc') {
+        arr.sort((a, b) => String(b?.key || '').localeCompare(String(a?.key || '')))
+      } else if (providerSort === 'size_asc') {
+        arr.sort((a, b) => (a?.size || 0) - (b?.size || 0))
+      } else if (providerSort === 'size_desc') {
+        arr.sort((a, b) => (b?.size || 0) - (a?.size || 0))
+      }
+      return arr
+    })()
+
+    const providerTotal = sortedProvider.length
+    const providerPaged = sortedProvider.slice((providerPage - 1) * providerLimit, (providerPage - 1) * providerLimit + providerLimit)
 
     return NextResponse.json({
       success: true,
