@@ -43,8 +43,22 @@ export default function PortalServiceRequestsPage() {
   const [items, setItems] = useState<ServiceRequest[]>([])
   const [loading, setLoading] = useState(true)
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
     if (!items.length) return
+    try {
+      const res = await fetch('/api/portal/service-requests/export', { cache: 'no-store' })
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `service-requests-${new Date().toISOString().slice(0,10)}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+        return
+      }
+    } catch {}
+    // Fallback to client-side CSV generation if server export is unavailable
     const rows = items.map((r) => ({
       id: r.id,
       title: r.title,
