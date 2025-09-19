@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
@@ -19,11 +22,12 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const memberId = url.searchParams.get('memberId')
 
+    const tenantId = getTenantFromRequest(request)
     const where: any = {}
     if (memberId) where.assignedTeamMemberId = String(memberId)
 
     const rows = await prisma.serviceRequest.findMany({
-      where,
+      where: { ...where, ...tenantFilter(tenantId) },
       select: {
         id: true,
         title: true,

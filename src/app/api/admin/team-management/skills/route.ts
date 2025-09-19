@@ -3,10 +3,13 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
@@ -16,7 +19,8 @@ export async function GET() {
     return NextResponse.json({ data: [] })
   }
   try {
-    const members = await prisma.teamMember.findMany({ select: { id: true, name: true, specialties: true } })
+    const tenantId = getTenantFromRequest(req)
+    const members = await prisma.teamMember.findMany({ where: tenantFilter(tenantId), select: { id: true, name: true, specialties: true } })
     // Flatten unique skills
     const set = new Set<string>()
     members.forEach(m => (m.specialties || []).forEach(s => set.add(String(s))))
@@ -42,7 +46,8 @@ export async function PATCH(request: Request) {
     if (!body.memberId || !Array.isArray(body.specialties)) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
-    const updated = await prisma.teamMember.update({ where: { id: String(body.memberId) }, data: { specialties: body.specialties as any } })
+    const tenantId = getTenantFromRequest(request)
+    const updated = await prisma.teamMember.update({ where: { id: String(body.memberId), ...(tenantFilter(tenantId)) }, data: { specialties: body.specialties as any } })
     return NextResponse.json({ data: { id: updated.id, specialties: updated.specialties } })
   } catch (e) {
     console.error('Skills update error', e)

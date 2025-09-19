@@ -3,9 +3,12 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
-  void request
+  const tenantId = getTenantFromRequest(request as unknown as Request)
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
@@ -24,6 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await prisma.user.findMany({
+      where: tenantFilter(tenantId),
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, email: true, role: true, createdAt: true, _count: { select: { bookings: true } } }
     })
