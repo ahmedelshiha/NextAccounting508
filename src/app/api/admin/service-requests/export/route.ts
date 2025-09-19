@@ -3,13 +3,17 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) return new NextResponse('Unauthorized', { status: 401 })
 
+  const tenantId = getTenantFromRequest(request as any)
+
   const items = await prisma.serviceRequest.findMany({
+    where: { ...tenantFilter(tenantId) },
     include: {
       client: { select: { id: true, name: true, email: true } },
       service: { select: { id: true, name: true, slug: true } },

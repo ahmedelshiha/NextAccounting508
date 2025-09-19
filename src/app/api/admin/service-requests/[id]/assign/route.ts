@@ -9,6 +9,7 @@ import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 import { NextRequest } from 'next/server'
 
 const Schema = z.object({ teamMemberId: z.string().min(1) })
@@ -26,6 +27,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
+
+  const tenantId = getTenantFromRequest(req as any)
+  const existing = await prisma.serviceRequest.findUnique({ where: { id } })
+  if (!existing) return respond.notFound('Service request not found')
+  if (isMultiTenancyEnabled() && tenantId && (existing as any).tenantId && (existing as any).tenantId !== tenantId) {
+    return respond.notFound('Service request not found')
+  }
 
   const tm = await prisma.teamMember.findUnique({ where: { id: parsed.data.teamMemberId } })
   if (!tm) return respond.notFound('Team member not found')

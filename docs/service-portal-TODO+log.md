@@ -297,6 +297,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Scoped remaining admin service-requests routes for multi-tenancy.
+  - Updated: src/app/api/admin/service-requests/[id]/assign/route.ts, [id]/status/route.ts, [id]/tasks/route.ts, [id]/comments/route.ts, bulk/route.ts, export/route.ts, analytics/route.ts
+  - Why: Enforce tenant isolation across admin APIs; safe no-op when MULTI_TENANCY_ENABLED is false or schema lacks tenantId.
+  - Next: Add tenant scoping to any remaining admin endpoints and run Prisma migration in CI to add tenantId fields.
 - [x] 2025-09-19: Standardized API error handling and improved portal comments attachments UI.
 - [x] 2025-09-19: Multi-tenancy scaffolding behind feature flag (no DB changes yet).
   - Added: src/lib/tenant.ts (helpers: isMultiTenancyEnabled, getTenantFromRequest, tenantFilter)

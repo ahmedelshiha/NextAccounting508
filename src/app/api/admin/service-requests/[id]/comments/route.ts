@@ -8,6 +8,7 @@ import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 import { NextRequest } from 'next/server'
 
 const CreateCommentSchema = z.object({
@@ -15,12 +16,19 @@ const CreateCommentSchema = z.object({
   attachments: z.any().optional(),
 })
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
+  }
+
+  const tenantId = getTenantFromRequest(req as any)
+  const sr = await prisma.serviceRequest.findUnique({ where: { id } })
+  if (!sr) return respond.notFound('Service request not found')
+  if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
+    return respond.notFound('Service request not found')
   }
 
   const comments = await prisma.serviceRequestComment.findMany({
@@ -48,6 +56,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const parsed = CreateCommentSchema.safeParse(body)
   if (!parsed.success) {
     return respond.badRequest('Invalid payload', zodDetails(parsed.error))
+  }
+
+  const tenantId = getTenantFromRequest(req as any)
+  const sr = await prisma.serviceRequest.findUnique({ where: { id } })
+  if (!sr) return respond.notFound('Service request not found')
+  if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
+    return respond.notFound('Service request not found')
   }
 
   const created = await prisma.serviceRequestComment.create({
