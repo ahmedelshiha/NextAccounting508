@@ -8,6 +8,7 @@ import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const CreateSchema = z.object({
   clientId: z.string().min(1),
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
     q: searchParams.get('q'),
   }
 
+  const tenantId = getTenantFromRequest(request as any)
   const where: any = {
     ...(filters.status && { status: filters.status }),
     ...(filters.priority && { priority: filters.priority }),
@@ -65,6 +67,7 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    ...tenantFilter(tenantId),
   }
 
   const [items, total] = await Promise.all([
@@ -122,6 +125,7 @@ export async function POST(request: Request) {
       deadline: data.deadline ? new Date(data.deadline) : null,
       requirements: (data.requirements as any) ?? undefined,
       attachments: (data.attachments as any) ?? undefined,
+      ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
     },
     include: {
       client: { select: { id: true, name: true, email: true } },
