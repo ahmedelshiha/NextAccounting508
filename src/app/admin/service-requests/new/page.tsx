@@ -131,6 +131,22 @@ export default function AdminNewServiceRequestPage() {
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} placeholder="Describe the request" />
             </div>
 
+            {selectedService && (
+              <div className="p-3 bg-blue-50 border border-blue-100 rounded">
+                <p className="text-sm font-medium">Selected service: {selectedService.name}{selectedService.price != null ? ` — $${selectedService.price}` : ''}</p>
+                {selectedService.shortDesc && <p className="text-sm text-gray-700 mt-1">{selectedService.shortDesc}</p>}
+                {selectedService.features && selectedService.features.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs font-medium text-gray-600">Features:</p>
+                    <ul className="list-disc list-inside text-sm text-gray-700">
+                      {selectedService.features.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {selectedService.price == null && <p className="text-xs text-yellow-700 mt-2">Note: this service does not have a price set.</p>}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm text-gray-700">Priority</label>
