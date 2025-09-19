@@ -16,8 +16,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
-    if (!hasDb) {
+    let useFallback = false
+    try {
+      await prisma.$queryRaw`SELECT 1`
+    } catch (e: any) {
+      const code = String(e?.code || '')
+      if (code.startsWith('P10')) useFallback = true
+    }
+    if (useFallback) {
       const fallback = [
         { id: 'demo-admin', name: 'Admin User', email: 'admin@accountingfirm.com', role: 'ADMIN', createdAt: new Date().toISOString() },
         { id: 'demo-staff', name: 'Staff Member', email: 'staff@accountingfirm.com', role: 'STAFF', createdAt: new Date().toISOString() },
