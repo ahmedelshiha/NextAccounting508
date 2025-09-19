@@ -359,6 +359,13 @@ How to Resume
 ## Change Log
 - [x] 2025-09-19: Fixed Next.js build error (missing Suspense with useSearchParams) on portal/service-requests.
 - [x] 2025-09-20: Added quarantine console link when infected attachments are detected in portal views.
+- [x] 2025-09-20: Quarantine deep-link and filtering implemented.
+  - Added: src/app/admin/uploads/quarantine/QuarantineClient.tsx (client UI with filters; Suspense-wrapped page)
+  - Updated: src/app/admin/uploads/quarantine/page.tsx (server wrapper with <Suspense>)
+  - Updated: src/app/api/admin/uploads/quarantine/route.ts (supports serviceRequestId and q filters)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (links pass serviceRequestId)
+  - Why: Enable RBAC-safe deep linking for faster remediation of infected files tied to a specific request.
+  - Next: Add bulk actions and preselect filter from admin SR detail page.
   - Updated: src/app/portal/service-requests/[id]/page.tsx (shows red notice; if user role is not CLIENT, provides button linking to /admin/uploads/quarantine)
   - Why: Streamline operator remediation flow from context; clients still see status without elevated controls.
   - Next: Surface same notice on admin detail page; add bulk actions for delete/release with confirmation.
