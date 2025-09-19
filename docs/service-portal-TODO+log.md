@@ -301,6 +301,11 @@ How to Resume
   - Updated: unified job env and steps; fixed cache-dependency-path: pnpm-lock.yaml; removed conflict markers.
   - Why: PR showed <<<<<<< / ======= / >>>>>>> markers causing CI to be invalid YAML.
   - Next: Re-run CI; if green, enable deploy workflow or auto-merge rules.
+
+- [x] 2025-09-18: Fixed unreadable toast on Portal New Service Request (Error: [object Object]).
+  - Updated: src/app/portal/service-requests/new/page.tsx (extract server error.message from API error shape)
+  - Why: API returns { error: { code, message } }; UI was passing the whole object to toast, showing [object Object].
+  - Next: Audit other pages for similar pattern and standardize with a small helper.
 - [x] 2025-09-18: Added GitHub Actions CI with pnpm to fix missing pnpm error and enforce build/tests.
   - Added: .github/workflows/ci.yml (checkout, setup-node, pnpm/action-setup, install, prisma generate/migrate/seed, typecheck, lint, tests, build, artifact upload)
   - Why: GitHub runs failed with "Unable to locate executable file: pnpm"; ensures CI parity and reliable builds.
