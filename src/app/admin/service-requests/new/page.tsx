@@ -59,6 +59,12 @@ export default function AdminNewServiceRequestPage() {
     return () => abort.abort()
   }, [])
 
+  useEffect(() => {
+    if (!form.serviceId) { setSelectedService(null); return }
+    const found = services.find(s => String(s.id) === String(form.serviceId)) || null
+    setSelectedService(found)
+  }, [form.serviceId, services])
+
   const submit = async () => {
     if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE)) { setError('Not allowed'); return }
     if (!form.clientId || !form.serviceId) { setError('Select client and service'); return }
