@@ -6,10 +6,20 @@ on:
   pull_request:
     branches: [ main, master ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,22 +36,22 @@ jobs:
         with:
           version: 10.16.1
 
+      - name: Verify pnpm
+        run: pnpm -v
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:generate
 
       - name: Run Prisma migrations (deploy)
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:migrate
 
       - name: Seed database
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:seed
 
       - name: Typecheck
@@ -54,10 +64,6 @@ jobs:
         run: pnpm test:thresholds
 
       - name: Build Next.js
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
         run: pnpm build
 
       - name: Upload build artifact (optional)
@@ -66,3 +72,4 @@ jobs:
         with:
           name: next-build
           path: .next
+         

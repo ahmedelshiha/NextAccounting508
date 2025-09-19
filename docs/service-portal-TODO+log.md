@@ -297,6 +297,37 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-18: Resolved GitHub Actions CI merge conflict in .github/workflows/ci.yml.
+  - Updated: unified job env and steps; fixed cache-dependency-path: pnpm-lock.yaml; removed conflict markers.
+  - Why: PR showed <<<<<<< / ======= / >>>>>>> markers causing CI to be invalid YAML.
+  - Next: Re-run CI; if green, enable deploy workflow or auto-merge rules.
+
+- [x] 2025-09-18: Fixed unreadable toast on Portal New Service Request (Error: [object Object]).
+  - Updated: src/app/portal/service-requests/new/page.tsx (extract server error.message from API error shape)
+  - Why: API returns { error: { code, message } }; UI was passing the whole object to toast, showing [object Object].
+  - Next: Audit other pages for similar pattern and standardize with a small helper.
+
+- [x] 2025-09-18: Hardened Netlify Prisma migrate to avoid advisory lock timeouts (P1002) in previews.
+  - Updated: netlify.toml
+    - Use unpooled connection for migrate when NETLIFY_DATABASE_URL_UNPOOLED is available
+    - Skip migrate/seed on deploy-preview and branch-deploy contexts
+    - Increase PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT to 60000ms
+  - Why: Netlify deploy-previews failed with P1002 acquiring advisory lock on Neon. This avoids running migrations in previews and reduces lock contention in prod.
+  - Next: Verify deploy-preview builds succeed; confirm production deploy runs migrate/seed successfully.
+- [x] 2025-09-18: Added GitHub Actions CI with pnpm to fix missing pnpm error and enforce build/tests.
+  - Added: .github/workflows/ci.yml (checkout, setup-node, pnpm/action-setup, install, prisma generate/migrate/seed, typecheck, lint, tests, build, artifact upload)
+  - Why: GitHub runs failed with "Unable to locate executable file: pnpm"; ensures CI parity and reliable builds.
+  - Next: Add deploy-on-merge job and caching for Prisma if needed.
+
+- [x] 2025-09-18: Fixed Netlify build failure due to secrets scanning false-positives.
+  - Updated: netlify.toml ([build.environment] SECRETS_SCAN_OMIT_KEYS = "UPLOADS_PROVIDER,REALTIME_TRANSPORT")
+  - Why: Netlify secrets scanner flagged these env keys across build output, causing exit code 2.
+  - Next: Monitor deploy; if additional keys or paths are flagged, extend SECRETS_SCAN_OMIT_KEYS or add SECRETS_SCAN_OMIT_PATHS for build artifacts.
+
+- [x] 2025-09-18: Added optional Netlify deploy workflow from GitHub Actions.
+  - Added: .github/workflows/deploy-netlify.yml (build + deploy via netlify/actions/cli when NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID are set)
+  - Why: Enable deploy-on-push to main or manual dispatch directly from GitHub.
+  - Next: Set required secrets in GitHub repo and test a manual dispatch in staging.
 - [x] 2025-09-18: Portal create fallback now uses internal services route; added tests for portal comments.
   - Updated: src/app/api/portal/service-requests/route.ts (fallback no longer fetches localhost)
   - Added: tests/portal-comments.route.test.ts

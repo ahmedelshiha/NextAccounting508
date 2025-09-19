@@ -1,9 +1,17 @@
 [build]
-  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then pnpm db:migrate && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
+  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; pnpm db:migrate && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
+  SECRETS_SCAN_OMIT_KEYS = "UPLOADS_PROVIDER,REALTIME_TRANSPORT"
+  PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT = "60000"
+
+[context.deploy-preview]
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm build"
+
+[context.branch-deploy]
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm build"
 
 [dev]
   command = "pnpm dev"

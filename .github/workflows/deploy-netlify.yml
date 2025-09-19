@@ -1,13 +1,17 @@
 name: Deploy to Netlify
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    if: ${{ secrets.NETLIFY_AUTH_TOKEN && secrets.NETLIFY_SITE_ID }}
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,29 +19,32 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.16.1
 
       - name: Install dependencies
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NETLIFY_BLOBS_TOKEN: ${{ secrets.NETLIFY_BLOBS_TOKEN }}
+          REALTIME_TRANSPORT: ${{ secrets.REALTIME_TRANSPORT }}
+          NETLIFY_DATABASE_URL: ${{ secrets.NETLIFY_DATABASE_URL }}
         run: pnpm build
 
-      - name: Deploy to Netlify (requires NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID)
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN && secrets.NETLIFY_SITE_ID }}
+      - name: Netlify Deploy
+        uses: netlify/actions/cli@v2
+        with:
+          args: deploy --dir=.next --prod
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          npx netlify-cli deploy --dir=.next --prod --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
-
-      - name: Skip deploy if no Netlify secrets
-        if: ${{ !secrets.NETLIFY_AUTH_TOKEN || !secrets.NETLIFY_SITE_ID }}
-        run: echo "NETLIFY_AUTH_TOKEN or NETLIFY_SITE_ID not set; skipping deploy."
