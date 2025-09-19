@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export const runtime = 'nodejs'
 
 // GET /api/admin/services - List all services (active and inactive)
 export async function GET(request: NextRequest) {
@@ -16,6 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const tenantId = getTenantFromRequest(request as unknown as Request)
     const search = searchParams.get('search')?.trim()
     const featured = searchParams.get('featured')
     const active = searchParams.get('active')
@@ -37,7 +41,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(list)
     }
 
-    const where: Prisma.ServiceWhereInput = {}
+    const where: Prisma.ServiceWhereInput = { ...(tenantFilter(tenantId) as any) }
     if (featured === 'true') where.featured = true
     if (active === 'true') where.active = true
     if (active === 'false') where.active = false
