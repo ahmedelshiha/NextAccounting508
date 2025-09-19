@@ -297,6 +297,23 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Standardized API error handling and improved portal comments attachments UI.
+- [x] 2025-09-19: Multi-tenancy scaffolding behind feature flag (no DB changes yet).
+  - Added: src/lib/tenant.ts (helpers: isMultiTenancyEnabled, getTenantFromRequest, tenantFilter)
+  - Updated: src/app/middleware.ts (inject x-tenant-id from subdomain when enabled)
+  - Updated: src/app/api/portal/service-requests/{route.ts,[id]/route.ts} (tenant-aware list/create and detail checks, safe until schema adds tenantId)
+  - Why: Prepare for tenant scoping without breaking current schema; enables gradual rollout.
+  - Next: Extend scoping across remaining admin/portal APIs and seeds; run Prisma migrate in CI to apply tenantId fields.
+- [x] 2025-09-19: Tenant-aware uploads and portal comments validation.
+  - Updated: src/app/api/uploads/route.ts (persist Attachment.tenantId when enabled)
+  - Updated: src/app/api/portal/service-requests/[id]/comments/route.ts (validate tenant for GET/POST)
+  - Why: Keep files and comment access isolated per tenant.
+  - Next: Scope remaining admin routes (status/assign/tasks/bulk/export/analytics) and portal list filters where applicable.
+  - Updated: src/lib/api-error.ts (new helper getApiErrorMessage)
+  - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx, src/app/portal/page.tsx (use helper for toasts; clearer messages)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (render comment attachments with AV status indicators)
+  - Why: Consistent, user-friendly errors across portal; improved transparency for attachments scan results.
+  - Next: Apply helper across remaining admin pages; add localization for error messages.
 - [x] 2025-09-18: Resolved GitHub Actions CI merge conflict in .github/workflows/ci.yml.
   - Updated: unified job env and steps; fixed cache-dependency-path: pnpm-lock.yaml; removed conflict markers.
   - Why: PR showed <<<<<<< / ======= / >>>>>>> markers causing CI to be invalid YAML.

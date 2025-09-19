@@ -5,16 +5,18 @@ import prisma from '@/lib/prisma'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return respond.unauthorized()
   }
 
+  const tenantId = getTenantFromRequest(req as any)
   try {
     const item = await prisma.serviceRequest.findUnique({
       where: { id: id },
@@ -28,6 +30,9 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
     })
 
     if (!item || item.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+    if (isMultiTenancyEnabled() && tenantId && (item as any).tenantId && (item as any).tenantId !== tenantId) {
       return respond.notFound('Service request not found')
     }
 

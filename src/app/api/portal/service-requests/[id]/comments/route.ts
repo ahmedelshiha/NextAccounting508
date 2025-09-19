@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
@@ -14,14 +15,18 @@ const CreateSchema = z.object({
   attachments: z.any().optional(),
 })
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
+  const tenantId = getTenantFromRequest(req as any)
 
   try {
-    const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
+    const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, tenantId: true } })
     if (!reqRow || reqRow.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+    if (isMultiTenancyEnabled() && tenantId && (reqRow as any).tenantId && (reqRow as any).tenantId !== tenantId) {
       return respond.notFound('Service request not found')
     }
 
@@ -53,11 +58,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
+  const tenantId = getTenantFromRequest(req as any)
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
+  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, tenantId: true } })
   if (!reqRow || reqRow.clientId !== session.user.id) {
     return respond.notFound('Service request not found')
-  }
+    }
+    if (isMultiTenancyEnabled() && tenantId && (reqRow as any).tenantId && (reqRow as any).tenantId !== tenantId) {
+      return respond.notFound('Service request not found')
+    }
 
   const ip = getClientIp(req)
   if (!rateLimit(`portal:service-requests:comment:${ip}`, 10, 60_000)) {

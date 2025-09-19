@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface Comment { id: string; content: string; createdAt: string; author?: { id: string; name?: string | null } | null }
@@ -185,7 +186,11 @@ export default function PortalServiceRequestDetailPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: comment, attachments })
       })
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({} as any))
+        toast.error(getApiErrorMessage(errBody, 'Failed to post comment'))
+        return
+      }
       setComment('')
       setCommentFiles([])
       setUploaded({})
@@ -207,8 +212,8 @@ export default function PortalServiceRequestDetailPage() {
         body: JSON.stringify({ action: 'cancel' })
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Unable to cancel')
+        const errBody = await res.json().catch(() => ({}))
+        toast.error(getApiErrorMessage(errBody, 'Unable to cancel'))
         return
       }
       toast.success('Request cancelled')
@@ -228,8 +233,8 @@ export default function PortalServiceRequestDetailPage() {
         body: JSON.stringify({ action: 'approve' })
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error || 'Unable to approve')
+        const errBody = await res.json().catch(() => ({}))
+        toast.error(getApiErrorMessage(errBody, 'Unable to approve'))
         return
       }
       toast.success('Request approved')
@@ -335,12 +340,45 @@ export default function PortalServiceRequestDetailPage() {
                     <p className="text-sm text-gray-600">No comments yet.</p>
                   ) : (
                     <div className="space-y-3">
-                      {(reqData.comments || []).map((c) => (
+                      {(reqData.comments || []).map((c: any) => (
                         <div key={c.id} className="bg-gray-50 rounded-md p-3">
                           <div className="text-sm text-gray-700">{c.content}</div>
                           <div className="text-xs text-gray-500 mt-1">
                             {c.author?.name || 'You'} • {new Date(c.createdAt).toLocaleString()}
                           </div>
+                          {Array.isArray(c.attachments) && c.attachments.length > 0 && (
+                            <div className="mt-2">
+                              <h5 className="text-xs font-medium text-gray-900">Attachments</h5>
+                              <ul className="mt-1 divide-y divide-gray-200 rounded-md border border-gray-200">
+                                {c.attachments.map((a: any, i: number) => {
+                                  const avStatus: string | undefined = a?.avStatus ?? (typeof a?.avDetails?.clean === 'boolean' ? (a.avDetails.clean ? 'clean' : 'infected') : undefined)
+                                  return (
+                                    <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-xs">
+                                      <span className="truncate">
+                                        {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                                        {a.url ? (
+                                          <>
+                                            {' '}
+                                            <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                                          </>
+                                        ) : null}
+                                        {a.uploadError ? (
+                                          <span className="ml-2 text-red-600">{a.uploadError}</span>
+                                        ) : null}
+                                      </span>
+                                      {avStatus && (
+                                        <span className={
+                                          avStatus === 'clean' ? 'text-green-600' : avStatus === 'infected' ? 'text-red-600' : 'text-yellow-600'
+                                        }>
+                                          {avStatus === 'clean' ? 'Clean' : avStatus === 'infected' ? 'Infected' : avStatus}
+                                        </span>
+                                      )}
+                                    </li>
+                                  )
+                                })}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

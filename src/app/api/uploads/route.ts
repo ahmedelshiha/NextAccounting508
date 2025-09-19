@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
 import { logAudit } from '@/lib/audit'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
         // Persist Attachment record in DB (best-effort)
         try {
           const { default: prisma } = await import('@/lib/prisma')
+          const tenantId = getTenantFromRequest(request)
           await prisma.attachment.create({
             data: {
               key,
@@ -108,6 +110,7 @@ export async function POST(request: Request) {
               size: buf.length,
               contentType: detectedMime || undefined,
               provider: 'netlify',
+              ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
             }
           })
         } catch (e) {

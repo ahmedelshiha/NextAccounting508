@@ -17,7 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NETLIFY_DATABASE_URL: ${{ secrets.NETLIFY_DATABASE_URL }} # Prisma expects this
+      DATABASE_URL: ${{ secrets.NETLIFY_DATABASE_URL }}          # for scripts expecting DATABASE_URL
       NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
     steps:
@@ -34,7 +35,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.16.1
+          run_install: false
 
       - name: Verify pnpm
         run: pnpm -v
@@ -43,15 +44,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate
-        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:generate
 
       - name: Run Prisma migrations (deploy)
-        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:migrate
 
       - name: Seed database
-        if: ${{ env.DATABASE_URL != '' }}
         run: pnpm db:seed
 
       - name: Typecheck
@@ -72,4 +70,3 @@ jobs:
         with:
           name: next-build
           path: .next
-         
