@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, ClipboardList, ChevronRight } from 'lucide-react'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
@@ -40,13 +43,21 @@ const priorityStyles: Record<string, string> = {
 
 export default function PortalServiceRequestsPage() {
   const { data: session } = useSession()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [items, setItems] = useState<ServiceRequest[]>([])
   const [loading, setLoading] = useState(true)
+  const [status, setStatus] = useState<string>(searchParams.get('status') || 'ALL')
+  const [q, setQ] = useState<string>(searchParams.get('q') || '')
+  const [debouncedQ, setDebouncedQ] = useState<string>(q)
 
   const exportCSV = async () => {
     if (!items.length) return
+    const params = new URLSearchParams()
+    if (status && status !== 'ALL') params.set('status', status)
+    if (debouncedQ) params.set('q', debouncedQ)
     try {
-      const res = await fetch('/api/portal/service-requests/export', { cache: 'no-store' })
+      const res = await fetch(`/api/portal/service-requests/export${params.toString() ? `?${params}` : ''}` as string, { cache: 'no-store' })
       if (res.ok) {
         const blob = await res.blob()
         const url = URL.createObjectURL(blob)
@@ -78,11 +89,29 @@ export default function PortalServiceRequestsPage() {
     URL.revokeObjectURL(url)
   }
 
+  // Debounce search query to limit requests while typing
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q), 300)
+    return () => clearTimeout(t)
+  }, [q])
+
+  // Keep URL query params in sync for shareable links and server export passthrough
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (status && status !== 'ALL') params.set('status', status)
+    if (debouncedQ) params.set('q', debouncedQ)
+    const qs = params.toString()
+    router.replace(qs ? `?${qs}` : '?', { scroll: false })
+  }, [status, debouncedQ, router])
+
   useEffect(() => {
     async function load() {
       try {
         setLoading(true)
-        const res = await apiFetch('/api/portal/service-requests')
+        const params = new URLSearchParams()
+        if (status && status !== 'ALL') params.set('status', status)
+        if (debouncedQ) params.set('q', debouncedQ)
+        const res = await apiFetch(`/api/portal/service-requests${params.toString() ? `?${params}` : ''}`)
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         setItems(Array.isArray(json.data) ? json.data : [])
@@ -114,7 +143,7 @@ export default function PortalServiceRequestsPage() {
     }
     connect()
     return () => { try { es?.close() } catch {} }
-  }, [session])
+  }, [session, status, debouncedQ])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -135,6 +164,42 @@ export default function PortalServiceRequestsPage() {
               </Link>
             </Button>
           </div>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search requests..."
+              className="w-64"
+            />
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All</SelectItem>
+                <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                <SelectItem value="IN_REVIEW">In Review</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="ASSIGNED">Assigned</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {(q || (status && status !== 'ALL')) && (
+            <button
+              type="button"
+              onClick={() => { setQ(''); setStatus('ALL') }}
+              className="text-sm text-gray-600 hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
         {loading ? (
