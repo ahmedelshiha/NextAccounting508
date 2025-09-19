@@ -21,7 +21,7 @@ jobs:
       DATABASE_URL: ${{ secrets.NETLIFY_DATABASE_URL }}
       NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-      MULTI_TENANCY_ENABLED: false   # avoid DB-dependent code paths
+      MULTI_TENANCY_ENABLED: false
 
     steps:
       - name: Checkout
@@ -39,6 +39,9 @@ jobs:
         with:
           version: 'latest'
           run_install: false
+
+      - name: Install pnpm globally (fallback fix)
+        run: npm install -g pnpm
 
       - name: Verify pnpm
         run: pnpm -v
