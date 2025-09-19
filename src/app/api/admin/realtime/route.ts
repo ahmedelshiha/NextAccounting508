@@ -26,7 +26,6 @@ export async function GET(request: Request) {
         realtimeService.cleanup(connectionId)
         try { controller.close() } catch {}
       }
-      // @ts-ignore — standard in Next runtime
       request.signal.addEventListener('abort', onAbort)
     },
   })

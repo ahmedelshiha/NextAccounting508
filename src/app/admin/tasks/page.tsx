@@ -325,7 +325,7 @@ function TasksInner() {
                 Task Management
               </h1>
               <p className="text-gray-600 mt-1">
-                Organize, track, and manage your team's work efficiently
+                Organize, track, and manage your team&apos;s work efficiently
               </p>
             </div>
             <div className="flex items-center space-x-3">

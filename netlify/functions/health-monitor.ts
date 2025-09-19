@@ -21,7 +21,7 @@ async function notify(message: string) {
   }
 }
 
-export default async () => {
+const handler = async () => {
   const origin = process.env.URL || process.env.SITE_URL
   if (!origin) {
     console.warn('No site URL available for health checks')
@@ -64,3 +64,5 @@ export default async () => {
     await notify('Health monitor could not complete checks')
   }
 }
+
+export default handler

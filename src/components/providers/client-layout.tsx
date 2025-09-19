@@ -85,30 +85,32 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
     const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once and only when explicitly enabled
-    if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !window.__fetchLogged) {
+    // Only wrap once
+    if (!window.__fetchLogged) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
           const [i0, init] = args
           const input = i0
-          // Delegate to the original (already proxy-wrapped) fetch without altering URL shape
+          // Delegate to the original fetch
           const res = await originalFetch(...([input, init] as [RequestInfo | URL, RequestInit | undefined]))
-          if (!res.ok) {
+
+          // If debug logging explicitly enabled, preserve non-ok logging
+          if (process.env.NEXT_PUBLIC_DEBUG_FETCH === '1' && !res.ok) {
             try {
               const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : (input instanceof URL ? input.toString() : String(input)))
               const method = ((init && init.method) || (input instanceof Request ? input.method : 'GET') || 'GET').toString().toUpperCase()
-              // Skip logging for keep-alive pings and HEAD requests
               if (method !== 'HEAD' && !url.includes('/api/admin/health-history')) {
                 console.error('[fetch] non-ok response', { status: res.status, url, init })
               }
             } catch {}
           }
+
           return res
         } catch (err: unknown) {
+          // On fetch failure (network issue or malformed input), try to derive context and return a safe 503 Response
           try {
             const [input, init] = args
-            // Derive url/method robustly across realms
             const derivedMethod = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toString().toUpperCase()
             const url = typeof input === 'string'
               ? input
@@ -116,11 +118,11 @@ export function ClientLayout({ children }: ClientLayoutProps) {
                 ? input.url
                 : input instanceof URL
                   ? input.toString()
-                  : ''
+                  : typeof input === 'object' ? JSON.stringify(input as object) : String(input)
 
-            const isNextInternal = url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages')
-            const isKeepAlive = url.includes('/api/admin/health-history')
-            const isApi = url.includes('/api/')
+            const isNextInternal = typeof url === 'string' && (url.includes('/_next') || url.includes('?reload=') || url.includes('builder.lazyLoadImages'))
+            const isKeepAlive = typeof url === 'string' && url.includes('/api/admin/health-history')
+            const isApi = typeof url === 'string' && url.includes('/api/')
             const isHead = derivedMethod === 'HEAD'
             const offline = typeof navigator !== 'undefined' && navigator.onLine === false
 
@@ -128,9 +130,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               console.warn('[fetch] network/error while fetching', { url, method: derivedMethod, init: init ?? null }, err)
             }
           } catch {
-            // avoid noisy console errors during dev
+            // ignore
           }
-          throw err
+
+          // Return a safe 503 JSON response instead of throwing so callers (like next-auth) get a Response object
+          try {
+            const body = typeof err === 'string' ? err : JSON.stringify({ error: String(err) })
+            return new Response(body, { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'application/json' } })
+          } catch {
+            // Fallback: rethrow if Response construction fails
+            throw err
+          }
         }
       }
     }
