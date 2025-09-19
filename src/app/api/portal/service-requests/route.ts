@@ -11,7 +11,7 @@ export const runtime = 'nodejs'
 
 const CreateSchema = z.object({
   serviceId: z.string().min(1),
-  title: z.string().min(5).max(300),
+  title: z.string().min(5).max(300).optional(),
   description: z.string().optional(),
   priority: z.union([
     z.enum(['LOW','MEDIUM','HIGH','URGENT']),
@@ -130,10 +130,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    // If title not provided, generate a friendly title using service name + client
+    let titleToUse = data.title
+    if (!titleToUse) {
+      try {
+        const clientName = (session.user as any)?.name || session.user.id
+        titleToUse = `${svc.name} request — ${clientName} — ${new Date().toISOString().slice(0,10)}`
+      } catch {
+        titleToUse = `${svc.name} request — ${session.user.id} — ${new Date().toISOString().slice(0,10)}`
+      }
+    }
+
     const dataObj: any = {
       clientId: session.user.id,
       serviceId: data.serviceId,
-      title: data.title,
+      title: titleToUse,
       description: data.description ?? null,
       priority: data.priority as any,
       budgetMin: data.budgetMin != null ? data.budgetMin : null,
