@@ -343,6 +343,16 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Added ClamAV client utility and refactored upload/rescan to use it.
+  - Added: src/lib/clamav.ts (scanBuffer with retries, timeout, API key header support)
+  - Updated: src/app/api/uploads/route.ts (uses scanBuffer; preserves strict type checks)
+  - Updated: src/app/api/cron/rescan-attachments/route.ts (uses scanBuffer; keeps quarantine flow)
+  - Why: Centralize AV logic, retries, and normalization across endpoints.
+  - Next: Configure UPLOADS_AV_SCAN_URL and (optional) UPLOADS_AV_API_KEY in staging.
+- [x] 2025-09-19: Scheduled rescans via GitHub Actions.
+  - Added: .github/workflows/clamav-rescan.yml (runs every 30m; manual dispatch supported)
+  - Why: Ensure background retries for avStatus 'error' without relying on external schedulers.
+  - Next: Set repository secrets CRON_TARGET_URL and CRON_SECRET; validate run logs.
 - [x] 2025-09-20: Added portal CSV export API and updated UI to prefer server export with client fallback.
   - Added: src/app/api/portal/service-requests/export/route.ts; Updated: src/app/portal/service-requests/page.tsx
   - Why: Handle large exports reliably server-side; preserve UX by falling back to client CSV when needed.
