@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 interface Service { id: string; name: string }
 
@@ -168,9 +169,8 @@ export default function NewServiceRequestPage() {
         }),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({} as any)) as any
-        const msg = (err?.error?.message) || (typeof err?.error === 'string' ? err.error : undefined) || err?.message || 'Failed to create request'
-        toast.error(msg)
+        const errBody = await res.json().catch(() => ({} as any))
+        toast.error(getApiErrorMessage(errBody, 'Failed to create request'))
         return
       }
       const json = await res.json()
