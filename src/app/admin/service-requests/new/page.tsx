@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { apiFetch } from '@/lib/api'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { Loader2 } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -65,11 +66,11 @@ export default function AdminNewServiceRequestPage() {
       const payload: any = { ...form, budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined, budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined, deadline: form.deadline || undefined }
       const res = await apiFetch('/api/admin/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(j?.error || 'Failed to create')
+      if (!res.ok) { setError(getApiErrorMessage(j, 'Failed to create')); return }
       const id = j?.data?.id
       if (id) router.push(`/admin/service-requests/${id}`)
     } catch (e) {
-      setError(String(e))
+      setError(getApiErrorMessage(e, 'Failed to create'))
     } finally { setSaving(false) }
   }
 
