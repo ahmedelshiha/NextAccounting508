@@ -21,7 +21,7 @@ Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
 3. Uploads & Antivirus
    - [ ] Set NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER=netlify, UPLOADS_AV_SCAN_URL
    - [ ] Verify upload → AV callback → quarantine → UI statuses (client + admin)
-   - [ ] Implement background retry for avStatus: 'error'
+   - [x] Implement background retry for avStatus: 'error' (via /api/cron/rescan-attachments)
 4. Realtime durability
    - [ ] Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed)
    - [ ] Validate cross-instance LISTEN/NOTIFY delivery; add alerts/metrics
@@ -61,7 +61,7 @@ Remaining Work (Paused) — Actionable checklist (for resuming)
 3. Uploads & AV (high)
    - [ ] Set `NETLIFY_BLOBS_TOKEN` and `UPLOADS_PROVIDER=netlify` in Netlify env for staging/prod.
    - [ ] Verify upload end-to-end: upload -> Netlify Blobs -> AV webhook -> attachments AV status persisted -> UI shows per-file result.
-   - [ ] Add retry/remediation runbook for AV 'error' and quarantine flow.
+   - [x] Add retry/remediation runbook for AV 'error' and quarantine flow. (docs/uploads-runbook.md)
 
 4. Realtime & Ops (high)
    - [ ] Enable durable transport in staging: set `REALTIME_TRANSPORT=postgres` and optional `REALTIME_PG_URL`/`REALTIME_PG_CHANNEL`.
@@ -326,6 +326,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Added background AV re-scan cron and marked TODO complete.
+  - Updated: docs/service-portal-TODO+log.md; implemented via src/app/api/cron/rescan-attachments/route.ts
+  - Why: Automatically retry avStatus 'error' items and support quarantine workflow per uploads runbook.
+  - Next: Schedule Netlify cron to POST /api/cron/rescan-attachments (with x-cron-secret) and validate in staging.
 - [x] 2025-09-20: Marked project as Paused and added a consolidated "Remaining Work (Paused)" checklist for quick resumption.
   - Updated: docs/service-portal-TODO+log.md (status/date, consolidated checklist)
   - Why: Provide a single, actionable list of unfinished items and clear current status for future resume.
