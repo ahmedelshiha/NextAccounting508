@@ -7,7 +7,7 @@ Pause reason
 
 Current status
 - Local dev: Prisma client generated and seed applied locally; temporary dev-login and in-memory fallbacks added to allow smoke testing without full production schema.
-- CI/staging: Awaiting Netlify/CI to run authoritative pnpm db:generate && pnpm db:migrate && pnpm db:seed with NETLIFY_DATABASE_URL (Neon) set.
+- CI/staging: Awaiting Netlify/CI to run authoritative pnpm db:generate && pnpm db:migrate && pnpm db:seed with NETLIFY_DATABASE_URL (Neon) set. A CI workflow (.github/workflows/ci.yml) has been added to this repo to run migrations, seed, typecheck, lint, tests and build; set DATABASE_URL in GitHub secrets to enable migration steps.
 - Realtime/uploads: Postgres adapter implemented (enable via REALTIME_TRANSPORT=postgres). Netlify Blobs provider implemented (requires NETLIFY_BLOBS_TOKEN).
 
 Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
