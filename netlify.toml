@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; pnpm db:migrate && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
+  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; (pnpm db:migrate || (pnpm exec prisma migrate resolve --applied 0002_add_tenant_columns && pnpm db:migrate)) && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
   publish = ".next"
 
 [build.environment]
