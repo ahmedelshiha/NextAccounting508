@@ -357,6 +357,28 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Fixed Next.js build error (missing Suspense with useSearchParams) on portal/service-requests.
+- [x] 2025-09-20: Added quarantine console link when infected attachments are detected in portal views.
+- [x] 2025-09-20: Quarantine deep-link and filtering implemented.
+- [x] 2025-09-20: Quarantine bulk actions and admin SR link.
+  - Updated: src/app/admin/uploads/quarantine/QuarantineClient.tsx (selection state, select-all, bulk release/delete)
+  - Updated: src/app/api/admin/uploads/quarantine/route.ts (accepts keys[] for bulk operations)
+  - Updated: src/app/admin/service-requests/[id]/page.tsx (attachments section includes Open Quarantine link prefiltered by serviceRequestId)
+  - Why: Speed up remediation; consistent operator workflow from SR detail to quarantine console.
+  - Next: Add pagination for provider listing and result counts.
+  - Added: src/app/admin/uploads/quarantine/QuarantineClient.tsx (client UI with filters; Suspense-wrapped page)
+  - Updated: src/app/admin/uploads/quarantine/page.tsx (server wrapper with <Suspense>)
+  - Updated: src/app/api/admin/uploads/quarantine/route.ts (supports serviceRequestId and q filters)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (links pass serviceRequestId)
+  - Why: Enable RBAC-safe deep linking for faster remediation of infected files tied to a specific request.
+  - Next: Add bulk actions and preselect filter from admin SR detail page.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (shows red notice; if user role is not CLIENT, provides button linking to /admin/uploads/quarantine)
+  - Why: Streamline operator remediation flow from context; clients still see status without elevated controls.
+  - Next: Consider provider pagination and DB-driven sorting; add confirm modals with counts.
+  - Added: src/app/portal/service-requests/ServiceRequestsClient.tsx (client component)
+  - Updated: src/app/portal/service-requests/page.tsx (server component wraps <ServiceRequestsClient /> in <Suspense> with skeleton fallback)
+  - Why: Next.js 15 requires useSearchParams within a Suspense boundary to avoid CSR bailout during static generation; Netlify build failed.
+  - Next: Monitor Netlify build; scan for other useSearchParams usages in pages and apply the same pattern if needed.
 - [x] 2025-09-19: Added ClamAV client utility and refactored upload/rescan to use it.
   - Added: src/lib/clamav.ts (scanBuffer with retries, timeout, API key header support)
   - Updated: src/app/api/uploads/route.ts (uses scanBuffer; preserves strict type checks)
