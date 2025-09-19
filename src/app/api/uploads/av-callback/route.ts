@@ -51,7 +51,14 @@ export async function POST(req: Request) {
               const matches = (a.key === key) || (a.url && String(a.url).includes(key)) || (a.name && String(a.name).includes(key))
               if (matches) {
                 modified = true
-                return { ...a, avStatus: clean ? 'clean' : 'infected', avDetails: result }
+                return {
+                  ...a,
+                  avStatus: clean ? 'clean' : 'infected',
+                  avDetails: result,
+                  avScanAt: new Date().toISOString(),
+                  avThreatName: result?.threat_name || result?.threatName || null,
+                  avScanTime: typeof result?.scan_time === 'number' ? result.scan_time : (typeof result?.scanTime === 'number' ? result.scanTime : null)
+                }
               }
               return a
             })
