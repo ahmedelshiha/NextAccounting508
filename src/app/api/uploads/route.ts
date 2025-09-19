@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
 import { logAudit } from '@/lib/audit'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { scanBuffer } from '@/lib/clamav'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -48,16 +49,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
   }
 
-  // Optional antivirus scan webhook
+  // Optional antivirus scan (best-effort) before storing
   if (process.env.UPLOADS_AV_SCAN_URL) {
     try {
-      const ac = new AbortController()
-      const t = setTimeout(() => ac.abort(), 5000)
-      const res = await fetch(process.env.UPLOADS_AV_SCAN_URL, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf, signal: ac.signal })
-      clearTimeout(t)
-      const json = await res.json().catch(() => ({})) as any
-      if (!res.ok || json?.clean === false) {
-        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed', status: res.status } }) } catch {}
+      const { clean } = await scanBuffer(buf)
+      if (!clean) {
+        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed' } }) } catch {}
         return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
       }
     } catch (e) {
