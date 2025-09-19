@@ -1,12 +1,7 @@
 import { fileURLToPath } from "url";
-import { dirname as pathDirname } from "path";
-import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = pathDirname(__filename);
-
-const compat = new FlatCompat({ baseDirectory: __dirname });
+const compat = new FlatCompat({ baseDirectory: process.cwd() });
 
 export default [
   // Global ignores (prevents parsing of temporary/generated folders)
