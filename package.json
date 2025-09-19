@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build --turbopack",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
     "db:generate": "prisma generate",
