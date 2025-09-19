@@ -1,6 +1,6 @@
 # Service Portal — TODO + Change Log
 
-Status: Paused (as of 2025-09-18)
+Status: Paused (as of 2025-09-20)
 
 Pause reason
 - Paused pending CI/CD-run Prisma migrations and seed (ensure DB schema, enums, and seed data applied) and a finalized multi-tenancy rollout plan before further realtime and production uploads work.
@@ -9,6 +9,35 @@ Current status
 - Local dev: Prisma client generated and seed applied locally; temporary dev-login and in-memory fallbacks added to allow smoke testing without full production schema.
 - CI/staging: Awaiting Netlify/CI to run authoritative pnpm db:generate && pnpm db:migrate && pnpm db:seed with NETLIFY_DATABASE_URL (Neon) set.
 - Realtime/uploads: Postgres adapter implemented (enable via REALTIME_TRANSPORT=postgres). Netlify Blobs provider implemented (requires NETLIFY_BLOBS_TOKEN).
+
+Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
+1. CI/CD: Prisma migrations & seeds
+   - [ ] Run pnpm db:generate && pnpm db:migrate && pnpm db:seed in Netlify (staging/prod) and confirm exit code 0
+   - [ ] Apply tenantId/orgId columns + indexes via migration; verify in staging DB
+   - [ ] Validate seeds (roles, templates, permissions) via /api/admin/permissions and direct queries
+2. Multi-tenancy rollout
+   - [ ] Enable MULTI_TENANCY_ENABLED in staging; verify API scoping end-to-end
+   - [ ] Backfill tenantId for existing rows if applicable
+3. Uploads & Antivirus
+   - [ ] Set NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER=netlify, UPLOADS_AV_SCAN_URL
+   - [ ] Verify upload → AV callback → quarantine → UI statuses (client + admin)
+   - [ ] Implement background retry for avStatus: 'error'
+4. Realtime durability
+   - [ ] Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed)
+   - [ ] Validate cross-instance LISTEN/NOTIFY delivery; add alerts/metrics
+5. QA & Tests
+   - [ ] Raise coverage thresholds; unskip DB tests; ensure CI green
+   - [ ] Add e2e: client create/approve → admin assign/progress/complete → realtime
+6. Docs & Ops
+   - [ ] Finalize deployment checklist and rollback steps (docs/netlify-deployment-and-envs.md)
+   - [ ] Add Sentry runbook; document required envs (NEXTAUTH_SECRET/URL, REALTIME_*, NETLIFY_BLOBS_TOKEN)
+7. Cleanup
+   - [ ] Remove dev helpers (/api/dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json) after DB validated
+   - [ ] Replace remaining file fallbacks with DB-only paths
+8. Post-migration validation
+   - [ ] Smoke test admin/portal; CSV export; uploads; realtime in staging
+9. Observability
+   - [ ] Configure SENTRY_DSN; verify error/perf capture and alerts
 
 Completed (high level)
 - Core service-requests APIs (admin + portal) implemented and wired with RBAC, realtime broadcasts, attachments, and comments.
@@ -83,7 +112,7 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
-## Current Status: Paused (2025-09-18)
+## Current Status: Paused (2025-09-20)
 
 Summary
 - Project is paused pending CI/CD execution of Prisma generate/migrate/seed and validation in staging.
