@@ -63,6 +63,14 @@ export default function AdminNewServiceRequestPage() {
     if (!form.serviceId) { setSelectedService(null); return }
     const found = services.find(s => String(s.id) === String(form.serviceId)) || null
     setSelectedService(found)
+    // If service has a price and user didn't specify budgets, pre-fill suggested bands
+    if (found && found.price != null) {
+      setForm((prev) => ({
+        ...prev,
+        budgetMin: prev.budgetMin || String(Math.round(found.price)),
+        budgetMax: prev.budgetMax || String(Math.round(found.price * 1.5)),
+      }))
+    }
   }, [form.serviceId, services])
 
   const submit = async () => {
