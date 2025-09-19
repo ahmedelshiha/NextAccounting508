@@ -10,16 +10,24 @@ import { toast } from 'sonner'
 interface DbItem { id: string; key?: string | null; url?: string | null; name?: string | null; size?: number | null; contentType?: string | null; avStatus?: string | null; uploadedAt?: string | null; serviceRequestId?: string | null }
 interface ProviderItem { key: string; size?: number; createdAt?: string }
 
+interface Meta { total: number; page: number; limit: number; totalPages: number }
+
 export default function QuarantineClient() {
   const sp = useSearchParams()
   const router = useRouter()
   const [dbItems, setDbItems] = useState<DbItem[] | null>(null)
   const [providerItems, setProviderItems] = useState<ProviderItem[] | null>(null)
+  const [dbMeta, setDbMeta] = useState<Meta | null>(null)
+  const [providerMeta, setProviderMeta] = useState<Meta | null>(null)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<Record<string, boolean>>({})
 
   const serviceRequestId = sp.get('serviceRequestId') || ''
   const q = sp.get('q') || ''
+  const dbPage = Math.max(1, parseInt(sp.get('dbPage') || '1', 10))
+  const dbLimit = Math.min(200, Math.max(1, parseInt(sp.get('dbLimit') || '25', 10)))
+  const providerPage = Math.max(1, parseInt(sp.get('providerPage') || '1', 10))
+  const providerLimit = Math.min(200, Math.max(1, parseInt(sp.get('providerLimit') || '25', 10)))
 
   const setParam = (name: string, value: string) => {
     const params = new URLSearchParams(sp.toString())
@@ -33,21 +41,28 @@ export default function QuarantineClient() {
       const qs = new URLSearchParams()
       if (serviceRequestId) qs.set('serviceRequestId', serviceRequestId)
       if (q) qs.set('q', q)
+      qs.set('dbPage', String(dbPage))
+      qs.set('dbLimit', String(dbLimit))
+      qs.set('providerPage', String(providerPage))
+      qs.set('providerLimit', String(providerLimit))
       const res = await fetch(`/api/admin/uploads/quarantine${qs.toString() ? `?${qs}` : ''}`)
       if (!res.ok) throw new Error('Failed')
       const json = await res.json()
       const data = json?.data || {}
+      const meta = json?.meta || {}
       setDbItems(Array.isArray(data.db) ? data.db : [])
       setProviderItems(Array.isArray(data.provider) ? data.provider : [])
+      setDbMeta(meta.db || null)
+      setProviderMeta(meta.provider || null)
     } catch (e) {
-      setDbItems([]); setProviderItems([])
+      setDbItems([]); setProviderItems([]); setDbMeta(null); setProviderMeta(null)
       toast.error('Failed to load quarantine')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchItems() }, [serviceRequestId, q])
+  useEffect(() => { fetchItems() }, [serviceRequestId, q, dbPage, dbLimit, providerPage, providerLimit])
 
   const keysSelected = useMemo(() => Object.keys(selected).filter(k => selected[k]), [selected])
 
@@ -68,6 +83,24 @@ export default function QuarantineClient() {
     if (!term) return providerItems
     return providerItems.filter((p) => p.key?.toLowerCase().includes(term))
   }, [providerItems, q, serviceRequestId])
+
+  const Pager = ({ meta, prefix }: { meta: Meta | null; prefix: 'db' | 'provider' }) => {
+    if (!meta) return null
+    const prev = () => setParam(`${prefix}Page`, String(Math.max(1, (meta.page - 1))))
+    const next = () => setParam(`${prefix}Page`, String(Math.min(meta.totalPages, (meta.page + 1))))
+    return (
+      <div className="flex items-center justify-between mt-2">
+        <div className="text-sm text-gray-600">
+          Showing {Math.min(meta.total, (meta.page - 1) * meta.limit + 1)}–{Math.min(meta.total, meta.page * meta.limit)} of {meta.total}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" disabled={meta.page <= 1} onClick={prev}>Previous</Button>
+          <span className="text-sm text-gray-700">Page {meta.page} of {meta.totalPages}</span>
+          <Button variant="outline" disabled={meta.page >= meta.totalPages} onClick={next}>Next</Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">
@@ -106,7 +139,10 @@ export default function QuarantineClient() {
       ) : (
         <div className="grid gap-6">
           <section>
-            <h2 className="text-lg font-semibold mb-2">Database Records</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Database Records</h2>
+              {dbMeta ? <div className="text-sm text-gray-600">Total: {dbMeta.total}</div> : null}
+            </div>
             {dbItems && dbItems.length > 0 ? (
               <div className="grid gap-3">
                 <div className="flex items-center gap-2">
@@ -145,6 +181,7 @@ export default function QuarantineClient() {
                     </CardContent>
                   </Card>
                 ))}
+                <Pager meta={dbMeta} prefix="db" />
               </div>
             ) : (
               <Card><CardContent className="p-6 text-center">No matching DB records.</CardContent></Card>
@@ -152,7 +189,10 @@ export default function QuarantineClient() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-2">Provider Blobs</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Provider Blobs</h2>
+              {providerMeta ? <div className="text-sm text-gray-600">Total: {providerMeta.total}</div> : null}
+            </div>
             {filteredProvider && filteredProvider.length > 0 ? (
               <div className="grid gap-3">
                 <div className="flex items-center gap-2">
@@ -185,6 +225,7 @@ export default function QuarantineClient() {
                     </CardContent>
                   </Card>
                 ))}
+                <Pager meta={providerMeta} prefix="provider" />
               </div>
             ) : (
               <Card><CardContent className="p-6 text-center">No matching provider blobs.</CardContent></Card>
