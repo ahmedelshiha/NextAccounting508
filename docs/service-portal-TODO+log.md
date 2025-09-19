@@ -357,6 +357,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Added pagination and result counts to Admin Quarantine console and API.
+  - Updated: src/app/api/admin/uploads/quarantine/route.ts (db pagination: page/limit, provider in-memory paging; returns meta)
+  - Updated: src/app/admin/uploads/quarantine/QuarantineClient.tsx (UI pagers, totals, query-param sync for db/provider pages)
+  - Why: Improve usability and performance when many quarantined items exist; enables operators to navigate efficiently.
+  - Next: Implement provider cursor-based pagination when available and sortable columns; consider server-side provider filtering.
 - [x] 2025-09-19: Fixed Next.js build error (missing Suspense with useSearchParams) on portal/service-requests.
 - [x] 2025-09-20: Added quarantine console link when infected attachments are detected in portal views.
 - [x] 2025-09-20: Quarantine deep-link and filtering implemented.
