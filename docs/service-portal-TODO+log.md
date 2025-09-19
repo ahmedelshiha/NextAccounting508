@@ -358,6 +358,10 @@ How to Resume
 
 ## Change Log
 - [x] 2025-09-19: Fixed Next.js build error (missing Suspense with useSearchParams) on portal/service-requests.
+- [x] 2025-09-20: Added quarantine console link when infected attachments are detected in portal views.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (shows red notice; if user role is not CLIENT, provides button linking to /admin/uploads/quarantine)
+  - Why: Streamline operator remediation flow from context; clients still see status without elevated controls.
+  - Next: Add RBAC-safe deep link with pre-filter by serviceRequestId; surface same notice on admin detail page.
   - Added: src/app/portal/service-requests/ServiceRequestsClient.tsx (client component)
   - Updated: src/app/portal/service-requests/page.tsx (server component wraps <ServiceRequestsClient /> in <Suspense> with skeleton fallback)
   - Why: Next.js 15 requires useSearchParams within a Suspense boundary to avoid CSR bailout during static generation; Netlify build failed.
