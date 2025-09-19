@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+export const runtime = 'nodejs'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
@@ -136,37 +137,70 @@ export async function POST(request: Request) {
     }
   }
 
-  const created = await prisma.serviceRequest.create({
-    data: {
-      clientId: data.clientId,
-      serviceId: data.serviceId,
-      title: titleToUse,
-      description: data.description ?? null,
-      priority: data.priority as any,
-      budgetMin: data.budgetMin != null ? data.budgetMin : null,
-      budgetMax: data.budgetMax != null ? data.budgetMax : null,
-      deadline: data.deadline ? new Date(data.deadline) : null,
-      requirements: (data.requirements as any) ?? undefined,
-      attachments: (data.attachments as any) ?? undefined,
-      ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
-    },
-    include: {
-      client: { select: { id: true, name: true, email: true } },
-      service: { select: { id: true, name: true, slug: true, category: true } },
-    },
-  })
-
-  // Auto-assign to a team member based on skills and workload
   try {
-    const { autoAssignServiceRequest } = await import('@/lib/service-requests/assignment')
-    await autoAssignServiceRequest(created.id)
-  } catch {
-    // best-effort; ignore assignment failures
+    const created = await prisma.serviceRequest.create({
+      data: {
+        clientId: data.clientId,
+        serviceId: data.serviceId,
+        title: titleToUse,
+        description: data.description ?? null,
+        priority: data.priority as any,
+        budgetMin: data.budgetMin != null ? data.budgetMin : null,
+        budgetMax: data.budgetMax != null ? data.budgetMax : null,
+        deadline: data.deadline ? new Date(data.deadline) : null,
+        requirements: (data.requirements as any) ?? undefined,
+        attachments: (data.attachments as any) ?? undefined,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+      },
+      include: {
+        client: { select: { id: true, name: true, email: true } },
+        service: { select: { id: true, name: true, slug: true, category: true } },
+      },
+    })
+
+    // Auto-assign to a team member based on skills and workload
+    try {
+      const { autoAssignServiceRequest } = await import('@/lib/service-requests/assignment')
+      await autoAssignServiceRequest(created.id)
+    } catch {}
+
+    try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
+    try { realtimeService.broadcastToUser(String(created.clientId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+    try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
+
+    return respond.created(created)
+  } catch (e: any) {
+    const msg = String(e?.message || '')
+    const code = String((e as any)?.code || '')
+    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+      try {
+        const { addRequest } = await import('@/lib/dev-fallbacks')
+        const id = `dev-${Date.now().toString()}`
+        const created: any = {
+          id,
+          clientId: data.clientId,
+          serviceId: data.serviceId,
+          title: titleToUse || `${data.serviceId} request — ${data.clientId} — ${new Date().toISOString().slice(0,10)}`,
+          description: data.description ?? null,
+          priority: data.priority,
+          budgetMin: data.budgetMin ?? null,
+          budgetMax: data.budgetMax ?? null,
+          deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+          requirements: data.requirements ?? undefined,
+          attachments: data.attachments ?? undefined,
+          status: 'DRAFT',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+        if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
+        addRequest(id, created)
+        try { realtimeService.emitServiceRequestUpdate(id, { action: 'created' }) } catch {}
+        try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
+        return respond.created(created)
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
   }
-
-  try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
-  try { realtimeService.broadcastToUser(String(created.clientId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
-  try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
-
-  return respond.created(created)
 }

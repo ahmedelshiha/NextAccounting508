@@ -95,6 +95,7 @@ export default function AdminNewServiceRequestPage() {
       const j = await res.json().catch(() => ({}))
       if (!res.ok) { setError(getApiErrorMessage(j, 'Failed to create')); return }
       const id = j?.data?.id
+      try { if (id && String(id).startsWith('dev-')) localStorage.setItem(`sr:${id}`, JSON.stringify(j.data)) } catch {}
       if (id) router.push(`/admin/service-requests/${id}`)
     } catch (e) {
       setError(getApiErrorMessage(e, 'Failed to create'))
