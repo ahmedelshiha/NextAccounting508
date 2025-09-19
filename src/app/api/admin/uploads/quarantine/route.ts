@@ -21,9 +21,22 @@ export async function GET(req: Request) {
   if (provider !== 'netlify') return NextResponse.json({ error: 'Quarantine listing not supported for provider' }, { status: 501 })
 
   try {
-    // Fetch DB attachments flagged as infected/quarantined
+    const url = new URL(req.url)
+    const serviceRequestId = url.searchParams.get('serviceRequestId') || undefined
+    const q = url.searchParams.get('q') || undefined
+
+    // Fetch DB attachments flagged as infected/quarantined with optional filters
     const { default: prisma } = await import('@/lib/prisma')
-    const dbItems = await prisma.attachment.findMany({ where: { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }] }, orderBy: { uploadedAt: 'desc' }, take: 200 })
+    const where: any = { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }] }
+    if (serviceRequestId) where.serviceRequestId = serviceRequestId
+    if (q) {
+      where.OR = [
+        ...(where.OR || []),
+        { name: { contains: q, mode: 'insensitive' } },
+        { key: { contains: q, mode: 'insensitive' } },
+      ]
+    }
+    const dbItems = await prisma.attachment.findMany({ where, orderBy: { uploadedAt: 'desc' }, take: 200 })
 
     // Try provider listing as well (optional)
     const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
