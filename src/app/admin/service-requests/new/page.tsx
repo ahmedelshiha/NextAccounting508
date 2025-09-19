@@ -65,10 +65,11 @@ export default function AdminNewServiceRequestPage() {
     setSelectedService(found)
     // If service has a price and user didn't specify budgets, pre-fill suggested bands
     if (found && found.price != null) {
+      const price = Number(found.price)
       setForm((prev) => ({
         ...prev,
-        budgetMin: prev.budgetMin || String(Math.round(found.price)),
-        budgetMax: prev.budgetMax || String(Math.round(found.price * 1.5)),
+        budgetMin: prev.budgetMin || String(Math.round(price)),
+        budgetMax: prev.budgetMax || String(Math.round(price * 1.5)),
       }))
     }
   }, [form.serviceId, services])
