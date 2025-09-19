@@ -100,6 +100,15 @@ export async function POST(request: Request) {
         try {
           const { default: prisma } = await import('@/lib/prisma')
           const tenantId = getTenantFromRequest(request)
+
+          const avData = avScanResult ? {
+            avStatus: avScanResult.clean ? 'clean' : 'infected',
+            avDetails: avScanResult.details || avScanResult,
+            avScanAt: new Date(),
+            avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
+            avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
+          } : {}
+
           await prisma.attachment.create({
             data: {
               key,
@@ -109,6 +118,7 @@ export async function POST(request: Request) {
               contentType: detectedMime || undefined,
               provider: 'netlify',
               ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+              ...avData
             }
           })
         } catch (e) {
