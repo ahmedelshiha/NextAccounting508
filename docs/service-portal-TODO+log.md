@@ -364,7 +364,9 @@ How to Resume
 - [x] 2025-09-20: Added portal CSV export API and updated UI to prefer server export with client fallback.
   - Added: src/app/api/portal/service-requests/export/route.ts; Updated: src/app/portal/service-requests/page.tsx
   - Why: Handle large exports reliably server-side; preserve UX by falling back to client CSV when needed.
-  - Next: Add filters (status/q) passthrough to export button and validate in staging.
+  - Updated: src/app/portal/service-requests/page.tsx (filters UI for status/q; passthrough to server export; debounced search; URL sync)
+  - Why: Ensure CSV export reflects current filtered view and improve usability.
+  - Next: Validate in staging.
 - [x] 2025-09-20: Added background AV re-scan cron and marked TODO complete.
   - Updated: docs/service-portal-TODO+log.md; implemented via src/app/api/cron/rescan-attachments/route.ts
   - Why: Automatically retry avStatus 'error' items and support quarantine workflow per uploads runbook.
