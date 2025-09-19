@@ -31,18 +31,34 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
     return respond.unauthorized()
   }
 
-  const item = await prisma.serviceRequest.findUnique({
-    where: { id: id },
-    include: {
-      client: { select: { id: true, name: true, email: true } },
-      service: { select: { id: true, name: true, slug: true, category: true } },
-      assignedTeamMember: { select: { id: true, name: true, email: true } },
-      requestTasks: true,
-    },
-  })
+  try {
+    const item = await prisma.serviceRequest.findUnique({
+      where: { id: id },
+      include: {
+        client: { select: { id: true, name: true, email: true } },
+        service: { select: { id: true, name: true, slug: true, category: true } },
+        assignedTeamMember: { select: { id: true, name: true, email: true } },
+        requestTasks: true,
+      },
+    })
 
-  if (!item) return respond.notFound('Service request not found')
-  return respond.ok(item)
+    if (!item) return respond.notFound('Service request not found')
+    return respond.ok(item)
+  } catch (e: any) {
+    const code = String((e as any)?.code || '')
+    const msg = String(e?.message || '')
+    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+      try {
+        const { getRequest } = await import('@/lib/dev-fallbacks')
+        const item = getRequest(id)
+        if (!item) return respond.notFound('Service request not found')
+        return respond.ok(item)
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
+  }
 }
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
