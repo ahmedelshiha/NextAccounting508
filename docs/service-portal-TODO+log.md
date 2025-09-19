@@ -14,6 +14,7 @@ Remaining Work (Paused) — Consolidated Checklist (Updated 2025-09-20)
 
 Quick Resume Checklist (Paused) — Actionable steps to resume safely:
 - [ ] Connect Neon in Netlify and set required envs: NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL. (owner: infra/ops)
+- [ ] Set UPLOADS_PROVIDER and provider secrets (NETLIFY_BLOBS_TOKEN or SUPABASE_*). Set UPLOADS_AV_SCAN_URL and UPLOADS_AV_API_KEY (or CLAMAV_API_KEY) and CRON_TARGET_URL/CRON_SECRET in repo secrets (owner: infra/ops)
 - [ ] Trigger CI build that runs: pnpm db:generate && pnpm db:migrate && pnpm db:seed. Verify exit code 0 and seed contents (roles, templates, permissions). (owner: infra/backend)
 - [ ] Apply tenant fields behind feature flag: add tenantId/orgId migrations, run migrate in CI, and enable MULTI_TENANCY_ENABLED in staging when ready. Verify API scoping. (owner: backend)
 - [ ] Configure uploads in staging: set UPLOADS_PROVIDER=netlify and NETLIFY_BLOBS_TOKEN; validate upload → Netlify Blobs → AV callback → attachments persisted and UI shows per-file status. (owner: backend/ops)
@@ -34,7 +35,7 @@ Notes:
    - [ ] Backfill tenantId for existing rows if applicable
 3. Uploads & Antivirus
    - [ ] Set NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER=netlify, UPLOADS_AV_SCAN_URL
-   - [ ] Verify upload �� AV callback → quarantine → UI statuses (client + admin)
+   - [ ] Verify upload → AV callback → quarantine → UI statuses (client + admin)
    - [x] Implement background retry for avStatus: 'error' (via /api/cron/rescan-attachments)
 4. Realtime durability
    - [ ] Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed)
