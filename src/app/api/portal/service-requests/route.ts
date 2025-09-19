@@ -164,7 +164,11 @@ export async function POST(request: Request) {
           contentType: a.type || undefined,
           provider: process.env.UPLOADS_PROVIDER || undefined,
           serviceRequestId: created.id,
-          avStatus: a.uploadError ? 'error' : undefined,
+          avStatus: a.uploadError ? 'error' : (a.avStatus || undefined),
+          avDetails: a.avDetails || undefined,
+          avScanAt: a.avScanAt ? new Date(a.avScanAt) : undefined,
+          avThreatName: a.avThreatName || undefined,
+          avScanTime: typeof a.avScanTime === 'number' ? a.avScanTime : undefined
         }))
         // Bulk create, ignoring duplicates via try/catch per item
         for (const item of toCreate) {
