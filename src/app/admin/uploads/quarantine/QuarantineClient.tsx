@@ -16,6 +16,7 @@ export default function QuarantineClient() {
   const [dbItems, setDbItems] = useState<DbItem[] | null>(null)
   const [providerItems, setProviderItems] = useState<ProviderItem[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState<Record<string, boolean>>({})
 
   const serviceRequestId = sp.get('serviceRequestId') || ''
   const q = sp.get('q') || ''
@@ -48,6 +49,8 @@ export default function QuarantineClient() {
 
   useEffect(() => { fetchItems() }, [serviceRequestId, q])
 
+  const keysSelected = useMemo(() => Object.keys(selected).filter(k => selected[k]), [selected])
+
   const doAction = async (action: 'release' | 'delete', key: string) => {
     if (!confirm(`Are you sure you want to ${action} ${key}?`)) return
     try {
@@ -77,6 +80,24 @@ export default function QuarantineClient() {
           {(serviceRequestId || q) && (
             <Button variant="outline" onClick={() => { setParam('serviceRequestId',''); setParam('q','') }}>Clear</Button>
           )}
+          {keysSelected.length > 0 && (
+            <>
+              <Button onClick={async () => {
+                if (!confirm(`Release ${keysSelected.length} item(s)?`)) return
+                const res = await fetch('/api/admin/uploads/quarantine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release', keys: keysSelected }) })
+                if (!res.ok) { const j = await res.json().catch(() => ({})); toast.error(j.error || 'Bulk release failed'); return }
+                toast.success('Bulk release initiated')
+                fetchItems()
+              }}>Bulk Release ({keysSelected.length})</Button>
+              <Button variant="destructive" onClick={async () => {
+                if (!confirm(`Delete ${keysSelected.length} item(s)?`)) return
+                const res = await fetch('/api/admin/uploads/quarantine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', keys: keysSelected }) })
+                if (!res.ok) { const j = await res.json().catch(() => ({})); toast.error(j.error || 'Bulk delete failed'); return }
+                toast.success('Bulk delete completed')
+                fetchItems()
+              }}>Bulk Delete ({keysSelected.length})</Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -88,6 +109,14 @@ export default function QuarantineClient() {
             <h2 className="text-lg font-semibold mb-2">Database Records</h2>
             {dbItems && dbItems.length > 0 ? (
               <div className="grid gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={dbItems.every(it => it.key && selected[it.key])} onChange={(e) => {
+                    const next: Record<string, boolean> = { ...selected }
+                    dbItems.forEach(it => { if (it.key) next[it.key] = e.target.checked })
+                    setSelected(next)
+                  }} />
+                  <span className="text-sm text-gray-600">Select all DB items with keys</span>
+                </div>
                 {dbItems.map((it) => (
                   <Card key={it.id}>
                     <CardHeader>
@@ -95,11 +124,16 @@ export default function QuarantineClient() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm text-gray-600">Status: {it.avStatus || '—'}</div>
-                          <div className="text-sm text-gray-600">SR: {it.serviceRequestId || '—'}</div>
-                          <div className="text-sm text-gray-600">Size: {typeof it.size === 'number' ? `${Math.round(it.size/1024)} KB` : '—'}</div>
-                          <div className="text-sm text-gray-600">Uploaded: {it.uploadedAt ? new Date(it.uploadedAt).toLocaleString() : '—'}</div>
+                        <div className="flex items-center gap-3">
+                          {it.key ? (
+                            <input type="checkbox" checked={!!selected[it.key]} onChange={(e) => setSelected(prev => ({ ...prev, [it.key!]: e.target.checked }))} />
+                          ) : <span className="w-4" />}
+                          <div>
+                            <div className="text-sm text-gray-600">Status: {it.avStatus || '—'}</div>
+                            <div className="text-sm text-gray-600">SR: {it.serviceRequestId || '—'}</div>
+                            <div className="text-sm text-gray-600">Size: {typeof it.size === 'number' ? `${Math.round(it.size/1024)} KB` : '—'}</div>
+                            <div className="text-sm text-gray-600">Uploaded: {it.uploadedAt ? new Date(it.uploadedAt).toLocaleString() : '—'}</div>
+                          </div>
                         </div>
                         {it.key ? (
                           <div className="flex items-center gap-2">
@@ -121,6 +155,14 @@ export default function QuarantineClient() {
             <h2 className="text-lg font-semibold mb-2">Provider Blobs</h2>
             {filteredProvider && filteredProvider.length > 0 ? (
               <div className="grid gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={filteredProvider.every(it => selected[it.key])} onChange={(e) => {
+                    const next: Record<string, boolean> = { ...selected }
+                    filteredProvider.forEach(it => { next[it.key] = e.target.checked })
+                    setSelected(next)
+                  }} />
+                  <span className="text-sm text-gray-600">Select all provider blobs</span>
+                </div>
                 {filteredProvider.map((it) => (
                   <Card key={it.key}>
                     <CardHeader>
@@ -128,9 +170,12 @@ export default function QuarantineClient() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm text-gray-600">Size: {it.size || '—'}</div>
-                          <div className="text-sm text-gray-600">Created: {it.createdAt || '—'}</div>
+                        <div className="flex items-center gap-3">
+                          <input type="checkbox" checked={!!selected[it.key]} onChange={(e) => setSelected(prev => ({ ...prev, [it.key]: e.target.checked }))} />
+                          <div>
+                            <div className="text-sm text-gray-600">Size: {it.size || '—'}</div>
+                            <div className="text-sm text-gray-600">Created: {it.createdAt || '—'}</div>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button variant="destructive" onClick={() => doAction('delete', it.key)}>Delete</Button>
