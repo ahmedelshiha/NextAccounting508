@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@netlify/neon'
-
-const sql = neon()
+let sql: any = null
 
 export type PostRow = {
   id: string
