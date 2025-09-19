@@ -108,7 +108,7 @@ export default function AdminNewServiceRequestPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {services.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id}>{s.name}{s.price != null ? ` — $${s.price}` : ''}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
