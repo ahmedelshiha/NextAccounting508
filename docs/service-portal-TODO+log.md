@@ -114,6 +114,23 @@ All tasks are unchecked until implemented. Update this log after each change wit
 
 ## Current Status: Paused (2025-09-20)
 
+ClamAV Deployment Plan (Analyze & Plan)
+- Setup ClamAV service (container) behind a simple HTTP API (/health, /scan, /update)
+- Configure hosting env vars: UPLOADS_PROVIDER, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, (optional) UPLOADS_AV_API_KEY
+- Wire Next.js APIs:
+  - /api/uploads runs pre-store AV scan against UPLOADS_AV_SCAN_URL
+  - /api/uploads/av-callback handles async provider callbacks (optional)
+  - /api/cron/rescan-attachments retries avStatus: 'error' and quarantines infected
+- Schedule rescans with GitHub Actions (clamav-rescan.yml) using secrets CRON_TARGET_URL and CRON_SECRET
+- Netlify/Vercel: add CRON_SECRET; set envs; map AV service URL (proxy if needed)
+- Optional: add /api/cron/av-update to trigger signature refresh when desired
+
+Dependencies
+- ClamAV container (Docker) and simple wrapper service with API key
+- Hosting env variables (Netlify/GitHub secrets) set
+- Storage provider configured (Netlify Blobs) for quarantine moves
+
+
 Summary
 - Project is paused pending CI/CD execution of Prisma generate/migrate/seed and validation in staging.
 - Local environment supports DB-disabled fallbacks; full feature verification requires NETLIFY_DATABASE_URL + CI migration run (Neon recommended).
@@ -326,6 +343,24 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Added ClamAV client utility and refactored upload/rescan to use it.
+  - Added: src/lib/clamav.ts (scanBuffer with retries, timeout, API key header support)
+  - Updated: src/app/api/uploads/route.ts (uses scanBuffer; preserves strict type checks)
+  - Updated: src/app/api/cron/rescan-attachments/route.ts (uses scanBuffer; keeps quarantine flow)
+  - Why: Centralize AV logic, retries, and normalization across endpoints.
+  - Next: Configure UPLOADS_AV_SCAN_URL and (optional) UPLOADS_AV_API_KEY in staging.
+- [x] 2025-09-20: Add Prisma AV fields + migration and persist AV metadata.
+  - Updated: prisma/schema.prisma (Attachment: avScanAt DateTime?, avThreatName String?, avScanTime Float?)
+  - Added: prisma/migrations/20250920_add_av_fields/migration.sql (ALTER TABLE to add columns)
+  - Updated: src/app/api/uploads/route.ts (persist avStatus, avDetails, avScanAt, avThreatName, avScanTime on create)
+  - Updated: src/app/api/cron/rescan-attachments/route.ts (persist avScanAt/avThreatName/avScanTime on rescan)
+  - Updated: src/app/api/uploads/av-callback/route.ts (persist av metadata on AV callback; update JSON attachments fallback)
+  - Why: Provide searchable, queryable AV metadata and timestamps for audits and remediation.
+  - Next: Run `pnpm prisma migrate deploy` in CI (Netlify) or run `pnpm prisma migrate dev --name add-av-fields` locally to apply DB changes; verify seeds and run smoke tests for uploads, rescans, and quarantine workflows.
+- [x] 2025-09-19: Scheduled rescans via GitHub Actions.
+  - Added: .github/workflows/clamav-rescan.yml (runs every 30m; manual dispatch supported)
+  - Why: Ensure background retries for avStatus 'error' without relying on external schedulers.
+  - Next: Set repository secrets CRON_TARGET_URL and CRON_SECRET; validate run logs.
 - [x] 2025-09-20: Added portal CSV export API and updated UI to prefer server export with client fallback.
   - Added: src/app/api/portal/service-requests/export/route.ts; Updated: src/app/portal/service-requests/page.tsx
   - Why: Handle large exports reliably server-side; preserve UX by falling back to client CSV when needed.

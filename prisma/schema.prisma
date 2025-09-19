@@ -499,8 +499,14 @@ model Attachment {
   name          String?
   size          Int?
   contentType   String?
+
+  // Antivirus fields
   avStatus      String?  // pending|clean|infected|error|released
   avDetails     Json?
+  avScanAt      DateTime?
+  avThreatName  String?
+  avScanTime    Float?
+
   provider      String?
   uploadedAt    DateTime @default(now())
   uploaderId    String?

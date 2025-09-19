@@ -1,0 +1,23 @@
+name: ClamAV Rescan
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # every 30 minutes
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger rescan-attachments endpoint
+        env:
+          CRON_TARGET_URL: ${{ secrets.CRON_TARGET_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "${CRON_TARGET_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Missing CRON_TARGET_URL or CRON_SECRET repository secrets"
+            exit 1
+          fi
+          curl -sS -X POST "${CRON_TARGET_URL}/api/cron/rescan-attachments" \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            --fail --show-error --retry 3 --retry-delay 3

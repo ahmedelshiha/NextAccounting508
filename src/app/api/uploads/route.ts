@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
 import { logAudit } from '@/lib/audit'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { scanBuffer } from '@/lib/clamav'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = [
@@ -48,16 +49,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
   }
 
-  // Optional antivirus scan webhook
+  // Optional antivirus scan (best-effort) before storing
+  let avScanResult: any = null
   if (process.env.UPLOADS_AV_SCAN_URL) {
     try {
-      const ac = new AbortController()
-      const t = setTimeout(() => ac.abort(), 5000)
-      const res = await fetch(process.env.UPLOADS_AV_SCAN_URL, { method: 'POST', headers: { 'content-type': 'application/octet-stream' }, body: buf, signal: ac.signal })
-      clearTimeout(t)
-      const json = await res.json().catch(() => ({})) as any
-      if (!res.ok || json?.clean === false) {
-        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed', status: res.status } }) } catch {}
+      avScanResult = await scanBuffer(buf)
+      if (!avScanResult?.clean) {
+        try { await logAudit({ action: 'upload:reject', details: { reason: 'antivirus_failed' } }) } catch {}
         return NextResponse.json({ error: 'File failed antivirus scan' }, { status: 422 })
       }
     } catch (e) {
@@ -102,6 +100,15 @@ export async function POST(request: Request) {
         try {
           const { default: prisma } = await import('@/lib/prisma')
           const tenantId = getTenantFromRequest(request)
+
+          const avData = avScanResult ? {
+            avStatus: avScanResult.clean ? 'clean' : 'infected',
+            avDetails: avScanResult.details || avScanResult,
+            avScanAt: new Date(),
+            avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
+            avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
+          } : {}
+
           await prisma.attachment.create({
             data: {
               key,
@@ -111,6 +118,7 @@ export async function POST(request: Request) {
               contentType: detectedMime || undefined,
               provider: 'netlify',
               ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+              ...avData
             }
           })
         } catch (e) {
