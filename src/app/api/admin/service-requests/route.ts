@@ -106,7 +106,7 @@ export async function GET(request: Request) {
   } catch (e: any) {
     const code = String((e as any)?.code || '')
     const msg = String(e?.message || '')
-    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+    if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         let all: any[] = getAllRequests() as any[]
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
   } catch (e: any) {
     const msg = String(e?.message || '')
     const code = String((e as any)?.code || '')
-    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+    if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
