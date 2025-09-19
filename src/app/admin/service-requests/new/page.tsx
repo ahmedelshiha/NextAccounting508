@@ -142,12 +142,7 @@ export default function AdminNewServiceRequestPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm text-gray-700">Title</label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Quarterly Audit for ABC" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-gray-700">Description</label>
+              <label className="text-sm text-gray-700">Notes</label>
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} placeholder="Describe the request" />
             </div>
 
