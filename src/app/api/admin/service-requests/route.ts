@@ -218,6 +218,9 @@ export async function POST(request: Request) {
   } catch (e: any) {
     const msg = String(e?.message || '')
     const code = String((e as any)?.code || '')
+    if (code === 'P2003') {
+      return respond.badRequest('Invalid clientId or serviceId')
+    }
     if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
@@ -247,6 +250,6 @@ export async function POST(request: Request) {
         return respond.serverError()
       }
     }
-    throw e
+    return respond.serverError('Failed to create service request')
   }
 }
