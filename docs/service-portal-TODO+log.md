@@ -333,7 +333,7 @@ How to Resume
 - [x] 2025-09-20: Added background AV re-scan cron and marked TODO complete.
   - Updated: docs/service-portal-TODO+log.md; implemented via src/app/api/cron/rescan-attachments/route.ts
   - Why: Automatically retry avStatus 'error' items and support quarantine workflow per uploads runbook.
-  - Next: Schedule Netlify cron to POST /api/cron/rescan-attachments (with x-cron-secret) and validate in staging.
+  - Next: Cron scheduled via GitHub Actions workflow (.github/workflows/cron-rescan.yml). Add repository secrets CRON_TARGET_URL (base app URL) and CRON_SECRET (x-cron-secret). Dispatch the workflow in Actions to validate and monitor logs in staging.
 - [x] 2025-09-20: Marked project as Paused and added a consolidated "Remaining Work (Paused)" checklist for quick resumption.
   - Updated: docs/service-portal-TODO+log.md (status/date, consolidated checklist)
   - Why: Provide a single, actionable list of unfinished items and clear current status for future resume.
