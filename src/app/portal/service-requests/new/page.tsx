@@ -229,12 +229,7 @@ export default function NewServiceRequestPage() {
               </div>
 
               <div>
-                <Label htmlFor="title">Title</Label>
-                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1" placeholder="Describe your request" />
-              </div>
-
-              <div>
-                <Label htmlFor="desc">Description</Label>
+                <Label htmlFor="desc">Notes</Label>
                 <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1" rows={5} placeholder="Add additional details" />
               </div>
 
