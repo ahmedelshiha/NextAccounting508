@@ -215,7 +215,7 @@ export default function NewServiceRequestPage() {
                     value={serviceQuery}
                     onChange={(e) => setServiceQuery(e.target.value)}
                   />
-                  <Select onValueChange={setServiceId} value={serviceId}>
+                  <Select onValueChange={(v) => { setServiceId(v); const found = services.find(s => s.id === v) || null; setSelectedService(found) }} value={serviceId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
