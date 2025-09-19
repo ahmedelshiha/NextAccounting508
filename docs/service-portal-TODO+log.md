@@ -305,6 +305,10 @@ How to Resume
   - Updated: src/app/api/admin/users/{route.ts,[id]/route.ts}, src/app/api/admin/stats/{users,posts,bookings}/route.ts
   - Why: Ensure analytics and user management respect tenant boundaries; changes are no-ops until MULTI_TENANCY_ENABLED is true or schema adds tenantId.
   - Next: Add tenant scoping to any remaining admin endpoints (services, activity) and run CI Prisma migration adding tenantId + indexes.
+- [x] 2025-09-19: Scoped admin services, activity, and export by tenant; set Node runtime.
+  - Updated: src/app/api/admin/{services,activity,export}/route.ts
+  - Why: Complete tenant isolation across admin listing/analytics/export endpoints; safe until schema migrates.
+  - Next: Run Prisma migration in CI to add tenantId to affected tables and indexes; validate in staging.
 - [x] 2025-09-20: Scoped remaining admin service-requests routes for multi-tenancy.
   - Updated: src/app/api/admin/service-requests/[id]/assign/route.ts, [id]/status/route.ts, [id]/tasks/route.ts, [id]/comments/route.ts, bulk/route.ts, export/route.ts, analytics/route.ts
   - Why: Enforce tenant isolation across admin APIs; safe no-op when MULTI_TENANCY_ENABLED is false or schema lacks tenantId.
