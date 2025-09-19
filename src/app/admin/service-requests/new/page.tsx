@@ -16,7 +16,7 @@ import { PERMISSIONS } from '@/lib/permissions'
 const PRIORITIES = ['LOW','MEDIUM','HIGH','URGENT'] as const
 
 type ClientItem = { id: string; name: string; tier?: string }
-type ServiceItem = { id: string; name: string }
+type ServiceItem = { id: string; name: string; price?: number | null; slug?: string; shortDesc?: string; features?: string[] }
 
 export default function AdminNewServiceRequestPage() {
   const router = useRouter()
