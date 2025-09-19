@@ -104,13 +104,23 @@ export async function POST(request: Request) {
           const { default: prisma } = await import('@/lib/prisma')
           const tenantId = getTenantFromRequest(request)
 
-          const avData = avScanResult ? {
-            avStatus: avScanResult.clean ? 'clean' : 'infected',
-            avDetails: avScanResult.details || avScanResult,
-            avScanAt: new Date(),
-            avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
-            avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
-          } : {}
+          const avData = (avScanResult || avScanError) ? (() => {
+            if (avScanResult) {
+              return {
+                avStatus: avScanResult.clean ? 'clean' : 'infected',
+                avDetails: avScanResult.details || avScanResult,
+                avScanAt: new Date(),
+                avThreatName: avScanResult.details?.threat_name || avScanResult.details?.threatName || avScanResult.threat_name || avScanResult.threatName || null,
+                avScanTime: typeof avScanResult.details?.scan_time === 'number' ? avScanResult.details.scan_time : (typeof avScanResult.scan_time === 'number' ? avScanResult.scan_time : null)
+              }
+            }
+            // avScanError path: persist error state for later rescan
+            return {
+              avStatus: 'error',
+              avDetails: { error: String(avScanError) },
+              avScanAt: new Date()
+            }
+          })() : {}
 
           await prisma.attachment.create({
             data: {
