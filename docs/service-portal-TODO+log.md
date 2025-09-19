@@ -297,6 +297,12 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-19: Standardized API error handling and improved portal comments attachments UI.
+  - Updated: src/lib/api-error.ts (new helper getApiErrorMessage)
+  - Updated: src/app/portal/service-requests/new/page.tsx, src/app/portal/service-requests/[id]/page.tsx, src/app/portal/page.tsx (use helper for toasts; clearer messages)
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (render comment attachments with AV status indicators)
+  - Why: Consistent, user-friendly errors across portal; improved transparency for attachments scan results.
+  - Next: Apply helper across remaining admin pages; add localization for error messages.
 - [x] 2025-09-18: Resolved GitHub Actions CI merge conflict in .github/workflows/ci.yml.
   - Updated: unified job env and steps; fixed cache-dependency-path: pnpm-lock.yaml; removed conflict markers.
   - Why: PR showed <<<<<<< / ======= / >>>>>>> markers causing CI to be invalid YAML.
