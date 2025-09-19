@@ -22,7 +22,7 @@ export default function AdminNewServiceRequestPage() {
   const router = useRouter()
   const perms = usePermissions()
 
-  const [form, setForm] = useState<{ clientId: string; serviceId: string; title: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', title: '', description: '', priority: 'MEDIUM' })
+  const [form, setForm] = useState<{ clientId: string; serviceId: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', description: '', priority: 'MEDIUM' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<ClientItem[]>([])
