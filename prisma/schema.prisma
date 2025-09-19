@@ -182,11 +182,13 @@ model Service {
   estimatedDurationHours Int?
   requiredSkills String[]
   status        ServiceStatus @default(ACTIVE)
+  tenantId     String?
 
   // Relations
   bookings Booking[]
   serviceRequests ServiceRequest[]
 
+  @@index([tenantId])
   @@map("services")
 }
 
@@ -403,6 +405,7 @@ model ServiceRequest {
   clientApprovalAt      DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
+  tenantId              String?
 
   client                User            @relation("ServiceRequestClient", fields: [clientId], references: [id], onDelete: Cascade)
   service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
@@ -413,6 +416,9 @@ model ServiceRequest {
   attachmentsRel        Attachment[]
 
   @@index([clientId])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, assignedTeamMemberId])
 }
 
 model RequestTask {
@@ -499,11 +505,13 @@ model Attachment {
   uploadedAt    DateTime @default(now())
   uploaderId    String?
   serviceRequestId String?
+  tenantId      String?
 
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
 
   @@index([serviceRequestId])
+  @@index([tenantId])
 }
 
 // ... rest of schema unchanged (omitted for brevity) 
