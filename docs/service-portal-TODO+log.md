@@ -349,6 +349,14 @@ How to Resume
   - Updated: src/app/api/cron/rescan-attachments/route.ts (uses scanBuffer; keeps quarantine flow)
   - Why: Centralize AV logic, retries, and normalization across endpoints.
   - Next: Configure UPLOADS_AV_SCAN_URL and (optional) UPLOADS_AV_API_KEY in staging.
+- [x] 2025-09-20: Add Prisma AV fields + migration and persist AV metadata.
+  - Updated: prisma/schema.prisma (Attachment: avScanAt DateTime?, avThreatName String?, avScanTime Float?)
+  - Added: prisma/migrations/20250920_add_av_fields/migration.sql (ALTER TABLE to add columns)
+  - Updated: src/app/api/uploads/route.ts (persist avStatus, avDetails, avScanAt, avThreatName, avScanTime on create)
+  - Updated: src/app/api/cron/rescan-attachments/route.ts (persist avScanAt/avThreatName/avScanTime on rescan)
+  - Updated: src/app/api/uploads/av-callback/route.ts (persist av metadata on AV callback; update JSON attachments fallback)
+  - Why: Provide searchable, queryable AV metadata and timestamps for audits and remediation.
+  - Next: Run `pnpm prisma migrate deploy` in CI (Netlify) or run `pnpm prisma migrate dev --name add-av-fields` locally to apply DB changes; verify seeds and run smoke tests for uploads, rescans, and quarantine workflows.
 - [x] 2025-09-19: Scheduled rescans via GitHub Actions.
   - Added: .github/workflows/clamav-rescan.yml (runs every 30m; manual dispatch supported)
   - Why: Ensure background retries for avStatus 'error' without relying on external schedulers.
