@@ -89,6 +89,8 @@ Notes & Blockers
 
 ---
 
+# Service Portal — TODO + Change Log
+
 ## CURRENT STATUS: PAUSED (as of 2025-09-20)
 - Project paused pending CI-run Prisma migrations/seeds, staging environment configuration, and multi-tenancy rollout planning. Follow the Quick Resume Checklist below to resume safely.
 
@@ -386,5 +388,3 @@ Below is a concise, prioritized list of unfinished tasks required to resume full
 
 Notes:
 - Each checklist item below the quick resume checklist contains the detailed subtasks and file references. Follow the Quick Resume Checklist first to minimize drift between environments.
-
-[... remainder of existing file content retained below ...]
