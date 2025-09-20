@@ -20,6 +20,8 @@ export type AvailabilityOptions = {
   maxDailyBookings?: number
   // Business hours per weekday; if undefined for a day, that day is closed
   businessHours?: BusinessHours
+  // Reference time used to filter out past slots (defaults to now)
+  now?: Date
 }
 
 export function minutesOfDay(date: Date) {
