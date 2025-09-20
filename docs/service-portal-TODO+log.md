@@ -17,7 +17,7 @@ Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 7 — Tests (unit/route/e2e)
 - [ ] Phase 8 — Migration & Deployment (netlify.toml, seeds, flags)
 - [ ] Phase 9 — Security & Performance (rate limits, indexes, tenancy)
-- [ ] Phase 10 — Accessibility & i18n (calendar a11y; locales)
+- [ ] Phase 10 �� Accessibility & i18n (calendar a11y; locales)
 - [ ] Phase 11 — Analytics & BI (KPIs + charts)
 - [ ] Phase 12 — Post-Integration Maintenance (deprecate legacy, docs, monitor)
 
@@ -560,6 +560,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Wired portal appointment Confirm/Reschedule UI with availability picker.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (Confirm + Reschedule actions, availability modal calling /api/portal/service-requests/availability, POST confirm/reschedule)
+  - Why: Complete unified booking flow by enabling clients to confirm or reschedule from request detail.
+  - Next: Add ICS calendar emails in Phase 6 and, post-migrations, surface isBooking/scheduledAt/bookingType directly from DB fields.
 - [x] 2025-09-20: Admin Service Requests GET now prefers scheduledAt/isBooking with automatic legacy fallback.
   - Updated: src/app/api/admin/service-requests/route.ts (filters by isBooking and date range on scheduledAt when present; orders by scheduledAt for appointments; falls back to legacy deadline/createdAt on missing columns)
   - Why: Align API to Phase 1 schema without breaking environments where migrations haven’t run yet; improves correctness for appointment listings and date filters.
