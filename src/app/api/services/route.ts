@@ -7,6 +7,16 @@ export const revalidate = 0
 // GET /api/services - Get all active services
 export async function GET(request: NextRequest) {
   try {
+    // Early fallback to avoid noisy errors when DB is not configured in dev
+    if (!process.env.NETLIFY_DATABASE_URL) {
+      const fallback = [
+        { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
+        { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
+        { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
+        { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true },
+      ]
+      return NextResponse.json(fallback)
+    }
     const { searchParams } = new URL(request.url)
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')

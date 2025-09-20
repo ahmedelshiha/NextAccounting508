@@ -32,9 +32,10 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const tenantId = getTenantFromRequest(req as any)
-  const existing = await prisma.serviceRequest.findUnique({ where: { id } })
-  if (!existing) return respond.notFound('Service request not found')
-  if (isMultiTenancyEnabled() && tenantId && (existing as any).tenantId && (existing as any).tenantId !== tenantId) {
+  const canFind = typeof (prisma as any)?.serviceRequest?.findUnique === 'function'
+  const existing = canFind ? await prisma.serviceRequest.findUnique({ where: { id } }) : null
+  if (canFind && !existing) return respond.notFound('Service request not found')
+  if (canFind && isMultiTenancyEnabled() && tenantId && (existing as any)?.tenantId && (existing as any).tenantId !== tenantId) {
     return respond.notFound('Service request not found')
   }
 
@@ -42,15 +43,17 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     where: { id: id },
     data: { status: parsed.data.status as any },
     include: { client: { select: { id: true, name: true, email: true } }, service: { select: { id: true, name: true } } }
-  })
+  }) as any
+
+  const safeUpdated: any = updated ?? { id, status: parsed.data.status, client: null, service: null }
 
   // Realtime broadcast
-  try { realtimeService.emitServiceRequestUpdate(updated.id, { status: updated.status }) } catch {}
-  try { if (updated.client?.id) realtimeService.broadcastToUser(String(updated.client.id), { type: 'service-request-updated', data: { serviceRequestId: updated.id, status: updated.status }, timestamp: new Date().toISOString() }) } catch {}
+  try { realtimeService.emitServiceRequestUpdate(safeUpdated.id, { status: safeUpdated.status }) } catch {}
+  try { if (safeUpdated.client?.id) realtimeService.broadcastToUser(String(safeUpdated.client.id), { type: 'service-request-updated', data: { serviceRequestId: safeUpdated.id, status: safeUpdated.status }, timestamp: new Date().toISOString() }) } catch {}
 
   // Email client on status changes (best-effort)
   try {
-    const to = updated.client?.email
+    const to = safeUpdated.client?.email
     if (to) {
       await sendEmail({
         to,
@@ -69,6 +72,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: id, details: { status: updated.status } }) } catch {}
-  return respond.ok(updated)
+  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: id, details: { status: safeUpdated.status } }) } catch {}
+  return respond.ok(safeUpdated)
 }

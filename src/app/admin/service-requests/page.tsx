@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useBookings } from '@/hooks/useBookings'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import { useRealtime } from '@/hooks/useRealtime'
 
 export default function AdminServiceRequestsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const perms = usePermissions()
   const rt = useRealtime(['service-request-updated', 'team-assignment'])
 
@@ -33,6 +34,30 @@ export default function AdminServiceRequestsPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [typeTab, setTypeTab] = useState<'ALL' | 'REQUESTS' | 'APPOINTMENTS'>('ALL')
   const [viewMode, setViewMode] = useState<'LIST' | 'CALENDAR' | 'ANALYTICS'>('LIST')
+
+  // Initialize filters/type/view from URL for deep linking
+  useEffect(() => {
+    if (!searchParams) return
+    const get = (k: string) => searchParams.get(k) || ''
+    const nextFilters = {
+      status: (get('status') as any) || 'ALL',
+      priority: (get('priority') as any) || 'ALL',
+      bookingType: (get('bookingType') as any) || 'ALL',
+      q: get('q') || '',
+      dateFrom: get('dateFrom') || undefined,
+      dateTo: get('dateTo') || undefined,
+    } as RequestFilters
+    setFilters(nextFilters)
+    const t = get('type')
+    if (t === 'appointments') setTypeTab('APPOINTMENTS')
+    else if (t === 'requests') setTypeTab('REQUESTS')
+    const v = get('view')
+    if (v === 'calendar') setViewMode('CALENDAR')
+    else if (v === 'analytics') setViewMode('ANALYTICS')
+    const p = parseInt(get('page') || '1', 10)
+    if (!Number.isNaN(p) && p > 0) setPage(p)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Build URL query string (optional, useful for deep linking)
   const buildQuery = useMemo(() => {
