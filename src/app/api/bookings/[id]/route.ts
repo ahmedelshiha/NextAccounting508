@@ -145,6 +145,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       }
     }
 
+    try { console.debug && console.debug('Booking updateData', updateData) } catch {}
     const booking = await prisma.booking.update({
       where: { id },
       data: updateData,
