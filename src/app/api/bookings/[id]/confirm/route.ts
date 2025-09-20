@@ -61,7 +61,7 @@ export async function POST(
     const updatedBooking = await prisma.booking.update({
       where: { id },
       data: {
-        status: BookingStatus.CONFIRMED,
+        status: 'CONFIRMED',
         confirmed: true
       },
       include: {
