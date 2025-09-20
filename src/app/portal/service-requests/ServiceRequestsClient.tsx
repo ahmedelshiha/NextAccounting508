@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, ClipboardList, ChevronRight } from 'lucide-react'
 import { useBookings } from '@/hooks/useBookings'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
@@ -52,6 +53,9 @@ export default function ServiceRequestsClient() {
   const [bookingType, setBookingType] = useState<'ALL'|'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>(
     (searchParams.get('bookingType') as any) || 'ALL'
   )
+  const [typeTab, setTypeTab] = useState<'all'|'requests'|'appointments'>(
+    (searchParams.get('type') as any) === 'requests' ? 'requests' : (searchParams.get('type') as any) === 'appointments' ? 'appointments' : 'all'
+  )
   const [dateFrom, setDateFrom] = useState<string>(searchParams.get('dateFrom') || '')
   const [dateTo, setDateTo] = useState<string>(searchParams.get('dateTo') || '')
   const [q, setQ] = useState<string>(searchParams.get('q') || '')
@@ -70,6 +74,7 @@ export default function ServiceRequestsClient() {
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
     if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
+    if (typeTab && typeTab !== 'all') params.set('type', typeTab)
     if (dateFrom) params.set('dateFrom', dateFrom)
     if (dateTo) params.set('dateTo', dateTo)
     if (debouncedQ) params.set('q', debouncedQ)
@@ -80,7 +85,7 @@ export default function ServiceRequestsClient() {
   }, [status, bookingType, dateFrom, dateTo, debouncedQ, page, limit, router])
 
   // Reset to first page on filter changes
-  useEffect(() => { setPage(1) }, [status, bookingType, dateFrom, dateTo, debouncedQ, limit])
+  useEffect(() => { setPage(1) }, [status, bookingType, typeTab, dateFrom, dateTo, debouncedQ, limit])
 
   // Data via shared hook (SWR + unified SR API); scope=portal ensures client-specific data
   const { items, pagination, isLoading, refresh } = useBookings({
@@ -92,6 +97,7 @@ export default function ServiceRequestsClient() {
     bookingType,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
+    type: typeTab,
   })
 
   const totalPages = pagination?.totalPages || 1
@@ -234,7 +240,16 @@ export default function ServiceRequestsClient() {
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Tabs value={typeTab} onValueChange={(v) => setTypeTab(v as any)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="requests">Requests</TabsTrigger>
+                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
           <div className="flex items-center gap-2">
             <Input
               value={q}
