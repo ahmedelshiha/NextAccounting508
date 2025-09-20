@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Revenue by service within range (completed bookings)
     const completed = await prisma.booking.findMany({
-      where: { status: 'COMPLETED', createdAt: { gte: startDate } },
+      where: { ...tenantFilter(tenantId), status: 'COMPLETED', createdAt: { gte: startDate } },
       include: { service: { select: { name: true, price: true } } },
     })
     const revenueByServiceMap = new Map<string, number>()
