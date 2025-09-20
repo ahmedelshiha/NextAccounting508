@@ -79,7 +79,7 @@ Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 10 — Accessibility & i18n
   - Ensure calendar keyboard support, focus traps, ARIA; extend locales in src/app/locales/*.json
 
-- [ ] Phase 11 — Analytics & BI
+- [ ] Phase 11 �� Analytics & BI
   - Extend /api/admin/stats to include booking KPIs; integrate charts in admin analytics
 
 - [ ] Phase 12 — Post-Integration Maintenance
@@ -267,6 +267,10 @@ Notes
 - [x] 2025-09-20: Added admin endpoints for availability, confirm, and reschedule; introduced useAvailability hook.
 - [x] 2025-09-20: Added public guest Service Request creation endpoint.
 - [x] 2025-09-20: Added portal availability endpoint.
+- [x] 2025-09-20: Added portal endpoints for confirm and reschedule.
+  - Added: src/app/api/portal/service-requests/[id]/confirm/route.ts; [id]/reschedule/route.ts (client ownership checks, conflict checks, fallbacks)
+  - Why: Complete unified booking flow for clients to confirm or change appointment time.
+  - Next: Wire portal UI actions to call these endpoints; add ICS emails in Phase 6.
   - Added: src/app/api/portal/service-requests/availability/route.ts (client-auth; mirrors admin availability; safe fallback)
   - Why: Allow clients to query available appointment slots as part of unified booking flow.
   - Next: Wire portal create UI to call availability before submit; add scheduledAt support post-migration.
