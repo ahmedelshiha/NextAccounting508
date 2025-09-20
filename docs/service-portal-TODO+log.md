@@ -561,6 +561,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Added admin list filtering tests for GET route.
+  - Added: tests/admin-service-requests.filters.test.ts
+  - Why: Verify server applies filters (status, priority, bookingType, q, date range) and ordering per type.
+  - Next: Proceed to Phase 2 unified API refinements post-migrations (availability/confirm/reschedule parity).
 - [x] 2025-09-20: Added tests for portal confirm and reschedule endpoints.
   - Added: tests/portal-confirm-reschedule.route.test.ts
   - Why: Cover client actions for appointment confirmation and rescheduling.
