@@ -71,12 +71,13 @@ export function generateAvailability(
       4: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
       5: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
     },
+    now: opts.now ?? new Date(),
   }
 
   const result: AvailabilitySlot[] = []
   const start = new Date(from)
   const end = new Date(to)
-  const now = opts.now ?? new Date()
+  const now = options.now
 
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const wd = d.getDay() // 0..6
