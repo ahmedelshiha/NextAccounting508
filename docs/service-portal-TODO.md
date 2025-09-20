@@ -19,9 +19,10 @@
   - Complexity: S • Owner: backend
 
 ### P1 — High Priority
-- [ ] PricingEngine
-  - Next: Implement src/lib/booking/pricing.ts (peak/weekend, duration overage, emergency, promos); surface in availability and wizard.
-  - Deps: Service.basePrice, standardDuration, hourlyRate
+- [x] PricingEngine
+  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability endpoints via includePrice.
+  - Next: Integrate into multi-step Booking Wizard UI for on-the-fly totals; add admin settings for pricing modifiers.
+  - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
 - [ ] ConflictDetectionService
   - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
@@ -86,7 +87,7 @@
   - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
-  - Next: Portal create �� admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
+  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
   - Complexity: M • Owner: QA
 - [ ] Remove dev fallbacks
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.
