@@ -665,6 +665,9 @@ How to Resume
   - Added: src/app/api/cron/reminders/route.ts (protected by x-cron-secret; scans confirmed upcoming appointments within configured reminder windows [BookingPreferences.reminderHours or defaults [24,2]]; sends emails via sendBookingReminder; sets reminderSent; tolerant +/-15m window)
   - Added: .github/workflows/booking-reminders.yml (pre-checks CRON_TARGET_URL/CRON_SECRET; calls POST /api/cron/reminders every 15 minutes)
   - Why: Automate client reminders for upcoming appointments (Phase 6 — Email & Notifications) with safe idempotency and ops-friendly scheduling.
+  - 2025-09-20: Fixed missing NextResponse import and added tests for cron reminders endpoint.
+    - Updated: src/app/api/cron/reminders/route.ts (import NextResponse)
+    - Added: tests/cron-reminders.route.test.ts (secret auth, DB skip, sends + marks reminderSent)
   - Next: Set SENDGRID_API_KEY and FROM_EMAIL; configure CRON_TARGET_URL and CRON_SECRET in GitHub; validate emails in staging; consider per-tenant batching and SMS when provider is available.
 - [x] 2025-09-21: Localized emails/time zone support for confirmations and reminders.
   - Updated: src/lib/email.ts (sendBookingConfirmation/sendBookingReminder accept options { locale, timeZone } and format dates accordingly; ICS remains UTC-safe)
