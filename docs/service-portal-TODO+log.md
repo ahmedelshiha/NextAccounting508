@@ -13,7 +13,7 @@ Current Status
 - PAUSED — awaiting CI-run Prisma migrations/seeds, staging env configuration, and multi-tenancy rollout plan.
 
 Completed Work — Summary
-- Admin Service Requests: added filtered CSV export button that respects current filters and view type (list/appointments). Files: src/app/admin/service-requests/ClientPage.tsx. Why: operator-needed export parity and faster triage/reporting.
+- Admin Service Requests: added filtered CSV export button + enhanced server export to respect filters (status, priority, bookingType, q, dateFrom/dateTo, type) and include scheduledAt/isBooking/bookingType columns with legacy fallback. Files: src/app/admin/service-requests/ClientPage.tsx, src/app/api/admin/service-requests/export/route.ts.
 - Unified Service Requests foundation shipped (admin + portal APIs, RBAC, realtime, comments, tasks, analytics, CSV export).
 - Admin/Portal UIs wired (filters, tabs, calendar, booking type analytics, quarantine console, CSV exports).
 - Uploads + AV implemented (Netlify Blobs provider, AV callback, rescan cron, quarantine flows).
