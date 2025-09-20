@@ -6,15 +6,19 @@ import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
 import { logAudit } from '@/lib/audit'
 import { sendBookingConfirmation } from '@/lib/email'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
-export async function POST(_req: Request, context: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
+  const tenantId = getTenantFromRequest(req as any)
+
   try {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id }, select: { id: true, clientId: true } })
+    const sr = await prisma.serviceRequest.findUnique({ where: { id }, select: { id: true, clientId: true, tenantId: true } })
     if (!sr || sr.clientId !== session.user.id) return respond.notFound('Service request not found')
+    if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) return respond.notFound('Service request not found')
 
     const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
     if (!booking) return respond.badRequest('No linked booking to confirm')
