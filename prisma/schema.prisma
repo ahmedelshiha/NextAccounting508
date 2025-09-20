@@ -213,9 +213,18 @@ model Booking {
   assignedTeamMemberId String?
   assignedTeamMember   TeamMember? @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
 
+  // Service Request linkage (integration)
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
   // Relations
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  // Helpful indexes for queries
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([clientId])
 
   @@map("bookings")
 }

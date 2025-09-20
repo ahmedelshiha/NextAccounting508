@@ -83,7 +83,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     }
 
     const body = await request.json()
-    const { status, scheduledAt, notes, adminNotes, confirmed, assignedTeamMemberId } = body
+    const { status, scheduledAt, notes, adminNotes, confirmed, assignedTeamMemberId, serviceRequestId } = body
 
     // Get existing booking to check permissions
     const existingBooking = await prisma.booking.findUnique({
@@ -120,6 +120,11 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       if (assignedTeamMemberId !== undefined) {
         updateData.assignedTeamMember = assignedTeamMemberId
           ? { connect: { id: String(assignedTeamMemberId) } }
+          : { disconnect: true }
+      }
+      if (serviceRequestId !== undefined) {
+        updateData.serviceRequest = serviceRequestId
+          ? { connect: { id: String(serviceRequestId) } }
           : { disconnect: true }
       }
     }
