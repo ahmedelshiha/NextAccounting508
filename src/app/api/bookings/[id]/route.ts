@@ -79,6 +79,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   try {
     const { id } = await context.params
     const session = await getServerSession(authOptions)
+    try { console.debug && console.debug('PUT session', session) } catch {}
 
     if (!session?.user) {
       return NextResponse.json(
