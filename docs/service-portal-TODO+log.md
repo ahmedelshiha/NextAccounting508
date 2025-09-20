@@ -259,6 +259,11 @@ Notes
   - Why: Align with Phase 2 requirement for date filtering ahead of scheduledAt migrations; improves triage and reporting.
   - Next: After migrations add scheduledAt, extend DB WHERE to use scheduledAt and add bookingType filter.
 
+- [x] 2025-09-20: Added admin endpoints for availability, confirm, and reschedule; introduced useAvailability hook.
+  - Added: src/app/api/admin/service-requests/availability/route.ts; src/app/api/admin/service-requests/[id]/confirm/route.ts; src/app/api/admin/service-requests/[id]/reschedule/route.ts; src/hooks/useAvailability.ts
+  - Why: Progress Phase 2 unified API (availability/confirm/reschedule) and Phase 4 hooks for booking flows; endpoints work with DB and include safe fallbacks where feasible.
+  - Next: Portal POST support for guest bookings using unified SR API; later migrate to ServiceRequest.scheduledAt and booking statuses.
+
 
 
 Completed (Highlights)
@@ -328,7 +333,7 @@ Summary
 - Uploads provider: Netlify Blobs implemented (requires NETLIFY_BLOBS_TOKEN in Netlify env to enable). Realtime Postgres adapter implemented but requires REALTIME_TRANSPORT=postgres in staging.
 - Recent changes: logout/realtime cleanup, middleware cache-control, tests added for many APIs. Some UI unit tests are excluded from local runs and run in CI.
 
-Actionable "Remaining Work (Paused)" Checklist — Priority ordered
+Actionable "Remaining Work (Paused)" Checklist �� Priority ordered
 1. Database & Migrations (critical)
    - [ ] Ensure CI runs Prisma client generation and migrations: configure Netlify build to run "pnpm db:generate && pnpm db:migrate && pnpm db:seed".
    - [ ] Verify seed data applied: roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN), default templates, and permissions.
