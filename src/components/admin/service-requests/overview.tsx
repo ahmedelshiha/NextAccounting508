@@ -21,6 +21,8 @@ interface AnalyticsResponse {
     priorityDistribution: Record<string, number>
     activeRequests: number
     completionRate: number
+    appointmentsCount?: number
+    bookingTypeDistribution?: Record<string, number>
   }
 }
 
@@ -104,6 +106,34 @@ export default function ServiceRequestsOverview() {
           <CardContent>
             <div className="text-2xl font-bold">${(analytics?.pipelineValue ?? 0).toLocaleString()}</div>
             <CardDescription>Budget max sum</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Appointments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics?.appointmentsCount ?? (loading ? '—' : 0)}</div>
+            <CardDescription>isBooking = true</CardDescription>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Booking Types</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {analytics?.bookingTypeDistribution && Object.keys(analytics.bookingTypeDistribution).length ? (
+              <ul className="text-sm text-gray-700 space-y-1">
+                {Object.entries(analytics.bookingTypeDistribution).map(([k,v]) => (
+                  <li key={k} className="flex items-center justify-between"><span>{k}</span><span className="text-gray-500">{v}</span></li>
+                ))}
+              </ul>
+            ) : (
+              <CardDescription>No booking data</CardDescription>
+            )}
           </CardContent>
         </Card>
       </div>
