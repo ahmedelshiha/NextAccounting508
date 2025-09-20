@@ -16,6 +16,7 @@ import ServiceRequestsTable, { type ServiceRequestItem } from '@/components/admi
 import ServiceRequestsBulkActions from '@/components/admin/service-requests/bulk-actions'
 import ServiceRequestsCalendarView from '@/components/admin/service-requests/calendar-view'
 import { useRealtime } from '@/hooks/useRealtime'
+import { apiFetch } from '@/lib/api'
 
 interface ListResponse {
   success?: boolean
