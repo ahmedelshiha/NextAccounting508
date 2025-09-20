@@ -38,6 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Ensure NETLIFY_DATABASE_URL env
+        run: |
+          if [ -z "${{ secrets.NETLIFY_DATABASE_URL }}" ]; then
+            echo "NETLIFY_DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          else
+            echo "NETLIFY_DATABASE_URL=${{ secrets.NETLIFY_DATABASE_URL }}" >> $GITHUB_ENV
+          fi
+
       - name: Generate Prisma Client
         run: pnpm db:generate
 
