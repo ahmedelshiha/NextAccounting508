@@ -80,10 +80,10 @@ export async function GET(request: NextRequest) {
     const servicesWithCounts = await prisma.booking.groupBy({
       by: ['serviceId'],
       _count: { serviceId: true },
-      where: { createdAt: { gte: startDate } }
+      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } }
     })
     const serviceIds = servicesWithCounts.map(s => s.serviceId).filter((id): id is string => !!id)
-    const services = await prisma.service.findMany({ where: { id: { in: serviceIds } }, select: { id: true, name: true } })
+    const services = await prisma.service.findMany({ where: { ...tenantFilter(tenantId), id: { in: serviceIds } }, select: { id: true, name: true } })
     const topServices = servicesWithCounts
       .map(s => ({ service: services.find(x => x.id === s.serviceId)?.name || 'Unknown', bookings: s._count.serviceId }))
       .sort((a, b) => b.bookings - a.bookings)
