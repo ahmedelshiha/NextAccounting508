@@ -49,6 +49,9 @@ export default function ServiceRequestsClient() {
   const searchParams = useSearchParams()
 
   const [status, setStatus] = useState<string>(searchParams.get('status') || 'ALL')
+  const [bookingType, setBookingType] = useState<'ALL'|'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>(
+    (searchParams.get('bookingType') as any) || 'ALL'
+  )
   const [q, setQ] = useState<string>(searchParams.get('q') || '')
   const [debouncedQ, setDebouncedQ] = useState<string>(q)
   const [page, setPage] = useState<number>(parseInt(searchParams.get('page') || '1', 10) || 1)
@@ -64,15 +67,16 @@ export default function ServiceRequestsClient() {
   useEffect(() => {
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
+    if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
     if (debouncedQ) params.set('q', debouncedQ)
     params.set('page', String(page))
     params.set('limit', String(limit))
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [status, debouncedQ, page, limit, router])
+  }, [status, bookingType, debouncedQ, page, limit, router])
 
   // Reset to first page on filter changes
-  useEffect(() => { setPage(1) }, [status, debouncedQ, limit])
+  useEffect(() => { setPage(1) }, [status, bookingType, debouncedQ, limit])
 
   // Data via shared hook (SWR + unified SR API); scope=portal ensures client-specific data
   const { items, pagination, isLoading, refresh } = useBookings({
@@ -81,6 +85,7 @@ export default function ServiceRequestsClient() {
     limit,
     q: debouncedQ,
     status,
+    bookingType,
   })
 
   const totalPages = pagination?.totalPages || 1
@@ -247,6 +252,18 @@ export default function ServiceRequestsClient() {
                 <SelectItem value="DRAFT">Draft</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Booking type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All booking types</SelectItem>
+                <SelectItem value="STANDARD">STANDARD</SelectItem>
+                <SelectItem value="RECURRING">RECURRING</SelectItem>
+                <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
+                <SelectItem value="CONSULTATION">CONSULTATION</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
               <SelectTrigger className="w-28">
                 <SelectValue placeholder="Per page" />
@@ -258,10 +275,10 @@ export default function ServiceRequestsClient() {
               </SelectContent>
             </Select>
           </div>
-          {(q || (status && status !== 'ALL')) && (
+          {(q || (status && status !== 'ALL') || (bookingType && bookingType !== 'ALL')) && (
             <button
               type="button"
-              onClick={() => { setQ(''); setStatus('ALL') }}
+              onClick={() => { setQ(''); setStatus('ALL'); setBookingType('ALL') }}
               className="text-sm text-gray-600 hover:underline"
             >
               Clear filters
