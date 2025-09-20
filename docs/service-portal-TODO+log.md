@@ -560,6 +560,32 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Admin Service Requests GET now prefers scheduledAt/isBooking with automatic legacy fallback.
+  - Updated: src/app/api/admin/service-requests/route.ts (filters by isBooking and date range on scheduledAt when present; orders by scheduledAt for appointments; falls back to legacy deadline/createdAt on missing columns)
+  - Why: Align API to Phase 1 schema without breaking environments where migrations haven’t run yet; improves correctness for appointment listings and date filters.
+  - Next: Update UI filters to surface bookingType and switch default ordering for Appointments tab; extend portal/admin create to accept isBooking payload after CI migrations.
+- [x] 2025-09-20: Added bookingType filter (API + Admin UI) with safe defaults.
+  - Updated: src/app/api/admin/service-requests/route.ts (accepts bookingType query and filters when column exists; dev fallback filters in-memory)
+  - Updated: src/components/admin/service-requests/filters.tsx (new Booking type select)
+  - Updated: src/app/admin/service-requests/page.tsx (wires bookingType to query string)
+  - Why: Enables filtering between STANDARD/RECURRING/EMERGENCY/CONSULTATION appointments.
+  - Next: Surface bookingType in table column and analytics; wire portal/admin create to set bookingType when isBooking is true.
+- [x] 2025-09-20: Create API now accepts isBooking with scheduledAt (discriminated union) and stores booking fields.
+  - Updated: src/app/api/admin/service-requests/route.ts (CreateSchema union; persists isBooking, scheduledAt, duration, clientName/email/phone, bookingType)
+  - Why: Enable unified creation flow for appointments without breaking existing request payloads.
+  - Next: Update portal/admin create forms to send isBooking payload after migrations; add route/unit tests.
+- [x] 2025-09-20: Surfaced booking type in Admin table and added booking analytics.
+  - Updated: src/components/admin/service-requests/table.tsx (Type column with Appointment/Request + bookingType)
+  - Updated: src/app/api/admin/service-requests/analytics/route.ts (appointmentsCount + bookingTypeDistribution)
+  - Updated: src/components/admin/service-requests/overview.tsx (shows Appointments KPI and Booking Types list)
+  - Why: Improve operator visibility of appointment load and types for triage and planning.
+  - Next: Add charts for booking types in analytics view; portal/admin forms to set bookingType.
+- [x] 2025-09-20: Wired portal/admin create forms to send isBooking with scheduledAt and bookingType.
+  - Updated: src/app/portal/service-requests/new/page.tsx (booking type select; payload includes isBooking, scheduledAt, duration, bookingType)
+  - Updated: src/app/admin/service-requests/new/page.tsx (appointment fields and payload)
+  - Updated: src/app/api/portal/service-requests/route.ts (CreateSchema union + persistence)
+  - Why: Enable end-to-end appointment creation from UI in unified model.
+  - Next: Add chart component for booking type distribution; consider server ordering by scheduledAt in Appointments tab post-migrations.
 - [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
   - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
   - Why: Maintain compatibility while consolidating on unified API and schema.

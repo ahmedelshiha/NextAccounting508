@@ -9,6 +9,7 @@ import { RefreshCw, Filter } from 'lucide-react'
 export type RequestFilters = {
   status: string | 'ALL'
   priority: string | 'ALL'
+  bookingType: 'ALL' | 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION'
   q: string
   dateFrom?: string
   dateTo?: string
@@ -27,6 +28,7 @@ interface FiltersProps {
 export default function ServiceRequestFilters({ value, onChange, onRefresh, refreshing }: FiltersProps) {
   const statusItems = useMemo(() => ['ALL', ...STATUSES], [])
   const priorityItems = useMemo(() => ['ALL', ...PRIORITIES], [])
+  const bookingTypeItems = useMemo(() => ['ALL','STANDARD','RECURRING','EMERGENCY','CONSULTATION'] as const, [])
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -64,7 +66,15 @@ export default function ServiceRequestFilters({ value, onChange, onRefresh, refr
           {priorityItems.map(p => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
         </SelectContent>
       </Select>
-      <Button variant="outline" onClick={() => onChange({ status: 'ALL', priority: 'ALL', q: '', dateFrom: undefined, dateTo: undefined })} className="flex items-center gap-2">
+      <Select value={value.bookingType} onValueChange={(v) => onChange({ ...value, bookingType: v as RequestFilters['bookingType'] })}>
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Booking type" />
+        </SelectTrigger>
+        <SelectContent>
+          {bookingTypeItems.map(bt => (<SelectItem key={bt} value={bt}>{bt}</SelectItem>))}
+        </SelectContent>
+      </Select>
+      <Button variant="outline" onClick={() => onChange({ status: 'ALL', priority: 'ALL', bookingType: 'ALL', q: '', dateFrom: undefined, dateTo: undefined })} className="flex items-center gap-2">
         <Filter className="h-4 w-4" /> Reset
       </Button>
       {onRefresh && (

@@ -23,6 +23,10 @@ export default function AdminNewServiceRequestPage() {
   const perms = usePermissions()
 
   const [form, setForm] = useState<{ clientId: string; serviceId: string; description: string; priority: typeof PRIORITIES[number]; budgetMin?: string; budgetMax?: string; deadline?: string }>({ clientId: '', serviceId: '', description: '', priority: 'MEDIUM' })
+  const [asAppointment, setAsAppointment] = useState(false)
+  const [scheduledAt, setScheduledAt] = useState('')
+  const [durationMin, setDurationMin] = useState<string>('')
+  const [bookingType, setBookingType] = useState<'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>('STANDARD')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<ClientItem[]>([])
@@ -86,6 +90,12 @@ export default function AdminNewServiceRequestPage() {
         budgetMin: form.budgetMin ? Number(form.budgetMin) : undefined,
         budgetMax: form.budgetMax ? Number(form.budgetMax) : undefined,
         deadline: deadlineIso,
+        ...(asAppointment && scheduledAt ? {
+          isBooking: true,
+          scheduledAt: new Date(scheduledAt).toISOString(),
+          duration: durationMin ? Number(durationMin) : undefined,
+          bookingType,
+        } : {}),
         requirements: {
           ...(form as any).requirements,
           serviceSnapshot,
@@ -188,6 +198,35 @@ export default function AdminNewServiceRequestPage() {
             <div className="space-y-2">
               <label className="text-sm text-gray-700">Deadline</label>
               <Input type="datetime-local" value={form.deadline || ''} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm text-gray-700">Appointment (optional)</label>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="flex items-center gap-2">
+                  <input id="asAppointment" type="checkbox" checked={asAppointment} onChange={(e) => setAsAppointment(e.target.checked)} />
+                  <label htmlFor="asAppointment" className="text-sm text-gray-700">Create as appointment</label>
+                </div>
+                <div>
+                  <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} placeholder="Scheduled at" />
+                </div>
+                <div>
+                  <Input type="number" value={durationMin} onChange={(e) => setDurationMin(e.target.value)} placeholder="Duration (min)" />
+                </div>
+                <div>
+                  <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Booking type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STANDARD">Standard</SelectItem>
+                      <SelectItem value="RECURRING">Recurring</SelectItem>
+                      <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                      <SelectItem value="CONSULTATION">Consultation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             <div className="pt-2">
