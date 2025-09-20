@@ -5,7 +5,8 @@ Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09
 
 Current Status
 - Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
-- Pending: Phases 1–12 (see checklists below)
+- Updated: Phase 1 migrations applied in CI/dev (2025-09-21) — prisma migrations deployed and seed applied against Neon DB
+- Pending: Phases 2–12 (see checklists below)
 
 Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 1 — Data Model Unification (migrations + schema changes; run in CI)
@@ -560,6 +561,14 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Wired portal appointment Confirm/Reschedule UI with availability picker.
+  - Updated: src/app/portal/service-requests/[id]/page.tsx (Confirm + Reschedule actions, availability modal calling /api/portal/service-requests/availability, POST confirm/reschedule)
+  - Why: Complete unified booking flow by enabling clients to confirm or reschedule from request detail.
+  - Next: Add ICS calendar emails in Phase 6 and, post-migrations, surface isBooking/scheduledAt/bookingType directly from DB fields.
+- [x] 2025-09-20: Added Booking Type pie chart to Admin overview.
+  - Added: src/components/admin/service-requests/booking-type-distribution.tsx; Updated: src/components/admin/service-requests/overview.tsx
+  - Why: Visualize booking type distribution using existing analytics endpoint.
+  - Next: After migrations, ensure bookingType is persisted for all appointments; consider drill-down filtering.
 - [x] 2025-09-20: Admin Service Requests GET now prefers scheduledAt/isBooking with automatic legacy fallback.
   - Updated: src/app/api/admin/service-requests/route.ts (filters by isBooking and date range on scheduledAt when present; orders by scheduledAt for appointments; falls back to legacy deadline/createdAt on missing columns)
   - Why: Align API to Phase 1 schema without breaking environments where migrations haven’t run yet; improves correctness for appointment listings and date filters.

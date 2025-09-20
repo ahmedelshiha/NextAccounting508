@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
 
@@ -27,6 +29,10 @@ interface ServiceRequest {
   service: ServiceSummary
   attachments?: any
   comments?: Comment[]
+  // Optional booking-related fields when available (fallback/dev or post-migration)
+  scheduledAt?: string | null
+  confirmed?: boolean
+  requirements?: any
 }
 
 const statusStyles: Record<string, string> = {
@@ -51,6 +57,15 @@ export default function PortalServiceRequestDetailPage() {
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
   const [uploadingKeys, setUploadingKeys] = useState<Record<string, boolean>>({})
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+
+  // Appointment UI state
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+  const [appointmentDate, setAppointmentDate] = useState('')
+  const [slotDuration, setSlotDuration] = useState<number | ''>('')
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [slots, setSlots] = useState<{ start: string; end: string; available: boolean }[]>([])
+  const [selectedSlot, setSelectedSlot] = useState('')
+
   const id = params?.id
 
   const load = async () => {
@@ -160,7 +175,6 @@ export default function PortalServiceRequestDetailPage() {
   const submitComment = async () => {
     if (!comment.trim()) return
     try {
-      // ensure any selected files are uploaded
       const results = await Promise.all(
         commentFiles.map(async (f) => {
           const key = `${f.name}-${f.lastModified}`
@@ -245,6 +259,77 @@ export default function PortalServiceRequestDetailPage() {
     }
   }
 
+  // Appointment helpers
+  const scheduledAt: string | undefined = (reqData as any)?.scheduledAt || (reqData as any)?.requirements?.booking?.scheduledAt
+  const isBooking = !!scheduledAt
+  const isCompletedOrCancelled = !!reqData && ['COMPLETED','CANCELLED'].includes(reqData.status)
+  const isConfirmed = Boolean((reqData as any)?.confirmed)
+
+  const fetchAvailability = async () => {
+    if (!reqData?.service?.id || !appointmentDate) return
+    setLoadingSlots(true)
+    setSelectedSlot('')
+    setSlots([])
+    try {
+      const from = new Date(appointmentDate)
+      const to = new Date(appointmentDate)
+      to.setHours(23,59,59,999)
+      const params = new URLSearchParams()
+      params.set('serviceId', reqData.service.id)
+      params.set('dateFrom', from.toISOString())
+      params.set('dateTo', to.toISOString())
+      if (typeof slotDuration === 'number') params.set('duration', String(slotDuration))
+      const res = await apiFetch(`/api/portal/service-requests/availability?${params.toString()}`)
+      const json = await res.json().catch(() => ({} as any))
+      const list = Array.isArray(json?.data?.slots) ? json.data.slots : []
+      setSlots(list)
+    } catch {
+      toast.error('Failed to load availability')
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
+  const confirmAppointment = async () => {
+    if (!id) return
+    try {
+      const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}/confirm`, { method: 'POST' })
+      const json = await res.json().catch(() => ({} as any))
+      if (!res.ok) {
+        toast.error(getApiErrorMessage(json, 'Unable to confirm appointment'))
+        return
+      }
+      toast.success('Appointment confirmed')
+      await load()
+    } catch {
+      toast.error('Unable to confirm appointment')
+    }
+  }
+
+  const submitReschedule = async () => {
+    if (!id || !selectedSlot) return
+    try {
+      const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}/reschedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: selectedSlot })
+      })
+      const json = await res.json().catch(() => ({} as any))
+      if (!res.ok) {
+        toast.error(getApiErrorMessage(json, 'Unable to reschedule'))
+        return
+      }
+      toast.success('Appointment rescheduled')
+      setRescheduleOpen(false)
+      setAppointmentDate('')
+      setSelectedSlot('')
+      setSlots([])
+      await load()
+    } catch {
+      toast.error('Unable to reschedule')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -259,6 +344,12 @@ export default function PortalServiceRequestDetailPage() {
             </Button>
             {reqData && ['SUBMITTED','IN_REVIEW'].includes(reqData.status) && (
               <Button onClick={approveRequest}>Approve</Button>
+            )}
+            {reqData && !isCompletedOrCancelled && isBooking && !isConfirmed && (
+              <Button onClick={confirmAppointment}>Confirm appointment</Button>
+            )}
+            {reqData && !isCompletedOrCancelled && isBooking && (
+              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>Reschedule</Button>
             )}
             {reqData && !['COMPLETED','CANCELLED'].includes(reqData.status) && (
               <Button variant="destructive" onClick={cancelRequest}>Cancel</Button>
@@ -290,6 +381,19 @@ export default function PortalServiceRequestDetailPage() {
                 </div>
               </CardHeader>
               <CardContent>
+                {isBooking && (
+                  <div className="mb-3 rounded-md border px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-900">
+                        <span className="font-medium">Scheduled:</span>{' '}
+                        <span>{new Date(scheduledAt as string).toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {isConfirmed ? 'Confirmed' : 'Awaiting confirmation'}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {reqData.description && (
                   <p className="text-gray-800 whitespace-pre-line">{reqData.description}</p>
                 )}
@@ -431,7 +535,6 @@ export default function PortalServiceRequestDetailPage() {
                         className="mt-1"
                         onChange={(e) => {
                           const next = Array.from(e.target.files || [])
-                          // add only new
                           const existing = new Set(commentFiles.map((f) => `${f.name}-${f.lastModified}`))
                           const fresh = next.filter((f) => !existing.has(`${f.name}-${f.lastModified}`))
                           setCommentFiles((prev) => [...prev, ...fresh])
@@ -492,6 +595,66 @@ export default function PortalServiceRequestDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Reschedule dialog */}
+      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reschedule appointment</DialogTitle>
+            <DialogDescription>Select a new date and time.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div>
+                <Label htmlFor="apt-date">Date</Label>
+                <Input id="apt-date" type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
+              </div>
+              <div>
+                <Label>Duration</Label>
+                <Select value={String(slotDuration || '')} onValueChange={(v) => setSlotDuration(v ? Number(v) as number : '')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Duration (min)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Default</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="45">45</SelectItem>
+                    <SelectItem value="60">60</SelectItem>
+                    <SelectItem value="90">90</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button type="button" variant="outline" onClick={fetchAvailability} disabled={!appointmentDate || loadingSlots || !reqData?.service?.id}>
+                  {loadingSlots ? 'Loading...' : 'Find Slots'}
+                </Button>
+              </div>
+            </div>
+
+            {slots.length > 0 && (
+              <div className="mt-1">
+                <div className="text-xs text-gray-600 mb-1">Available times</div>
+                <div className="flex flex-wrap gap-2">
+                  {slots.filter(s => s.available).map((s) => {
+                    const dt = new Date(s.start)
+                    const label = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    const isSel = selectedSlot === s.start
+                    return (
+                      <Button key={s.start} type="button" size="sm" variant={isSel ? 'default' : 'outline'} onClick={() => setSelectedSlot(s.start)}>
+                        {label}
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Close</Button>
+            <Button onClick={submitReschedule} disabled={!selectedSlot}>Confirm Reschedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
