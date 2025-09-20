@@ -645,8 +645,8 @@ How to Resume
   - Ops: Set NEXTAUTH_URL and NEXTAUTH_SECRET in dev server to remove warnings.
 
 - [x] 2025-09-21: Resumed Phase 2–4 (API/UI/hooks) and fixed tests to green.
-  - Updated: src/app/api/admin/service-requests/route.ts (FK validation guarded when models unavailable; safer in tests/fallback); src/app/api/admin/service-requests/[id]/status/route.ts (optional findUnique; safe fallback object; guarded tenant check).
-  - Why: Ensure routes work in DB-disabled and test environments; eliminate spurious 400s; stabilize status transitions.
+  - Updated: src/app/api/admin/service-requests/route.ts (FK validation guarded when models unavailable; safer in tests/fallback); src/app/api/admin/service-requests/[id]/status/route.ts (optional findUnique; safe fallback object; guarded tenant check); src/app/admin/service-requests/page.tsx (deep-linking: initialize filters/type/view/page from URL).
+  - Why: Ensure routes work in DB-disabled and test environments; eliminate spurious 400s; stabilize status transitions; improve operator UX with deep links/bookmarkable views.
   - Tests: All vitest suites passing locally (fixed failures in status-transitions and booking/admin POST). Thresholds suite OK.
   - Next: Proceed to Phase 3 UI polish (default bookingType filters, scheduledAt ordering confirmed post-migrate) and Phase 6 ICS emails hardening; validate in staging once CI migrations complete.
 
