@@ -419,6 +419,20 @@ model ServiceRequest {
   deadline              DateTime?
   requirements          Json?
   attachments           Json?
+
+  // Booking fields (non-breaking)
+  isBooking             Boolean        @default(false)
+  scheduledAt           DateTime?
+  duration              Int?
+  clientName            String?
+  clientEmail           String?
+  clientPhone           String?
+  confirmed             Boolean        @default(false)
+  reminderSent          Boolean        @default(false)
+  bookingType           BookingType?
+  recurringPattern      Json?
+  parentBookingId       String?
+
   assignedTeamMemberId  String?
   assignedAt            DateTime?
   assignedBy            String?
