@@ -564,6 +564,12 @@ How to Resume
   - Updated: src/app/api/admin/service-requests/route.ts (filters by isBooking and date range on scheduledAt when present; orders by scheduledAt for appointments; falls back to legacy deadline/createdAt on missing columns)
   - Why: Align API to Phase 1 schema without breaking environments where migrations haven’t run yet; improves correctness for appointment listings and date filters.
   - Next: Update UI filters to surface bookingType and switch default ordering for Appointments tab; extend portal/admin create to accept isBooking payload after CI migrations.
+- [x] 2025-09-20: Added bookingType filter (API + Admin UI) with safe defaults.
+  - Updated: src/app/api/admin/service-requests/route.ts (accepts bookingType query and filters when column exists; dev fallback filters in-memory)
+  - Updated: src/components/admin/service-requests/filters.tsx (new Booking type select)
+  - Updated: src/app/admin/service-requests/page.tsx (wires bookingType to query string)
+  - Why: Enables filtering between STANDARD/RECURRING/EMERGENCY/CONSULTATION appointments.
+  - Next: Surface bookingType in table column and analytics; wire portal/admin create to set bookingType when isBooking is true.
 - [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
   - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
   - Why: Maintain compatibility while consolidating on unified API and schema.

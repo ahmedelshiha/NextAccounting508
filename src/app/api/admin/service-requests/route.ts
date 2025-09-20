@@ -46,6 +46,7 @@ type Filters = {
   q?: string | null
   dateFrom?: string | null
   dateTo?: string | null
+  bookingType?: string | null
 }
 
 export async function GET(request: Request) {
@@ -68,6 +69,7 @@ export async function GET(request: Request) {
     q: searchParams.get('q'),
     dateFrom: searchParams.get('dateFrom'),
     dateTo: searchParams.get('dateTo'),
+    bookingType: searchParams.get('bookingType'),
   }
 
   const tenantId = getTenantFromRequest(request as any)
@@ -81,6 +83,7 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    ...(filters.bookingType && { bookingType: filters.bookingType as any }),
     // Prefer new booking fields when available (Phase 1)
     ...(type === 'appointments' ? { isBooking: true } : {}),
     ...(type === 'requests' ? { OR: [{ isBooking: false }, { isBooking: null }] } : {}),
@@ -202,6 +205,10 @@ export async function GET(request: Request) {
             String(r.title || '').toLowerCase().includes(q) ||
             String(r.description || '').toLowerCase().includes(q)
           )
+        }
+        if (filters.bookingType) {
+          const bt = String(filters.bookingType)
+          all = all.filter((r: any) => String((r as any).bookingType || '') === bt)
         }
         if (filters.dateFrom) {
           const from = new Date(filters.dateFrom).getTime()

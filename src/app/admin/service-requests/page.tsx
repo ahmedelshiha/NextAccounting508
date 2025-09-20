@@ -28,7 +28,7 @@ export default function AdminServiceRequestsPage() {
   const perms = usePermissions()
   const rt = useRealtime(['service-request-updated','team-assignment'])
 
-  const [filters, setFilters] = useState<RequestFilters>({ status: 'ALL', priority: 'ALL', q: '' })
+  const [filters, setFilters] = useState<RequestFilters>({ status: 'ALL', priority: 'ALL', bookingType: 'ALL', q: '' })
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
 
@@ -51,6 +51,7 @@ export default function AdminServiceRequestsPage() {
     if (filters.priority !== 'ALL') params.set('priority', filters.priority)
     if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
     if (filters.dateTo) params.set('dateTo', filters.dateTo)
+    if (filters.bookingType && filters.bookingType !== 'ALL') params.set('bookingType', filters.bookingType)
     if (typeTab !== 'ALL') params.set('type', typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests')
     return params.toString()
   }, [filters, page, limit, typeTab])
