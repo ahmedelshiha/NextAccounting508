@@ -52,6 +52,8 @@ export default function ServiceRequestsClient() {
   const [bookingType, setBookingType] = useState<'ALL'|'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>(
     (searchParams.get('bookingType') as any) || 'ALL'
   )
+  const [dateFrom, setDateFrom] = useState<string>(searchParams.get('dateFrom') || '')
+  const [dateTo, setDateTo] = useState<string>(searchParams.get('dateTo') || '')
   const [q, setQ] = useState<string>(searchParams.get('q') || '')
   const [debouncedQ, setDebouncedQ] = useState<string>(q)
   const [page, setPage] = useState<number>(parseInt(searchParams.get('page') || '1', 10) || 1)
@@ -68,15 +70,17 @@ export default function ServiceRequestsClient() {
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
     if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
     if (debouncedQ) params.set('q', debouncedQ)
     params.set('page', String(page))
     params.set('limit', String(limit))
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [status, bookingType, debouncedQ, page, limit, router])
+  }, [status, bookingType, dateFrom, dateTo, debouncedQ, page, limit, router])
 
   // Reset to first page on filter changes
-  useEffect(() => { setPage(1) }, [status, bookingType, debouncedQ, limit])
+  useEffect(() => { setPage(1) }, [status, bookingType, dateFrom, dateTo, debouncedQ, limit])
 
   // Data via shared hook (SWR + unified SR API); scope=portal ensures client-specific data
   const { items, pagination, isLoading, refresh } = useBookings({
@@ -86,6 +90,8 @@ export default function ServiceRequestsClient() {
     q: debouncedQ,
     status,
     bookingType,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
   })
 
   const totalPages = pagination?.totalPages || 1
@@ -264,6 +270,14 @@ export default function ServiceRequestsClient() {
                 <SelectItem value="CONSULTATION">CONSULTATION</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600" htmlFor="from">From</label>
+              <Input id="from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[160px]" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600" htmlFor="to">To</label>
+              <Input id="to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
+            </div>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
               <SelectTrigger className="w-28">
                 <SelectValue placeholder="Per page" />
@@ -275,10 +289,10 @@ export default function ServiceRequestsClient() {
               </SelectContent>
             </Select>
           </div>
-          {(q || (status && status !== 'ALL') || (bookingType && bookingType !== 'ALL')) && (
+          {(q || (status && status !== 'ALL') || (bookingType && bookingType !== 'ALL') || dateFrom || dateTo) && (
             <button
               type="button"
-              onClick={() => { setQ(''); setStatus('ALL'); setBookingType('ALL') }}
+              onClick={() => { setQ(''); setStatus('ALL'); setBookingType('ALL'); setDateFrom(''); setDateTo('') }}
               className="text-sm text-gray-600 hover:underline"
             >
               Clear filters
