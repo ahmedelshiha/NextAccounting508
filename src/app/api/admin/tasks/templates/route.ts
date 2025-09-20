@@ -30,7 +30,8 @@ export async function GET(request?: Request) {
       return NextResponse.json(templates)
     }
 
-    const rows = await prisma.taskTemplate.findMany({ orderBy: { createdAt: 'desc' } })
+    const tenantId = getTenantFromRequest(request as any)
+    const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), orderBy: { createdAt: 'desc' } })
     const mapped = rows.map(t => ({
       id: t.id,
       name: t.name,
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
       return NextResponse.json(t, { status: 201 })
     }
 
+    const tenantId = getTenantFromRequest(request as any)
     const created = await prisma.taskTemplate.create({
       data: {
         name: String(body.name || 'Template'),
@@ -99,6 +101,7 @@ export async function POST(request: Request) {
         requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
         defaultAssigneeRole: body.defaultAssigneeRole ?? null,
         createdById: session.user.id as string | undefined,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       } as any
     })
     const mapped = {
