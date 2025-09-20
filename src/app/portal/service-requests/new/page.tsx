@@ -286,6 +286,51 @@ export default function NewServiceRequestPage() {
                 </div>
               </div>
 
+              <div className="mt-2">
+                <Label>Appointment (optional)</Label>
+                <div className="mt-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Select value={String(slotDuration || '')} onValueChange={(v) => setSlotDuration(v ? Number(v) : '')}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Duration (min)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Default</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="45">45</SelectItem>
+                        <SelectItem value="60">60</SelectItem>
+                        <SelectItem value="90">90</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center">
+                    <Button type="button" variant="outline" onClick={fetchAvailability} disabled={!serviceId || !appointmentDate || loadingSlots}>
+                      {loadingSlots ? 'Loading...' : 'Find Slots'}
+                    </Button>
+                  </div>
+                </div>
+                {slots.length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-600 mb-1">Available times</div>
+                    <div className="flex flex-wrap gap-2">
+                      {slots.filter(s => s.available).map((s) => {
+                        const dt = new Date(s.start)
+                        const label = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        const isSel = selectedSlot === s.start
+                        return (
+                          <Button key={s.start} type="button" size="sm" variant={isSel ? 'default' : 'outline'} onClick={() => setSelectedSlot(s.start)}>
+                            {label}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <Label htmlFor="attachments">Attachments</Label>
                 <Input
