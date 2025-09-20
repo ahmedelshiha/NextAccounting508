@@ -31,10 +31,12 @@ P0 — Critical path
   - Owner: backend/ops
 
 P1 — High priority
-- [ ] Multi-tenancy rollout (feature-flagged)
+- [ ] Multi-tenancy rollout (feature-flagged) — in_progress
   - What: Add tenantId/orgId migrations + indexes; scope queries; enable MULTI_TENANCY_ENABLED in staging.
-  - Next: Apply migration in CI; smoke /admin and /portal for tenant isolation.
-  - Deps: P0 migrations complete.
+  - Status: migrations and schema changes already present in prisma/schema.prisma and prisma/migrations/*. Migration files: prisma/migrations/0002_add_tenant_columns, 0003_add_service_tenantid, 20250921_ensure_service_request_cols.
+  - Actions taken: added a staging smoke script scripts/check_tenant_scope.js to validate tenant isolation via x-tenant-id header; verified tenantFilter helper and many API routes already include tenant scoping.
+  - Next: 1) Connect Neon and Netlify and set MULTI_TENANCY_ENABLED=true in staging (see deployment docs). 2) Trigger CI (pnpm db:migrate / prisma migrate deploy) to apply migrations in staging. 3) Run smoke script against staging URL: TARGET_URL=https://staging.example.com node scripts/check_tenant_scope.js (requires auth token or session cookie). 4) Fix any failing endpoints and run e2e smoke flows (/admin, /portal).
+  - Deps: P0 migrations complete, NETLIFY_DATABASE_URL present in CI.
   - Owner: backend
 - [ ] Realtime durability in staging
   - What: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance delivery.
@@ -616,7 +618,7 @@ How to Resume
 - [x] Add detail: src/app/portal/service-requests/[id]/page.tsx with comment thread and status
 - [x] Add create flow: src/app/portal/service-requests/new/page.tsx (client creates requests; attachments enhancement pending)
 - [x] Add client approval action and status view (sets clientApprovalAt)
-- [x] Notify client on assignment/status updates — email + in-app notifications implemented
+- [x] Notify client on assignment/status updates ��� email + in-app notifications implemented
 - [x] Implement attachments handling in create flow with validations; display in detail view
 
 ### 8) Cleanup and Consistency (from audits)
@@ -639,6 +641,8 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+
+- [x] 2025-09-20: Validated tests (thresholds passed); requested Neon/Netlify MCP connections and env secrets to resume CI migrations. No code changes.
 
 - [x] 2025-09-21: Stabilized dev by early-fallback in /api/services and silenced NextAuth warnings.
   - Updated: src/app/api/services/route.ts (returns fallback when NETLIFY_DATABASE_URL missing to avoid console errors)

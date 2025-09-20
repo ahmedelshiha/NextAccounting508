@@ -17,7 +17,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "test:thresholds": "vitest run tests/thresholds.test.ts"
+    "test:thresholds": "vitest run tests/thresholds.test.ts",
+    "test:tenant": "vitest run tests/tenant-filter.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
