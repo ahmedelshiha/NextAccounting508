@@ -57,6 +57,8 @@ export async function GET(request: Request) {
   const status = searchParams.get('status')
   const priority = searchParams.get('priority')
   const q = searchParams.get('q')?.trim()
+  const type = searchParams.get('type')
+  const bookingType = searchParams.get('bookingType')
 
   const tenantId = getTenantFromRequest(request as any)
   const where: any = {
@@ -69,6 +71,8 @@ export async function GET(request: Request) {
         { description: { contains: q, mode: 'insensitive' } },
       ],
     }),
+    ...(type === 'appointments' ? { isBooking: true } : {}),
+    ...(bookingType ? { bookingType } : {}),
     ...tenantFilter(tenantId),
   }
 
