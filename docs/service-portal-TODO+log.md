@@ -1,5 +1,49 @@
 # Service Portal — TODO + Change Log
 
+## CURRENT STATUS: PAUSED (as of 2025-09-20)
+- Project paused pending CI-run Prisma migrations/seeds, staging environment configuration, and multi-tenancy rollout planning. Follow the Quick Resume Checklist below to resume safely.
+
+## Remaining Work (Paused) — Quick Resume Checklist
+- [ ] Step 1 — Connect Database & Providers (infra/ops)
+  - Action: Connect Neon and Netlify via MCP and set required envs: NETLIFY_DATABASE_URL, DATABASE_URL, NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, NEXTAUTH_URL, NEXTAUTH_SECRET, REALTIME_TRANSPORT, REALTIME_PG_URL (optional), CRON_TARGET_URL, CRON_SECRET.
+  - Why: CI migrations/seeds and runtime features require a real DB and provider tokens.
+  - Next: Click [Open MCP popover](#open-mcp-popover) → Connect to Neon and Netlify. Verify envs present in Netlify site settings.
+- [ ] Step 2 — Run CI Migrations & Seed (infra/backend)
+  - Action: Trigger CI (Netlify/GitHub Actions) to run: pnpm db:generate && pnpm db:migrate && pnpm db:seed.
+  - Why: Applies schema changes and seeds roles/templates/permissions required by APIs and UI.
+  - Next: Verify /api/admin/permissions and direct DB queries show seeded roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN).
+- [ ] Step 3 — Configure Uploads & Antivirus (backend/ops)
+  - Action: Set UPLOADS_PROVIDER=netlify (or supabase), NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY/CLAMAV_API_KEY in Netlify envs.
+  - Why: Enables production uploads, AV scanning, and quarantine flows.
+  - Next: Upload clean/infected test files and validate AV callback processing & quarantine UI.
+- [ ] Step 4 — Enable Durable Realtime (ops)
+  - Action: Set REALTIME_TRANSPORT=postgres and REALTIME_PG_URL/REALTIME_PG_CHANNEL if needed.
+  - Why: Required for multi-instance reliable realtime via Postgres LISTEN/NOTIFY.
+  - Next: Deploy to staging and exercise cross-instance delivery; monitor /api/admin/system/health.
+- [ ] Step 5 — Smoke Tests & Validation (QA)
+  - Action: Run end-to-end smoke scenarios in staging: portal create → admin assign → status transitions → realtime events → CSV export → uploads/AV.
+  - Why: Ensure DB, uploads, AV, realtime, and exports behave end-to-end.
+  - Next: Document any failures and create tickets to fix before unpausing.
+- [ ] Step 6 — Remove Dev Fallbacks (dev)
+  - Action: Remove dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json after CI seeds validated.
+  - Why: Prevent dev-only paths from being used in production.
+  - Next: Re-run CI and verify no regressions.
+- [ ] Step 7 — Tests & Coverage (dev/QA)
+  - Action: Unskip DB tests, add e2e (Playwright/Cypress), tighten thresholds and include in CI workflow.
+  - Why: Ensure regressions are caught before production changes.
+  - Next: Fix failing tests and ensure green CI on the branch.
+- [ ] Step 8 — Observability & Alerts (ops)
+  - Action: Set SENTRY_DSN and configure health checks/alerting for AV failures, realtime errors, and high error rates.
+  - Why: Operational visibility and incident response readiness.
+  - Next: Verify Sentry events from staging and document runbooks.
+
+Notes & Blockers
+- Required secrets/envs must be set in Netlify and GitHub (DATABASE_URL, NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID).
+- CI must be granted access to the target Neon DB; migrations should run in CI (preferred) not ad-hoc locally to avoid drift.
+- If any step fails, capture logs and create an issue referencing the failing step and error output.
+
+---
+
 ## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
 Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09-20)
 
