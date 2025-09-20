@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const ACTIVE_STATUSES = ['ASSIGNED','IN_PROGRESS'] as const
 
@@ -13,9 +14,15 @@ export async function autoAssignServiceRequest(serviceRequestId: string) {
   if (!request) return null
   if (request.assignedTeamMemberId) return request
 
+  const tenantId = (request as any)?.tenantId as string | undefined
   const teamMembers = await prisma.teamMember.findMany({
-    where: { status: 'active', isAvailable: true },
+    where: { status: 'active', isAvailable: true, ...(isMultiTenancyEnabled() && tenantId ? (tenantFilter(tenantId) as any) : {}) },
     select: { id: true, name: true, email: true, specialties: true },
+  }).catch(async () => {
+    return prisma.teamMember.findMany({
+      where: { status: 'active', isAvailable: true },
+      select: { id: true, name: true, email: true, specialties: true },
+    })
   })
   if (!teamMembers.length) return request
 
@@ -25,6 +32,7 @@ export async function autoAssignServiceRequest(serviceRequestId: string) {
         where: {
           assignedTeamMemberId: tm.id,
           status: { in: ACTIVE_STATUSES as unknown as ActiveStatus[] },
+          ...(isMultiTenancyEnabled() && tenantId ? (tenantFilter(tenantId) as any) : {}),
         },
       })
       const skillMatch = request.service?.category
