@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   try {
     const from = new Date(dateFrom)
     const to = new Date(dateTo)
-    const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId })
+    const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId, options: { now: from } })
 
     if (includePrice) {
       const { calculateServicePrice } = await import('@/lib/booking/pricing')
