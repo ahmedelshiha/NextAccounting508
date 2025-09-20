@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const revenueByService = Array.from(revenueByServiceMap.entries()).map(([service, amount]) => ({ service, amount }))
 
     // Average lead time (days) between creation and scheduledAt within range
-    const withLeadTimes = await prisma.booking.findMany({ select: { createdAt: true, scheduledAt: true }, where: { createdAt: { gte: startDate } } })
+    const withLeadTimes = await prisma.booking.findMany({ select: { createdAt: true, scheduledAt: true }, where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } } })
     const leadTimes = withLeadTimes.map(b => (b.scheduledAt.getTime() - b.createdAt.getTime()) / (24 * 60 * 60 * 1000)).filter(n => isFinite(n) && n >= 0)
     const avgLeadTimeDays = leadTimes.length ? (leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length) : 0
 
