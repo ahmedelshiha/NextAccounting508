@@ -544,6 +544,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
+  - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
+  - Why: Maintain compatibility while consolidating on unified API and schema.
+  - Next: After migrations, switch admin GET default ordering to scheduledAt for type=appointments; remove legacy endpoints after deprecation window.
 - [x] 2025-09-20: Phase 1 — Schema prepared for unified bookings (non-breaking additions only).
   - Updated: prisma/schema.prisma (ServiceRequest booking fields + indexes; Service booking fields + indexes; TeamMember booking fields + indexes; models AvailabilitySlot, BookingPreferences; enum BookingType)
   - Added: prisma/migrations/20250920_phase1_booking_fields/README.txt (apply via CI)
