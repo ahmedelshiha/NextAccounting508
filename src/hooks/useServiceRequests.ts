@@ -32,6 +32,9 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   const q = params.q ?? ''
   const status = params.status ?? 'ALL'
   const priority = params.priority ?? 'ALL'
+  const bookingType = params.bookingType ?? 'ALL'
+  const dateFrom = params.dateFrom
+  const dateTo = params.dateTo
   const type = params.type ?? 'ALL'
 
   const query = new URLSearchParams()
@@ -40,6 +43,9 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   if (q) query.set('q', q)
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
+  if (bookingType !== 'ALL') query.set('bookingType', bookingType)
+  if (dateFrom) query.set('dateFrom', dateFrom)
+  if (dateTo) query.set('dateTo', dateTo)
   if (type !== 'ALL') query.set('type', type === 'APPOINTMENTS' ? 'appointments' : 'requests')
 
   const key = `/api/admin/service-requests?${query.toString()}`
