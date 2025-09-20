@@ -68,13 +68,16 @@ export async function POST(req: Request) {
         }
 
         // Compose and send reminder email (SendGrid optional; falls back to console log in dev)
-        await sendBookingReminder({
-          id: appt.id,
-          scheduledAt: scheduledAt,
-          clientName: appt.client.name || appt.client.email || 'Client',
-          clientEmail: appt.client.email || '',
-          service: { name: appt.service.name },
-        })
+        await sendBookingReminder(
+          {
+            id: appt.id,
+            scheduledAt: scheduledAt,
+            clientName: appt.client.name || appt.client.email || 'Client',
+            clientEmail: appt.client.email || '',
+            service: { name: appt.service.name },
+          },
+          { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
+        )
 
         // Mark as reminded to ensure idempotency
         await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
