@@ -49,6 +49,7 @@ model User {
   grantedPermissions UserPermission[] @relation("GrantedBy")
   userPermissions    UserPermission[] @relation("UserPermissions")
   attachments Attachment[]
+  bookingPreferences BookingPreferences?
 
   @@map("users")
 }
