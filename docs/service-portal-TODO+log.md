@@ -1,7 +1,7 @@
 # Service Portal — TODO + Change Log
 
 ## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
-Owner: admin • Email: dfssfdrad7@tuta.io • Status: Paused (as of 2025-09-20)
+Owner: admin • Email: dfssfdrad7@tuta.io • Status: Active (as of 2025-09-20)
 
 Current Status
 - Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
@@ -85,7 +85,7 @@ Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 12 — Post-Integration Maintenance
   - Deprecate legacy /api/bookings after migration window; update docs; monitor success metrics and error rates
 
-Status: Paused (as of 2025-09-20)
+Status: Active (as of 2025-09-20)
 
 Pause reason
 - Paused pending CI/CD-run Prisma migrations and seed (ensure DB schema, enums, and seed data applied) and a finalized multi-tenancy rollout plan before further realtime and production uploads work.
@@ -267,7 +267,7 @@ This file tracks the full implementation plan derived from:
 
 All tasks are unchecked until implemented. Update this log after each change with date, files, and brief notes.
 
-## Current Status: Paused (2025-09-20)
+## Current Status: Active (2025-09-20)
 
 ### ClamAV Integration — Deployment TODOs (added 2025-09-20)
 - [ ] Deploy ClamAV service (Docker) and expose /health, /scan, /update endpoints; configure CLAMAV_API_URL/UPLOADS_AV_SCAN_URL and API key.
@@ -288,7 +288,7 @@ Added helper scripts and workflows
 
 Next: Set secrets in GitHub (CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID) and Netlify (NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY).
 
-## Current Status: Paused (2025-09-20)
+## Current Status: Active (2025-09-20)
 
 ClamAV Deployment Plan (Analyze & Plan)
 - Setup ClamAV service (container) behind a simple HTTP API (/health, /scan, /update)
