@@ -28,6 +28,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
+  const type = (searchParams.get('type') || '').toLowerCase()
   const filters = {
     status: searchParams.get('status'),
     priority: searchParams.get('priority'),
@@ -35,6 +36,9 @@ export async function GET(request: Request) {
     clientId: searchParams.get('clientId'),
     serviceId: searchParams.get('serviceId'),
     q: searchParams.get('q'),
+    bookingType: searchParams.get('bookingType'),
+    dateFrom: searchParams.get('dateFrom'),
+    dateTo: searchParams.get('dateTo'),
   }
 
   const tenantId = getTenantFromRequest(request as any)
@@ -48,10 +52,28 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    ...(filters.bookingType && { bookingType: filters.bookingType as any }),
+    ...(type === 'appointments' ? { isBooking: true } : {}),
+    ...(type === 'requests' ? { OR: [{ isBooking: false }, { isBooking: null }] } : {}),
+    ...(filters.dateFrom || filters.dateTo ? (
+      type === 'appointments'
+        ? {
+            scheduledAt: {
+              ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+              ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+            },
+          }
+        : {
+            createdAt: {
+              ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+              ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+            },
+          }
+    ) : {}),
     ...tenantFilter(tenantId),
   }
 
-  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','createdAt']
+  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','scheduledAt','isBooking','bookingType','createdAt']
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({
@@ -71,7 +93,7 @@ export async function GET(request: Request) {
             service: { select: { id: true, name: true, slug: true } },
             assignedTeamMember: { select: { id: true, name: true, email: true } },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
           take: pageSize,
           ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
         })
@@ -90,6 +112,9 @@ export async function GET(request: Request) {
             i.budgetMin ?? '',
             i.budgetMax ?? '',
             i.deadline ? i.deadline.toISOString() : '',
+            (i as any).scheduledAt ? new Date((i as any).scheduledAt as any).toISOString() : '',
+            String((i as any).isBooking ?? ''),
+            String((i as any).bookingType ?? ''),
             i.createdAt.toISOString(),
           ].join(',')
           write(row)
@@ -99,7 +124,8 @@ export async function GET(request: Request) {
       }
 
       controller.close()
-    }
+    },
+    cancel() {}
   })
 
   return new NextResponse(stream as any, {
