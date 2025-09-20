@@ -648,6 +648,14 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-20: Added route tests for availability endpoints (admin and portal).
+  - Added: tests/admin-availability.route.test.ts, tests/portal-availability.route.test.ts
+  - Why: Validate availability (DB path and fallback) to support Phase 2 unified booking and Phase 7 testing goals.
+- [x] 2025-09-20: Synced Admin Service Requests filters/view with URL for deep links; added export route tests.
+  - Updated: src/app/admin/service-requests/ClientPage.tsx (URL query sync on filters/view/page)
+  - Added: tests/admin-service-requests.export.test.ts (ensures orderBy scheduledAt for appointments, createdAt otherwise; CSV headers include scheduledAt/isBooking/bookingType)
+  - Why: Improve operator UX with shareable URLs and strengthen coverage for export filtering/ordering.
+
 - [x] 2025-09-21: Portal booking preferences UI and API.
   - Added: src/app/api/portal/settings/booking-preferences/route.ts (GET/PUT; zod-validated upsert; returns defaults when DB absent)
   - Updated: src/app/portal/settings/page.tsx (new Notifications & Reminders section with checkboxes for emails/SMS and selectable reminder hours; save to API)
@@ -657,6 +665,12 @@ How to Resume
   - Added: src/app/api/cron/reminders/route.ts (protected by x-cron-secret; scans confirmed upcoming appointments within configured reminder windows [BookingPreferences.reminderHours or defaults [24,2]]; sends emails via sendBookingReminder; sets reminderSent; tolerant +/-15m window)
   - Added: .github/workflows/booking-reminders.yml (pre-checks CRON_TARGET_URL/CRON_SECRET; calls POST /api/cron/reminders every 15 minutes)
   - Why: Automate client reminders for upcoming appointments (Phase 6 — Email & Notifications) with safe idempotency and ops-friendly scheduling.
+  - 2025-09-20: Fixed missing NextResponse import and added tests for cron reminders endpoint.
+    - Updated: src/app/api/cron/reminders/route.ts (import NextResponse)
+    - Added: tests/cron-reminders.route.test.ts (secret auth, DB skip, sends + marks reminderSent)
+  - 2025-09-20: Added portal export tests and fixed admin export NextResponse import.
+    - Updated: src/app/api/admin/service-requests/export/route.ts (import NextResponse)
+    - Added: tests/portal-service-requests.export.test.ts (ordering + CSV header columns)
   - Next: Set SENDGRID_API_KEY and FROM_EMAIL; configure CRON_TARGET_URL and CRON_SECRET in GitHub; validate emails in staging; consider per-tenant batching and SMS when provider is available.
 - [x] 2025-09-21: Localized emails/time zone support for confirmations and reminders.
   - Updated: src/lib/email.ts (sendBookingConfirmation/sendBookingReminder accept options { locale, timeZone } and format dates accordingly; ICS remains UTC-safe)
