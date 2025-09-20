@@ -548,6 +548,10 @@ How to Resume
   - Updated: src/components/admin/service-requests/table.tsx
   - Why: Surface appointment times within list view to support mixed request/appointment triage.
   - Next: After migrations add ServiceRequest.scheduledAt and isBooking; extend API ordering/filtering by scheduledAt.
+- [x] 2025-09-20: Added 'type' filter (appointments vs requests) to admin service-requests GET DB path using deadline presence as a temporary proxy.
+  - Updated: src/app/api/admin/service-requests/route.ts
+  - Why: Align DB-backed listing with UI tabs before scheduledAt migration; keeps behavior consistent with fallback path.
+  - Next: Switch to scheduledAt/isBooking filters post-migration and order by scheduledAt desc for appointments.
 - [x] 2025-09-20: Booking ⇄ Service Request linking (Phase 1: lightweight link).
   - Updated: prisma/schema.prisma (Booking.serviceRequestId + relation + indexes)
   - Updated: src/app/api/bookings/[id]/route.ts (PUT accepts serviceRequestId for admin/staff; connects/disconnects relation)
