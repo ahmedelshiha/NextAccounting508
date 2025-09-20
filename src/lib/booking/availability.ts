@@ -119,9 +119,7 @@ export function generateAvailability(
 
       const conflicts = bufferedBusy.some((b) => rangesOverlap(slotStart, slotEnd, b.start, b.end))
 
-      if (!conflicts) {
-        result.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), available: true })
-      }
+      result.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), available: !conflicts })
 
       slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
     }
