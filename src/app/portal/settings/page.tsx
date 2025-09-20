@@ -12,6 +12,146 @@ import Link from 'next/link'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { signOut } from 'next-auth/react'
 
+function BookingPreferencesForm() {
+  const [loading, setLoading] = useState(true)
+  const [savingPrefs, setSavingPrefs] = useState(false)
+  const [emailConfirmation, setEmailConfirmation] = useState(true)
+  const [emailReminder, setEmailReminder] = useState(true)
+  const [emailReschedule, setEmailReschedule] = useState(true)
+  const [emailCancellation, setEmailCancellation] = useState(true)
+  const [smsReminder, setSmsReminder] = useState(false)
+  const [smsConfirmation, setSmsConfirmation] = useState(false)
+  const [reminderHours, setReminderHours] = useState<number[]>([24,2])
+  const [timeZone, setTimeZone] = useState('UTC')
+  const [preferredLanguage, setPreferredLanguage] = useState('en')
+
+  useEffect(() => {
+    let ignore = false
+    ;(async () => {
+      try {
+        setLoading(true)
+        const res = await apiFetch('/api/portal/settings/booking-preferences')
+        const json = await res.json().catch(() => ({}))
+        if (!ignore && json?.data) {
+          const p = json.data
+          setEmailConfirmation(p.emailConfirmation ?? true)
+          setEmailReminder(p.emailReminder ?? true)
+          setEmailReschedule(p.emailReschedule ?? true)
+          setEmailCancellation(p.emailCancellation ?? true)
+          setSmsReminder(p.smsReminder ?? false)
+          setSmsConfirmation(p.smsConfirmation ?? false)
+          setReminderHours(Array.isArray(p.reminderHours) ? p.reminderHours : [24,2])
+          setTimeZone(p.timeZone || 'UTC')
+          setPreferredLanguage(p.preferredLanguage || 'en')
+        }
+      } finally { if (!ignore) setLoading(false) }
+    })()
+    return () => { ignore = true }
+  }, [])
+
+  const toggleHour = (h: number, checked: boolean) => {
+    setReminderHours(prev => {
+      const set = new Set(prev)
+      if (checked) set.add(h); else set.delete(h)
+      return Array.from(set).sort((a,b) => b - a)
+    })
+  }
+
+  const save = async () => {
+    setSavingPrefs(true)
+    try {
+      const res = await apiFetch('/api/portal/settings/booking-preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailConfirmation,
+          emailReminder,
+          emailReschedule,
+          emailCancellation,
+          smsReminder,
+          smsConfirmation,
+          reminderHours,
+          timeZone,
+          preferredLanguage,
+        })
+      })
+      if (res.ok) {
+        toast.success('Preferences saved')
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err?.error?.message || 'Failed to save preferences')
+      }
+    } catch {
+      toast.error('Failed to save preferences')
+    } finally {
+      setSavingPrefs(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={emailConfirmation} onChange={(e) => setEmailConfirmation(e.target.checked)} />
+            Email confirmations
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={emailReminder} onChange={(e) => setEmailReminder(e.target.checked)} />
+            Email reminders
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={emailReschedule} onChange={(e) => setEmailReschedule(e.target.checked)} />
+            Email on reschedule
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={emailCancellation} onChange={(e) => setEmailCancellation(e.target.checked)} />
+            Email on cancellation
+          </label>
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={smsReminder} onChange={(e) => setSmsReminder(e.target.checked)} />
+            SMS reminders
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" checked={smsConfirmation} onChange={(e) => setSmsConfirmation(e.target.checked)} />
+            SMS confirmations
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-sm text-gray-700">Reminder timing</Label>
+        <div className="mt-2 flex items-center gap-4 flex-wrap">
+          {[24, 12, 6, 2].map(h => (
+            <label key={h} className="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" checked={reminderHours.includes(h)} onChange={(e) => toggleHour(h, e.target.checked)} />
+              {h} hours before
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">We’ll send reminders within ~15 minutes of the selected times.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="tz">Time zone</Label>
+          <Input id="tz" value={timeZone} onChange={(e) => setTimeZone(e.target.value)} className="mt-1" placeholder="e.g. UTC or America/New_York" />
+        </div>
+        <div>
+          <Label htmlFor="lang">Preferred language</Label>
+          <Input id="lang" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} className="mt-1" placeholder="en" />
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={save} disabled={savingPrefs || loading}>{savingPrefs ? 'Saving…' : 'Save preferences'}</Button>
+      </div>
+    </div>
+  )
+}
+
 export default function PortalSettingsPage() {
   const { data: session } = useSession()
   const [_loading, setLoading] = useState(true)
