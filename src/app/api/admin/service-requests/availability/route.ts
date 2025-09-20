@@ -53,6 +53,10 @@ export async function GET(request: NextRequest) {
   const { serviceId, dateFrom, dateTo, duration, teamMemberId } = parsed.data
 
   try {
+    const from = new Date(dateFrom)
+    const to = new Date(dateTo)
+    const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId })
+    return respond.ok({ slots })
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
     if (!svc || svc.active === false) return respond.notFound('Service not found or inactive')
 
