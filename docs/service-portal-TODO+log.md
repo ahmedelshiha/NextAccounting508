@@ -640,6 +640,10 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-21: Stabilized dev by early-fallback in /api/services and silenced NextAuth warnings.
+  - Updated: src/app/api/services/route.ts (returns fallback when NETLIFY_DATABASE_URL missing to avoid console errors)
+  - Ops: Set NEXTAUTH_URL and NEXTAUTH_SECRET in dev server to remove warnings.
+
 - [x] 2025-09-21: Resumed Phase 2–4 (API/UI/hooks) and fixed tests to green.
   - Updated: src/app/api/admin/service-requests/route.ts (FK validation guarded when models unavailable; safer in tests/fallback); src/app/api/admin/service-requests/[id]/status/route.ts (optional findUnique; safe fallback object; guarded tenant check).
   - Why: Ensure routes work in DB-disabled and test environments; eliminate spurious 400s; stabilize status transitions.
