@@ -658,6 +658,11 @@ How to Resume
   - Added: .github/workflows/booking-reminders.yml (pre-checks CRON_TARGET_URL/CRON_SECRET; calls POST /api/cron/reminders every 15 minutes)
   - Why: Automate client reminders for upcoming appointments (Phase 6 — Email & Notifications) with safe idempotency and ops-friendly scheduling.
   - Next: Set SENDGRID_API_KEY and FROM_EMAIL; configure CRON_TARGET_URL and CRON_SECRET in GitHub; validate emails in staging; consider per-tenant batching and SMS when provider is available.
+- [x] 2025-09-21: Localized emails/time zone support for confirmations and reminders.
+  - Updated: src/lib/email.ts (sendBookingConfirmation/sendBookingReminder accept options { locale, timeZone } and format dates accordingly; ICS remains UTC-safe)
+  - Updated: src/app/api/cron/reminders/route.ts (uses BookingPreferences.preferredLanguage/timeZone)
+  - Why: Respect client preferences and improve clarity of appointment times across regions.
+  - Next: Pass options in admin confirm/reschedule endpoints when preferences are available; add translations for email body templates.
 
 - [x] 2025-09-21: Tenant scoping audit and fixes
   - ✅ admin/activity/route.ts scoped by tenant with runtime-safe fallback when tenantId column is absent
