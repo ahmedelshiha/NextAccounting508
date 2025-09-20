@@ -17,7 +17,7 @@ export async function sendBookingReminders() {
           gte: startOfTomorrow,
           lte: endOfTomorrow
         },
-        status: BookingStatus.CONFIRMED,
+        status: 'CONFIRMED',
         reminderSent: false
       },
       include: {
@@ -121,10 +121,10 @@ export async function updateBookingStatuses() {
         scheduledAt: {
           lt: now
         },
-        status: BookingStatus.CONFIRMED
+        status: 'CONFIRMED'
       },
       data: {
-        status: BookingStatus.COMPLETED
+        status: 'COMPLETED'
       }
     })
 
