@@ -30,7 +30,7 @@ function writeSettings(s: any) {
   }
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
