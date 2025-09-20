@@ -249,6 +249,11 @@ Notes
   - Why: Prepare UI for unified booking/request workflow and provide calendar visualization without new DB fields; maintain compatibility.
   - Next: Extend DB query to filter by isBooking/scheduledAt after migrations; enhance table with booking columns; wire portal create flow to unified SR API.
 
+- [x] 2025-09-20: Added hooks useServiceRequests and useServiceRequest (SWR-based) for admin paths.
+  - Updated: src/hooks/useServiceRequests.ts; src/hooks/useServiceRequest.ts
+  - Why: Provide reusable data access for list/detail views and future components; aligns with Phase 4.
+  - Next: Implement useAvailability once /api/admin/service-requests/availability is available.
+
 
 
 Completed (Highlights)
