@@ -184,6 +184,16 @@ export default function PortalSettingsPage() {
               </Button>
               <Button onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Notifications & Reminders</CardTitle>
+            <CardDescription>Control booking confirmations and reminder emails</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BookingPreferencesForm />
 
             <div className="mt-8 border-t pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-2">Danger zone</h3>
