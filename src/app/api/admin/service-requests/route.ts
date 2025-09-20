@@ -81,6 +81,9 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    // Temporary type filter until ServiceRequest.scheduledAt exists (Phase 1 migration)
+    ...(type === 'appointments' ? { deadline: { not: null } } : {}),
+    ...(type === 'requests' ? { deadline: null } : {}),
     ...(filters.dateFrom || filters.dateTo ? {
       createdAt: {
         ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
