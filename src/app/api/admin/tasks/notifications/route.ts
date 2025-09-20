@@ -38,7 +38,8 @@ export async function GET(request?: Request) {
   }
   if (hasDb) {
     try {
-      const row = await prisma.notificationSettings.findFirst()
+      const tenantId = getTenantFromRequest(request as any)
+      const row = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
       if (row) {
         return NextResponse.json({
           emailEnabled: row.emailEnabled,
