@@ -640,6 +640,8 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-20: Validated tests (thresholds passed); requested Neon/Netlify MCP connections and env secrets to resume CI migrations. No code changes.
+
 - [x] 2025-09-21: Stabilized dev by early-fallback in /api/services and silenced NextAuth warnings.
   - Updated: src/app/api/services/route.ts (returns fallback when NETLIFY_DATABASE_URL missing to avoid console errors)
   - Ops: Set NEXTAUTH_URL and NEXTAUTH_SECRET in dev server to remove warnings.
