@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { apiFetch } from '@/lib/api'
+import { useServiceRequests } from '@/hooks/useServiceRequests'
+import { useBookings } from '@/hooks/useBookings'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, List, CalendarDays, BarChart3 } from 'lucide-react'
