@@ -36,6 +36,7 @@ export default function NewServiceRequestPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [slots, setSlots] = useState<{ start: string; end: string; available: boolean }[]>([])
   const [selectedSlot, setSelectedSlot] = useState<string>('')
+  const [bookingType, setBookingType] = useState<'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>('STANDARD')
 
   const [files, setFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
@@ -200,7 +201,13 @@ export default function NewServiceRequestPage() {
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
-          requirements: { serviceSnapshot, booking: selectedSlot ? { scheduledAt: selectedSlot, duration: typeof slotDuration === 'number' ? slotDuration : undefined } : undefined },
+          ...(selectedSlot ? {
+            isBooking: true,
+            scheduledAt: selectedSlot,
+            duration: typeof slotDuration === 'number' ? slotDuration : undefined,
+            bookingType,
+          } : {}),
+          requirements: { serviceSnapshot },
           attachments,
         }),
       })
@@ -288,7 +295,7 @@ export default function NewServiceRequestPage() {
 
               <div className="mt-2">
                 <Label>Appointment (optional)</Label>
-                <div className="mt-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="mt-1 grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div>
                     <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
                   </div>
@@ -303,6 +310,19 @@ export default function NewServiceRequestPage() {
                         <SelectItem value="45">45</SelectItem>
                         <SelectItem value="60">60</SelectItem>
                         <SelectItem value="90">90</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Booking type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="STANDARD">Standard</SelectItem>
+                        <SelectItem value="RECURRING">Recurring</SelectItem>
+                        <SelectItem value="EMERGENCY">Emergency</SelectItem>
+                        <SelectItem value="CONSULTATION">Consultation</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
