@@ -8,8 +8,9 @@
   - Next: Set Neon/Netlify envs; run: pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify scheduledAt/isBooking fields live.
   - Deps: Neon DB, Netlify/GitHub secrets; netlify.toml migration steps.
   - Complexity: M • Owner: infra/backend
-- [ ] AvailabilityEngine (production-grade)
-  - Next: Implement src/lib/booking/availability.ts per plan §2.1; replace fallbacks; add unit tests (buffers, DST, weekends, daily caps).
+- [x] AvailabilityEngine (production-grade)
+  - Done: Implemented src/lib/booking/availability.ts; refactored admin/portal routes to use it; added unit tests for buffers, weekends, daily caps; deterministic now option.
+  - Next: Wire into Multi-step Booking Wizard and PricingEngine; expand blackoutDates once Phase 1 schema lands.
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
 - [ ] API compat + conflict handling
@@ -85,7 +86,7 @@
   - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
-  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
+  - Next: Portal create �� admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
   - Complexity: M • Owner: QA
 - [ ] Remove dev fallbacks
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.
