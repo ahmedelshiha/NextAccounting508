@@ -14,6 +14,7 @@ Current Status
 
 Completed Work — Summary
 - Admin Service Requests: added filtered CSV export button + enhanced server export to respect filters (status, priority, bookingType, q, dateFrom/dateTo, type) and include scheduledAt/isBooking/bookingType columns with legacy fallback. Files: src/app/admin/service-requests/ClientPage.tsx, src/app/api/admin/service-requests/export/route.ts.
+- Admin reschedule now sends ICS calendar email to client (if SENDGRID_API_KEY set). File: src/app/api/admin/service-requests/[id]/reschedule/route.ts.
 - Unified Service Requests foundation shipped (admin + portal APIs, RBAC, realtime, comments, tasks, analytics, CSV export).
 - Admin/Portal UIs wired (filters, tabs, calendar, booking type analytics, quarantine console, CSV exports).
 - Uploads + AV implemented (Netlify Blobs provider, AV callback, rescan cron, quarantine flows).
