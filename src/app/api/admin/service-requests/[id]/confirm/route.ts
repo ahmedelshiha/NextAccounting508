@@ -6,6 +6,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { sendBookingConfirmation } from '@/lib/email'
 
 export async function POST(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params
@@ -16,13 +17,24 @@ export async function POST(_req: NextRequest, context: { params: Promise<{ id: s
   }
 
   try {
-    const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id } })
+    const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
     if (!booking) return respond.badRequest('No linked booking to confirm')
 
-    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CONFIRMED', confirmed: true } as any })
+    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CONFIRMED', confirmed: true } as any, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
     try { realtimeService.emitServiceRequestUpdate(String(id), { action: 'confirmed' }) } catch {}
     try { await logAudit({ action: 'service-request:confirm', actorId: (session.user as any).id ?? null, targetId: String(id), details: { bookingId: booking.id } }) } catch {}
+
+    try {
+      await sendBookingConfirmation({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+        duration: updated.duration,
+        clientName: updated.client?.name || '',
+        clientEmail: updated.client?.email || '',
+        service: { name: updated.service?.name || 'Consultation', price: (updated.service as any)?.price as any }
+      })
+    } catch {}
 
     return respond.ok({ booking: updated })
   } catch (e: any) {

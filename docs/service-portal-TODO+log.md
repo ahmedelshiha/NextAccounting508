@@ -639,26 +639,51 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+
+- [x] 2025-09-20: Configured staging/prod environment variables for DB, NextAuth, uploads, and realtime (via platform envs).
+  - Set database URLs, NextAuth URL/secret, Netlify Blobs token, realtime transport/channel, and uploads provider.
+  - Why: Enable CI Prisma migrations/seeds and unlock uploads, realtime, and auth flows in staging.
+  - Next: Trigger CI/Netlify build to run migrate/seed and validate seeds and endpoints.
+
+- [x] 2025-09-20: Ran Prisma generate/migrate/seed against Neon; seeds applied.
+  - Output: No pending migrations; seed created users, services, requests, posts, templates, currencies, tasks.
+  - Next: Validate in staging and proceed to finalize appointment filters and ICS emails.
+
+- [x] 2025-09-20: Added ICS email sending on confirm/reschedule.
+  - Updated: admin and portal confirm/reschedule endpoints to call sendBookingConfirmation with ICS attachment when SENDGRID_API_KEY is set; logs in dev.
+  - Why: Provide clients with calendar invites and confirmations.
+
+- [x] 2025-09-20: Resolved TypeScript typecheck errors in admin/portal service-requests pages.
+  - Updated: src/app/admin/service-requests/page.tsx (added missing apiFetch import; refactored to use useServiceRequests hook); src/app/portal/service-requests/[id]/page.tsx (added "use client").
+  - Why: Fix TS2304 'load' name resolution and reduce duplication by leveraging SWR hook; ensures proper client/server boundaries; unblock CI typecheck/build.
+  - Tests: Ran pnpm test:thresholds (passed). Typecheck re-run pending extended timeout.
+  - Next: Re-run pnpm typecheck with increased timeout; continue Phase 2–4 tasks after CI is green.
+
 - [x] 2025-09-20: Added admin list filtering tests for GET route.
   - Added: tests/admin-service-requests.filters.test.ts
   - Why: Verify server applies filters (status, priority, bookingType, q, date range) and ordering per type.
   - Next: Proceed to Phase 2 unified API refinements post-migrations (availability/confirm/reschedule parity).
+
 - [x] 2025-09-20: Added tests for portal confirm and reschedule endpoints.
   - Added: tests/portal-confirm-reschedule.route.test.ts
   - Why: Cover client actions for appointment confirmation and rescheduling.
   - Next: Add admin list filtering tests; proceed to Phase 2 API refinements post-migrations.
+
 - [x] 2025-09-20: Refactored Admin Service Requests list to use useBookings (SWR) with filters/tabs support.
   - Updated: src/app/admin/service-requests/page.tsx; src/hooks/useBookings.ts
   - Why: Unify data access across admin/portal, support appointments tab via type param, and simplify realtime refresh.
   - Next: Add tests for portal detail actions and admin list filtering; consider moving more admin lists to hooks.
+
 - [x] 2025-09-20: Refactored Portal Service Request detail to use useBooking (SWR) with realtime refresh.
   - Updated: src/app/portal/service-requests/[id]/page.tsx
   - Why: Reduce duplicated fetch logic and standardize cache/refresh handling across portal views.
   - Next: Consider migrating remaining admin lists to shared hooks and adding tests for portal detail actions.
+
 - [x] 2025-09-20: Refactored Portal Service Requests list to use useBookings (SWR) for unified data access.
   - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx
   - Why: Standardize fetching across admin/portal, enable appointments filtering and simpler realtime refresh.
   - Next: Refactor portal detail to use useBooking; consider admin list migration to hooks.
+
 - [x] 2025-09-20: Wired portal appointment Confirm/Reschedule UI with availability picker.
   - Updated: src/app/portal/service-requests/[id]/page.tsx (Confirm + Reschedule actions, availability modal calling /api/portal/service-requests/availability, POST confirm/reschedule)
   - Why: Complete unified booking flow by enabling clients to confirm or reschedule from request detail.

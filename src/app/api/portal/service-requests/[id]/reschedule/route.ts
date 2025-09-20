@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
+import { sendBookingConfirmation } from '@/lib/email'
 
 const BodySchema = z.object({ scheduledAt: z.string().datetime() })
 
@@ -40,9 +41,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     })
     if (conflict) return respond.badRequest('Scheduling conflict detected')
 
-    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart } })
+    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
     try { await logAudit({ action: 'portal:service-request:reschedule', actorId: session.user.id ?? null, targetId: String(id), details: { bookingId: booking.id, scheduledAt: newStart.toISOString() } }) } catch {}
+
+    try {
+      await sendBookingConfirmation({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+        duration: updated.duration,
+        clientName: updated.client?.name || '',
+        clientEmail: updated.client?.email || '',
+        service: { name: updated.service?.name || 'Consultation', price: (updated.service as any)?.price as any }
+      })
+    } catch {}
 
     return respond.ok({ booking: updated })
   } catch (e: any) {

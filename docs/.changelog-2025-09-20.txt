@@ -1,0 +1,5 @@
+2025-09-20: Added ICS email sending on booking confirm/reschedule (admin/portal endpoints)
+- Updated: src/app/api/portal/service-requests/[id]/confirm/route.ts
+- Updated: src/app/api/admin/service-requests/[id]/confirm/route.ts
+- Updated: src/app/api/portal/service-requests/[id]/reschedule/route.ts
+- Uses sendBookingConfirmation from src/lib/email.ts; falls back to console log if SENDGRID_API_KEY is unset.
