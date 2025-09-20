@@ -11,7 +11,7 @@ import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
-const CreateSchema = z.object({
+const CreateBase = z.object({
   clientId: z.string().min(1),
   serviceId: z.string().min(1),
   title: z.string().min(5).max(300).optional(),
@@ -30,10 +30,26 @@ const CreateSchema = z.object({
     if (typeof v === 'string') return Number(v)
     return v
   }, z.number().optional()),
-  deadline: z.string().datetime().optional(),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
 })
+
+const CreateRequestSchema = CreateBase.extend({
+  isBooking: z.literal(false).optional(),
+  deadline: z.string().datetime().optional(),
+})
+
+const CreateBookingSchema = CreateBase.extend({
+  isBooking: z.literal(true),
+  scheduledAt: z.string().datetime(),
+  duration: z.number().int().positive().optional(),
+  clientName: z.string().optional(),
+  clientEmail: z.string().email().optional(),
+  clientPhone: z.string().optional(),
+  bookingType: z.enum(['STANDARD','RECURRING','EMERGENCY','CONSULTATION']).optional(),
+})
+
+const CreateSchema = z.union([CreateRequestSchema, CreateBookingSchema])
 
 type Filters = {
   page: number
@@ -293,16 +309,25 @@ export async function POST(request: Request) {
 
     const created = await prisma.serviceRequest.create({
       data: {
-        clientId: data.clientId,
-        serviceId: data.serviceId,
+        clientId: (data as any).clientId,
+        serviceId: (data as any).serviceId,
         title: titleToUse,
-        description: data.description ?? null,
-        priority: data.priority as any,
-        budgetMin: data.budgetMin != null ? data.budgetMin : null,
-        budgetMax: data.budgetMax != null ? data.budgetMax : null,
-        deadline: data.deadline ? new Date(data.deadline) : null,
-        requirements: (data.requirements as any) ?? undefined,
-        attachments: (data.attachments as any) ?? undefined,
+        description: (data as any).description ?? null,
+        priority: (data as any).priority as any,
+        budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
+        budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
+        deadline: (data as any).deadline ? new Date((data as any).deadline) : null,
+        requirements: ((data as any).requirements as any) ?? undefined,
+        attachments: ((data as any).attachments as any) ?? undefined,
+        ...('isBooking' in data && (data as any).isBooking ? {
+          isBooking: true,
+          scheduledAt: new Date((data as any).scheduledAt),
+          duration: (data as any).duration ?? null,
+          clientName: (data as any).clientName ?? null,
+          clientEmail: (data as any).clientEmail ?? null,
+          clientPhone: (data as any).clientPhone ?? null,
+          bookingType: (data as any).bookingType ?? null,
+        } : {}),
         ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
       },
       include: {
