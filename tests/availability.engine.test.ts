@@ -53,7 +53,7 @@ describe('AvailabilityEngine - generateAvailability', () => {
     const busyEnd = addMinutes(busyStart, 60)
     const busy: BusyInterval[] = [{ start: busyStart, end: busyEnd }]
 
-    const slots = generateAvailability(from, to, 60, busy, { bookingBufferMinutes: 30 })
+    const slots = generateAvailability(from, to, 60, busy, { bookingBufferMinutes: 30, now: d(`${day}T00:00:00.000Z`) })
 
     // With 30min buffer, slots 12:30-13:30 and 13:30-14:30 should be excluded
     const has1230 = slots.some(s => s.start.endsWith('T12:30:00.000Z'))
