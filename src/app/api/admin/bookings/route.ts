@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== 'all') {
       // Cast incoming status string to BookingStatus enum
-      where.status = status as BookingStatus
+      where.status = status as any
     }
 
     if (search) {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       scheduledAt: new Date(scheduledAt),
       duration,
       notes,
-      status: BookingStatus.CONFIRMED // Admin bookings are automatically confirmed
+      status: 'CONFIRMED' // Admin bookings are automatically confirmed
     }
 
     if (clientId) {
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       where: {
         scheduledAt: new Date(scheduledAt),
         status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
+          in: ['PENDING','CONFIRMED']
         }
       }
     })
@@ -251,20 +251,20 @@ export async function PATCH(request: NextRequest) {
     switch (action) {
       case 'confirm':
         updateData = {
-          status: BookingStatus.CONFIRMED,
+          status: 'CONFIRMED',
           confirmed: true
         }
         break
       
       case 'cancel':
         updateData = {
-          status: BookingStatus.CANCELLED
+          status: 'CANCELLED'
         }
         break
       
       case 'complete':
         updateData = {
-          status: BookingStatus.COMPLETED
+          status: 'COMPLETED'
         }
         break
       
