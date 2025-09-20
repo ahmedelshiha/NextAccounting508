@@ -131,7 +131,11 @@ export default function ServiceRequestsClient() {
     if (!Array.isArray(items) || !items.length) return
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
+    if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
     if (debouncedQ) params.set('q', debouncedQ)
+    if (typeTab && typeTab !== 'all') params.set('type', typeTab)
     try {
       const res = await fetch(`/api/portal/service-requests/export${params.toString() ? `?${params}` : ''}` as string, { cache: 'no-store' })
       if (res.ok) {
