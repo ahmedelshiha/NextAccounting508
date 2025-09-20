@@ -1,0 +1,25 @@
+name: Booking Reminders
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # every 15 minutes to catch 15-min window
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pre-check secrets
+        run: |
+          if [ -z "${{ secrets.CRON_TARGET_URL }}" ] || [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "CRON_TARGET_URL or CRON_SECRET not set; skipping" && exit 0
+          fi
+      - name: Trigger reminders endpoint
+        env:
+          CRON_TARGET_URL: ${{ secrets.CRON_TARGET_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -sS -X POST "$CRON_TARGET_URL/api/cron/reminders" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            --fail || echo "Reminders call failed (non-fatal)"
