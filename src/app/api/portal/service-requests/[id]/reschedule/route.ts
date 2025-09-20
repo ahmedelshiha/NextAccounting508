@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
+import { sendBookingConfirmation } from '@/lib/email'
 
 const BodySchema = z.object({ scheduledAt: z.string().datetime() })
 
