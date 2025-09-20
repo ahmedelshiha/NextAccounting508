@@ -79,7 +79,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   try {
     const { id } = await context.params
     const session = await getServerSession(authOptions)
-    try { console.debug && console.debug('PUT session', session) } catch {}
 
     if (!session?.user) {
       return NextResponse.json(
@@ -117,8 +116,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     // Prepare update data based on user role
     const updateData: Partial<import('@prisma/client').Prisma.BookingUpdateInput> = {}
 
-    // Debug: log body and existing booking for test troubleshooting
-    try { console.debug && console.debug('PUT booking body', { body, existingBooking: existingBooking }) } catch {}
 
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
@@ -150,7 +147,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
       }
     }
 
-    try { console.debug && console.debug('Booking updateData', updateData) } catch {}
     const booking = await prisma.booking.update({
       where: { id },
       data: updateData,

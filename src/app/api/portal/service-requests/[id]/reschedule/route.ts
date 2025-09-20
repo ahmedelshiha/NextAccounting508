@@ -7,6 +7,7 @@ import { respond } from '@/lib/api-response'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { sendBookingConfirmation } from '@/lib/email'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const BodySchema = z.object({ scheduledAt: z.string().datetime() })
 
@@ -15,13 +16,16 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return respond.unauthorized()
 
+  const tenantId = getTenantFromRequest(req as any)
+
   const body = await req.json().catch(() => null)
   const parsed = BodySchema.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', { issues: parsed.error.issues })
 
   try {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id }, select: { id: true, clientId: true } })
+    const sr = await prisma.serviceRequest.findUnique({ where: { id }, select: { id: true, clientId: true, tenantId: true } })
     if (!sr || sr.clientId !== session.user.id) return respond.notFound('Service request not found')
+    if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) return respond.notFound('Service request not found')
 
     const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id } })
     if (!booking) return respond.badRequest('No linked booking to reschedule')

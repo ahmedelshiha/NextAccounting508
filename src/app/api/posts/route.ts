@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 // GET /api/posts - Get blog posts
 export async function GET(request: NextRequest) {
@@ -15,7 +16,9 @@ export async function GET(request: NextRequest) {
     const skip = searchParams.get('skip')
 
     const where: Prisma.PostWhereInput = {}
-    
+    const tenantId = getTenantFromRequest(request as any)
+    Object.assign(where, tenantFilter(tenantId) as any)
+
     // Only show published posts for non-admin users
     const session = await getServerSession(authOptions)
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
@@ -152,6 +155,9 @@ export async function POST(request: NextRequest) {
       shares: typeof shares === 'number' ? shares : undefined,
       comments: typeof comments === 'number' ? comments : undefined
     }
+
+    const tenantId = getTenantFromRequest(request as any)
+    if (isMultiTenancyEnabled() && tenantId) (createData as any).tenantId = tenantId
 
     const post = await prisma.post.create({
       data: createData,

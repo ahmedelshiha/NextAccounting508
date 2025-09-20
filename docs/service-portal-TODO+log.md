@@ -648,6 +648,15 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-21: Tenant scoping audit and fixes
+  - ✅ admin/activity/route.ts scoped by tenant with runtime-safe fallback when tenantId column is absent
+  - ✅ portal/service-requests/[id]/{confirm,reschedule}: enforce tenant ownership (tenantId match) in addition to client ownership
+  - ✅ admin/uploads/quarantine/route.ts: DB listing filtered by tenantId; provider list unchanged
+  - ✅ portal/service-requests POST: persist tenantId on created Attachment rows
+  - ✅ lib/service-requests/assignment: workloads scoped by tenant; team member filter guarded for pre-migration schemas
+  - 🧹 Removed stray console.debug logs from bookings API
+  - Skipped as global (no tenant fields by design): admin/currencies/*, admin/thresholds (HealthThreshold)
+
 - [x] 2025-09-20: Portal Booking Detail now fetches via API route instead of direct Prisma.
   - Updated: src/app/portal/bookings/[id]/page.tsx (server fetch to /api/bookings/[id] with auth cookies, no direct prisma)
   - Why: Centralize authorization and response shape, align with API-layer standards, and avoid SSR DB access from pages.

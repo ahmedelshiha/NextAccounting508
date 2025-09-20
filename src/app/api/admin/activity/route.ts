@@ -47,7 +47,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data, pagination: { page, limit: take, total, totalPages: Math.max(1, Math.ceil(total / take)) } })
     }
 
-    const where: any = { ...tenantFilter(tenantId), service: type }
+    let where: any = { service: type }
+    if (tenantId) {
+      try {
+        await prisma.healthLog.count({ where: tenantFilter(tenantId) as any })
+        where = { ...where, ...tenantFilter(tenantId) }
+      } catch {}
+    }
     if (statusParam && statusParam !== 'ALL') where.status = statusParam
     if (q) where.message = { contains: q, mode: 'insensitive' as const }
 

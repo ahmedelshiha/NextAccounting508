@@ -284,7 +284,8 @@ export async function POST(request: Request) {
           avDetails: a.avDetails || undefined,
           avScanAt: a.avScanAt ? new Date(a.avScanAt) : undefined,
           avThreatName: a.avThreatName || undefined,
-          avScanTime: typeof a.avScanTime === 'number' ? a.avScanTime : undefined
+          avScanTime: typeof a.avScanTime === 'number' ? a.avScanTime : undefined,
+          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
         }))
         // Bulk create, ignoring duplicates via try/catch per item
         for (const item of toCreate) {
