@@ -78,29 +78,37 @@ END:VCALENDAR`
 }
 
 // Send booking confirmation email with ICS attachment
-export async function sendBookingConfirmation(booking: {
-  id: string
-  scheduledAt: Date
-  duration: number
-  clientName: string
-  clientEmail: string
-  service: { name: string; price?: number }
-}) {
+export async function sendBookingConfirmation(
+  booking: {
+    id: string
+    scheduledAt: Date
+    duration: number
+    clientName: string
+    clientEmail: string
+    service: { name: string; price?: number }
+  },
+  options?: { locale?: string; timeZone?: string }
+) {
   const icsContent = generateICS(booking)
   const icsBase64 = Buffer.from(icsContent).toString('base64')
-  
-  const formattedDate = new Date(booking.scheduledAt).toLocaleDateString('en-US', {
+
+  const locale = options?.locale || 'en-US'
+  const tzOpt = options?.timeZone ? { timeZone: options.timeZone } as const : undefined
+
+  const formattedDate = new Date(booking.scheduledAt).toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
-  })
-  
-  const formattedTime = new Date(booking.scheduledAt).toLocaleTimeString('en-US', {
+    day: 'numeric',
+    ...(tzOpt || {})
+  } as any)
+
+  const formattedTime = new Date(booking.scheduledAt).toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
-  })
+    hour12: true,
+    ...(tzOpt || {})
+  } as any)
 
   const emailOptions: EmailOptions = {
     to: booking.clientEmail,
@@ -171,25 +179,33 @@ export async function sendBookingConfirmation(booking: {
 }
 
 // Send booking reminder email
-export async function sendBookingReminder(booking: {
-  id: string
-  scheduledAt: Date
-  clientName: string
-  clientEmail: string
-  service: { name: string }
-}) {
-  const formattedDate = new Date(booking.scheduledAt).toLocaleDateString('en-US', {
+export async function sendBookingReminder(
+  booking: {
+    id: string
+    scheduledAt: Date
+    clientName: string
+    clientEmail: string
+    service: { name: string }
+  },
+  options?: { locale?: string; timeZone?: string }
+) {
+  const locale = options?.locale || 'en-US'
+  const tzOpt = options?.timeZone ? { timeZone: options.timeZone } as const : undefined
+
+  const formattedDate = new Date(booking.scheduledAt).toLocaleDateString(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
-  })
-  
-  const formattedTime = new Date(booking.scheduledAt).toLocaleTimeString('en-US', {
+    day: 'numeric',
+    ...(tzOpt || {})
+  } as any)
+
+  const formattedTime = new Date(booking.scheduledAt).toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
-  })
+    hour12: true,
+    ...(tzOpt || {})
+  } as any)
 
   await sendEmail({
     to: booking.clientEmail,
