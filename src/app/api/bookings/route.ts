@@ -1,186 +1,103 @@
-import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+export const runtime = 'nodejs'
+
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import type { Prisma } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 
-// GET /api/bookings - Get bookings (filtered by user role)
+function withDeprecationHeaders(init?: ResponseInit) {
+  const headers = new Headers(init?.headers)
+  headers.set('Deprecation', 'true')
+  headers.set('Sunset', new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toUTCString())
+  headers.set('Link', '</api/admin/service-requests>; rel="successor-version"')
+  return { ...init, headers }
+}
+
+function cloneRequestWithUrl(req: NextRequest | Request, url: URL, body?: any, method?: string): Request {
+  const init: RequestInit = {
+    method: method || (req as Request).method,
+    headers: (req as Request).headers,
+    body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+  }
+  return new Request(url.toString(), init)
+}
+
 export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
+  }
+
+  const url = new URL(request.url)
+  if (!url.searchParams.get('type')) {
+    url.searchParams.set('type', 'appointments')
+  }
+
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const role = (session.user as any)?.role as string | undefined
+    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
+      const mod = await import('@/app/api/admin/service-requests/route')
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url))
+      const data = await resp.json().catch(() => null)
+      return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
+    } else {
+      const mod = await import('@/app/api/portal/service-requests/route')
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url))
+      const data = await resp.json().catch(() => null)
+      return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
-
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const userId = searchParams.get('userId')
-
-    const where: Prisma.BookingWhereInput = {}
-
-    // If user is CLIENT, only show their bookings
-    if (session?.user?.role === 'CLIENT') {
-      where.clientId = session?.user?.id
-    }
-    // If user is ADMIN or STAFF, they can see all bookings or filter by userId
-    else if (userId) {
-      where.clientId = userId
-    }
-
-    if (status) {
-      // Cast incoming status string to BookingStatus enum
-      where.status = status as BookingStatus
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where,
-      include: {
-        client: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        service: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            duration: true,
-            price: true
-          }
-        },
-        assignedTeamMember: {
-          select: { id: true, name: true, email: true, title: true }
-        }
-      },
-      orderBy: {
-        scheduledAt: 'desc'
-      }
-    })
-
-    return NextResponse.json(bookings)
-  } catch (error) {
-    console.error('Error fetching bookings:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch bookings' },
-      { status: 500 }
-    )
+  } catch (e: any) {
+    return NextResponse.json({ success: false, error: { message: 'Failed to fetch bookings' } }, withDeprecationHeaders({ status: 500 }))
   }
 }
 
-// POST /api/bookings - Create a new booking
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
+  }
+
+  let legacy: any = null
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    legacy = await request.json()
+  } catch {}
+
+  // Map legacy booking payload to unified Service Request shape
+  const bookingDetails: any = {
+    scheduledAt: legacy?.scheduledAt,
+    duration: legacy?.duration,
+    clientName: legacy?.clientName,
+    clientEmail: legacy?.clientEmail,
+    clientPhone: legacy?.clientPhone,
+    assignedTeamMemberId: legacy?.assignedTeamMemberId,
+  }
+
+  const basePayload: any = {
+    serviceId: legacy?.serviceId,
+    title: legacy?.title || undefined,
+    description: legacy?.notes || legacy?.description || undefined,
+    // Preserve any custom fields
+    requirements: { ...(legacy?.requirements || {}), booking: bookingDetails },
+    attachments: legacy?.attachments || undefined,
+  }
+
+  const role = (session.user as any)?.role as string | undefined
+  const url = new URL(request.url)
+
+  try {
+    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
+      // Admin path requires clientId; prefer provided clientId, fall back to current user
+      basePayload.clientId = legacy?.clientId || (session.user as any).id
+      const mod = await import('@/app/api/admin/service-requests/route')
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST'))
+      const data = await resp.json().catch(() => null)
+      return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
+    } else {
+      const mod = await import('@/app/api/portal/service-requests/route')
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST'))
+      const data = await resp.json().catch(() => null)
+      return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
-
-    const body = await request.json()
-    
-    const {
-      serviceId,
-      scheduledAt,
-      notes,
-      clientName,
-      clientEmail,
-      clientPhone,
-      assignedTeamMemberId
-    } = body
-
-    // Basic validation
-    if (!serviceId || !scheduledAt || !clientName || !clientEmail) {
-      return NextResponse.json(
-        { error: 'Service, scheduled time, client name, and email are required' },
-        { status: 400 }
-      )
-    }
-
-    // Verify service exists and get duration
-    const service = await prisma.service.findFirst({
-      where: { id: serviceId, active: true }
-    })
-
-    if (!service) {
-      return NextResponse.json(
-        { error: 'Service not found' },
-        { status: 404 }
-      )
-    }
-
-    // Check for scheduling conflicts
-    const scheduledDate = new Date(scheduledAt)
-    const duration = service.duration || 60 // Default 60 minutes
-    const endTime = new Date(scheduledDate.getTime() + duration * 60000)
-
-    const conflictingBooking = await prisma.booking.findFirst({
-      where: {
-        scheduledAt: {
-          lt: endTime
-        },
-        AND: {
-          scheduledAt: {
-            gte: new Date(scheduledDate.getTime() - 60 * 60000) // 1 hour buffer
-          }
-        },
-        status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
-        }
-      }
-    })
-
-    if (conflictingBooking) {
-      return NextResponse.json(
-        { error: 'Time slot is not available' },
-        { status: 400 }
-      )
-    }
-
-    const isAdminOrStaff = session?.user?.role === 'ADMIN' || session?.user?.role === 'STAFF'
-    const targetClientId = (isAdminOrStaff && body.clientId) ? body.clientId : session?.user?.id
-
-    const booking = await prisma.booking.create({
-      data: {
-        clientId: targetClientId,
-        serviceId,
-        scheduledAt: scheduledDate,
-        duration,
-        notes,
-        clientName,
-        clientEmail,
-        clientPhone,
-        status: BookingStatus.PENDING,
-        assignedTeamMemberId: assignedTeamMemberId || null
-      },
-      include: {
-        service: {
-          select: {
-            name: true,
-            slug: true,
-            price: true
-          }
-        },
-        assignedTeamMember: { select: { id: true, name: true, email: true, title: true } }
-      }
-    })
-
-    return NextResponse.json(booking, { status: 201 })
-  } catch (error) {
-    console.error('Error creating booking:', error)
-    return NextResponse.json(
-      { error: 'Failed to create booking' },
-      { status: 500 }
-    )
+  } catch (e: any) {
+    return NextResponse.json({ success: false, error: { message: 'Failed to create booking' } }, withDeprecationHeaders({ status: 500 }))
   }
 }
