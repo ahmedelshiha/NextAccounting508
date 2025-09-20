@@ -87,7 +87,9 @@ export async function GET(request: Request) {
       return NextResponse.json(paged)
     }
 
-    const where: any = {}
+    const tenantId = getTenantFromRequest(request as any)
+
+    const where: any = { ...(tenantFilter(tenantId) as any) }
     if (status.length) where.status = { in: status.map(s => mapStatus(s)) }
     if (priority.length) where.priority = { in: priority.map(p => mapPriority(p)) }
     if (assigneeId) where.assigneeId = assigneeId
