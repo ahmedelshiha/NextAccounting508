@@ -3,6 +3,84 @@
 ## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
 Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09-20)
 
+Autonomous Pause Summary (2025-09-20)
+
+Current Status
+- PAUSED — awaiting CI-run Prisma migrations/seeds, staging env configuration, and multi-tenancy rollout plan.
+
+Completed Work — Summary
+- Unified Service Requests foundation shipped (admin + portal APIs, RBAC, realtime, comments, tasks, analytics, CSV export).
+- Admin/Portal UIs wired (filters, tabs, calendar, booking type analytics, quarantine console, CSV exports).
+- Uploads + AV implemented (Netlify Blobs provider, AV callback, rescan cron, quarantine flows).
+- Realtime durable transport adapter (Postgres LISTEN/NOTIFY) implemented; SSE endpoints and client hooks.
+- Tests added for routes, RBAC, status transitions, auto-assign; new portal confirm/reschedule and admin filters tests.
+- CI/Netlify build steps and workflows created; seeds/templates/permissions prepared. Detailed log remains below.
+
+Remaining Work (Paused) — Prioritized Checklist (Scan-first)
+
+P0 — Critical path
+- [ ] CI/CD migrations & seed (blocking)
+  - What: Run pnpm db:generate && pnpm db:migrate && pnpm db:seed in CI (Netlify or GitHub Actions) against Neon.
+  - Next: Set DATABASE_URL/NETLIFY_DATABASE_URL, trigger build, verify roles/templates/permissions via /api/admin/permissions.
+  - Deps: Neon DB, Netlify envs, GitHub secrets.
+  - Owner: infra/backend
+- [ ] Uploads provider & AV in staging
+  - What: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN; set UPLOADS_AV_SCAN_URL (+ key) and validate end-to-end.
+  - Next: Upload clean/infected samples; verify AV callback, quarantine UI, and cron rescans.
+  - Deps: Netlify Blobs token, AV endpoint.
+  - Owner: backend/ops
+
+P1 — High priority
+- [ ] Multi-tenancy rollout (feature-flagged)
+  - What: Add tenantId/orgId migrations + indexes; scope queries; enable MULTI_TENANCY_ENABLED in staging.
+  - Next: Apply migration in CI; smoke /admin and /portal for tenant isolation.
+  - Deps: P0 migrations complete.
+  - Owner: backend
+- [ ] Realtime durability in staging
+  - What: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance delivery.
+  - Next: Exercise multi-node scenario; monitor /api/admin/system/health.
+  - Deps: DB connectivity.
+  - Owner: ops
+- [ ] Tests & coverage tightening
+  - What: Unskip DB tests, add e2e for client create→assign→complete; enforce thresholds.
+  - Next: Wire into CI workflow; fix regressions.
+  - Deps: P0 migrations.
+  - Owner: dev/QA
+
+P2 — Medium priority
+- [ ] Phase 2 API parity for bookings
+  - What: Ensure admin/portal availability/confirm/reschedule endpoints use unified model (isBooking, scheduledAt, bookingType) post-migrations.
+  - Next: Remove legacy proxies; keep deprecation headers on /api/bookings.* during window.
+  - Deps: P0 migrations.
+  - Owner: backend
+- [ ] Email & ICS enhancements
+  - What: Add ICS to confirmations; reminder scheduler using BookingPreferences; i18n templates.
+  - Next: Configure SENDGRID_API_KEY, FROM_EMAIL; add cron for reminders.
+  - Deps: Seeds + preferences model.
+  - Owner: backend
+- [ ] Admin/Portal UI refinements
+  - What: Expose bookingType filters by default; ensure scheduledAt ordering in Appointments tab; polish analytics.
+  - Next: Verify after Phase 1/2 schema present; add tests.
+  - Owner: frontend
+
+P3 — Nice-to-have / Ops
+- [ ] Observability & alerts
+  - What: Set SENTRY_DSN; add alerts for AV failures, realtime disconnects, high error rates.
+  - Next: Verify staging traces and errors; document runbooks.
+  - Owner: ops
+- [ ] Cleanup dev fallbacks
+  - What: Remove dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json after CI seeds validated.
+  - Next: Re-run CI; ensure no fallback paths remain.
+  - Deps: P0 migrations and staging validation.
+  - Owner: dev
+
+Blockers & Setup Reminders
+- Netlify: set NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL, REALTIME_TRANSPORT, (optional) REALTIME_PG_URL.
+- GitHub Secrets: DATABASE_URL, CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID.
+- AV Service: UPLOADS_AV_SCAN_URL and API key configured and reachable from deploy environment.
+
+Note: Use this checklist to resume. The detailed plan and full change log remain below for context.
+
 Current Status
 - Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
 - Updated: Phase 1 migrations applied in CI/dev (2025-09-21) — prisma migrations deployed and seed applied against Neon DB
