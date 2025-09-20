@@ -16,6 +16,8 @@ export interface ServiceRequestItem {
   deadline?: string | null
   scheduledAt?: string | null
   createdAt?: string | null
+  isBooking?: boolean | null
+  bookingType?: 'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'|null
 }
 
 interface Props {
@@ -62,6 +64,7 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
             <TableHead>Title</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Service</TableHead>
+            <TableHead className="hidden sm:table-cell">Type</TableHead>
             <TableHead className="hidden sm:table-cell">Scheduled</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
@@ -87,6 +90,16 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
               <TableCell>
                 <div className="text-sm text-gray-900">{r.service?.name || '—'}</div>
                 <div className="text-xs text-gray-500">{r.service?.category || ''}</div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                {r.isBooking ? (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">Appointment</Badge>
+                    <span className="text-xs text-gray-500">{r.bookingType || 'STANDARD'}</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-900">Request</span>
+                )}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 <div className="text-sm text-gray-900">{(r as any).scheduledAt ? new Date((r as any).scheduledAt).toLocaleDateString() : '—'}</div>
