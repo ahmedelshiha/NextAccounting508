@@ -10,7 +10,7 @@ import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 
-const CreateSchema = z.object({
+const CreateBase = z.object({
   serviceId: z.string().min(1),
   title: z.string().min(5).max(300).optional(),
   description: z.string().optional(),
@@ -28,10 +28,23 @@ const CreateSchema = z.object({
     if (typeof v === 'string') return Number(v)
     return v
   }, z.number().optional()),
-  deadline: z.string().datetime().optional(),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
 })
+
+const CreateRequestSchema = CreateBase.extend({
+  isBooking: z.literal(false).optional(),
+  deadline: z.string().datetime().optional(),
+})
+
+const CreateBookingSchema = CreateBase.extend({
+  isBooking: z.literal(true),
+  scheduledAt: z.string().datetime(),
+  duration: z.number().int().positive().optional(),
+  bookingType: z.enum(['STANDARD','RECURRING','EMERGENCY','CONSULTATION']).optional(),
+})
+
+const CreateSchema = z.union([CreateRequestSchema, CreateBookingSchema])
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
@@ -152,16 +165,22 @@ export async function POST(request: Request) {
 
     const dataObj: any = {
       clientId: session.user.id,
-      serviceId: data.serviceId,
+      serviceId: (data as any).serviceId,
       title: titleToUse,
-      description: data.description ?? null,
-      priority: data.priority as any,
-      budgetMin: data.budgetMin != null ? data.budgetMin : null,
-      budgetMax: data.budgetMax != null ? data.budgetMax : null,
-      deadline: data.deadline ? new Date(data.deadline) : null,
-      requirements: (data.requirements as any) ?? undefined,
-      attachments: (data.attachments as any) ?? undefined,
+      description: (data as any).description ?? null,
+      priority: (data as any).priority as any,
+      budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
+      budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
+      deadline: (data as any).deadline ? new Date((data as any).deadline) : null,
+      requirements: ((data as any).requirements as any) ?? undefined,
+      attachments: ((data as any).attachments as any) ?? undefined,
       status: 'SUBMITTED',
+      ...('isBooking' in data && (data as any).isBooking ? {
+        isBooking: true,
+        scheduledAt: new Date((data as any).scheduledAt),
+        duration: (data as any).duration ?? null,
+        bookingType: (data as any).bookingType ?? null,
+      } : {}),
     }
     if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
 
@@ -212,19 +231,25 @@ export async function POST(request: Request) {
         const created: any = {
           id,
           clientId: session.user.id,
-          serviceId: data.serviceId,
+          serviceId: (data as any).serviceId,
           title: genTitle,
-          description: data.description ?? null,
-          priority: data.priority,
-          budgetMin: data.budgetMin ?? null,
-          budgetMax: data.budgetMax ?? null,
-          deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
-          requirements: data.requirements ?? undefined,
-          attachments: data.attachments ?? undefined,
+          description: (data as any).description ?? null,
+          priority: (data as any).priority,
+          budgetMin: (data as any).budgetMin ?? null,
+          budgetMax: (data as any).budgetMax ?? null,
+          deadline: (data as any).deadline ? new Date((data as any).deadline).toISOString() : null,
+          requirements: (data as any).requirements ?? undefined,
+          attachments: (data as any).attachments ?? undefined,
           status: 'SUBMITTED',
           service: svc ? { id: svc.id, name: svc.name, slug: svc.slug, category: svc.category } : null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+        }
+        if ('isBooking' in (data as any) && (data as any).isBooking) {
+          created.isBooking = true
+          created.scheduledAt = new Date((data as any).scheduledAt).toISOString()
+          created.duration = (data as any).duration ?? null
+          created.bookingType = (data as any).bookingType ?? null
         }
         if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
