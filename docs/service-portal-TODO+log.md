@@ -1,7 +1,7 @@
 # Service Portal — TODO + Change Log
 
 ## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
-Owner: admin • Email: dfssfdrad7@tuta.io • Status: Paused (as of 2025-09-20)
+Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09-20)
 
 Current Status
 - Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
