@@ -561,6 +561,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Configured staging/prod environment variables for DB, NextAuth, uploads, and realtime (via platform envs).
+  - Set database URLs, NextAuth URL/secret, Netlify Blobs token, realtime transport/channel, and uploads provider.
+  - Why: Enable CI Prisma migrations/seeds and unlock uploads, realtime, and auth flows in staging.
+  - Next: Trigger CI/Netlify build to run migrate/seed and validate seeds and endpoints.
 - [x] 2025-09-20: Resolved TypeScript typecheck errors in admin/portal service-requests pages.
   - Updated: src/app/admin/service-requests/page.tsx (added missing apiFetch import; refactored to use useServiceRequests hook); src/app/portal/service-requests/[id]/page.tsx (added "use client").
   - Why: Fix TS2304 'load' name resolution and reduce duplication by leveraging SWR hook; ensures proper client/server boundaries; unblock CI typecheck/build.
