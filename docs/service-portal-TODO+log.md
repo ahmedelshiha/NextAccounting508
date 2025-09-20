@@ -53,7 +53,7 @@ Remaining Work (Paused) — Quick Checklist
   - Home page: ServiceMarket-style booking entry (Phase 14 in plan)
 
 - [ ] Phase 4 — Hooks & State
-  - Add hooks: src/hooks/useBookings.ts, src/hooks/useBooking.ts, src/hooks/useAvailability.ts (SWR or simple fetch + refresh)
+  - Added hooks: src/hooks/useBookings.ts, src/hooks/useBooking.ts; pending src/hooks/useAvailability.ts (SWR or simple fetch + refresh)
   - Refactor admin/portal pages to reuse hooks; subscribe to realtime topics booking-* and service-request-*
 
 - [ ] Phase 5 — Domain Logic Services
