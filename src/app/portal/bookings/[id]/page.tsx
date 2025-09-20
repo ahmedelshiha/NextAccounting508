@@ -1,6 +1,4 @@
-import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -13,26 +11,49 @@ interface Props {
   params: { id: string }
 }
 
-export default async function PortalBookingDetail({ params }: Props) {
-  const { id } = params
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return notFound()
+// Minimal Booking shape used by this page; aligns with /api/bookings/[id] response
+interface Booking {
+  id: string
+  status: string
+  scheduledAt: string | Date
+  duration?: number | null
+  notes?: string | null
+  service: { name: string; price?: any; duration?: number | null }
+}
 
-  const booking = await prisma.booking.findUnique({
-    where: { id },
-    include: {
-      service: { select: { name: true, price: true, duration: true } },
-      client: { select: { id: true, name: true, email: true } }
-    }
+async function fetchBooking(id: string): Promise<Booking | null> {
+  // Use internal API to centralize auth, RBAC and response shape
+  const res = await fetch(`/api/bookings/${id}`, {
+    // Forward cookies so the route can authorize the current user/session
+    headers: { cookie: cookies().toString() },
+    cache: 'no-store',
   })
 
+  if (res.status === 404) return null
+  if (!res.ok) return null
+
+  const data = await res.json()
+  return data as Booking
+}
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  })
+}
+
+function formatTime(d: Date) {
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+export default async function PortalBookingDetail({ params }: Props) {
+  const { id } = params
+
+  // Fetch through API route to avoid direct Prisma access from pages
+  const booking = await fetchBooking(id)
   if (!booking) return notFound()
 
-  // clients can only view their own bookings
-  if (session.user.role === 'CLIENT' && booking.clientId !== session.user.id) return notFound()
-
-  const formatDate = (d: Date) => d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-  const formatTime = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+  const scheduled = new Date(booking.scheduledAt)
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -56,22 +77,24 @@ export default async function PortalBookingDetail({ params }: Props) {
           <CardHeader>
             <div className="flex items-start justify-between w-full">
               <div>
-                <CardTitle className="text-lg">{booking.service.name}</CardTitle>
+                <CardTitle className="text-lg">{booking.service?.name}</CardTitle>
                 <CardDescription>
-                  {formatDate(booking.scheduledAt)} at {formatTime(booking.scheduledAt)}
+                  {formatDate(scheduled)} at {formatTime(scheduled)}
                 </CardDescription>
               </div>
               <div className="text-right">
                 <Badge className={booking.status ? (booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800') : 'bg-gray-100 text-gray-800'}>
                   {booking.status}
                 </Badge>
-                <div className="text-sm text-gray-500 mt-2">{booking.duration} min</div>
+                {booking.duration != null && (
+                  <div className="text-sm text-gray-500 mt-2">{booking.duration} min</div>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {booking.service.price != null && (
+              {booking.service?.price != null && (
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <DollarSign className="h-4 w-4" />
                   <span>{formatCurrencyFromDecimal(booking.service.price)}</span>
