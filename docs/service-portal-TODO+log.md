@@ -254,6 +254,11 @@ Notes
   - Why: Provide reusable data access for list/detail views and future components; aligns with Phase 4.
   - Next: Implement useAvailability once /api/admin/service-requests/availability is available.
 
+- [x] 2025-09-20: Added date range filters (dateFrom/dateTo) to admin Service Requests (UI + API) and wired query params; fallback filters by deadline/createdAt.
+  - Updated: src/components/admin/service-requests/filters.tsx; src/app/admin/service-requests/page.tsx; src/app/api/admin/service-requests/route.ts
+  - Why: Align with Phase 2 requirement for date filtering ahead of scheduledAt migrations; improves triage and reporting.
+  - Next: After migrations add scheduledAt, extend DB WHERE to use scheduledAt and add bookingType filter.
+
 
 
 Completed (Highlights)
