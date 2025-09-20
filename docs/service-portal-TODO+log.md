@@ -5,10 +5,16 @@ Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09
 
 Autonomous Pause Summary (2025-09-20)
 
+Dev environment update (2025-09-20)
+- Set runtime env vars via dev server: NETLIFY_DATABASE_URL, DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT, REALTIME_PG_URL, UPLOADS_PROVIDER, CRON_*.
+- Next: Trigger Netlify/GitHub CI to run Prisma generate/migrate/seed; verify seeds via /api/admin/permissions.
+
 Current Status
 - PAUSED — awaiting CI-run Prisma migrations/seeds, staging env configuration, and multi-tenancy rollout plan.
 
 Completed Work — Summary
+- Admin Service Requests: added filtered CSV export button + enhanced server export to respect filters (status, priority, bookingType, q, dateFrom/dateTo, type) and include scheduledAt/isBooking/bookingType columns with legacy fallback. Files: src/app/admin/service-requests/ClientPage.tsx, src/app/api/admin/service-requests/export/route.ts.
+- Admin reschedule now sends ICS calendar email to client (if SENDGRID_API_KEY set). File: src/app/api/admin/service-requests/[id]/reschedule/route.ts.
 - Unified Service Requests foundation shipped (admin + portal APIs, RBAC, realtime, comments, tasks, analytics, CSV export).
 - Admin/Portal UIs wired (filters, tabs, calendar, booking type analytics, quarantine console, CSV exports).
 - Uploads + AV implemented (Netlify Blobs provider, AV callback, rescan cron, quarantine flows).
