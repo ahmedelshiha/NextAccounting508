@@ -644,11 +644,11 @@ How to Resume
   - Updated: src/app/api/services/route.ts (returns fallback when NETLIFY_DATABASE_URL missing to avoid console errors)
   - Ops: Set NEXTAUTH_URL and NEXTAUTH_SECRET in dev server to remove warnings.
 
-- [x] 2025-09-21: Portal bookingType + date range filters; Appointments ordered by scheduledAt; Type tabs added.
-  - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx (Booking type + From/To filters, Type tabs All/Requests/Appointments with URL sync; keeps original styles)
-  - Updated: src/app/api/portal/service-requests/route.ts (dateFrom/dateTo filters; when type=appointments filters by scheduledAt, else createdAt; legacy fallback to createdAt; enhanced dev-store fallback)
+- [x] 2025-09-21: Portal bookingType + date range filters; Appointments ordered by scheduledAt; Type tabs added; Export respects filters.
+  - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx (Booking type + From/To filters, Type tabs All/Requests/Appointments with URL sync, export includes bookingType/date/type)
+  - Updated: src/app/api/portal/service-requests/route.ts (dateFrom/dateTo filters; when type=appointments filters by scheduledAt, else createdAt; legacy fallback; enhanced dev-store fallback)
+  - Updated: src/app/api/portal/service-requests/export/route.ts (supports type, bookingType, dateFrom/dateTo; orders appointments by scheduledAt; includes scheduledAt and bookingType columns; fallback filters)
   - Why: Improves client filtering and aligns with unified booking model while remaining backward-compatible pre-migrations.
-  - Next: After migrations, prefer scheduledAt everywhere.
 
 - [x] 2025-09-21: Resumed Phase 2–4 (API/UI/hooks) and fixed tests to green.
   - Updated: src/app/api/admin/service-requests/route.ts (FK validation guarded when models unavailable; safer in tests/fallback); src/app/api/admin/service-requests/[id]/status/route.ts (optional findUnique; safe fallback object; guarded tenant check); src/app/admin/service-requests/page.tsx (deep-linking: initialize filters/type/view/page from URL).
