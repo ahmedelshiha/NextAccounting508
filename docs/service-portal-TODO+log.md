@@ -5,7 +5,8 @@ Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09
 
 Current Status
 - Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
-- Pending: Phases 1–12 (see checklists below)
+- Updated: Phase 1 migrations applied in CI/dev (2025-09-21) — prisma migrations deployed and seed applied against Neon DB
+- Pending: Phases 2–12 (see checklists below)
 
 Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 1 — Data Model Unification (migrations + schema changes; run in CI)
