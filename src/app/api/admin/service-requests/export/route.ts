@@ -112,10 +112,10 @@ export async function GET(request: Request) {
               i.budgetMin ?? '',
               i.budgetMax ?? '',
               i.deadline ? i.deadline.toISOString() : '',
+              i.createdAt.toISOString(),
               (i as any).scheduledAt ? new Date((i as any).scheduledAt as any).toISOString() : '',
               String((i as any).isBooking ?? ''),
               String((i as any).bookingType ?? ''),
-              i.createdAt.toISOString(),
             ].join(',')
             write(row)
           }
