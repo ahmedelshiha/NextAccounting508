@@ -419,7 +419,7 @@ export default function NewServiceRequestPage() {
                 )}
                 <div className="flex-1"></div>
                 <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>
-                  {submitting ? 'Submitting...' : hasPendingUploads ? 'Uploading…' : 'Submit Request'}
+                  {submitting ? 'Submitting...' : hasPendingUploads ? 'Uploading…' : selectedSlot ? 'Submit & Request Appointment' : 'Submit Request'}
                 </Button>
               </div>
             </div>
