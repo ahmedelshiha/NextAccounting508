@@ -648,7 +648,10 @@ How to Resume
   - Next: Migrate legacy bookings to unified Service Requests model or call shared service layer; added route tests for /api/bookings/[id] and a smoke test for portal detail (tests/bookings.id.route.test.ts).
   - [x] 2025-09-XX: Added admin migration API to create a Service Request from a Booking and link them: src/app/api/admin/bookings/[id]/migrate/route.ts
   - Why: Provide a single-step migration endpoint to convert existing bookings into service requests and keep records linked for triage and auditing.
-  - Next: Add route tests for migration endpoint and protective unit tests; consider permission checks using src/lib/permissions.ts and audit logging (src/lib/audit.ts).
+  - Next: Added route tests for migration endpoint and protective unit tests; consider permission checks using src/lib/permissions.ts and audit logging (src/lib/audit.ts).
+  - [x] 2025-09-XX: Added tests for admin booking->service-request migration: tests/admin-bookings-migrate.test.ts (passes locally).
+  - Why: Ensure migration endpoint creates a ServiceRequest and links the booking atomically; protects data integrity.
+  - Next: Integrate audit logging and permissions helper, add integration smoke test that runs migration in staging with real DB and verify seeds.
 
 - [x] 2025-09-20: Validated tests (thresholds passed); requested Neon/Netlify MCP connections and env secrets to resume CI migrations. No code changes.
 
