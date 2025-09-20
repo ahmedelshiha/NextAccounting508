@@ -561,6 +561,11 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Resolved TypeScript typecheck errors in admin/portal service-requests pages.
+  - Updated: src/app/admin/service-requests/page.tsx (added missing apiFetch import); src/app/portal/service-requests/[id]/page.tsx (added "use client").
+  - Why: Fix TS2304 'load' name resolution by ensuring client-only code runs in a Client Component and required imports exist; unblock CI typecheck/build.
+  - Tests: Ran pnpm test:thresholds (passed). Typecheck re-run pending extended timeout.
+  - Next: Re-run pnpm typecheck with increased timeout; continue Phase 2–4 tasks after CI is green.
 - [x] 2025-09-20: Wired portal appointment Confirm/Reschedule UI with availability picker.
   - Updated: src/app/portal/service-requests/[id]/page.tsx (Confirm + Reschedule actions, availability modal calling /api/portal/service-requests/availability, POST confirm/reschedule)
   - Why: Complete unified booking flow by enabling clients to confirm or reschedule from request detail.
