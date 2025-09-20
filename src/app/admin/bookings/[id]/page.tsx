@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import {
   Calendar,
   Clock,
@@ -56,6 +57,7 @@ interface BookingDetail {
   createdAt?: string
   updatedAt?: string
   assignedTeamMember?: { id: string; name: string; email: string }
+  serviceRequestId?: string | null
   service: ServiceLite
   client: ClientLite
 }
@@ -74,6 +76,8 @@ export default function AdminBookingDetailPage() {
   const [updatingStatus, setUpdatingStatus] = useState<'CONFIRMED'|'COMPLETED'|'CANCELLED'|null>(null)
   const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
   const [_assigning, setAssigning] = useState(false)
+  const [linking, setLinking] = useState(false)
+  const [linkId, setLinkId] = useState('')
 
   useEffect(() => {
     let ignore = false
@@ -263,6 +267,46 @@ export default function AdminBookingDetailPage() {
             }}>
               <Plus className="h-4 w-4 mr-2" />Create Task
             </Button>
+            {booking.serviceRequestId ? (
+              <Button asChild>
+                <Link href={`/admin/service-requests/${booking.serviceRequestId}`}>View Service Request</Link>
+              </Button>
+            ) : (
+              <Button onClick={async () => {
+                if (!booking?.clientId || !booking?.serviceId) { alert('Missing client or service to create Service Request'); return }
+                setLinking(true)
+                try {
+                  const payload = {
+                    clientId: booking.clientId,
+                    serviceId: booking.serviceId,
+                    title: `${booking.service?.name || 'Service'} — ${booking.clientName}`,
+                    description: booking.notes || undefined,
+                    priority: 'MEDIUM'
+                  }
+                  const res = await apiFetch('/api/admin/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                  const json = await res.json().catch(() => ({}))
+                  const srId = json?.data?.id || json?.id
+                  if (res.ok && srId) {
+                    const linkRes = await apiFetch(`/api/bookings/${booking.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceRequestId: srId }) })
+                    if (linkRes.ok) {
+                      const updated = await linkRes.json().catch(() => null)
+                      if (updated) setBooking(updated)
+                      alert('Service Request created and linked')
+                    } else {
+                      alert('Created SR but failed to link to booking')
+                    }
+                  } else {
+                    alert(json?.error?.message || json?.error || 'Failed to create Service Request')
+                  }
+                } catch {
+                  alert('Failed to create Service Request')
+                } finally {
+                  setLinking(false)
+                }
+              }} disabled={linking}>
+                Create Service Request
+              </Button>
+            )}
             {booking.status !== 'CONFIRMED' && booking.status !== 'CANCELLED' && (
               <Button onClick={() => updateStatus('CONFIRMED')} disabled={!!updatingStatus}>
                 <CheckCircle className="h-4 w-4 mr-2" />Confirm
@@ -367,6 +411,26 @@ export default function AdminBookingDetailPage() {
           <CardContent>
             <div className="flex flex-col gap-3">
               <Textarea value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} placeholder="Add internal notes" />
+              {!booking.serviceRequestId && (
+                <div className="flex items-center gap-2 pt-2">
+                  <Input value={linkId} onChange={(e) => setLinkId(e.target.value)} placeholder="Link existing Service Request ID" className="w-64" />
+                  <Button variant="outline" onClick={async () => {
+                    if (!linkId) return
+                    setLinking(true)
+                    try {
+                      const r = await apiFetch(`/api/bookings/${booking.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceRequestId: linkId }) })
+                      if (r.ok) {
+                        const updated = await r.json().catch(() => null)
+                        if (updated) setBooking(updated)
+                        setLinkId('')
+                      } else {
+                        const j = await r.json().catch(() => ({}))
+                        alert(j?.error || 'Failed to link Service Request')
+                      }
+                    } catch { alert('Failed to link Service Request') } finally { setLinking(false) }
+                  }} disabled={linking}>Link</Button>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Button onClick={saveNotes} disabled={savingNotes}>
                   <Save className="h-4 w-4 mr-2" />Save Notes
