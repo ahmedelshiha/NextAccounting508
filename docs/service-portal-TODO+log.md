@@ -734,7 +734,7 @@ How to Resume
   - Next: Verify deploy-preview builds succeed; confirm production deploy runs migrate/seed successfully.
 - [x] 2025-09-18: Added GitHub Actions CI with pnpm to fix missing pnpm error and enforce build/tests.
   - Added: .github/workflows/ci.yml (checkout, setup-node, pnpm/action-setup, install, prisma generate/migrate/seed, typecheck, lint, tests, build, artifact upload)
-  - Why: GitHub runs failed with "Unable to locate executable file: pnpm"; ensures CI parity and reliable builds.
+  - Why: Enable deploy-on-push to main or manual dispatch directly from GitHub.
   - Next: Add deploy-on-merge job and caching for Prisma if needed.
 
 - [x] 2025-09-18: Fixed Netlify build failure due to secrets scanning false-positives.
@@ -1146,3 +1146,12 @@ How to Resume
   - Mark-as-read and unread badge
 
 
+- [x] 2025-09-20: Portal Service Requests GET supports type=appointments and bookingType filters.
+  - Updated: src/app/api/portal/service-requests/route.ts
+  - Why: Align portal listing filters with admin/unified model; enables consistent hooks and UI tabs.
+  - Next: After migrations, prefer DB filter by isBooking/bookingType; add scheduledAt ordering.
+
+- [x] 2025-09-20: Added useBookings/useBooking hooks (SWR).
+  - Added: src/hooks/useBookings.ts; src/hooks/useBooking.ts
+  - Why: Progress Phase 4 by providing reusable data layer for appointments across admin/portal; fallback-safe.
+  - Next: Migrate admin/portal pages to use these hooks post-migrations; add tests.
