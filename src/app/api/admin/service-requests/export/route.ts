@@ -168,10 +168,10 @@ export async function GET(request: Request) {
                 i.budgetMin ?? '',
                 i.budgetMax ?? '',
                 i.deadline ? i.deadline.toISOString() : '',
+                i.createdAt.toISOString(),
                 '', // scheduledAt not available
                 '', // isBooking not available
                 '', // bookingType not available
-                i.createdAt.toISOString(),
               ].join(',')
               write(row)
             }
