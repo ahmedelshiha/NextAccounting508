@@ -668,6 +668,9 @@ How to Resume
   - 2025-09-20: Fixed missing NextResponse import and added tests for cron reminders endpoint.
     - Updated: src/app/api/cron/reminders/route.ts (import NextResponse)
     - Added: tests/cron-reminders.route.test.ts (secret auth, DB skip, sends + marks reminderSent)
+  - 2025-09-20: Added portal export tests and fixed admin export NextResponse import.
+    - Updated: src/app/api/admin/service-requests/export/route.ts (import NextResponse)
+    - Added: tests/portal-service-requests.export.test.ts (ordering + CSV header columns)
   - Next: Set SENDGRID_API_KEY and FROM_EMAIL; configure CRON_TARGET_URL and CRON_SECRET in GitHub; validate emails in staging; consider per-tenant batching and SMS when provider is available.
 - [x] 2025-09-21: Localized emails/time zone support for confirmations and reminders.
   - Updated: src/lib/email.ts (sendBookingConfirmation/sendBookingReminder accept options { locale, timeZone } and format dates accordingly; ICS remains UTC-safe)
