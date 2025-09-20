@@ -644,6 +644,12 @@ How to Resume
   - Updated: src/app/api/services/route.ts (returns fallback when NETLIFY_DATABASE_URL missing to avoid console errors)
   - Ops: Set NEXTAUTH_URL and NEXTAUTH_SECRET in dev server to remove warnings.
 
+- [x] 2025-09-21: Portal bookingType filter exposed; Appointments ordered by scheduledAt.
+  - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx (added Booking type filter; URL sync; preserves styles)
+  - Updated: src/app/api/portal/service-requests/route.ts (orderBy scheduledAt for type=appointments; safe fallback when column absent)
+  - Why: Align with Phase 3 UI polish and ensure appointments list reflects actual schedule.
+  - Next: After migrations, add portal date range filtering by scheduledAt and surface Appointments tab.
+
 - [x] 2025-09-21: Resumed Phase 2–4 (API/UI/hooks) and fixed tests to green.
   - Updated: src/app/api/admin/service-requests/route.ts (FK validation guarded when models unavailable; safer in tests/fallback); src/app/api/admin/service-requests/[id]/status/route.ts (optional findUnique; safe fallback object; guarded tenant check); src/app/admin/service-requests/page.tsx (deep-linking: initialize filters/type/view/page from URL).
   - Why: Ensure routes work in DB-disabled and test environments; eliminate spurious 400s; stabilize status transitions; improve operator UX with deep links/bookmarkable views.
