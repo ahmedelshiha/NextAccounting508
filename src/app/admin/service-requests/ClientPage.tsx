@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useBookings } from '@/hooks/useBookings'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, List, CalendarDays, BarChart3 } from 'lucide-react'
+import { Plus, List, CalendarDays, BarChart3, Download } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
+import { apiFetch } from '@/lib/api'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ServiceRequestsOverview from '@/components/admin/service-requests/overview'
 import ServiceRequestFilters, { type RequestFilters } from '@/components/admin/service-requests/filters'
@@ -124,6 +125,21 @@ export default function AdminServiceRequestsClient() {
     })
   }
 
+  const exportCsv = async () => {
+    const query = buildQuery + (typeTab !== 'ALL' ? `&type=${typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests'}` : '')
+    const res = await apiFetch(`/api/admin/service-requests/export?${query}`)
+    if (!res.ok) return
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `service-requests-${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -141,7 +157,12 @@ export default function AdminServiceRequestsClient() {
                 onRefresh={reload}
                 refreshing={refreshing}
               />
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-2">
+                {perms.has(PERMISSIONS.ANALYTICS_EXPORT) && (
+                  <Button variant="outline" onClick={exportCsv} className="flex items-center gap-2">
+                    <Download className="h-4 w-4" /> Export CSV
+                  </Button>
+                )}
                 {perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE) && (
                   <Button
                     onClick={() => router.push('/admin/service-requests/new')}
