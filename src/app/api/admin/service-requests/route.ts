@@ -299,12 +299,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Validate foreign keys when Prisma models are available; skip in fallback environments
-    const clientExists = await (prisma as any)?.user?.findUnique?.({ where: { id: (data as any).clientId }, select: { id: true } }).catch(() => null)
-    const serviceExists = await (prisma as any)?.service?.findUnique?.({ where: { id: (data as any).serviceId }, select: { id: true } }).catch(() => null)
-    if (clientExists === null || serviceExists === null) {
-      // Skip strict validation if models are missing (e.g., tests/fallback)
-    } else {
+    // Validate foreign keys only when Prisma models are available; skip in fallback/test environments
+    const canValidateFK = typeof (prisma as any)?.user?.findUnique === 'function' && typeof (prisma as any)?.service?.findUnique === 'function'
+    if (canValidateFK) {
+      const clientExists = await (prisma as any).user.findUnique({ where: { id: (data as any).clientId }, select: { id: true } })
+      const serviceExists = await (prisma as any).service.findUnique({ where: { id: (data as any).serviceId }, select: { id: true } })
       if (!clientExists) return respond.badRequest('Invalid clientId')
       if (!serviceExists) return respond.badRequest('Invalid serviceId')
     }
