@@ -83,7 +83,7 @@ export async function GET(request: Request) {
         include: {
           service: { select: { id: true, name: true, slug: true, category: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
