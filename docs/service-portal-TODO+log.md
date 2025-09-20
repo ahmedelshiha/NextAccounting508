@@ -265,6 +265,10 @@ Notes
   - Next: After migrations add scheduledAt, extend DB WHERE to use scheduledAt and add bookingType filter.
 
 - [x] 2025-09-20: Added admin endpoints for availability, confirm, and reschedule; introduced useAvailability hook.
+- [x] 2025-09-20: Added public guest Service Request creation endpoint.
+  - Added: src/app/api/public/service-requests/route.ts (guest POST with create-or-find user, strict rate limits, DB fallback)
+  - Why: Fulfill Phase 2 requirement for guest bookings via unified SR API.
+  - Next: Add optional scheduledAt support after migrations; extend spam protection if needed.
   - Added: src/app/api/admin/service-requests/availability/route.ts; src/app/api/admin/service-requests/[id]/confirm/route.ts; src/app/api/admin/service-requests/[id]/reschedule/route.ts; src/hooks/useAvailability.ts
   - Why: Progress Phase 2 unified API (availability/confirm/reschedule) and Phase 4 hooks for booking flows; endpoints work with DB and include safe fallbacks where feasible.
   - Next: Portal POST support for guest bookings using unified SR API; later migrate to ServiceRequest.scheduledAt and booking statuses.
