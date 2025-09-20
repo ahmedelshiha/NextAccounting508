@@ -28,3 +28,11 @@
 
 ## Reference Plan
 - Booking enhancement plan: [docs/booking_enhancement_plan.md](./booking_enhancement_plan.md)
+
+---
+
+## 2025-09-20 — AvailabilityEngine implemented
+- Added src/lib/booking/availability.ts with business-hours, weekend skipping, booking buffers, daily caps, and deterministic now option.
+- Refactored admin and portal availability routes to use the engine with DB-backed conflicts and graceful fallbacks when DB unavailable.
+- Added unit tests (tests/availability.engine.test.ts) covering buffers, overlaps, weekend skipping, and daily caps — all passing.
+- Next: integrate blackout dates once Phase 1 schema is deployed; wire engine into multi-step booking wizard and pricing pipeline.
