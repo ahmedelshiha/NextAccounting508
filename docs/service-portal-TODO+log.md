@@ -561,6 +561,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Refactored Portal Service Requests list to use useBookings (SWR) for unified data access.
+  - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx
+  - Why: Standardize fetching across admin/portal, enable appointments filtering and simpler realtime refresh.
+  - Next: Refactor portal detail to use useBooking; consider admin list migration to hooks.
 - [x] 2025-09-20: Wired portal appointment Confirm/Reschedule UI with availability picker.
   - Updated: src/app/portal/service-requests/[id]/page.tsx (Confirm + Reschedule actions, availability modal calling /api/portal/service-requests/availability, POST confirm/reschedule)
   - Why: Complete unified booking flow by enabling clients to confirm or reschedule from request detail.
