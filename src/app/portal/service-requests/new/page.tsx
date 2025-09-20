@@ -30,6 +30,13 @@ export default function NewServiceRequestPage() {
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  // Availability booking (optional)
+  const [appointmentDate, setAppointmentDate] = useState('')
+  const [slotDuration, setSlotDuration] = useState<number | ''>('')
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [slots, setSlots] = useState<{ start: string; end: string; available: boolean }[]>([])
+  const [selectedSlot, setSelectedSlot] = useState<string>('')
+
   const [files, setFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
   const [uploadingKeys, setUploadingKeys] = useState<Record<string, boolean>>({})
@@ -132,6 +139,31 @@ export default function NewServiceRequestPage() {
     }
   }
 
+  const fetchAvailability = async () => {
+    if (!serviceId || !appointmentDate) return
+    setLoadingSlots(true)
+    setSelectedSlot('')
+    setSlots([])
+    try {
+      const from = new Date(appointmentDate)
+      const to = new Date(appointmentDate)
+      to.setHours(23,59,59,999)
+      const params = new URLSearchParams()
+      params.set('serviceId', serviceId)
+      params.set('dateFrom', from.toISOString())
+      params.set('dateTo', to.toISOString())
+      if (typeof slotDuration === 'number') params.set('duration', String(slotDuration))
+      const res = await apiFetch(`/api/portal/service-requests/availability?${params.toString()}`)
+      const json = await res.json().catch(() => ({} as any))
+      const list = Array.isArray(json?.data?.slots) ? json.data.slots : []
+      setSlots(list)
+    } catch {
+      toast.error('Failed to load availability')
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
@@ -168,7 +200,7 @@ export default function NewServiceRequestPage() {
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
-          requirements: { serviceSnapshot },
+          requirements: { serviceSnapshot, booking: selectedSlot ? { scheduledAt: selectedSlot, duration: typeof slotDuration === 'number' ? slotDuration : undefined } : undefined },
           attachments,
         }),
       })
@@ -252,6 +284,51 @@ export default function NewServiceRequestPage() {
                   <Label htmlFor="deadline">Desired deadline</Label>
                   <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1" />
                 </div>
+              </div>
+
+              <div className="mt-2">
+                <Label>Appointment (optional)</Label>
+                <div className="mt-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <Input type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Select value={String(slotDuration || '')} onValueChange={(v) => setSlotDuration(v ? Number(v) : '')}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Duration (min)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Default</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="45">45</SelectItem>
+                        <SelectItem value="60">60</SelectItem>
+                        <SelectItem value="90">90</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center">
+                    <Button type="button" variant="outline" onClick={fetchAvailability} disabled={!serviceId || !appointmentDate || loadingSlots}>
+                      {loadingSlots ? 'Loading...' : 'Find Slots'}
+                    </Button>
+                  </div>
+                </div>
+                {slots.length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-600 mb-1">Available times</div>
+                    <div className="flex flex-wrap gap-2">
+                      {slots.filter(s => s.available).map((s) => {
+                        const dt = new Date(s.start)
+                        const label = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        const isSel = selectedSlot === s.start
+                        return (
+                          <Button key={s.start} type="button" size="sm" variant={isSel ? 'default' : 'outline'} onClick={() => setSelectedSlot(s.start)}>
+                            {label}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -342,7 +419,7 @@ export default function NewServiceRequestPage() {
                 )}
                 <div className="flex-1"></div>
                 <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>
-                  {submitting ? 'Submitting...' : hasPendingUploads ? 'Uploading…' : 'Submit Request'}
+                  {submitting ? 'Submitting...' : hasPendingUploads ? 'Uploading…' : selectedSlot ? 'Submit & Request Appointment' : 'Submit Request'}
                 </Button>
               </div>
             </div>

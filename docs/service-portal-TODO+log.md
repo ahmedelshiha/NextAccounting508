@@ -265,6 +265,22 @@ Notes
   - Next: After migrations add scheduledAt, extend DB WHERE to use scheduledAt and add bookingType filter.
 
 - [x] 2025-09-20: Added admin endpoints for availability, confirm, and reschedule; introduced useAvailability hook.
+- [x] 2025-09-20: Added public guest Service Request creation endpoint.
+- [x] 2025-09-20: Added portal availability endpoint.
+- [x] 2025-09-20: Added portal endpoints for confirm and reschedule.
+  - Added: src/app/api/portal/service-requests/[id]/confirm/route.ts; [id]/reschedule/route.ts (client ownership checks, conflict checks, fallbacks)
+  - Why: Complete unified booking flow for clients to confirm or change appointment time.
+  - Next: Wire portal UI actions to call these endpoints; add ICS emails in Phase 6.
+- [x] 2025-09-20: Wired portal New Service Request to query availability and include selected slot in payload requirements.booking.
+  - Updated: src/app/portal/service-requests/new/page.tsx (availability picker, calls /api/portal/service-requests/availability)
+  - Why: Prepare UI for unified booking flow before scheduledAt migration; keeps data in requirements.booking for now.
+  - Next: After migrations, move scheduledAt to top-level SR fields and expose isBooking flag.
+  - Added: src/app/api/portal/service-requests/availability/route.ts (client-auth; mirrors admin availability; safe fallback)
+  - Why: Allow clients to query available appointment slots as part of unified booking flow.
+  - Next: Wire portal create UI to call availability before submit; add scheduledAt support post-migration.
+  - Added: src/app/api/public/service-requests/route.ts (guest POST with create-or-find user, strict rate limits, DB fallback)
+  - Why: Fulfill Phase 2 requirement for guest bookings via unified SR API.
+  - Next: Add optional scheduledAt support after migrations; extend spam protection if needed.
   - Added: src/app/api/admin/service-requests/availability/route.ts; src/app/api/admin/service-requests/[id]/confirm/route.ts; src/app/api/admin/service-requests/[id]/reschedule/route.ts; src/hooks/useAvailability.ts
   - Why: Progress Phase 2 unified API (availability/confirm/reschedule) and Phase 4 hooks for booking flows; endpoints work with DB and include safe fallbacks where feasible.
   - Next: Portal POST support for guest bookings using unified SR API; later migrate to ServiceRequest.scheduledAt and booking statuses.
@@ -544,6 +560,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
+  - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
+  - Why: Maintain compatibility while consolidating on unified API and schema.
+  - Next: After migrations, switch admin GET default ordering to scheduledAt for type=appointments; remove legacy endpoints after deprecation window.
 - [x] 2025-09-20: Phase 1 — Schema prepared for unified bookings (non-breaking additions only).
   - Updated: prisma/schema.prisma (ServiceRequest booking fields + indexes; Service booking fields + indexes; TeamMember booking fields + indexes; models AvailabilitySlot, BookingPreferences; enum BookingType)
   - Added: prisma/migrations/20250920_phase1_booking_fields/README.txt (apply via CI)
