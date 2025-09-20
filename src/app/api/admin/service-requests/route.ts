@@ -44,6 +44,8 @@ type Filters = {
   clientId?: string | null
   serviceId?: string | null
   q?: string | null
+  dateFrom?: string | null
+  dateTo?: string | null
 }
 
 export async function GET(request: Request) {
@@ -54,6 +56,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
+  const type = (searchParams.get('type') || '').toLowerCase()
   const filters: Filters = {
     page: Math.max(1, parseInt(searchParams.get('page') || '1', 10)),
     limit: Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10))),
@@ -63,6 +66,8 @@ export async function GET(request: Request) {
     clientId: searchParams.get('clientId'),
     serviceId: searchParams.get('serviceId'),
     q: searchParams.get('q'),
+    dateFrom: searchParams.get('dateFrom'),
+    dateTo: searchParams.get('dateTo'),
   }
 
   const tenantId = getTenantFromRequest(request as any)
@@ -76,6 +81,12 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    ...(filters.dateFrom || filters.dateTo ? {
+      createdAt: {
+        ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+        ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+      }
+    } : {}),
     ...tenantFilter(tenantId),
   }
 
@@ -113,6 +124,12 @@ export async function GET(request: Request) {
         if (isMultiTenancyEnabled() && tenantId) {
           all = all.filter((r: any) => String(r.tenantId || '') === String(tenantId))
         }
+        // Optional type filter for early UI support: appointments vs requests (fallback only)
+        if (type === 'appointments') {
+          all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
+        } else if (type === 'requests') {
+          all = all.filter((r: any) => !((r as any).scheduledAt || r.deadline))
+        }
         if (filters.status) all = all.filter((r: any) => String(r.status) === String(filters.status))
         if (filters.priority) all = all.filter((r: any) => String(r.priority) === String(filters.priority))
         if (filters.assignedTo) all = all.filter((r: any) => String((r as any).assignedTeamMemberId || '') === String(filters.assignedTo))
@@ -124,6 +141,20 @@ export async function GET(request: Request) {
             String(r.title || '').toLowerCase().includes(q) ||
             String(r.description || '').toLowerCase().includes(q)
           )
+        }
+        if (filters.dateFrom) {
+          const from = new Date(filters.dateFrom).getTime()
+          all = all.filter((r: any) => {
+            const t = new Date(r.deadline || r.createdAt || 0).getTime()
+            return t >= from
+          })
+        }
+        if (filters.dateTo) {
+          const to = new Date(new Date(filters.dateTo).setHours(23,59,59,999)).getTime()
+          all = all.filter((r: any) => {
+            const t = new Date(r.deadline || r.createdAt || 0).getTime()
+            return t <= to
+          })
         }
         all.sort((a: any, b: any) => {
           const ad = new Date(a.createdAt || 0).getTime()

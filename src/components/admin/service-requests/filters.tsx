@@ -10,6 +10,8 @@ export type RequestFilters = {
   status: string | 'ALL'
   priority: string | 'ALL'
   q: string
+  dateFrom?: string
+  dateTo?: string
 }
 
 const STATUSES = ['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED'] as const
@@ -36,6 +38,16 @@ export default function ServiceRequestFilters({ value, onChange, onRefresh, refr
           className="pl-3"
         />
       </div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600" htmlFor="from">From</label>
+          <Input id="from" type="date" value={value.dateFrom || ''} onChange={(e) => onChange({ ...value, dateFrom: e.target.value })} className="w-[160px]" />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600" htmlFor="to">To</label>
+          <Input id="to" type="date" value={value.dateTo || ''} onChange={(e) => onChange({ ...value, dateTo: e.target.value })} className="w-[160px]" />
+        </div>
+      </div>
       <Select value={value.status} onValueChange={(v) => onChange({ ...value, status: v as RequestFilters['status'] })}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Status" />
@@ -52,7 +64,7 @@ export default function ServiceRequestFilters({ value, onChange, onRefresh, refr
           {priorityItems.map(p => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
         </SelectContent>
       </Select>
-      <Button variant="outline" onClick={() => onChange({ status: 'ALL', priority: 'ALL', q: '' })} className="flex items-center gap-2">
+      <Button variant="outline" onClick={() => onChange({ status: 'ALL', priority: 'ALL', q: '', dateFrom: undefined, dateTo: undefined })} className="flex items-center gap-2">
         <Filter className="h-4 w-4" /> Reset
       </Button>
       {onRefresh && (
