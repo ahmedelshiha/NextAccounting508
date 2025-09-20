@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 // GET /api/posts/[slug] - Get post by slug
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
@@ -10,7 +11,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     const { slug } = await context.params
     const session = await getServerSession(authOptions)
 
-    const where: Prisma.PostWhereInput = { slug }
+    const tenantId = getTenantFromRequest(request as any)
+    const where: Prisma.PostWhereInput = { slug, ...(tenantFilter(tenantId) as any) }
 
     // Only show published posts for non-admin users
     if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
@@ -94,7 +96,8 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     } = body
 
     // Check if post exists
-    const existingPost = await prisma.post.findUnique({ where: { slug } })
+    const tenantId = getTenantFromRequest(request as any)
+    const existingPost = await prisma.post.findFirst({ where: { slug, ...(tenantFilter(tenantId) as any) } })
     if (!existingPost) {
       return NextResponse.json(
         { error: 'Post not found' },
@@ -142,7 +145,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     }
 
     const post = await prisma.post.update({
-      where: { slug },
+      where: { id: existingPost.id },
       data: updateData,
       include: { author: { select: { id: true, name: true, image: true } } }
     })
@@ -170,8 +173,11 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       )
     }
 
+    const tenantId = getTenantFromRequest(request as any)
+    const existing = await prisma.post.findFirst({ where: { slug, ...(tenantFilter(tenantId) as any) } })
+    if (!existing) return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     await prisma.post.delete({
-      where: { slug }
+      where: { id: existing.id }
     })
 
     return NextResponse.json({ message: 'Post deleted successfully' })
