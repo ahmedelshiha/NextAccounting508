@@ -648,6 +648,12 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-21: Added booking reminders cron endpoint and scheduler.
+  - Added: src/app/api/cron/reminders/route.ts (protected by x-cron-secret; scans confirmed upcoming appointments within configured reminder windows [BookingPreferences.reminderHours or defaults [24,2]]; sends emails via sendBookingReminder; sets reminderSent; tolerant +/-15m window)
+  - Added: .github/workflows/booking-reminders.yml (pre-checks CRON_TARGET_URL/CRON_SECRET; calls POST /api/cron/reminders every 15 minutes)
+  - Why: Automate client reminders for upcoming appointments (Phase 6 — Email & Notifications) with safe idempotency and ops-friendly scheduling.
+  - Next: Set SENDGRID_API_KEY and FROM_EMAIL; configure CRON_TARGET_URL and CRON_SECRET in GitHub; validate emails in staging; consider per-tenant batching and SMS when provider is available.
+
 - [x] 2025-09-21: Tenant scoping audit and fixes
   - ✅ admin/activity/route.ts scoped by tenant with runtime-safe fallback when tenantId column is absent
   - ✅ portal/service-requests/[id]/{confirm,reschedule}: enforce tenant ownership (tenantId match) in addition to client ownership
