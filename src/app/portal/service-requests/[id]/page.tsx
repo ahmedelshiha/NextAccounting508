@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
+import { useBooking } from '@/hooks/useBooking'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -52,8 +53,7 @@ export default function PortalServiceRequestDetailPage() {
   const { data: session } = useSession()
   const params = useParams<{ id: string }>()
   const router = useRouter()
-  const [reqData, setReqData] = useState<ServiceRequest | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { item: reqData, isLoading: loading, refresh } = useBooking(params?.id ? String(params.id) : undefined, 'portal')
   const [comment, setComment] = useState('')
   const [commentFiles, setCommentFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
@@ -70,24 +70,9 @@ export default function PortalServiceRequestDetailPage() {
 
   const id = params?.id
 
-  const load = async () => {
-    try {
-      if (!id) return
-      setLoading(true)
-      const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}`)
-      if (!res.ok) throw new Error('Failed')
-      const json = await res.json()
-      setReqData(json.data)
-    } catch (e) {
-      toast.error('Failed to load request')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   useEffect(() => {
     if (!session) return
-    load()
 
     let es: EventSource | null = null
     let retry = 0
@@ -98,10 +83,10 @@ export default function PortalServiceRequestDetailPage() {
           const evt = JSON.parse(e.data)
           if (evt?.type === 'service-request-updated') {
             const sid = evt?.data?.serviceRequestId
-            if (!sid || String(sid) === String(id)) load()
+            if (!sid || String(sid) === String(id)) refresh()
           }
           if (evt?.type === 'task-updated') {
-            load()
+            refresh()
           }
         } catch {}
       }
