@@ -24,27 +24,17 @@ export async function POST(req: Request) {
 
     for (const it of items) {
       try {
-        // Fetch object bytes from provider
+        // Fetch object bytes from provider via helper
         let buf: Buffer | null = null
-        if (provider === 'netlify') {
-          try {
-            const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-            const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
-            if (mod) {
-              const Blobs = mod.Blobs || mod.default || mod
-              const token = process.env.NETLIFY_BLOBS_TOKEN
-              if (token) {
-                const store = new Blobs({ token })
-                const data = await store.get(it.key!).catch(() => null)
-                if (data) {
-                  if (Buffer.isBuffer(data)) buf = data as Buffer
-                  else if (data.arrayBuffer) buf = Buffer.from(await data.arrayBuffer())
-                }
-              }
-            }
-          } catch (e) {
-            await captureErrorIfAvailable(e, { route: 'cron:rescan', key: it.key })
+        try {
+          const { getObject } = await import('@/lib/uploads-provider')
+          const obj = await getObject(it.key!)
+          if (obj) {
+            if (Buffer.isBuffer(obj)) buf = obj as Buffer
+            else if (obj.arrayBuffer) buf = Buffer.from(await obj.arrayBuffer())
           }
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'cron:rescan:getObject', key: it.key })
         }
 
         if (!buf && it.url) {
@@ -81,31 +71,15 @@ export async function POST(req: Request) {
           try { await logAuditSafe({ action: 'upload:rescan', details: { id: it.id, key: it.key, status: clean ? 'clean' : 'infected' } }) } catch {}
 
           if (!clean) {
-            // attempt quarantine for netlify
-            if (provider === 'netlify') {
-              try {
-                const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-                const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
-                if (mod) {
-                  const Blobs = mod.Blobs || mod.default || mod
-                  const token = process.env.NETLIFY_BLOBS_TOKEN
-                  if (token) {
-                    const store = new Blobs({ token })
-                    const data = await store.get(it.key!).catch(() => null)
-                    if (data) {
-                      const quarantineKey = `quarantine/${it.key}`
-                      await store.set(quarantineKey, data, {})
-                      if (typeof store.remove === 'function') {
-                        try { await store.remove(it.key!) } catch {}
-                      }
-                      await prisma.attachment.update({ where: { id: it.id }, data: { key: quarantineKey } })
-                      try { await logAuditSafe({ action: 'upload:quarantine', details: { attachmentId: it.id, from: it.key, to: quarantineKey } }) } catch {}
-                    }
-                  }
-                }
-              } catch (e) {
-                await captureErrorIfAvailable(e, { route: 'cron:rescan:quarantine', id: it.id })
+            try {
+              const { moveToQuarantine } = await import('@/lib/uploads-provider')
+              const moved = await moveToQuarantine(it.key!)
+              if (moved && (moved as any).ok) {
+                await prisma.attachment.update({ where: { id: it.id }, data: { key: (moved as any).key } })
+                try { await logAuditSafe({ action: 'upload:quarantine', details: { attachmentId: it.id, from: it.key, to: (moved as any).key } }) } catch {}
               }
+            } catch (e) {
+              await captureErrorIfAvailable(e, { route: 'cron:rescan:quarantine', id: it.id })
             }
           }
         } catch (e) {
