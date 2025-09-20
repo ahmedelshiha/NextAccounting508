@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     ...tenantFilter(tenantId),
   }
 
-  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','scheduledAt','isBooking','bookingType','createdAt']
+  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','createdAt','scheduledAt','isBooking','bookingType']
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({
