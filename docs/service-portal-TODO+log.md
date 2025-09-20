@@ -244,6 +244,11 @@ Notes
 - Dev fallbacks were intentionally added to enable offline smoke testing; keep them only while migrations are in flight. They persist to `temp/dev-fallbacks.json`.
 - When resuming, prefer running migrations in CI (Netlify) rather than local ad-hoc migrations to keep schema consistent across environments.
 
+- [x] 2025-09-20: Admin Service Requests UI enhanced with Type tabs and View modes; Calendar view added; fallback API supports `type` filter.
+  - Updated: src/app/admin/service-requests/page.tsx; src/components/admin/service-requests/calendar-view.tsx; src/app/api/admin/service-requests/route.ts
+  - Why: Prepare UI for unified booking/request workflow and provide calendar visualization without new DB fields; maintain compatibility.
+  - Next: Extend DB query to filter by isBooking/scheduledAt after migrations; enhance table with booking columns; wire portal create flow to unified SR API.
+
 
 
 Completed (Highlights)
