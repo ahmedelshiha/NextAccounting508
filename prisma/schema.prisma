@@ -446,14 +446,20 @@ model ServiceRequest {
   service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   assignedTeamMember    TeamMember?     @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
   assignedByUser        User?           @relation("ServiceRequestAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+  parentBooking         ServiceRequest? @relation("RecurringBookings", fields: [parentBookingId], references: [id], onDelete: SetNull)
+  childBookings         ServiceRequest[] @relation("RecurringBookings")
   requestTasks          RequestTask[]
   comments              ServiceRequestComment[]
   attachmentsRel        Attachment[]
 
   @@index([clientId])
+  @@index([scheduledAt])
+  @@index([isBooking, status])
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([tenantId, assignedTeamMemberId])
+  @@index([tenantId, scheduledAt])
+  @@index([tenantId, isBooking, status])
 }
 
 model RequestTask {
