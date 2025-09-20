@@ -1,4 +1,5 @@
 import useSWR from 'swr'
+import useSWR from 'swr'
 import { apiFetch } from '@/lib/api'
 
 export type BookingsQuery = {
