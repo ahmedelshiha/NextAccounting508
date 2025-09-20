@@ -8,7 +8,7 @@ describe('AvailabilityEngine - generateAvailability', () => {
     const from = d('2025-01-06T00:00:00.000Z') // Monday
     const to = d('2025-01-12T23:59:59.999Z')   // Sunday
     const busy: BusyInterval[] = []
-    const options: AvailabilityOptions = { }
+    const options: AvailabilityOptions = { now: d('2025-01-06T00:00:00.000Z') }
 
     const slots = generateAvailability(from, to, 60, busy, options)
     // Ensure no slot falls on Saturday (6) or Sunday (0)
