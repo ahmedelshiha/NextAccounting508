@@ -544,6 +544,19 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Phase 1 — Schema prepared for unified bookings (non-breaking additions only).
+  - Updated: prisma/schema.prisma (ServiceRequest booking fields + indexes; Service booking fields + indexes; TeamMember booking fields + indexes; models AvailabilitySlot, BookingPreferences; enum BookingType)
+  - Added: prisma/migrations/20250920_phase1_booking_fields/README.txt (apply via CI)
+  - Why: Unify data model to support appointments in ServiceRequest while preserving current flows.
+  - Next: In CI, run prisma generate/migrate; then update APIs to filter/order by scheduledAt and expose isBooking/bookingType.
+- [x] 2025-09-20: Admin Service Requests table shows Scheduled column when available.
+  - Updated: src/components/admin/service-requests/table.tsx
+  - Why: Surface appointment times within list view to support mixed request/appointment triage.
+  - Next: After migrations add ServiceRequest.scheduledAt and isBooking; extend API ordering/filtering by scheduledAt.
+- [x] 2025-09-20: Added 'type' filter (appointments vs requests) to admin service-requests GET DB path using deadline presence as a temporary proxy.
+  - Updated: src/app/api/admin/service-requests/route.ts
+  - Why: Align DB-backed listing with UI tabs before scheduledAt migration; keeps behavior consistent with fallback path.
+  - Next: Switch to scheduledAt/isBooking filters post-migration and order by scheduledAt desc for appointments.
 - [x] 2025-09-20: Booking ⇄ Service Request linking (Phase 1: lightweight link).
   - Updated: prisma/schema.prisma (Booking.serviceRequestId + relation + indexes)
   - Updated: src/app/api/bookings/[id]/route.ts (PUT accepts serviceRequestId for admin/staff; connects/disconnects relation)

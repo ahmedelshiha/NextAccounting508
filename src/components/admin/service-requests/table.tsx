@@ -14,6 +14,7 @@ export interface ServiceRequestItem {
   service?: { id: string; name?: string | null; slug?: string | null; category?: string | null } | null
   assignedTeamMember?: { id: string; name?: string | null; email?: string | null } | null
   deadline?: string | null
+  scheduledAt?: string | null
   createdAt?: string | null
 }
 
@@ -61,6 +62,7 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
             <TableHead>Title</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Service</TableHead>
+            <TableHead className="hidden sm:table-cell">Scheduled</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
             <TableHead>Assignee</TableHead>
@@ -85,6 +87,10 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
               <TableCell>
                 <div className="text-sm text-gray-900">{r.service?.name || '—'}</div>
                 <div className="text-xs text-gray-500">{r.service?.category || ''}</div>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <div className="text-sm text-gray-900">{(r as any).scheduledAt ? new Date((r as any).scheduledAt).toLocaleDateString() : '—'}</div>
+                <div className="text-xs text-gray-500">{(r as any).scheduledAt ? new Date((r as any).scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
               </TableCell>
               <TableCell>
                 <Badge className={statusColor(r.status)}>{r.status.replace('_',' ')}</Badge>

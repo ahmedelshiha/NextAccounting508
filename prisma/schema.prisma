@@ -49,6 +49,7 @@ model User {
   grantedPermissions UserPermission[] @relation("GrantedBy")
   userPermissions    UserPermission[] @relation("UserPermissions")
   attachments Attachment[]
+  bookingPreferences BookingPreferences?
 
   @@map("users")
 }
@@ -184,11 +185,22 @@ model Service {
   status        ServiceStatus @default(ACTIVE)
   tenantId     String?
 
+  // Booking enhancements
+  bookingEnabled      Boolean  @default(true)
+  advanceBookingDays  Int      @default(30)
+  minAdvanceHours     Int      @default(24)
+  maxDailyBookings    Int?
+  bufferTime          Int      @default(0)
+  businessHours       Json?
+  blackoutDates       DateTime[]
+
   // Relations
   bookings Booking[]
   serviceRequests ServiceRequest[]
+  availabilitySlots AvailabilitySlot[]
 
   @@index([tenantId])
+  @@index([active, bookingEnabled])
   @@map("services")
 }
 
@@ -407,6 +419,20 @@ model ServiceRequest {
   deadline              DateTime?
   requirements          Json?
   attachments           Json?
+
+  // Booking fields (non-breaking)
+  isBooking             Boolean        @default(false)
+  scheduledAt           DateTime?
+  duration              Int?
+  clientName            String?
+  clientEmail           String?
+  clientPhone           String?
+  confirmed             Boolean        @default(false)
+  reminderSent          Boolean        @default(false)
+  bookingType           BookingType?
+  recurringPattern      Json?
+  parentBookingId       String?
+
   assignedTeamMemberId  String?
   assignedAt            DateTime?
   assignedBy            String?
@@ -420,14 +446,21 @@ model ServiceRequest {
   service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
   assignedTeamMember    TeamMember?     @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
   assignedByUser        User?           @relation("ServiceRequestAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+  parentBooking         ServiceRequest? @relation("RecurringBookings", fields: [parentBookingId], references: [id], onDelete: SetNull)
+  childBookings         ServiceRequest[] @relation("RecurringBookings")
   requestTasks          RequestTask[]
   comments              ServiceRequestComment[]
   attachmentsRel        Attachment[]
+  linkedBookings        Booking[]
 
   @@index([clientId])
+  @@index([scheduledAt])
+  @@index([isBooking, status])
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([tenantId, assignedTeamMemberId])
+  @@index([tenantId, scheduledAt])
+  @@index([tenantId, isBooking, status])
 }
 
 model RequestTask {
@@ -457,6 +490,10 @@ model TeamMember {
   isAvailable Boolean  @default(true)
   status      String?  @default("active")
   workingHours Json?
+  timeZone    String?  @default("UTC")
+  maxConcurrentBookings Int @default(3)
+  bookingBuffer Int @default(15)
+  autoAssign  Boolean @default(true)
   stats       Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -465,7 +502,10 @@ model TeamMember {
 
   bookings    Booking[]
   assignedServiceRequests ServiceRequest[]
+  availabilitySlots AvailabilitySlot[]
 
+  @@index([isAvailable])
+  @@index([status])
   @@map("team_members")
 }
 
@@ -498,6 +538,47 @@ model UserPermission {
   grantedBy   User?    @relation("GrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
 
   @@map("user_permissions")
+}
+
+// Availability slots for booking
+model AvailabilitySlot {
+  id           String   @id @default(cuid())
+  serviceId    String
+  teamMemberId String?
+  date         DateTime
+  startTime    String
+  endTime      String
+  available    Boolean  @default(true)
+  reason       String?
+  maxBookings  Int      @default(1)
+  currentBookings Int   @default(0)
+
+  service      Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  teamMember   TeamMember? @relation(fields: [teamMemberId], references: [id], onDelete: SetNull)
+
+  @@unique([serviceId, teamMemberId, date, startTime])
+  @@index([date, serviceId])
+  @@index([teamMemberId, date])
+  @@index([available, date])
+}
+
+// Booking preferences per user
+model BookingPreferences {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  emailConfirmation Boolean  @default(true)
+  emailReminder     Boolean  @default(true)
+  emailReschedule   Boolean  @default(true)
+  emailCancellation Boolean  @default(true)
+  smsReminder       Boolean  @default(false)
+  smsConfirmation   Boolean  @default(false)
+  reminderHours     Int[]    @default([24,2])
+  timeZone          String   @default("UTC")
+  preferredLanguage String   @default("en")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Attachment model to persist uploads and AV status
@@ -609,6 +690,13 @@ enum TaskStatus {
   REVIEW
   COMPLETED
   BLOCKED
+}
+
+enum BookingType {
+  STANDARD
+  RECURRING
+  EMERGENCY
+  CONSULTATION
 }
 
 enum UserRole {
