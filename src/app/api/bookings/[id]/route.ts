@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import type { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
       where: { id },
-      data: { status: BookingStatus.CANCELLED }
+      data: { status: 'CANCELLED' }
     })
 
     return NextResponse.json({ message: 'Booking cancelled successfully' })
