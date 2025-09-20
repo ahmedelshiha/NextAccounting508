@@ -49,6 +49,8 @@ export default function AdminServiceRequestsPage() {
     if (filters.q) params.set('q', filters.q)
     if (filters.status !== 'ALL') params.set('status', filters.status)
     if (filters.priority !== 'ALL') params.set('priority', filters.priority)
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+    if (filters.dateTo) params.set('dateTo', filters.dateTo)
     if (typeTab !== 'ALL') params.set('type', typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests')
     return params.toString()
   }, [filters, page, limit, typeTab])
