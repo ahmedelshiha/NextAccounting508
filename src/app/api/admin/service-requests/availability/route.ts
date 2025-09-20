@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
+import { getAvailabilityForService } from '@/lib/booking/availability'
 import { z } from 'zod'
 
 const QuerySchema = z.object({
