@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+// Use string literals for BookingStatus to avoid importing @prisma/client at runtime in tests
 import { sumDecimals } from '@/lib/decimal-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
