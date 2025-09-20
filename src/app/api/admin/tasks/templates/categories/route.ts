@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
@@ -12,7 +13,7 @@ function readTemplates() {
   try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
@@ -32,7 +33,8 @@ export async function GET() {
 
     // If schema has category, return distinct values; else return []
     try {
-      const rows = await prisma.taskTemplate.findMany({ select: { category: true } as any })
+      const tenantId = getTenantFromRequest(request as any)
+      const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), select: { category: true } as any })
       const set = new Set<string>()
       for (const r of rows as any[]) {
         if (r.category) set.add(String(r.category))

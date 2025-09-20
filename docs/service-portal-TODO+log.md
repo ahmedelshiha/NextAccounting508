@@ -108,7 +108,7 @@ Remaining Work (Paused) — Quick Checklist
 - [ ] Phase 11 — Analytics & BI (KPIs + charts)
 - [ ] Phase 12 — Post-Integration Maintenance (deprecate legacy, docs, monitor)
 
-- [x] Phase 0 — Readiness
+- [x] Phase 0 �� Readiness
   - Review audits and integration plan: docs/booking-service-request-integration-plan v6.md, docs/booking-audit.md, docs/service-requests-audit.md
   - Capture plan in repo and align CI/deploy preconditions
 
@@ -159,7 +159,7 @@ Remaining Work (Paused) — Quick Checklist
   - netlify.toml: ensure pnpm db:generate && pnpm db:migrate && pnpm db:seed on prod builds; skip previews
   - Feature flags: MULTI_TENANCY_ENABLED gating; rollback plan; seed updates (roles/permissions/templates)
 
-- [ ] Phase 9 — Security & Performance
+- [ ] Phase 9 ��� Security & Performance
   - Rate limits for guest/admin mutations; pagination defaults; indexes on new fields; denylist/validation on inputs
   - Tenancy scoping across all booking-related reads/writes
 
@@ -403,7 +403,7 @@ All tasks are unchecked until implemented. Update this log after each change wit
 - [ ] Add GitHub Actions secrets CRON_TARGET_URL and CRON_SECRET; update clamav-rescan workflow pre-check to avoid failing when secrets are absent.
 - [ ] Run CI to execute pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify Attachment/Quarantine models and seeds applied.
 - [ ] Validate staging flows: upload clean/infected files, AV callback handling, quarantine moves, and cron rescans.
-- [ ] Decide AV failure policy (strict reject vs lenient enqueue) and implement chosen policy in uploads route.
+- [x] 2025-09-20: AV failure policy configurable via UPLOADS_AV_POLICY=strict|lenient (default: lenient); uploads route enforces strict: infected->422, AV error->503; lenient persists with avStatus for cron rescan.
 - [ ] Configure monitoring (Sentry/SLA alerts) and add runbook for AV incidents and quarantine handling.
 - [ ] Remove dev fallbacks (dev-login, temp/dev-fallbacks.json) after CI validation.
 

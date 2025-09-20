@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+// Avoid importing @prisma/client at runtime in tests; use string literals for BookingStatus
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== 'all') {
       // Cast incoming status string to BookingStatus enum
-      where.status = status as BookingStatus
+      where.status = status as any
     }
 
     if (search) {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       scheduledAt: new Date(scheduledAt),
       duration,
       notes,
-      status: BookingStatus.CONFIRMED // Admin bookings are automatically confirmed
+      status: 'CONFIRMED' // Admin bookings are automatically confirmed
     }
 
     if (clientId) {
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       where: {
         scheduledAt: new Date(scheduledAt),
         status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
+          in: ['PENDING','CONFIRMED']
         }
       }
     })
@@ -251,20 +251,20 @@ export async function PATCH(request: NextRequest) {
     switch (action) {
       case 'confirm':
         updateData = {
-          status: BookingStatus.CONFIRMED,
+          status: 'CONFIRMED',
           confirmed: true
         }
         break
       
       case 'cancel':
         updateData = {
-          status: BookingStatus.CANCELLED
+          status: 'CANCELLED'
         }
         break
       
       case 'complete':
         updateData = {
-          status: BookingStatus.COMPLETED
+          status: 'COMPLETED'
         }
         break
       

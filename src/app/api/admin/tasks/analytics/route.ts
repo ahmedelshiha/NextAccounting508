@@ -6,7 +6,9 @@ import prisma from '@/lib/prisma'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-export async function GET() {
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export async function GET(request?: Request) {
   try {
     const session = await getServerSession(authOptions)
     const role = (session?.user as any)?.role as string | undefined
@@ -33,27 +35,30 @@ export async function GET() {
       })
     }
 
-    const total = await prisma.task.count()
-    const completed = await prisma.task.count({ where: { status: 'DONE' as any } })
+    const tenantId = getTenantFromRequest(request as any)
+    const total = await prisma.task.count({ where: tenantFilter(tenantId) })
+    const completed = await prisma.task.count({ where: { ...tenantFilter(tenantId), status: 'DONE' as any } })
 
     const byStatus = await prisma.task.groupBy({
       by: ['status'],
       _count: { _all: true },
+      where: tenantFilter(tenantId)
     })
 
     const byPriority = await prisma.task.groupBy({
       by: ['priority'],
       _count: { _all: true },
+      where: tenantFilter(tenantId)
     })
 
     // Approximate average cycle time (days) using createdAt -> updatedAt
-    const sample = await prisma.task.findMany({ select: { createdAt: true, updatedAt: true }, take: 1000 })
+    const sample = await prisma.task.findMany({ select: { createdAt: true, updatedAt: true }, where: tenantFilter(tenantId), take: 1000 })
     const avgAgeDays = sample.length
       ? Math.round(sample.reduce((sum, t) => sum + ((t.updatedAt.getTime() - t.createdAt.getTime()) / (1000 * 60 * 60 * 24)), 0) / sample.length)
       : 0
 
     // Compliance metrics
-    const complianceTotal = await prisma.task.count({ where: { complianceRequired: true } })
+    const complianceTotal = await prisma.task.count({ where: { ...tenantFilter(tenantId), complianceRequired: true } })
     const complianceCompleted = await prisma.complianceRecord.count({ where: { status: { equals: 'COMPLETED' } } })
 
     // average time to compliance: average days between createdAt and complianceRecord.completedAt for completed records
@@ -64,14 +69,14 @@ export async function GET() {
 
     // overdue compliance: tasks with complianceRequired true and complianceDeadline < now and no completed compliance record
     const now = new Date()
-    const overdueCompliance = await prisma.task.count({ where: { complianceRequired: true, complianceDeadline: { lt: now }, NOT: { complianceRecords: { some: { status: 'COMPLETED' } } } } })
+    const overdueCompliance = await prisma.task.count({ where: { ...tenantFilter(tenantId), complianceRequired: true, complianceDeadline: { lt: now }, NOT: { complianceRecords: { some: { status: 'COMPLETED' } } } } })
 
     const complianceRate = complianceTotal > 0 ? Math.round((complianceCompleted / complianceTotal) * 1000) / 10 : 0
 
     // Daily trends (last 7 days)
     const start = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)
-    const created = await prisma.task.findMany({ select: { createdAt: true }, where: { createdAt: { gte: start } } })
-    const dones = await prisma.task.findMany({ select: { updatedAt: true }, where: { updatedAt: { gte: start }, status: 'DONE' as any } })
+    const created = await prisma.task.findMany({ select: { createdAt: true }, where: { ...tenantFilter(tenantId), createdAt: { gte: start } } })
+    const dones = await prisma.task.findMany({ select: { updatedAt: true }, where: { ...tenantFilter(tenantId), updatedAt: { gte: start }, status: 'DONE' as any } })
     const dayKey = (d: Date) => d.toISOString().slice(0, 10)
     const keys = Array.from({ length: 7 }).map((_, i) => dayKey(new Date(start.getTime() + i * 24 * 60 * 60 * 1000)))
     const totalsMap = Object.fromEntries(keys.map(k => [k, 0])) as Record<string, number>

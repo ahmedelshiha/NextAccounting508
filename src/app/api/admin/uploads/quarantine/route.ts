@@ -60,23 +60,13 @@ export async function GET(req: Request) {
       prisma.attachment.findMany({ where, orderBy, skip: (dbPage - 1) * dbLimit, take: dbLimit }),
     ])
 
-    // Try provider listing as well (optional)
-    const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-    const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
+    // Try provider listing as well (optional) using uploads-provider helper
     let providerItems: any[] = []
-    if (mod) {
-      try {
-        const Blobs = mod.Blobs || mod.default || mod
-        const token = process.env.NETLIFY_BLOBS_TOKEN
-        if (token) {
-          const store = new Blobs({ token })
-          if (typeof store.list === 'function') {
-            providerItems = await store.list({ prefix: 'quarantine/' }).catch(() => [])
-          }
-        }
-      } catch (e) {
-        await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', step: 'provider-list' })
-      }
+    try {
+      const { listQuarantine } = await import('@/lib/uploads-provider')
+      providerItems = await listQuarantine('quarantine/')
+    } catch (e) {
+      await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', step: 'provider-list' })
     }
 
     // Apply simple server-side filtering for provider list (by key) and paginate in-memory
@@ -138,42 +128,37 @@ export async function POST(req: Request) {
   if (provider !== 'netlify') return NextResponse.json({ error: 'Action not supported for provider' }, { status: 501 })
 
   try {
-    const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-    const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
-    if (!mod) return NextResponse.json({ error: 'Netlify Blobs SDK not available' }, { status: 501 })
-    const Blobs = mod.Blobs || mod.default || mod
-    const token = process.env.NETLIFY_BLOBS_TOKEN
-    if (!token) return NextResponse.json({ error: 'Missing token' }, { status: 501 })
-    const store = new Blobs({ token })
+    const { removeObject, releaseFromQuarantine } = await import('@/lib/uploads-provider')
 
     if (action === 'delete') {
-      if (typeof store.remove !== 'function') return NextResponse.json({ error: 'Delete not supported' }, { status: 501 })
       const results: any[] = []
       for (const k of keys) {
-        await store.remove(k).catch((e: any) => { throw e })
-        try { await logAuditSafe({ action: 'upload:quarantine:delete', actorId: (session.user as any).id ?? null, details: { key: k } }) } catch {}
-        results.push({ key: k, ok: true })
+        try {
+          await removeObject(k)
+          try { await logAuditSafe({ action: 'upload:quarantine:delete', actorId: (session.user as any).id ?? null, details: { key: k } }) } catch {}
+          results.push({ key: k, ok: true })
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', action: 'delete', key: k })
+          results.push({ key: k, ok: false, error: String(e) })
+        }
       }
       return NextResponse.json({ success: true, results })
     }
 
     if (action === 'release') {
-      // move from quarantine/ to public/ (best-effort)
       const results: any[] = []
       for (const k of keys) {
-        const publicKey = k.replace(/^quarantine\//, 'uploads/')
         try {
-          const data = await store.get(k).catch(() => null)
-          if (!data) { results.push({ key: k, ok: false, error: 'Source not found' }); continue }
-          await store.set(publicKey, data, {})
-          if (typeof store.remove === 'function') {
-            try { await store.remove(k) } catch {}
+          const res = await releaseFromQuarantine(k)
+          if (res.ok) {
+            try { await logAuditSafe({ action: 'upload:quarantine:release', actorId: (session.user as any).id ?? null, details: { from: k, to: res.key } }) } catch {}
+            results.push({ key: k, ok: true, to: res.key })
+          } else {
+            results.push({ key: k, ok: false, error: res.error })
           }
-          try { await logAuditSafe({ action: 'upload:quarantine:release', actorId: (session.user as any).id ?? null, details: { from: k, to: publicKey } }) } catch {}
-          results.push({ key: k, ok: true, to: publicKey })
         } catch (e) {
-          await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', action: 'release' })
-          results.push({ key: k, ok: false, error: 'Release failed' })
+          await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', action: 'release', key: k })
+          results.push({ key: k, ok: false, error: String(e) })
         }
       }
       return NextResponse.json({ success: true, results })

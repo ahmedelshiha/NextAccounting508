@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
 // In-memory fallback store (non-persistent) used only when DB is not configured
@@ -86,7 +87,9 @@ export async function GET(request: Request) {
       return NextResponse.json(paged)
     }
 
-    const where: any = {}
+    const tenantId = getTenantFromRequest(request as any)
+
+    const where: any = { ...(tenantFilter(tenantId) as any) }
     if (status.length) where.status = { in: status.map(s => mapStatus(s)) }
     if (priority.length) where.priority = { in: priority.map(p => mapPriority(p)) }
     if (assigneeId) where.assigneeId = assigneeId
@@ -150,6 +153,8 @@ export async function POST(request: Request) {
       return NextResponse.json(row, { status: 201 })
     }
 
+    const tenantId = getTenantFromRequest(request as any)
+
     const created = await prisma.task.create({
       data: {
         title: String(body.title),
@@ -157,6 +162,7 @@ export async function POST(request: Request) {
         status: (mapStatus(body.status as any) || 'OPEN') as any,
         dueAt: body.dueAt ? new Date(body.dueAt) : null,
         assigneeId: body.assigneeId ?? null,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       } as any,
       include: { assignee: { select: { id: true, name: true, email: true } } },
     })

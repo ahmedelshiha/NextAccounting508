@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'notifications.json')
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
@@ -29,7 +30,7 @@ function writeSettings(s: any) {
   }
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
@@ -37,7 +38,8 @@ export async function GET() {
   }
   if (hasDb) {
     try {
-      const row = await prisma.notificationSettings.findFirst()
+      const tenantId = getTenantFromRequest(request as any)
+      const row = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
       if (row) {
         return NextResponse.json({
           emailEnabled: row.emailEnabled,
@@ -66,12 +68,14 @@ export async function PATCH(request: Request) {
 
     if (hasDb) {
       try {
-        const existing = await prisma.notificationSettings.findFirst()
+        const tenantId = getTenantFromRequest(request as any)
+        const existing = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
         const payload = {
           emailEnabled: !!body.emailEnabled,
           emailFrom: body.emailFrom ?? existing?.emailFrom ?? '',
           webhookUrl: body.webhookUrl ?? existing?.webhookUrl ?? '',
           templates: Array.isArray(body.templates) ? body.templates : (existing?.templates ?? []),
+          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
         } as any
         const row = existing
           ? await prisma.notificationSettings.update({ where: { id: existing.id }, data: payload })

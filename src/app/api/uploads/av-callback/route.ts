@@ -75,39 +75,16 @@ export async function POST(req: Request) {
       await captureErrorIfAvailable(e, { route: 'av-callback', step: 'find-requests' })
     }
 
-    // Infected -> attempt to move to quarantine if provider supports it
-    const provider = (process.env.UPLOADS_PROVIDER || '').toLowerCase()
-    if (provider === 'netlify') {
-      try {
-        const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-        const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
-        if (mod) {
-          const Blobs = mod.Blobs || mod.default || mod
-          const token = process.env.NETLIFY_BLOBS_TOKEN
-          if (token) {
-            const store = new Blobs({ token })
-            const quarantineKey = `quarantine/${key}`
-            // Try to read original and write to quarantine
-            try {
-              // some SDKs may expose get as Buffer or stream
-              const data = await store.get(key).catch(() => null)
-              if (data) {
-                await store.set(quarantineKey, data, {})
-                // remove original if supported
-                if (typeof store.remove === 'function') {
-                  try { await store.remove(key) } catch {}
-                }
-                try { await logAuditSafe({ action: 'upload:quarantine', details: { original: key, quarantineKey } }) } catch {}
-                return NextResponse.json({ success: true, quarantined: true })
-              }
-            } catch (e) {
-              await captureErrorIfAvailable(e, { route: 'av-callback', provider: 'netlify' })
-            }
-          }
-        }
-      } catch (e) {
-        await captureErrorIfAvailable(e, { route: 'av-callback', provider: 'netlify' })
+    // Attempt to move infected object to quarantine via provider helper
+    try {
+      const { moveToQuarantine } = await import('@/lib/uploads-provider')
+      const moved = await moveToQuarantine(key)
+      if (moved && (moved as any).ok) {
+        try { await logAuditSafe({ action: 'upload:quarantine', details: { original: key, quarantineKey: (moved as any).key } }) } catch {}
+        return NextResponse.json({ success: true, quarantined: true })
       }
+    } catch (e) {
+      await captureErrorIfAvailable(e, { route: 'av-callback', step: 'move-to-quarantine' })
     }
 
     // Fallback: record audit and return OK

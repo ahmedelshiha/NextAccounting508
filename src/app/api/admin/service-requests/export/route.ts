@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     ...tenantFilter(tenantId),
   }
 
-  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','scheduledAt','isBooking','bookingType','createdAt']
+  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','createdAt','scheduledAt','isBooking','bookingType']
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({
@@ -112,10 +112,10 @@ export async function GET(request: Request) {
               i.budgetMin ?? '',
               i.budgetMax ?? '',
               i.deadline ? i.deadline.toISOString() : '',
+              i.createdAt.toISOString(),
               (i as any).scheduledAt ? new Date((i as any).scheduledAt as any).toISOString() : '',
               String((i as any).isBooking ?? ''),
               String((i as any).bookingType ?? ''),
-              i.createdAt.toISOString(),
             ].join(',')
             write(row)
           }
@@ -168,10 +168,10 @@ export async function GET(request: Request) {
                 i.budgetMin ?? '',
                 i.budgetMax ?? '',
                 i.deadline ? i.deadline.toISOString() : '',
+                i.createdAt.toISOString(),
                 '', // scheduledAt not available
                 '', // isBooking not available
                 '', // bookingType not available
-                i.createdAt.toISOString(),
               ].join(',')
               write(row)
             }

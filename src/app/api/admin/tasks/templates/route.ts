@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
@@ -17,7 +18,7 @@ function writeTemplates(tmpls: any[]) {
   try { fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(tmpls, null, 2), 'utf-8'); return true } catch (e) { console.error('Failed to write templates', e); return false }
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
@@ -29,7 +30,8 @@ export async function GET() {
       return NextResponse.json(templates)
     }
 
-    const rows = await prisma.taskTemplate.findMany({ orderBy: { createdAt: 'desc' } })
+    const tenantId = getTenantFromRequest(request as any)
+    const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), orderBy: { createdAt: 'desc' } })
     const mapped = rows.map(t => ({
       id: t.id,
       name: t.name,
@@ -85,6 +87,7 @@ export async function POST(request: Request) {
       return NextResponse.json(t, { status: 201 })
     }
 
+    const tenantId = getTenantFromRequest(request as any)
     const created = await prisma.taskTemplate.create({
       data: {
         name: String(body.name || 'Template'),
@@ -98,6 +101,7 @@ export async function POST(request: Request) {
         requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
         defaultAssigneeRole: body.defaultAssigneeRole ?? null,
         createdById: session.user.id as string | undefined,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       } as any
     })
     const mapped = {

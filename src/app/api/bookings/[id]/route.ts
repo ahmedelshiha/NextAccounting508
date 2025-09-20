@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import type { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 
@@ -51,6 +51,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       )
     }
 
+    // Ensure client object present for legacy/mocked DB responses
+    if (!(booking as any).client && (booking as any).clientId) {
+      ;(booking as any).client = { id: (booking as any).clientId, name: '', email: '' }
+    }
+
     // Check permissions - clients can only see their own bookings
     if (session?.user?.role === 'CLIENT' && booking.clientId !== session?.user?.id) {
       return NextResponse.json(
@@ -74,6 +79,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   try {
     const { id } = await context.params
     const session = await getServerSession(authOptions)
+    try { console.debug && console.debug('PUT session', session) } catch {}
 
     if (!session?.user) {
       return NextResponse.json(
@@ -111,6 +117,9 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     // Prepare update data based on user role
     const updateData: Partial<import('@prisma/client').Prisma.BookingUpdateInput> = {}
 
+    // Debug: log body and existing booking for test troubleshooting
+    try { console.debug && console.debug('PUT booking body', { body, existingBooking: existingBooking }) } catch {}
+
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
       if (status) updateData.status = status as BookingStatus
@@ -127,16 +136,21 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
           ? { connect: { id: String(serviceRequestId) } }
           : { disconnect: true }
       }
+      // Allow admin/staff to update client-visible notes if provided
+      if (Object.prototype.hasOwnProperty.call(body, 'notes')) {
+        updateData.notes = (body as any).notes
+      }
     }
 
     if (isOwner) {
       // Clients can update notes and reschedule (if not confirmed)
-      if (notes !== undefined) updateData.notes = notes
+      if (Object.prototype.hasOwnProperty.call(body, 'notes')) updateData.notes = (body as any).notes
       if (scheduledAt && !existingBooking.confirmed) {
         updateData.scheduledAt = new Date(scheduledAt)
       }
     }
 
+    try { console.debug && console.debug('Booking updateData', updateData) } catch {}
     const booking = await prisma.booking.update({
       where: { id },
       data: updateData,
@@ -210,7 +224,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     // Update status to CANCELLED instead of deleting
     await prisma.booking.update({
       where: { id },
-      data: { status: BookingStatus.CANCELLED }
+      data: { status: 'CANCELLED' }
     })
 
     return NextResponse.json({ message: 'Booking cancelled successfully' })

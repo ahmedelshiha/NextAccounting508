@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
-import { BookingStatus } from '@prisma/client'
+// Avoid importing @prisma/client at runtime in tests; use string literals for BookingStatus
 
 // Send booking reminders for appointments tomorrow
 export async function sendBookingReminders() {
@@ -17,7 +17,7 @@ export async function sendBookingReminders() {
           gte: startOfTomorrow,
           lte: endOfTomorrow
         },
-        status: BookingStatus.CONFIRMED,
+        status: 'CONFIRMED',
         reminderSent: false
       },
       include: {
@@ -121,10 +121,10 @@ export async function updateBookingStatuses() {
         scheduledAt: {
           lt: now
         },
-        status: BookingStatus.CONFIRMED
+        status: 'CONFIRMED'
       },
       data: {
-        status: BookingStatus.COMPLETED
+        status: 'COMPLETED'
       }
     })
 

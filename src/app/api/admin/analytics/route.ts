@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,9 +38,12 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const startDate = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000)
 
+    // Tenant scoping
+    const tenantId = getTenantFromRequest(request as any)
+
     // Daily bookings for selected range
     const bookings = await prisma.booking.findMany({
-      where: { createdAt: { gte: startDate } },
+      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } },
       select: { createdAt: true },
     })
     const dailyMap = new Map<string, number>()
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Revenue by service within range (completed bookings)
     const completed = await prisma.booking.findMany({
-      where: { status: 'COMPLETED', createdAt: { gte: startDate } },
+      where: { ...tenantFilter(tenantId), status: 'COMPLETED', createdAt: { gte: startDate } },
       include: { service: { select: { name: true, price: true } } },
     })
     const revenueByServiceMap = new Map<string, number>()
@@ -68,7 +72,7 @@ export async function GET(request: NextRequest) {
     const revenueByService = Array.from(revenueByServiceMap.entries()).map(([service, amount]) => ({ service, amount }))
 
     // Average lead time (days) between creation and scheduledAt within range
-    const withLeadTimes = await prisma.booking.findMany({ select: { createdAt: true, scheduledAt: true }, where: { createdAt: { gte: startDate } } })
+    const withLeadTimes = await prisma.booking.findMany({ select: { createdAt: true, scheduledAt: true }, where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } } })
     const leadTimes = withLeadTimes.map(b => (b.scheduledAt.getTime() - b.createdAt.getTime()) / (24 * 60 * 60 * 1000)).filter(n => isFinite(n) && n >= 0)
     const avgLeadTimeDays = leadTimes.length ? (leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length) : 0
 
@@ -76,10 +80,10 @@ export async function GET(request: NextRequest) {
     const servicesWithCounts = await prisma.booking.groupBy({
       by: ['serviceId'],
       _count: { serviceId: true },
-      where: { createdAt: { gte: startDate } }
+      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } }
     })
     const serviceIds = servicesWithCounts.map(s => s.serviceId).filter((id): id is string => !!id)
-    const services = await prisma.service.findMany({ where: { id: { in: serviceIds } }, select: { id: true, name: true } })
+    const services = await prisma.service.findMany({ where: { ...tenantFilter(tenantId), id: { in: serviceIds } }, select: { id: true, name: true } })
     const topServices = servicesWithCounts
       .map(s => ({ service: services.find(x => x.id === s.serviceId)?.name || 'Unknown', bookings: s._count.serviceId }))
       .sort((a, b) => b.bookings - a.bookings)

@@ -13,6 +13,8 @@ const ALLOWED_TYPES = [
   'text/plain',
 ]
 
+const AV_POLICY = String(process.env.UPLOADS_AV_POLICY || 'lenient').toLowerCase() as 'lenient' | 'strict'
+
 export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
@@ -49,25 +51,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
   }
 
-  // Optional antivirus scan (best-effort) before storing
-  // Lenient policy: on AV errors we persist the upload with avStatus='error' and rely on cron rescan.
-  let avScanResult: any = null
-  let avScanError: any = null
-  if (process.env.UPLOADS_AV_SCAN_URL) {
-    try {
-      avScanResult = await scanBuffer(buf)
-      if (!avScanResult?.clean) {
-        try { await logAudit({ action: 'upload:infected', details: { reason: 'antivirus_failed', detected: avScanResult?.details || avScanResult } }) } catch {}
-        // continue to store but mark as infected; admin quarantine/actions handle further steps
+  // Optional antivirus scan before storing (policy-controlled)
+let avScanResult: any = null
+let avScanError: any = null
+if (process.env.UPLOADS_AV_SCAN_URL) {
+  try {
+    avScanResult = await scanBuffer(buf)
+    if (!avScanResult?.clean) {
+      try { await logAudit({ action: AV_POLICY === 'strict' ? 'upload:infected_reject' : 'upload:infected', details: { policy: AV_POLICY, detected: avScanResult?.details || avScanResult } }) } catch {}
+      if (AV_POLICY === 'strict') {
+        return NextResponse.json({ error: 'File failed antivirus scan', details: avScanResult?.details || avScanResult }, { status: 422 })
       }
-    } catch (e) {
-      avScanError = e
-      try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan' }) } catch {}
-      console.warn('AV scan failed, persisting file with avStatus=ERROR for later rescan', e)
-      try { await logAudit({ action: 'upload:av_error', details: { error: String(e) } }) } catch {}
-      // proceed with upload and persist avStatus: 'error'
+      // lenient: continue to store but mark as infected; admin quarantine/actions handle further steps
     }
+  } catch (e) {
+    avScanError = e
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan', policy: AV_POLICY }) } catch {}
+    console.warn('AV scan failed', e)
+    try { await logAudit({ action: AV_POLICY === 'strict' ? 'upload:av_error_reject' : 'upload:av_error', details: { error: String(e), policy: AV_POLICY } }) } catch {}
+    if (AV_POLICY === 'strict') {
+      return NextResponse.json({ error: 'Antivirus scan unavailable, try again later' }, { status: 503 })
+    }
+    // lenient: proceed with upload and persist avStatus: 'error'
   }
+}
 
   const provider = process.env.UPLOADS_PROVIDER || ''
 

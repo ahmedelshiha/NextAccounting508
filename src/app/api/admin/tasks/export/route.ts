@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {
@@ -32,7 +33,9 @@ export async function GET(request: Request) {
     const status = url.searchParams.getAll('status')
     const priority = url.searchParams.getAll('priority')
 
-    const where: any = {}
+    const tenantId = getTenantFromRequest(request as any)
+
+    const where: any = { ...(tenantFilter(tenantId) as any) }
     if (status.length) where.status = { in: status.map(s => s.toUpperCase()) }
     if (priority.length) where.priority = { in: priority.map(p => p.toUpperCase()) }
 
