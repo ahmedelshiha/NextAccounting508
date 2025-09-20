@@ -73,10 +73,10 @@ describe('AvailabilityEngine - generateAvailability', () => {
       { start: d(`${day}T11:00:00.000Z`), end: d(`${day}T12:00:00.000Z`) },
     ]
 
-    const slotsNoCap = generateAvailability(from, to, 60, busy)
+    const slotsNoCap = generateAvailability(from, to, 60, busy, { now: d('2025-01-09T00:00:00.000Z') })
     expect(slotsNoCap.length).toBeGreaterThan(0)
 
-    const slotsCapped = generateAvailability(from, to, 60, busy, { maxDailyBookings: 2 })
+    const slotsCapped = generateAvailability(from, to, 60, busy, { maxDailyBookings: 2, now: d('2025-01-09T00:00:00.000Z') })
     expect(slotsCapped.length).toBe(0)
   })
 })
