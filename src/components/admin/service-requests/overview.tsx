@@ -7,6 +7,7 @@ import { Download } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import RequestStatusDistribution from './request-status-distribution'
 import TeamWorkloadChart from './team-workload-chart'
+import BookingTypeDistribution from './booking-type-distribution'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -120,22 +121,7 @@ export default function ServiceRequestsOverview() {
             <CardDescription>isBooking = true</CardDescription>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Booking Types</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analytics?.bookingTypeDistribution && Object.keys(analytics.bookingTypeDistribution).length ? (
-              <ul className="text-sm text-gray-700 space-y-1">
-                {Object.entries(analytics.bookingTypeDistribution).map(([k,v]) => (
-                  <li key={k} className="flex items-center justify-between"><span>{k}</span><span className="text-gray-500">{v}</span></li>
-                ))}
-              </ul>
-            ) : (
-              <CardDescription>No booking data</CardDescription>
-            )}
-          </CardContent>
-        </Card>
+        <BookingTypeDistribution distribution={analytics?.bookingTypeDistribution || {}} loading={loading} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
