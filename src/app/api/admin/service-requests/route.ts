@@ -81,15 +81,24 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
-    // Temporary type filter until ServiceRequest.scheduledAt exists (Phase 1 migration)
-    ...(type === 'appointments' ? { deadline: { not: null } } : {}),
-    ...(type === 'requests' ? { deadline: null } : {}),
-    ...(filters.dateFrom || filters.dateTo ? {
-      createdAt: {
-        ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
-        ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
-      }
-    } : {}),
+    // Prefer new booking fields when available (Phase 1)
+    ...(type === 'appointments' ? { isBooking: true } : {}),
+    ...(type === 'requests' ? { OR: [{ isBooking: false }, { isBooking: null }] } : {}),
+    ...(filters.dateFrom || filters.dateTo ? (
+      type === 'appointments'
+        ? {
+            scheduledAt: {
+              ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+              ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+            },
+          }
+        : {
+            createdAt: {
+              ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+              ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+            },
+          }
+    ) : {}),
     ...tenantFilter(tenantId),
   }
 
@@ -102,7 +111,7 @@ export async function GET(request: Request) {
           service: { select: { id: true, name: true, slug: true, category: true } },
           assignedTeamMember: { select: { id: true, name: true, email: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
         skip: (filters.page - 1) * filters.limit,
         take: filters.limit,
       }),
@@ -120,6 +129,55 @@ export async function GET(request: Request) {
   } catch (e: any) {
     const code = String((e as any)?.code || '')
     const msg = String(e?.message || '')
+
+    // Fallback when DB hasn't applied Phase 1 columns yet (scheduledAt/isBooking)
+    if (code === 'P2022' || /column .*does not exist/i.test(msg)) {
+      const whereLegacy: any = {
+        ...(filters.status && { status: filters.status }),
+        ...(filters.priority && { priority: filters.priority }),
+        ...(filters.assignedTo && { assignedTeamMemberId: filters.assignedTo }),
+        ...(filters.clientId && { clientId: filters.clientId }),
+        ...(filters.serviceId && { serviceId: filters.serviceId }),
+        ...(filters.q && { OR: [
+          { title: { contains: filters.q, mode: 'insensitive' } },
+          { description: { contains: filters.q, mode: 'insensitive' } },
+        ] }),
+        ...(type === 'appointments' ? { deadline: { not: null } } : {}),
+        ...(type === 'requests' ? { deadline: null } : {}),
+        ...(filters.dateFrom || filters.dateTo ? {
+          createdAt: {
+            ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+            ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+          }
+        } : {}),
+        ...tenantFilter(tenantId),
+      }
+
+      const [items, total] = await Promise.all([
+        prisma.serviceRequest.findMany({
+          where: whereLegacy,
+          include: {
+            client: { select: { id: true, name: true, email: true } },
+            service: { select: { id: true, name: true, slug: true, category: true } },
+            assignedTeamMember: { select: { id: true, name: true, email: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (filters.page - 1) * filters.limit,
+          take: filters.limit,
+        }),
+        prisma.serviceRequest.count({ where: whereLegacy }),
+      ])
+
+      return respond.ok(items, {
+        pagination: {
+          page: filters.page,
+          limit: filters.limit,
+          total,
+          totalPages: Math.ceil(total / filters.limit),
+        },
+      })
+    }
+
     if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')

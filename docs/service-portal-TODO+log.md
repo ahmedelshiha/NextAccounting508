@@ -560,6 +560,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Admin Service Requests GET now prefers scheduledAt/isBooking with automatic legacy fallback.
+  - Updated: src/app/api/admin/service-requests/route.ts (filters by isBooking and date range on scheduledAt when present; orders by scheduledAt for appointments; falls back to legacy deadline/createdAt on missing columns)
+  - Why: Align API to Phase 1 schema without breaking environments where migrations haven’t run yet; improves correctness for appointment listings and date filters.
+  - Next: Update UI filters to surface bookingType and switch default ordering for Appointments tab; extend portal/admin create to accept isBooking payload after CI migrations.
 - [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
   - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
   - Why: Maintain compatibility while consolidating on unified API and schema.
