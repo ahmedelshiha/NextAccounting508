@@ -640,6 +640,9 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-21: Removed duplicate Pages Router endpoint src/pages/api/cron.ts to resolve "App Router and Pages Router both match path: /api/cron" build conflict. Preferred App Router implementation at src/app/api/cron/route.ts retained. (Files changed: src/pages/api/cron.ts removed)
+
+
 - [ ] 2025-09-20: Resume request — environment setup required (Neon DB + Netlify). Actions: connect Neon and Netlify via MCP, set NETLIFY_DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT=postgres; add GitHub secrets DATABASE_URL, CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID; trigger CI to run pnpm db:generate && pnpm db:migrate && pnpm db:seed. Next: Continue Phases 2–4 after CI is green.
 
 - [x] 2025-09-20: Configured staging/prod environment variables for DB, NextAuth, uploads, and realtime (via platform envs).
