@@ -7,6 +7,7 @@ import { respond } from '@/lib/api-response'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { sendBookingConfirmation } from '@/lib/email'
 
 const BodySchema = z.object({ scheduledAt: z.string().datetime() })
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   if (!parsed.success) return respond.badRequest('Invalid payload', { issues: parsed.error.issues })
 
   try {
-    const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id } })
+    const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
     if (!booking) return respond.badRequest('No linked booking to reschedule')
 
     const newStart = new Date(parsed.data.scheduledAt)
@@ -41,10 +42,21 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     })
     if (conflict) return respond.badRequest('Scheduling conflict detected')
 
-    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart } })
+    const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
     try { realtimeService.emitServiceRequestUpdate(String(id), { action: 'rescheduled' }) } catch {}
     try { await logAudit({ action: 'service-request:reschedule', actorId: (session.user as any).id ?? null, targetId: String(id), details: { bookingId: booking.id, scheduledAt: newStart.toISOString() } }) } catch {}
+
+    try {
+      await sendBookingConfirmation({
+        id: updated.id,
+        scheduledAt: updated.scheduledAt,
+        duration: updated.duration,
+        clientName: updated.client?.name || '',
+        clientEmail: updated.client?.email || '',
+        service: { name: updated.service?.name || 'Consultation', price: (updated.service as any)?.price as any }
+      })
+    } catch {}
 
     return respond.ok({ booking: updated })
   } catch (e: any) {
