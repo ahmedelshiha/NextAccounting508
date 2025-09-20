@@ -139,6 +139,31 @@ export default function NewServiceRequestPage() {
     }
   }
 
+  const fetchAvailability = async () => {
+    if (!serviceId || !appointmentDate) return
+    setLoadingSlots(true)
+    setSelectedSlot('')
+    setSlots([])
+    try {
+      const from = new Date(appointmentDate)
+      const to = new Date(appointmentDate)
+      to.setHours(23,59,59,999)
+      const params = new URLSearchParams()
+      params.set('serviceId', serviceId)
+      params.set('dateFrom', from.toISOString())
+      params.set('dateTo', to.toISOString())
+      if (typeof slotDuration === 'number') params.set('duration', String(slotDuration))
+      const res = await apiFetch(`/api/portal/service-requests/availability?${params.toString()}`)
+      const json = await res.json().catch(() => ({} as any))
+      const list = Array.isArray(json?.data?.slots) ? json.data.slots : []
+      setSlots(list)
+    } catch {
+      toast.error('Failed to load availability')
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
