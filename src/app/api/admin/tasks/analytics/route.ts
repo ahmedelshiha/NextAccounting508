@@ -6,7 +6,9 @@ import prisma from '@/lib/prisma'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-export async function GET() {
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+export async function GET(request?: Request) {
   try {
     const session = await getServerSession(authOptions)
     const role = (session?.user as any)?.role as string | undefined
