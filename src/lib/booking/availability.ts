@@ -103,10 +103,8 @@ export function generateAvailability(
       const slotEnd = addMinutes(slotStart, slotMinutes)
       if (slotEnd > windowRange.end) break
 
-      // Skip past slots
-      const now = new Date()
+      // Skip past slots using provided reference time
       if (slotStart < now) {
-        // advance to next slot
         slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
         continue
       }
