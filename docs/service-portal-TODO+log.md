@@ -646,6 +646,9 @@ How to Resume
   - Updated: src/app/portal/bookings/[id]/page.tsx (server fetch to /api/bookings/[id] with auth cookies, no direct prisma)
   - Why: Centralize authorization and response shape, align with API-layer standards, and avoid SSR DB access from pages.
   - Next: Migrate legacy bookings to unified Service Requests model or call shared service layer; added route tests for /api/bookings/[id] and a smoke test for portal detail (tests/bookings.id.route.test.ts).
+  - [x] 2025-09-XX: Added admin migration API to create a Service Request from a Booking and link them: src/app/api/admin/bookings/[id]/migrate/route.ts
+  - Why: Provide a single-step migration endpoint to convert existing bookings into service requests and keep records linked for triage and auditing.
+  - Next: Add route tests for migration endpoint and protective unit tests; consider permission checks using src/lib/permissions.ts and audit logging (src/lib/audit.ts).
 
 - [x] 2025-09-20: Validated tests (thresholds passed); requested Neon/Netlify MCP connections and env secrets to resume CI migrations. No code changes.
 
