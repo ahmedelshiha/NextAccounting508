@@ -54,6 +54,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
+  const type = (searchParams.get('type') || '').toLowerCase()
   const filters: Filters = {
     page: Math.max(1, parseInt(searchParams.get('page') || '1', 10)),
     limit: Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10))),
@@ -112,6 +113,12 @@ export async function GET(request: Request) {
         let all: any[] = getAllRequests() as any[]
         if (isMultiTenancyEnabled() && tenantId) {
           all = all.filter((r: any) => String(r.tenantId || '') === String(tenantId))
+        }
+        // Optional type filter for early UI support: appointments vs requests (fallback only)
+        if (type === 'appointments') {
+          all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
+        } else if (type === 'requests') {
+          all = all.filter((r: any) => !((r as any).scheduledAt || r.deadline))
         }
         if (filters.status) all = all.filter((r: any) => String(r.status) === String(filters.status))
         if (filters.priority) all = all.filter((r: any) => String(r.priority) === String(filters.priority))
