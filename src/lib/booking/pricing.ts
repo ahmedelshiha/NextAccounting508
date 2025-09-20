@@ -69,8 +69,7 @@ export async function calculateServicePrice(params: {
   // Duration overage (pro-rata over standard duration)
   if (durationMinutes > standardDuration && baseCents > 0) {
     const extra = durationMinutes - standardDuration
-    const perMinuteCents = Math.round(baseCents / standardDuration)
-    const overageCents = perMinuteCents * extra
+    const overageCents = Math.round((baseCents * extra) / standardDuration)
     if (overageCents > 0) components.push({ code: 'OVERAGE', label: 'Duration overage', amountCents: overageCents })
   }
 
