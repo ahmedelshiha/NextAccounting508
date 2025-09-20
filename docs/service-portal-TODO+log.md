@@ -266,6 +266,10 @@ Notes
 
 - [x] 2025-09-20: Added admin endpoints for availability, confirm, and reschedule; introduced useAvailability hook.
 - [x] 2025-09-20: Added public guest Service Request creation endpoint.
+- [x] 2025-09-20: Added portal availability endpoint.
+  - Added: src/app/api/portal/service-requests/availability/route.ts (client-auth; mirrors admin availability; safe fallback)
+  - Why: Allow clients to query available appointment slots as part of unified booking flow.
+  - Next: Wire portal create UI to call availability before submit; add scheduledAt support post-migration.
   - Added: src/app/api/public/service-requests/route.ts (guest POST with create-or-find user, strict rate limits, DB fallback)
   - Why: Fulfill Phase 2 requirement for guest bookings via unified SR API.
   - Next: Add optional scheduledAt support after migrations; extend spam protection if needed.
