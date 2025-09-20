@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma'
 import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
