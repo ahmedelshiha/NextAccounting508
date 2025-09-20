@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -20,10 +21,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')
+    const tenantId = getTenantFromRequest(request as any)
 
     const { default: prisma } = await import('@/lib/prisma')
 
-    const where: Prisma.ServiceWhereInput = { active: true }
+    const where: Prisma.ServiceWhereInput = { active: true, ...(tenantFilter(tenantId) as any) }
 
     if (featured === 'true') {
       where.featured = true
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const tenantId = getTenantFromRequest(request as any)
     const service = await prisma.service.create({
       data: {
         name,
@@ -107,7 +110,8 @@ export async function POST(request: NextRequest) {
         category,
         featured,
         image,
-        active: true
+        active: true,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       }
     })
 
