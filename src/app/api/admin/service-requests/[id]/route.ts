@@ -47,7 +47,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
   } catch (e: any) {
     const code = String((e as any)?.code || '')
     const msg = String(e?.message || '')
-    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+    if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { getRequest } = await import('@/lib/dev-fallbacks')
         const item = getRequest(id)

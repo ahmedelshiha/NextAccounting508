@@ -79,29 +79,75 @@ export async function GET(request: Request) {
     ...tenantFilter(tenantId),
   }
 
-  const [items, total] = await Promise.all([
-    prisma.serviceRequest.findMany({
-      where,
-      include: {
-        client: { select: { id: true, name: true, email: true } },
-        service: { select: { id: true, name: true, slug: true, category: true } },
-        assignedTeamMember: { select: { id: true, name: true, email: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      skip: (filters.page - 1) * filters.limit,
-      take: filters.limit,
-    }),
-    prisma.serviceRequest.count({ where }),
-  ])
+  try {
+    const [items, total] = await Promise.all([
+      prisma.serviceRequest.findMany({
+        where,
+        include: {
+          client: { select: { id: true, name: true, email: true } },
+          service: { select: { id: true, name: true, slug: true, category: true } },
+          assignedTeamMember: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (filters.page - 1) * filters.limit,
+        take: filters.limit,
+      }),
+      prisma.serviceRequest.count({ where }),
+    ])
 
-  return respond.ok(items, {
-    pagination: {
-      page: filters.page,
-      limit: filters.limit,
-      total,
-      totalPages: Math.ceil(total / filters.limit),
-    },
-  })
+    return respond.ok(items, {
+      pagination: {
+        page: filters.page,
+        limit: filters.limit,
+        total,
+        totalPages: Math.ceil(total / filters.limit),
+      },
+    })
+  } catch (e: any) {
+    const code = String((e as any)?.code || '')
+    const msg = String(e?.message || '')
+    if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
+      try {
+        const { getAllRequests } = await import('@/lib/dev-fallbacks')
+        let all: any[] = getAllRequests() as any[]
+        if (isMultiTenancyEnabled() && tenantId) {
+          all = all.filter((r: any) => String(r.tenantId || '') === String(tenantId))
+        }
+        if (filters.status) all = all.filter((r: any) => String(r.status) === String(filters.status))
+        if (filters.priority) all = all.filter((r: any) => String(r.priority) === String(filters.priority))
+        if (filters.assignedTo) all = all.filter((r: any) => String((r as any).assignedTeamMemberId || '') === String(filters.assignedTo))
+        if (filters.clientId) all = all.filter((r: any) => String(r.clientId) === String(filters.clientId))
+        if (filters.serviceId) all = all.filter((r: any) => String(r.serviceId) === String(filters.serviceId))
+        if (filters.q) {
+          const q = String(filters.q).toLowerCase()
+          all = all.filter((r: any) =>
+            String(r.title || '').toLowerCase().includes(q) ||
+            String(r.description || '').toLowerCase().includes(q)
+          )
+        }
+        all.sort((a: any, b: any) => {
+          const ad = new Date(a.createdAt || 0).getTime()
+          const bd = new Date(b.createdAt || 0).getTime()
+          return bd - ad
+        })
+        const total = all.length
+        const start = (filters.page - 1) * filters.limit
+        const end = start + filters.limit
+        const pageItems = all.slice(start, end)
+        return respond.ok(pageItems, {
+          pagination: {
+            page: filters.page,
+            limit: filters.limit,
+            total,
+            totalPages: Math.ceil(total / filters.limit),
+          },
+        })
+      } catch {
+        return respond.serverError()
+      }
+    }
+    throw e
+  }
 }
 
 export async function POST(request: Request) {
@@ -138,6 +184,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Validate foreign keys explicitly to return clear errors instead of 500
+    const [clientExists, serviceExists] = await Promise.all([
+      prisma.user.findUnique({ where: { id: data.clientId }, select: { id: true } }),
+      prisma.service.findUnique({ where: { id: data.serviceId }, select: { id: true } }),
+    ])
+    if (!clientExists) return respond.badRequest('Invalid clientId')
+    if (!serviceExists) return respond.badRequest('Invalid serviceId')
+
     const created = await prisma.serviceRequest.create({
       data: {
         clientId: data.clientId,
@@ -172,7 +226,10 @@ export async function POST(request: Request) {
   } catch (e: any) {
     const msg = String(e?.message || '')
     const code = String((e as any)?.code || '')
-    if (code.startsWith('P20') || /Database is not configured/i.test(msg)) {
+    if (code === 'P2003') {
+      return respond.badRequest('Invalid clientId or serviceId')
+    }
+    if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
@@ -201,6 +258,6 @@ export async function POST(request: Request) {
         return respond.serverError()
       }
     }
-    throw e
+    return respond.serverError('Failed to create service request', { code, message: msg })
   }
 }

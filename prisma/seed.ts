@@ -38,6 +38,30 @@ async function main() {
     },
   })
 
+  // Create demo client users
+  const clientPassword = await bcrypt.hash('client123', 12)
+  const client1 = await prisma.user.upsert({
+    where: { email: 'client1@example.com' },
+    update: {},
+    create: {
+      email: 'client1@example.com',
+      name: 'Client One',
+      password: clientPassword,
+      role: 'CLIENT',
+      emailVerified: new Date(),
+    },
+  })
+  const client2 = await prisma.user.upsert({
+    where: { email: 'client2@example.com' },
+    update: {},
+    create: {
+      email: 'client2@example.com',
+      name: 'Client Two',
+      password: clientPassword,
+      role: 'CLIENT',
+      emailVerified: new Date(),
+    },
+  })
 
   // Create team lead user
   const leadPassword = await bcrypt.hash('lead123', 12)
@@ -183,6 +207,47 @@ Our consultation sessions are designed to provide you with actionable insights a
   }
 
   console.log('✅ Services created')
+
+  // Seed sample service requests for demo clients
+  const svcBookkeeping = await prisma.service.findUnique({ where: { slug: 'bookkeeping' }, select: { id: true, name: true } })
+  const svcTax = await prisma.service.findUnique({ where: { slug: 'tax-preparation' }, select: { id: true, name: true } })
+  if (svcBookkeeping && svcTax) {
+    await prisma.serviceRequest.upsert({
+      where: { id: 'sr_demo_1' },
+      update: {},
+      create: {
+        id: 'sr_demo_1',
+        clientId: client1.id,
+        serviceId: svcBookkeeping.id,
+        title: `${svcBookkeeping.name} request — ${client1.name}`,
+        description: 'Initial bookkeeping setup and monthly processing.',
+        priority: 'MEDIUM',
+        status: 'SUBMITTED',
+        budgetMin: 250,
+        budgetMax: 500,
+        deadline: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 14),
+        requirements: { serviceSnapshot: { id: svcBookkeeping.id, name: svcBookkeeping.name } },
+      },
+    })
+    await prisma.serviceRequest.upsert({
+      where: { id: 'sr_demo_2' },
+      update: {},
+      create: {
+        id: 'sr_demo_2',
+        clientId: client2.id,
+        serviceId: svcTax.id,
+        title: `${svcTax.name} request — ${client2.name}`,
+        description: 'Corporate tax return preparation with multi-state filing.',
+        priority: 'HIGH',
+        status: 'IN_REVIEW',
+        budgetMin: 400,
+        budgetMax: 1200,
+        deadline: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 30),
+        requirements: { serviceSnapshot: { id: svcTax.id, name: svcTax.name } },
+      },
+    })
+    console.log('✅ Sample service requests created')
+  }
 
   // Create blog posts
   const posts = [
