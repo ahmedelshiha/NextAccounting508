@@ -153,6 +153,8 @@ export async function POST(request: Request) {
       return NextResponse.json(row, { status: 201 })
     }
 
+    const tenantId = getTenantFromRequest(request as any)
+
     const created = await prisma.task.create({
       data: {
         title: String(body.title),
@@ -160,6 +162,7 @@ export async function POST(request: Request) {
         status: (mapStatus(body.status as any) || 'OPEN') as any,
         dueAt: body.dueAt ? new Date(body.dueAt) : null,
         assigneeId: body.assigneeId ?? null,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       } as any,
       include: { assignee: { select: { id: true, name: true, email: true } } },
     })
