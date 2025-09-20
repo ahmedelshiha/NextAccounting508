@@ -185,11 +185,22 @@ model Service {
   status        ServiceStatus @default(ACTIVE)
   tenantId     String?
 
+  // Booking enhancements
+  bookingEnabled      Boolean  @default(true)
+  advanceBookingDays  Int      @default(30)
+  minAdvanceHours     Int      @default(24)
+  maxDailyBookings    Int?
+  bufferTime          Int      @default(0)
+  businessHours       Json?
+  blackoutDates       DateTime[]
+
   // Relations
   bookings Booking[]
   serviceRequests ServiceRequest[]
+  availabilitySlots AvailabilitySlot[]
 
   @@index([tenantId])
+  @@index([active, bookingEnabled])
   @@map("services")
 }
 
