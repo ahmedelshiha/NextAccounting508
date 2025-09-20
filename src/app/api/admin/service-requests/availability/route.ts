@@ -13,6 +13,8 @@ const QuerySchema = z.object({
   dateTo: z.string().datetime(),
   duration: z.coerce.number().min(15).max(8 * 60).optional(),
   teamMemberId: z.string().optional(),
+  includePrice: z.enum(['1','true']).optional(),
+  currency: z.string().optional(),
 })
 
 type Slot = { start: string; end: string; available: boolean }
@@ -48,15 +50,28 @@ export async function GET(request: NextRequest) {
     dateTo: url.searchParams.get('dateTo') || '',
     duration: url.searchParams.get('duration') || undefined,
     teamMemberId: url.searchParams.get('teamMemberId') || undefined,
+    includePrice: url.searchParams.get('includePrice') || undefined,
+    currency: url.searchParams.get('currency') || undefined,
   })
   if (!parsed.success) return respond.badRequest('Invalid query', { issues: parsed.error.issues })
 
-  const { serviceId, dateFrom, dateTo, duration, teamMemberId } = parsed.data
+  const { serviceId, dateFrom, dateTo, duration, teamMemberId, includePrice, currency } = parsed.data
 
   try {
     const from = new Date(dateFrom)
     const to = new Date(dateTo)
     const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId })
+
+    if (includePrice) {
+      const { calculateServicePrice } = await import('@/lib/booking/pricing')
+      const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+      const slotMinutes = duration ?? Math.max(15, svc?.duration ?? 60)
+      const enriched = await Promise.all(slots.map(async (s) => {
+        const breakdown = await calculateServicePrice({ serviceId, scheduledAt: new Date(s.start), durationMinutes: slotMinutes, options: { currency } })
+        return { ...s, priceCents: breakdown.totalCents, currency: breakdown.currency }
+      }))
+      return respond.ok({ slots: enriched })
+    }
     return respond.ok({ slots })
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
     if (!svc || svc.active === false) return respond.notFound('Service not found or inactive')
