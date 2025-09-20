@@ -451,6 +451,7 @@ model ServiceRequest {
   requestTasks          RequestTask[]
   comments              ServiceRequestComment[]
   attachmentsRel        Attachment[]
+  linkedBookings        Booking[]
 
   @@index([clientId])
   @@index([scheduledAt])
