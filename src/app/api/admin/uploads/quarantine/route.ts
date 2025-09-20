@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
@@ -22,6 +23,7 @@ export async function GET(req: Request) {
 
   try {
     const url = new URL(req.url)
+    const tenantId = getTenantFromRequest(req as any)
     const serviceRequestId = url.searchParams.get('serviceRequestId') || undefined
     const q = url.searchParams.get('q') || undefined
 
@@ -37,7 +39,7 @@ export async function GET(req: Request) {
 
     // Fetch DB attachments flagged as infected/quarantined with optional filters
     const { default: prisma } = await import('@/lib/prisma')
-    const where: any = { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }] }
+    const where: any = { OR: [{ avStatus: 'infected' }, { avStatus: 'error' }], ...tenantFilter(tenantId) }
     if (serviceRequestId) where.serviceRequestId = serviceRequestId
     if (q) {
       where.OR = [
