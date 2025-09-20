@@ -17,7 +17,16 @@ vi.mock('@/lib/prisma', () => ({
       update: vi.fn(async ({ where, data }: any) => {
         const idx = db.bookings.findIndex(b => b.id === where.id)
         if (idx === -1) return null
-        db.bookings[idx] = { ...db.bookings[idx], ...data }
+        // handle connect shorthand for serviceRequest
+        const updated = { ...db.bookings[idx] }
+        if (data?.serviceRequest?.connect?.id) {
+          updated.serviceRequestId = data.serviceRequest.connect.id
+        }
+        // merge other scalar fields
+        Object.keys(data).forEach((k) => {
+          if (k !== 'serviceRequest') updated[k] = data[k]
+        })
+        db.bookings[idx] = updated
         return db.bookings[idx]
       })
     },
