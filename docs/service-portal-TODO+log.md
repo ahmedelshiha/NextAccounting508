@@ -434,6 +434,12 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Booking ⇄ Service Request linking (Phase 1: lightweight link).
+  - Updated: prisma/schema.prisma (Booking.serviceRequestId + relation + indexes)
+  - Updated: src/app/api/bookings/[id]/route.ts (PUT accepts serviceRequestId for admin/staff; connects/disconnects relation)
+  - Updated: src/app/admin/bookings/[id]/page.tsx (Create Service Request from booking, Link existing SR by ID, View linked SR)
+  - Why: Start integration per docs/booking-service-request-integration-plan v6.md with a non-breaking bridge while larger absorption (extending ServiceRequest) migrates in CI.
+  - Next: Standardize booking APIs to use respond/zod; add service-layer (src/lib/bookings.ts); extend portal/admin flows to surface linked SR; plan Phase 2 data model absorption behind migrations.
 - [x] 2025-09-19: Portal list pagination UI and CSV export rate limiting.
   - Updated: src/app/portal/service-requests/ServiceRequestsClient.tsx (server-driven pagination: page/limit state, URL sync, controls)
   - Updated: src/app/api/portal/service-requests/export/route.ts (IP-based rate limit to protect CSV export)
