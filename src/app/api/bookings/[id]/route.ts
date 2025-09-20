@@ -139,7 +139,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     if (isOwner) {
       // Clients can update notes and reschedule (if not confirmed)
-      if (notes !== undefined) updateData.notes = notes
+      if (Object.prototype.hasOwnProperty.call(body, 'notes')) updateData.notes = (body as any).notes
       if (scheduledAt && !existingBooking.confirmed) {
         updateData.scheduledAt = new Date(scheduledAt)
       }
