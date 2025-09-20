@@ -354,7 +354,7 @@ Summary
 - Uploads provider: Netlify Blobs implemented (requires NETLIFY_BLOBS_TOKEN in Netlify env to enable). Realtime Postgres adapter implemented but requires REALTIME_TRANSPORT=postgres in staging.
 - Recent changes: logout/realtime cleanup, middleware cache-control, tests added for many APIs. Some UI unit tests are excluded from local runs and run in CI.
 
-Actionable "Remaining Work (Paused)" Checklist ���� Priority ordered
+Actionable "Remaining Work (Paused)" Checklist �� Priority ordered
 1. Database & Migrations (critical)
    - [ ] Ensure CI runs Prisma client generation and migrations: configure Netlify build to run "pnpm db:generate && pnpm db:migrate && pnpm db:seed".
    - [ ] Verify seed data applied: roles (CLIENT, TEAM_MEMBER, TEAM_LEAD, ADMIN), default templates, and permissions.
@@ -580,6 +580,12 @@ How to Resume
   - Updated: src/components/admin/service-requests/overview.tsx (shows Appointments KPI and Booking Types list)
   - Why: Improve operator visibility of appointment load and types for triage and planning.
   - Next: Add charts for booking types in analytics view; portal/admin forms to set bookingType.
+- [x] 2025-09-20: Wired portal/admin create forms to send isBooking with scheduledAt and bookingType.
+  - Updated: src/app/portal/service-requests/new/page.tsx (booking type select; payload includes isBooking, scheduledAt, duration, bookingType)
+  - Updated: src/app/admin/service-requests/new/page.tsx (appointment fields and payload)
+  - Updated: src/app/api/portal/service-requests/route.ts (CreateSchema union + persistence)
+  - Why: Enable end-to-end appointment creation from UI in unified model.
+  - Next: Add chart component for booking type distribution; consider server ordering by scheduledAt in Appointments tab post-migrations.
 - [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
   - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
   - Why: Maintain compatibility while consolidating on unified API and schema.
