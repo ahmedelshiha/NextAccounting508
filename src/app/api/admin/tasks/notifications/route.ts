@@ -68,12 +68,14 @@ export async function PATCH(request: Request) {
 
     if (hasDb) {
       try {
-        const existing = await prisma.notificationSettings.findFirst()
+        const tenantId = getTenantFromRequest(request as any)
+        const existing = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
         const payload = {
           emailEnabled: !!body.emailEnabled,
           emailFrom: body.emailFrom ?? existing?.emailFrom ?? '',
           webhookUrl: body.webhookUrl ?? existing?.webhookUrl ?? '',
           templates: Array.isArray(body.templates) ? body.templates : (existing?.templates ?? []),
+          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
         } as any
         const row = existing
           ? await prisma.notificationSettings.update({ where: { id: existing.id }, data: payload })
