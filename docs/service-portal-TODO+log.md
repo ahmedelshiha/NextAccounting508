@@ -645,7 +645,7 @@ How to Resume
 - [x] 2025-09-20: Portal Booking Detail now fetches via API route instead of direct Prisma.
   - Updated: src/app/portal/bookings/[id]/page.tsx (server fetch to /api/bookings/[id] with auth cookies, no direct prisma)
   - Why: Centralize authorization and response shape, align with API-layer standards, and avoid SSR DB access from pages.
-  - Next: Migrate legacy bookings to unified Service Requests model or call shared service layer; add route tests for /api/bookings/[id] and a smoke test for portal detail.
+  - Next: Migrate legacy bookings to unified Service Requests model or call shared service layer; added route tests for /api/bookings/[id] and a smoke test for portal detail (tests/bookings.id.route.test.ts).
 
 - [x] 2025-09-20: Validated tests (thresholds passed); requested Neon/Netlify MCP connections and env secrets to resume CI migrations. No code changes.
 
