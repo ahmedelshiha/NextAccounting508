@@ -197,7 +197,7 @@ export default function PortalServiceRequestDetailPage() {
       setUploaded({})
       setUploadingKeys({})
       setUploadProgress({})
-      await load()
+      await refresh()
     } catch (e) {
       toast.error('Failed to post comment')
     }
@@ -219,7 +219,7 @@ export default function PortalServiceRequestDetailPage() {
       }
       toast.success('Request cancelled')
       router.refresh()
-      await load()
+      await refresh()
     } catch (e) {
       toast.error('Unable to cancel')
     }
@@ -240,7 +240,7 @@ export default function PortalServiceRequestDetailPage() {
       }
       toast.success('Request approved')
       router.refresh()
-      await load()
+      await refresh()
     } catch (e) {
       toast.error('Unable to approve')
     }
@@ -287,7 +287,7 @@ export default function PortalServiceRequestDetailPage() {
         return
       }
       toast.success('Appointment confirmed')
-      await load()
+      await refresh()
     } catch {
       toast.error('Unable to confirm appointment')
     }
@@ -311,7 +311,7 @@ export default function PortalServiceRequestDetailPage() {
       setAppointmentDate('')
       setSelectedSlot('')
       setSlots([])
-      await load()
+      await refresh()
     } catch {
       toast.error('Unable to reschedule')
     }
