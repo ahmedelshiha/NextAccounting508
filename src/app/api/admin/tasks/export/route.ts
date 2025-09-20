@@ -33,7 +33,9 @@ export async function GET(request: Request) {
     const status = url.searchParams.getAll('status')
     const priority = url.searchParams.getAll('priority')
 
-    const where: any = {}
+    const tenantId = getTenantFromRequest(request as any)
+
+    const where: any = { ...(tenantFilter(tenantId) as any) }
     if (status.length) where.status = { in: status.map(s => s.toUpperCase()) }
     if (priority.length) where.priority = { in: priority.map(p => p.toUpperCase()) }
 
