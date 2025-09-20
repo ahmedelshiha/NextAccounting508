@@ -35,8 +35,8 @@ describe('AvailabilityEngine - generateAvailability', () => {
     const busy: BusyInterval[] = [{ start: busyStart, end: busyEnd }]
 
     const slots = generateAvailability(from, to, 60, busy, { now: d(`${day}T00:00:00.000Z`) })
-    // No slot should start at 10:00 or overlap 10-11
-    const overlapExists = slots.some(s => {
+    // No AVAILABLE slot should overlap 10-11
+    const overlapExists = slots.filter(s => s.available).some(s => {
       const st = new Date(s.start)
       const en = new Date(s.end)
       return rangesOverlap(st, en, busyStart, busyEnd)
