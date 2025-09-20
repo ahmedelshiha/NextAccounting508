@@ -5,6 +5,10 @@ Owner: admin • Email: ahmedelsheha@gmail.com • Status: Paused (as of 2025-09
 
 Autonomous Pause Summary (2025-09-20)
 
+Dev environment update (2025-09-20)
+- Set runtime env vars via dev server: NETLIFY_DATABASE_URL, DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT, REALTIME_PG_URL, UPLOADS_PROVIDER, CRON_*.
+- Next: Trigger Netlify/GitHub CI to run Prisma generate/migrate/seed; verify seeds via /api/admin/permissions.
+
 Current Status
 - PAUSED — awaiting CI-run Prisma migrations/seeds, staging env configuration, and multi-tenancy rollout plan.
 
