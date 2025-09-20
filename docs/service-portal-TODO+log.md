@@ -1278,3 +1278,8 @@ How to Resume
   - Added: src/hooks/useBookings.ts; src/hooks/useBooking.ts
   - Why: Progress Phase 4 by providing reusable data layer for appointments across admin/portal; fallback-safe.
   - Next: Migrate admin/portal pages to use these hooks post-migrations; add tests.
+
+- [x] 2025-09-20: Added Cron endpoint
+  - Updated: src/pages/api/cron.ts
+  - Why: Provide a single, authenticated cron entrypoint for scheduled jobs (GitHub Actions/Netlify cron). The endpoint validates the x-cron-secret header against CRON_SECRET and forwards execution to /api/cron/rescan-attachments to perform AV rescans and any other scheduled maintenance.
+  - Next: Run the scheduled GitHub Actions workflow (.github/workflows/clamav-rescan.yml) with CRON_TARGET_URL set to the deployed site URL and CRON_SECRET set; verify rescans run and results persist in quarantine/audit logs.
