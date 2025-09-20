@@ -489,6 +489,10 @@ model TeamMember {
   isAvailable Boolean  @default(true)
   status      String?  @default("active")
   workingHours Json?
+  timeZone    String?  @default("UTC")
+  maxConcurrentBookings Int @default(3)
+  bookingBuffer Int @default(15)
+  autoAssign  Boolean @default(true)
   stats       Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -497,7 +501,10 @@ model TeamMember {
 
   bookings    Booking[]
   assignedServiceRequests ServiceRequest[]
+  availabilitySlots AvailabilitySlot[]
 
+  @@index([isAvailable])
+  @@index([status])
   @@map("team_members")
 }
 
