@@ -38,9 +38,12 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const startDate = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000)
 
+    // Tenant scoping
+    const tenantId = getTenantFromRequest(request as any)
+
     // Daily bookings for selected range
     const bookings = await prisma.booking.findMany({
-      where: { createdAt: { gte: startDate } },
+      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } },
       select: { createdAt: true },
     })
     const dailyMap = new Map<string, number>()
