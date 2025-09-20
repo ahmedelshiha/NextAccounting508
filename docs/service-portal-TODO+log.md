@@ -648,6 +648,11 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-21: Portal booking preferences UI and API.
+  - Added: src/app/api/portal/settings/booking-preferences/route.ts (GET/PUT; zod-validated upsert; returns defaults when DB absent)
+  - Updated: src/app/portal/settings/page.tsx (new Notifications & Reminders section with checkboxes for emails/SMS and selectable reminder hours; save to API)
+  - Why: Empower clients to control reminder timings and notifications; prepares Phase 6 features end-to-end with the new reminders cron.
+  - Next: Add i18n templates for emails and honor preferredLanguage/timeZone in reminder/ICS generation.
 - [x] 2025-09-21: Added booking reminders cron endpoint and scheduler.
   - Added: src/app/api/cron/reminders/route.ts (protected by x-cron-secret; scans confirmed upcoming appointments within configured reminder windows [BookingPreferences.reminderHours or defaults [24,2]]; sends emails via sendBookingReminder; sets reminderSent; tolerant +/-15m window)
   - Added: .github/workflows/booking-reminders.yml (pre-checks CRON_TARGET_URL/CRON_SECRET; calls POST /api/cron/reminders every 15 minutes)
