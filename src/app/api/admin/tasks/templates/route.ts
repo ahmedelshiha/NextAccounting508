@@ -18,7 +18,7 @@ function writeTemplates(tmpls: any[]) {
   try { fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(tmpls, null, 2), 'utf-8'); return true } catch (e) { console.error('Failed to write templates', e); return false }
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
