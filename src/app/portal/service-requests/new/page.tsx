@@ -200,7 +200,7 @@ export default function NewServiceRequestPage() {
           description: description || undefined,
           priority,
           deadline: deadline ? new Date(deadline).toISOString() : undefined,
-          requirements: { serviceSnapshot },
+          requirements: { serviceSnapshot, booking: selectedSlot ? { scheduledAt: selectedSlot, duration: typeof slotDuration === 'number' ? slotDuration : undefined } : undefined },
           attachments,
         }),
       })
