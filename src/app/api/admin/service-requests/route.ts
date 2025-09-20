@@ -44,6 +44,8 @@ type Filters = {
   clientId?: string | null
   serviceId?: string | null
   q?: string | null
+  dateFrom?: string | null
+  dateTo?: string | null
 }
 
 export async function GET(request: Request) {
@@ -64,6 +66,8 @@ export async function GET(request: Request) {
     clientId: searchParams.get('clientId'),
     serviceId: searchParams.get('serviceId'),
     q: searchParams.get('q'),
+    dateFrom: searchParams.get('dateFrom'),
+    dateTo: searchParams.get('dateTo'),
   }
 
   const tenantId = getTenantFromRequest(request as any)
@@ -77,6 +81,12 @@ export async function GET(request: Request) {
       { title: { contains: filters.q, mode: 'insensitive' } },
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
+    ...(filters.dateFrom || filters.dateTo ? {
+      createdAt: {
+        ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+        ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
+      }
+    } : {}),
     ...tenantFilter(tenantId),
   }
 
@@ -131,6 +141,20 @@ export async function GET(request: Request) {
             String(r.title || '').toLowerCase().includes(q) ||
             String(r.description || '').toLowerCase().includes(q)
           )
+        }
+        if (filters.dateFrom) {
+          const from = new Date(filters.dateFrom).getTime()
+          all = all.filter((r: any) => {
+            const t = new Date(r.deadline || r.createdAt || 0).getTime()
+            return t >= from
+          })
+        }
+        if (filters.dateTo) {
+          const to = new Date(new Date(filters.dateTo).setHours(23,59,59,999)).getTime()
+          all = all.filter((r: any) => {
+            const t = new Date(r.deadline || r.createdAt || 0).getTime()
+            return t <= to
+          })
         }
         all.sort((a: any, b: any) => {
           const ad = new Date(a.createdAt || 0).getTime()
