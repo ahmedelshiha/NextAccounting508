@@ -136,6 +136,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
           ? { connect: { id: String(serviceRequestId) } }
           : { disconnect: true }
       }
+      // Allow admin/staff to update client-visible notes if provided
+      if (Object.prototype.hasOwnProperty.call(body, 'notes')) {
+        updateData.notes = (body as any).notes
+      }
     }
 
     if (isOwner) {
