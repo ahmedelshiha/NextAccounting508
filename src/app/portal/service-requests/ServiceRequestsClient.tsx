@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus, ClipboardList, ChevronRight } from 'lucide-react'
 import { useBookings } from '@/hooks/useBookings'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
@@ -49,6 +50,14 @@ export default function ServiceRequestsClient() {
   const searchParams = useSearchParams()
 
   const [status, setStatus] = useState<string>(searchParams.get('status') || 'ALL')
+  const [bookingType, setBookingType] = useState<'ALL'|'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'>(
+    (searchParams.get('bookingType') as any) || 'ALL'
+  )
+  const [typeTab, setTypeTab] = useState<'all'|'requests'|'appointments'>(
+    (searchParams.get('type') as any) === 'requests' ? 'requests' : (searchParams.get('type') as any) === 'appointments' ? 'appointments' : 'all'
+  )
+  const [dateFrom, setDateFrom] = useState<string>(searchParams.get('dateFrom') || '')
+  const [dateTo, setDateTo] = useState<string>(searchParams.get('dateTo') || '')
   const [q, setQ] = useState<string>(searchParams.get('q') || '')
   const [debouncedQ, setDebouncedQ] = useState<string>(q)
   const [page, setPage] = useState<number>(parseInt(searchParams.get('page') || '1', 10) || 1)
@@ -64,15 +73,19 @@ export default function ServiceRequestsClient() {
   useEffect(() => {
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
+    if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
+    if (typeTab && typeTab !== 'all') params.set('type', typeTab)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
     if (debouncedQ) params.set('q', debouncedQ)
     params.set('page', String(page))
     params.set('limit', String(limit))
     const qs = params.toString()
     router.replace(qs ? `?${qs}` : '?', { scroll: false })
-  }, [status, debouncedQ, page, limit, router])
+  }, [status, bookingType, dateFrom, dateTo, debouncedQ, page, limit, router])
 
   // Reset to first page on filter changes
-  useEffect(() => { setPage(1) }, [status, debouncedQ, limit])
+  useEffect(() => { setPage(1) }, [status, bookingType, typeTab, dateFrom, dateTo, debouncedQ, limit])
 
   // Data via shared hook (SWR + unified SR API); scope=portal ensures client-specific data
   const { items, pagination, isLoading, refresh } = useBookings({
@@ -81,6 +94,10 @@ export default function ServiceRequestsClient() {
     limit,
     q: debouncedQ,
     status,
+    bookingType,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    type: typeTab,
   })
 
   const totalPages = pagination?.totalPages || 1
@@ -114,7 +131,11 @@ export default function ServiceRequestsClient() {
     if (!Array.isArray(items) || !items.length) return
     const params = new URLSearchParams()
     if (status && status !== 'ALL') params.set('status', status)
+    if (bookingType && bookingType !== 'ALL') params.set('bookingType', bookingType)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
     if (debouncedQ) params.set('q', debouncedQ)
+    if (typeTab && typeTab !== 'all') params.set('type', typeTab)
     try {
       const res = await fetch(`/api/portal/service-requests/export${params.toString() ? `?${params}` : ''}` as string, { cache: 'no-store' })
       if (res.ok) {
@@ -223,7 +244,16 @@ export default function ServiceRequestsClient() {
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Tabs value={typeTab} onValueChange={(v) => setTypeTab(v as any)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="requests">Requests</TabsTrigger>
+                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
           <div className="flex items-center gap-2">
             <Input
               value={q}
@@ -247,6 +277,26 @@ export default function ServiceRequestsClient() {
                 <SelectItem value="DRAFT">Draft</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Booking type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All booking types</SelectItem>
+                <SelectItem value="STANDARD">STANDARD</SelectItem>
+                <SelectItem value="RECURRING">RECURRING</SelectItem>
+                <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
+                <SelectItem value="CONSULTATION">CONSULTATION</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600" htmlFor="from">From</label>
+              <Input id="from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[160px]" />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600" htmlFor="to">To</label>
+              <Input id="to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
+            </div>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
               <SelectTrigger className="w-28">
                 <SelectValue placeholder="Per page" />
@@ -258,10 +308,10 @@ export default function ServiceRequestsClient() {
               </SelectContent>
             </Select>
           </div>
-          {(q || (status && status !== 'ALL')) && (
+          {(q || (status && status !== 'ALL') || (bookingType && bookingType !== 'ALL') || dateFrom || dateTo) && (
             <button
               type="button"
-              onClick={() => { setQ(''); setStatus('ALL') }}
+              onClick={() => { setQ(''); setStatus('ALL'); setBookingType('ALL'); setDateFrom(''); setDateTo('') }}
               className="text-sm text-gray-600 hover:underline"
             >
               Clear filters

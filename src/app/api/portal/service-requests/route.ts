@@ -59,6 +59,8 @@ export async function GET(request: Request) {
   const q = searchParams.get('q')?.trim()
   const type = searchParams.get('type')
   const bookingType = searchParams.get('bookingType')
+  const dateFrom = searchParams.get('dateFrom')
+  const dateTo = searchParams.get('dateTo')
 
   const tenantId = getTenantFromRequest(request as any)
   const where: any = {
@@ -73,6 +75,17 @@ export async function GET(request: Request) {
     }),
     ...(type === 'appointments' ? { isBooking: true } : {}),
     ...(bookingType ? { bookingType } : {}),
+    ...(dateFrom || dateTo ? (
+      type === 'appointments'
+        ? { scheduledAt: {
+            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+            ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
+          } }
+        : { createdAt: {
+            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+            ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
+          } }
+    ) : {}),
     ...tenantFilter(tenantId),
   }
 
@@ -83,7 +96,7 @@ export async function GET(request: Request) {
         include: {
           service: { select: { id: true, name: true, slug: true, category: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -92,14 +105,74 @@ export async function GET(request: Request) {
 
     return respond.ok(items, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
   } catch (e: any) {
-    // Prisma errors (no table / column) — fallback to in-memory dev store
-    if (String(e?.code || '').startsWith('P20')) {
+    const code = String(e?.code || '')
+    const msg = String(e?.message || '')
+
+    // Legacy path when scheduledAt/isBooking columns are missing
+    if (code === 'P2022' || /column .*does not exist/i.test(msg)) {
+      const whereLegacy: any = {
+        clientId: session.user.id,
+        ...(status && { status }),
+        ...(priority && { priority }),
+        ...(q && {
+          OR: [
+            { title: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        }),
+        ...(type === 'appointments' ? { deadline: { not: null } } : {}),
+        ...(type === 'requests' ? { deadline: null } : {}),
+        ...(dateFrom || dateTo ? {
+          createdAt: {
+            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+            ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
+          },
+        } : {}),
+        ...tenantFilter(tenantId),
+      }
+      const [items, total] = await Promise.all([
+        prisma.serviceRequest.findMany({
+          where: whereLegacy,
+          include: { service: { select: { id: true, name: true, slug: true, category: true } } },
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.serviceRequest.count({ where: whereLegacy }),
+      ])
+      return respond.ok(items, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
+    }
+
+    // Prisma errors (no table / database not configured) — fallback to in-memory dev store
+    if (code.startsWith('P20')) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
-        const all = getAllRequests()
-        const filtered = all.filter((r: any) => r.clientId === session.user.id && (!isMultiTenancyEnabled() || !tenantId || r.tenantId === tenantId))
-        const total = filtered.length
-        const pageItems = filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
+        let all = getAllRequests()
+        all = all.filter((r: any) => r.clientId === session.user.id && (!isMultiTenancyEnabled() || !tenantId || r.tenantId === tenantId))
+        if (type === 'appointments') all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
+        if (type === 'requests') all = all.filter((r: any) => !((r as any).scheduledAt || r.deadline))
+        if (status) all = all.filter((r: any) => String(r.status) === String(status))
+        if (priority) all = all.filter((r: any) => String(r.priority) === String(priority))
+        if (bookingType) all = all.filter((r: any) => String((r as any).bookingType || '') === String(bookingType))
+        if (q) {
+          const qq = String(q).toLowerCase()
+          all = all.filter((r: any) => String(r.title || '').toLowerCase().includes(qq) || String(r.description || '').toLowerCase().includes(qq))
+        }
+        if (dateFrom) {
+          const from = new Date(dateFrom).getTime()
+          all = all.filter((r: any) => new Date((r as any).scheduledAt || r.deadline || r.createdAt || 0).getTime() >= from)
+        }
+        if (dateTo) {
+          const to = new Date(new Date(dateTo).setHours(23,59,59,999)).getTime()
+          all = all.filter((r: any) => new Date((r as any).scheduledAt || r.deadline || r.createdAt || 0).getTime() <= to)
+        }
+        all.sort((a: any, b: any) => {
+          const ad = new Date((a as any).scheduledAt || a.createdAt || 0).getTime()
+          const bd = new Date((b as any).scheduledAt || b.createdAt || 0).getTime()
+          return bd - ad
+        })
+        const total = all.length
+        const pageItems = all.slice((page - 1) * limit, (page - 1) * limit + limit)
         return respond.ok(pageItems, { pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } })
       } catch {
         return respond.serverError()
