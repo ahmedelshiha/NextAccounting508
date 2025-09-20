@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
