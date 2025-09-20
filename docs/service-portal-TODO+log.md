@@ -648,6 +648,10 @@ How to Resume
 
 ## Change Log
 
+- [x] 2025-09-20: Added route tests for availability endpoints (admin and portal).
+  - Added: tests/admin-availability.route.test.ts, tests/portal-availability.route.test.ts
+  - Why: Validate availability (DB path and fallback) to support Phase 2 unified booking and Phase 7 testing goals.
+
 - [x] 2025-09-21: Portal booking preferences UI and API.
   - Added: src/app/api/portal/settings/booking-preferences/route.ts (GET/PUT; zod-validated upsert; returns defaults when DB absent)
   - Updated: src/app/portal/settings/page.tsx (new Notifications & Reminders section with checkboxes for emails/SMS and selectable reminder hours; save to API)
