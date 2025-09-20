@@ -1,7 +1,25 @@
 # Service Portal — TODO + Change Log
 
 ## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
-Owner: admin • Email: dfssfdrad7@tuta.io • Status: Planned
+Owner: admin • Email: dfssfdrad7@tuta.io • Status: Paused (as of 2025-09-20)
+
+Current Status
+- Completed: Phase 0 (Readiness), Phase 0.1 (Bridge link in schema/API/UI)
+- Pending: Phases 1–12 (see checklists below)
+
+Remaining Work (Paused) — Quick Checklist
+- [ ] Phase 1 — Data Model Unification (migrations + schema changes; run in CI)
+- [ ] Phase 2 — API Integration (unified endpoints, availability, confirm/reschedule, guest flow, compat layer)
+- [ ] Phase 3 — UI Consolidation (admin views + calendar; portal unified create)
+- [ ] Phase 4 — Hooks & State (useBookings/useBooking/useAvailability)
+- [ ] Phase 5 — Domain Logic Services (validators, conflicts, auto-assign, recurring)
+- [ ] Phase 6 — Email & Notifications (ICS, preferences, cron reminders)
+- [ ] Phase 7 — Tests (unit/route/e2e)
+- [ ] Phase 8 — Migration & Deployment (netlify.toml, seeds, flags)
+- [ ] Phase 9 — Security & Performance (rate limits, indexes, tenancy)
+- [ ] Phase 10 — Accessibility & i18n (calendar a11y; locales)
+- [ ] Phase 11 — Analytics & BI (KPIs + charts)
+- [ ] Phase 12 — Post-Integration Maintenance (deprecate legacy, docs, monitor)
 
 - [x] Phase 0 — Readiness
   - Review audits and integration plan: docs/booking-service-request-integration-plan v6.md, docs/booking-audit.md, docs/service-requests-audit.md
