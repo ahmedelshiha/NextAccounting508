@@ -561,6 +561,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Refactored Admin Service Requests list to use useBookings (SWR) with filters/tabs support.
+  - Updated: src/app/admin/service-requests/page.tsx; src/hooks/useBookings.ts
+  - Why: Unify data access across admin/portal, support appointments tab via type param, and simplify realtime refresh.
+  - Next: Add tests for portal detail actions and admin list filtering; consider moving more admin lists to hooks.
 - [x] 2025-09-20: Refactored Portal Service Request detail to use useBooking (SWR) with realtime refresh.
   - Updated: src/app/portal/service-requests/[id]/page.tsx
   - Why: Reduce duplicated fetch logic and standardize cache/refresh handling across portal views.
