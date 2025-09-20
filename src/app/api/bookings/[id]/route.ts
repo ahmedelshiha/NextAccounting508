@@ -51,6 +51,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       )
     }
 
+    // Ensure client object present for legacy/mocked DB responses
+    if (!(booking as any).client && (booking as any).clientId) {
+      ;(booking as any).client = { id: (booking as any).clientId, name: '', email: '' }
+    }
+
     // Check permissions - clients can only see their own bookings
     if (session?.user?.role === 'CLIENT' && booking.clientId !== session?.user?.id) {
       return NextResponse.json(
