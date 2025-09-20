@@ -1,5 +1,72 @@
 # Service Portal — TODO + Change Log
 
+## Booking ⇄ Service Request Integration — Master TODO (per docs/booking-service-request-integration-plan v6.md)
+Owner: admin • Email: dfssfdrad7@tuta.io • Status: Planned
+
+- [x] Phase 0 — Readiness
+  - Review audits and integration plan: docs/booking-service-request-integration-plan v6.md, docs/booking-audit.md, docs/service-requests-audit.md
+  - Capture plan in repo and align CI/deploy preconditions
+
+- [x] Phase 0.1 — Bridge (non-breaking)
+  - Added Booking.serviceRequestId + relation and indexes in prisma/schema.prisma (bridge link)
+  - PUT /api/bookings/[id] accepts serviceRequestId for connect/disconnect
+  - Admin Booking detail: Create SR from booking, Link existing SR, View SR
+
+- [ ] Phase 1 — Data Model Unification (absorb booking into ServiceRequest)
+  - Extend ServiceRequest with booking fields: isBooking, scheduledAt, duration, clientName, clientEmail, clientPhone, confirmed, reminderSent, bookingType enum, recurringPattern (Json), parentBookingId, parent/child relations, indexes (scheduledAt, isBooking+status, tenant combos, clientId, assignedTeamMemberId)
+  - Enhance Service: bookingEnabled, advanceBookingDays, minAdvanceHours, maxDailyBookings, bufferTime, businessHours (Json), blackoutDates[]; @@index([active, bookingEnabled])
+  - New AvailabilitySlot model with unique([serviceId, teamMemberId, date, startTime]) and availability indexes
+  - Enhance TeamMember: workingHours (Json), timeZone, maxConcurrentBookings, bookingBuffer, autoAssign; indexes
+  - New BookingPreferences + relation on User; reminderHours default [24,2]
+  - Write migrations in sequence under prisma/migrations/* per plan; keep backwards compatibility
+
+- [ ] Phase 2 — API Integration (unified)
+  - Admin SR POST: discriminated union by isBooking with Zod; rate limit; tenant scoping; create recurring children when requested
+  - Admin SR GET: filters for isBooking, bookingType, dateFrom/dateTo, q; pagination and ordering by scheduledAt
+  - New endpoints: /api/admin/service-requests/availability, /api/admin/service-requests/[id]/confirm, /api/admin/service-requests/[id]/reschedule
+  - Portal SR POST: supports guest booking (create-or-find user), stricter rate limits, availability checks, auto-assign
+  - Back-compat: /api/bookings/* forwards to unified SR endpoints with deprecation headers
+
+- [ ] Phase 3 — UI Consolidation
+  - Admin: enhance src/app/admin/service-requests/page.tsx with view tabs (All/Requests/Appointments) and display modes (list/calendar/analytics)
+  - Build BookingCalendarView and integrate; enhance ServiceRequestsTable to render booking columns
+  - Portal: ensure create flows can submit bookings via unified SR API
+  - Home page: ServiceMarket-style booking entry (Phase 14 in plan)
+
+- [ ] Phase 4 — Hooks & State
+  - Add hooks: src/hooks/useBookings.ts, src/hooks/useBooking.ts, src/hooks/useAvailability.ts (SWR or simple fetch + refresh)
+  - Refactor admin/portal pages to reuse hooks; subscribe to realtime topics booking-* and service-request-*
+
+- [ ] Phase 5 — Domain Logic Services
+  - Implement helpers in src/lib/bookings.ts and/or src/lib/service-requests/: validateBookingFields, checkAvailabilityConflicts, getAvailabilitySlots, validateBookingTiming, autoAssignBooking, createRecurringBookings, canUserRescheduleBooking
+  - Unit test each helper; ensure tenant-aware behavior
+
+- [ ] Phase 6 — Email & Notifications
+  - Extend sendBookingConfirmation/Reschedule/Reminder with ICS attachment; respect BookingPreferences; localize content
+  - Cron: reminder scheduler using preferences; reset reminderSent on reschedule
+
+- [ ] Phase 7 — Tests
+  - Unit: availability algorithm (DST/weekends/blackouts/buffers), validators, auto-assign booking
+  - Route: admin/portal SR booking create/confirm/reschedule with conflict cases; compatibility layer tests
+  - E2E: public/portal booking wizard; admin calendar ops; CSVs still OK
+
+- [ ] Phase 8 — Migration & Deployment
+  - netlify.toml: ensure pnpm db:generate && pnpm db:migrate && pnpm db:seed on prod builds; skip previews
+  - Feature flags: MULTI_TENANCY_ENABLED gating; rollback plan; seed updates (roles/permissions/templates)
+
+- [ ] Phase 9 — Security & Performance
+  - Rate limits for guest/admin mutations; pagination defaults; indexes on new fields; denylist/validation on inputs
+  - Tenancy scoping across all booking-related reads/writes
+
+- [ ] Phase 10 — Accessibility & i18n
+  - Ensure calendar keyboard support, focus traps, ARIA; extend locales in src/app/locales/*.json
+
+- [ ] Phase 11 — Analytics & BI
+  - Extend /api/admin/stats to include booking KPIs; integrate charts in admin analytics
+
+- [ ] Phase 12 — Post-Integration Maintenance
+  - Deprecate legacy /api/bookings after migration window; update docs; monitor success metrics and error rates
+
 Status: Paused (as of 2025-09-20)
 
 Pause reason
