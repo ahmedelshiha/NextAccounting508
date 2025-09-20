@@ -7,6 +7,9 @@ export type ServiceRequestsQuery = {
   q?: string
   status?: string | 'ALL'
   priority?: string | 'ALL'
+  bookingType?: 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION' | 'ALL'
+  dateFrom?: string
+  dateTo?: string
   type?: 'ALL' | 'REQUESTS' | 'APPOINTMENTS'
 }
 
