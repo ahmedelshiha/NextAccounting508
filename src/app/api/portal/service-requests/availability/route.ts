@@ -70,47 +70,6 @@ export async function GET(request: Request) {
       return respond.ok({ slots: enriched })
     }
     return respond.ok({ slots })
-    const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!svc || svc.active === false) return respond.notFound('Service not found or inactive')
-
-    const baseDuration = (svc.duration ?? 60)
-    const slotMinutes = duration ?? baseDuration
-
-    const from = new Date(dateFrom)
-    const to = new Date(dateTo)
-
-    const busyBookings = await prisma.booking.findMany({
-      where: {
-        serviceId,
-        scheduledAt: { gte: from, lte: to },
-        status: { in: ['PENDING','CONFIRMED'] as any },
-        ...(teamMemberId ? { assignedTeamMemberId: teamMemberId } : {}),
-      },
-      select: { scheduledAt: true, duration: true },
-    })
-
-    const workStartHour = 9
-    const workEndHour = 17
-
-    const days: Slot[] = []
-    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
-      const dayStart = new Date(d)
-      dayStart.setHours(workStartHour, 0, 0, 0)
-      const dayEnd = new Date(d)
-      dayEnd.setHours(workEndHour, 0, 0, 0)
-
-      const slots = generateSlots(dayStart, dayEnd, slotMinutes)
-      for (const s of slots) {
-        const hasConflict = busyBookings.some((b) => {
-          const bStart = new Date(b.scheduledAt)
-          const bEnd = new Date(bStart.getTime() + (b.duration ?? baseDuration) * 60_000)
-          return isOverlap(s.start, s.end, bStart, bEnd)
-        })
-        days.push({ start: s.start.toISOString(), end: s.end.toISOString(), available: !hasConflict })
-      }
-    }
-
-    return respond.ok({ slots: days })
   } catch (e: any) {
     const msg = String(e?.message || '')
     const code = String((e as any)?.code || '')
