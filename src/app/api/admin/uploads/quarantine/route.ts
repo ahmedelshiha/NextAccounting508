@@ -60,23 +60,13 @@ export async function GET(req: Request) {
       prisma.attachment.findMany({ where, orderBy, skip: (dbPage - 1) * dbLimit, take: dbLimit }),
     ])
 
-    // Try provider listing as well (optional)
-    const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
-    const mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
+    // Try provider listing as well (optional) using uploads-provider helper
     let providerItems: any[] = []
-    if (mod) {
-      try {
-        const Blobs = mod.Blobs || mod.default || mod
-        const token = process.env.NETLIFY_BLOBS_TOKEN
-        if (token) {
-          const store = new Blobs({ token })
-          if (typeof store.list === 'function') {
-            providerItems = await store.list({ prefix: 'quarantine/' }).catch(() => [])
-          }
-        }
-      } catch (e) {
-        await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', step: 'provider-list' })
-      }
+    try {
+      const { listQuarantine } = await import('@/lib/uploads-provider')
+      providerItems = await listQuarantine('quarantine/')
+    } catch (e) {
+      await captureErrorIfAvailable(e, { route: 'admin/uploads/quarantine', step: 'provider-list' })
     }
 
     // Apply simple server-side filtering for provider list (by key) and paginate in-memory
