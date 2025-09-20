@@ -72,8 +72,9 @@ export default function AdminServiceRequestsClient() {
     if (filters.dateTo) params.set('dateTo', filters.dateTo)
     if (filters.bookingType && filters.bookingType !== 'ALL') params.set('bookingType', filters.bookingType)
     if (typeTab !== 'ALL') params.set('type', typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests')
+    if (viewMode !== 'LIST') params.set('view', viewMode.toLowerCase())
     return params.toString()
-  }, [filters, page, limit, typeTab])
+  }, [filters, page, limit, typeTab, viewMode])
 
   const { items, pagination, isLoading, refresh } = useBookings({
     scope: 'admin',
@@ -126,8 +127,7 @@ export default function AdminServiceRequestsClient() {
   }
 
   const exportCsv = async () => {
-    const query = buildQuery + (typeTab !== 'ALL' ? `&type=${typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests'}` : '')
-    const res = await apiFetch(`/api/admin/service-requests/export?${query}`)
+    const res = await apiFetch(`/api/admin/service-requests/export?${buildQuery}`)
     if (!res.ok) return
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
@@ -139,6 +139,13 @@ export default function AdminServiceRequestsClient() {
     URL.revokeObjectURL(url)
     document.body.removeChild(a)
   }
+
+  // Keep URL in sync for deep-linking
+  useEffect(() => {
+    const qs = buildQuery
+    const href = `/admin/service-requests?${qs}`
+    router.replace(href)
+  }, [buildQuery, router])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
