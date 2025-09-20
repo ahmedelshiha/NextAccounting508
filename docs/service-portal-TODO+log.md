@@ -651,6 +651,10 @@ How to Resume
 - [x] 2025-09-20: Added route tests for availability endpoints (admin and portal).
   - Added: tests/admin-availability.route.test.ts, tests/portal-availability.route.test.ts
   - Why: Validate availability (DB path and fallback) to support Phase 2 unified booking and Phase 7 testing goals.
+- [x] 2025-09-20: Synced Admin Service Requests filters/view with URL for deep links; added export route tests.
+  - Updated: src/app/admin/service-requests/ClientPage.tsx (URL query sync on filters/view/page)
+  - Added: tests/admin-service-requests.export.test.ts (ensures orderBy scheduledAt for appointments, createdAt otherwise; CSV headers include scheduledAt/isBooking/bookingType)
+  - Why: Improve operator UX with shareable URLs and strengthen coverage for export filtering/ordering.
 
 - [x] 2025-09-21: Portal booking preferences UI and API.
   - Added: src/app/api/portal/settings/booking-preferences/route.ts (GET/PUT; zod-validated upsert; returns defaults when DB absent)
