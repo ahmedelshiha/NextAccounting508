@@ -116,6 +116,9 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     // Prepare update data based on user role
     const updateData: Partial<import('@prisma/client').Prisma.BookingUpdateInput> = {}
 
+    // Debug: log body and existing booking for test troubleshooting
+    try { console.debug && console.debug('PUT booking body', { body, existingBooking: existingBooking }) } catch {}
+
     if (isAdminOrStaff) {
       // Admin/Staff can update everything
       if (status) updateData.status = status as BookingStatus
