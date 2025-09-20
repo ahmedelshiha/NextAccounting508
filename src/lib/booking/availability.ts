@@ -76,6 +76,7 @@ export function generateAvailability(
   const result: AvailabilitySlot[] = []
   const start = new Date(from)
   const end = new Date(to)
+  const now = opts.now ?? new Date()
 
   for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     const wd = d.getDay() // 0..6
