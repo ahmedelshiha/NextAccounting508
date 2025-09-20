@@ -570,6 +570,10 @@ How to Resume
   - Updated: src/app/admin/service-requests/page.tsx (wires bookingType to query string)
   - Why: Enables filtering between STANDARD/RECURRING/EMERGENCY/CONSULTATION appointments.
   - Next: Surface bookingType in table column and analytics; wire portal/admin create to set bookingType when isBooking is true.
+- [x] 2025-09-20: Create API now accepts isBooking with scheduledAt (discriminated union) and stores booking fields.
+  - Updated: src/app/api/admin/service-requests/route.ts (CreateSchema union; persists isBooking, scheduledAt, duration, clientName/email/phone, bookingType)
+  - Why: Enable unified creation flow for appointments without breaking existing request payloads.
+  - Next: Update portal/admin create forms to send isBooking payload after migrations; add route/unit tests.
 - [x] 2025-09-20: Legacy /api/bookings back-compat forwarding to unified Service Requests.
   - Updated: src/app/api/bookings/route.ts (forwards to admin/portal service-requests; adds Deprecation/Link headers; maps legacy payload)
   - Why: Maintain compatibility while consolidating on unified API and schema.
