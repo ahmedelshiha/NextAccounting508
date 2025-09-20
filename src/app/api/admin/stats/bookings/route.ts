@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
 
     // Get bookings by status
     const [pending, confirmed, completed, cancelled] = await Promise.all([
-      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: BookingStatus.PENDING } }),
-      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: BookingStatus.CONFIRMED } }),
-      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: BookingStatus.COMPLETED } }),
-      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: BookingStatus.CANCELLED } })
+      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: 'PENDING' } }),
+      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: 'CONFIRMED' } }),
+      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: 'COMPLETED' } }),
+      prisma.booking.count({ where: { ...tenantFilter(tenantId), status: 'CANCELLED' } })
     ])
 
     // Get today's bookings
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     // Get revenue statistics
     const completedBookings = (await prisma.booking.findMany({
-      where: { ...tenantFilter(tenantId), status: BookingStatus.COMPLETED },
+      where: { ...tenantFilter(tenantId), status: 'COMPLETED' },
       include: {
         service: {
           select: { price: true }
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
           lte: nextWeek
         },
         status: {
-          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
+          in: ['PENDING','CONFIRMED']
         }
       }
     })
@@ -138,13 +138,13 @@ export async function GET(request: NextRequest) {
       const bookingsPrevRange = await prisma.booking.count({ where: { ...tenantFilter(tenantId), createdAt: { gte: prevStart, lt: start } } })
 
       const completedInRange = (await prisma.booking.findMany({
-        where: { ...tenantFilter(tenantId), status: BookingStatus.COMPLETED, createdAt: { gte: start } },
+        where: { ...tenantFilter(tenantId), status: 'COMPLETED', createdAt: { gte: start } },
         include: { service: { select: { price: true } } }
       })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
       const revenueInRange = sumDecimals(completedInRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
 
       const completedPrevRange = (await prisma.booking.findMany({
-        where: { ...tenantFilter(tenantId), status: BookingStatus.COMPLETED, createdAt: { gte: prevStart, lt: start } },
+        where: { ...tenantFilter(tenantId), status: 'COMPLETED', createdAt: { gte: prevStart, lt: start } },
         include: { service: { select: { price: true } } }
       })) as Array<import('@prisma/client').Booking & { service: { price: unknown } | null }>
       const _revenuePrevRange = sumDecimals(completedPrevRange.map(b => b?.service?.price as import('@/lib/decimal-utils').DecimalLike))
