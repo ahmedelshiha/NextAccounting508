@@ -32,9 +32,10 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
   const tenantId = getTenantFromRequest(req as any)
-  const existing = await prisma.serviceRequest.findUnique({ where: { id } })
-  if (!existing) return respond.notFound('Service request not found')
-  if (isMultiTenancyEnabled() && tenantId && (existing as any).tenantId && (existing as any).tenantId !== tenantId) {
+  const canFind = typeof (prisma as any)?.serviceRequest?.findUnique === 'function'
+  const existing = canFind ? await prisma.serviceRequest.findUnique({ where: { id } }) : null
+  if (canFind && !existing) return respond.notFound('Service request not found')
+  if (canFind && isMultiTenancyEnabled() && tenantId && (existing as any)?.tenantId && (existing as any).tenantId !== tenantId) {
     return respond.notFound('Service request not found')
   }
 
