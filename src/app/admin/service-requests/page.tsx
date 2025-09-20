@@ -1,8 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useServiceRequests } from '@/hooks/useServiceRequests'
 import { useBookings } from '@/hooks/useBookings'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,12 +16,6 @@ import ServiceRequestsBulkActions from '@/components/admin/service-requests/bulk
 import ServiceRequestsCalendarView from '@/components/admin/service-requests/calendar-view'
 import { useRealtime } from '@/hooks/useRealtime'
 
-interface ListResponse {
-  success?: boolean
-  data?: ServiceRequestItem[]
-  pagination?: { page: number; limit: number; total: number; totalPages: number }
-  error?: string
-}
 
 export default function AdminServiceRequestsPage() {
   const router = useRouter()
@@ -33,52 +26,34 @@ export default function AdminServiceRequestsPage() {
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
 
-  const [items, setItems] = useState<ServiceRequestItem[]>([])
-  const [pagination, setPagination] = useState<ListResponse['pagination'] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [refreshing, setRefreshing] = useState(false)
 
   const [typeTab, setTypeTab] = useState<'ALL' | 'REQUESTS' | 'APPOINTMENTS'>('ALL')
   const [viewMode, setViewMode] = useState<'LIST' | 'CALENDAR' | 'ANALYTICS'>('LIST')
 
-  const buildQuery = useMemo(() => {
-    const params = new URLSearchParams()
-    params.set('page', String(page))
-    params.set('limit', String(limit))
-    if (filters.q) params.set('q', filters.q)
-    if (filters.status !== 'ALL') params.set('status', filters.status)
-    if (filters.priority !== 'ALL') params.set('priority', filters.priority)
-    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
-    if (filters.dateTo) params.set('dateTo', filters.dateTo)
-    if (filters.bookingType && filters.bookingType !== 'ALL') params.set('bookingType', filters.bookingType)
-    if (typeTab !== 'ALL') params.set('type', typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests')
-    return params.toString()
-  }, [filters, page, limit, typeTab])
+  const { items, pagination, isLoading, refresh } = useBookings({
+    scope: 'admin',
+    page,
+    limit,
+    q: filters.q,
+    status: filters.status,
+    priority: filters.priority,
+    bookingType: filters.bookingType,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    type: typeTab === 'ALL' ? 'all' : typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests'
+  })
 
-  const load = useCallback(async () => {
-    setRefreshing(true)
-    try {
-      const res = await apiFetch(`/api/admin/service-requests?${buildQuery}`)
-      const j = await res.json().catch(() => ({})) as ListResponse
-      setItems(Array.isArray(j.data) ? j.data : [])
-      setPagination(j.pagination || null)
-      setSelected(new Set())
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [buildQuery])
-
-  useEffect(() => { void load() }, [load])
+  // Reset selection on data change
+  useEffect(() => { setSelected(new Set()) }, [items])
 
   // Realtime: refresh when updates come in
   useEffect(() => {
     if (!rt.events.length) return
     const last = rt.getLatestEvent('service-request-updated') || rt.getLatestEvent('team-assignment')
-    if (last) void load()
-  }, [rt.events, rt.getLatestEvent, load])
+    if (last) void refresh()
+  }, [rt.events, rt.getLatestEvent, refresh])
 
   const toggleAll = (checked: boolean) => {
     setSelected(checked ? new Set(items.map(i => i.id)) : new Set())
@@ -99,7 +74,7 @@ export default function AdminServiceRequestsPage() {
         <Card>
           <CardContent className="pt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <ServiceRequestFilters value={filters} onChange={(v) => { setFilters(v); setPage(1) }} onRefresh={load} refreshing={refreshing} />
+              <ServiceRequestFilters value={filters} onChange={(v) => { setFilters(v); setPage(1) }} onRefresh={async () => { setRefreshing(true); try { await refresh() } finally { setRefreshing(false) } }} refreshing={refreshing} />
               <div className="shrink-0">
                 {perms.has(PERMISSIONS.SERVICE_REQUESTS_CREATE) && (
                   <Button onClick={() => router.push('/admin/service-requests/new')} className="flex items-center gap-2">
@@ -127,7 +102,7 @@ export default function AdminServiceRequestsPage() {
                 </Tabs>
               </div>
 
-              {loading ? (
+              {isLoading ? (
                 <div className="text-center text-gray-400 py-12">Loading…</div>
               ) : viewMode === 'LIST' ? (
                 <ServiceRequestsTable
