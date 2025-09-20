@@ -544,6 +544,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Admin Service Requests table shows Scheduled column when available.
+  - Updated: src/components/admin/service-requests/table.tsx
+  - Why: Surface appointment times within list view to support mixed request/appointment triage.
+  - Next: After migrations add ServiceRequest.scheduledAt and isBooking; extend API ordering/filtering by scheduledAt.
 - [x] 2025-09-20: Booking ⇄ Service Request linking (Phase 1: lightweight link).
   - Updated: prisma/schema.prisma (Booking.serviceRequestId + relation + indexes)
   - Updated: src/app/api/bookings/[id]/route.ts (PUT accepts serviceRequestId for admin/staff; connects/disconnects relation)
