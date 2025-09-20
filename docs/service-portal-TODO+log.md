@@ -561,6 +561,10 @@ How to Resume
 - [ ] Update docs/ to reflect new endpoints and flows
 
 ## Change Log
+- [x] 2025-09-20: Added tests for portal confirm and reschedule endpoints.
+  - Added: tests/portal-confirm-reschedule.route.test.ts
+  - Why: Cover client actions for appointment confirmation and rescheduling.
+  - Next: Add admin list filtering tests; proceed to Phase 2 API refinements post-migrations.
 - [x] 2025-09-20: Refactored Admin Service Requests list to use useBookings (SWR) with filters/tabs support.
   - Updated: src/app/admin/service-requests/page.tsx; src/hooks/useBookings.ts
   - Why: Unify data access across admin/portal, support appointments tab via type param, and simplify realtime refresh.
