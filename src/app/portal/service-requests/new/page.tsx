@@ -30,6 +30,13 @@ export default function NewServiceRequestPage() {
   const [deadline, setDeadline] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  // Availability booking (optional)
+  const [appointmentDate, setAppointmentDate] = useState('')
+  const [slotDuration, setSlotDuration] = useState<number | ''>('')
+  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [slots, setSlots] = useState<{ start: string; end: string; available: boolean }[]>([])
+  const [selectedSlot, setSelectedSlot] = useState<string>('')
+
   const [files, setFiles] = useState<File[]>([])
   const [uploaded, setUploaded] = useState<Record<string, { url?: string; error?: string }>>({})
   const [uploadingKeys, setUploadingKeys] = useState<Record<string, boolean>>({})
