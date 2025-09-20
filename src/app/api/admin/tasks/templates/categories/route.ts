@@ -33,7 +33,8 @@ export async function GET(request?: Request) {
 
     // If schema has category, return distinct values; else return []
     try {
-      const rows = await prisma.taskTemplate.findMany({ select: { category: true } as any })
+      const tenantId = getTenantFromRequest(request as any)
+      const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), select: { category: true } as any })
       const set = new Set<string>()
       for (const r of rows as any[]) {
         if (r.category) set.add(String(r.category))
