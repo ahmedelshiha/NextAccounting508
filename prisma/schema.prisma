@@ -691,6 +691,13 @@ enum TaskStatus {
   BLOCKED
 }
 
+enum BookingType {
+  STANDARD
+  RECURRING
+  EMERGENCY
+  CONSULTATION
+}
+
 enum UserRole {
   CLIENT
   TEAM_MEMBER
