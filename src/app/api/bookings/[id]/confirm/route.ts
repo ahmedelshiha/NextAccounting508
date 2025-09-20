@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { BookingStatus } from '@prisma/client'
+import type { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { sendBookingConfirmation } from '@/lib/email'
