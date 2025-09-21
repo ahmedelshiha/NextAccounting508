@@ -366,6 +366,9 @@ Our consultation sessions are designed to provide you with actionable insights a
       console.log('✅ Demo bookings created')
     } catch (e) {
       console.warn('Skipping assignments/bookings due to error:', (e as any)?.message)
+      if (SEED_FAIL_FAST) {
+        throw e
+      }
     }
   }
 
@@ -782,12 +785,19 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('Client 2: client2@example.com / client123')
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e: unknown) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+// Exported function for smoke tests
+export async function runSeed() {
+  return main()
+}
+
+if (require.main === module) {
+  main()
+    .then(async () => {
+      await prisma.$disconnect()
+    })
+    .catch(async (e: unknown) => {
+      console.error(e)
+      await prisma.$disconnect()
+      process.exit(1)
+    })
+}
