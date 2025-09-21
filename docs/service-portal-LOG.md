@@ -56,3 +56,14 @@ Files changed/added:
 
 Next steps:
 - Link payment sessions to created ServiceRequests and persist payment status (separate TODO).
+
+---
+
+Update:
+- Added Admin Reminders page to review pending reminders and trigger a run.
+
+Files changed/added:
+- src/app/api/admin/reminders/run/route.ts (NEW)
+- src/components/admin/RunRemindersButton.tsx (NEW)
+- src/app/admin/reminders/page.tsx (NEW)
+- docs/service-portal-TODO.md (UPDATED)
