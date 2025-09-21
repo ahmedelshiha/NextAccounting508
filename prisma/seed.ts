@@ -747,9 +747,9 @@ Effective cash flow management requires ongoing attention and planning. Regular 
     await prisma.task.update({ where: { id: t2.id }, data: { assigneeId: staff.id } })
     await prisma.task.update({ where: { id: t3.id }, data: { assigneeId: admin.id } })
 
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t1.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t1.id } })
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t2.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t2.id } })
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_2', taskId: t3.id } }, update: {}, create: { serviceRequestId: 'sr_demo_2', taskId: t3.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_1', taskId: t1.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t1.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_1', taskId: t2.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t2.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_2', taskId: t3.id } }, update: {}, create: { serviceRequestId: 'sr_demo_2', taskId: t3.id } })
   } catch {}
 
   console.log('✅ Sample tasks and compliance records created')
