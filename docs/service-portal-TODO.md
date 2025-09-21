@@ -48,8 +48,8 @@
   - Deps: recurringPattern, parentBookingId; ConflictDetectionService
   - Complexity: L • Owner: backend
 - [x] Smart reminders & preferences
-  - Done: Implemented protected cron endpoint with idempotent sends, per-user BookingPreferences windows, locale/timezone formatting, and optional SMS webhook (guarded by env and user prefs).
-  - Next: Batch per-tenant scheduling to smooth load.
+  - Done: Implemented protected cron endpoint with idempotent sends, per-user BookingPreferences windows, locale/timezone formatting, optional SMS webhook (guarded by env and user prefs), and per-tenant batching with configurable concurrency.
+  - Next: Tune REMINDERS_TENANT_CONCURRENCY and monitor downstream provider rate limits.
   - Deps: BookingPreferences; SENDGRID_API_KEY; SMS_WEBHOOK_URL (optional)
   - Complexity: M • Owner: backend/ops
 
