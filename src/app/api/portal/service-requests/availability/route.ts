@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
+import { getAvailabilityForService } from '@/lib/booking/availability'
 import { z } from 'zod'
 
 const QuerySchema = z.object({
@@ -12,6 +13,8 @@ const QuerySchema = z.object({
   dateTo: z.string().datetime(),
   duration: z.coerce.number().min(15).max(8 * 60).optional(),
   teamMemberId: z.string().optional(),
+  includePrice: z.enum(['1','true']).optional(),
+  currency: z.string().optional(),
 })
 
 type Slot = { start: string; end: string; available: boolean }
@@ -44,53 +47,29 @@ export async function GET(request: Request) {
     dateTo: url.searchParams.get('dateTo') || '',
     duration: url.searchParams.get('duration') || undefined,
     teamMemberId: url.searchParams.get('teamMemberId') || undefined,
+    includePrice: url.searchParams.get('includePrice') || undefined,
+    currency: url.searchParams.get('currency') || undefined,
   })
   if (!parsed.success) return respond.badRequest('Invalid query', { issues: parsed.error.issues })
 
-  const { serviceId, dateFrom, dateTo, duration, teamMemberId } = parsed.data
+  const { serviceId, dateFrom, dateTo, duration, teamMemberId, includePrice, currency } = parsed.data
 
   try {
-    const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!svc || svc.active === false) return respond.notFound('Service not found or inactive')
-
-    const baseDuration = (svc.duration ?? 60)
-    const slotMinutes = duration ?? baseDuration
-
     const from = new Date(dateFrom)
     const to = new Date(dateTo)
+    const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId, options: { now: from } })
 
-    const busyBookings = await prisma.booking.findMany({
-      where: {
-        serviceId,
-        scheduledAt: { gte: from, lte: to },
-        status: { in: ['PENDING','CONFIRMED'] as any },
-        ...(teamMemberId ? { assignedTeamMemberId: teamMemberId } : {}),
-      },
-      select: { scheduledAt: true, duration: true },
-    })
-
-    const workStartHour = 9
-    const workEndHour = 17
-
-    const days: Slot[] = []
-    for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
-      const dayStart = new Date(d)
-      dayStart.setHours(workStartHour, 0, 0, 0)
-      const dayEnd = new Date(d)
-      dayEnd.setHours(workEndHour, 0, 0, 0)
-
-      const slots = generateSlots(dayStart, dayEnd, slotMinutes)
-      for (const s of slots) {
-        const hasConflict = busyBookings.some((b) => {
-          const bStart = new Date(b.scheduledAt)
-          const bEnd = new Date(bStart.getTime() + (b.duration ?? baseDuration) * 60_000)
-          return isOverlap(s.start, s.end, bStart, bEnd)
-        })
-        days.push({ start: s.start.toISOString(), end: s.end.toISOString(), available: !hasConflict })
-      }
+    if (includePrice) {
+      const { calculateServicePrice } = await import('@/lib/booking/pricing')
+      const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+      const slotMinutes = duration ?? Math.max(15, svc?.duration ?? 60)
+      const enriched = await Promise.all(slots.map(async (s) => {
+        const breakdown = await calculateServicePrice({ serviceId, scheduledAt: new Date(s.start), durationMinutes: slotMinutes, options: { currency } })
+        return { ...s, priceCents: breakdown.totalCents, currency: breakdown.currency }
+      }))
+      return respond.ok({ slots: enriched })
     }
-
-    return respond.ok({ slots: days })
+    return respond.ok({ slots })
   } catch (e: any) {
     const msg = String(e?.message || '')
     const code = String((e as any)?.code || '')

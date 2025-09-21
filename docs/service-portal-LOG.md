@@ -28,3 +28,17 @@
 
 ## Reference Plan
 - Booking enhancement plan: [docs/booking_enhancement_plan.md](./booking_enhancement_plan.md)
+
+---
+
+## 2025-09-20 — AvailabilityEngine implemented
+- Added src/lib/booking/availability.ts with business-hours, weekend skipping, booking buffers, daily caps, and deterministic now option.
+- Refactored admin and portal availability routes to use the engine with DB-backed conflicts and graceful fallbacks when DB unavailable.
+- Added unit tests (tests/availability.engine.test.ts) covering buffers, overlaps, weekend skipping, and daily caps — all passing.
+- Next: integrate blackout dates once Phase 1 schema is deployed; wire engine into multi-step booking wizard and pricing pipeline.
+
+## 2025-09-20 — PricingEngine implemented
+- Added src/lib/booking/pricing.ts supporting weekend/peak surcharges, duration overage (pro-rata), emergency surcharge, promo resolver, and currency conversion.
+- Integrated optional pricing into availability endpoints via includePrice and currency query params; returns priceCents and currency per slot.
+- Added tests (tests/pricing.engine.test.ts) — all passing. Updated availability tests to include compatibility change (all slots returned with available flag).
+- Next: surface pricing in Booking Wizard UI and add admin-configurable pricing settings.

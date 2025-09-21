@@ -8,8 +8,9 @@
   - Next: Set Neon/Netlify envs; run: pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify scheduledAt/isBooking fields live.
   - Deps: Neon DB, Netlify/GitHub secrets; netlify.toml migration steps.
   - Complexity: M • Owner: infra/backend
-- [ ] AvailabilityEngine (production-grade)
-  - Next: Implement src/lib/booking/availability.ts per plan §2.1; replace fallbacks; add unit tests (buffers, DST, weekends, daily caps).
+- [x] AvailabilityEngine (production-grade)
+  - Done: Implemented src/lib/booking/availability.ts; refactored admin/portal routes to use it; added unit tests for buffers, weekends, daily caps; deterministic now option.
+  - Next: Wire into Multi-step Booking Wizard and PricingEngine; expand blackoutDates once Phase 1 schema lands.
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
 - [ ] API compat + conflict handling
@@ -18,9 +19,10 @@
   - Complexity: S • Owner: backend
 
 ### P1 — High Priority
-- [ ] PricingEngine
-  - Next: Implement src/lib/booking/pricing.ts (peak/weekend, duration overage, emergency, promos); surface in availability and wizard.
-  - Deps: Service.basePrice, standardDuration, hourlyRate
+- [x] PricingEngine
+  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability endpoints via includePrice.
+  - Next: Integrate into multi-step Booking Wizard UI for on-the-fly totals; add admin settings for pricing modifiers.
+  - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
 - [ ] ConflictDetectionService
   - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
