@@ -40,8 +40,9 @@
   - Next: Add responsive/unit tests and finalize promo admin settings.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
-- [ ] Recurring bookings
-  - Next: Implement src/lib/booking/recurring.ts; accept recurringPattern; create parent/children; skip conflicts with logs.
+- [x] Recurring bookings
+  - Done: Implemented planning library and integrated into admin/portal create; accepts recurringPattern, creates parent and non-conflicting children, and logs skipped conflicts.
+  - Next: Add UI for pattern configuration and a preview endpoint; add route tests.
   - Deps: recurringPattern, parentBookingId; ConflictDetectionService
   - Complexity: L • Owner: backend
 - [ ] Smart reminders & preferences
