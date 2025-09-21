@@ -77,7 +77,8 @@ export async function sendBookingReminders() {
 export async function cleanupOldData() {
   try {
     const sixMonthsAgo = addDays(new Date(), -180)
-    
+    const thirtyDaysAgo = addDays(new Date(), -30)
+
     // Delete old unsubscribed newsletter subscriptions
     const deletedSubscriptions = await prisma.newsletter.deleteMany({
       where: {
@@ -98,11 +99,23 @@ export async function cleanupOldData() {
       }
     })
 
-    console.log(`Cleanup completed: ${deletedSubscriptions.count} old subscriptions, ${deletedSubmissions.count} old submissions deleted`)
-    
+    // Delete chat messages older than 30 days (if table exists)
+    let deletedChat = 0
+    try {
+      const res = await prisma.chatMessage.deleteMany({
+        where: { createdAt: { lt: thirtyDaysAgo } }
+      })
+      deletedChat = res.count || 0
+    } catch {
+      // ignore if table/model not present
+    }
+
+    console.log(`Cleanup completed: ${deletedSubscriptions.count} old subscriptions, ${deletedSubmissions.count} old submissions, ${deletedChat} old chat messages deleted`)
+
     return {
       deletedSubscriptions: deletedSubscriptions.count,
-      deletedSubmissions: deletedSubmissions.count
+      deletedSubmissions: deletedSubmissions.count,
+      deletedChat
     }
   } catch (error) {
     console.error('Error in cleanupOldData:', error)
