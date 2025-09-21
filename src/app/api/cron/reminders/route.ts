@@ -276,7 +276,21 @@ export async function POST(req: Request) {
           await captureErrorIfAvailable(e, { route: 'cron:reminders:sms', id: appt.id })
         }
 
-        await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
+        // Mark the scheduled reminder (if used) as sent
+        if ((appt as any).scheduledReminderId) {
+          try { await prisma.scheduledReminder.update({ where: { id: (appt as any).scheduledReminderId }, data: { sent: true } }) } catch {}
+          // After marking scheduledReminder as sent, check if there are any remaining unsent reminders for this serviceRequest
+          try {
+            const remaining = await prisma.scheduledReminder.count({ where: { serviceRequestId: appt.id, sent: false } }).catch(() => 0)
+            if (remaining === 0) {
+              try { await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } }) } catch {}
+            }
+          } catch {}
+        } else {
+          // Fallback for legacy flow: mark serviceRequest.reminderSent true
+          try { await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } }) } catch {}
+        }
+
         try { await logAuditSafe({ action: 'booking:reminder:sent', details: { serviceRequestId: appt.id, scheduledAt, reminderHours } }) } catch {}
         results.push({ id: appt.id, sent: true })
         tenantStats[tenantKey].sent++
