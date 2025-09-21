@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import LogoutButton from '@/components/ui/LogoutButton'
-import { Menu, X, User, LogOut, Settings, Calendar, Bell } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Calendar, Bell, BarChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -107,6 +107,36 @@ export function Navigation() {
                 {item.name}
               </Link>
             ))}
+
+            {isAdminUser && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="px-3 py-2 text-sm font-medium rounded-md">
+                    Admin
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/cron-telemetry" className="flex items-center">
+                      <BarChart className="mr-2 h-4 w-4" />
+                      Cron Telemetry
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/users" className="flex items-center">
+                      <User className="mr-2 h-4 w-4" />
+                      Users
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* Desktop Auth & CTA */}
@@ -152,6 +182,12 @@ export function Navigation() {
                             Settings
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/cron-telemetry" className="flex items-center">
+                            <BarChart className="mr-2 h-4 w-4" />
+                            Cron Telemetry
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <LogoutButton className="flex items-center text-red-600 w-full text-left">
@@ -175,12 +211,20 @@ export function Navigation() {
                           </Link>
                         </DropdownMenuItem>
                         {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin" className="flex items-center">
-                              <Settings className="mr-2 h-4 w-4" />
-                              Admin Panel
-                            </Link>
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/admin" className="flex items-center">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Admin Panel
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/admin/cron-telemetry" className="flex items-center">
+                                <BarChart className="mr-2 h-4 w-4" />
+                                Cron Telemetry
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -261,6 +305,13 @@ export function Navigation() {
                         >
                           Settings
                         </Link>
+                        <Link
+                          href="/admin/cron-telemetry"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Cron Telemetry
+                        </Link>
                       </>
                     ) : (
                       <>
@@ -279,13 +330,22 @@ export function Navigation() {
                           Settings
                         </Link>
                         {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
-                          <Link
-                            href="/admin"
-                            className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Admin Panel
-                          </Link>
+                          <>
+                            <Link
+                              href="/admin"
+                              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Admin Panel
+                            </Link>
+                            <Link
+                              href="/admin/cron-telemetry"
+                              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Cron Telemetry
+                            </Link>
+                          </>
                         )}
                       </>
                     )}

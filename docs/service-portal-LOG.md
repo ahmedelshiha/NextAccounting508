@@ -86,3 +86,11 @@
 ## 2025-09-21 — API compatibility completed
 - Confirmed deprecation headers on /api/bookings, conflict 409 tests present; forwarding maintained.
 - Next: add docs note on deprecation window and communicate timeline.
+
+## 2025-09-21 — Smart reminders: SMS webhook, i18n formatting, idempotency
+- Added optional SMS webhook to cron reminders (guarded by SMS_WEBHOOK_URL and user smsReminder). Uses locale/timezone-aware date/time formatting and includes metadata for traceability.
+- Email reminders continue to respect BookingPreferences windows; reminders are marked idempotently and audit logged. Errors are captured via observability helpers; no-DB path safely noops.
+- Done: implemented per-tenant batching and throttled processing (configurable via REMINDERS_TENANT_CONCURRENCY) to reduce burst load on email/SMS providers.
+- Done: implemented interleaved (round-robin) ordering and global concurrency with telemetry (REMINDERS_GLOBAL_CONCURRENCY) to balance tenant load and provide actionable metrics.
+- Done: implemented tenant-weighted backoff using historical telemetry; the scheduler now defers part of a tenant's reminders when recent failure rates exceed REMINDERS_BACKOFF_THRESHOLD (defaults to 10%). Deferred counts are included in audit logs for tuning.
+- Next: monitor delivery rates and tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY; consider tenant-priority and SLA-based weighting for future improvements.

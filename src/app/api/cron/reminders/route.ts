@@ -40,38 +40,178 @@ export async function POST(req: Request) {
       select: {
         id: true,
         scheduledAt: true,
+        clientPhone: true,
+        tenantId: true,
         client: { select: { id: true, name: true, email: true } },
         service: { select: { name: true } },
       },
       take: 500,
     })
 
-    const results: Array<{ id: string; sent: boolean; reason?: string }> = []
-
+    // Group appointments by tenant to allow balanced processing and reduce per-tenant bursts
+    const byTenant = new Map<string, any[]>()
     for (const appt of upcoming) {
+      const key = String(appt.tenantId || 'default')
+      if (!byTenant.has(key)) byTenant.set(key, [])
+      byTenant.get(key)!.push(appt)
+    }
+
+    const totalAppts = upcoming.length
+    const perTenantCounts: Record<string, number> = {}
+    for (const [k, v] of byTenant.entries()) perTenantCounts[k] = v.length
+
+    // Read recent audit logs to compute per-tenant failure rates (best-effort)
+    let perTenantFailureRate: Record<string, number> = {}
+    try {
+      const logs = await prisma.healthLog.findMany({
+        where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
+        orderBy: { checkedAt: 'desc' },
+        take: 20,
+      })
+      const agg: Record<string, { processed: number; failed: number }> = {}
+      for (const l of logs) {
+        try {
+          const parsed = JSON.parse(String(l.message))
+          const details = parsed.details || {}
+          const stats = details.tenantStats || {}
+          for (const t in stats) {
+            const s = stats[t]
+            agg[t] = agg[t] || { processed: 0, failed: 0 }
+            agg[t].processed += Number(s.total || 0)
+            agg[t].failed += Number(s.failed || 0)
+          }
+        } catch {}
+      }
+      for (const t of Object.keys(agg)) {
+        const a = agg[t]
+        perTenantFailureRate[t] = a.processed > 0 ? a.failed / a.processed : 0
+      }
+    } catch (e) {
+      // ignore; we'll fall back to defaults
+      perTenantFailureRate = {}
+    }
+
+    // Determine allowed per-tenant share using backoff rule based on recent failure rate
+    const backoffThreshold = Number(process.env.REMINDERS_BACKOFF_THRESHOLD || 0.10) // start backoff above this failure rate
+    const minShare = Number(process.env.REMINDERS_MIN_SHARE || 0.1) // minimum fraction allowed
+    const tenantAllowed: Record<string, number> = {}
+
+    for (const [k, arr] of byTenant.entries()) {
+      const fr = perTenantFailureRate[k] ?? 0
+      let factor = 1
+      if (fr <= backoffThreshold) factor = 1
+      else {
+        // Linear reduction: as failureRate increases above threshold, reduce allowed share
+        factor = Math.max(minShare, 1 - (fr - backoffThreshold) * 2)
+      }
+      tenantAllowed[k] = Math.max(1, Math.ceil(arr.length * factor))
+    }
+
+    // Build an interleaved processing order (round-robin) but only up to allowed per-tenant counts
+    const tenantKeys = Array.from(byTenant.keys())
+    const pointers: Record<string, number> = {}
+    for (const k of tenantKeys) pointers[k] = 0
+    const orderedAppts: any[] = []
+    let remaining = tenantKeys.reduce((s, k) => s + (tenantAllowed[k] || 0), 0)
+    while (remaining > 0) {
+      for (const t of tenantKeys) {
+        const arr = byTenant.get(t) || []
+        const p = pointers[t] || 0
+        const allowed = tenantAllowed[t] || 0
+        if (p < allowed && arr[p]) {
+          orderedAppts.push({ tenant: t, appt: arr[p] })
+          pointers[t] = p + 1
+          remaining--
+        }
+      }
+      // safety break
+      if (orderedAppts.length > totalAppts) break
+    }
+
+    // Record deferred counts for observability
+    const deferred: Record<string, number> = {}
+    for (const k of tenantKeys) {
+      const arr = byTenant.get(k) || []
+      deferred[k] = Math.max(0, arr.length - (tenantAllowed[k] || 0))
+    }
+
+    // Results and per-tenant telemetry
+    const results: Array<{ id: string; sent: boolean; reason?: string }> = []
+    const tenantStats: Record<string, { total: number; sent: number; failed: number }> = {}
+    for (const k of tenantKeys) tenantStats[k] = { total: perTenantCounts[k] || 0, sent: 0, failed: 0 }
+
+    // Tunable concurrency knobs with an in-process automatic tuner using recent telemetry
+    const defaultGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY || 10)
+    const defaultTenant = Number(process.env.REMINDERS_TENANT_CONCURRENCY || 3)
+    const maxGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MAX || 50)
+    const minGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MIN || 2)
+
+    // Compute global error rate (aggregate of per-tenant recent rates)
+    let errorRate = 0
+    try {
+      const logs = await prisma.healthLog.findMany({
+        where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
+        orderBy: { checkedAt: 'desc' },
+        take: 10,
+      })
+      let processedSum = 0
+      let failedSum = 0
+      for (const l of logs) {
+        try {
+          const parsed = JSON.parse(String(l.message))
+          const details = parsed.details || {}
+          const stats = details.tenantStats || {}
+          let localProcessed = Number(details.processed || 0)
+          let localFailed = 0
+          // aggregate failed from tenantStats if present
+          for (const t in stats) {
+            localFailed += Number((stats[t].failed) || 0)
+          }
+          processedSum += localProcessed
+          failedSum += localFailed
+        } catch {}
+      }
+      if (processedSum > 0) errorRate = failedSum / processedSum
+    } catch (e) {
+      errorRate = 0
+    }
+
+    // Adjust concurrency heuristics
+    let effectiveGlobal = defaultGlobal
+    if (errorRate > 0.10) {
+      effectiveGlobal = Math.max(minGlobal, Math.floor(defaultGlobal * 0.5))
+    } else if (errorRate > 0.05) {
+      effectiveGlobal = Math.max(minGlobal, Math.floor(defaultGlobal * 0.75))
+    } else if (errorRate < 0.02) {
+      effectiveGlobal = Math.min(maxGlobal, defaultGlobal + 2)
+    }
+
+    const effectiveTenant = Math.max(1, Math.floor(defaultTenant * (errorRate > 0.10 ? 0.5 : 1)))
+
+    // Helper to process a single appointment (shared logic)
+    async function processAppointmentItem(item: { tenant: string; appt: any }) {
+      const appt = item.appt
+      const tenantKey = item.tenant
       try {
-        // Resolve booking preferences for the client; default windows if none.
         const prefs = await prisma.bookingPreferences.findUnique({ where: { userId: appt.client.id } }).catch(() => null)
         const hoursList = (prefs?.emailReminder !== false ? prefs?.reminderHours : []) ?? []
         const reminderHours = hoursList.length > 0 ? hoursList : [24, 2]
 
-        // Compute whether current time is within a window for any configured hour prior to appointment.
-        // We use a +/- 15 minute tolerance to account for scheduler jitter.
         const scheduledAt = new Date(appt.scheduledAt!)
         const msUntil = scheduledAt.getTime() - now.getTime()
         const hoursUntil = msUntil / 3_600_000
-        const withinWindow = reminderHours.some((h) => Math.abs(hoursUntil - h) <= 0.25) // 15 min window
+        const withinWindow = reminderHours.some((h) => Math.abs(hoursUntil - h) <= 0.25)
 
         if (!withinWindow) {
           results.push({ id: appt.id, sent: false, reason: 'outside_window' })
-          continue
+          tenantStats[tenantKey].failed++
+          return
         }
 
-        // Compose and send reminder email (SendGrid optional; falls back to console log in dev)
         await sendBookingReminder(
           {
             id: appt.id,
-            scheduledAt: scheduledAt,
+            scheduledAt,
             clientName: appt.client.name || appt.client.email || 'Client',
             clientEmail: appt.client.email || '',
             service: { name: appt.service.name },
@@ -79,18 +219,61 @@ export async function POST(req: Request) {
           { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
         )
 
-        // Mark as reminded to ensure idempotency
-        await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
+        // Optional SMS
+        try {
+          const smsUrl = process.env.SMS_WEBHOOK_URL
+          const smsAuth = process.env.SMS_WEBHOOK_AUTH
+          const wantsSms = prefs?.smsReminder === true
+          if (smsUrl && wantsSms && appt.clientPhone) {
+            const locale = (prefs?.preferredLanguage || 'en-US')
+            const tzOpt = prefs?.timeZone ? { timeZone: prefs.timeZone } as const : undefined
+            const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
+            const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
+            const message = `Reminder: ${appt.service.name} on ${formattedDate} at ${formattedTime}`
 
+            await fetch(smsUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(smsAuth ? { Authorization: smsAuth } : {}),
+              },
+              body: JSON.stringify({
+                to: appt.clientPhone,
+                message,
+                metadata: { serviceRequestId: appt.id, tenantId: appt.tenantId, type: 'booking-reminder' },
+              }),
+            })
+          }
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'cron:reminders:sms', id: appt.id })
+        }
+
+        await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
         try { await logAuditSafe({ action: 'booking:reminder:sent', details: { serviceRequestId: appt.id, scheduledAt, reminderHours } }) } catch {}
         results.push({ id: appt.id, sent: true })
+        tenantStats[tenantKey].sent++
       } catch (e) {
         await captureErrorIfAvailable(e, { route: 'cron:reminders:send', id: appt.id })
         results.push({ id: appt.id, sent: false, reason: 'error' })
+        tenantStats[tenantKey].failed++
       }
     }
 
-    return NextResponse.json({ success: true, processed: results.length, results })
+    // Process ordered appointments in global concurrent batches using the tuned concurrency
+    const startTs = Date.now()
+    for (let i = 0; i < orderedAppts.length; i += effectiveGlobal) {
+      const batch = orderedAppts.slice(i, i + effectiveGlobal)
+      await Promise.all(batch.map((it) => processAppointmentItem(it)))
+    }
+
+    const durationMs = Date.now() - startTs
+
+    // Emit telemetry/audit entry summarizing the run (includes chosen effective concurrency)
+    try {
+      await logAuditSafe({ action: 'reminders:batch_summary', details: { totalAppts, perTenantCounts, tenantStats, processed: results.length, durationMs, effectiveGlobal, effectiveTenant, errorRate } })
+    } catch {}
+
+    return NextResponse.json({ success: true, processed: results.length, results, tenantStats, durationMs, effectiveGlobal, effectiveTenant, errorRate })
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'cron:reminders' })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

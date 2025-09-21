@@ -47,9 +47,10 @@
   - Next: Add UI for pattern configuration; add route tests for preview endpoints and creation flows.
   - Deps: recurringPattern, parentBookingId; ConflictDetectionService
   - Complexity: L • Owner: backend
-- [ ] Smart reminders & preferences
-  - Next: Batch per-tenant scheduling; SMS hook (guarded); i18n templates; idempotent sends.
-  - Deps: BookingPreferences; SENDGRID_API_KEY
+- [x] Smart reminders & preferences
+  - Done: Implemented protected cron endpoint with idempotent sends, per-user BookingPreferences windows, locale/timezone formatting, optional SMS webhook (guarded by env and user prefs), per-tenant batching with configurable concurrency, and tenant-weighted backoff driven by telemetry.
+  - Next: Tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY and monitor downstream provider rate limits.
+  - Deps: BookingPreferences; SENDGRID_API_KEY; SMS_WEBHOOK_URL (optional)
   - Complexity: M • Owner: backend/ops
 
 ### P2 — Medium Priority
