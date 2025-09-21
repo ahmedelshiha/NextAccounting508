@@ -16,3 +16,19 @@ vi.mock('next-auth/react', () => ({
 vi.mock('next-auth/jwt', () => ({
   getToken: vi.fn(async () => null),
 }))
+
+// Polyfill Web File in Node test env
+if (typeof (globalThis as any).File === 'undefined') {
+  class NodeFile extends Blob {
+    name: string
+    lastModified: number
+    type: string
+    constructor(chunks: any[], name: string, options?: any) {
+      super(chunks, options)
+      this.name = name
+      this.lastModified = Date.now()
+      this.type = options?.type || ''
+    }
+  }
+  ;(globalThis as any).File = NodeFile as any
+}

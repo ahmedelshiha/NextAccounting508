@@ -87,11 +87,12 @@ export async function GET(request: NextRequest) {
     const bookingType = (searchParams.get('bookingType') || '').toUpperCase()
 
     const minAdvanceHours = typeof service.minAdvanceHours === 'number' ? service.minAdvanceHours : 0
-    const advanceDays = typeof service.advanceBookingDays === 'number' ? service.advanceBookingDays : 30
+    const advanceDays = typeof service.advanceBookingDays === 'number' ? service.advanceBookingDays : null
 
     // If emergency booking requested, skip minAdvance enforcement
     const windowStart = bookingType === 'EMERGENCY' ? now : new Date(now.getTime() + minAdvanceHours * 60 * 60 * 1000)
-    const windowEnd = new Date(now.getTime() + advanceDays * 24 * 60 * 60 * 1000)
+    // Only cap the end window when advanceBookingDays is explicitly configured; otherwise allow the requested range
+    const windowEnd = advanceDays != null ? new Date(now.getTime() + advanceDays * 24 * 60 * 60 * 1000) : rangeEnd
 
     // Business hours normalization and options
     const businessHours = normalizeBusinessHours(service.businessHours as any)

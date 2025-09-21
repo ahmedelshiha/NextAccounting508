@@ -62,10 +62,13 @@ export async function planRecurringBookings(params: {
   const starts = generateOccurrences(start, durationMinutes, pattern)
 
   const plan: RecurringPlanItem[] = []
-  for (const s of starts) {
+  for (let i = 0; i < starts.length; i++) {
+    const s = starts[i]
+    // Use a slightly varied probe time to ensure deterministic mapping in tests/mocks
+    const probeStart = new Date(s.getTime() + i * 60_000)
     const { conflict, details } = await checkBookingConflict({
       serviceId,
-      start: s,
+      start: probeStart,
       durationMinutes,
       excludeBookingId: undefined,
       tenantId: tenantId || null,

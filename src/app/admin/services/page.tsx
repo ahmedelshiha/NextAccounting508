@@ -57,15 +57,16 @@ export default function ServicesAdminPage() {
     try {
       if (initial) setLoading(true)
       const qp = new URLSearchParams()
-      if (filters.featured === 'featured') qp.set('featured', 'true')
-      if (filters.status === 'active') qp.set('active', 'true')
-      if (filters.status === 'inactive') qp.set('active', 'false')
+      if (filters.featured !== 'all') qp.set('featured', filters.featured)
+      if (filters.status !== 'all') qp.set('status', filters.status)
       if (filters.search) qp.set('search', filters.search)
       if (filters.category && filters.category !== 'all') qp.set('category', filters.category)
+      qp.set('limit', '100')
       const res = await apiFetch(`/api/admin/services${qp.toString() ? `?${qp.toString()}` : ''}`)
       if (!res.ok) throw new Error('Failed to load services')
       const json = await res.json()
-      const list = Array.isArray(json) ? json.map(toServiceType) : []
+      const rawList = Array.isArray(json) ? json : (Array.isArray(json?.services) ? json.services : (Array.isArray(json?.items) ? json.items : []))
+      const list = rawList.map(toServiceType)
       setServices(list)
     } catch (e) {
       console.error('load services', e)
@@ -152,7 +153,7 @@ export default function ServicesAdminPage() {
     if (!editing) return
     try {
       setFormLoading(true)
-      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(editing.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) })
+      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(editing.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) })
       if (!res.ok) throw new Error('Update failed')
       toast.success('Service updated')
       setEditing(null)
@@ -167,7 +168,7 @@ export default function ServicesAdminPage() {
   const handleDelete = async (service: ServiceType) => {
     if (!confirm('Delete this service?')) return
     try {
-      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.slug)}`, { method: 'DELETE' })
+      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.id)}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Delete failed')
       toast.success('Service deleted')
       await load()
@@ -187,7 +188,7 @@ export default function ServicesAdminPage() {
 
   const handleToggleActive = async (service: ServiceType) => {
     try {
-      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: !service.active }) })
+      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: !service.active }) })
       if (!res.ok) throw new Error('Toggle failed')
       await load()
     } catch (e) { console.error(e); toast.error('Failed to toggle') }
@@ -195,7 +196,7 @@ export default function ServicesAdminPage() {
 
   const handleToggleFeatured = async (service: ServiceType) => {
     try {
-      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured: !service.featured }) })
+      const res = await apiFetch(`/api/admin/services/${encodeURIComponent(service.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured: !service.featured }) })
       if (!res.ok) throw new Error('Toggle failed')
       await load()
     } catch (e) { console.error(e); toast.error('Failed to toggle') }
@@ -210,29 +211,29 @@ export default function ServicesAdminPage() {
         await Promise.all(action.serviceIds.map(id => {
           const s = services.find(x => x.id === id)
           if (!s) return Promise.resolve(null)
-          return apiFetch(`/api/admin/services/${encodeURIComponent(s.slug)}`, { method: 'DELETE' })
+          return apiFetch(`/api/admin/services/${encodeURIComponent(s.id)}`, { method: 'DELETE' })
         }))
       } else if (action.action === 'activate' || action.action === 'deactivate') {
         const active = action.action === 'activate'
         await Promise.all(action.serviceIds.map(id => {
           const s = services.find(x => x.id === id); if (!s) return Promise.resolve(null)
-          return apiFetch(`/api/admin/services/${encodeURIComponent(s.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active }) })
+          return apiFetch(`/api/admin/services/${encodeURIComponent(s.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active }) })
         }))
       } else if (action.action === 'feature' || action.action === 'unfeature') {
         const featured = action.action === 'feature'
         await Promise.all(action.serviceIds.map(id => {
           const s = services.find(x => x.id === id); if (!s) return Promise.resolve(null)
-          return apiFetch(`/api/admin/services/${encodeURIComponent(s.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured }) })
+          return apiFetch(`/api/admin/services/${encodeURIComponent(s.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured }) })
         }))
       } else if (action.action === 'category' && typeof action.value === 'string') {
         await Promise.all(action.serviceIds.map(id => {
           const s = services.find(x => x.id === id); if (!s) return Promise.resolve(null)
-          return apiFetch(`/api/admin/services/${encodeURIComponent(s.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ category: action.value }) })
+          return apiFetch(`/api/admin/services/${encodeURIComponent(s.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ category: action.value }) })
         }))
       } else if (action.action === 'price-update' && typeof action.value === 'number') {
         await Promise.all(action.serviceIds.map(id => {
           const s = services.find(x => x.id === id); if (!s) return Promise.resolve(null)
-          return apiFetch(`/api/admin/services/${encodeURIComponent(s.slug)}`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ price: action.value }) })
+          return apiFetch(`/api/admin/services/${encodeURIComponent(s.id)}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ price: action.value }) })
         }))
       }
       toast.success('Bulk action completed')
