@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
     const successUrl = String(body.successUrl || `${new URL(request.url).origin}/portal`)
     const cancelUrl = String(body.cancelUrl || `${new URL(request.url).origin}/booking`)
 
+    // Optional: serviceRequestId to bind payment session preemptively
+    const serviceRequestId = body.serviceRequestId ? String(body.serviceRequestId) : undefined
+
     const sessionObj = await stripe.checkout.sessions.create({
       mode: 'payment',
       success_url: successUrl,
