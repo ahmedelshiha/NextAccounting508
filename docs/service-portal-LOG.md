@@ -86,3 +86,8 @@
 ## 2025-09-21 — API compatibility completed
 - Confirmed deprecation headers on /api/bookings, conflict 409 tests present; forwarding maintained.
 - Next: add docs note on deprecation window and communicate timeline.
+
+## 2025-09-21 — Smart reminders: SMS webhook, i18n formatting, idempotency
+- Added optional SMS webhook to cron reminders (guarded by SMS_WEBHOOK_URL and user smsReminder). Uses locale/timezone-aware date/time formatting and includes metadata for traceability.
+- Email reminders continue to respect BookingPreferences windows; reminders are marked idempotently and audit logged. Errors are captured via observability helpers; no-DB path safely noops.
+- Next: batch per-tenant scheduling to distribute load evenly during reminder windows.

@@ -40,6 +40,8 @@ export async function POST(req: Request) {
       select: {
         id: true,
         scheduledAt: true,
+        clientPhone: true,
+        tenantId: true,
         client: { select: { id: true, name: true, email: true } },
         service: { select: { name: true } },
       },
@@ -78,6 +80,35 @@ export async function POST(req: Request) {
           },
           { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
         )
+
+        // Optionally send SMS reminder when enabled and configured
+        try {
+          const smsUrl = process.env.SMS_WEBHOOK_URL
+          const smsAuth = process.env.SMS_WEBHOOK_AUTH
+          const wantsSms = prefs?.smsReminder === true
+          if (smsUrl && wantsSms && appt.clientPhone) {
+            const locale = (prefs?.preferredLanguage || 'en-US')
+            const tzOpt = prefs?.timeZone ? { timeZone: prefs.timeZone } as const : undefined
+            const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
+            const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
+            const message = `Reminder: ${appt.service.name} on ${formattedDate} at ${formattedTime}`
+
+            await fetch(smsUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(smsAuth ? { Authorization: smsAuth } : {}),
+              },
+              body: JSON.stringify({
+                to: appt.clientPhone,
+                message,
+                metadata: { serviceRequestId: appt.id, tenantId: appt.tenantId, type: 'booking-reminder' },
+              }),
+            })
+          }
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'cron:reminders:sms', id: appt.id })
+        }
 
         // Mark as reminded to ensure idempotency
         await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
