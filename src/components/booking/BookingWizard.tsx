@@ -273,8 +273,13 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 2: Date & time */}
+      {/* Step 2: Team member selection (optional) */}
       {currentStep === 2 && (
+        <TeamMemberSelection serviceId={selectedService?.id} value={selectedTeamMemberId} onChange={(id) => { setSelectedTeamMemberId(id); setSelectedTime(''); }} />
+      )}
+
+      {/* Step 3: Date & time */}
+      {currentStep === 3 && (
         <Card>
           <CardHeader>
             <CardTitle>Choose Date & Time</CardTitle>
