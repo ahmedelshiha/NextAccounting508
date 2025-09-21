@@ -195,6 +195,40 @@ export async function getAvailabilityForService(params: {
     return { start, end }
   })
 
+  // Include admin-managed AvailabilitySlot entries as busy windows when they block availability
+  try {
+    const slotWhere: any = { serviceId, date: { gte: from, lte: to } }
+    if (teamMemberId) slotWhere.teamMemberId = teamMemberId
+    const availSlots = await prisma.availabilitySlot.findMany({ where: slotWhere })
+    for (const s of availSlots) {
+      try {
+        // If the slot is explicitly unavailable, block the interval
+        if (s.available === false) {
+          const date = new Date(s.date)
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const start = new Date(date)
+          start.setHours(sh, sm, 0, 0)
+          const end = new Date(date)
+          end.setHours(eh, em, 0, 0)
+          busy.push({ start, end })
+        } else if (typeof s.maxBookings === 'number' && s.maxBookings > 0 && typeof s.currentBookings === 'number' && s.currentBookings >= s.maxBookings) {
+          // If slot is full according to maxBookings/currentBookings, treat as busy
+          const date = new Date(s.date)
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const start = new Date(date)
+          start.setHours(sh, sm, 0, 0)
+          const end = new Date(date)
+          end.setHours(eh, em, 0, 0)
+          busy.push({ start, end })
+        }
+      } catch {}
+    }
+  } catch (e) {
+    // ignore availability slot errors and continue with bookings
+  }
+
   const slots = generateAvailability(from, to, minutes, busy, {
     ...options,
     bookingBufferMinutes,
