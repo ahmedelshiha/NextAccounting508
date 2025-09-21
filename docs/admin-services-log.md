@@ -1,9 +1,13 @@
-## [2025-09-21] Netlify preview smoke test workflow extended
-What I updated:
-- Extended the preview smoke test to check /api/db-check and /api/admin/system/health in addition to root /. The workflow treats a 401 from the admin health endpoint as "reachable" (auth-protected), but requires /api/db-check to return 200.
+## [2025-09-21] Playwright preview login test added
+What I implemented:
+- Added Playwright E2E test (tests/e2e/preview-login.spec.ts) that attempts a headless UI login using PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD or uses PREVIEW_SESSION_COOKIE fallback.
+- Updated Netlify preview workflow to install Playwright and run the E2E test against the preview URL after the basic smoke checks.
 
 Why:
-- Ensure critical backend health endpoints are reachable in preview builds. /api/db-check verifies DB connectivity; admin health confirms the health endpoint is reachable (even when auth-protected).
+- Validate that protected admin endpoints are reachable and authenticated in preview environments, reducing surprises when merging.
 
 Next steps:
-- Monitor smoke test runs on PRs. If admin system health should be publicly accessible for previews, we can either mock auth in CI or provision a preview-only API key/session to validate the endpoint fully.
+- Ensure repository secrets are set:
+  - PREVIEW_ADMIN_EMAIL, PREVIEW_ADMIN_PASSWORD (or PREVIEW_SESSION_COOKIE)
+  - NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (already used by workflow)
+- Monitor runs and adapt selectors/login flow if the preview login form uses a non-standard structure.
