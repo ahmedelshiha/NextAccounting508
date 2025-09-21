@@ -44,3 +44,9 @@
 ## 2025-09-21 — Portal bookings array handling bugfix
 - Fixed client crash on /portal and /portal/bookings when API returns wrapped shape { success, data }.
 - Updated pages to unwrap json.data safely and fallback to []. Prevents "j.filter is not a function" in production.
+
+## 2025-09-21 — CI: TypeScript NextResponse import fix
+- What: Imported NextResponse from 'next/server' into two API route files that were missing the import (src/app/api/admin/users/route.ts, src/app/api/admin/stats/users/route.ts).
+- Why: Netlify build failed during TypeScript compilation (tsc --noEmit) with "Cannot find name 'NextResponse'". This prevented successful deploys.
+- Impact: Allows the TypeScript compile step to succeed for these routes and removes the immediate build blocker.
+- Next steps: Trigger Netlify deploy to confirm; run a repository-wide grep for any additional routes referencing NextResponse without import and patch as needed.
