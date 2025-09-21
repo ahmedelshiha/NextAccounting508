@@ -82,3 +82,16 @@ Why
 Files Changed
 - src/components/ui/navigation.tsx (navigation items)
 - docs/service-portal-TODO.md (mark item complete)
+
+## 2025-09-21 — Service Portal TODO Reorganization
+
+Summary
+- Rewrote docs/service-portal-TODO.md into a prioritized, dependency-aware plan with measurable acceptance criteria.
+- Removed duplicates and outdated items; grouped work into P0/P1/P2/P3 phases.
+
+Why
+- Original checklist mixed historical notes with tasks, making execution sequencing unclear.
+- New structure improves clarity, testability, and CI readiness.
+
+Next Steps
+- Execute P0 items first (schema deploy and proxy 409 tests), then proceed through P1 API/tests and uploads/AV configuration.
