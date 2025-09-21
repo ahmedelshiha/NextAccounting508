@@ -152,6 +152,12 @@ export function Navigation() {
                             Settings
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/cron-telemetry" className="flex items-center">
+                            <BarChart className="mr-2 h-4 w-4" />
+                            Cron Telemetry
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <LogoutButton className="flex items-center text-red-600 w-full text-left">
@@ -175,12 +181,20 @@ export function Navigation() {
                           </Link>
                         </DropdownMenuItem>
                         {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
-                          <DropdownMenuItem asChild>
-                            <Link href="/admin" className="flex items-center">
-                              <Settings className="mr-2 h-4 w-4" />
-                              Admin Panel
-                            </Link>
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link href="/admin" className="flex items-center">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Admin Panel
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/admin/cron-telemetry" className="flex items-center">
+                                <BarChart className="mr-2 h-4 w-4" />
+                                Cron Telemetry
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
@@ -261,6 +275,13 @@ export function Navigation() {
                         >
                           Settings
                         </Link>
+                        <Link
+                          href="/admin/cron-telemetry"
+                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Cron Telemetry
+                        </Link>
                       </>
                     ) : (
                       <>
@@ -279,13 +300,22 @@ export function Navigation() {
                           Settings
                         </Link>
                         {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
-                          <Link
-                            href="/admin"
-                            className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Admin Panel
-                          </Link>
+                          <>
+                            <Link
+                              href="/admin"
+                              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Admin Panel
+                            </Link>
+                            <Link
+                              href="/admin/cron-telemetry"
+                              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Cron Telemetry
+                            </Link>
+                          </>
                         )}
                       </>
                     )}
