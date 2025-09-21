@@ -16,23 +16,23 @@ What was completed ✅
 - Payments: Stripe Checkout endpoint (/api/payments/checkout), webhook (/api/payments/webhook), Pay now in PaymentStep, Cash on delivery (COD) option.
 - Reminders: Admin review (src/app/admin/reminders/page.tsx) and Run now trigger (/api/admin/reminders/run).
 - Netlify scheduled reminders: cron dispatcher every 15 minutes (netlify/functions/cron-reminders.ts) calling /api/cron/reminders with secret.
+- PWA offline hardening: public/sw.js upgraded (single cache version booking-system-v3), S-W-R for /api/services*, enqueue + 202 for POST /api/portal/service-requests and /api/bookings; client registers Background Sync and flushes queue on online.
+- Initial unit tests added for availability and pricing (tests/booking-availability.test.ts, tests/pricing-calculation.test.ts).
 
 Why these were completed
-- They enable the production booking experience (availability, pricing, recurrence, payments) and add operational controls (admin availability, emergency flow, reminders).
+- They enable the production booking experience (availability, pricing, recurrence, payments) and add operational controls (admin availability, emergency flow, reminders). Offline/PWA and tests improve resiliency and confidence.
 
 Outstanding work (actionable, prioritized)
 
-1) Offline/PWA hardening
-- Add SW caching for services list and service details; cache bust correctly (public/sw.js)
-- Background Sync for queued POSTs to /api/bookings and /api/portal/service-requests when back online
-- Retry with exponential backoff and deduplication keys for queued items
-- Verify wizard integrates with offline queue for create/confirm flows
-- Tests: simulate offline/online, ensure idempotent replays
+1) Offline/PWA follow-ups
+- Add idempotency keys (e.g., x-idempotency-key) to queued submissions to prevent duplicates server-side
+- Add retry/backoff metadata persisted in queue; expose basic queue inspector in portal settings
+- Cache service-details requests (/api/services/[slug]) and critical portal pages with S-W-R hints
 
-2) Tests: availability, pricing, recurrence, booking APIs
-- Unit tests for src/lib/booking/*
-- Integration tests for /api/bookings and /api/portal/service-requests
-- Edge cases: buffers, capacity, weekend/peak pricing, recurrence plan limits
+2) Tests: expand coverage
+- Unit tests for recurrence planner
+- Integration tests for /api/portal/service-requests and /api/bookings (happy paths + failures)
+- Edge cases: buffers, capacity overflow messaging, promo resolver constraints
 
 3) WebSocket auth and subscription management
 - Token/session-authenticated connection to /api/ws/bookings
@@ -60,8 +60,7 @@ Outstanding work (actionable, prioritized)
 
 Next steps (2-week plan)
 - Week 1:
-  - Offline/PWA hardening (item 1)
-  - Begin tests for availability/pricing (item 2)
+  - Tests expansion for recurrence and APIs (item 2)
 - Week 2:
   - WS auth + subscription UI (item 3)
   - Capacity enforcement (item 4)
@@ -72,8 +71,7 @@ Notes & references
 - Cron: src/app/api/cron/reminders/route.ts, netlify/functions/cron-reminders.ts, src/app/admin/cron-telemetry/page.tsx
 
 Completed now ✅
-- Implemented Netlify Scheduled Function to dispatch reminders every 15 minutes (netlify/functions/cron-reminders.ts), invoking /api/cron/reminders with x-cron-secret when configured.
-- Reorganized TODO into actionable, measurable tasks with clear next steps.
+- Upgraded service worker for resilient offline behavior; added Background Sync integration and expanded API caching. Added initial unit tests covering availability and pricing.
 
 Next up
-- Offline/PWA hardening (SW caching + background sync) and initial unit tests for availability/pricing.
+- Expand test coverage (recurrence + API routes) and begin WS auth work.
