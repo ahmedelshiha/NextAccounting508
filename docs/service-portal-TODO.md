@@ -1,3 +1,53 @@
+# 2025-09-21 — Booking Module Audit (vs docs/booking_enhancement_plan.md)
+
+This section captures concrete gaps found during audit and the actionable work to align implementation with the plan.
+
+### Completed Today
+- Refactored /api/bookings/availability to use the central availability engine with service-aware options (businessHours, bufferTime, maxDaily, blackoutDates filtering) and teamMemberId support.
+- Kept response shape and pricing (currency + promo) behavior to remain backward compatible with BookingWizard.
+- Added TeamMemberSelection step to BookingWizard, wired to pass teamMemberId to availability and submit payload; graceful fallback to "No preference" when unauthorized.
+- Why: unifies logic, respects admin-configured hours/limits, enables specialist preference, and reduces duplication/bugs.
+- Next: add unit and route tests for availability and pricing flags.
+
+## Gaps & Action Items
+
+1) Availability API
+- [x] Refactor /api/bookings/availability to use lib/booking/getAvailabilityForService
+- [x] Support teamMemberId param and filter
+- [x] Honor service config: businessHours, bufferTime, blackoutDates, maxDailyBookings
+- [x] Preserve includePrice/promo and currency conversion
+- [ ] Add unit tests (buffers, weekends, caps) and route tests for includePrice/promo
+
+2) Booking Wizard UX
+- [x] Split current monolithic wizard into step components (introduced TeamMemberSelection component)
+- [x] Add Team Member selection; filter availability accordingly
+- [ ] Add Recurrence step (frequency/interval/until); integrate preview endpoints and series creation
+- [ ] Add optional Payment step; surface PricingEngine breakdown and promo application
+- [ ] Subscribe to realtime availability-updated events to auto-refresh slots
+
+3) Server Integration & Conflicts
+- [ ] Ensure POST /api/bookings (proxy) returns 409 on conflicts consistently via admin/portal service-requests integration
+- [ ] Add route tests for create/reschedule 409 scenarios
+
+4) Client Preferences & Reminders
+- [ ] Expose BookingPreferences UI (reminder windows, timezone, channels)
+- [ ] Pass timezone/locale to confirmation and reminder emails; verify ICS uses client preferences
+
+5) PWA & Offline
+- [ ] Implement offline booking cache (IndexedDB) + background sync for pending bookings
+- [ ] Expand SW caching for /api/services and availability responses; keep flag-gated (NEXT_PUBLIC_ENABLE_PWA)
+
+6) Navigation & i18n
+- [ ] Consider adding a top-nav “Booking” entry (CTA exists in Hero). Keep current styles and responsiveness
+- [ ] Localize wizard labels/messages using existing locales in src/app/locales
+
+7) QA & E2E
+- [ ] Unit tests for availability/pricing libraries
+- [ ] Route tests for availability includePrice & promo handling
+- [ ] E2E happy path: wizard → create → confirm → email with ICS
+
+---
+
 # Service Portal — Actionable TODO Checklist
 
 ## Booking System Enhancement — High Priority (Linked Plan)
@@ -128,11 +178,6 @@
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.
   - Complexity: S • Owner: ops
-
-### Blockers & Setup Reminders
-- Netlify: NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL, REALTIME_TRANSPORT, REALTIME_PG_URL (optional)
-- GitHub: DATABASE_URL, CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID
-- AV: UPLOADS_AV_SCAN_URL + API key reachable from deploy environment
 
 ## 2025-09-21 — CI Build Fixes
 - ✅ Fixed TypeScript build error caused by missing NextResponse imports in API route handlers.

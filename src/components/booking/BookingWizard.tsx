@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import TouchCalendar from '@/components/mobile/TouchCalendar'
+import TeamMemberSelection from '@/components/booking/steps/TeamMemberSelection'
 
 export type Service = {
   id: string
@@ -40,6 +41,7 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [services, setServices] = useState<Service[]>([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
@@ -119,7 +121,7 @@ export default function BookingWizard(props: BookingWizardProps) {
     async function loadAvailability() {
       if (!selectedService || !selectedDate) return
       try {
-        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}`)
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}${selectedTeamMemberId ? `&teamMemberId=${encodeURIComponent(selectedTeamMemberId)}` : ''}`)
         if (res.ok) {
           const json = await res.json().catch(() => null)
           type ApiDay = { date: string; slots: { start: string; available?: boolean; priceCents?: number; currency?: string }[] }
@@ -157,11 +159,11 @@ export default function BookingWizard(props: BookingWizardProps) {
       setTimeSlots(slots)
     }
     loadAvailability()
-  }, [selectedDate, selectedService, currency, promoCode])
+  }, [selectedDate, selectedService, currency, promoCode, selectedTeamMemberId])
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
 
-  const nextStep = () => setCurrentStep((s) => Math.min(4, s + 1))
+  const nextStep = () => setCurrentStep((s) => Math.min(5, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
@@ -178,6 +180,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
+        assignedTeamMemberId: selectedTeamMemberId || undefined,
       }
       const res = await apiFetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (res.ok) {
@@ -216,18 +219,19 @@ export default function BookingWizard(props: BookingWizardProps) {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
               </div>
-              {step < 3 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
+              {step < 4 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-sm text-gray-600">
           <span>Select Service</span>
-          <span>Choose Date & Time</span>
+          <span>Choose Specialist</span>
+          <span>Date & Time</span>
           <span>Your Information</span>
         </div>
       </div>
@@ -270,8 +274,25 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 2: Date & time */}
+      {/* Step 2: Team member selection (optional) */}
       {currentStep === 2 && (
+        <div className="space-y-4">
+          <TeamMemberSelection serviceId={selectedService?.id} value={selectedTeamMemberId} onChange={(id) => { setSelectedTeamMemberId(id); setSelectedTime(''); }} />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={prevStep}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <Button onClick={nextStep}>
+              Next Step
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Date & time */}
+      {currentStep === 3 && (
         <Card>
           <CardHeader>
             <CardTitle>Choose Date & Time</CardTitle>
@@ -347,8 +368,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 3: Client info */}
-      {currentStep === 3 && (
+      {/* Step 4: Client info */}
+      {currentStep === 4 && (
         <Card>
           <CardHeader>
             <CardTitle>Your Information</CardTitle>
@@ -389,8 +410,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 4: Confirmation */}
-      {currentStep === 4 && (
+      {/* Step 5: Confirmation */}
+      {currentStep === 5 && (
         <Card>
           <CardContent className="text-center py-12">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
