@@ -47,6 +47,7 @@ export default function PaymentStep(props: PaymentStepProps) {
           duration: props.durationMinutes || undefined,
           currency: props.currency,
           promoCode: (props.promoCode || '').trim() || undefined,
+          bookingType: props.bookingType || undefined,
         })
       })
       const json = await resp.json().catch(() => null)
