@@ -144,17 +144,62 @@ function removeQueued(db, id) {
 async function processQueue() {
   let db
   try { db = await openQueueDB() } catch { return }
+
+  function backoffDelay(retries) {
+    const base = 5000
+    const factor = 2
+    const max = 5 * 60 * 1000
+    const jitterRatio = 0.2
+    const exp = Math.pow(factor, Math.max(0, retries))
+    const raw = Math.min(max, Math.floor(base * exp))
+    const jitter = Math.floor(raw * jitterRatio)
+    const sign = Math.random() < 0.5 ? -1 : 1
+    return Math.max(0, raw + sign * Math.floor(Math.random() * (jitter + 1)))
+  }
+
+  function markForRetry(db, item, status) {
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE, 'readwrite')
+        const store = tx.objectStore(STORE)
+        const retries = (item.retries || 0) + 1
+        const maxRetries = 8
+        if (retries > maxRetries) {
+          // drop after max retries
+          store.delete(item.id)
+        } else {
+          const nextAttemptAt = Date.now() + backoffDelay(retries)
+          store.put({ ...item, retries, nextAttemptAt, lastStatus: status })
+        }
+        tx.oncomplete = () => resolve(true)
+        tx.onerror = () => resolve(false)
+        tx.onabort = () => resolve(false)
+      } catch { resolve(false) }
+    })
+  }
+
   try {
     const items = await getAllQueued(db)
     for (const item of items) {
       try {
+        if (item.nextAttemptAt && Date.now() < item.nextAttemptAt) continue
         const headers = new Headers({ 'Content-Type': 'application/json' })
         if (item.idempotencyKey) headers.set('x-idempotency-key', item.idempotencyKey)
         const res = await fetch(item.url, { method: 'POST', headers, body: JSON.stringify(item.body) })
-        if (res && res.ok) await removeQueued(db, item.id)
-        else if (res && res.status >= 400 && res.status < 500) await removeQueued(db, item.id)
-      } catch {
-        // keep in queue for next sync
+        if (res && res.ok) {
+          await removeQueued(db, item.id)
+        } else if (res && res.status >= 400 && res.status < 500) {
+          // Non-retriable client errors removed, except 408/425/429 which are retriable
+          if (res.status === 408 || res.status === 425 || res.status === 429) {
+            await markForRetry(db, item, res.status)
+          } else {
+            await removeQueued(db, item.id)
+          }
+        } else {
+          await markForRetry(db, item, res ? res.status : 0)
+        }
+      } catch (e) {
+        await markForRetry(db, item, 0)
       }
     }
   } finally {
