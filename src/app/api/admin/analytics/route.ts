@@ -12,16 +12,15 @@ function isDbSchemaError(e: any) {
 }
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const range = (searchParams.get('range') || '14d').toLowerCase()
+  const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : range === '1y' ? 365 : 14
   try {
     const session = await getServerSession(authOptions)
     const role = session?.user?.role ?? ''
     if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const { searchParams } = new URL(request.url)
-    const range = (searchParams.get('range') || '14d').toLowerCase()
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : range === '1y' ? 365 : 14
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
