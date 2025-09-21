@@ -59,8 +59,9 @@
   - Next: Add route tests to validate event payloads and ensure SWR caches for availability invalidate correctly.
   - Deps: Realtime transport; AvailabilityEngine
   - Complexity: M • Owner: backend
-- [ ] Live chat support
-  - Next: WS/SSE chat endpoint; lightweight widget; auth-gate; rate limits.
+- [x] Live chat support
+  - Done: Implemented SSE-based chat: POST /api/portal/chat with auth + IP rate limits, in-memory backlog, and realtime broadcast via EnhancedRealtimeService; added lightweight LiveChatWidget rendered on portal routes.
+  - Next: Admin chat console UI, per-tenant rooms and targeting, optional persistence to DB, agent handoff/routing.
   - Deps: Realtime; auth
   - Complexity: M • Owner: frontend/backend
 - [ ] PWA + offline cache
