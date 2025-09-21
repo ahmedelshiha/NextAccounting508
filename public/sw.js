@@ -92,7 +92,7 @@ self.addEventListener('fetch', (event) => {
             })
 
             // Request a background sync if available
-            try { const reg = await self.registration; if ('sync' in reg) { /* @ts-expect-error */ await reg.sync.register('service-requests-sync') } } catch {}
+            try { const reg = await self.registration; if ('sync' in reg) { /* @ts-expect-error - Background Sync API typing is missing in TS DOM lib for ServiceWorkerRegistration */ await reg.sync.register('service-requests-sync') } } catch {}
           }
         } catch {}
         return new Response(JSON.stringify({ offline: true, queued: true }), { status: 202, headers: { 'Content-Type': 'application/json' } })
