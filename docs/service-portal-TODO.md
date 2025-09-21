@@ -117,6 +117,12 @@
 - [ ] Tests & coverage
   - Next: Added route tests for 409 conflicts (admin/portal create + reschedule). Unskip DB tests; add e2e; enforce thresholds in CI.
   - Complexity: M • Owner: dev/QA
+
+- [x] Chat persistence & retention
+  - Done: Added ChatMessage model to Prisma schema; best-effort persistence in broadcast with graceful fallback when DB/table missing; weekly cleanup deletes messages older than 30 days.
+  - Next: Add migration files and enable in CI; add admin filters (by tenant/user/room) and CSV export.
+  - Deps: DB migrations; cron
+  - Complexity: S • Owner: backend/ops
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.
   - Complexity: S • Owner: ops
