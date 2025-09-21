@@ -18,6 +18,8 @@ export type PaymentStepProps = {
   currency: string
   promoCode?: string | null
   bookingType?: string | null
+  paymentMethod?: 'CARD' | 'COD'
+  onPaymentMethodChange?: (m: 'CARD' | 'COD') => void
   onApplyPromo?: (code: string) => void
 }
 
@@ -111,6 +113,14 @@ export default function PaymentStep(props: PaymentStepProps) {
         </div>
 
         <div className="mt-6">
+          <Label>Payment Method</Label>
+          <select className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={props.paymentMethod || 'CARD'} onChange={(e) => props.onPaymentMethodChange?.((e.target.value as 'CARD'|'COD'))}>
+            <option value="CARD">Pay now (card)</option>
+            <option value="COD">Cash on delivery</option>
+          </select>
+        </div>
+
+        <div className="mt-6">
           <Label>Breakdown</Label>
           {loading && <div className="text-sm text-gray-500 mt-2">Calculating…</div>}
           {!loading && breakdown && (
@@ -133,11 +143,16 @@ export default function PaymentStep(props: PaymentStepProps) {
                 <span className="text-gray-800 font-semibold">Total</span>
                 <span className="text-blue-600 font-bold">{formatCents(breakdown.totalCents, breakdown.currency)}</span>
               </div>
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <Button type="button" onClick={startCheckout} disabled={redirecting}>
-                  {redirecting ? 'Redirecting…' : 'Pay now'}
-                </Button>
-              </div>
+              {(!props.paymentMethod || props.paymentMethod === 'CARD') && (
+                <div className="flex items-center justify-end gap-2 mt-4">
+                  <Button type="button" onClick={startCheckout} disabled={redirecting}>
+                    {redirecting ? 'Redirecting…' : 'Pay now'}
+                  </Button>
+                </div>
+              )}
+              {props.paymentMethod === 'COD' && (
+                <div className="mt-3 text-sm text-gray-600">You chose Cash on delivery. You will pay at the time of service.</div>
+              )}
             </div>
           )}
           {!loading && !breakdown && (
