@@ -27,6 +27,7 @@ export default function AdminServiceRequestsClient() {
     status: 'ALL',
     priority: 'ALL',
     bookingType: 'ALL',
+    paymentStatus: 'ALL',
     q: '',
   })
   const [page, setPage] = useState(1)
@@ -44,6 +45,7 @@ export default function AdminServiceRequestsClient() {
       status: (get('status') as any) || 'ALL',
       priority: (get('priority') as any) || 'ALL',
       bookingType: (get('bookingType') as any) || 'ALL',
+      paymentStatus: (get('paymentStatus') as any) || 'ALL',
       q: get('q') || '',
       dateFrom: get('dateFrom') || undefined,
       dateTo: get('dateTo') || undefined,
@@ -68,6 +70,7 @@ export default function AdminServiceRequestsClient() {
     if (filters.q) params.set('q', filters.q)
     if (filters.status !== 'ALL') params.set('status', filters.status)
     if (filters.priority !== 'ALL') params.set('priority', filters.priority)
+    if (filters.paymentStatus && filters.paymentStatus !== 'ALL') params.set('paymentStatus', filters.paymentStatus)
     if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
     if (filters.dateTo) params.set('dateTo', filters.dateTo)
     if (filters.bookingType && filters.bookingType !== 'ALL') params.set('bookingType', filters.bookingType)
@@ -84,6 +87,7 @@ export default function AdminServiceRequestsClient() {
     status: filters.status,
     priority: filters.priority,
     bookingType: filters.bookingType,
+    paymentStatus: filters.paymentStatus,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     type: typeTab === 'ALL' ? 'all' : typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests',

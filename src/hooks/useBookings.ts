@@ -8,6 +8,7 @@ export type BookingsQuery = {
   status?: string | 'ALL'
   priority?: string | 'ALL'
   bookingType?: 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION' | 'ALL'
+  paymentStatus?: 'UNPAID'|'INTENT'|'PAID'|'FAILED'|'REFUNDED'|'ALL'
   dateFrom?: string
   dateTo?: string
   teamMemberId?: string
@@ -35,6 +36,7 @@ export function useBookings(params: BookingsQuery = {}) {
   const status = params.status ?? 'ALL'
   const bookingType = params.bookingType ?? 'ALL'
   const priority = params.priority ?? 'ALL'
+  const paymentStatus = params.paymentStatus ?? 'ALL'
   const dateFrom = params.dateFrom
   const dateTo = params.dateTo
   const teamMemberId = params.teamMemberId
@@ -48,6 +50,7 @@ export function useBookings(params: BookingsQuery = {}) {
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
   if (bookingType !== 'ALL') query.set('bookingType', bookingType)
+  if (paymentStatus !== 'ALL') query.set('paymentStatus', paymentStatus)
   if (dateFrom) query.set('dateFrom', dateFrom)
   if (dateTo) query.set('dateTo', dateTo)
   if (teamMemberId) query.set('teamMemberId', teamMemberId)

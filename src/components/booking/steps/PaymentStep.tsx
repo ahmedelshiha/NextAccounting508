@@ -21,6 +21,7 @@ export type PaymentStepProps = {
   paymentMethod?: 'CARD' | 'COD'
   onPaymentMethodChange?: (m: 'CARD' | 'COD') => void
   onApplyPromo?: (code: string) => void
+  ensureServiceRequestId?: () => Promise<string | null>
 }
 
 function formatCents(cents: number, curr: string) {
@@ -66,6 +67,8 @@ export default function PaymentStep(props: PaymentStepProps) {
     setRedirecting(true)
     try {
       const scheduledAt = new Date(`${props.dateISO}T${props.time}:00`).toISOString()
+      let serviceRequestId: string | null = null
+      try { serviceRequestId = (await props.ensureServiceRequestId?.()) || null } catch {}
       const resp = await apiFetch('/api/payments/checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           serviceId: props.serviceId,
@@ -74,6 +77,7 @@ export default function PaymentStep(props: PaymentStepProps) {
           currency: props.currency,
           promoCode: (props.promoCode || '').trim() || undefined,
           bookingType: props.bookingType || undefined,
+          serviceRequestId: serviceRequestId || undefined,
           successUrl: typeof window !== 'undefined' ? window.location.origin + '/portal' : undefined,
           cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined,
         })
