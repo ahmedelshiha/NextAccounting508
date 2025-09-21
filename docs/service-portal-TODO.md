@@ -44,9 +44,9 @@ This list captures missing or partial items to align the booking module with the
   - Portal UI for /api/portal/settings/booking-preferences (read/write)
 
 ## Real-time & Realtime API
-- [ ] Booking WebSocket endpoint
-  - Provide /api/ws/bookings (WS) with auth + channel subscriptions; retain SSE fallback
-  - Client hook for subscribing to availability and assignment updates
+- [x] Booking WebSocket endpoint
+  - Provide /api/ws/bookings (WS) with auth + channel subscriptions; retain SSE fallback (implemented)
+  - Client hook for subscribing to availability and assignment updates (src/hooks/useBookingsSocket.ts, useRealtime updated)
 
 ## Payments
 - [ ] Payment gateway integration
