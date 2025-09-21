@@ -31,7 +31,11 @@ export async function savePendingBooking(booking: any) {
     const id = `offline-${Date.now()}-${Math.random().toString(36).slice(2,8)}`
     const record = { ...booking, id, status: 'PENDING_SYNC', createdAt: new Date().toISOString() }
     store.put(record)
-    return tx.complete ? await (tx as any).complete : await new Promise((r) => tx.oncomplete = r)
+    return await new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve(true)
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error)
+    }).catch(() => null)
   } catch (e) {
     console.error('savePendingBooking error', e)
     return null
@@ -57,7 +61,11 @@ export async function deletePendingBooking(id: string) {
     const tx = db.transaction(PENDING_STORE, 'readwrite')
     const store = tx.objectStore(PENDING_STORE)
     store.delete(id)
-    return tx.complete ? await (tx as any).complete : await new Promise((r) => tx.oncomplete = r)
+    return await new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve(true)
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error)
+    }).catch(() => null)
   } catch (e) {
     console.error('deletePendingBooking error', e)
   }
