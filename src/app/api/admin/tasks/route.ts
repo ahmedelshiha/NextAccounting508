@@ -109,7 +109,7 @@ export async function GET(request: Request) {
         skip: offset,
         take: limit,
       })
-    } catch (e) {
+    } catch (e: any) {
       // If DB/schema missing, fallback to demo in-memory tasks to avoid crashing admin UI
       const code = String(e?.code || '')
       const msg = String(e?.message || '')
