@@ -185,8 +185,12 @@ export default function LoginPage() {
                   <span>staff@accountingfirm.com / staff123</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Client:</span>
-                  <span>john@example.com / client123</span>
+                  <span>Client 1:</span>
+                  <span>client1@example.com / client123</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Client 2:</span>
+                  <span>client2@example.com / client123</span>
                 </div>
               </div>
             </div>
