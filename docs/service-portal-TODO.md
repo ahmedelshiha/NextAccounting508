@@ -71,6 +71,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 ---
 
 ## Recently Completed (for context)
+- Legacy /api/bookings POST conflict passthrough and tests: 409 surfaced with error.code=CONFLICT for admin/portal via legacy endpoint.
 - Booking Wizard enhancements: TeamMemberSelection, Recurrence (with preview), Payment (pricing breakdown & promo), realtime auto-refresh.
 - Availability API refactor: central engine, service config, team member support, blackout filter.
 - Top navigation: added Booking link.
