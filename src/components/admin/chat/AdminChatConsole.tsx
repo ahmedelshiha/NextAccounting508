@@ -97,9 +97,14 @@ export default function AdminChatConsole() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-3">
         <Input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Room (optional)" className="max-w-xs" />
         <div className={`text-xs ${connected ? 'text-green-600' : 'text-gray-500'}`}>{connected ? 'Online' : 'Connecting...'}</div>
+        {metrics ? (
+          <div className="text-xs text-gray-600">
+            transport: <span className="font-medium">{metrics.transport}</span>, connections: {metrics.connectionCount}, events: {metrics.totalEvents}
+          </div>
+        ) : null}
       </div>
       <div ref={listRef} className="border rounded-lg h-96 overflow-y-auto p-3 bg-white">
         {messages.map((m) => (
