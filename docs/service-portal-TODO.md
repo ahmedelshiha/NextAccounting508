@@ -5,7 +5,8 @@ This section captures concrete gaps found during audit and the actionable work t
 ### Completed Today
 - Refactored /api/bookings/availability to use the central availability engine with service-aware options (businessHours, bufferTime, maxDaily, blackoutDates filtering) and teamMemberId support.
 - Kept response shape and pricing (currency + promo) behavior to remain backward compatible with BookingWizard.
-- Why: unifies logic, respects admin-configured hours/limits, and reduces duplication/bugs.
+- Added TeamMemberSelection step to BookingWizard, wired to pass teamMemberId to availability and submit payload; graceful fallback to "No preference" when unauthorized.
+- Why: unifies logic, respects admin-configured hours/limits, enables specialist preference, and reduces duplication/bugs.
 - Next: add unit and route tests for availability and pricing flags.
 
 ## Gaps & Action Items
@@ -18,8 +19,8 @@ This section captures concrete gaps found during audit and the actionable work t
 - [ ] Add unit tests (buffers, weekends, caps) and route tests for includePrice/promo
 
 2) Booking Wizard UX
-- [ ] Split current monolithic wizard into step components
-- [ ] Add Team Member selection; filter availability accordingly
+- [x] Split current monolithic wizard into step components (introduced TeamMemberSelection component)
+- [x] Add Team Member selection; filter availability accordingly
 - [ ] Add Recurrence step (frequency/interval/until); integrate preview endpoints and series creation
 - [ ] Add optional Payment step; surface PricingEngine breakdown and promo application
 - [ ] Subscribe to realtime availability-updated events to auto-refresh slots
