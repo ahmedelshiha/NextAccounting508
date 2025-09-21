@@ -105,3 +105,8 @@
 - Fixed missing NextResponse import in /api/portal/realtime.
 - Why: ensure calendars and availability grids reflect changes instantly across sessions; reduce manual refresh.
 - Next: add route tests for event payloads and SWR invalidation, and monitor PG transport in staging.
+
+## 2025-09-21 — Quarantine CSV export
+- Added Export DB CSV and Export Provider CSV buttons to /admin/uploads/quarantine.
+- Why: Ops needs quick CSV outputs for triage and reporting; aligns with uploads runbook "Export logs" guidance.
+- Notes: Exports use currently loaded/filtered rows; no extra fetch; consider JSON export and audit CSV next.
