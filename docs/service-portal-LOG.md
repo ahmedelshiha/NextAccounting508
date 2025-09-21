@@ -1,7 +1,7 @@
 # Service Portal — Change Log and Status
 
-## CURRENT STATUS: PAUSED (as of 2025-09-20)
-- Paused pending CI-run Prisma migrations/seeds, staging configuration, and multi-tenancy rollout planning.
+## CURRENT STATUS: READY FOR DEPLOY (as of 2025-09-21)
+- Env vars confirmed set in Netlify and GitHub. Netlify build will run Prisma generate/migrate/seed via netlify.toml when triggered.
 
 ## Autonomous Pause Summary (2025-09-20)
 - Dev env: runtime envs set via dev server (NETLIFY_DATABASE_URL, DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET, NETLIFY_BLOBS_TOKEN, REALTIME_TRANSPORT, REALTIME_PG_URL, UPLOADS_PROVIDER, CRON_*).
