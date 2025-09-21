@@ -96,6 +96,7 @@ async function main() {
         timeZone: 'UTC',
         maxConcurrentBookings: 3,
         bookingBuffer: 15,
+        workingHours: {},
       },
     })
   }
@@ -116,6 +117,7 @@ async function main() {
         timeZone: 'UTC',
         maxConcurrentBookings: 5,
         bookingBuffer: 15,
+        workingHours: {},
       },
     })
   }
