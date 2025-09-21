@@ -21,9 +21,57 @@ export async function POST(request: NextRequest) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as any
       try {
-        // Placeholder for linking payments to service requests in future task
-        console.log('Checkout completed:', { id: session.id, amount_total: session.amount_total, currency: session.currency, metadata: session.metadata })
+        const userId = String(session?.metadata?.userId || '')
+        const serviceId = String(session?.metadata?.serviceId || '')
+        const scheduledAtISO = String(session?.metadata?.scheduledAt || '')
+        const scheduledAt = scheduledAtISO ? new Date(scheduledAtISO) : null
+        let target: any = null
+        try {
+          if (userId && serviceId && scheduledAt) {
+            target = await (await import('@/lib/prisma')).default.serviceRequest.findFirst({
+              where: { clientId: userId, serviceId, scheduledAt },
+            })
+          }
+          if (!target && userId && serviceId) {
+            // fallback: latest submitted booking in last 24h for this user/service
+            const since = new Date(Date.now() - 24 * 60 * 60 * 1000)
+            target = await (await import('@/lib/prisma')).default.serviceRequest.findFirst({
+              where: { clientId: userId, serviceId, createdAt: { gte: since }, isBooking: true },
+              orderBy: { createdAt: 'desc' },
+            })
+          }
+        } catch {}
+        if (target) {
+          try {
+            await (await import('@/lib/prisma')).default.serviceRequest.update({
+              where: { id: target.id },
+              data: {
+                paymentStatus: 'PAID' as any,
+                paymentProvider: 'STRIPE',
+                paymentSessionId: session.id,
+                paymentAmountCents: session.amount_total ?? null,
+                paymentCurrency: (session.currency || '').toUpperCase() || null,
+                paymentUpdatedAt: new Date(),
+                paymentAttempts: (target.paymentAttempts ?? 0) + 1,
+              }
+            })
+          } catch {}
+        }
       } catch {}
+    }
+
+    if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
+      const session = event.data.object as any
+      const sessionId = session?.id || session?.checkout_session || null
+      if (sessionId) {
+        try {
+          const prisma = (await import('@/lib/prisma')).default
+          const sr = await prisma.serviceRequest.findFirst({ where: { paymentSessionId: sessionId } })
+          if (sr) {
+            await prisma.serviceRequest.update({ where: { id: sr.id }, data: { paymentStatus: 'FAILED' as any, paymentUpdatedAt: new Date(), paymentAttempts: (sr.paymentAttempts ?? 0) + 1 } })
+          }
+        } catch {}
+      }
     }
 
     return NextResponse.json({ received: true })
