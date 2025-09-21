@@ -20,7 +20,7 @@ Why these were completed
 - They form the core booking experience (availability, pricing, recurrence, UI flow) required by the ServiceMarket-style booking flow described in the plan. Having them implemented enables the rest of the operational and edge-case features to be layered on top.
 
 Missing features / Improvements (TODO list)
-1. Payment gateway integration (Stripe or other) — PaymentStep currently only requests a price quote; no capture/intent/webhook flow exists.
+1. Payment gateway integration (Stripe Checkout + Webhook) — Implemented: checkout session creation endpoint, webhook, and Pay now button in PaymentStep.
 2. Daily/team capacity enforcement improvements — conflict detection should include per-team/day capacity limits and clearer failure messages for UI consumption.
 3. Scheduled reminders persistence & dispatch (cron job) — ScheduledReminder model exists; cron job and dispatch logic to send emails/SMS needs implementation/integration with sendgrid or SMS provider.
 4. Auto-assign and assignment rules (teamMember autoAssign) — auto-assign flow should be wired from portal and booking endpoints.
@@ -32,7 +32,6 @@ Missing features / Improvements (TODO list)
 10. ICS export improvements and timezone-normalized calendar invites.
 
 Next steps (short-term) — recommended order
-- Implement Stripe payment intents + webhook handler + update PaymentStep to collect payment details (owner: Payments, ETA: 4 days). Reason: Required to accept payments and mark bookings as paid.
 - Implement ScheduledReminder dispatch cron job and a simple admin UI to review pending reminders (owner: Platform Team, ETA: 3 days). Reason: Ensures clients receive reminders per preferences.
 - Harden offline queue and add simple SW caching for services and replay logic (owner: Offline/PWA, ETA: 4 days).
 - Add unit tests for availability and pricing (owner: QA/Dev, ETA: 3 days).
@@ -47,5 +46,6 @@ Completed now ✅
 - Audit of booking module completed and docs/service-portal-TODO.md updated to reflect findings and prioritized next steps.
 - AvailabilitySlot admin endpoints and minimal admin UI implemented: /api/admin/availability-slots (CRUD), Admin page (src/app/admin/availability/page.tsx), and manager component (src/components/admin/AvailabilitySlotsManager.tsx).
 - Emergency booking flow enhanced: UI requires emergency details; server-side validation for emergency bookings (phone and details), auto-priority set to URGENT, and pricing flag integrated.
+- Payments: Added Stripe Checkout session endpoint (/api/payments/checkout), webhook handler (/api/payments/webhook), and Pay now action in PaymentStep.
 
-Next up: proceed with Stripe payment intents + webhook handler.
+Next up: implement ScheduledReminder dispatch cron job and admin review UI.

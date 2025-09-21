@@ -38,3 +38,21 @@ Files changed/added:
 
 Next steps:
 - Implement Stripe payment intents + webhook handler and update PaymentStep to collect payment details.
+
+---
+
+Update:
+- Added Stripe payments (Checkout) integration: new checkout endpoint and webhook; PaymentStep now includes a Pay now redirect.
+
+Why:
+- Enables immediate payment capture during booking flow with minimal PCI scope via Stripe-hosted checkout.
+
+Files changed/added:
+- src/lib/payments/stripe.ts (NEW)
+- src/app/api/payments/checkout/route.ts (NEW)
+- src/app/api/payments/webhook/route.ts (NEW)
+- src/components/booking/steps/PaymentStep.tsx (UPDATED)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Link payment sessions to created ServiceRequests and persist payment status (separate TODO).
