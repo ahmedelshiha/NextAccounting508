@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import LogoutButton from '@/components/ui/LogoutButton'
-import { Menu, X, User, LogOut, Settings, Calendar, Bell } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Calendar, Bell, BarChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
