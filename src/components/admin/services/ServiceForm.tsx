@@ -102,7 +102,7 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
               <Label htmlFor="price">Price (USD)</Label>
               <Input id="price" type="number" step="0.01" min="0" {...register('price', { valueAsNumber: true })} placeholder="0.00" className={errors.price ? 'border-red-300' : ''} />
               {errors.price && (<p className="text-sm text-red-600">{errors.price.message}</p>)}
-              <p className="text-xs text-gray-500">Leave empty for "Contact for pricing"</p>
+              <p className="text-xs text-gray-500">Leave empty for &quot;Contact for pricing&quot;</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="duration">Duration (minutes)</Label>
@@ -161,7 +161,7 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 text-center py-4">No features added yet. Click "Add Feature" to get started.</p>
+            <p className="text-sm text-gray-500 text-center py-4">No features added yet. Click &quot;Add Feature&quot; to get started.</p>
           )}
           {watchedFeatures && watchedFeatures.length > 0 && (
             <div className="pt-3 border-t">

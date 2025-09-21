@@ -134,7 +134,9 @@ export class ServicesService {
     ]);
 
     const analytics: ServiceAnalytics = { monthlyBookings: [], revenueByService: [], popularServices: [], conversionRates: [] };
-    const stats = { total, active, featured, categories: catGroups.length, averagePrice: priceAgg._avg.price || 0, totalRevenue: priceAgg._sum.price || 0, analytics };
+    const avgPriceVal = priceAgg && priceAgg._avg && priceAgg._avg.price != null ? Number(priceAgg._avg.price) : 0;
+    const totalRevenueVal = priceAgg && priceAgg._sum && priceAgg._sum.price != null ? Number(priceAgg._sum.price) : 0;
+    const stats: ServiceStats & { analytics: ServiceAnalytics } = { total, active, featured, categories: catGroups.length, averagePrice: avgPriceVal, totalRevenue: totalRevenueVal, analytics };
     await this.cache.set(cacheKey, stats, 600);
     return stats;
   }

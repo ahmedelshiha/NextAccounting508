@@ -1,42 +1,54 @@
-# Admin Services Module – Enhancement Plan (Status)
+# Admin Services – TODO (updated)
 
-## ✅ What was completed
-- [x] Phase 1 — Foundations
-  - [x] Define Services domain types (src/types/services.ts)
-  - [x] Add Zod schemas for validation (src/schemas/services.ts)
-  - [x] Implement utilities (slug, sanitize, filters/sorts, metrics, bulk validation) (src/lib/services/utils.ts)
-  - [x] Add debounce hook and permissions hook (src/hooks/useDebounce.ts, src/hooks/useServicesPermissions.ts)
-  - [x] Add data hook for services (src/hooks/useServicesData.ts)
-  - [x] Add cache and notification service (no-op safe) (src/lib/cache.service.ts, src/lib/notification.service.ts)
-  - [x] Implement ServicesService business layer (src/services/services.service.ts)
-  - [x] Add admin APIs: list/create, get/update/delete, bulk, stats, export (src/app/api/admin/services/**)
-  - [x] Extend permissions to include services.* and update role mapping (src/lib/permissions.ts)
+Last updated: 2025-09-21
 
-- [x] Phase 2 — Core UI components
-  - [x] ServicesHeader (src/components/admin/services/ServicesHeader.tsx)
-  - [x] ServicesFilters (src/components/admin/services/ServicesFilters.tsx)
-  - [x] ServiceCard (src/components/admin/services/ServiceCard.tsx)
-  - [x] ServiceForm (src/components/admin/services/ServiceForm.tsx)
-  - [x] BulkActionsPanel (src/components/admin/services/BulkActionsPanel.tsx)
-  - [x] ServicesAnalytics (src/components/admin/services/ServicesAnalytics.tsx)
+Status summary
+- Completed: core UI components, admin APIs, utilities, initial analytics UI, accessible modal + focus trap, unit tests scaffold
+- In progress: typecheck & ESLint (blocked to run in this environment)
+- Pending: component tests, integration tests, Netlify preview deploy
 
-## ✅ Why it was done
-- Provide a production-grade, type-safe, and extensible foundation for services management.
-- Enforce validation, RBAC, rate limiting and audit logging at the API and business layers.
-- Implement reusable UI primitives that align with existing design system and ease migration of the admin page.
-- Ensure safe operation in demo/no-DB environments (no hard failures when NETLIFY_DATABASE_URL is not set).
+Actionable checklist (ordered, with acceptance criteria)
 
-## ✅ Next steps (remaining / actionable)
-- [ ] Integrate ServicesHeader, ServicesFilters, ServiceGrid (cards) into admin page (wire components into src/app/admin/services/page.tsx)
-- [ ] Add Edit/Create modals using ServiceForm (ensure modal accessibility and large-screen layout)
-- [ ] Add selection state and BulkActions integration into the admin page
-- [ ] Wire ServicesAnalytics to GET /api/admin/services/stats and render live data
-- [ ] Add automated unit tests for utilities and service layer (zod validations + service business logic)
-- [ ] Add integration tests for admin APIs (list/create/update/delete/bulk/export)
-- [ ] Run full typecheck & lint; address any remaining TypeScript or ESLint issues
-- [ ] Prepare Netlify deployment checklist (env vars, build settings, headers) and run preview deploy
+1) Page wiring (completed)
+- [x] Render ServicesHeader, ServicesFilters, ServiceCard grid in src/app/admin/services/page.tsx
+  - Acceptance: page shows header, filters, paginated card grid; search and filters apply client-side
 
----
+2) CRUD flows & modals (in progress/completed)
+- [x] Add Create/Edit modals using ServiceForm (accessibility: focus trap, keyboard, aria)
+  - Acceptance: Create and Edit open in modal, focus is trapped, Escape and outside-click close modal, form submits call API and revalidates list
 
-## Work log (summary)
-- Completed foundation tasks and core admin API + components. See docs/admin-services-log.md for detailed entries.
+3) Bulk actions & selection (completed)
+- [x] Selection across page and BulkActionsPanel integration (activate/deactivate/feature/unfeature/category/price/delete)
+  - Acceptance: Selecting items and applying actions updates services and clears selection
+
+4) Analytics (completed)
+- [x] Wire ServicesAnalytics to admin stats endpoint with skeleton and error states
+  - Acceptance: Analytics card shows when endpoint returns data; loading skeleton otherwise
+
+5) Testing (pending/in progress)
+- [x] Unit tests scaffold for utils and schemas (tests/services/*)
+- [ ] Component tests: services page interactions (filters, modal open/close, focus-trap, create/edit flow)
+- [ ] Integration tests: admin services APIs (list/create/update/delete/bulk/export)
+
+6) Quality gates & CI (pending)
+- [ ] Run full typecheck and ESLint locally; fix any issues
+- [ ] Add CI steps to run lint, typecheck, vitest, and a preview build
+
+7) Deployability (pending)
+- [ ] Netlify preview deploy and smoke tests
+- [ ] Document required environment variables and build settings in docs (DATABASE_URL, NEXTAUTH_URL, STRIPE keys if used)
+
+Notes and blockers
+- I added focus-trap-react to package.json; you must run pnpm install locally before running the app or tests.
+- Typecheck and test runs could not be executed in this environment due to execution policy/ACL. Run locally and paste errors if you want me to fix them.
+
+Immediate next actions you can run locally
+- pnpm install
+- pnpm run lint
+- pnpm exec vitest run
+- pnpm run typecheck
+
+If you want I can:
+- Add component tests for modal behavior and admin interactions
+- Add integration tests for the admin APIs
+- Prepare a draft PR with these changes

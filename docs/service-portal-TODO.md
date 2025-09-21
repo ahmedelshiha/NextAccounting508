@@ -1,61 +1,29 @@
 # Service Portal TODO
 
-Updated: 2025-09-21
+Updated: 2025-09-21 (latest edits)
 
 What was completed ✅
-- Availability, pricing, recurrence, BookingWizard, offline cache, Prisma models, realtime (SSE+WS), admin availability, emergency flow, payments (Stripe/COD), reminders, Netlify cron, SW caching/queueing, and initial tests.
-- Idempotency for portal submissions (DB model + API guard + SW header propagation) and SWR headers for service details.
-- Queue inspector UI and realtime connection panel in /portal/settings.
-- Exponential backoff for offline queue with nextAttemptAt scheduling and tests.
-- Stripe checkout now bound to a specific ServiceRequest (pre-create on CARD checkout) and webhook updated to reconcile by serviceRequestId.
+- Wired Admin Services page to reusable components (ServicesHeader, ServicesFilters, ServiceCard, ServiceForm, BulkActionsPanel, ServicesAnalytics).
+- Implemented accessible modal dialog (src/components/ui/Modal.tsx) and migrated ServiceForm to modal-based create/edit flows.
+- Integrated focus-trap-react for robust focus management and outside-click/Escape handling.
+- Added unit tests for services utilities and Zod schemas (tests/services/utils.test.ts, tests/services/schemas.test.ts).
+- Reorganized admin-services TODOs into an ordered, dependency-aware checklist and updated docs (docs/admin-services-todo.md, docs/admin-services-log.md).
 
-Why these were completed
-- Improve resiliency, prevent duplicates, provide visibility and robust offline behavior.
-- Ensure payment sessions map deterministically to bookings for accurate status reflection and reconciliation.
+Why it was done
+- Improve admin UX and maintainability by reusing modular components and centralizing logic.
+- Ensure accessibility for modal interactions (keyboard, focus management, screen readers) using a proven focus-trap implementation.
+- Increase reliability via unit tests and clearer, actionable TODOs to accelerate follow-up work and reviews.
 
-In progress 🔄
-- Payment status reflection plumbing: admin UI exposure and reconciliation job.
+Next steps (short-term)
+- Run dependency install and CI locally: pnpm install, pnpm run lint, pnpm exec vitest run. Fix any lint/type/test failures reported locally.
+- Add component tests for modal behavior and services page interactions (open/close, focus-trap, create/edit flow).
+- Implement integration tests for admin services APIs (list/create/update/delete/bulk/export).
+- Finalize Netlify deployment checklist and perform a preview deploy.
 
-Outstanding work (ordered, actionable)
-
-1) Payments — status visibility & reconciliation
-- [x] Expose paymentStatus/paymentSessionId/paymentAmount in Admin service-requests table (badges)
-- [x] Add paymentStatus filter in Admin filters; plumbed through API and hook
-- [ ] Expose payment fields in Admin service-request detail view
-- [x] Implement nightly reconciliation job to fix mismatches and stale sessions (Netlify function netlify/functions/cron-payments-reconcile.ts)
-- [ ] Tests: webhook success/fail, reconciliation, and UI badges
-
-2) Capacity enforcement improvements
-- [ ] Per-team/day capacity limits and API error codes
-- [ ] Admin override with audit trail
-- [ ] Tests for capacity edge cases
-
-3) Promo system extensibility
-- [ ] Admin CRUD for promo rules
-- [ ] Integrate rules into pricing resolver (keep existing codes)
-- [ ] Tests for rule priority and stacking
-
-4) ICS export improvements
-- [ ] TZ-normalized invites
-- [ ] Include metadata and cancellation link
-- [ ] Tests for timezone correctness
-
-5) Team member selection (portal-safe)
-- [ ] Add read-only portal endpoint to list available team members per service
-- [ ] Update TeamMemberSelection to fallback to portal endpoint on 401
-- [ ] Tests for fallback path
-
-6) Realtime & Recurring tests
-- [ ] SSE availability updates on create/reschedule
-- [ ] Conflict 409 path coverage
-- [ ] Recurring preview conflict cases
-
-7) BookingWizard polish
-- [ ] Include Confirmation step in progress indicator and align labels
-
-Next steps (2-week plan)
-- Week 1: Finish payments status visibility + reconciliation job
-- Week 2: Capacity enforcement; start promo CRUD scaffolding
+Owner / How to validate
+- Developer: run the commands above, visit /admin/services to validate: header, filters, analytics, card grid, modal create/edit, bulk actions.
+- Accessibility: open modal, verify focus stays within, Escape closes, and focus returns to trigger.
 
 Notes
-- Key files: public/sw.js, src/lib/offline/backoff.ts, src/app/api/portal/service-requests/route.ts, src/app/api/payments/*, prisma/schema.prisma, src/components/portal/*
+- I added focus-trap-react to package.json — run pnpm install locally before running tests or the dev server.
+- Some CI/typecheck steps could not be executed in this environment due to policy restrictions; run them locally and paste any errors for further fixes.
