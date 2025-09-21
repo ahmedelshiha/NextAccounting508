@@ -73,6 +73,12 @@
   - Deps: AvailabilityEngine
   - Complexity: M • Owner: frontend
 
+- [x] Quarantine CSV export
+  - Done: Added Export DB CSV and Export Provider CSV in Admin Quarantine UI (/admin/uploads/quarantine) to support ops runbook.
+  - Next: Consider JSON export and filtered audit export for infected events.
+  - Deps: uploads-provider, admin quarantine endpoint
+  - Complexity: S • Owner: frontend
+
 ### Program Phases (Tracking)
 - [ ] Phase 1 — Data Model Unification (migrations + schema)
 - [ ] Phase 2 — API Integration (availability/confirm/reschedule, guest flow, compat layer)
@@ -101,7 +107,7 @@
   - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
-  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
+  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; validate portal array unwrap fix on /portal and /portal/bookings.
   - Complexity: M • Owner: QA
 - [ ] Remove dev fallbacks
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.

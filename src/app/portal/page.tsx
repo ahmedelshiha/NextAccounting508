@@ -41,8 +41,9 @@ export default function PortalPage() {
       try {
         const response = await apiFetch('/api/bookings')
         if (response.ok) {
-          const data = await response.json()
-          setBookings(data)
+          const json = await response.json().catch(() => null as any)
+          const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : [])
+          setBookings(list as any)
         }
       } catch (error) {
         console.error('Error fetching bookings:', error)

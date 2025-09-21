@@ -31,77 +31,16 @@
 
 ---
 
-## 2025-09-20 — AvailabilityEngine implemented
-- Added src/lib/booking/availability.ts with business-hours, weekend skipping, booking buffers, daily caps, and deterministic now option.
-- Refactored admin and portal availability routes to use the engine with DB-backed conflicts and graceful fallbacks when DB unavailable.
-- Added unit tests (tests/availability.engine.test.ts) covering buffers, overlaps, weekend skipping, and daily caps — all passing.
-- Next: integrate blackout dates once Phase 1 schema is deployed; wire engine into multi-step booking wizard and pricing pipeline.
+## 2025-09-21 — Admin Users/Stats 500s fixed
+- Root cause: Missing import of NextResponse/NextRequest in admin endpoints caused runtime ReferenceError → 500.
+- Fix: Added imports in /api/admin/users and /api/admin/stats/users. Added graceful fallbacks when DB/schema not available.
+- Result: Admin Users page loads demo data instead of failing; stats widget no longer shows error.
 
-## 2025-09-20 — PricingEngine implemented
-- Added src/lib/booking/pricing.ts supporting weekend/peak surcharges, duration overage (pro-rata), emergency surcharge, promo resolver, and currency conversion.
-- Integrated optional pricing into availability endpoints via includePrice and currency query params; returns priceCents and currency per slot.
-- Added tests (tests/pricing.engine.test.ts) — all passing. Updated availability tests to include compatibility change (all slots returned with available flag).
-- Next: surface pricing in Booking Wizard UI and add admin-configurable pricing settings.
+## 2025-09-21 — Quarantine CSV export
+- Added Export DB CSV and Export Provider CSV buttons to /admin/uploads/quarantine.
+- Why: Ops needs quick CSV outputs for triage and reporting; aligns with uploads runbook "Export logs" guidance.
+- Notes: Exports use currently loaded/filtered rows; no extra fetch; consider JSON export and audit CSV next.
 
-## 2025-09-21 — Server-side pricing in availability + UI
-- Enhanced /api/bookings/availability to support includePrice and currency; slots may include { priceCents, currency }.
-- BookingWizard now requests includePrice and shows server-priced totals in the summary for the selected time.
-- Why: ensure accurate, policy-aware pricing per slot (weekend/peak/overage) and reduce client-side logic.
-- Next: Reuse wizard in portal create flow.
-
-## 2025-09-21 — TouchCalendar + currency/promo in BookingWizard
-- Added src/components/mobile/TouchCalendar.tsx and integrated in DateTime step (mobile view) while keeping native date input.
-- BookingWizard now supports currency selection (from /api/currencies) and promo codes (WELCOME10, SAVE15) reflected in slot pricing.
-- Availability API enhanced to accept promoCode and apply discounts via promoResolver.
-- Why: improve mobile UX and pricing flexibility; align with internationalization goals.
-- Next: responsive/unit tests, keyboard a11y for calendar, portal integration.
-
-## 2025-09-21 — Portal booking create flow reuses BookingWizard
-- Added /portal/bookings/new using BookingWizard with consistent portal styling and back link.
-- Updated portal bookings list to include a New Appointment button and empty-state CTA to the new page.
-- Why: unify booking creation UX across public and portal; reduce maintenance surface.
-- Next: add tests for API includePrice and BookingWizard flow; accessibility tests for TouchCalendar.
-
-## 2025-09-21 — Conflict detection service + 409 enforcement
-- Added src/lib/booking/conflict-detection.ts with buffer-aware overlap checks and daily cap enforcement.
-- Enforced conflict checks in admin/portal create (booking) and reschedule endpoints; now respond with HTTP 409 on conflicts instead of 400.
-- Why: ensure deterministic conflict handling and API compatibility guarantees noted in roadmap.
-- Tests: added route tests for portal/admin create/reschedule conflict scenarios returning 409.
-
-## 2025-09-21 — Recurring bookings planner (library)
-- Added src/lib/booking/recurring.ts to generate occurrences and preflight conflict checks for recurring patterns (daily/weekly/monthly).
-- Why: groundwork for recurring bookings P1; enables UI/API to preview conflicts and skip with logs.
-- Next: wire into API when Phase 1 schema lands; provide client-side UI for pattern configuration.
-
-## 2025-09-21 — Recurring bookings: API integration
-- Added recurringPattern support to admin and portal create routes.
-- Creates a parent record and non-conflicting child appointments; skips conflicts and logs them as comments on the parent; returns planning details in the response.
-- Why: completes P1 recurring foundation and aligns API with schema (recurringPattern, parentBookingId).
-
-## 2025-09-21 — Recurring preview endpoints
-- Added POST /api/admin/service-requests/recurring/preview and /api/portal/service-requests/recurring/preview.
-- Returns conflict-aware plan via planner; falls back to naive plan when DB is not configured; includes summary totals.
-- Why: enables UI to preview series before creation and surface skipped/conflicting occurrences.
-
-## 2025-09-21 — API compatibility completed
-- Confirmed deprecation headers on /api/bookings, conflict 409 tests present; forwarding maintained.
-- Next: add docs note on deprecation window and communicate timeline.
-
-## 2025-09-21 — Smart reminders: SMS webhook, i18n formatting, idempotency
-- Added optional SMS webhook to cron reminders (guarded by SMS_WEBHOOK_URL and user smsReminder). Uses locale/timezone-aware date/time formatting and includes metadata for traceability.
-- Email reminders continue to respect BookingPreferences windows; reminders are marked idempotently and audit logged. Errors are captured via observability helpers; no-DB path safely noops.
-- Done: implemented per-tenant batching and throttled processing (configurable via REMINDERS_TENANT_CONCURRENCY) to reduce burst load on email/SMS providers.
-- Done: implemented interleaved (round-robin) ordering and global concurrency with telemetry (REMINDERS_GLOBAL_CONCURRENCY) to balance tenant load and provide actionable metrics.
-- Done: implemented tenant-weighted backoff using historical telemetry; the scheduler now defers part of a tenant's reminders when recent failure rates exceed REMINDERS_BACKOFF_THRESHOLD (defaults to 10%). Deferred counts are included in audit logs for tuning.
-- Next: monitor delivery rates and tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY; consider tenant-priority and SLA-based weighting for future improvements.
-
-## 2025-09-21 — Admin UI tweaks
-- Removed Admin submenu from desktop navigation (kept access in account menu and mobile nav).
-- Added Cron Telemetry shortcut to Smart Actions (Management tab) on Admin Dashboard.
-
-## 2025-09-21 — Realtime availability broadcast + portal SSE fixes
-- Added emitAvailabilityUpdate to realtime service; emit on create, reschedule (old/new day), and on status changes that free capacity.
-- Wired admin create/reschedule/status routes and portal create/reschedule to broadcast events; portal list and admin list now subscribe to availability-updated and auto-refresh.
-- Fixed missing NextResponse import in /api/portal/realtime.
-- Why: ensure calendars and availability grids reflect changes instantly across sessions; reduce manual refresh.
-- Next: add route tests for event payloads and SWR invalidation, and monitor PG transport in staging.
+## 2025-09-21 — Portal bookings array handling bugfix
+- Fixed client crash on /portal and /portal/bookings when API returns wrapped shape { success, data }.
+- Updated pages to unwrap json.data safely and fallback to []. Prevents "j.filter is not a function" in production.

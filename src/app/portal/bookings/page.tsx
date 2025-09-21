@@ -36,8 +36,9 @@ export default function PortalBookingsPage() {
         setLoading(true)
         const res = await fetch('/api/bookings', { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed')
-        const json = await res.json()
-        setBookings(Array.isArray(json) ? json : [])
+        const json = await res.json().catch(() => null as any)
+        const list = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : [])
+        setBookings(list as any)
       } catch (e) {
         console.error('Failed to load bookings', e)
       } finally {
