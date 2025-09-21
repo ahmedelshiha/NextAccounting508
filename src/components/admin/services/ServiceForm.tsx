@@ -161,7 +161,7 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 text-center py-4">No features added yet. Click "Add Feature" to get started.</p>
+            <p className="text-sm text-gray-500 text-center py-4">No features added yet. Click &quot;Add Feature&quot; to get started.</p>
           )}
           {watchedFeatures && watchedFeatures.length > 0 && (
             <div className="pt-3 border-t">
