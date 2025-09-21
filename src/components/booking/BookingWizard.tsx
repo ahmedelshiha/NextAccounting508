@@ -226,8 +226,8 @@ export default function BookingWizard(props: BookingWizardProps) {
       return
     }
     setIsSubmitting(true)
+    const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
     try {
-      const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
 
       // When recurrence is enabled, create a recurring series via portal endpoint
       if (recurrenceEnabled && recurrence) {
