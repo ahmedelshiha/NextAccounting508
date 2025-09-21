@@ -85,8 +85,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     // Debugging helper: opt-in fetch logging (set NEXT_PUBLIC_DEBUG_FETCH=1 to enable)
     const originalFetch: typeof fetch = window.fetch.bind(window)
-    // Only wrap once
-    if (!window.__fetchLogged) {
+    const enableWrapper = process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_DEBUG_FETCH === '1'
+    // Only wrap once and only when enabled
+    if (enableWrapper && !window.__fetchLogged) {
       window.__fetchLogged = true
       window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         try {
