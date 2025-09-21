@@ -1,14 +1,19 @@
-const CACHE_NAME = 'af-cache-v1'
-const CACHE_NAME = 'booking-system-v2'
+const CACHE_NAME = 'booking-system-v3'
+const CACHE_NAME = 'booking-system-v3'
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
 ]
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
-  )
+  event.waitUntil((async () => {
+    try {
+      const cache = await caches.open(CACHE_NAME)
+      await cache.addAll(PRECACHE_URLS)
+    } finally {
+      try { await self.skipWaiting() } catch {}
+    }
+  })())
 })
 
 self.addEventListener('activate', (event) => {
@@ -45,7 +50,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Stale-while-revalidate for specific APIs (including bookings GET)
-  if (req.method === 'GET' && (url.pathname === '/api/services' || url.pathname.startsWith('/api/portal/service-requests') || url.pathname.startsWith('/api/bookings') || url.pathname.startsWith('/api/portal/service-requests'))) {
+  if (req.method === 'GET' && (url.pathname.startsWith('/api/services') || url.pathname.startsWith('/api/portal/service-requests') || url.pathname.startsWith('/api/bookings'))) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(req)
@@ -56,11 +61,42 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // For POST to /api/bookings, try network then fallback to offline response (client queues request)
-  if (req.method === 'POST' && url.pathname === '/api/bookings') {
-    event.respondWith(
-      fetch(req).catch(() => new Response(JSON.stringify({ offline: true }), { status: 503, headers: { 'Content-Type': 'application/json' } }))
-    )
+  // For POST to /api/bookings, try network then fallback to offline enqueue + 202 ack
+  if (req.method === 'POST' && (url.pathname === '/api/bookings' || url.pathname === '/api/portal/service-requests')) {
+    event.respondWith((async () => {
+      try {
+        return await fetch(req)
+      } catch {
+        try {
+          const body = await req.clone().json().catch(() => null)
+          if (body) {
+            // Enqueue into IndexedDB for Background Sync
+            const DB_NAME = 'af-offline'
+            const STORE = 'service-requests-queue'
+            const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+            await new Promise((resolve, reject) => {
+              const open = indexedDB.open(DB_NAME, 1)
+              open.onupgradeneeded = () => {
+                const db = open.result
+                if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' })
+              }
+              open.onsuccess = () => {
+                const db = open.result
+                const tx = db.transaction(STORE, 'readwrite')
+                tx.oncomplete = () => { try { db.close() } catch {} ; resolve(true) }
+                tx.onerror = () => { try { db.close() } catch {} ; reject(tx.error) }
+                tx.objectStore(STORE).put({ id, url: url.pathname, body, createdAt: Date.now(), retries: 0 })
+              }
+              open.onerror = () => reject(open.error)
+            })
+
+            // Request a background sync if available
+            try { const reg = await self.registration; if ('sync' in reg) { /* @ts-ignore */ await reg.sync.register('service-requests-sync') } } catch {}
+          }
+        } catch {}
+        return new Response(JSON.stringify({ offline: true, queued: true }), { status: 202, headers: { 'Content-Type': 'application/json' } })
+      }
+    })())
     return
   }
 })
