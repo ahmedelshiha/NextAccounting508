@@ -21,7 +21,7 @@ This section captures concrete gaps found during audit and the actionable work t
 2) Booking Wizard UX
 - [x] Split current monolithic wizard into step components (introduced TeamMemberSelection component)
 - [x] Add Team Member selection; filter availability accordingly
-- [ ] Add Recurrence step (frequency/interval/until); integrate preview endpoints and series creation
+- [x] Add Recurrence step (frequency/interval/until); integrate preview endpoints and series creation
 - [ ] Add optional Payment step; surface PricingEngine breakdown and promo application
 - [ ] Subscribe to realtime availability-updated events to auto-refresh slots
 
@@ -101,7 +101,7 @@ This section captures concrete gaps found during audit and the actionable work t
   - Done: Implemented protected cron endpoint with idempotent sends, per-user BookingPreferences windows, locale/timezone formatting, optional SMS webhook (guarded by env and user prefs), per-tenant batching with configurable concurrency, and tenant-weighted backoff driven by telemetry.
   - Next: Tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY and monitor downstream provider rate limits.
   - Deps: BookingPreferences; SENDGRID_API_KEY; SMS_WEBHOOK_URL (optional)
-  - Complexity: M • Owner: backend/ops
+  - Complexity: M �� Owner: backend/ops
 
 ### P2 — Medium Priority
 - [x] Realtime availability broadcast
