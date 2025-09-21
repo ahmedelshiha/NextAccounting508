@@ -77,8 +77,54 @@ export async function POST(req: Request) {
     const tenantStats: Record<string, { total: number; sent: number; failed: number }> = {}
     for (const k of tenantKeys) tenantStats[k] = { total: perTenantCounts[k] || 0, sent: 0, failed: 0 }
 
-    // Tunable concurrency knobs
-    const globalConcurrency = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY || 10)
+    // Tunable concurrency knobs with an in-process automatic tuner using recent telemetry
+    const defaultGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY || 10)
+    const defaultTenant = Number(process.env.REMINDERS_TENANT_CONCURRENCY || 3)
+    const maxGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MAX || 50)
+    const minGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MIN || 2)
+
+    // Try to read recent batch summaries from health logs (audit) to compute recent error rates
+    let errorRate = 0
+    try {
+      const logs = await prisma.healthLog.findMany({
+        where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
+        orderBy: { checkedAt: 'desc' },
+        take: 10,
+      })
+      let processedSum = 0
+      let failedSum = 0
+      for (const l of logs) {
+        try {
+          const parsed = JSON.parse(String(l.message))
+          const details = parsed.details || {}
+          const stats = details.tenantStats || {}
+          let localProcessed = Number(details.processed || 0)
+          let localFailed = 0
+          // aggregate failed from tenantStats if present
+          for (const t in stats) {
+            localFailed += Number((stats[t].failed) || 0)
+          }
+          processedSum += localProcessed
+          failedSum += localFailed
+        } catch {}
+      }
+      if (processedSum > 0) errorRate = failedSum / processedSum
+    } catch (e) {
+      // Best-effort: if DB audit unavailable, fall back to defaults
+      errorRate = 0
+    }
+
+    // Adjust concurrency heuristics
+    let effectiveGlobal = defaultGlobal
+    if (errorRate > 0.10) {
+      effectiveGlobal = Math.max(minGlobal, Math.floor(defaultGlobal * 0.5))
+    } else if (errorRate > 0.05) {
+      effectiveGlobal = Math.max(minGlobal, Math.floor(defaultGlobal * 0.75))
+    } else if (errorRate < 0.02) {
+      effectiveGlobal = Math.min(maxGlobal, defaultGlobal + 2)
+    }
+
+    const effectiveTenant = Math.max(1, Math.floor(defaultTenant * (errorRate > 0.10 ? 0.5 : 1)))
 
     // Helper to process a single appointment (shared logic)
     async function processAppointmentItem(item: { tenant: string; appt: any }) {
@@ -151,21 +197,21 @@ export async function POST(req: Request) {
       }
     }
 
-    // Process ordered appointments in global concurrent batches
+    // Process ordered appointments in global concurrent batches using the tuned concurrency
     const startTs = Date.now()
-    for (let i = 0; i < orderedAppts.length; i += globalConcurrency) {
-      const batch = orderedAppts.slice(i, i + globalConcurrency)
+    for (let i = 0; i < orderedAppts.length; i += effectiveGlobal) {
+      const batch = orderedAppts.slice(i, i + effectiveGlobal)
       await Promise.all(batch.map((it) => processAppointmentItem(it)))
     }
 
     const durationMs = Date.now() - startTs
 
-    // Emit telemetry/audit entry summarizing the run
+    // Emit telemetry/audit entry summarizing the run (includes chosen effective concurrency)
     try {
-      await logAuditSafe({ action: 'reminders:batch_summary', details: { totalAppts, perTenantCounts, tenantStats, processed: results.length, durationMs } })
+      await logAuditSafe({ action: 'reminders:batch_summary', details: { totalAppts, perTenantCounts, tenantStats, processed: results.length, durationMs, effectiveGlobal, effectiveTenant, errorRate } })
     } catch {}
 
-    return NextResponse.json({ success: true, processed: results.length, results, tenantStats, durationMs })
+    return NextResponse.json({ success: true, processed: results.length, results, tenantStats, durationMs, effectiveGlobal, effectiveTenant, errorRate })
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'cron:reminders' })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
