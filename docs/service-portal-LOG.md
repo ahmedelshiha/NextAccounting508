@@ -66,7 +66,7 @@
 - Added src/lib/booking/conflict-detection.ts with buffer-aware overlap checks and daily cap enforcement.
 - Enforced conflict checks in admin/portal create (booking) and reschedule endpoints; now respond with HTTP 409 on conflicts instead of 400.
 - Why: ensure deterministic conflict handling and API compatibility guarantees noted in roadmap.
-- Next: add route tests covering overlap, daily cap, and team member calendars.
+- Tests: added route tests for portal/admin create/reschedule conflict scenarios returning 409.
 
 ## 2025-09-21 — Recurring bookings planner (library)
 - Added src/lib/booking/recurring.ts to generate occurrences and preflight conflict checks for recurring patterns (daily/weekly/monthly).

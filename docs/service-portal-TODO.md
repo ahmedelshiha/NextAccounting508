@@ -97,8 +97,8 @@
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.
   - Complexity: S • Owner: dev
 - [ ] Tests & coverage
-  - Next: Unskip DB tests; add e2e; enforce thresholds in CI.
-  - Complexity: M ��� Owner: dev/QA
+  - Next: Added route tests for 409 conflicts (admin/portal create + reschedule). Unskip DB tests; add e2e; enforce thresholds in CI.
+  - Complexity: M • Owner: dev/QA
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.
   - Complexity: S • Owner: ops
