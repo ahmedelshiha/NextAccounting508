@@ -48,6 +48,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
     try { realtimeService.emitServiceRequestUpdate(String(id), { action: 'rescheduled' }) } catch {}
+    try {
+      const oldDateStr = new Date(booking.scheduledAt as any).toISOString().slice(0,10)
+      const newDateStr = newStart.toISOString().slice(0,10)
+      try { realtimeService.emitAvailabilityUpdate(booking.serviceId, { date: oldDateStr }) } catch {}
+      try { realtimeService.emitAvailabilityUpdate(booking.serviceId, { date: newDateStr }) } catch {}
+    } catch {}
     try { await logAudit({ action: 'service-request:reschedule', actorId: (session.user as any).id ?? null, targetId: String(id), details: { bookingId: booking.id, scheduledAt: newStart.toISOString() } }) } catch {}
 
     try {

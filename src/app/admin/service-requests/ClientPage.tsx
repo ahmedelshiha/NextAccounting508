@@ -21,7 +21,7 @@ export default function AdminServiceRequestsClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const perms = usePermissions()
-  const rt = useRealtime(['service-request-updated', 'team-assignment'])
+  const rt = useRealtime(['service-request-updated', 'team-assignment', 'availability-updated'])
 
   const [filters, setFilters] = useState<RequestFilters>({
     status: 'ALL',
@@ -109,7 +109,7 @@ export default function AdminServiceRequestsClient() {
   useEffect(() => {
     if (!rt.events.length) return
     const lastEvent =
-      rt.getLatestEvent('service-request-updated') || rt.getLatestEvent('team-assignment')
+      rt.getLatestEvent('service-request-updated') || rt.getLatestEvent('team-assignment') || rt.getLatestEvent('availability-updated')
     if (lastEvent) void reload()
   }, [rt.events, rt.getLatestEvent, reload])
 
