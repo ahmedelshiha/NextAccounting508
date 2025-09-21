@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import TouchCalendar from '@/components/mobile/TouchCalendar'
+import TeamMemberSelection from '@/components/booking/steps/TeamMemberSelection'
 
 export type Service = {
   id: string
