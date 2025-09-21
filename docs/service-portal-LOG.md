@@ -95,3 +95,23 @@ Next steps:
 - Offline/PWA hardening (SW caching + background sync) and begin unit tests for availability/pricing.
 
 Logged by: Autonomous Dev (assistant)
+
+---
+
+Update:
+- Hardened PWA offline support and added initial unit tests.
+
+Why:
+- Improve resilience offline: cache services APIs, queue portal service-requests when offline (Background Sync), and fix cache versioning.
+
+Files changed/added:
+- public/sw.js (UPDATED) — single CACHE_NAME (booking-system-v3), stale-while-revalidate for /api/services*, enqueue + 202 for POST /api/portal/service-requests and /api/bookings; Background Sync tag service-requests-sync.
+- src/components/providers/client-layout.tsx (UPDATED) — registers Background Sync after SW ready; processes queue on online.
+- tests/booking-availability.test.ts (NEW)
+- tests/pricing-calculation.test.ts (NEW, prisma mocked)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Expand tests coverage for recurrence and API routes; add idempotency keys to queued submissions.
+
+Logged by: Autonomous Dev (assistant)
