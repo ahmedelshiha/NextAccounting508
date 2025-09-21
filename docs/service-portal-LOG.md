@@ -42,3 +42,10 @@
 - Integrated optional pricing into availability endpoints via includePrice and currency query params; returns priceCents and currency per slot.
 - Added tests (tests/pricing.engine.test.ts) — all passing. Updated availability tests to include compatibility change (all slots returned with available flag).
 - Next: surface pricing in Booking Wizard UI and add admin-configurable pricing settings.
+
+## 2025-09-21 — Multi-step Booking Wizard (UI) implemented
+- Added src/components/booking/BookingWizard.tsx and refactored src/app/booking/page.tsx to use it.
+- Implemented steps: service selection, date/time with availability, client info, and confirmation with summary.
+- Pricing: displays base price from service and prepares interfaces to integrate PricingEngine (server-side) via includePrice.
+- Why: create a reusable, production-ready booking flow for both public and portal use; improves maintainability and UX.
+- Next: wire wizard into portal create flow, add TouchCalendar for mobile, and implement server-side pricing in availability API.
