@@ -73,6 +73,12 @@
   - Deps: AvailabilityEngine
   - Complexity: M • Owner: frontend
 
+- [x] Quarantine CSV export
+  - Done: Added Export DB CSV and Export Provider CSV in Admin Quarantine UI (/admin/uploads/quarantine) to support ops runbook.
+  - Next: Consider JSON export and filtered audit export for infected events.
+  - Deps: uploads-provider, admin quarantine endpoint
+  - Complexity: S • Owner: frontend
+
 ### Program Phases (Tracking)
 - [ ] Phase 1 — Data Model Unification (migrations + schema)
 - [ ] Phase 2 — API Integration (availability/confirm/reschedule, guest flow, compat layer)
