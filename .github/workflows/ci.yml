@@ -19,8 +19,13 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
 
-      - name: Enable pnpm
+      - name: Enable pnpm (corepack)
         run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: Setup pnpm action (ensures pnpm in PATH)
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
