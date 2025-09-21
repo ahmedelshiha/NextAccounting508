@@ -20,6 +20,9 @@ import {
   Plus
 } from 'lucide-react'
 
+const defaultStats = { totalBookings: 0, completedBookings: 0, averageRating: 0, totalRatings: 0, revenueGenerated: 0, utilizationRate: 0 }
+const defaultWorkingHours = { start: '09:00', end: '17:00', timezone: 'Africa/Cairo', days: ['Monday','Tuesday','Wednesday','Thursday','Friday'] }
+
 // Types
 interface TeamMember {
   id: string
@@ -76,7 +79,8 @@ function TeamMemberCard({ member, onEdit, onDelete, onToggleStatus, onViewDetail
       default: return 'text-gray-600 bg-gray-50'
     }
   }
-  const utilizationColor = member.stats.utilizationRate >= 85 ? 'text-green-600' : member.stats.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'
+  const s = member.stats || defaultStats
+  const utilizationColor = s.utilizationRate >= 85 ? 'text-green-600' : s.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-all">
@@ -156,27 +160,27 @@ function TeamMemberCard({ member, onEdit, onDelete, onToggleStatus, onViewDetail
       <div className="space-y-3 mb-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Utilization Rate:</span>
-          <span className={`font-medium ${utilizationColor}`}>{member.stats.utilizationRate}%</span>
+          <span className={`font-medium ${utilizationColor}`}>{s.utilizationRate}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div className={`${member.stats.utilizationRate >= 85 ? 'bg-green-500' : member.stats.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-2 rounded-full transition-all`} style={{ width: `${member.stats.utilizationRate}%` }} />
+          <div className={`${s.utilizationRate >= 85 ? 'bg-green-500' : s.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-2 rounded-full transition-all`} style={{ width: `${s.utilizationRate}%` }} />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-center text-xs text-gray-600 mb-4">
         <div>
-          <div className="font-medium text-gray-900">{member.stats.totalBookings}</div>
+          <div className="font-medium text-gray-900">{s.totalBookings}</div>
           <div>Bookings</div>
         </div>
         <div>
           <div className="font-medium text-gray-900 flex items-center justify-center gap-1">
-            {member.stats.averageRating}
+            {s.averageRating}
             <Star className="h-3 w-3 text-yellow-500" />
           </div>
           <div>Rating</div>
         </div>
         <div>
-          <div className="font-medium text-gray-900">${(member.stats.revenueGenerated / 1000).toFixed(0)}k</div>
+          <div className="font-medium text-gray-900">${(s.revenueGenerated / 1000).toFixed(0)}k</div>
           <div>Revenue</div>
         </div>
       </div>
@@ -184,14 +188,14 @@ function TeamMemberCard({ member, onEdit, onDelete, onToggleStatus, onViewDetail
       <div className="space-y-2">
         <div className="flex items-center text-xs text-gray-600">
           <Clock className="h-3 w-3 mr-1" />
-          {member.workingHours.start} - {member.workingHours.end}
+          {(member.workingHours || defaultWorkingHours).start} - {(member.workingHours || defaultWorkingHours).end}
         </div>
         <div className="flex flex-wrap gap-1">
-          {member.specialties.slice(0, 2).map((s, idx) => (
-            <span key={idx} className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{s}</span>
+          {(member.specialties || []).slice(0, 2).map((sp, idx) => (
+            <span key={idx} className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">{sp}</span>
           ))}
-          {member.specialties.length > 2 && (
-            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">+{member.specialties.length - 2} more</span>
+          {(member.specialties || []).length > 2 && (
+            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">+{(member.specialties || []).length - 2} more</span>
           )}
         </div>
       </div>
@@ -415,6 +419,8 @@ function TeamMemberForm({ member, onSave, onCancel }: {
 
 function TeamMemberDetails({ member, onClose, onEdit }: { member: TeamMember | null; onClose: () => void; onEdit: (m: TeamMember) => void }) {
   if (!member) return null
+  const s = member.stats || defaultStats
+  const wh = member.workingHours || defaultWorkingHours
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
@@ -451,27 +457,27 @@ function TeamMemberDetails({ member, onClose, onEdit }: { member: TeamMember | n
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-3">Performance Metrics</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="text-center"><div className="text-2xl font-bold text-gray-900">{member.stats.totalBookings}</div><div className="text-sm text-gray-600">Total Bookings</div></div>
-                <div className="text-center"><div className="text-2xl font-bold text-green-600">{member.stats.completedBookings}</div><div className="text-sm text-gray-600">Completed</div></div>
-                <div className="text-center"><div className="text-2xl font-bold text-yellow-600 flex items-center justify-center gap-1">{member.stats.averageRating}<Star className="h-5 w-5" /></div><div className="text-sm text-gray-600">Avg Rating</div></div>
-                <div className="text-center"><div className="text-2xl font-bold text-blue-600">${(member.stats.revenueGenerated / 1000).toFixed(0)}k</div><div className="text-sm text-gray-600">Revenue</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-gray-900">{s.totalBookings}</div><div className="text-sm text-gray-600">Total Bookings</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-green-600">{s.completedBookings}</div><div className="text-sm text-gray-600">Completed</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-yellow-600 flex items-center justify-center gap-1">{s.averageRating}<Star className="h-5 w-5" /></div><div className="text-sm text-gray-600">Avg Rating</div></div>
+                <div className="text-center"><div className="text-2xl font-bold text-blue-600">${(s.revenueGenerated / 1000).toFixed(0)}k</div><div className="text-sm text-gray-600">Revenue</div></div>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Utilization Rate</span>
-                  <span className={`text-sm font-bold ${member.stats.utilizationRate >= 85 ? 'text-green-600' : member.stats.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>{member.stats.utilizationRate}%</span>
+                  <span className={`text-sm font-bold ${s.utilizationRate >= 85 ? 'text-green-600' : s.utilizationRate >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>{s.utilizationRate}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3"><div className={`${member.stats.utilizationRate >= 85 ? 'bg-green-500' : member.stats.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-3 rounded-full transition-all`} style={{ width: `${member.stats.utilizationRate}%` }} /></div>
+                <div className="w-full bg-gray-200 rounded-full h-3"><div className={`${s.utilizationRate >= 85 ? 'bg-green-500' : s.utilizationRate >= 70 ? 'bg-yellow-500' : 'bg-red-500'} h-3 rounded-full transition-all`} style={{ width: `${s.utilizationRate}%` }} /></div>
               </div>
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-3">Schedule & Availability</h3>
               <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <div className="flex items-center space-x-3"><Clock className="h-5 w-5 text-gray-400" /><div><div className="text-sm text-gray-600">Working Hours</div><div className="font-medium">{member.workingHours.start} - {member.workingHours.end} ({member.workingHours.timezone})</div></div></div>
+                <div className="flex items-center space-x-3"><Clock className="h-5 w-5 text-gray-400" /><div><div className="text-sm text-gray-600">Working Hours</div><div className="font-medium">{wh.start} - {wh.end} ({wh.timezone})</div></div></div>
                 <div>
                   <div className="text-sm text-gray-600 mb-2">Working Days</div>
                   <div className="flex flex-wrap gap-2">
-                    {member.workingHours.days.map((day, idx) => (<span key={idx} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{day}</span>))}
+                    {wh.days.map((day, idx) => (<span key={idx} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{day}</span>))}
                   </div>
                 </div>
               </div>
@@ -498,7 +504,43 @@ export default function TeamManagement() {
       try {
         const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
-        setTeamMembers(Array.isArray(data.teamMembers) ? data.teamMembers : [])
+        const members = Array.isArray(data.teamMembers) ? data.teamMembers : []
+        setTeamMembers(members.map((m: any) => ({
+          id: String(m.id ?? m.userId ?? m.email ?? m.name ?? Math.random().toString(36).slice(2)),
+          userId: m.userId ?? null,
+          name: m.name ?? '',
+          email: m.email ?? '',
+          role: m.role ?? 'TEAM_MEMBER',
+          department: m.department ?? 'tax',
+          status: m.status ?? 'active',
+          phone: m.phone ?? '',
+          title: m.title ?? '',
+          certifications: Array.isArray(m.certifications) ? m.certifications : [],
+          specialties: Array.isArray(m.specialties) ? m.specialties : [],
+          experienceYears: Number.isFinite(m.experienceYears) ? m.experienceYears : 0,
+          hourlyRate: typeof m.hourlyRate === 'number' ? m.hourlyRate : undefined,
+          workingHours: m.workingHours && m.workingHours.start && m.workingHours.end && m.workingHours.timezone && Array.isArray(m.workingHours.days) ? m.workingHours : defaultWorkingHours,
+          isAvailable: Boolean(m.isAvailable),
+          availabilityNotes: m.availabilityNotes ?? '',
+          stats: m.stats && typeof m.stats === 'object' ? {
+            totalBookings: Number.isFinite(m.stats.totalBookings) ? m.stats.totalBookings : 0,
+            completedBookings: Number.isFinite(m.stats.completedBookings) ? m.stats.completedBookings : 0,
+            averageRating: Number.isFinite(m.stats.averageRating) ? m.stats.averageRating : 0,
+            totalRatings: Number.isFinite(m.stats.totalRatings) ? m.stats.totalRatings : 0,
+            revenueGenerated: Number.isFinite(m.stats.revenueGenerated) ? m.stats.revenueGenerated : 0,
+            utilizationRate: Number.isFinite(m.stats.utilizationRate) ? m.stats.utilizationRate : 0
+          } : defaultStats,
+          canManageBookings: Boolean(m.canManageBookings),
+          canViewAllClients: Boolean(m.canViewAllClients),
+          notificationSettings: m.notificationSettings && typeof m.notificationSettings === 'object' ? {
+            email: Boolean(m.notificationSettings.email),
+            sms: Boolean(m.notificationSettings.sms),
+            inApp: Boolean(m.notificationSettings.inApp)
+          } : { email: true, sms: false, inApp: true },
+          joinDate: m.joinDate ?? new Date().toISOString(),
+          lastActive: m.lastActive ?? new Date().toISOString(),
+          notes: m.notes ?? ''
+        } as TeamMember)))
       } catch (err) {
         console.error('Failed to load team members', err)
       }
@@ -508,7 +550,7 @@ export default function TeamManagement() {
 
   const filteredMembers = teamMembers.filter((m) => {
     const term = searchTerm.toLowerCase()
-    const matchesSearch = m.name.toLowerCase().includes(term) || m.email.toLowerCase().includes(term) || m.title.toLowerCase().includes(term)
+    const matchesSearch = (m.name || '').toLowerCase().includes(term) || (m.email || '').toLowerCase().includes(term) || (m.title || '').toLowerCase().includes(term)
     const matchesStatus = statusFilter === 'all' || m.status === statusFilter
     const matchesDepartment = departmentFilter === 'all' || m.department === departmentFilter
     return matchesSearch && matchesStatus && matchesDepartment
@@ -565,8 +607,8 @@ export default function TeamManagement() {
     total: teamMembers.length,
     active: teamMembers.filter((m) => m.status === 'active').length,
     busy: teamMembers.filter((m) => m.status === 'busy').length,
-    avgUtilization: teamMembers.length ? Math.round(teamMembers.reduce((acc, m) => acc + (m.stats.utilizationRate || 0), 0) / teamMembers.length) : 0,
-    totalRevenue: teamMembers.reduce((acc, m) => acc + (m.stats.revenueGenerated || 0), 0)
+    avgUtilization: teamMembers.length ? Math.round(teamMembers.reduce((acc, m) => acc + (m.stats?.utilizationRate ?? 0), 0) / teamMembers.length) : 0,
+    totalRevenue: teamMembers.reduce((acc, m) => acc + (m.stats?.revenueGenerated ?? 0), 0)
   }
 
   return (
