@@ -5,5 +5,6 @@
 - Implemented ServiceRequest binding for Stripe checkout:
   - BookingWizard pre-creates ServiceRequest on CARD payment path and passes serviceRequestId to checkout.
   - Payments webhook updated to reconcile directly via serviceRequestId metadata.
+- Admin: added paymentStatus badges and amount to service-requests table; added paymentStatus filter wired through useBookings and admin API.
 - Updated docs/service-portal-TODO.md with completion, rationale, and next actions.
-- Planned follow-on work: admin payment badges/filters, nightly reconciliation, tests.
+- Planned follow-on work: admin payment detail view, nightly reconciliation, tests.
