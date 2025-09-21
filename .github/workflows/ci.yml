@@ -27,6 +27,24 @@ jobs:
         with:
           version: 8
 
+      - name: Verify pnpm and fallback install
+        run: |
+          echo "which pnpm: $(which pnpm || echo 'not found')"
+          if command -v pnpm >/dev/null 2>&1; then
+            echo "pnpm present: $(pnpm -v)"
+          else
+            echo "pnpm not found — attempting corepack prepare"
+            corepack enable || true
+            corepack prepare pnpm@latest --activate || true
+            if command -v pnpm >/dev/null 2>&1; then
+              echo "pnpm installed via corepack: $(pnpm -v)"
+            else
+              echo "corepack failed, installing pnpm via npm"
+              npm install -g pnpm@8 || true
+              echo "pnpm after npm install: $(pnpm -v || echo 'still not found')"
+            fi
+          fi
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
