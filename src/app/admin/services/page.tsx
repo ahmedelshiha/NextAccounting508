@@ -65,7 +65,8 @@ export default function ServicesAdminPage() {
       const res = await apiFetch(`/api/admin/services${qp.toString() ? `?${qp.toString()}` : ''}`)
       if (!res.ok) throw new Error('Failed to load services')
       const json = await res.json()
-      const list = Array.isArray(json) ? json.map(toServiceType) : []
+      const rawList = Array.isArray(json) ? json : (Array.isArray(json?.services) ? json.services : (Array.isArray(json?.items) ? json.items : []))
+      const list = rawList.map(toServiceType)
       setServices(list)
     } catch (e) {
       console.error('load services', e)
