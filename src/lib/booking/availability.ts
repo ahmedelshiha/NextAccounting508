@@ -11,6 +11,55 @@ export type BusinessHours = {
   [weekday: number]: { startMinutes: number; endMinutes: number } | undefined
 }
 
+export function toMinutes(str: string): number | null {
+  const parts = str.split(':')
+  if (parts.length !== 2) return null
+  const h = parseInt(parts[0], 10)
+  const m = parseInt(parts[1], 10)
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  return h * 60 + m
+}
+
+export function normalizeBusinessHours(raw: unknown): BusinessHours | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const out: BusinessHours = {} as any
+  const asObj = raw as Record<string, any>
+
+  const keys = Array.isArray(raw) ? Object.keys(raw as any) : Object.keys(asObj)
+  for (const k of keys) {
+    const idx = Number(k)
+    const val = (Array.isArray(raw) ? (raw as any)[k as any] : asObj[k])
+    if (val == null) continue
+
+    if (typeof val === 'string') {
+      const parts = val.split('-')
+      if (parts.length === 2) {
+        const s = toMinutes(parts[0].trim())
+        const e = toMinutes(parts[1].trim())
+        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
+      }
+      continue
+    }
+    if (typeof val === 'object') {
+      if (typeof (val as any).startMinutes === 'number' && typeof (val as any).endMinutes === 'number') {
+        out[idx] = { startMinutes: (val as any).startMinutes, endMinutes: (val as any).endMinutes }
+        continue
+      }
+      if (typeof (val as any).start === 'number' && typeof (val as any).end === 'number') {
+        out[idx] = { startMinutes: (val as any).start, endMinutes: (val as any).end }
+        continue
+      }
+      if (typeof (val as any).startTime === 'string' && typeof (val as any).endTime === 'string') {
+        const s = toMinutes((val as any).startTime)
+        const e = toMinutes((val as any).endTime)
+        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
+        continue
+      }
+    }
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
 export type AvailabilityOptions = {
   // Minutes to block before and after each booking
   bookingBufferMinutes?: number
