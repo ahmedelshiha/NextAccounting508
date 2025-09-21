@@ -109,11 +109,11 @@ export default function ServiceRequestsClient() {
     let es: EventSource | null = null
     let retry = 0
     const connect = () => {
-      es = new EventSource('/api/portal/realtime?events=service-request-updated')
+      es = new EventSource('/api/portal/realtime?events=service-request-updated,availability-updated')
       es.onmessage = (e) => {
         try {
           const evt = JSON.parse(e.data)
-          if (evt?.type === 'service-request-updated') refresh()
+          if (evt?.type === 'service-request-updated' || evt?.type === 'availability-updated') refresh()
         } catch {}
       }
       es.onerror = () => {

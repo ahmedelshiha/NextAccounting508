@@ -435,6 +435,20 @@ export async function POST(request: Request) {
       } catch {}
 
       try { realtimeService.emitServiceRequestUpdate(parent.id, { action: 'created' }) } catch {}
+      try {
+        const dates = new Set<string>()
+        try { dates.add(new Date((parent as any).scheduledAt).toISOString().slice(0,10)) } catch {}
+        try {
+          for (const item of plan.plan) {
+            if (!item.conflict && item.start) {
+              dates.add(new Date(item.start).toISOString().slice(0,10))
+            }
+          }
+        } catch {}
+        for (const d of Array.from(dates)) {
+          try { realtimeService.emitAvailabilityUpdate(parent.serviceId, { date: d }) } catch {}
+        }
+      } catch {}
       try { await logAudit({ action: 'service-request:create:recurring', actorId: (session.user as any).id ?? null, targetId: parent.id, details: { serviceId: parent.serviceId, occurrences: plan.plan.length, created: childrenCreated.length, skipped: skipped.length } }) } catch {}
 
       return respond.created({ parent, childrenCreated, skipped })
@@ -477,6 +491,12 @@ export async function POST(request: Request) {
 
     try { realtimeService.emitServiceRequestUpdate(created.id, { action: 'created' }) } catch {}
     try { realtimeService.broadcastToUser(String(created.clientId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+    try {
+      if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
+        const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
+        try { realtimeService.emitAvailabilityUpdate(created.serviceId, { date: d }) } catch {}
+      }
+    } catch {}
     try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
 
     return respond.created(created)
@@ -518,6 +538,12 @@ export async function POST(request: Request) {
         if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
         try { realtimeService.emitServiceRequestUpdate(id, { action: 'created' }) } catch {}
+        try {
+          if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
+            const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
+            try { realtimeService.emitAvailabilityUpdate(created.serviceId, { date: d }) } catch {}
+          }
+        } catch {}
         try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
         return respond.created(created)
       } catch {

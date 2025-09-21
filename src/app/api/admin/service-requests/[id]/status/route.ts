@@ -50,6 +50,14 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   // Realtime broadcast
   try { realtimeService.emitServiceRequestUpdate(safeUpdated.id, { status: safeUpdated.status }) } catch {}
   try { if (safeUpdated.client?.id) realtimeService.broadcastToUser(String(safeUpdated.client.id), { type: 'service-request-updated', data: { serviceRequestId: safeUpdated.id, status: safeUpdated.status }, timestamp: new Date().toISOString() }) } catch {}
+  try {
+    const affectsAvailability = ['CANCELLED','COMPLETED'].includes(parsed.data.status as any)
+    const wasBooking = !!(existing as any)?.isBooking || !!(existing as any)?.scheduledAt
+    if (affectsAvailability && wasBooking && (existing as any)?.serviceId && (existing as any)?.scheduledAt) {
+      const d = new Date((existing as any).scheduledAt).toISOString().slice(0,10)
+      try { realtimeService.emitAvailabilityUpdate((existing as any).serviceId, { date: d }) } catch {}
+    }
+  } catch {}
 
   // Email client on status changes (best-effort)
   try {
