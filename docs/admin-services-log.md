@@ -1,10 +1,11 @@
-## [2025-09-21] Started CI configuration and quality gates
+## [2025-09-21] Netlify preview smoke test workflow added
 What I implemented:
-- Added GitHub Actions workflow (.github/workflows/ci.yml) to run lint, typecheck, and vitest on push and pull requests.
+- Added GitHub Actions workflow (.github/workflows/netlify-preview-smoke.yml) that polls the Netlify API for a preview deploy URL for the PR branch and runs a basic smoke test (GET /).
+- Reused existing netlify.toml preview configuration; workflow expects NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID GitHub secrets to be set.
 
 Why:
-- Ensure code quality and catch regressions early via automated checks.
+- Provide automated verification that Netlify preview deploys are reachable and the site responds as expected before merging.
 
 Next steps:
-- Run CI in GitHub; iterate on any failures (likely typecheck/lint fixes).
-- Configure Netlify preview deploy and smoke tests; document required env variables.
+- Add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID as repository secrets.
+- If desired, extend smoke tests to validate API health endpoints and page content using Playwright.
