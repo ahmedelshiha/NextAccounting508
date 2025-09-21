@@ -1,8 +1,19 @@
 import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
+
+function genPasswordFromEnv(envName: string) {
+  const env = process.env[envName]
+  if (env && env.trim().length > 0) return env
+  const generated = crypto.randomBytes(6).toString('hex')
+  console.warn(`Warning: ${envName} not set, generated temporary password: ${generated}`)
+  return generated
+}
 
 async function main() {
   console.log('🌱 Starting seed...')
+
+  const SEED_FAIL_FAST = process.env.SEED_FAIL_FAST === 'true'
 
   // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
@@ -10,71 +21,80 @@ async function main() {
   await prisma.booking.deleteMany({ where: { clientEmail: 'john@example.com' } })
   await prisma.user.deleteMany({ where: { email: 'john@example.com' } })
 
-  // Create admin user
-  const adminPassword = await bcrypt.hash('admin123', 12)
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@accountingfirm.com' },
-    update: {},
-    create: {
-      email: 'admin@accountingfirm.com',
-      name: 'Admin User',
-      password: adminPassword,
-      role: 'ADMIN',
-      emailVerified: new Date(),
-    },
-  })
+  // Passwords: prefer environment variables, otherwise generate secure random values and log them
+  const adminPlain = genPasswordFromEnv('SEED_ADMIN_PASSWORD')
+  const staffPlain = genPasswordFromEnv('SEED_STAFF_PASSWORD')
+  const clientPlain = genPasswordFromEnv('SEED_CLIENT_PASSWORD')
+  const leadPlain = genPasswordFromEnv('SEED_LEAD_PASSWORD')
 
-  // Create staff user
-  const staffPassword = await bcrypt.hash('staff123', 12)
-  const staff = await prisma.user.upsert({
-    where: { email: 'staff@accountingfirm.com' },
-    update: {},
-    create: {
-      email: 'staff@accountingfirm.com',
-      name: 'Staff Member',
-      password: staffPassword,
-      role: 'TEAM_MEMBER',
-      emailVerified: new Date(),
-    },
-  })
+  const adminPassword = await bcrypt.hash(adminPlain, 12)
+  const staffPassword = await bcrypt.hash(staffPlain, 12)
+  const clientPassword = await bcrypt.hash(clientPlain, 12)
+  const leadPassword = await bcrypt.hash(leadPlain, 12)
 
-  // Create demo client users
-  const clientPassword = await bcrypt.hash('client123', 12)
-  const client1 = await prisma.user.upsert({
-    where: { email: 'client1@example.com' },
-    update: {},
-    create: {
-      email: 'client1@example.com',
-      name: 'Client One',
-      password: clientPassword,
-      role: 'CLIENT',
-      emailVerified: new Date(),
-    },
-  })
-  const client2 = await prisma.user.upsert({
-    where: { email: 'client2@example.com' },
-    update: {},
-    create: {
-      email: 'client2@example.com',
-      name: 'Client Two',
-      password: clientPassword,
-      role: 'CLIENT',
-      emailVerified: new Date(),
-    },
-  })
+  // Create users inside a transaction to ensure consistency
+  const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
+    const a = await tx.user.upsert({
+      where: { email: 'admin@accountingfirm.com' },
+      update: {},
+      create: {
+        email: 'admin@accountingfirm.com',
+        name: 'Admin User',
+        password: adminPassword,
+        role: 'ADMIN',
+        emailVerified: new Date(),
+      },
+    })
 
-  // Create team lead user
-  const leadPassword = await bcrypt.hash('lead123', 12)
-  const lead = await prisma.user.upsert({
-    where: { email: 'lead@accountingfirm.com' },
-    update: {},
-    create: {
-      email: 'lead@accountingfirm.com',
-      name: 'Team Lead',
-      password: leadPassword,
-      role: 'TEAM_LEAD',
-      emailVerified: new Date(),
-    },
+    const s = await tx.user.upsert({
+      where: { email: 'staff@accountingfirm.com' },
+      update: {},
+      create: {
+        email: 'staff@accountingfirm.com',
+        name: 'Staff Member',
+        password: staffPassword,
+        role: 'TEAM_MEMBER',
+        emailVerified: new Date(),
+      },
+    })
+
+    const c1 = await tx.user.upsert({
+      where: { email: 'client1@example.com' },
+      update: {},
+      create: {
+        email: 'client1@example.com',
+        name: 'Client One',
+        password: clientPassword,
+        role: 'CLIENT',
+        emailVerified: new Date(),
+      },
+    })
+
+    const c2 = await tx.user.upsert({
+      where: { email: 'client2@example.com' },
+      update: {},
+      create: {
+        email: 'client2@example.com',
+        name: 'Client Two',
+        password: clientPassword,
+        role: 'CLIENT',
+        emailVerified: new Date(),
+      },
+    })
+
+    const l = await tx.user.upsert({
+      where: { email: 'lead@accountingfirm.com' },
+      update: {},
+      create: {
+        email: 'lead@accountingfirm.com',
+        name: 'Team Lead',
+        password: leadPassword,
+        role: 'TEAM_LEAD',
+        emailVerified: new Date(),
+      },
+    })
+
+    return [a, s, c1, c2, l]
   })
 
   console.log('✅ Users created')
@@ -96,6 +116,7 @@ async function main() {
         timeZone: 'UTC',
         maxConcurrentBookings: 3,
         bookingBuffer: 15,
+        workingHours: {},
       },
     })
   }
@@ -116,6 +137,7 @@ async function main() {
         timeZone: 'UTC',
         maxConcurrentBookings: 5,
         bookingBuffer: 15,
+        workingHours: {},
       },
     })
   }
@@ -344,6 +366,9 @@ Our consultation sessions are designed to provide you with actionable insights a
       console.log('✅ Demo bookings created')
     } catch (e) {
       console.warn('Skipping assignments/bookings due to error:', (e as any)?.message)
+      if (SEED_FAIL_FAST) {
+        throw e
+      }
     }
   }
 
@@ -745,9 +770,9 @@ Effective cash flow management requires ongoing attention and planning. Regular 
     await prisma.task.update({ where: { id: t2.id }, data: { assigneeId: staff.id } })
     await prisma.task.update({ where: { id: t3.id }, data: { assigneeId: admin.id } })
 
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t1.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t1.id } })
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t2.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t2.id } })
-    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_2', taskId: t3.id } }, update: {}, create: { serviceRequestId: 'sr_demo_2', taskId: t3.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_1', taskId: t1.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t1.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_1', taskId: t2.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t2.id } })
+    await prisma.requestTask.upsert({ where: { unique_request_task: { serviceRequestId: 'sr_demo_2', taskId: t3.id } }, update: {}, create: { serviceRequestId: 'sr_demo_2', taskId: t3.id } })
   } catch {}
 
   console.log('✅ Sample tasks and compliance records created')
@@ -760,12 +785,19 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('Client 2: client2@example.com / client123')
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e: unknown) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+// Exported function for smoke tests
+export async function runSeed() {
+  return main()
+}
+
+if (require.main === module) {
+  main()
+    .then(async () => {
+      await prisma.$disconnect()
+    })
+    .catch(async (e: unknown) => {
+      console.error(e)
+      await prisma.$disconnect()
+      process.exit(1)
+    })
+}
