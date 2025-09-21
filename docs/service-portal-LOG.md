@@ -95,6 +95,10 @@
 - Done: implemented tenant-weighted backoff using historical telemetry; the scheduler now defers part of a tenant's reminders when recent failure rates exceed REMINDERS_BACKOFF_THRESHOLD (defaults to 10%). Deferred counts are included in audit logs for tuning.
 - Next: monitor delivery rates and tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY; consider tenant-priority and SLA-based weighting for future improvements.
 
+## 2025-09-21 — Admin UI tweaks
+- Removed Admin submenu from desktop navigation (kept access in account menu and mobile nav).
+- Added Cron Telemetry shortcut to Smart Actions (Management tab) on Admin Dashboard.
+
 ## 2025-09-21 — Realtime availability broadcast + portal SSE fixes
 - Added emitAvailabilityUpdate to realtime service; emit on create, reschedule (old/new day), and on status changes that free capacity.
 - Wired admin create/reschedule/status routes and portal create/reschedule to broadcast events; portal list and admin list now subscribe to availability-updated and auto-refresh.
