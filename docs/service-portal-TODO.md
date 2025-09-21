@@ -54,8 +54,9 @@
   - Complexity: M • Owner: backend/ops
 
 ### P2 — Medium Priority
-- [ ] Realtime availability broadcast
-  - Next: Implement booking-events; broadcast on create/update; subscribe from calendar grids; test payloads.
+- [x] Realtime availability broadcast
+  - Done: Added availability-updated events in realtime service; emitting on create, reschedule, and status changes that free capacity (CANCELLED/COMPLETED) across admin and portal. Admin and portal UIs subscribe and auto-refresh.
+  - Next: Add route tests to validate event payloads and ensure SWR caches for availability invalidate correctly.
   - Deps: Realtime transport; AvailabilityEngine
   - Complexity: M • Owner: backend
 - [ ] Live chat support

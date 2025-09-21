@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
 import { sendBookingConfirmation } from '@/lib/email'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 const BodySchema = z.object({ scheduledAt: z.string().datetime() })
 
@@ -50,6 +51,13 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
+    try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: String(id), action: 'rescheduled' }, timestamp: new Date().toISOString() }) } catch {}
+    try {
+      const oldDateStr = new Date(booking.scheduledAt as any).toISOString().slice(0,10)
+      const newDateStr = newStart.toISOString().slice(0,10)
+      try { realtimeService.emitAvailabilityUpdate(booking.serviceId, { date: oldDateStr }) } catch {}
+      try { realtimeService.emitAvailabilityUpdate(booking.serviceId, { date: newDateStr }) } catch {}
+    } catch {}
     try { await logAudit({ action: 'portal:service-request:reschedule', actorId: session.user.id ?? null, targetId: String(id), details: { bookingId: booking.id, scheduledAt: newStart.toISOString() } }) } catch {}
 
     try {

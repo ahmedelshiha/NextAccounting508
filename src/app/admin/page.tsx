@@ -836,6 +836,12 @@ function SmartQuickActions({ data }: { data: DashboardData }) {
     ],
     management: [
       {
+        label: 'Cron Telemetry',
+        href: '/admin/cron-telemetry',
+        icon: Activity,
+        description: 'Monitor cron runs and metrics'
+      },
+      {
         label: 'Team Members',
         href: '/admin/team',
         icon: Users,

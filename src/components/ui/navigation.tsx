@@ -108,35 +108,6 @@ export function Navigation() {
               </Link>
             ))}
 
-            {isAdminUser && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="px-3 py-2 text-sm font-medium rounded-md">
-                    Admin
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/cron-telemetry" className="flex items-center">
-                      <BarChart className="mr-2 h-4 w-4" />
-                      Cron Telemetry
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/users" className="flex items-center">
-                      <User className="mr-2 h-4 w-4" />
-                      Users
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
 
           {/* Desktop Auth & CTA */}

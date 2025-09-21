@@ -175,6 +175,11 @@ class EnhancedRealtimeService extends EventEmitter {
     this.dispatch({ type: 'team-assignment', data, timestamp: new Date().toISOString() })
   }
 
+  emitAvailabilityUpdate(serviceId: string | number, data: any = {}) {
+    const payload = { serviceId, ...data }
+    this.dispatch({ type: 'availability-updated', data: payload, timestamp: new Date().toISOString() })
+  }
+
   cleanup(connectionId: string) {
     const conn = this.connections.get(connectionId)
     if (conn) {
