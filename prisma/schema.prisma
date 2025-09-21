@@ -644,6 +644,21 @@ model ChatMessage {
 }
 
 // Enums and other models
+model IdempotencyKey {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  userId     String?
+  tenantId   String?
+  entityType String?
+  entityId   String?
+  status     String   @default("RESERVED")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime?
+
+  @@index([tenantId])
+}
+
 enum ExpertiseLevel {
   junior
   mid
