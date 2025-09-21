@@ -3,9 +3,9 @@
 Last updated: 2025-09-21
 
 Status summary
-- Completed: core UI components, admin APIs, utilities, initial analytics UI, accessible modal + focus trap, unit tests scaffold
-- In progress: typecheck & ESLint (blocked to run in this environment)
-- Pending: component tests, integration tests, Netlify preview deploy
+- Completed: core UI components, admin APIs, utilities, initial analytics UI, accessible modal + focus trap, unit tests scaffold, component tests, integration tests
+- In progress: CI configuration and quality gates
+- Pending: Netlify preview deploy, environment variables documentation
 
 Actionable checklist (ordered, with acceptance criteria)
 
@@ -25,14 +25,14 @@ Actionable checklist (ordered, with acceptance criteria)
 - [x] Wire ServicesAnalytics to admin stats endpoint with skeleton and error states
   - Acceptance: Analytics card shows when endpoint returns data; loading skeleton otherwise
 
-5) Testing (pending/in progress)
+5) Testing (completed)
 - [x] Unit tests scaffold for utils and schemas (tests/services/*)
-- [ ] Component tests: services page interactions (filters, modal open/close, focus-trap, create/edit flow)
-- [ ] Integration tests: admin services APIs (list/create/update/delete/bulk/export)
+- [x] Component tests: services page interactions (filters, modal open/close, focus-trap, create/edit flow)
+- [x] Integration tests: admin services APIs (list/create/update/delete/bulk/export)
 
-6) Quality gates & CI (pending)
+6) Quality gates & CI (in progress)
 - [ ] Run full typecheck and ESLint locally; fix any issues
-- [ ] Add CI steps to run lint, typecheck, vitest, and a preview build
+- [x] Add CI workflow to run lint, typecheck, and vitest (GitHub Actions)
 
 7) Deployability (pending)
 - [ ] Netlify preview deploy and smoke tests
@@ -48,7 +48,21 @@ Immediate next actions you can run locally
 - pnpm exec vitest run
 - pnpm run typecheck
 
+Netlify preview smoke test setup
+- This repo contains netlify.toml configured for deploy previews and a GitHub Actions workflow (.github/workflows/netlify-preview-smoke.yml) that:
+  - Polls the Netlify API for a preview deploy for the PR branch
+  - Waits for the deploy to reach ready state and extracts the preview URL
+  - Runs a simple smoke test (GET /) against the preview and fails on non-200 status
+
+Required GitHub secrets (please add these in your repository settings -> Secrets):
+- NETLIFY_AUTH_TOKEN: a Netlify Personal Access Token with read access to sites and deploys
+- NETLIFY_SITE_ID: the Netlify site ID for this project
+
+Notes:
+- The workflow will fail early if those secrets are not provided. Add them and re-open the PR to trigger the smoke test.
+- If you prefer GitHub Actions to deploy to Netlify directly (rather than relying on Netlify preview), I can add a deploy step but it requires write-scoped NETLIFY_AUTH_TOKEN.
+
 If you want I can:
-- Add component tests for modal behavior and admin interactions
-- Add integration tests for the admin APIs
-- Prepare a draft PR with these changes
+- Add more robust smoke checks (API health endpoints, specific page content checks)
+- Use Playwright for browser-based checks (will increase runtime)
+- Configure Netlify to run the netlify/functions/health-monitor on a schedule for production monitoring

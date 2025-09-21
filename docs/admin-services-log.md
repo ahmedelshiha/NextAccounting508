@@ -1,18 +1,13 @@
-## [2025-09-21] Wired admin services UI and accessibility improvements
+## [2025-09-21] Playwright preview login test added
 What I implemented:
-- Integrated ServicesHeader, ServicesFilters, ServiceCard, ServiceForm, BulkActionsPanel, and ServicesAnalytics into the admin services page (src/app/admin/services/page.tsx).
-- Replaced the inline admin page implementation with a component-driven layout and added client-side pagination and filtering.
-- Implemented an accessible modal component (src/components/ui/Modal.tsx) and migrated the create/edit ServiceForm into modal flows.
-- Integrated focus-trap-react to ensure robust focus management and click/Escape deactivation.
-- Added unit tests for services utilities and Zod schemas (tests/services/utils.test.ts, tests/services/schemas.test.ts).
-- Updated documentation and TODOs (docs/admin-services-todo.md, docs/service-portal-TODO.md).
+- Added Playwright E2E test (tests/e2e/preview-login.spec.ts) that attempts a headless UI login using PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD or uses PREVIEW_SESSION_COOKIE fallback.
+- Updated Netlify preview workflow to install Playwright and run the E2E test against the preview URL after the basic smoke checks.
 
 Why:
-- Move admin services to a maintainable, testable component architecture and improve accessibility of critical admin workflows.
-- Provide a clear testing scaffold and actionable next steps for integration and component tests.
+- Validate that protected admin endpoints are reachable and authenticated in preview environments, reducing surprises when merging.
 
 Next steps:
-- Run pnpm install locally to install new dependency (focus-trap-react), then run lint, typecheck and tests.
-- Add component tests for modal behavior and services page flows; add integration tests for the admin services APIs.
-- Finalize Netlify preview deploy and smoke tests.
-
+- Ensure repository secrets are set:
+  - PREVIEW_ADMIN_EMAIL, PREVIEW_ADMIN_PASSWORD (or PREVIEW_SESSION_COOKIE)
+  - NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (already used by workflow)
+- Monitor runs and adapt selectors/login flow if the preview login form uses a non-standard structure.

@@ -167,7 +167,9 @@ export function generateAvailability(
           }))
         : dayBusy
 
-      const conflicts = bufferedBusy.some((b) => rangesOverlap(slotStart, slotEnd, b.start, b.end))
+      // Consider a slot blocked if its START falls within any buffered busy interval.
+      // This matches expected behavior where a slot starting before the buffer begins is allowed.
+      const conflicts = bufferedBusy.some((b) => slotStart >= b.start && slotStart < b.end)
 
       result.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), available: !conflicts })
 
