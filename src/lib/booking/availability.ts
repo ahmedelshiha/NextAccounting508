@@ -60,7 +60,7 @@ export function generateAvailability(
   busy: BusyInterval[],
   opts: AvailabilityOptions = {}
 ): AvailabilitySlot[] {
-  const options: Required<AvailabilityOptions> = {
+  const options: { bookingBufferMinutes: number; skipWeekends: boolean; maxDailyBookings: number; businessHours: BusinessHours; now: Date } = {
     bookingBufferMinutes: opts.bookingBufferMinutes ?? 0,
     skipWeekends: opts.skipWeekends ?? true,
     maxDailyBookings: opts.maxDailyBookings ?? 0,
