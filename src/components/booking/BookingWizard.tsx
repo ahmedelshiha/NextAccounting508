@@ -355,8 +355,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 3: Client info */}
-      {currentStep === 3 && (
+      {/* Step 4: Client info */}
+      {currentStep === 4 && (
         <Card>
           <CardHeader>
             <CardTitle>Your Information</CardTitle>
