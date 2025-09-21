@@ -612,6 +612,20 @@ model Attachment {
 
 // ... rest of schema unchanged (omitted for brevity) 
 
+model ChatMessage {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  room      String?
+  userId    String
+  userName  String
+  role      String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, room, createdAt])
+  @@map("chat_messages")
+}
+
 // Enums and other models
 enum ExpertiseLevel {
   junior
