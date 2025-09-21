@@ -30,7 +30,8 @@
   - Complexity: M • Owner: backend
 - [x] Multi-step Booking Wizard
   - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and server-side pricing via includePrice; prepared props/interfaces to wire PricingEngine options.
-  - Next: Wire portal create flow to reuse the wizard; add responsive tests; finalize promo admin settings.
+  - Done: Wired portal create flow to reuse the wizard (/portal/bookings/new) with redirect on completion.
+  - Next: Add responsive/unit tests and finalize promo admin settings.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
 - [ ] Recurring bookings

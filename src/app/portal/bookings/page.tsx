@@ -59,9 +59,12 @@ export default function PortalBookingsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Your Appointments</h1>
             <p className="text-gray-600">All bookings associated with your account.</p>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
               <Link href="/portal">Back to Portal</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/portal/bookings/new">New Appointment</Link>
             </Button>
           </div>
         </div>
@@ -79,7 +82,7 @@ export default function PortalBookingsPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
               <p className="text-gray-600 mb-4">You have no bookings at the moment.</p>
               <Button asChild>
-                <Link href="/booking">Book Appointment</Link>
+                <Link href="/portal/bookings/new">Book Appointment</Link>
               </Button>
             </CardContent>
           </Card>

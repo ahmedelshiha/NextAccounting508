@@ -55,3 +55,9 @@
 - Availability API enhanced to accept promoCode and apply discounts via promoResolver.
 - Why: improve mobile UX and pricing flexibility; align with internationalization goals.
 - Next: responsive/unit tests, keyboard a11y for calendar, portal integration.
+
+## 2025-09-21 — Portal booking create flow reuses BookingWizard
+- Added /portal/bookings/new using BookingWizard with consistent portal styling and back link.
+- Updated portal bookings list to include a New Appointment button and empty-state CTA to the new page.
+- Why: unify booking creation UX across public and portal; reduce maintenance surface.
+- Next: add tests for API includePrice and BookingWizard flow; accessibility tests for TouchCalendar.
