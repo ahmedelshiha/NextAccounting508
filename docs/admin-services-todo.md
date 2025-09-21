@@ -27,14 +27,44 @@
 - Ensure safe operation in demo/no-DB environments (no hard failures when NETLIFY_DATABASE_URL is not set).
 
 ## ✅ Next steps (remaining / actionable)
-- [ ] Integrate ServicesHeader, ServicesFilters, ServiceGrid (cards) into admin page (wire components into src/app/admin/services/page.tsx)
-- [ ] Add Edit/Create modals using ServiceForm (ensure modal accessibility and large-screen layout)
-- [ ] Add selection state and BulkActions integration into the admin page
-- [ ] Wire ServicesAnalytics to GET /api/admin/services/stats and render live data
-- [ ] Add automated unit tests for utilities and service layer (zod validations + service business logic)
-- [ ] Add integration tests for admin APIs (list/create/update/delete/bulk/export)
-- [ ] Run full typecheck & lint; address any remaining TypeScript or ESLint issues
-- [ ] Prepare Netlify deployment checklist (env vars, build settings, headers) and run preview deploy
+
+A) Wire Admin Services page
+- [ ] Layout: render ServicesHeader, ServicesFilters, and ServiceCard grid in src/app/admin/services/page.tsx
+  - [ ] Data: fetch via services.service + hooks; apply filters/sort/pagination
+  - [ ] States: loading, empty, and error with retry
+- [ ] Card actions: view/edit/enable/disable/delete
+  - [ ] Confirmations + success/error toasts
+  - [ ] Enforce RBAC with PermissionGate
+
+B) Create/Edit modals
+- [ ] Accessible modal scaffolding (focus trap, keyboard, aria)
+- [ ] Wire ServiceForm for create and update
+- [ ] Submit to APIs with optimistic UI + cache revalidation
+
+C) Bulk actions & selection
+- [ ] Selection state (works across pagination)
+- [ ] Bulk enable/disable/delete/export via BulkActionsPanel
+- [ ] Progress indicator + error aggregation; undo when possible
+
+D) Analytics wiring
+- [ ] Fetch GET /api/admin/services/stats via SWR with caching
+- [ ] Handle loading/error/skeletons
+- [ ] Integrate ServicesAnalytics into the page
+
+E) Testing
+- [ ] Unit: zod schemas, utils, services.service
+- [ ] Integration: admin services APIs (list/create/update/delete/bulk/export)
+- [ ] Component: services page interactions (filters, modals, bulk actions)
+
+F) Quality gates
+- [ ] Typecheck + ESLint pass
+- [ ] Perf sanity (no heavy blocking charts); no layout shifts
+
+G) Deployability (Netlify)
+- [ ] Verify envs (DATABASE_URL, NEXTAUTH_URL, STRIPE as needed)
+- [ ] prisma generate on build; functions bundling config
+- [ ] Safe cache headers for API responses where applicable
+- [ ] Preview deploy and smoke tests
 
 ---
 

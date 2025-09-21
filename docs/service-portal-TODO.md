@@ -59,3 +59,15 @@ Next steps (2-week plan)
 
 Notes
 - Key files: public/sw.js, src/lib/offline/backoff.ts, src/app/api/portal/service-requests/route.ts, src/app/api/payments/*, prisma/schema.prisma, src/components/portal/*
+
+---
+
+## Update — 2025-09-21
+What was completed
+- Documentation alignment and planning only; no functional changes.
+
+Why it was done
+- Keep admin and portal roadmaps consistent and ready for execution.
+
+Next steps
+- Proceed with payments status visibility and tests per plan; no changes to priorities.
