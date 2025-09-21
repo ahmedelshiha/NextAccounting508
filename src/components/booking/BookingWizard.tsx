@@ -54,6 +54,9 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [promoInput, setPromoInput] = useState<string>('')
   const [promoCode, setPromoCode] = useState<string>('')
 
+  // Booking type (STANDARD|EMERGENCY|CONSULTATION)
+  const [bookingType, setBookingType] = useState<string>('STANDARD')
+
   // Recurrence state
   const [recurrenceEnabled, setRecurrenceEnabled] = useState<boolean>(false)
   const [recurrence, setRecurrence] = useState<RecurrencePattern | null>(null)
