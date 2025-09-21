@@ -61,15 +61,79 @@ export async function POST(req: Request) {
     const perTenantCounts: Record<string, number> = {}
     for (const [k, v] of byTenant.entries()) perTenantCounts[k] = v.length
 
-    // Build an interleaved processing order (round-robin) to spread tenant load
-    const tenantKeys = Array.from(byTenant.keys())
-    const maxLen = Math.max(...Array.from(byTenant.values()).map((a) => a.length), 0)
-    const orderedAppts: any[] = []
-    for (let i = 0; i < maxLen; i++) {
-      for (const t of tenantKeys) {
-        const arr = byTenant.get(t)!
-        if (arr[i]) orderedAppts.push({ tenant: t, appt: arr[i] })
+    // Read recent audit logs to compute per-tenant failure rates (best-effort)
+    let perTenantFailureRate: Record<string, number> = {}
+    try {
+      const logs = await prisma.healthLog.findMany({
+        where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
+        orderBy: { checkedAt: 'desc' },
+        take: 20,
+      })
+      const agg: Record<string, { processed: number; failed: number }> = {}
+      for (const l of logs) {
+        try {
+          const parsed = JSON.parse(String(l.message))
+          const details = parsed.details || {}
+          const stats = details.tenantStats || {}
+          for (const t in stats) {
+            const s = stats[t]
+            agg[t] = agg[t] || { processed: 0, failed: 0 }
+            agg[t].processed += Number(s.total || 0)
+            agg[t].failed += Number(s.failed || 0)
+          }
+        } catch {}
       }
+      for (const t of Object.keys(agg)) {
+        const a = agg[t]
+        perTenantFailureRate[t] = a.processed > 0 ? a.failed / a.processed : 0
+      }
+    } catch (e) {
+      // ignore; we'll fall back to defaults
+      perTenantFailureRate = {}
+    }
+
+    // Determine allowed per-tenant share using backoff rule based on recent failure rate
+    const backoffThreshold = Number(process.env.REMINDERS_BACKOFF_THRESHOLD || 0.10) // start backoff above this failure rate
+    const minShare = Number(process.env.REMINDERS_MIN_SHARE || 0.1) // minimum fraction allowed
+    const tenantAllowed: Record<string, number> = {}
+
+    for (const [k, arr] of byTenant.entries()) {
+      const fr = perTenantFailureRate[k] ?? 0
+      let factor = 1
+      if (fr <= backoffThreshold) factor = 1
+      else {
+        // Linear reduction: as failureRate increases above threshold, reduce allowed share
+        factor = Math.max(minShare, 1 - (fr - backoffThreshold) * 2)
+      }
+      tenantAllowed[k] = Math.max(1, Math.ceil(arr.length * factor))
+    }
+
+    // Build an interleaved processing order (round-robin) but only up to allowed per-tenant counts
+    const tenantKeys = Array.from(byTenant.keys())
+    const pointers: Record<string, number> = {}
+    for (const k of tenantKeys) pointers[k] = 0
+    const orderedAppts: any[] = []
+    let remaining = tenantKeys.reduce((s, k) => s + (tenantAllowed[k] || 0), 0)
+    while (remaining > 0) {
+      for (const t of tenantKeys) {
+        const arr = byTenant.get(t) || []
+        const p = pointers[t] || 0
+        const allowed = tenantAllowed[t] || 0
+        if (p < allowed && arr[p]) {
+          orderedAppts.push({ tenant: t, appt: arr[p] })
+          pointers[t] = p + 1
+          remaining--
+        }
+      }
+      // safety break
+      if (orderedAppts.length > totalAppts) break
+    }
+
+    // Record deferred counts for observability
+    const deferred: Record<string, number> = {}
+    for (const k of tenantKeys) {
+      const arr = byTenant.get(k) || []
+      deferred[k] = Math.max(0, arr.length - (tenantAllowed[k] || 0))
     }
 
     // Results and per-tenant telemetry
@@ -83,7 +147,7 @@ export async function POST(req: Request) {
     const maxGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MAX || 50)
     const minGlobal = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY_MIN || 2)
 
-    // Try to read recent batch summaries from health logs (audit) to compute recent error rates
+    // Compute global error rate (aggregate of per-tenant recent rates)
     let errorRate = 0
     try {
       const logs = await prisma.healthLog.findMany({
@@ -110,7 +174,6 @@ export async function POST(req: Request) {
       }
       if (processedSum > 0) errorRate = failedSum / processedSum
     } catch (e) {
-      // Best-effort: if DB audit unavailable, fall back to defaults
       errorRate = 0
     }
 
