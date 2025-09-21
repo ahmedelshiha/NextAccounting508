@@ -107,7 +107,7 @@
   - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
-  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; log issues.
+  - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; validate portal array unwrap fix on /portal and /portal/bookings.
   - Complexity: M • Owner: QA
 - [ ] Remove dev fallbacks
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.
