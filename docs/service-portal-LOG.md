@@ -53,3 +53,18 @@ Why
 Files Changed
 - src/components/booking/BookingWizard.tsx (SSE subscription)
 - docs/service-portal-TODO.md (mark item complete)
+
+## 2025-09-21 — Payment step & Pricing breakdown
+
+Summary
+- Added PaymentStep to BookingWizard with server-calculated pricing breakdown and promo application.
+- Introduced /api/pricing POST route using PricingEngine for accurate totals.
+
+Why
+- Provides transparent pricing to users and supports promos before submission.
+
+Files Changed
+- src/components/booking/steps/PaymentStep.tsx (new)
+- src/components/booking/BookingWizard.tsx (integrated Payment step)
+- src/app/api/pricing/route.ts (new)
+- docs/service-portal-TODO.md (mark item complete)

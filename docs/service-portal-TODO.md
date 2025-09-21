@@ -22,7 +22,7 @@ This section captures concrete gaps found during audit and the actionable work t
 - [x] Split current monolithic wizard into step components (introduced TeamMemberSelection component)
 - [x] Add Team Member selection; filter availability accordingly
 - [x] Add Recurrence step (frequency/interval/until); integrate preview endpoints and series creation
-- [ ] Add optional Payment step; surface PricingEngine breakdown and promo application
+- [x] Add optional Payment step; surface PricingEngine breakdown and promo application
 - [x] Subscribe to realtime availability-updated events to auto-refresh slots
 
 3) Server Integration & Conflicts
@@ -38,7 +38,7 @@ This section captures concrete gaps found during audit and the actionable work t
 - [ ] Expand SW caching for /api/services and availability responses; keep flag-gated (NEXT_PUBLIC_ENABLE_PWA)
 
 6) Navigation & i18n
-- [ ] Consider adding a top-nav “Booking” entry (CTA exists in Hero). Keep current styles and responsiveness
+- [ ] Consider adding a top-nav “Booking�� entry (CTA exists in Hero). Keep current styles and responsiveness
 - [ ] Localize wizard labels/messages using existing locales in src/app/locales
 
 7) QA & E2E

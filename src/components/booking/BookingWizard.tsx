@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import TouchCalendar from '@/components/mobile/TouchCalendar'
 import TeamMemberSelection from '@/components/booking/steps/TeamMemberSelection'
 import RecurrenceStep, { RecurrencePattern } from '@/components/booking/steps/RecurrenceStep'
+import PaymentStep from '@/components/booking/steps/PaymentStep'
 
 export type Service = {
   id: string
@@ -192,7 +193,7 @@ export default function BookingWizard(props: BookingWizardProps) {
     return () => { try { es?.close() } catch {} }
   }, [selectedService?.id, selectedDate])
 
-  const nextStep = () => setCurrentStep((s) => Math.min(6, s + 1))
+  const nextStep = () => setCurrentStep((s) => Math.min(7, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
@@ -290,7 +291,7 @@ export default function BookingWizard(props: BookingWizardProps) {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3, 4, 5].map((step) => (
+          {[1, 2, 3, 4, 5, 6].map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
@@ -304,6 +305,7 @@ export default function BookingWizard(props: BookingWizardProps) {
           <span>Choose Specialist</span>
           <span>Date & Time</span>
           <span>Recurrence</span>
+          <span>Payment</span>
           <span>Your Information</span>
         </div>
       </div>
@@ -466,8 +468,33 @@ export default function BookingWizard(props: BookingWizardProps) {
         </div>
       )}
 
-      {/* Step 5: Client info */}
+      {/* Step 5: Payment */}
       {currentStep === 5 && (
+        <div className="space-y-4">
+          <PaymentStep
+            serviceId={selectedService?.id}
+            dateISO={selectedDate || null}
+            time={selectedTime || null}
+            durationMinutes={selectedService?.duration || null}
+            currency={currency}
+            promoCode={promoCode}
+            onApplyPromo={(code) => setPromoCode(code)}
+          />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={prevStep}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <Button onClick={nextStep}>
+              Next Step
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 6: Client info */}
+      {currentStep === 6 && (
         <Card>
           <CardHeader>
             <CardTitle>Your Information</CardTitle>
@@ -508,8 +535,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 6: Confirmation */}
-      {currentStep === 6 && (
+      {/* Step 7: Confirmation */}
+      {currentStep === 7 && (
         <Card>
           <CardContent className="text-center py-12">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -530,7 +557,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {currentStep < 5 && (
+      {currentStep < 6 && (
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Need help with booking?{' '}
