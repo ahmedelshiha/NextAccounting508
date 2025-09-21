@@ -1,6 +1,5 @@
 import prisma from '@/lib/prisma'
 import { addMinutes } from './availability'
-import prisma from '@/lib/prisma'
 
 export type ConflictReason = 'SERVICE_INACTIVE' | 'OVERLAP' | 'DAILY_CAP' | 'OUTSIDE_BUSINESS_HOURS'
 
