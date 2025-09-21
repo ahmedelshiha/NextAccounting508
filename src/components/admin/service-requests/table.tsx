@@ -18,6 +18,10 @@ export interface ServiceRequestItem {
   createdAt?: string | null
   isBooking?: boolean | null
   bookingType?: 'STANDARD'|'RECURRING'|'EMERGENCY'|'CONSULTATION'|null
+  paymentStatus?: 'UNPAID'|'INTENT'|'PAID'|'FAILED'|'REFUNDED'|null
+  paymentSessionId?: string | null
+  paymentAmountCents?: number | null
+  paymentCurrency?: string | null
 }
 
 interface Props {
@@ -68,6 +72,7 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
             <TableHead className="hidden sm:table-cell">Scheduled</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Priority</TableHead>
+            <TableHead className="hidden md:table-cell">Payment</TableHead>
             <TableHead>Assignee</TableHead>
             <TableHead className="hidden sm:table-cell">Deadline</TableHead>
             <TableHead></TableHead>
@@ -110,6 +115,33 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
               </TableCell>
               <TableCell>
                 <Badge className={priorityColor(r.priority)}>{r.priority}</Badge>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {(() => {
+                  const s = (r as any).paymentStatus as ServiceRequestItem['paymentStatus']
+                  const amt = (r as any).paymentAmountCents as number | undefined
+                  const cur = ((r as any).paymentCurrency as string | undefined) || 'USD'
+                  const format = (cents?: number, curr?: string) => {
+                    if (typeof cents !== 'number') return ''
+                    try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: curr || 'USD' }).format(cents / 100) } catch { return `$${(cents/100).toFixed(2)}` }
+                  }
+                  const label = s || 'UNPAID'
+                  const cls = s === 'PAID'
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : s === 'FAILED'
+                    ? 'bg-red-100 text-red-800 border-red-200'
+                    : s === 'REFUNDED'
+                    ? 'bg-purple-100 text-purple-800 border-purple-200'
+                    : 'bg-gray-100 text-gray-800 border-gray-200'
+                  return (
+                    <div className="flex items-center gap-2">
+                      <Badge className={cls}>{label}</Badge>
+                      {typeof amt === 'number' && (
+                        <span className="text-xs text-gray-600">{format(amt, cur)}</span>
+                      )}
+                    </div>
+                  )
+                })()}
               </TableCell>
               <TableCell>
                 <div className="text-sm text-gray-900">{r.assignedTeamMember?.name || 'Unassigned'}</div>
