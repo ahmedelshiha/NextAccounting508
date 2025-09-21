@@ -90,4 +90,5 @@
 ## 2025-09-21 — Smart reminders: SMS webhook, i18n formatting, idempotency
 - Added optional SMS webhook to cron reminders (guarded by SMS_WEBHOOK_URL and user smsReminder). Uses locale/timezone-aware date/time formatting and includes metadata for traceability.
 - Email reminders continue to respect BookingPreferences windows; reminders are marked idempotently and audit logged. Errors are captured via observability helpers; no-DB path safely noops.
-- Next: batch per-tenant scheduling to distribute load evenly during reminder windows.
+- Done: implemented per-tenant batching and throttled processing (configurable via REMINDERS_TENANT_CONCURRENCY) to reduce burst load on email/SMS providers.
+- Next: monitor delivery rates and tune REMINDERS_TENANT_CONCURRENCY; consider tenant-weighted batching for large tenants.
