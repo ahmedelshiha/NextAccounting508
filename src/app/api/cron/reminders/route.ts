@@ -28,25 +28,53 @@ export async function POST(req: Request) {
     const now = new Date()
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
-    // Fetch upcoming confirmed appointments within the next 24 hours where no reminder has been sent yet.
-    // Include minimal client/service data for email composition.
-    const upcoming = await prisma.serviceRequest.findMany({
-      where: {
-        isBooking: true,
-        confirmed: true,
-        reminderSent: false,
-        scheduledAt: { gte: now, lte: in24h },
-      },
-      select: {
-        id: true,
-        scheduledAt: true,
-        clientPhone: true,
-        tenantId: true,
-        client: { select: { id: true, name: true, email: true } },
-        service: { select: { name: true } },
-      },
-      take: 500,
-    })
+    // First prefer scheduled reminders table if available. This allows precise scheduling and idempotency.
+    let upcoming: any[] = []
+    try {
+      const scheduled = await prisma.scheduledReminder.findMany({
+        where: { scheduledAt: { gte: now, lte: in24h }, sent: false },
+        include: { serviceRequest: { include: { client: { select: { id: true, name: true, email: true } }, service: { select: { name: true } } } } },
+        take: 500,
+      }).catch(() => [])
+
+      if (Array.isArray(scheduled) && scheduled.length > 0) {
+        // Map scheduled reminders to unified shape expected by processing logic
+        upcoming = scheduled.map((s: any) => ({
+          id: s.serviceRequestId,
+          scheduledAt: s.scheduledAt,
+          clientPhone: s.serviceRequest?.clientPhone || s.serviceRequest?.client?.phone || null,
+          tenantId: s.tenantId || s.serviceRequest?.tenantId || null,
+          client: s.serviceRequest?.client || { id: null, name: '', email: '' },
+          service: s.serviceRequest?.service || { name: '' },
+          scheduledReminderId: s.id,
+          channel: s.channel,
+        }))
+      }
+    } catch (err) {
+      upcoming = []
+    }
+
+    if (!upcoming.length) {
+      // Fallback: Fetch upcoming confirmed appointments within the next 24 hours where no reminder has been sent yet.
+      // Include minimal client/service data for email composition.
+      upcoming = await prisma.serviceRequest.findMany({
+        where: {
+          isBooking: true,
+          confirmed: true,
+          reminderSent: false,
+          scheduledAt: { gte: now, lte: in24h },
+        },
+        select: {
+          id: true,
+          scheduledAt: true,
+          clientPhone: true,
+          tenantId: true,
+          client: { select: { id: true, name: true, email: true } },
+          service: { select: { name: true } },
+        },
+        take: 500,
+      })
+    }
 
     // Group appointments by tenant to allow balanced processing and reduce per-tenant bursts
     const byTenant = new Map<string, any[]>()
