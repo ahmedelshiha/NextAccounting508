@@ -55,6 +55,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
+      - name: Ensure schema exists (db push fallback)
+        run: pnpm exec prisma db push --accept-data-loss || true
+
       - name: Run migrations
         run: pnpm db:migrate
 
