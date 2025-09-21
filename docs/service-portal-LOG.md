@@ -92,4 +92,5 @@
 - Email reminders continue to respect BookingPreferences windows; reminders are marked idempotently and audit logged. Errors are captured via observability helpers; no-DB path safely noops.
 - Done: implemented per-tenant batching and throttled processing (configurable via REMINDERS_TENANT_CONCURRENCY) to reduce burst load on email/SMS providers.
 - Done: implemented interleaved (round-robin) ordering and global concurrency with telemetry (REMINDERS_GLOBAL_CONCURRENCY) to balance tenant load and provide actionable metrics.
-- Next: monitor delivery rates and tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY; consider tenant-weighted backoff for very large tenants.
+- Done: implemented tenant-weighted backoff using historical telemetry; the scheduler now defers part of a tenant's reminders when recent failure rates exceed REMINDERS_BACKOFF_THRESHOLD (defaults to 10%). Deferred counts are included in audit logs for tuning.
+- Next: monitor delivery rates and tune REMINDERS_GLOBAL_CONCURRENCY / REMINDERS_TENANT_CONCURRENCY; consider tenant-priority and SLA-based weighting for future improvements.
