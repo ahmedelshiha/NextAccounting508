@@ -45,14 +45,9 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            echo "Found pnpm-lock.yaml — installing with frozen lockfile"
-            pnpm install --frozen-lockfile
-          else
-            echo "pnpm-lock.yaml not found — installing without frozen lockfile (generates lockfile locally)"
-            pnpm install --no-frozen-lockfile
-          fi
+        env:
+          PNPM_ENABLE_FROZEN_LOCKFILE: 'false'
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run ESLint
         run: pnpm run lint
