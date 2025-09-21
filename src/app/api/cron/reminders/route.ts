@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
