@@ -30,7 +30,7 @@
   - Complexity: M • Owner: backend
 - [x] Multi-step Booking Wizard
   - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and server-side pricing via includePrice; prepared props/interfaces to wire PricingEngine options.
-  - Next: Implement TouchCalendar; wire portal create flow to reuse the wizard; expose currency selection and promos.
+  - Next: Wire portal create flow to reuse the wizard; add responsive tests; finalize promo admin settings.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
 - [ ] Recurring bookings
@@ -55,8 +55,9 @@
   - Next: Add manifest + SW; IndexedDB caches (services, user bookings); pending-offline queue; flag-gated.
   - Deps: Frontend build; security review
   - Complexity: M • Owner: frontend
-- [ ] Touch-optimized calendar
-  - Next: Implement TouchCalendar; integrate in DateTime step; responsive tests.
+- [x] Touch-optimized calendar
+  - Done: Implemented TouchCalendar (mobile-first) and integrated into BookingWizard DateTime step with large tap targets.
+  - Next: Add responsive tests and keyboard navigation.
   - Deps: AvailabilityEngine
   - Complexity: M • Owner: frontend
 

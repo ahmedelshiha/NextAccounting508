@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const includePriceFlag = (searchParams.get('includePrice') || '').toLowerCase()
     const includePrice = includePriceFlag === '1' || includePriceFlag === 'true' || includePriceFlag === 'yes'
     const currency = searchParams.get('currency') || undefined
+    const promoCode = (searchParams.get('promoCode') || '').trim() || undefined
 
     if (!serviceId) {
       return NextResponse.json(
@@ -109,7 +110,26 @@ export async function GET(request: NextRequest) {
                   serviceId,
                   scheduledAt: slotStart,
                   durationMinutes: duration,
-                  options: { currency }
+                  options: {
+                    currency,
+                    promoCode,
+                    promoResolver: async (code: string, { serviceId }) => {
+                      const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+                      if (!svc) return null
+                      const base = Number(svc.price ?? 0)
+                      const baseCents = Math.round(base * 100)
+                      const uc = code.toUpperCase()
+                      if (uc === 'WELCOME10') {
+                        const amt = Math.round(baseCents * -0.10)
+                        return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: amt }
+                      }
+                      if (uc === 'SAVE15') {
+                        const amt = Math.round(baseCents * -0.15)
+                        return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: amt }
+                      }
+                      return null
+                    }
+                  }
                 })
                 priceCents = price.totalCents
                 priceCurrency = price.currency

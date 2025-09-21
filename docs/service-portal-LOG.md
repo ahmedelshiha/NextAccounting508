@@ -47,4 +47,11 @@
 - Enhanced /api/bookings/availability to support includePrice and currency; slots may include { priceCents, currency }.
 - BookingWizard now requests includePrice and shows server-priced totals in the summary for the selected time.
 - Why: ensure accurate, policy-aware pricing per slot (weekend/peak/overage) and reduce client-side logic.
-- Next: Add TouchCalendar, expose currency selector and promo code support; reuse wizard in portal create flow.
+- Next: Reuse wizard in portal create flow.
+
+## 2025-09-21 — TouchCalendar + currency/promo in BookingWizard
+- Added src/components/mobile/TouchCalendar.tsx and integrated in DateTime step (mobile view) while keeping native date input.
+- BookingWizard now supports currency selection (from /api/currencies) and promo codes (WELCOME10, SAVE15) reflected in slot pricing.
+- Availability API enhanced to accept promoCode and apply discounts via promoResolver.
+- Why: improve mobile UX and pricing flexibility; align with internationalization goals.
+- Next: responsive/unit tests, keyboard a11y for calendar, portal integration.
