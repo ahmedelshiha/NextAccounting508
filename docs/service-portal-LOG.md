@@ -50,3 +50,12 @@
 - Why: Netlify build failed during TypeScript compilation (tsc --noEmit) with "Cannot find name 'NextResponse'". This prevented successful deploys.
 - Impact: Allows the TypeScript compile step to succeed for these routes and removes the immediate build blocker.
 - Next steps: Trigger Netlify deploy to confirm; run a repository-wide grep for any additional routes referencing NextResponse without import and patch as needed.
+
+## 2025-09-21 — Admin Tasks/Analytics 500s handled
+- What: Addressed repeated 500 errors on admin Tasks page by:
+  - Adding missing NextRequest/NextResponse imports where necessary.
+  - Adding resilient fallbacks for Prisma schema/database errors (P10/P20 and relation/table/column errors).
+- Files updated: src/app/api/admin/analytics/route.ts, src/app/api/admin/stats/bookings/route.ts, src/app/api/admin/tasks/route.ts
+- Why: Prevent staging/admin UI from crashing when DB is present but migrations or tables are not yet available during early deploys.
+- Impact: Admin Tasks page should show demo/fallback data instead of returning 500s. Monitor after deploy and collect server logs if further errors persist.
+- Next steps: Trigger Netlify deploy and validate the Tasks page; if any endpoints still 500, provide the route name and recent server logs and I'll patch further.
