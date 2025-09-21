@@ -48,6 +48,21 @@ Immediate next actions you can run locally
 - pnpm exec vitest run
 - pnpm run typecheck
 
+Netlify preview smoke test setup
+- This repo contains netlify.toml configured for deploy previews and a GitHub Actions workflow (.github/workflows/netlify-preview-smoke.yml) that:
+  - Polls the Netlify API for a preview deploy for the PR branch
+  - Waits for the deploy to reach ready state and extracts the preview URL
+  - Runs a simple smoke test (GET /) against the preview and fails on non-200 status
+
+Required GitHub secrets (please add these in your repository settings -> Secrets):
+- NETLIFY_AUTH_TOKEN: a Netlify Personal Access Token with read access to sites and deploys
+- NETLIFY_SITE_ID: the Netlify site ID for this project
+
+Notes:
+- The workflow will fail early if those secrets are not provided. Add them and re-open the PR to trigger the smoke test.
+- If you prefer GitHub Actions to deploy to Netlify directly (rather than relying on Netlify preview), I can add a deploy step but it requires write-scoped NETLIFY_AUTH_TOKEN.
+
 If you want I can:
-- Configure Netlify preview deploy and add smoke tests
-- Prepare a draft PR with CI and Netlify configuration
+- Add more robust smoke checks (API health endpoints, specific page content checks)
+- Use Playwright for browser-based checks (will increase runtime)
+- Configure Netlify to run the netlify/functions/health-monitor on a schedule for production monitoring
