@@ -10,6 +10,7 @@ const Body = z.object({
   duration: z.number().int().positive().optional(),
   currency: z.string().length(3).optional(),
   promoCode: z.string().optional(),
+  bookingType: z.string().optional(),
 })
 
 export async function POST(request: Request) {
