@@ -121,7 +121,7 @@ export default function BookingWizard(props: BookingWizardProps) {
     async function loadAvailability() {
       if (!selectedService || !selectedDate) return
       try {
-        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}`)
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}${selectedTeamMemberId ? `&teamMemberId=${encodeURIComponent(selectedTeamMemberId)}` : ''}`)
         if (res.ok) {
           const json = await res.json().catch(() => null)
           type ApiDay = { date: string; slots: { start: string; available?: boolean; priceCents?: number; currency?: string }[] }
