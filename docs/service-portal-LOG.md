@@ -1,19 +1,24 @@
-2025-09-21  — Team-member-aware availability implemented
+2025-09-21  — AvailabilitySlot persistence & admin UI implemented
 
 Summary:
-- Implemented support for TeamMember working hours and booking parameters in availability calculation.
-- Updated src/lib/booking/availability.ts to prefer TeamMember.workingHours, bookingBuffer and maxConcurrentBookings when teamMemberId is provided by the availability API. Falls back to service businessHours when member settings are absent.
+- Added admin API endpoints to manage AvailabilitySlot records: GET, POST, PUT, DELETE at /api/admin/availability-slots.
+- Integrated AvailabilitySlot handling into availability engine: blocked or full slots are considered busy windows when generating availability.
+- Created a simple admin UI at /admin/availability to list, create and delete slots (src/components/admin/AvailabilitySlotsManager.tsx).
 
 Why:
-- This aligns availability generation with the enhancement plan (docs/booking_enhancement_plan.md) and allows users to request specific team members while accurately reflecting their schedule and capacity.
+- Allows administrators to create manual overrides, blockouts and capacity-limited slots (holidays, maintenance, capacity adjustments).
+- Ensures frontend availability respects admin-managed exceptions and avoids overbooking slots that are full.
 
-Files changed:
-- src/lib/booking/availability.ts — enhanced getAvailabilityForService to load team member settings and apply them to generateAvailability
-- docs/service-portal-TODO.md — updated status and notes
+Files changed/added:
+- src/app/api/admin/availability-slots/route.ts (NEW)
+- src/lib/booking/availability.ts (UPDATED)
+- src/components/admin/AvailabilitySlotsManager.tsx (NEW)
+- src/app/admin/availability/page.tsx (NEW)
+- docs/service-portal-TODO.md (UPDATED)
 
 Next steps:
-- Implement AvailabilitySlot persistence and admin APIs/UI to manage manual overrides, blackout dates, and per-slot capacities.
-- Extend conflict detection to incorporate member-level capacities and explicit AvailabilitySlot reservations.
-- Add unit tests covering member-aware availability generation.
+- Extend conflict detection to incorporate explicit AvailabilitySlot reservations and team-member capacity rules.
+- Add edit/update UI for availability slots and audit logging on changes.
+- Add unit tests for the new API and availability behavior.
 
 Logged by: Autonomous Dev (assistant)
