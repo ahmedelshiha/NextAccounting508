@@ -1,65 +1,69 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-import prisma from '@/lib/prisma'
-import type { Prisma } from '@prisma/client'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { ServicesService } from '@/services/services.service';
+import { PERMISSIONS, hasPermission } from '@/lib/permissions';
+import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services';
+import { getTenantFromRequest } from '@/lib/tenant';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { logAudit } from '@/lib/audit';
 
-export const runtime = 'nodejs'
+const svc = new ServicesService();
 
-// GET /api/admin/services - List all services (active and inactive)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const ip = getClientIp(request as any);
+    if (!rateLimit(`services-list:${ip}`, 100, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { searchParams } = new URL(request.url)
-    const tenantId = getTenantFromRequest(request as unknown as Request)
-    const search = searchParams.get('search')?.trim()
-    const featured = searchParams.get('featured')
-    const active = searchParams.get('active')
+    const sp = new URL(request.url).searchParams;
+    const filters = ServiceFiltersSchema.parse({
+      search: sp.get('search') || undefined,
+      category: sp.get('category') || 'all',
+      featured: (sp.get('featured') as any) || 'all',
+      status: (sp.get('status') as any) || 'all',
+      limit: sp.get('limit') ? Number(sp.get('limit')) : 20,
+      offset: sp.get('offset') ? Number(sp.get('offset')) : 0,
+      sortBy: (sp.get('sortBy') as any) || 'updatedAt',
+      sortOrder: (sp.get('sortOrder') as any) || 'desc',
+    });
 
-    const hasDb = !!process.env.NETLIFY_DATABASE_URL
+    const tenantId = getTenantFromRequest(request);
+    const result = await svc.getServicesList(tenantId, filters as any);
 
-    if (!hasDb) {
-      const fallback = [
-        { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true, active: true, description: '' },
-        { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true, active: true, description: '' },
-        { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: false, active: true, description: '' },
-        { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: false, active: true, description: '' },
-      ]
-      let list = fallback
-      if (featured === 'true') list = list.filter(s => s.featured)
-      if (active === 'true') list = list.filter(s => s.active)
-      if (active === 'false') list = list.filter(s => !s.active)
-      if (search) list = list.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.slug.toLowerCase().includes(search.toLowerCase()))
-      return NextResponse.json(list)
-    }
+    await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters } });
 
-    const where: Prisma.ServiceWhereInput = { ...(tenantFilter(tenantId) as any) }
-    if (featured === 'true') where.featured = true
-    if (active === 'true') where.active = true
-    if (active === 'false') where.active = false
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } }
-      ]
-    }
+    return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
+  } catch (e) {
+    console.error('services GET error', e);
+    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
+  }
+}
 
-    const services = await prisma.service.findMany({
-      where,
-      orderBy: [{ featured: 'desc' }, { createdAt: 'desc' }]
-    })
+export async function POST(request: NextRequest) {
+  try {
+    const ip = getClientIp(request as any);
+    if (!rateLimit(`services-create:${ip}`, 10, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-    return NextResponse.json(services)
-  } catch (error) {
-    console.error('Error fetching admin services:', error)
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_CREATE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const body = await request.json();
+    const validated = ServiceSchema.parse(body);
+
+    const tenantId = getTenantFromRequest(request);
+    const service = await svc.createService(tenantId, validated as any, session.user.id);
+
+    await logAudit({ action: 'SERVICE_CREATED', actorId: session.user.id, targetId: service.id, details: { slug: service.slug } });
+
+    return NextResponse.json({ service }, { status: 201 });
+  } catch (e: any) {
+    const msg = e?.message || 'Failed to create service';
+    const status = msg.includes('already exists') ? 409 : 500;
+    return NextResponse.json({ error: msg }, { status });
   }
 }
