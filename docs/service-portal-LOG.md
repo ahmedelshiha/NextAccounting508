@@ -67,3 +67,14 @@ Files changed/added:
 - src/components/admin/RunRemindersButton.tsx (NEW)
 - src/app/admin/reminders/page.tsx (NEW)
 - docs/service-portal-TODO.md (UPDATED)
+
+---
+
+Update:
+- Added Cash on delivery (COD) payment option.
+
+Files changed/added:
+- src/components/booking/steps/PaymentStep.tsx (UPDATED) — payment method selector and COD messaging
+- src/components/booking/BookingWizard.tsx (UPDATED) — wires method and persists in requirements.payment
+- src/app/api/payments/cod/route.ts (NEW)
+- docs/service-portal-TODO.md (UPDATED)
