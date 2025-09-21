@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
+import TouchCalendar from '@/components/mobile/TouchCalendar'
 
 export type Service = {
   id: string
@@ -43,6 +44,10 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [selectedTime, setSelectedTime] = useState('')
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currencies, setCurrencies] = useState<{ code: string; name: string; symbol?: string; isDefault?: boolean }[]>([])
+  const [currency, setCurrency] = useState<string>('USD')
+  const [promoInput, setPromoInput] = useState<string>('')
+  const [promoCode, setPromoCode] = useState<string>('')
 
   const [formData, setFormData] = useState<BookingForm>({
     clientName: session?.user?.name || '',
@@ -91,12 +96,30 @@ export default function BookingWizard(props: BookingWizardProps) {
     loadServices()
   }, [props.serviceId])
 
+  // Load active currencies for selection
+  useEffect(() => {
+    async function loadCurrencies() {
+      try {
+        const res = await apiFetch('/api/currencies')
+        if (res.ok) {
+          const list = (await res.json()) as { code: string; name: string; symbol?: string; isDefault?: boolean }[]
+          setCurrencies(list)
+          const def = list.find(c => c.isDefault) || list[0]
+          if (def?.code) setCurrency(def.code)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadCurrencies()
+  }, [])
+
   // Availability loader for a selected service/date
   useEffect(() => {
     async function loadAvailability() {
       if (!selectedService || !selectedDate) return
       try {
-        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1`)
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}`)
         if (res.ok) {
           const json = await res.json().catch(() => null)
           type ApiDay = { date: string; slots: { start: string; available?: boolean; priceCents?: number; currency?: string }[] }
@@ -134,7 +157,7 @@ export default function BookingWizard(props: BookingWizardProps) {
       setTimeSlots(slots)
     }
     loadAvailability()
-  }, [selectedDate, selectedService])
+  }, [selectedDate, selectedService, currency, promoCode])
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
 
@@ -256,9 +279,31 @@ export default function BookingWizard(props: BookingWizardProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <Label htmlFor="date">Select Date</Label>
-                <Input id="date" type="date" min={today} value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime('') }} className="mt-1" />
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="date">Select Date</Label>
+                  <Input id="date" type="date" min={today} value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime('') }} className="mt-1" />
+                </div>
+                <div className="block md:hidden">
+                  <TouchCalendar value={selectedDate} min={today} onChange={(d) => { setSelectedDate(d); setSelectedTime('') }} />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Label htmlFor="currency">Currency</Label>
+                    <select id="currency" className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                      {currencies.map(c => (
+                        <option key={c.code} value={c.code}>{c.code}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="promo">Promo Code</Label>
+                    <div className="mt-1 flex gap-2">
+                      <Input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="e.g. WELCOME10" />
+                      <Button type="button" variant="outline" onClick={() => setPromoCode(promoInput.trim())}>Apply</Button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {selectedDate && (
@@ -283,7 +328,7 @@ export default function BookingWizard(props: BookingWizardProps) {
                   <p><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString()}</p>
                   <p><strong>Time:</strong> {selectedTime}</p>
                   <p><strong>Duration:</strong> {selectedService.duration} minutes</p>
-                  <p><strong>Price:</strong> {estimatedPrice}</p>
+                  <p><strong>Price:</strong> {estimatedPrice}{promoCode ? ` (after promo ${promoCode})` : ''}</p>
                 </div>
               </div>
             )}
