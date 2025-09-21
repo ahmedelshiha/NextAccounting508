@@ -74,6 +74,7 @@ self.addEventListener('fetch', (event) => {
             const DB_NAME = 'af-offline'
             const STORE = 'service-requests-queue'
             const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+            const idempotencyKey = `sr-${id}`
             await new Promise((resolve, reject) => {
               const open = indexedDB.open(DB_NAME, 1)
               open.onupgradeneeded = () => {
@@ -85,7 +86,7 @@ self.addEventListener('fetch', (event) => {
                 const tx = db.transaction(STORE, 'readwrite')
                 tx.oncomplete = () => { try { db.close() } catch {} ; resolve(true) }
                 tx.onerror = () => { try { db.close() } catch {} ; reject(tx.error) }
-                tx.objectStore(STORE).put({ id, url: url.pathname, body, createdAt: Date.now(), retries: 0 })
+                tx.objectStore(STORE).put({ id, url: url.pathname, body, createdAt: Date.now(), retries: 0, idempotencyKey })
               }
               open.onerror = () => reject(open.error)
             })
@@ -147,7 +148,9 @@ async function processQueue() {
     const items = await getAllQueued(db)
     for (const item of items) {
       try {
-        const res = await fetch(item.url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item.body) })
+        const headers = new Headers({ 'Content-Type': 'application/json' })
+        if (item.idempotencyKey) headers.set('x-idempotency-key', item.idempotencyKey)
+        const res = await fetch(item.url, { method: 'POST', headers, body: JSON.stringify(item.body) })
         if (res && res.ok) await removeQueued(db, item.id)
         else if (res && res.status >= 400 && res.status < 500) await removeQueued(db, item.id)
       } catch {
