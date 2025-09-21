@@ -102,7 +102,7 @@ export async function registerBackgroundSync() {
   try {
     const reg = await navigator.serviceWorker.ready
     if ('sync' in reg) {
-      // @ts-ignore
+      // @ts-expect-error
       await reg.sync.register(SYNC_TAG)
       return true
     }
