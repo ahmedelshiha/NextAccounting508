@@ -80,6 +80,18 @@ export async function POST(request: NextRequest) {
     attachments: legacy?.attachments || undefined,
   }
 
+  // If legacy payload includes scheduledAt, normalize to booking shape for conflict detection
+  if (legacy?.scheduledAt) {
+    (basePayload as any).isBooking = true
+    ;(basePayload as any).scheduledAt = legacy.scheduledAt
+    if (legacy?.duration != null) (basePayload as any).duration = legacy.duration
+    if (legacy?.clientName) (basePayload as any).clientName = legacy.clientName
+    if (legacy?.clientEmail) (basePayload as any).clientEmail = legacy.clientEmail
+    if (legacy?.clientPhone) (basePayload as any).clientPhone = legacy.clientPhone
+    if (legacy?.bookingType) (basePayload as any).bookingType = legacy.bookingType
+    if (legacy?.recurringPattern) (basePayload as any).recurringPattern = legacy.recurringPattern
+  }
+
   const role = (session.user as any)?.role as string | undefined
   const url = new URL(request.url)
 
@@ -87,6 +99,7 @@ export async function POST(request: NextRequest) {
     if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
       // Admin path requires clientId; prefer provided clientId, fall back to current user
       basePayload.clientId = legacy?.clientId || (session.user as any).id
+      if (legacy?.assignedTeamMemberId) (basePayload as any).assignedTeamMemberId = legacy.assignedTeamMemberId
       const mod = await import('@/app/api/admin/service-requests/route')
       const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST'))
       const data = await resp.json().catch(() => null)

@@ -17,6 +17,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 3. Availability route tests for includePrice/promo
    - Steps: Add route tests validating price currency and promoCode application on sample dates.
    - Acceptance: Tests cover base, promo=WELCOME10, promo=SAVE15; currency conversion branch exercised.
+   - Status: Implemented for /api/bookings/availability (tests/bookings-availability.pricing.test.ts).
 
 4. Unit tests: availability engine (buffers, weekends via businessHours, caps)
    - Steps: Add cases for buffer overlap, weekend closed, maxDailyBookings skip.
@@ -30,6 +31,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 6. Configure uploads provider & antivirus
    - Steps: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY; run smoke upload and verify quarantine UI.
    - Acceptance: Clean file → status clean; EICAR → quarantined with details; CSV export works.
+   - Status: Route and admin tests added (uploads.clean, uploads.infected.lenient, admin-quarantine). Pending deploy env configuration and manual smoke.
 
 ## P1 — Staging Smoke Tests
 7. End-to-end smoke on staging
@@ -71,6 +73,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 ---
 
 ## Recently Completed (for context)
+- Legacy /api/bookings POST conflict passthrough and tests: 409 surfaced with error.code=CONFLICT for admin/portal via legacy endpoint.
 - Booking Wizard enhancements: TeamMemberSelection, Recurrence (with preview), Payment (pricing breakdown & promo), realtime auto-refresh.
 - Availability API refactor: central engine, service config, team member support, blackout filter.
 - Top navigation: added Booking link.
