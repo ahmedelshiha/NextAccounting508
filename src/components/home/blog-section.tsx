@@ -3,6 +3,7 @@ import { ArrowRight, Calendar, Clock, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import prisma from '@/lib/prisma'
+import BlogCard from '@/components/home/BlogCard'
 
 export const revalidate = 60
 
