@@ -20,8 +20,8 @@
 
 ### P1 — High Priority
 - [x] PricingEngine
-  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability endpoints via includePrice.
-  - Next: Integrate into multi-step Booking Wizard UI for on-the-fly totals; add admin settings for pricing modifiers.
+  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability via includePrice; surfaced totals in BookingWizard summary.
+  - Next: Add admin settings for pricing modifiers and currency selection UI.
   - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
 - [ ] ConflictDetectionService
@@ -29,8 +29,8 @@
   - Deps: Phase 1 schema; AvailabilityEngine
   - Complexity: M • Owner: backend
 - [x] Multi-step Booking Wizard
-  - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and base pricing summary; prepared props/interfaces to wire PricingEngine.
-  - Next: Add server-side pricing via includePrice on availability; implement TouchCalendar; wire portal create flow to reuse the wizard.
+  - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and server-side pricing via includePrice; prepared props/interfaces to wire PricingEngine options.
+  - Next: Implement TouchCalendar; wire portal create flow to reuse the wizard; expose currency selection and promos.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
 - [ ] Recurring bookings
