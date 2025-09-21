@@ -66,10 +66,39 @@ export default function LiveChatWidget() {
 
   const canSend = useMemo(() => text.trim().length > 0 && text.trim().length <= 1000, [text])
 
+  // Flush pending queue on reconnect
+  useEffect(() => {
+    const onOnline = async () => {
+      try {
+        const raw = localStorage.getItem('af_pending_chat')
+        if (!raw) return
+        const items: string[] = JSON.parse(raw)
+        if (!Array.isArray(items) || items.length === 0) return
+        localStorage.removeItem('af_pending_chat')
+        for (const msg of items) {
+          try { await fetch('/api/portal/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) }) } catch {}
+        }
+      } catch {}
+    }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [])
+
   const send = async () => {
     const value = text.trim()
     if (!value) return
     setText('')
+    // If offline, enqueue and optimistic-render
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      try {
+        const pending: string[] = JSON.parse(localStorage.getItem('af_pending_chat') || '[]')
+        pending.push(value)
+        localStorage.setItem('af_pending_chat', JSON.stringify(pending))
+      } catch {}
+      const optimistic: ChatMsg = { id: Math.random().toString(36).slice(2), text: value, userId: 'me', userName: 'You', role: 'CLIENT', createdAt: new Date().toISOString(), tenantId: null }
+      setMessages((prev) => [...prev, optimistic])
+      return
+    }
     try {
       const res = await fetch('/api/portal/chat', {
         method: 'POST',
