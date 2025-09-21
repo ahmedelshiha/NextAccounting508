@@ -24,3 +24,14 @@ Why:
 Next steps:
 - Add repository secrets: NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (required for preview smoke); optionally DATABASE_URL to enable tests in CI.
 - Run pnpm run lint and pnpm run typecheck locally and address any findings.
+
+## [2025-09-21] Fix: /admin/services fetched zero items
+What I changed:
+- Updated src/app/admin/services/page.tsx to handle API response shape { services, total, ... } in addition to plain arrays.
+- Now maps json.services (or json.items) to Service list to display real DB data.
+
+Why:
+- API returns a paginated object; the client previously assumed an array and thus rendered none.
+
+Verification:
+- Load /admin/services after login; services list populates from DB; filters and pagination work.
