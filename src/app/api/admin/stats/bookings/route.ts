@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
@@ -6,6 +7,12 @@ import prisma from '@/lib/prisma'
 import { sumDecimals } from '@/lib/decimal-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+function isDbSchemaError(e: any) {
+  const code = String(e?.code || '')
+  const msg = String(e?.message || '')
+  return code.startsWith('P10') || code.startsWith('P20') || /relation|table|column/i.test(msg)
+}
 
 export const runtime = 'nodejs'
 
