@@ -3,11 +3,13 @@ import prisma from '@/lib/prisma';
 import { ServiceFormData } from '@/types/services';
 
 export function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[\W_]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+  // Preserve Unicode letters and numbers while replacing other characters with hyphens
+  const s = String(name).toLowerCase().trim()
+  const slug = s
+    .replace(/[^\p{L}\p{N}-]+/gu, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/(^-|-$)/g, '')
+  return slug
 }
 
 export async function validateSlugUniqueness(
