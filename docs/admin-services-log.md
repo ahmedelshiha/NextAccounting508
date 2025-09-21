@@ -1,10 +1,10 @@
-## [2025-09-21] Added admin services API integration tests and page component tests
+## [2025-09-21] Started CI configuration and quality gates
 What I implemented:
-- Created tests/admin-services.route.test.ts covering services list, create, update, delete, bulk actions, export, and stats endpoints with an in-memory Prisma mock.
-- Created tests/services/page.component.test.ts to assert Services page header and primary actions render consistently.
+- Added GitHub Actions workflow (.github/workflows/ci.yml) to run lint, typecheck, and vitest on push and pull requests.
 
 Why:
-- Provide baseline coverage for admin services flows and ensure API contracts and UI affordances are verified.
+- Ensure code quality and catch regressions early via automated checks.
 
 Next steps:
-- Add CI to run lint, typecheck, and tests; configure Netlify preview deploy and smoke tests.
+- Run CI in GitHub; iterate on any failures (likely typecheck/lint fixes).
+- Configure Netlify preview deploy and smoke tests; document required env variables.

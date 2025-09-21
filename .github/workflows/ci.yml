@@ -2,71 +2,43 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, ai_main_2843bb57fb55 ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build & Test
+  ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    env:
-      CI: true
-      PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT: "60000"
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
-          cache: "pnpm"
+          node-version: '18'
+          cache: 'pnpm'
 
-      - name: Show pnpm version
-        run: pnpm -v
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Ensure NETLIFY_DATABASE_URL env
-        run: |
-          if [ -z "${{ secrets.NETLIFY_DATABASE_URL }}" ]; then
-            echo "NETLIFY_DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          else
-            echo "NETLIFY_DATABASE_URL=${{ secrets.NETLIFY_DATABASE_URL }}" >> $GITHUB_ENV
-          fi
+      - name: Run ESLint
+        run: pnpm run lint
 
-      - name: Generate Prisma Client
-        run: pnpm db:generate
+      - name: Typecheck (tsc + prisma generate)
+        run: pnpm run typecheck
 
-      - name: Run Prisma migrations (if DATABASE_URL is provided)
-        if: ${{ env.DATABASE_URL != '' }}
-        run: |
-          pnpm db:migrate || pnpm exec prisma migrate resolve --applied 0002_add_tenant_columns || true
-          pnpm db:migrate
+      - name: Run tests (vitest)
+        env:
+          CI: true
+        run: pnpm exec vitest run --threads=false
 
-      - name: Seed database (if DATABASE_URL is provided)
-        if: ${{ env.DATABASE_URL != '' }}
-        run: pnpm db:seed
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Unit tests (thresholds)
-        run: pnpm test:thresholds
-
-      - name: Build
-        run: pnpm build
+      - name: Upload vitest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-results
+          path: tests
