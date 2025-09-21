@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       take: 500,
     })
 
-    // Group appointments by tenant to allow throttled, per-tenant processing (reduces burst load on downstream providers)
+    // Group appointments by tenant to allow balanced processing and reduce per-tenant bursts
     const byTenant = new Map<string, any[]>()
     for (const appt of upcoming) {
       const key = String(appt.tenantId || 'default')
@@ -57,95 +57,115 @@ export async function POST(req: Request) {
       byTenant.get(key)!.push(appt)
     }
 
-    const results: Array<{ id: string; sent: boolean; reason?: string }> = []
+    const totalAppts = upcoming.length
+    const perTenantCounts: Record<string, number> = {}
+    for (const [k, v] of byTenant.entries()) perTenantCounts[k] = v.length
 
-    // Concurrency: number of tenants to process in parallel. Tunable via env.
-    const tenantConcurrency = Number(process.env.REMINDERS_TENANT_CONCURRENCY || 3)
-
+    // Build an interleaved processing order (round-robin) to spread tenant load
     const tenantKeys = Array.from(byTenant.keys())
-
-    // Helper to process all appointments for a single tenant sequentially
-    async function processTenantAppointments(tenantKey: string) {
-      const appts = byTenant.get(tenantKey) || []
-      for (const appt of appts) {
-        try {
-          // Resolve booking preferences for the client; default windows if none.
-          const prefs = await prisma.bookingPreferences.findUnique({ where: { userId: appt.client.id } }).catch(() => null)
-          const hoursList = (prefs?.emailReminder !== false ? prefs?.reminderHours : []) ?? []
-          const reminderHours = hoursList.length > 0 ? hoursList : [24, 2]
-
-          // Compute whether current time is within a window for any configured hour prior to appointment.
-          // We use a +/- 15 minute tolerance to account for scheduler jitter.
-          const scheduledAt = new Date(appt.scheduledAt!)
-          const msUntil = scheduledAt.getTime() - now.getTime()
-          const hoursUntil = msUntil / 3_600_000
-          const withinWindow = reminderHours.some((h) => Math.abs(hoursUntil - h) <= 0.25) // 15 min window
-
-          if (!withinWindow) {
-            results.push({ id: appt.id, sent: false, reason: 'outside_window' })
-            continue
-          }
-
-          // Compose and send reminder email (SendGrid optional; falls back to console log in dev)
-          await sendBookingReminder(
-            {
-              id: appt.id,
-              scheduledAt: scheduledAt,
-              clientName: appt.client.name || appt.client.email || 'Client',
-              clientEmail: appt.client.email || '',
-              service: { name: appt.service.name },
-            },
-            { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
-          )
-
-          // Optionally send SMS reminder when enabled and configured
-          try {
-            const smsUrl = process.env.SMS_WEBHOOK_URL
-            const smsAuth = process.env.SMS_WEBHOOK_AUTH
-            const wantsSms = prefs?.smsReminder === true
-            if (smsUrl && wantsSms && appt.clientPhone) {
-              const locale = (prefs?.preferredLanguage || 'en-US')
-              const tzOpt = prefs?.timeZone ? { timeZone: prefs.timeZone } as const : undefined
-              const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
-              const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
-              const message = `Reminder: ${appt.service.name} on ${formattedDate} at ${formattedTime}`
-
-              await fetch(smsUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(smsAuth ? { Authorization: smsAuth } : {}),
-                },
-                body: JSON.stringify({
-                  to: appt.clientPhone,
-                  message,
-                  metadata: { serviceRequestId: appt.id, tenantId: appt.tenantId, type: 'booking-reminder' },
-                }),
-              })
-            }
-          } catch (e) {
-            await captureErrorIfAvailable(e, { route: 'cron:reminders:sms', id: appt.id })
-          }
-
-          // Mark as reminded to ensure idempotency
-          await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
-
-          try { await logAuditSafe({ action: 'booking:reminder:sent', details: { serviceRequestId: appt.id, scheduledAt, reminderHours } }) } catch {}
-          results.push({ id: appt.id, sent: true })
-        } catch (e) {
-          await captureErrorIfAvailable(e, { route: 'cron:reminders:send', id: appt.id })
-          results.push({ id: appt.id, sent: false, reason: 'error' })
-        }
+    const maxLen = Math.max(...Array.from(byTenant.values()).map((a) => a.length), 0)
+    const orderedAppts: any[] = []
+    for (let i = 0; i < maxLen; i++) {
+      for (const t of tenantKeys) {
+        const arr = byTenant.get(t)!
+        if (arr[i]) orderedAppts.push({ tenant: t, appt: arr[i] })
       }
     }
 
-    // Process tenants in batches to limit concurrent downstream load
-    for (let i = 0; i < tenantKeys.length; i += tenantConcurrency) {
-      const batch = tenantKeys.slice(i, i + tenantConcurrency)
-      await Promise.all(batch.map((k) => processTenantAppointments(k)))
+    // Results and per-tenant telemetry
+    const results: Array<{ id: string; sent: boolean; reason?: string }> = []
+    const tenantStats: Record<string, { total: number; sent: number; failed: number }> = {}
+    for (const k of tenantKeys) tenantStats[k] = { total: perTenantCounts[k] || 0, sent: 0, failed: 0 }
+
+    // Tunable concurrency knobs
+    const globalConcurrency = Number(process.env.REMINDERS_GLOBAL_CONCURRENCY || 10)
+
+    // Helper to process a single appointment (shared logic)
+    async function processAppointmentItem(item: { tenant: string; appt: any }) {
+      const appt = item.appt
+      const tenantKey = item.tenant
+      try {
+        const prefs = await prisma.bookingPreferences.findUnique({ where: { userId: appt.client.id } }).catch(() => null)
+        const hoursList = (prefs?.emailReminder !== false ? prefs?.reminderHours : []) ?? []
+        const reminderHours = hoursList.length > 0 ? hoursList : [24, 2]
+
+        const scheduledAt = new Date(appt.scheduledAt!)
+        const msUntil = scheduledAt.getTime() - now.getTime()
+        const hoursUntil = msUntil / 3_600_000
+        const withinWindow = reminderHours.some((h) => Math.abs(hoursUntil - h) <= 0.25)
+
+        if (!withinWindow) {
+          results.push({ id: appt.id, sent: false, reason: 'outside_window' })
+          tenantStats[tenantKey].failed++
+          return
+        }
+
+        await sendBookingReminder(
+          {
+            id: appt.id,
+            scheduledAt,
+            clientName: appt.client.name || appt.client.email || 'Client',
+            clientEmail: appt.client.email || '',
+            service: { name: appt.service.name },
+          },
+          { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
+        )
+
+        // Optional SMS
+        try {
+          const smsUrl = process.env.SMS_WEBHOOK_URL
+          const smsAuth = process.env.SMS_WEBHOOK_AUTH
+          const wantsSms = prefs?.smsReminder === true
+          if (smsUrl && wantsSms && appt.clientPhone) {
+            const locale = (prefs?.preferredLanguage || 'en-US')
+            const tzOpt = prefs?.timeZone ? { timeZone: prefs.timeZone } as const : undefined
+            const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
+            const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
+            const message = `Reminder: ${appt.service.name} on ${formattedDate} at ${formattedTime}`
+
+            await fetch(smsUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(smsAuth ? { Authorization: smsAuth } : {}),
+              },
+              body: JSON.stringify({
+                to: appt.clientPhone,
+                message,
+                metadata: { serviceRequestId: appt.id, tenantId: appt.tenantId, type: 'booking-reminder' },
+              }),
+            })
+          }
+        } catch (e) {
+          await captureErrorIfAvailable(e, { route: 'cron:reminders:sms', id: appt.id })
+        }
+
+        await prisma.serviceRequest.update({ where: { id: appt.id }, data: { reminderSent: true } })
+        try { await logAuditSafe({ action: 'booking:reminder:sent', details: { serviceRequestId: appt.id, scheduledAt, reminderHours } }) } catch {}
+        results.push({ id: appt.id, sent: true })
+        tenantStats[tenantKey].sent++
+      } catch (e) {
+        await captureErrorIfAvailable(e, { route: 'cron:reminders:send', id: appt.id })
+        results.push({ id: appt.id, sent: false, reason: 'error' })
+        tenantStats[tenantKey].failed++
+      }
     }
 
-    return NextResponse.json({ success: true, processed: results.length, results })
+    // Process ordered appointments in global concurrent batches
+    const startTs = Date.now()
+    for (let i = 0; i < orderedAppts.length; i += globalConcurrency) {
+      const batch = orderedAppts.slice(i, i + globalConcurrency)
+      await Promise.all(batch.map((it) => processAppointmentItem(it)))
+    }
+
+    const durationMs = Date.now() - startTs
+
+    // Emit telemetry/audit entry summarizing the run
+    try {
+      await logAuditSafe({ action: 'reminders:batch_summary', details: { totalAppts, perTenantCounts, tenantStats, processed: results.length, durationMs } })
+    } catch {}
+
+    return NextResponse.json({ success: true, processed: results.length, results, tenantStats, durationMs })
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'cron:reminders' })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
