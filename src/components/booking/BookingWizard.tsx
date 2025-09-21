@@ -19,7 +19,7 @@ export type Service = {
   duration: number
 }
 
-export type TimeSlot = { time: string; available: boolean }
+export type TimeSlot = { time: string; available: boolean; priceCents?: number; currency?: string }
 
 export type BookingForm = {
   clientName: string
@@ -96,10 +96,10 @@ export default function BookingWizard(props: BookingWizardProps) {
     async function loadAvailability() {
       if (!selectedService || !selectedDate) return
       try {
-        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1`)
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1`)
         if (res.ok) {
           const json = await res.json().catch(() => null)
-          type ApiDay = { date: string; slots: { start: string; available?: boolean }[] }
+          type ApiDay = { date: string; slots: { start: string; available?: boolean; priceCents?: number; currency?: string }[] }
           const availability: ApiDay[] = Array.isArray(json)
             ? (json as ApiDay[])
             : json && typeof json === 'object' && Array.isArray((json as { availability?: unknown }).availability)
@@ -111,6 +111,8 @@ export default function BookingWizard(props: BookingWizardProps) {
             const slots: TimeSlot[] = day.slots.map((s) => ({
               time: new Date(s.start).toTimeString().slice(0, 5),
               available: s.available !== false,
+              priceCents: typeof s.priceCents === 'number' ? s.priceCents : undefined,
+              currency: s.currency,
             }))
             setTimeSlots(slots)
             return
@@ -170,11 +172,21 @@ export default function BookingWizard(props: BookingWizardProps) {
     }
   }
 
+  function formatCents(cents: number, curr: string | undefined) {
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: curr || 'USD' }).format((cents || 0) / 100)
+    } catch {
+      return `$${(cents / 100).toFixed(2)}`
+    }
+  }
+
   const estimatedPrice = useMemo(() => {
     if (!selectedService) return null
+    const slot = timeSlots.find(t => t.time === selectedTime)
+    if (slot && typeof slot.priceCents === 'number') return formatCents(slot.priceCents, slot.currency)
     const base = Number(selectedService.price || 0)
-    return base > 0 ? `$${base}` : 'Free'
-  }, [selectedService])
+    return base > 0 ? formatCents(Math.round(base * 100), 'USD') : 'Free'
+  }, [selectedService, selectedTime, timeSlots])
 
   return (
     <div>
