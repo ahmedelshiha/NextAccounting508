@@ -10,6 +10,7 @@ export type RequestFilters = {
   status: string | 'ALL'
   priority: string | 'ALL'
   bookingType: 'ALL' | 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION'
+  paymentStatus?: 'ALL' | 'UNPAID' | 'INTENT' | 'PAID' | 'FAILED' | 'REFUNDED'
   q: string
   dateFrom?: string
   dateTo?: string
@@ -29,6 +30,7 @@ export default function ServiceRequestFilters({ value, onChange, onRefresh, refr
   const statusItems = useMemo(() => ['ALL', ...STATUSES], [])
   const priorityItems = useMemo(() => ['ALL', ...PRIORITIES], [])
   const bookingTypeItems = useMemo(() => ['ALL','STANDARD','RECURRING','EMERGENCY','CONSULTATION'] as const, [])
+  const paymentItems = useMemo(() => ['ALL','UNPAID','INTENT','PAID','FAILED','REFUNDED'] as const, [])
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
@@ -72,6 +74,14 @@ export default function ServiceRequestFilters({ value, onChange, onRefresh, refr
         </SelectTrigger>
         <SelectContent>
           {bookingTypeItems.map(bt => (<SelectItem key={bt} value={bt}>{bt}</SelectItem>))}
+        </SelectContent>
+      </Select>
+      <Select value={value.paymentStatus || 'ALL'} onValueChange={(v) => onChange({ ...value, paymentStatus: v as any })}>
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Payment" />
+        </SelectTrigger>
+        <SelectContent>
+          {paymentItems.map(ps => (<SelectItem key={ps} value={ps}>{ps}</SelectItem>))}
         </SelectContent>
       </Select>
       <Button variant="outline" onClick={() => onChange({ status: 'ALL', priority: 'ALL', bookingType: 'ALL', q: '', dateFrom: undefined, dateTo: undefined })} className="flex items-center gap-2">
