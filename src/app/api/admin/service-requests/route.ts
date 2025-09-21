@@ -72,6 +72,7 @@ type Filters = {
   dateFrom?: string | null
   dateTo?: string | null
   bookingType?: string | null
+  paymentStatus?: 'UNPAID'|'INTENT'|'PAID'|'FAILED'|'REFUNDED' | null
 }
 
 export async function GET(request: Request) {
@@ -95,6 +96,7 @@ export async function GET(request: Request) {
     dateFrom: searchParams.get('dateFrom'),
     dateTo: searchParams.get('dateTo'),
     bookingType: searchParams.get('bookingType'),
+    paymentStatus: (searchParams.get('paymentStatus') as any) || null,
   }
 
   const tenantId = getTenantFromRequest(request as any)
@@ -109,6 +111,7 @@ export async function GET(request: Request) {
       { description: { contains: filters.q, mode: 'insensitive' } },
     ] }),
     ...(filters.bookingType && { bookingType: filters.bookingType as any }),
+    ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus as any }),
     // Prefer new booking fields when available (Phase 1)
     ...(type === 'appointments' ? { isBooking: true } : {}),
     ...(type === 'requests' ? { OR: [{ isBooking: false }, { isBooking: null }] } : {}),
@@ -234,6 +237,10 @@ export async function GET(request: Request) {
         if (filters.bookingType) {
           const bt = String(filters.bookingType)
           all = all.filter((r: any) => String((r as any).bookingType || '') === bt)
+        }
+        if (filters.paymentStatus) {
+          const ps = String(filters.paymentStatus)
+          all = all.filter((r: any) => String((r as any).paymentStatus || '') === ps)
         }
         if (filters.dateFrom) {
           const from = new Date(filters.dateFrom).getTime()
