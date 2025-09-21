@@ -139,6 +139,7 @@ export default function ServicesAdminPage() {
       const res = await apiFetch('/api/admin/services', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       if (!res.ok) throw new Error('Create failed')
       toast.success('Service created')
+      setShowModal(false)
       await load()
     } catch (e) {
       console.error('create', e)
@@ -154,6 +155,7 @@ export default function ServicesAdminPage() {
       if (!res.ok) throw new Error('Update failed')
       toast.success('Service updated')
       setEditing(null)
+      setShowModal(false)
       await load()
     } catch (e) {
       console.error('update', e)
