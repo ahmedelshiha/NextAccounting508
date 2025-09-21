@@ -162,6 +162,10 @@ async function processQueue() {
   }
 }
 
+self.addEventListener('message', (event) => {
+  try { if (event.data && event.data.type === 'process-queue') { event.waitUntil(processQueue()) } } catch {}
+})
+
 self.addEventListener('sync', (event) => {
   if (event.tag === 'service-requests-sync') {
     event.waitUntil(processQueue())
