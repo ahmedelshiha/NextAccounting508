@@ -62,6 +62,9 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState<boolean>(false)
   const [recurrence, setRecurrence] = useState<RecurrencePattern | null>(null)
 
+  // Payment method (CARD | COD)
+  const [paymentMethod, setPaymentMethod] = useState<'CARD'|'COD'>('CARD')
+
   const [formData, setFormData] = useState<BookingForm>({
     clientName: session?.user?.name || '',
     clientEmail: session?.user?.email || '',
@@ -255,7 +258,8 @@ export default function BookingWizard(props: BookingWizardProps) {
               assignedTeamMemberId: selectedTeamMemberId || undefined,
               currency,
               promoCode: promoCode || undefined,
-            }
+            },
+            payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
           }
         }
         const res = await apiFetch('/api/portal/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -288,6 +292,7 @@ export default function BookingWizard(props: BookingWizardProps) {
             promoCode: promoCode || undefined,
             ...(bookingType === 'EMERGENCY' && formData.emergencyReason ? { emergencyReason: formData.emergencyReason } : {}),
           },
+          payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
           ...(bookingType === 'EMERGENCY' && formData.emergencyReason ? { emergencyReason: formData.emergencyReason } : {}),
         },
       }
@@ -321,7 +326,8 @@ export default function BookingWizard(props: BookingWizardProps) {
                 emergencyReason: bookingType === 'EMERGENCY' ? (formData.emergencyReason || '') : undefined,
                 currency,
                 promoCode: promoCode || undefined,
-              }
+              },
+              payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
             }
           }
           await savePendingBooking(pendingPayload)
@@ -561,6 +567,8 @@ export default function BookingWizard(props: BookingWizardProps) {
             currency={currency}
             promoCode={promoCode}
             bookingType={bookingType}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
             onApplyPromo={(code) => setPromoCode(code)}
           />
           <div className="flex justify-between">
