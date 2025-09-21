@@ -20,9 +20,28 @@ export default function AdminChatConsole() {
   const [text, setText] = useState('')
   const [room, setRoom] = useState<string>('')
   const [connected, setConnected] = useState(false)
+  const [metrics, setMetrics] = useState<{ transport: string; connectionCount: number; totalEvents: number } | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight }, [messages])
+
+  // Poll realtime metrics
+  useEffect(() => {
+    let t: any
+    const load = async () => {
+      try {
+        const res = await fetch('/api/admin/system/health', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          const r = data?.realtime
+          if (r) setMetrics({ transport: r.transport || 'unknown', connectionCount: r.connectionCount || 0, totalEvents: r.totalEvents || 0 })
+        }
+      } catch {}
+      t = setTimeout(load, 5000)
+    }
+    void load()
+    return () => { if (t) clearTimeout(t) }
+  }, [])
 
   // Load backlog
   useEffect(() => {
