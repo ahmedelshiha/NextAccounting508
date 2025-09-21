@@ -139,7 +139,11 @@ export default function ServicesAdminPage() {
       setFormLoading(true)
       const body = { ...data }
       const res = await apiFetch('/api/admin/services', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
-      if (!res.ok) throw new Error('Create failed')
+      if (!res.ok) {
+        let msg = 'Failed to create'
+        try { const j = await res.json(); if (j?.error) msg = j.error } catch {}
+        throw new Error(msg)
+      }
       toast.success('Service created')
       setShowModal(false)
       await load()
