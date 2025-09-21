@@ -18,3 +18,25 @@ Files Changed
 Next Steps
 - Add unit tests for availability options (buffers, weekends via businessHours, caps) and route tests for includePrice/promo.
 - Wire BookingWizard realtime refresh and team member selection (pending).
+
+
+## 2025-09-21 — Booking Wizard Recurrence Step
+
+Summary
+- Added Recurrence step to BookingWizard with frequency, interval, end-by count/date, and weekly day selection.
+- Integrated conflict-aware preview via /api/portal/service-requests/recurring/preview with graceful client-side fallback.
+- Enabled recurring series creation by posting isBooking=true, bookingType=RECURRING, and recurringPattern to portal endpoint.
+
+Why
+- Supports common client need to schedule recurring appointments while avoiding conflicts before creation.
+- Aligns UI with existing backend recurring planning and series creation capabilities.
+
+Files Changed
+- src/components/booking/BookingWizard.tsx (integrated step, submission logic)
+- src/components/booking/steps/RecurrenceStep.tsx (new reusable component)
+- docs/service-portal-TODO.md (mark item complete)
+
+Next Steps
+- Add route tests for preview endpoints and series creation flows.
+- Extend UI to expose pricing breakdown per occurrence when includePrice is requested.
+- Consider admin-configurable defaults for recurrence (e.g., default weekly days).
