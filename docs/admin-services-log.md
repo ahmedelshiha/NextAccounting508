@@ -35,3 +35,12 @@ Why:
 
 Verification:
 - Load /admin/services after login; services list populates from DB; filters and pagination work.
+
+## [2025-09-21] Audit: services module consistency fixes
+Changes:
+- Fixed client query params to use featured/status enums (not boolean) and added limit=100 to align with API schema.
+- Switched all single-item mutations to PATCH /api/admin/services/{id} and DELETE by id.
+- Normalized list response handling for both array and { services, total } shapes.
+
+Impact:
+- Prevents 500 errors from invalid query values, ensures updates/deletes succeed, and displays complete data set.
