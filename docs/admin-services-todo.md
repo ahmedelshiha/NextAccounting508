@@ -12,13 +12,13 @@
   - [x] Add admin APIs: list/create, get/update/delete, bulk, stats, export (src/app/api/admin/services/**)
   - [x] Extend permissions to include services.* and update role mapping (src/lib/permissions.ts)
 
-- [x] Phase 2 — Core UI components (partial)
+- [x] Phase 2 — Core UI components
   - [x] ServicesHeader (src/components/admin/services/ServicesHeader.tsx)
   - [x] ServicesFilters (src/components/admin/services/ServicesFilters.tsx)
   - [x] ServiceCard (src/components/admin/services/ServiceCard.tsx)
   - [x] ServiceForm (src/components/admin/services/ServiceForm.tsx)
   - [x] BulkActionsPanel (src/components/admin/services/BulkActionsPanel.tsx)
-  - [ ] ServicesAnalytics (charting and final layout)
+  - [x] ServicesAnalytics (src/components/admin/services/ServicesAnalytics.tsx)
 
 ## ✅ Why it was done
 - Provide a production-grade, type-safe, and extensible foundation for services management.
@@ -27,11 +27,10 @@
 - Ensure safe operation in demo/no-DB environments (no hard failures when NETLIFY_DATABASE_URL is not set).
 
 ## ✅ Next steps (remaining / actionable)
-- [ ] Implement ServicesAnalytics component (KPIs + charts) and wire analytics endpoint data to it (estimated 2-4 hours).
-- [ ] Replace/gradually migrate existing admin services page to use the new components and hooks (split into small PRs):
-  - [ ] Integrate ServicesHeader, ServicesFilters, ServiceGrid (cards) into admin page
-  - [ ] Add Edit/Create modals using ServiceForm
-  - [ ] Add selection state and BulkActions integration
+- [ ] Integrate ServicesHeader, ServicesFilters, ServiceGrid (cards) into admin page (wire components into src/app/admin/services/page.tsx)
+- [ ] Add Edit/Create modals using ServiceForm (ensure modal accessibility and large-screen layout)
+- [ ] Add selection state and BulkActions integration into the admin page
+- [ ] Wire ServicesAnalytics to GET /api/admin/services/stats and render live data
 - [ ] Add automated unit tests for utilities and service layer (zod validations + service business logic)
 - [ ] Add integration tests for admin APIs (list/create/update/delete/bulk/export)
 - [ ] Run full typecheck & lint; address any remaining TypeScript or ESLint issues
@@ -40,4 +39,4 @@
 ---
 
 ## Work log (summary)
-- Completed foundation tasks and core admin API + components. See docs/admin-services-log.md for commit-level notes.
+- Completed foundation tasks and core admin API + components. See docs/admin-services-log.md for detailed entries.
