@@ -84,9 +84,13 @@ export async function GET(request: NextRequest) {
     const rangeEnd = addDays(rangeStart, days)
 
     // Enforce min/max advance booking windows
+    const bookingType = (searchParams.get('bookingType') || '').toUpperCase()
+
     const minAdvanceHours = typeof service.minAdvanceHours === 'number' ? service.minAdvanceHours : 0
     const advanceDays = typeof service.advanceBookingDays === 'number' ? service.advanceBookingDays : 30
-    const windowStart = new Date(now.getTime() + minAdvanceHours * 60 * 60 * 1000)
+
+    // If emergency booking requested, skip minAdvance enforcement
+    const windowStart = bookingType === 'EMERGENCY' ? now : new Date(now.getTime() + minAdvanceHours * 60 * 60 * 1000)
     const windowEnd = new Date(now.getTime() + advanceDays * 24 * 60 * 60 * 1000)
 
     // Business hours normalization and options

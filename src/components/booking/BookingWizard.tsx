@@ -54,6 +54,9 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [promoInput, setPromoInput] = useState<string>('')
   const [promoCode, setPromoCode] = useState<string>('')
 
+  // Booking type (STANDARD|EMERGENCY|CONSULTATION)
+  const [bookingType, setBookingType] = useState<string>('STANDARD')
+
   // Recurrence state
   const [recurrenceEnabled, setRecurrenceEnabled] = useState<boolean>(false)
   const [recurrence, setRecurrence] = useState<RecurrencePattern | null>(null)
@@ -128,7 +131,7 @@ export default function BookingWizard(props: BookingWizardProps) {
     async function loadAvailability() {
       if (!selectedService || !selectedDate) return
       try {
-        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}${selectedTeamMemberId ? `&teamMemberId=${encodeURIComponent(selectedTeamMemberId)}` : ''}`)
+        const res = await apiFetch(`/api/bookings/availability?serviceId=${encodeURIComponent(selectedService.id)}&date=${encodeURIComponent(selectedDate)}&days=1&includePrice=1&currency=${encodeURIComponent(currency)}${promoCode ? `&promoCode=${encodeURIComponent(promoCode)}` : ''}${selectedTeamMemberId ? `&teamMemberId=${encodeURIComponent(selectedTeamMemberId)}` : ''}${bookingType ? `&bookingType=${encodeURIComponent(bookingType)}` : ''}`)
         if (res.ok) {
           const json = await res.json().catch(() => null)
           type ApiDay = { date: string; slots: { start: string; available?: boolean; priceCents?: number; currency?: string }[] }
@@ -193,6 +196,27 @@ export default function BookingWizard(props: BookingWizardProps) {
     return () => { try { es?.close() } catch {} }
   }, [selectedService?.id, selectedDate])
 
+  // Flush pending bookings when we regain connectivity
+  useEffect(() => {
+    let mounted = true
+    async function tryFlush() {
+      if (typeof window === 'undefined' || !navigator.onLine) return
+      try {
+        const mod = await import('@/lib/offline/booking-cache')
+        await mod.flushPendingBookings(async (item: any) => {
+          try {
+            const res = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
+            return res.ok
+          } catch { return false }
+        })
+      } catch {}
+    }
+    tryFlush()
+    const onOnline = () => { if (mounted) tryFlush() }
+    window.addEventListener('online', onOnline)
+    return () => { mounted = false; window.removeEventListener('online', onOnline) }
+  }, [])
+
   const nextStep = () => setCurrentStep((s) => Math.min(7, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
@@ -202,8 +226,8 @@ export default function BookingWizard(props: BookingWizardProps) {
       return
     }
     setIsSubmitting(true)
+    const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
     try {
-      const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
 
       // When recurrence is enabled, create a recurring series via portal endpoint
       if (recurrenceEnabled && recurrence) {
@@ -253,6 +277,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
         assignedTeamMemberId: selectedTeamMemberId || undefined,
+        bookingType: bookingType || 'STANDARD',
       }
       const res = await apiFetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (res.ok) {
@@ -264,6 +289,29 @@ export default function BookingWizard(props: BookingWizardProps) {
         toast.error(err?.error || 'Failed to submit booking')
       }
     } catch (e) {
+      try {
+        const isNetworkError = !navigator.onLine || (e && (e as any).message && String((e as any).message).toLowerCase().includes('failed to fetch'))
+        if (isNetworkError && typeof window !== 'undefined') {
+          const { savePendingBooking } = await import('@/lib/offline/booking-cache')
+          const pendingPayload: any = {
+            serviceId: selectedService.id,
+            scheduledAt: scheduledISO,
+            notes: formData.notes,
+            clientName: formData.clientName,
+            clientEmail: formData.clientEmail,
+            clientPhone: formData.clientPhone,
+            assignedTeamMemberId: selectedTeamMemberId || undefined,
+            bookingType: bookingType || 'STANDARD',
+          }
+          await savePendingBooking(pendingPayload)
+          toast.success('You are offline — booking saved locally and will be submitted when online.')
+          setCurrentStep(7)
+          props.onComplete?.()
+          return
+        }
+      } catch (inner) {
+        // ignore
+      }
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -382,23 +430,36 @@ export default function BookingWizard(props: BookingWizardProps) {
                 <div className="block md:hidden">
                   <TouchCalendar value={selectedDate} min={today} onChange={(d) => { setSelectedDate(d); setSelectedTime('') }} />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <Label htmlFor="currency">Currency</Label>
-                    <select id="currency" className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                      {currencies.map(c => (
-                        <option key={c.code} value={c.code}>{c.code}</option>
-                      ))}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Booking Type</Label>
+                    <select className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={bookingType} onChange={(e) => setBookingType(e.target.value)}>
+                      <option value="STANDARD">Standard</option>
+                      <option value="CONSULTATION">Consultation</option>
+                      <option value="EMERGENCY">Emergency</option>
                     </select>
                   </div>
-                  <div className="flex-1">
-                    <Label htmlFor="promo">Promo Code</Label>
-                    <div className="mt-1 flex gap-2">
-                      <Input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="e.g. WELCOME10" />
-                      <Button type="button" variant="outline" onClick={() => setPromoCode(promoInput.trim())}>Apply</Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <Label htmlFor="currency">Currency</Label>
+                      <select id="currency" className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                        {currencies.map(c => (
+                          <option key={c.code} value={c.code}>{c.code}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor="promo">Promo Code</Label>
+                      <div className="mt-1 flex gap-2">
+                        <Input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="e.g. WELCOME10" />
+                        <Button type="button" variant="outline" onClick={() => setPromoCode(promoInput.trim())}>Apply</Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+
               </div>
 
               {selectedDate && (
@@ -478,6 +539,7 @@ export default function BookingWizard(props: BookingWizardProps) {
             durationMinutes={selectedService?.duration || null}
             currency={currency}
             promoCode={promoCode}
+            bookingType={bookingType}
             onApplyPromo={(code) => setPromoCode(code)}
           />
           <div className="flex justify-between">

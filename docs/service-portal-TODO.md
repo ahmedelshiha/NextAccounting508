@@ -1,82 +1,97 @@
-# Service Portal — Reorganized Action Plan (2025-09-21)
+# Service Portal Booking TODOs (Audit vs docs/booking_enhancement_plan.md)
 
-This replaces the previous ad-hoc checklist with a prioritized, dependency-aware plan. Each task is specific, actionable, and measurable.
+This list captures missing or partial items to align the booking module with the enhancement plan.
 
-## P0 — Deployment & Schema (Critical Path)
-1. Deploy Phase 1 schema (migrate + seed)
-   - Steps: pnpm db:generate → db:migrate → db:seed on CI; verify scheduledAt/isBooking present.
-   - Acceptance: /api/db-check passes; admin/portal list queries return without schema fallbacks.
-   - Deps: Netlify envs set (DATABASE_URL, NEXTAUTH_*, etc.)
+## Foundation & Data Model
+- [x] AvailabilitySlot model usage
+  - Persist and consume AvailabilitySlot for manual overrides, capacity and exceptions
+  - Admin APIs + UI to create/update/delete slots; support reasons (maintenance/holiday)
+- [x] Team member working hours/timezone
+  - Store and honor TeamMember.workingHours and timeZone in availability/conflicts
+  - Respect maxConcurrentBookings and bookingBuffer at member level
 
-2. Proxy compatibility: /api/bookings POST must surface 409 conflicts
-   - Steps: Add tests for POST /api/bookings mapping to admin/portal routes and returning 409 on conflicts.
-   - Acceptance: New test passes and manual conflict returns { success: false, error.code: 'CONFLICT' }.
-   - Deps: ConflictDetectionService
+## Availability & Scheduling
+- [x] Team-member-aware availability
+  - When a team member is chosen, compute slots using that member’s workingHours, buffer and time zone
+  - Fallback to service.businessHours if member data missing
+- [x] Capacity and blackout controls (partial)
+  - Enforce service.blackoutDates at API boundary (return 404 for fully blacked-out dates)
+  - Respect AvailabilitySlot.maxBookings/currentBookings when present (availability slots considered when full or blocked)
+- [ ] Daily caps per team/service
+  - Extend conflict detection for per-team/day capacity
 
-## P1 — API Correctness & Tests
-3. Availability route tests for includePrice/promo
-   - Steps: Add route tests validating price currency and promoCode application on sample dates.
-   - Acceptance: Tests cover base, promo=WELCOME10, promo=SAVE15; currency conversion branch exercised.
-   - Status: Implemented for /api/bookings/availability (tests/bookings-availability.pricing.test.ts).
+## Booking Wizard (Multi-step)
+- [ ] Emergency booking flow
+  - UI to set bookingType=EMERGENCY with minAdvance bypass rules and surcharge
+  - Server validation + pricing integration
+- [ ] Service customization step
+  - Configurable add‑ons/variants that affect duration and price
+  - Include in payload and pricing breakdown
+- [ ] Team member integration
+  - When user selects a member, availability/pricing should reflect that selection
 
-4. Unit tests: availability engine (buffers, weekends via businessHours, caps)
-   - Steps: Add cases for buffer overlap, weekend closed, maxDailyBookings skip.
-   - Acceptance: All edge cases green; threshold suite stable.
+## Pricing Engine
+- [ ] Enrich dynamic pricing inputs
+  - Use service.standardDuration/basePrice consistently; consider hourlyRate when present
+  - Add emergency surcharge logic (configurable) and expose via /api/pricing
+  - Ensure promo handling supports per‑service rules/extensibility
 
-5. Route tests: create/reschedule 409 (admin and portal)
-   - Steps: Ensure both create and reschedule conflict tests exist and cover teamMemberId filter.
-   - Acceptance: Tests green and fail when conflict logic is removed.
+## Notifications & Reminders
+- [ ] Scheduled reminders persistence
+  - Create scheduled reminders (DB table) based on BookingPreferences.reminderHours
+  - Cron to dispatch and mark sent; support EMAIL and optional SMS
+- [ ] Client preferences UI
+  - Portal UI for /api/portal/settings/booking-preferences (read/write)
 
-## P1 — Uploads & Antivirus
-6. Configure uploads provider & antivirus
-   - Steps: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY; run smoke upload and verify quarantine UI.
-   - Acceptance: Clean file → status clean; EICAR → quarantined with details; CSV export works.
-   - Status: Route and admin tests added (uploads.clean, uploads.infected.lenient, admin-quarantine). Pending deploy env configuration and manual smoke.
+## Real-time & Realtime API
+- [x] Booking WebSocket endpoint
+  - Provide /api/ws/bookings (WS) with auth + channel subscriptions; retain SSE fallback (implemented)
+  - Client hook for subscribing to availability and assignment updates (src/hooks/useBookingsSocket.ts, useRealtime updated)
 
-## P1 — Staging Smoke Tests
-7. End-to-end smoke on staging
-   - Steps: Portal create → admin assign → status transitions → realtime update → CSV export → uploads/AV.
-   - Acceptance: No 500s; logs clean; UI reflects updates in real-time.
+## Payments
+- [ ] Payment gateway integration
+  - Implement Stripe (or provider) in PaymentStep with server intents and webhook verification
+  - Reflect paid/unpaid status on ServiceRequest/Booking and handle failures
 
-## P2 — UX, Localization, Preferences
-8. BookingPreferences UI (reminders/timezone/channels)
-   - Steps: Build settings form; persist; read in cron reminders and ICS generation.
-   - Acceptance: Preferences roundtrip; reminders honor windows; ICS uses timezone.
+## Offline & PWA
+- [ ] Offline booking cache and queue
+  - IndexedDB cache for services and user bookings; queue pending bookings for retry
+  - Extend SW to cache /api/bookings, /api/services and replay queued requests
+- [ ] Manifest alignment
+  - Consider aligning to /manifest.json or ensure manifest.webmanifest provides required shortcuts/icons
 
-9. Localize wizard labels/messages
-   - Steps: Use src/app/locales; add keys for all wizard steps incl. Recurrence and Payment.
-   - Acceptance: en/ar/hi strings load; fallback behavior verified.
+## Admin Tooling
+- [ ] Admin management of business hours & blackout dates
+  - UI + API to configure Service and TeamMember hours, buffer, blackoutDates
+  - Seed sensible defaults; audit logs on changes
 
-## P2 — PWA & Offline
-10. Offline booking cache + background sync
-    - Steps: IndexedDB store for pending bookings; background sync to retry; UI indicator.
-    - Acceptance: Offline create queues and syncs successfully on reconnect.
+## Conflict Detection
+- [ ] Member-aware rules
+  - Include TeamMember bookingBuffer and capacity in checks
+  - Improve messages (double‑booking, buffer violation, daily cap) for UI consumption
 
-11. Expand SW caching for /api/services and availability
-    - Steps: Add runtime cache; respect flag NEXT_PUBLIC_ENABLE_PWA.
-    - Acceptance: Cache hit ratio visible in logs; manual validation via devtools.
+## Testing & Quality
+- [ ] Unit tests & integration tests
+  - Availability generation (service vs team member)
+  - Pricing (weekend/peak/emergency/promo/FX)
+  - Recurring plan and conflict detection
+  - API contracts for availability, pricing, bookings
 
-## P2 — Observability & Ops
-12. Sentry and health alerts
-    - Steps: Set SENTRY_DSN; add alerting for AV failures, realtime adapter reconnect loops, error rate spikes.
-    - Acceptance: Test events arrive in Sentry; health widget shows adapter metrics.
-
-## P3 — Cleanup & Docs
-13. Remove dev fallbacks
-    - Steps: Delete dev-login route, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed.
-    - Acceptance: Build passes; local dev still works; tests adapted.
-
-14. Deprecation notice for legacy bookings API
-    - Steps: Document sunset window; add README section and change log.
-    - Acceptance: Docs merged; Deprecation headers verified in /api/bookings.
+## Optional Enhancements
+- [ ] ICS improvements
+  - Add location/timezone awareness and richer description lines
+- [ ] Live chat on booking page
+  - Mount existing LiveChatWidget/console for quick help during booking
 
 ---
+Status notes:
+- Implemented: core availability generation, pricing API, recurrence preview/creation, conflict detection (service‑level), SSE realtime updates, ICS in confirmations, portal service-requests integration.
+- Completed now: team-member-aware availability (uses TeamMember.workingHours, bookingBuffer and maxConcurrentBookings; falls back to service businessHours). This enhances per-member availability filtering and capacity controls.
+- Remaining: emergency flow, AvailabilitySlot persistence, auto‑assign on portal create, scheduled reminder persistence, WS endpoint, payment capture, offline queue.
 
-## Recently Completed (for context)
-- Legacy /api/bookings POST conflict passthrough and tests: 409 surfaced with error.code=CONFLICT for admin/portal via legacy endpoint.
-- Booking Wizard enhancements: TeamMemberSelection, Recurrence (with preview), Payment (pricing breakdown & promo), realtime auto-refresh.
-- Availability API refactor: central engine, service config, team member support, blackout filter.
-- Top navigation: added Booking link.
+Next steps (short-term):
+- Implement AvailabilitySlot persistence and admin UI to manage blackouts and overrides.
+- Extend conflict detection to incorporate team-member capacity and explicit AvailabilitySlot reservations.
+- Add scheduled reminder persistence and ensure cron sends reminders per preferences.
 
-## Notes
-- Program phase tracker remains in docs as reference; execution is driven by the actionable list above.
+For the next task I will implement AvailabilitySlot persistence and admin endpoints.

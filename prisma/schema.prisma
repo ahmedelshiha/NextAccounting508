@@ -452,6 +452,7 @@ model ServiceRequest {
   comments              ServiceRequestComment[]
   attachmentsRel        Attachment[]
   linkedBookings        Booking[]
+  scheduledReminders    ScheduledReminder[]
 
   @@index([clientId])
   @@index([scheduledAt])
@@ -579,6 +580,22 @@ model BookingPreferences {
   updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Scheduled reminders for bookings
+model ScheduledReminder {
+  id               String   @id @default(cuid())
+  serviceRequestId String
+  scheduledAt      DateTime
+  channel          String   @default("EMAIL")
+  sent             Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  tenantId         String?
+
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledAt])
+  @@index([serviceRequestId])
 }
 
 // Attachment model to persist uploads and AV status

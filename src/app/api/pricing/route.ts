@@ -10,6 +10,7 @@ const Body = z.object({
   duration: z.number().int().positive().optional(),
   currency: z.string().length(3).optional(),
   promoCode: z.string().optional(),
+  bookingType: z.string().optional(),
 })
 
 export async function POST(request: Request) {
@@ -17,12 +18,15 @@ export async function POST(request: Request) {
   const parsed = Body.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
-  const { serviceId, scheduledAt, duration, currency, promoCode } = parsed.data
+  const { serviceId, scheduledAt, duration, currency, promoCode, bookingType } = parsed.data
   try {
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
     if (!svc || (svc as any).active === false) return respond.notFound('Service not found or inactive')
 
     const { calculateServicePrice } = await import('@/lib/booking/pricing')
+    const bookingTypeNormalized = (bookingType || '').toUpperCase()
+    const emergencyPct = bookingTypeNormalized === 'EMERGENCY' ? 0.5 : 0
+
     const price = await calculateServicePrice({
       serviceId,
       scheduledAt: new Date(scheduledAt),
@@ -30,6 +34,7 @@ export async function POST(request: Request) {
       options: {
         currency,
         promoCode: (promoCode || '').trim() || undefined,
+        emergencySurchargePercent: emergencyPct,
         promoResolver: async (code: string, { serviceId }) => {
           const service = await prisma.service.findUnique({ where: { id: serviceId } })
           if (!service) return null
