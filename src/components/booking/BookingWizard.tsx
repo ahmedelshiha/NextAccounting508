@@ -163,7 +163,7 @@ export default function BookingWizard(props: BookingWizardProps) {
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
 
-  const nextStep = () => setCurrentStep((s) => Math.min(4, s + 1))
+  const nextStep = () => setCurrentStep((s) => Math.min(5, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
