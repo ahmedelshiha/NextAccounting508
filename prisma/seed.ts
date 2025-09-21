@@ -1,4 +1,5 @@
 import prisma from '../src/lib/prisma'
+import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
