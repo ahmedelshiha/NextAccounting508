@@ -31,6 +31,15 @@
 
 ---
 
+## 2025-09-21 — Live chat (SSE) MVP
+- Implemented authenticated SSE chat for portal users:
+  - API: POST /api/portal/chat (auth-gated, IP rate-limited) and GET /api/portal/chat (recent backlog)
+  - Realtime: broadcasts via EnhancedRealtimeService with type "chat-message"
+  - Frontend: lightweight LiveChatWidget rendered on portal routes; subscribes to /api/portal/realtime?events=chat-message
+  - Storage: in-memory backlog (per tenant) to show recent messages; no DB writes yet
+- Why: Enables immediate customer support interaction using existing realtime infrastructure with minimal surface area.
+- Next: Admin console to view/respond, per-tenant rooms/targeting, optional persistence + retention policies, and tests.
+
 ## 2025-09-21 — Admin Users/Stats 500s fixed
 - Root cause: Missing import of NextResponse/NextRequest in admin endpoints caused runtime ReferenceError → 500.
 - Fix: Added imports in /api/admin/users and /api/admin/stats/users. Added graceful fallbacks when DB/schema not available.
