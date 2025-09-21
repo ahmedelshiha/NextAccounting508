@@ -46,6 +46,7 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [refreshTick, setRefreshTick] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currencies, setCurrencies] = useState<{ code: string; name: string; symbol?: string; isDefault?: boolean }[]>([])
   const [currency, setCurrency] = useState<string>('USD')
@@ -164,9 +165,32 @@ export default function BookingWizard(props: BookingWizardProps) {
       setTimeSlots(slots)
     }
     loadAvailability()
-  }, [selectedDate, selectedService, currency, promoCode, selectedTeamMemberId])
+  }, [selectedDate, selectedService, currency, promoCode, selectedTeamMemberId, refreshTick])
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
+
+  // Realtime availability auto-refresh via portal SSE
+  useEffect(() => {
+    if (!selectedService || !selectedDate) return
+    let es: EventSource | null = null
+    try {
+      const events = encodeURIComponent('availability-updated')
+      es = new EventSource(`/api/portal/realtime?events=${events}`)
+      es.onmessage = (evt) => {
+        try {
+          const payload = JSON.parse(evt.data)
+          if (payload?.type === 'availability-updated') {
+            const sid = String(payload?.data?.serviceId || '')
+            const d = String(payload?.data?.date || '')
+            if (sid === selectedService.id && d === selectedDate) {
+              setRefreshTick((x) => x + 1)
+            }
+          }
+        } catch {}
+      }
+    } catch {}
+    return () => { try { es?.close() } catch {} }
+  }, [selectedService?.id, selectedDate])
 
   const nextStep = () => setCurrentStep((s) => Math.min(6, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
