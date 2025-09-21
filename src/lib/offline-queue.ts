@@ -102,7 +102,7 @@ export async function registerBackgroundSync() {
   try {
     const reg = await navigator.serviceWorker.ready
     if ('sync' in reg) {
-      // @ts-expect-error
+      // @ts-expect-error ServiceWorkerRegistration.sync may be undefined in some environments, ignore
       await reg.sync.register(SYNC_TAG)
       return true
     }
