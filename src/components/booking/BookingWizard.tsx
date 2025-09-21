@@ -196,6 +196,27 @@ export default function BookingWizard(props: BookingWizardProps) {
     return () => { try { es?.close() } catch {} }
   }, [selectedService?.id, selectedDate])
 
+  // Flush pending bookings when we regain connectivity
+  useEffect(() => {
+    let mounted = true
+    async function tryFlush() {
+      if (typeof window === 'undefined' || !navigator.onLine) return
+      try {
+        const mod = await import('@/lib/offline/booking-cache')
+        await mod.flushPendingBookings(async (item: any) => {
+          try {
+            const res = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) })
+            return res.ok
+          } catch { return false }
+        })
+      } catch {}
+    }
+    tryFlush()
+    const onOnline = () => { if (mounted) tryFlush() }
+    window.addEventListener('online', onOnline)
+    return () => { mounted = false; window.removeEventListener('online', onOnline) }
+  }, [])
+
   const nextStep = () => setCurrentStep((s) => Math.min(7, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
