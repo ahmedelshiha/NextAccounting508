@@ -1,24 +1,21 @@
-2025-09-21  — AvailabilitySlot persistence & admin UI implemented
+2025-09-21  — WebSocket endpoint and client hook
 
 Summary:
-- Added admin API endpoints to manage AvailabilitySlot records: GET, POST, PUT, DELETE at /api/admin/availability-slots.
-- Integrated AvailabilitySlot handling into availability engine: blocked or full slots are considered busy windows when generating availability.
-- Created a simple admin UI at /admin/availability to list, create and delete slots (src/components/admin/AvailabilitySlotsManager.tsx).
+- Added server WebSocket endpoint: /api/ws/bookings (src/app/api/ws/bookings/route.ts). Uses Next runtime WebSocketPair to upgrade and bridges realtimeService events to clients.
+- Implemented client hook with WebSocket first and SSE fallback: src/hooks/useBookingsSocket.ts.
+- Updated existing useRealtime hook to try WebSocket endpoint and fallback to SSE for compatibility.
 
 Why:
-- Allows administrators to create manual overrides, blockouts and capacity-limited slots (holidays, maintenance, capacity adjustments).
-- Ensures frontend availability respects admin-managed exceptions and avoids overbooking slots that are full.
+- Provides lower-latency, bidirectional realtime updates (availability changes, assignments, booking events) while preserving existing SSE support.
 
 Files changed/added:
-- src/app/api/admin/availability-slots/route.ts (NEW)
-- src/lib/booking/availability.ts (UPDATED)
-- src/components/admin/AvailabilitySlotsManager.tsx (NEW)
-- src/app/admin/availability/page.tsx (NEW)
+- src/app/api/ws/bookings/route.ts (NEW)
+- src/hooks/useBookingsSocket.ts (NEW)
+- src/hooks/useRealtime.ts (UPDATED) — now attempts WebSocket before SSE
 - docs/service-portal-TODO.md (UPDATED)
 
 Next steps:
-- Extend conflict detection to incorporate explicit AvailabilitySlot reservations and team-member capacity rules.
-- Add edit/update UI for availability slots and audit logging on changes.
-- Add unit tests for the new API and availability behavior.
+- Optionally add authentication/permissions for WS connections (token or session support).
+- Add client-side subscription management UI where appropriate.
 
 Logged by: Autonomous Dev (assistant)
