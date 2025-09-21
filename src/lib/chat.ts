@@ -8,6 +8,7 @@ export type ChatMessage = {
   userName: string
   role: string
   tenantId?: string | null
+  room?: string | null
   createdAt: string
 }
 
@@ -28,10 +29,11 @@ class ChatBacklog {
     this.messagesByTenant.set(key, list)
   }
 
-  list(tenantId?: string | null, limit = 50) {
+  list(tenantId?: string | null, limit = 50, room?: string | null) {
     const key = this.getTenantKey(tenantId)
     const list = this.messagesByTenant.get(key) || []
-    return list.slice(Math.max(0, list.length - limit))
+    const filtered = room ? list.filter((m) => (m.room || null) === room) : list
+    return filtered.slice(Math.max(0, filtered.length - limit))
   }
 }
 
@@ -39,6 +41,7 @@ export const chatBacklog = new ChatBacklog()
 
 export const chatSchema = z.object({
   message: z.string().trim().min(1).max(1000),
+  room: z.string().trim().min(1).max(64).optional(),
 })
 
 export function createChatMessage({
@@ -47,7 +50,8 @@ export function createChatMessage({
   userName,
   role,
   tenantId,
-}: { text: string; userId: string; userName: string; role: string; tenantId?: string | null }): ChatMessage {
+  room,
+}: { text: string; userId: string; userName: string; role: string; tenantId?: string | null; room?: string | null }): ChatMessage {
   return {
     id: Math.random().toString(36).slice(2),
     text,
@@ -55,6 +59,7 @@ export function createChatMessage({
     userName,
     role,
     tenantId: tenantId ?? null,
+    room: room ?? null,
     createdAt: new Date().toISOString(),
   }
 }

@@ -61,7 +61,8 @@
   - Complexity: M • Owner: backend
 - [x] Live chat support
   - Done: Implemented SSE-based chat: POST /api/portal/chat with auth + IP rate limits, in-memory backlog, and realtime broadcast via EnhancedRealtimeService; added lightweight LiveChatWidget rendered on portal routes.
-  - Next: Admin chat console UI, per-tenant rooms and targeting, optional persistence to DB, agent handoff/routing.
+  - Done: Admin chat console page (/admin/chat) with SSE stream; GET/POST admin chat endpoints with role guards; room filter support.
+  - Next: Per-tenant rooms/groups UI, targeted notifications, optional persistence to DB, agent handoff/routing, tests.
   - Deps: Realtime; auth
   - Complexity: M • Owner: frontend/backend
 - [ ] PWA + offline cache

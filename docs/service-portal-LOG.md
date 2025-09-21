@@ -31,6 +31,11 @@
 
 ---
 
+## 2025-09-21 — Admin chat console
+- Added /admin/chat page with AdminChatConsole component (room filter, backlog load, SSE updates) and API (/api/admin/chat) with permission guards.
+- Why: Allows support/admins to view and respond in real time using existing realtime transport.
+- Next: Group/room management UI, persistence to DB with retention, role-based targeting, and tests.
+
 ## 2025-09-21 — Live chat (SSE) MVP
 - Implemented authenticated SSE chat for portal users:
   - API: POST /api/portal/chat (auth-gated, IP rate-limited) and GET /api/portal/chat (recent backlog)
