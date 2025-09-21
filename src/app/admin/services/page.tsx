@@ -305,12 +305,19 @@ export default function ServicesAdminPage() {
             </div>
 
             <div>
-              <ServiceForm initialData={editing ?? null} onSubmit={editing ? handleUpdate : handleCreate} onCancel={() => setEditing(null)} loading={formLoading} categories={categories} />
-            </div>
-
-            <div className="mt-6">
+              {/* Render modal-based form for create/edit */}
               <ServicesAnalytics analytics={analytics} loading={analyticsLoading} />
             </div>
+
+            {/* Modal for create/edit */}
+            {typeof window !== 'undefined' && (
+              // import modal lazily via client component above
+              <React.Fragment>
+                <Modal open={showModal} onClose={() => { setShowModal(false); setEditing(null) }} title={editing ? `Edit: ${editing.name}` : 'Create Service'}>
+                  <ServiceForm initialData={editing ?? null} onSubmit={editing ? handleUpdate : handleCreate} onCancel={() => { setShowModal(false); setEditing(null) }} loading={formLoading} categories={categories} />
+                </Modal>
+              </React.Fragment>
+            )}
           </div>
         </div>
       </div>
