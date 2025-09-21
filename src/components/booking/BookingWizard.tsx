@@ -256,6 +256,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
         assignedTeamMemberId: selectedTeamMemberId || undefined,
+        bookingType: bookingType || 'STANDARD',
       }
       const res = await apiFetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (res.ok) {
