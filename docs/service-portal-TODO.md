@@ -42,7 +42,8 @@
   - Complexity: L • Owner: frontend
 - [x] Recurring bookings
   - Done: Implemented planning library and integrated into admin/portal create; accepts recurringPattern, creates parent and non-conflicting children, and logs skipped conflicts.
-  - Next: Add UI for pattern configuration and a preview endpoint; add route tests.
+  - Done: Added preview endpoints (admin/portal) to plan recurring series without creating; returns conflict-aware plan with fallback.
+  - Next: Add UI for pattern configuration; add route tests for preview endpoints and creation flows.
   - Deps: recurringPattern, parentBookingId; ConflictDetectionService
   - Complexity: L • Owner: backend
 - [ ] Smart reminders & preferences

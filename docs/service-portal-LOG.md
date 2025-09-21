@@ -78,6 +78,11 @@
 - Creates a parent record and non-conflicting child appointments; skips conflicts and logs them as comments on the parent; returns planning details in the response.
 - Why: completes P1 recurring foundation and aligns API with schema (recurringPattern, parentBookingId).
 
+## 2025-09-21 — Recurring preview endpoints
+- Added POST /api/admin/service-requests/recurring/preview and /api/portal/service-requests/recurring/preview.
+- Returns conflict-aware plan via planner; falls back to naive plan when DB is not configured; includes summary totals.
+- Why: enables UI to preview series before creation and surface skipped/conflicting occurrences.
+
 ## 2025-09-21 — Seed enhancements (demo data)
 - Created/ensured demo users (admin, staff, team lead, client1@example.com, client2@example.com).
 - Seeded services, posts (as before), plus team members linked to staff/lead, assigned sample service requests, and created linked demo bookings.
