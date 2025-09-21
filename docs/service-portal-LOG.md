@@ -134,3 +134,28 @@ Next steps:
 - Optionally run full test suite in CI; consider adding idempotency keys and more API failure-path tests.
 
 Logged by: Autonomous Dev (assistant)
+
+---
+
+Update:
+- Implemented idempotency keys for portal submissions and added offline queue inspector and realtime connection panel. WebSocket endpoint now identifies users via NextAuth JWT when available. Added SWR headers to service details endpoint.
+
+Why:
+- Prevent duplicate creations during offline retries, improve transparency/control of offline queue, and enable per-user scoping for realtime updates while improving perceived performance for service details.
+
+Files changed/added:
+- prisma/schema.prisma (UPDATED) — new IdempotencyKey model
+- src/lib/idempotency.ts (NEW)
+- src/app/api/portal/service-requests/route.ts (UPDATED) — idempotency guard/resolution
+- public/sw.js (UPDATED) — queue stores idempotencyKey and includes header when flushing; message listener to trigger processing
+- src/components/portal/OfflineQueueInspector.tsx (NEW) — wired into /portal/settings
+- src/components/portal/RealtimeConnectionPanel.tsx (NEW) — wired into /portal/settings
+- src/app/portal/settings/page.tsx (UPDATED) — imports and renders panels
+- src/app/api/ws/bookings/route.ts (UPDATED) — optional auth and events param handling
+- src/app/api/services/[slug]/route.ts (UPDATED) — Cache-Control SWR headers
+- docs/service-portal-TODO.md (REWRITTEN) — updated plan and completions
+
+Next steps:
+- Add SW exponential backoff and tests; begin payment status reflection plumbing.
+
+Logged by: Autonomous Dev (assistant)
