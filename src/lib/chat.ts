@@ -71,4 +71,22 @@ export async function broadcastChatMessage(msg: ChatMessage) {
     data: msg,
     timestamp: msg.createdAt,
   })
+  // Best-effort persistence: ignore if DB is not configured or table missing
+  try {
+    const prisma = (await import('@/lib/prisma')).default as any
+    await prisma.chatMessage.create({
+      data: {
+        id: msg.id,
+        tenantId: msg.tenantId,
+        room: msg.room,
+        userId: msg.userId,
+        userName: msg.userName,
+        role: msg.role,
+        text: msg.text,
+        createdAt: new Date(msg.createdAt),
+      }
+    })
+  } catch (e: any) {
+    // Swallow Prisma errors if DB not ready; proceed without blocking chat UX
+  }
 }
