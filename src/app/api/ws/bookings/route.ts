@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     })
 
     // Return the client side of the pair to complete the WS upgrade
-    // @ts-expect-error: WebSocket return typing provided by runtime; using client object for upgrade
+    // WebSocket return typing provided by runtime; using client object for upgrade
     return new Response(null as any, { status: 101, webSocket: client } as any)
   } catch (e) {
     console.error('ws/bookings upgrade failed', e)
