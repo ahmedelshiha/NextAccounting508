@@ -58,6 +58,7 @@ jobs:
       - name: Run tests (vitest)
         env:
           CI: true
+          NODE_OPTIONS: --max-old-space-size=2048
         run: pnpm exec vitest run --threads=false
 
       - name: Upload vitest results
