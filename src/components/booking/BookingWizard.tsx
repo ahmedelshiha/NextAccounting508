@@ -12,6 +12,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import TouchCalendar from '@/components/mobile/TouchCalendar'
 import TeamMemberSelection from '@/components/booking/steps/TeamMemberSelection'
+import RecurrenceStep, { RecurrencePattern } from '@/components/booking/steps/RecurrenceStep'
 
 export type Service = {
   id: string
@@ -50,6 +51,10 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [currency, setCurrency] = useState<string>('USD')
   const [promoInput, setPromoInput] = useState<string>('')
   const [promoCode, setPromoCode] = useState<string>('')
+
+  // Recurrence state
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState<boolean>(false)
+  const [recurrence, setRecurrence] = useState<RecurrencePattern | null>(null)
 
   const [formData, setFormData] = useState<BookingForm>({
     clientName: session?.user?.name || '',
@@ -163,7 +168,7 @@ export default function BookingWizard(props: BookingWizardProps) {
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
 
-  const nextStep = () => setCurrentStep((s) => Math.min(5, s + 1))
+  const nextStep = () => setCurrentStep((s) => Math.min(6, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
@@ -173,9 +178,51 @@ export default function BookingWizard(props: BookingWizardProps) {
     }
     setIsSubmitting(true)
     try {
+      const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
+
+      // When recurrence is enabled, create a recurring series via portal endpoint
+      if (recurrenceEnabled && recurrence) {
+        const payload: any = {
+          serviceId: selectedService.id,
+          isBooking: true,
+          scheduledAt: scheduledISO,
+          duration: selectedService.duration,
+          bookingType: 'RECURRING',
+          recurringPattern: {
+            frequency: recurrence.frequency,
+            interval: recurrence.interval ? Number(recurrence.interval) : undefined,
+            count: recurrence.count ? Number(recurrence.count) : undefined,
+            until: recurrence.until ? new Date(recurrence.until).toISOString() : undefined,
+            byWeekday: Array.isArray(recurrence.byWeekday) ? recurrence.byWeekday : undefined,
+          },
+          description: formData.notes || undefined,
+          requirements: {
+            booking: {
+              clientName: formData.clientName,
+              clientEmail: formData.clientEmail,
+              clientPhone: formData.clientPhone,
+              assignedTeamMemberId: selectedTeamMemberId || undefined,
+              currency,
+              promoCode: promoCode || undefined,
+            }
+          }
+        }
+        const res = await apiFetch('/api/portal/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        if (res.ok) {
+          toast.success('Recurring series submitted! We will contact you to confirm.')
+          setCurrentStep(6)
+          props.onComplete?.()
+        } else {
+          const err = await res.json().catch(() => ({} as any))
+          toast.error(err?.error || 'Failed to submit recurring series')
+        }
+        return
+      }
+
+      // Default: single booking via legacy compatibility endpoint
       const payload = {
         serviceId: selectedService.id,
-        scheduledAt: new Date(`${selectedDate}T${selectedTime}`).toISOString(),
+        scheduledAt: scheduledISO,
         notes: formData.notes,
         clientName: formData.clientName,
         clientEmail: formData.clientEmail,
@@ -185,7 +232,7 @@ export default function BookingWizard(props: BookingWizardProps) {
       const res = await apiFetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (res.ok) {
         toast.success('Booking submitted successfully! We will contact you to confirm.')
-        setCurrentStep(4)
+        setCurrentStep(6)
         props.onComplete?.()
       } else {
         const err = await res.json().catch(() => ({} as any))
@@ -219,7 +266,7 @@ export default function BookingWizard(props: BookingWizardProps) {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3, 4, 5].map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
@@ -232,6 +279,7 @@ export default function BookingWizard(props: BookingWizardProps) {
           <span>Select Service</span>
           <span>Choose Specialist</span>
           <span>Date & Time</span>
+          <span>Recurrence</span>
           <span>Your Information</span>
         </div>
       </div>
@@ -368,8 +416,34 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 4: Client info */}
+      {/* Step 4: Recurrence (optional) */}
       {currentStep === 4 && (
+        <div className="space-y-4">
+          <RecurrenceStep
+            serviceId={selectedService?.id}
+            startDateISO={selectedDate || null}
+            startTime={selectedTime || null}
+            durationMinutes={selectedService?.duration || null}
+            value={recurrence}
+            enabled={recurrenceEnabled}
+            onToggle={setRecurrenceEnabled}
+            onChange={setRecurrence}
+          />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={prevStep}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <Button onClick={nextStep}>
+              Next Step
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 5: Client info */}
+      {currentStep === 5 && (
         <Card>
           <CardHeader>
             <CardTitle>Your Information</CardTitle>
@@ -410,8 +484,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 5: Confirmation */}
-      {currentStep === 5 && (
+      {/* Step 6: Confirmation */}
+      {currentStep === 6 && (
         <Card>
           <CardContent className="text-center py-12">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -432,7 +506,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {currentStep < 4 && (
+      {currentStep < 5 && (
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Need help with booking?{' '}
