@@ -8,6 +8,7 @@ import { ServiceCard } from '@/components/admin/services/ServiceCard'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { BulkActionsPanel } from '@/components/admin/services/BulkActionsPanel'
 import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'
+import { Modal } from '@/components/ui/Modal'
 import { Service as ServiceType, ServiceFilters as ServiceFiltersType, BulkAction } from '@/types/services'
 
 // Lightweight local helpers
