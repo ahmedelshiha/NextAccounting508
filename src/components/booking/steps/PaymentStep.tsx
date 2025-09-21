@@ -17,6 +17,7 @@ export type PaymentStepProps = {
   durationMinutes?: number | null
   currency: string
   promoCode?: string | null
+  bookingType?: string | null
   onApplyPromo?: (code: string) => void
 }
 
