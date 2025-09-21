@@ -280,7 +280,7 @@ export default function ServicesAdminPage() {
                   service={s}
                   isSelected={selectedIds.has(s.id)}
                   onSelect={(checked) => toggleSelect(s.id, checked)}
-                  onEdit={(svc) => setEditing(svc)}
+                  onEdit={(svc) => { setEditing(svc); setShowModal(true) }}
                   onDuplicate={(svc) => handleDuplicate(svc)}
                   onDelete={(svc) => handleDelete(svc)}
                   onToggleActive={(svc) => handleToggleActive(svc)}
