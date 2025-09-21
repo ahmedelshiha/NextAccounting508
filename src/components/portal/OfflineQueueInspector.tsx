@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-interface QueuedItem { id: string; url: string; body: any; createdAt: number; retries?: number; idempotencyKey?: string }
+interface QueuedItem { id: string; url: string; body: any; createdAt: number; retries?: number; idempotencyKey?: string; nextAttemptAt?: number; lastStatus?: number }
 
 export default function OfflineQueueInspector() {
   const [items, setItems] = useState<QueuedItem[]>([])
@@ -80,6 +80,8 @@ export default function OfflineQueueInspector() {
                     <th className="text-left p-2">Endpoint</th>
                     <th className="text-left p-2">Idempotency</th>
                     <th className="text-left p-2">Retries</th>
+                    <th className="text-left p-2">Next attempt</th>
+                    <th className="text-left p-2">Last status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -89,6 +91,8 @@ export default function OfflineQueueInspector() {
                       <td className="p-2 font-mono">{it.url}</td>
                       <td className="p-2 font-mono">{it.idempotencyKey || '-'}</td>
                       <td className="p-2">{it.retries ?? 0}</td>
+                      <td className="p-2">{it.nextAttemptAt ? new Date(it.nextAttemptAt).toLocaleTimeString() : '-'}</td>
+                      <td className="p-2">{it.lastStatus ?? '-'}</td>
                     </tr>
                   ))}
                 </tbody>
