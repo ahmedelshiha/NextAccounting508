@@ -18,8 +18,9 @@
   - Next: Wire into Multi-step Booking Wizard and PricingEngine; expand blackoutDates once Phase 1 schema lands.
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
-- [ ] API compat + conflict handling
-  - Next: Keep /api/bookings/* forwarding; 409 on slot conflicts is now enforced; add route tests; document deprecation window.
+- [x] API compat + conflict handling
+  - Done: /api/bookings/* forwards with deprecation headers; 409 on conflicts enforced; route tests added.
+  - Next: Document deprecation window in README/Docs and announce in change log.
   - Deps: AvailabilityEngine
   - Complexity: S • Owner: backend
 
@@ -40,8 +41,10 @@
   - Next: Add responsive/unit tests and finalize promo admin settings.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
-- [ ] Recurring bookings
-  - Next: Implement src/lib/booking/recurring.ts; accept recurringPattern; create parent/children; skip conflicts with logs.
+- [x] Recurring bookings
+  - Done: Implemented planning library and integrated into admin/portal create; accepts recurringPattern, creates parent and non-conflicting children, and logs skipped conflicts.
+  - Done: Added preview endpoints (admin/portal) to plan recurring series without creating; returns conflict-aware plan with fallback.
+  - Next: Add UI for pattern configuration; add route tests for preview endpoints and creation flows.
   - Deps: recurringPattern, parentBookingId; ConflictDetectionService
   - Complexity: L • Owner: backend
 - [ ] Smart reminders & preferences
