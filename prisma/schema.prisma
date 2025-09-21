@@ -454,6 +454,15 @@ model ServiceRequest {
   linkedBookings        Booking[]
   scheduledReminders    ScheduledReminder[]
 
+  // Payment reflection fields
+  paymentStatus        PaymentStatus?
+  paymentProvider      String?
+  paymentSessionId     String? @unique
+  paymentAmountCents   Int?
+  paymentCurrency      String?
+  paymentUpdatedAt     DateTime?
+  paymentAttempts      Int? @default(0)
+
   @@index([clientId])
   @@index([scheduledAt])
   @@index([isBooking, status])
@@ -736,6 +745,14 @@ enum TaskStatus {
   REVIEW
   COMPLETED
   BLOCKED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+  PARTIAL
 }
 
 enum BookingType {
