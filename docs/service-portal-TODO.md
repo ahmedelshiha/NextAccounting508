@@ -106,8 +106,9 @@
 - [ ] Configure uploads & antivirus
   - Next: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY/CLAMAV_API_KEY; validate AV callback + quarantine UI.
   - Complexity: M • Owner: backend/ops
-- [ ] Enable durable realtime
-  - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
+- [x] Enable durable realtime
+  - Done: REALTIME_TRANSPORT=postgres configured (REALTIME_PG_URL optional; defaults to DATABASE_URL). Verified via admin chat console metrics and cross-tab SSE updates.
+  - Next: Add alerts for adapter reconnect loops; add health widget to admin dashboard.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
   - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; validate portal array unwrap fix on /portal and /portal/bookings.
