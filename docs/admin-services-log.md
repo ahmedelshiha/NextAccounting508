@@ -1,11 +1,9 @@
-## [2025-09-21] Netlify preview smoke test workflow added
-What I implemented:
-- Added GitHub Actions workflow (.github/workflows/netlify-preview-smoke.yml) that polls the Netlify API for a preview deploy URL for the PR branch and runs a basic smoke test (GET /).
-- Reused existing netlify.toml preview configuration; workflow expects NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID GitHub secrets to be set.
+## [2025-09-21] Netlify preview smoke test workflow extended
+What I updated:
+- Extended the preview smoke test to check /api/db-check and /api/admin/system/health in addition to root /. The workflow treats a 401 from the admin health endpoint as "reachable" (auth-protected), but requires /api/db-check to return 200.
 
 Why:
-- Provide automated verification that Netlify preview deploys are reachable and the site responds as expected before merging.
+- Ensure critical backend health endpoints are reachable in preview builds. /api/db-check verifies DB connectivity; admin health confirms the health endpoint is reachable (even when auth-protected).
 
 Next steps:
-- Add NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID as repository secrets.
-- If desired, extend smoke tests to validate API health endpoints and page content using Playwright.
+- Monitor smoke test runs on PRs. If admin system health should be publicly accessible for previews, we can either mock auth in CI or provision a preview-only API key/session to validate the endpoint fully.
