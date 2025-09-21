@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   const parsed = Body.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
-  const { serviceId, scheduledAt, duration, currency, promoCode } = parsed.data
+  const { serviceId, scheduledAt, duration, currency, promoCode, bookingType } = parsed.data
   try {
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
     if (!svc || (svc as any).active === false) return respond.notFound('Service not found or inactive')
