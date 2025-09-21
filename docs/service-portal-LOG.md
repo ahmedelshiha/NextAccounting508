@@ -73,6 +73,11 @@
 - Why: groundwork for recurring bookings P1; enables UI/API to preview conflicts and skip with logs.
 - Next: wire into API when Phase 1 schema lands; provide client-side UI for pattern configuration.
 
+## 2025-09-21 — Recurring bookings: API integration
+- Added recurringPattern support to admin and portal create routes.
+- Creates a parent record and non-conflicting child appointments; skips conflicts and logs them as comments on the parent; returns planning details in the response.
+- Why: completes P1 recurring foundation and aligns API with schema (recurringPattern, parentBookingId).
+
 ## 2025-09-21 — Seed enhancements (demo data)
 - Created/ensured demo users (admin, staff, team lead, client1@example.com, client2@example.com).
 - Seeded services, posts (as before), plus team members linked to staff/lead, assigned sample service requests, and created linked demo bookings.
