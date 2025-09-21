@@ -159,7 +159,7 @@ export default function BookingWizard(props: BookingWizardProps) {
       setTimeSlots(slots)
     }
     loadAvailability()
-  }, [selectedDate, selectedService, currency, promoCode])
+  }, [selectedDate, selectedService, currency, promoCode, selectedTeamMemberId])
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], [])
 
