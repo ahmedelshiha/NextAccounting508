@@ -8,6 +8,7 @@ import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
 import { planRecurringBookings } from '@/lib/booking/recurring'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 export const runtime = 'nodejs'
 
@@ -349,6 +350,19 @@ export async function POST(request: Request) {
         childrenCreated.push(child)
       }
 
+      try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: parent.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+      try {
+        const dates = new Set<string>()
+        try { dates.add(new Date((parent as any).scheduledAt).toISOString().slice(0,10)) } catch {}
+        for (const item of plan.plan) {
+          if (!item.conflict && item.start) {
+            try { dates.add(new Date(item.start).toISOString().slice(0,10)) } catch {}
+          }
+        }
+        for (const d of Array.from(dates)) {
+          try { realtimeService.emitAvailabilityUpdate(parent.serviceId, { date: d }) } catch {}
+        }
+      } catch {}
       return respond.created({ parent, childrenCreated, skipped })
     }
 
@@ -358,6 +372,14 @@ export async function POST(request: Request) {
         service: { select: { id: true, name: true, slug: true, category: true } },
       },
     })
+
+    try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+    try {
+      if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
+        const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
+        try { realtimeService.emitAvailabilityUpdate(created.serviceId, { date: d }) } catch {}
+      }
+    } catch {}
 
     // Persist attachments as Attachment records if provided
     try {
@@ -422,6 +444,13 @@ export async function POST(request: Request) {
         }
         if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
+        try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+        try {
+          if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
+            const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
+            try { realtimeService.emitAvailabilityUpdate((created as any).serviceId, { date: d }) } catch {}
+          }
+        } catch {}
         return respond.created(created)
       } catch {
         return respond.serverError()
