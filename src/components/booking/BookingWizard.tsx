@@ -382,23 +382,36 @@ export default function BookingWizard(props: BookingWizardProps) {
                 <div className="block md:hidden">
                   <TouchCalendar value={selectedDate} min={today} onChange={(d) => { setSelectedDate(d); setSelectedTime('') }} />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <Label htmlFor="currency">Currency</Label>
-                    <select id="currency" className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                      {currencies.map(c => (
-                        <option key={c.code} value={c.code}>{c.code}</option>
-                      ))}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <Label>Booking Type</Label>
+                    <select className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={bookingType} onChange={(e) => setBookingType(e.target.value)}>
+                      <option value="STANDARD">Standard</option>
+                      <option value="CONSULTATION">Consultation</option>
+                      <option value="EMERGENCY">Emergency</option>
                     </select>
                   </div>
-                  <div className="flex-1">
-                    <Label htmlFor="promo">Promo Code</Label>
-                    <div className="mt-1 flex gap-2">
-                      <Input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="e.g. WELCOME10" />
-                      <Button type="button" variant="outline" onClick={() => setPromoCode(promoInput.trim())}>Apply</Button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <Label htmlFor="currency">Currency</Label>
+                      <select id="currency" className="mt-1 w-full border border-gray-200 rounded-md px-3 py-2 bg-white" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                        {currencies.map(c => (
+                          <option key={c.code} value={c.code}>{c.code}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex-1">
+                      <Label htmlFor="promo">Promo Code</Label>
+                      <div className="mt-1 flex gap-2">
+                        <Input id="promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="e.g. WELCOME10" />
+                        <Button type="button" variant="outline" onClick={() => setPromoCode(promoInput.trim())}>Apply</Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+
               </div>
 
               {selectedDate && (
