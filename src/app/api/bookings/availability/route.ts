@@ -2,55 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { addDays, format, startOfDay, endOfDay } from 'date-fns'
 import { calculateServicePrice } from '@/lib/booking/pricing'
-import { getAvailabilityForService, type BusinessHours } from '@/lib/booking/availability'
+import { getAvailabilityForService, type BusinessHours, normalizeBusinessHours } from '@/lib/booking/availability'
 
-function toMinutes(str: string) {
-  const [h, m] = str.split(':').map((v) => parseInt(v, 10))
-  if (Number.isNaN(h) || Number.isNaN(m)) return null
-  return h * 60 + m
-}
-
-function normalizeBusinessHours(raw: unknown): BusinessHours | undefined {
-  if (!raw || typeof raw !== 'object') return undefined
-  const out: BusinessHours = {} as any
-  const asObj = raw as Record<string, any>
-
-  // Support array[0..6] or object keyed by weekday ('0'..'6')
-  const keys = Array.isArray(raw) ? Object.keys(raw as any) : Object.keys(asObj)
-  for (const k of keys) {
-    const idx = Number(k)
-    const val = (Array.isArray(raw) ? (raw as any)[k as any] : asObj[k])
-    if (val == null) continue
-
-    // Formats supported: { startMinutes, endMinutes } OR { startTime: '09:00', endTime: '17:00' } OR { start: 540, end: 1020 } OR '09:00-17:00'
-    if (typeof val === 'string') {
-      const parts = val.split('-')
-      if (parts.length === 2) {
-        const s = toMinutes(parts[0].trim())
-        const e = toMinutes(parts[1].trim())
-        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
-      }
-      continue
-    }
-    if (typeof val === 'object') {
-      if (typeof val.startMinutes === 'number' && typeof val.endMinutes === 'number') {
-        out[idx] = { startMinutes: val.startMinutes, endMinutes: val.endMinutes }
-        continue
-      }
-      if (typeof val.start === 'number' && typeof val.end === 'number') {
-        out[idx] = { startMinutes: val.start, endMinutes: val.end }
-        continue
-      }
-      if (typeof val.startTime === 'string' && typeof val.endTime === 'string') {
-        const s = toMinutes(val.startTime)
-        const e = toMinutes(val.endTime)
-        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
-        continue
-      }
-    }
-  }
-  return Object.keys(out).length ? out : undefined
-}
 
 function ymd(d: Date) {
   return d.toISOString().slice(0, 10)
