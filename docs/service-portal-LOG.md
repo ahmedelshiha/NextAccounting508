@@ -110,3 +110,7 @@
 - Added Export DB CSV and Export Provider CSV buttons to /admin/uploads/quarantine.
 - Why: Ops needs quick CSV outputs for triage and reporting; aligns with uploads runbook "Export logs" guidance.
 - Notes: Exports use currently loaded/filtered rows; no extra fetch; consider JSON export and audit CSV next.
+
+## 2025-09-21 — Portal bookings array handling bugfix
+- Fixed client crash on /portal and /portal/bookings when API returns wrapped shape { success, data }.
+- Updated pages to unwrap json.data safely and fallback to []. Prevents "j.filter is not a function" in production.
