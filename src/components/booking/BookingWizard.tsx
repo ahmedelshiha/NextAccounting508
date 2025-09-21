@@ -414,27 +414,27 @@ export default function BookingWizard(props: BookingWizardProps) {
     return base > 0 ? formatCents(Math.round(base * 100), 'USD') : 'Free'
   }, [selectedService, selectedTime, timeSlots])
 
+  const stepTitles = ['Select Service','Choose Specialist','Date & Time','Recurrence','Payment','Your Information','Confirmation']
+  const totalSteps = stepTitles.length
+
   return (
     <div>
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3, 4, 5, 6].map((step) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
               </div>
-              {step < 4 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
+              {step < totalSteps && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-sm text-gray-600">
-          <span>Select Service</span>
-          <span>Choose Specialist</span>
-          <span>Date & Time</span>
-          <span>Recurrence</span>
-          <span>Payment</span>
-          <span>Your Information</span>
+          {stepTitles.map((title, idx) => (
+            <span key={idx}>{title}</span>
+          ))}
         </div>
       </div>
 
