@@ -140,6 +140,65 @@ export default function QuarantineClient() {
           {(serviceRequestId || q) && (
             <Button variant="outline" onClick={() => { setParam('serviceRequestId',''); setParam('q','') }}>Clear</Button>
           )}
+          {/* CSV export helpers: export currently loaded rows, no additional fetch */}
+          <Button variant="outline" onClick={() => {
+            try {
+              const rows = (dbItems || []).map(it => ({
+                source: 'db',
+                id: it.id,
+                key: it.key || '',
+                name: it.name || '',
+                url: it.url || '',
+                size: typeof it.size === 'number' ? String(it.size) : '',
+                contentType: it.contentType || '',
+                avStatus: it.avStatus || '',
+                uploadedAt: it.uploadedAt || '',
+                serviceRequestId: it.serviceRequestId || ''
+              }))
+              const header = Object.keys(rows[0] || { source: '', id: '', key: '', name: '', url: '', size: '', contentType: '', avStatus: '', uploadedAt: '', serviceRequestId: '' })
+              const csv = [header.join(','), ...rows.map(r => header.map(h => {
+                const v = (r as any)[h]
+                const s = v == null ? '' : String(v)
+                const needsQuote = /[",\n]/.test(s)
+                return needsQuote ? '"' + s.replace(/"/g, '""') + '"' : s
+              }).join(','))].join('\n')
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `quarantine-db-${new Date().toISOString().slice(0,19)}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            } catch {
+              toast.error('Export failed')
+            }
+          }}>Export DB CSV</Button>
+          <Button variant="outline" onClick={() => {
+            try {
+              const rows = (filteredProvider || []).map(it => ({
+                source: 'provider',
+                key: it.key,
+                size: typeof it.size === 'number' ? String(it.size) : '',
+                createdAt: it.createdAt || ''
+              }))
+              const header = Object.keys(rows[0] || { source: '', key: '', size: '', createdAt: '' })
+              const csv = [header.join(','), ...rows.map(r => header.map(h => {
+                const v = (r as any)[h]
+                const s = v == null ? '' : String(v)
+                const needsQuote = /[",\n]/.test(s)
+                return needsQuote ? '"' + s.replace(/"/g, '""') + '"' : s
+              }).join(','))].join('\n')
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `quarantine-provider-${new Date().toISOString().slice(0,19)}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            } catch {
+              toast.error('Export failed')
+            }
+          }}>Export Provider CSV</Button>
           {keysSelected.length > 0 && (
             <>
               <Button onClick={async () => {
