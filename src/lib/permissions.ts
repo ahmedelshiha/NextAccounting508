@@ -20,7 +20,17 @@ export const PERMISSIONS = {
   USERS_VIEW: 'users.view',
 
   ANALYTICS_VIEW: 'analytics.view',
-  ANALYTICS_EXPORT: 'analytics.export'
+  ANALYTICS_EXPORT: 'analytics.export',
+
+  // Services management
+  SERVICES_VIEW: 'services.view',
+  SERVICES_CREATE: 'services.create',
+  SERVICES_EDIT: 'services.edit',
+  SERVICES_DELETE: 'services.delete',
+  SERVICES_BULK_EDIT: 'services.bulk.edit',
+  SERVICES_EXPORT: 'services.export',
+  SERVICES_ANALYTICS: 'services.analytics',
+  SERVICES_MANAGE_FEATURED: 'services.manage.featured'
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -39,6 +49,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.TASKS_UPDATE,
     PERMISSIONS.TEAM_VIEW,
     PERMISSIONS.ANALYTICS_VIEW,
+    PERMISSIONS.SERVICES_VIEW,
+    PERMISSIONS.SERVICES_ANALYTICS,
+    PERMISSIONS.SERVICES_EXPORT,
   ],
   TEAM_LEAD: [
     PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
@@ -52,6 +65,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.TEAM_MANAGE,
     PERMISSIONS.ANALYTICS_VIEW,
     PERMISSIONS.ANALYTICS_EXPORT,
+    PERMISSIONS.SERVICES_VIEW,
+    PERMISSIONS.SERVICES_ANALYTICS,
+    PERMISSIONS.SERVICES_EXPORT,
   ],
   ADMIN: [
     ...Object.values(PERMISSIONS),
