@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { isOnline, queueServiceRequest, processQueuedServiceRequests, registerBackgroundSync } from '@/lib/offline-queue'
 
 interface Service { id: string; name: string }
 
@@ -48,6 +49,11 @@ export default function NewServiceRequestPage() {
 
   const maxFiles = 5
   const maxFileSize = 10 * 1024 * 1024
+
+  // Attempt processing any previously queued submissions when the page loads
+  useEffect(() => {
+    processQueuedServiceRequests().catch(() => {})
+  }, [])
 
   // Debounce service search input to reduce re-renders and improve UX on large lists
   useEffect(() => {
@@ -192,24 +198,34 @@ export default function NewServiceRequestPage() {
 
       const serviceSnapshot = selectedService ? { id: selectedService.id, name: selectedService.name } : undefined
 
+      const payload = {
+        serviceId,
+        description: description || undefined,
+        priority,
+        deadline: deadline ? new Date(deadline).toISOString() : undefined,
+        ...(selectedSlot ? {
+          isBooking: true,
+          scheduledAt: selectedSlot,
+          duration: typeof slotDuration === 'number' ? slotDuration : undefined,
+          bookingType,
+        } : {}),
+        requirements: { serviceSnapshot },
+        attachments,
+      }
+
+      // Offline-first: if offline, queue and register background sync
+      if (!isOnline()) {
+        await queueServiceRequest(payload)
+        await registerBackgroundSync()
+        toast.success('Saved offline. We will submit it when you are back online.')
+        router.push('/portal/service-requests')
+        return
+      }
+
       const res = await apiFetch('/api/portal/service-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          serviceId,
-          // title will be auto-generated server-side when omitted
-          description: description || undefined,
-          priority,
-          deadline: deadline ? new Date(deadline).toISOString() : undefined,
-          ...(selectedSlot ? {
-            isBooking: true,
-            scheduledAt: selectedSlot,
-            duration: typeof slotDuration === 'number' ? slotDuration : undefined,
-            bookingType,
-          } : {}),
-          requirements: { serviceSnapshot },
-          attachments,
-        }),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({} as any))
@@ -219,8 +235,29 @@ export default function NewServiceRequestPage() {
       const json = await res.json()
       toast.success('Request created')
       router.push(`/portal/service-requests/${json.data.id}`)
-    } catch {
-      toast.error('Failed to create request')
+    } catch (e: any) {
+      // Network error fallback: queue for later processing
+      if (String(e?.name || '').includes('TypeError') || !isOnline()) {
+        await queueServiceRequest({
+          serviceId,
+          description: description || undefined,
+          priority,
+          deadline: deadline ? new Date(deadline).toISOString() : undefined,
+          ...(selectedSlot ? {
+            isBooking: true,
+            scheduledAt: selectedSlot,
+            duration: typeof slotDuration === 'number' ? slotDuration : undefined,
+            bookingType,
+          } : {}),
+          requirements: { serviceSnapshot: selectedService ? { id: selectedService.id, name: selectedService.name } : undefined },
+          attachments: [],
+        })
+        await registerBackgroundSync()
+        toast.success('Saved offline. We will submit it when you are back online.')
+        router.push('/portal/service-requests')
+      } else {
+        toast.error('Failed to create request')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -368,11 +405,9 @@ export default function NewServiceRequestPage() {
                     if (next.length < files.length + filtered.length) {
                       toast.error(`Maximum ${maxFiles} files allowed`)
                     }
-                    // Determine which files are new
                     const existingKeys = new Set(files.map((f) => `${f.name}-${f.lastModified}`))
                     const newFiles = next.filter((f) => !existingKeys.has(`${f.name}-${f.lastModified}`))
                     setFiles(next)
-                    // Auto start upload for new files
                     newFiles.forEach((f) => uploadSingle(f))
                   }}
                 />

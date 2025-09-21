@@ -1,4 +1,4 @@
-2025-09-21  — WebSocket endpoint and client hook
+
 
 Summary:
 - Added server WebSocket endpoint: /api/ws/bookings (src/app/api/ws/bookings/route.ts). Uses Next runtime WebSocketPair to upgrade and bridges realtimeService events to clients.

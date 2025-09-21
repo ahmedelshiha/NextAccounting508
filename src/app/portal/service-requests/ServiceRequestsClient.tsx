@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, ClipboardList, ChevronRight } from 'lucide-react'
 import { useBookings } from '@/hooks/useBookings'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useOfflineQueue } from '@/hooks/useOfflineQueue'
+import { toast } from 'sonner'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
@@ -127,6 +129,10 @@ export default function ServiceRequestsClient() {
     return () => { try { es?.close() } catch {} }
   }, [session, refresh])
 
+  // Offline queue indicator (PWA feature gated)
+  const pwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
+  const { queuedCount, processQueue, refreshQueue } = useOfflineQueue()
+
   const exportCSV = async () => {
     if (!Array.isArray(items) || !items.length) return
     const params = new URLSearchParams()
@@ -234,7 +240,18 @@ export default function ServiceRequestsClient() {
               <p className="text-gray-600">Track your service requests and their status.</p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
+            {/* PWA offline queue indicator (visible when NEXT_PUBLIC_ENABLE_PWA=1) */}
+            {pwaEnabled && queuedCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} pending</Badge>
+                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success('Queued submissions synced'); } catch { toast.error('Sync failed') } }}>
+                  Sync
+                </Button>
+              </div>
+            )}
+
             <Button variant="outline" onClick={exportCSV}>Export CSV</Button>
             <Button asChild>
               <Link href="/portal/service-requests/new">
