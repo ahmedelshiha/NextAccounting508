@@ -276,7 +276,19 @@ export default function BookingWizard(props: BookingWizardProps) {
 
       {/* Step 2: Team member selection (optional) */}
       {currentStep === 2 && (
-        <TeamMemberSelection serviceId={selectedService?.id} value={selectedTeamMemberId} onChange={(id) => { setSelectedTeamMemberId(id); setSelectedTime(''); }} />
+        <div className="space-y-4">
+          <TeamMemberSelection serviceId={selectedService?.id} value={selectedTeamMemberId} onChange={(id) => { setSelectedTeamMemberId(id); setSelectedTime(''); }} />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={prevStep}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <Button onClick={nextStep}>
+              Next Step
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Step 3: Date & time */}
