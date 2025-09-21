@@ -61,7 +61,8 @@ export async function GET(request: Request) {
     })
 
     // Return the client side of the pair to complete the WS upgrade
-    return new Response(null, { status: 101, webSocket: client })
+    // @ts-ignore - Next's edge WebSocket pairing is available at runtime; cast to any for typing
+    return new Response(null as any, { status: 101, webSocket: client } as any)
   } catch (e) {
     console.error('ws/bookings upgrade failed', e)
     return NextResponse.json({ error: 'WebSocket not supported in this runtime' }, { status: 501 })
