@@ -2,13 +2,19 @@
 
 This section captures concrete gaps found during audit and the actionable work to align implementation with the plan.
 
+### Completed Today
+- Refactored /api/bookings/availability to use the central availability engine with service-aware options (businessHours, bufferTime, maxDaily, blackoutDates filtering) and teamMemberId support.
+- Kept response shape and pricing (currency + promo) behavior to remain backward compatible with BookingWizard.
+- Why: unifies logic, respects admin-configured hours/limits, and reduces duplication/bugs.
+- Next: add unit and route tests for availability and pricing flags.
+
 ## Gaps & Action Items
 
 1) Availability API
-- [ ] Refactor /api/bookings/availability to use lib/booking/getAvailabilityForService
-- [ ] Support teamMemberId param and filter
-- [ ] Honor service config: businessHours, bufferTime, blackoutDates, maxDailyBookings
-- [ ] Preserve includePrice/promo and currency conversion
+- [x] Refactor /api/bookings/availability to use lib/booking/getAvailabilityForService
+- [x] Support teamMemberId param and filter
+- [x] Honor service config: businessHours, bufferTime, blackoutDates, maxDailyBookings
+- [x] Preserve includePrice/promo and currency conversion
 - [ ] Add unit tests (buffers, weekends, caps) and route tests for includePrice/promo
 
 2) Booking Wizard UX
