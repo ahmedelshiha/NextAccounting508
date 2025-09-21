@@ -59,12 +59,15 @@
   - Next: Add route tests to validate event payloads and ensure SWR caches for availability invalidate correctly.
   - Deps: Realtime transport; AvailabilityEngine
   - Complexity: M • Owner: backend
-- [ ] Live chat support
-  - Next: WS/SSE chat endpoint; lightweight widget; auth-gate; rate limits.
+- [x] Live chat support
+  - Done: Implemented SSE-based chat: POST /api/portal/chat with auth + IP rate limits, in-memory backlog, and realtime broadcast via EnhancedRealtimeService; added lightweight LiveChatWidget rendered on portal routes.
+  - Done: Admin chat console page (/admin/chat) with SSE stream; GET/POST admin chat endpoints with role guards; room filter support.
+  - Next: Per-tenant rooms/groups UI, targeted notifications, optional persistence to DB, agent handoff/routing, tests.
   - Deps: Realtime; auth
   - Complexity: M • Owner: frontend/backend
-- [ ] PWA + offline cache
-  - Next: Add manifest + SW; IndexedDB caches (services, user bookings); pending-offline queue; flag-gated.
+- [x] PWA + offline cache
+  - Done: Added manifest.webmanifest, flag-gated service worker (NEXT_PUBLIC_ENABLE_PWA), runtime caching for assets and key APIs, and offline queue for portal chat POSTs; manifest linked in layout.
+  - Next: Expand caches (IndexedDB), offline portal views for bookings/services, add offline indicator UI.
   - Deps: Frontend build; security review
   - Complexity: M • Owner: frontend
 - [x] Touch-optimized calendar
@@ -103,8 +106,9 @@
 - [ ] Configure uploads & antivirus
   - Next: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY/CLAMAV_API_KEY; validate AV callback + quarantine UI.
   - Complexity: M • Owner: backend/ops
-- [ ] Enable durable realtime
-  - Next: Set REALTIME_TRANSPORT=postgres (+ REALTIME_PG_URL if needed); validate cross-instance LISTEN/NOTIFY.
+- [x] Enable durable realtime
+  - Done: REALTIME_TRANSPORT=postgres configured (REALTIME_PG_URL optional; defaults to DATABASE_URL). Verified via admin chat console metrics and cross-tab SSE updates.
+  - Next: Add alerts for adapter reconnect loops; add health widget to admin dashboard.
   - Complexity: S • Owner: ops
 - [ ] Smoke tests (staging)
   - Next: Portal create → admin assign → status transitions → realtime → CSV export → uploads/AV; validate portal array unwrap fix on /portal and /portal/bookings.
@@ -115,6 +119,12 @@
 - [ ] Tests & coverage
   - Next: Added route tests for 409 conflicts (admin/portal create + reschedule). Unskip DB tests; add e2e; enforce thresholds in CI.
   - Complexity: M • Owner: dev/QA
+
+- [x] Chat persistence & retention
+  - Done: Added ChatMessage model to Prisma schema; best-effort persistence in broadcast with graceful fallback when DB/table missing; weekly cleanup deletes messages older than 30 days.
+  - Next: Add migration files and enable in CI; add admin filters (by tenant/user/room) and CSV export.
+  - Deps: DB migrations; cron
+  - Complexity: S • Owner: backend/ops
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.
   - Complexity: S • Owner: ops

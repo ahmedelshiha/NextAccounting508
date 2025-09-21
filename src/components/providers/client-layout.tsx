@@ -5,6 +5,7 @@ import { SessionProvider } from 'next-auth/react'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
+import LiveChatWidget from '@/components/portal/LiveChatWidget'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -165,6 +166,26 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     // no-op: removed keepalive ping to avoid dev fetch noise
   }, [])
 
+  // PWA registration (flag-gated)
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        try { navigator.serviceWorker.register('/sw.js') } catch {}
+      })
+    }
+  }, [])
+
+  const [showPortalChat, setShowPortalChat] = React.useState(false)
+
+  React.useEffect(() => {
+    try {
+      const path = typeof window !== 'undefined' ? window.location.pathname : ''
+      setShowPortalChat(path.startsWith('/portal'))
+    } catch {
+      setShowPortalChat(false)
+    }
+  }, [])
+
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
@@ -174,6 +195,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </main>
         <Footer />
       </div>
+      {showPortalChat ? <LiveChatWidget /> : null}
       <Toaster />
     </SessionProvider>
   )

@@ -31,6 +31,36 @@
 
 ---
 
+## 2025-09-21 — Durable realtime enabled (Postgres)
+- Config: REALTIME_TRANSPORT=postgres, REALTIME_PG_URL set (or fallback to DATABASE_URL). Adapter listens on sanitized channel and publishes via pg_notify.
+- Verification: Admin Chat Console shows transport=postgres and increments connection/event metrics; cross-tab/browser chat messages delivered.
+- Next: Add admin dashboard health widget and alerting on adapter reconnects.
+
+## 2025-09-21 — PWA + offline cache (flag-gated)
+- Added manifest.webmanifest and service worker (runtime caching for assets + /api/services and portal request lists). Registration controlled by NEXT_PUBLIC_ENABLE_PWA.
+- Added offline queue in LiveChatWidget to store portal chat POSTs and flush on reconnect.
+- Next: Expand caches via IndexedDB, offline portal UX for bookings/services, and add offline indicator UI.
+
+## 2025-09-21 — Chat persistence + retention
+- Schema: Added ChatMessage model (chat_messages). No migration yet; deploy-safe until CI migration added.
+- Runtime: broadcastChatMessage persists to DB when available; failures are swallowed to keep UX smooth.
+- Ops: Weekly cleanup deletes chat messages older than 30 days.
+- Next: Add migration SQL and enable in Netlify CI; admin filters and export.
+
+## 2025-09-21 — Admin chat console
+- Added /admin/chat page with AdminChatConsole component (room filter, backlog load, SSE updates) and API (/api/admin/chat) with permission guards.
+- Why: Allows support/admins to view and respond in real time using existing realtime transport.
+- Next: Group/room management UI, persistence to DB with retention, role-based targeting, and tests.
+
+## 2025-09-21 — Live chat (SSE) MVP
+- Implemented authenticated SSE chat for portal users:
+  - API: POST /api/portal/chat (auth-gated, IP rate-limited) and GET /api/portal/chat (recent backlog)
+  - Realtime: broadcasts via EnhancedRealtimeService with type "chat-message"
+  - Frontend: lightweight LiveChatWidget rendered on portal routes; subscribes to /api/portal/realtime?events=chat-message
+  - Storage: in-memory backlog (per tenant) to show recent messages; no DB writes yet
+- Why: Enables immediate customer support interaction using existing realtime infrastructure with minimal surface area.
+- Next: Admin console to view/respond, per-tenant rooms/targeting, optional persistence + retention policies, and tests.
+
 ## 2025-09-21 — Admin Users/Stats 500s fixed
 - Root cause: Missing import of NextResponse/NextRequest in admin endpoints caused runtime ReferenceError → 500.
 - Fix: Added imports in /api/admin/users and /api/admin/stats/users. Added graceful fallbacks when DB/schema not available.
