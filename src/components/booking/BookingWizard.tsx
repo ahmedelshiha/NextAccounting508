@@ -397,8 +397,8 @@ export default function BookingWizard(props: BookingWizardProps) {
         </Card>
       )}
 
-      {/* Step 4: Confirmation */}
-      {currentStep === 4 && (
+      {/* Step 5: Confirmation */}
+      {currentStep === 5 && (
         <Card>
           <CardContent className="text-center py-12">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
