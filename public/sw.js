@@ -1,4 +1,5 @@
 const CACHE_NAME = 'af-cache-v1'
+const CACHE_NAME = 'booking-system-v2'
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
@@ -43,14 +44,23 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Stale-while-revalidate for specific APIs
-  if (req.method === 'GET' && (url.pathname === '/api/services' || url.pathname.startsWith('/api/portal/service-requests'))) {
+  // Stale-while-revalidate for specific APIs (including bookings GET)
+  if (req.method === 'GET' && (url.pathname === '/api/services' || url.pathname.startsWith('/api/portal/service-requests') || url.pathname.startsWith('/api/bookings') || url.pathname.startsWith('/api/portal/service-requests'))) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(req)
-        const network = fetch(req).then((res) => { cache.put(req, res.clone()); return res }).catch(() => cached)
+        const network = fetch(req).then((res) => { try { cache.put(req, res.clone()) } catch {} ; return res }).catch(() => cached)
         return cached || network
       })
     )
+    return
+  }
+
+  // For POST to /api/bookings, try network then fallback to offline response (client queues request)
+  if (req.method === 'POST' && url.pathname === '/api/bookings') {
+    event.respondWith(
+      fetch(req).catch(() => new Response(JSON.stringify({ offline: true }), { status: 503, headers: { 'Content-Type': 'application/json' } }))
+    )
+    return
   }
 })
