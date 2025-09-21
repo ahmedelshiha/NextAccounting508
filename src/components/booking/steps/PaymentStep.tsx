@@ -133,6 +133,11 @@ export default function PaymentStep(props: PaymentStepProps) {
                 <span className="text-gray-800 font-semibold">Total</span>
                 <span className="text-blue-600 font-bold">{formatCents(breakdown.totalCents, breakdown.currency)}</span>
               </div>
+              <div className="flex items-center justify-end gap-2 mt-4">
+                <Button type="button" onClick={startCheckout} disabled={redirecting}>
+                  {redirecting ? 'Redirecting…' : 'Pay now'}
+                </Button>
+              </div>
             </div>
           )}
           {!loading && !breakdown && (
