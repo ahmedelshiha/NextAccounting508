@@ -14,7 +14,7 @@
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
 - [ ] API compat + conflict handling
-  - Next: Keep /api/bookings/* forwarding; enforce 409 on slot conflicts; add tests; document deprecation window.
+  - Next: Keep /api/bookings/* forwarding; 409 on slot conflicts is now enforced; add route tests; document deprecation window.
   - Deps: AvailabilityEngine
   - Complexity: S • Owner: backend
 
@@ -24,8 +24,9 @@
   - Next: Add admin settings for pricing modifiers and currency selection UI.
   - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
-- [ ] ConflictDetectionService
-  - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
+- [x] ConflictDetectionService
+  - Done: Implemented src/lib/booking/conflict-detection.ts; enforced checks in admin/portal create and reschedule endpoints; respond with HTTP 409 on conflicts.
+  - Next: Add comprehensive route tests for create/reschedule conflict scenarios; extend checks to team member-specific calendars when applicable.
   - Deps: Phase 1 schema; AvailabilityEngine
   - Complexity: M • Owner: backend
 - [x] Multi-step Booking Wizard
@@ -97,7 +98,7 @@
   - Complexity: S • Owner: dev
 - [ ] Tests & coverage
   - Next: Unskip DB tests; add e2e; enforce thresholds in CI.
-  - Complexity: M • Owner: dev/QA
+  - Complexity: M ��� Owner: dev/QA
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.
   - Complexity: S • Owner: ops

@@ -61,3 +61,14 @@
 - Updated portal bookings list to include a New Appointment button and empty-state CTA to the new page.
 - Why: unify booking creation UX across public and portal; reduce maintenance surface.
 - Next: add tests for API includePrice and BookingWizard flow; accessibility tests for TouchCalendar.
+
+## 2025-09-21 — Conflict detection service + 409 enforcement
+- Added src/lib/booking/conflict-detection.ts with buffer-aware overlap checks and daily cap enforcement.
+- Enforced conflict checks in admin/portal create (booking) and reschedule endpoints; now respond with HTTP 409 on conflicts instead of 400.
+- Why: ensure deterministic conflict handling and API compatibility guarantees noted in roadmap.
+- Next: add route tests covering overlap, daily cap, and team member calendars.
+
+## 2025-09-21 — Recurring bookings planner (library)
+- Added src/lib/booking/recurring.ts to generate occurrences and preflight conflict checks for recurring patterns (daily/weekly/monthly).
+- Why: groundwork for recurring bookings P1; enables UI/API to preview conflicts and skip with logs.
+- Next: wire into API when Phase 1 schema lands; provide client-side UI for pattern configuration.

@@ -34,16 +34,19 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     const duration = booking.duration
     const newEnd = new Date(newStart.getTime() + duration * 60_000)
 
-    const conflict = await prisma.booking.findFirst({
-      where: {
-        id: { not: booking.id },
+    // Enforce robust conflict detection using shared service and respond with 409 on conflicts
+    try {
+      const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
+      const check = await checkBookingConflict({
         serviceId: booking.serviceId,
-        scheduledAt: { lt: newEnd },
-        status: { in: ['PENDING','CONFIRMED'] as any },
-        AND: { scheduledAt: { gte: new Date(newStart.getTime() - 60 * 60_000) } },
-      },
-    })
-    if (conflict) return respond.badRequest('Scheduling conflict detected')
+        start: newStart,
+        durationMinutes: duration,
+        excludeBookingId: booking.id,
+        teamMemberId: booking.assignedTeamMemberId || null,
+        tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+      })
+      if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
+    } catch {}
 
     const updated = await prisma.booking.update({ where: { id: booking.id }, data: { scheduledAt: newStart }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 

@@ -45,6 +45,10 @@ export const respond = {
     const body: ApiError = { success: false, error: { code: 'NOT_FOUND', message } }
     return json(body, 404)
   },
+  conflict(message = 'Conflict', details?: unknown) {
+    const body: ApiError = { success: false, error: { code: 'CONFLICT', message, details } }
+    return json(body, 409)
+  },
   tooMany(message = 'Too many requests') {
     const body: ApiError = { success: false, error: { code: 'TOO_MANY_REQUESTS', message } }
     return json(body, 429)
