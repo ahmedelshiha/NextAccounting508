@@ -10,6 +10,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { planRecurringBookings } from '@/lib/booking/recurring'
 
 const CreateBase = z.object({
   clientId: z.string().min(1),
@@ -32,6 +33,7 @@ const CreateBase = z.object({
   }, z.number().optional()),
   requirements: z.record(z.string(), z.any()).optional(),
   attachments: z.any().optional(),
+  assignedTeamMemberId: z.string().optional(),
 })
 
 const CreateRequestSchema = CreateBase.extend({
@@ -47,6 +49,13 @@ const CreateBookingSchema = CreateBase.extend({
   clientEmail: z.string().email().optional(),
   clientPhone: z.string().optional(),
   bookingType: z.enum(['STANDARD','RECURRING','EMERGENCY','CONSULTATION']).optional(),
+  recurringPattern: z.object({
+    frequency: z.enum(['DAILY','WEEKLY','MONTHLY']),
+    interval: z.number().int().positive().optional(),
+    count: z.number().int().positive().optional(),
+    until: z.string().datetime().optional(),
+    byWeekday: z.array(z.number().int().min(0).max(6)).optional(),
+  }).optional(),
 })
 
 const CreateSchema = z.union([CreateRequestSchema, CreateBookingSchema])
@@ -325,6 +334,110 @@ export async function POST(request: Request) {
           return respond.conflict('Scheduling conflict detected', { reason: conflict.details?.reason, conflictingBookingId: conflict.details?.conflictingBookingId })
         }
       } catch {}
+    }
+
+    // Recurring series creation: when bookingType is RECURRING and a recurringPattern is provided,
+    // create a parent record and non-conflicting child appointments. Conflicts are skipped and logged as comments.
+    if ((data as any).isBooking && String((data as any).bookingType) === 'RECURRING' && (data as any).recurringPattern) {
+      const svcDuration = (await prisma.service.findUnique({ where: { id: (data as any).serviceId } }))?.duration ?? 60
+      const durationMinutes = Number((data as any).duration ?? svcDuration)
+
+      const rp: any = (data as any).recurringPattern
+      const normalized = {
+        frequency: String(rp.frequency) as 'DAILY'|'WEEKLY'|'MONTHLY',
+        interval: rp.interval ? Number(rp.interval) : undefined,
+        count: rp.count ? Number(rp.count) : undefined,
+        until: rp.until ? new Date(rp.until) : undefined,
+        byWeekday: Array.isArray(rp.byWeekday) ? rp.byWeekday.map((n: any) => Number(n)) : undefined,
+      }
+
+      const plan = await planRecurringBookings({
+        serviceId: (data as any).serviceId,
+        clientId: (data as any).clientId,
+        durationMinutes,
+        start: new Date((data as any).scheduledAt),
+        pattern: normalized as any,
+        tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+        teamMemberId: (data as any).assignedTeamMemberId || null,
+      })
+
+      // Create parent request capturing the pattern for auditability
+      const parent = await prisma.serviceRequest.create({
+        data: {
+          clientId: (data as any).clientId,
+          serviceId: (data as any).serviceId,
+          title: titleToUse,
+          description: (data as any).description ?? null,
+          priority: (data as any).priority as any,
+          budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
+          budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
+          requirements: ((data as any).requirements as any) ?? undefined,
+          attachments: ((data as any).attachments as any) ?? undefined,
+          isBooking: true,
+          scheduledAt: new Date((data as any).scheduledAt),
+          duration: durationMinutes,
+          clientName: (data as any).clientName ?? null,
+          clientEmail: (data as any).clientEmail ?? null,
+          clientPhone: (data as any).clientPhone ?? null,
+          bookingType: 'RECURRING' as any,
+          recurringPattern: normalized as any,
+          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+        },
+        include: {
+          client: { select: { id: true, name: true, email: true } },
+          service: { select: { id: true, name: true, slug: true, category: true } },
+        },
+      })
+
+      const childrenCreated: any[] = []
+      const skipped: any[] = []
+      for (const item of plan.plan) {
+        if (item.conflict) {
+          skipped.push(item)
+          continue
+        }
+        const child = await prisma.serviceRequest.create({
+          data: {
+            clientId: (data as any).clientId,
+            serviceId: (data as any).serviceId,
+            title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
+            description: (data as any).description ?? null,
+            priority: (data as any).priority as any,
+            budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
+            budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
+            requirements: ((data as any).requirements as any) ?? undefined,
+            attachments: ((data as any).attachments as any) ?? undefined,
+            isBooking: true,
+            scheduledAt: item.start,
+            duration: durationMinutes,
+            clientName: (data as any).clientName ?? null,
+            clientEmail: (data as any).clientEmail ?? null,
+            clientPhone: (data as any).clientPhone ?? null,
+            bookingType: 'RECURRING' as any,
+            parentBookingId: parent.id,
+            ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+          },
+        })
+        childrenCreated.push(child)
+      }
+
+      // Log skipped occurrences as comments on the parent for operational visibility
+      try {
+        for (const s of skipped) {
+          await prisma.serviceRequestComment.create({
+            data: {
+              serviceRequestId: parent.id,
+              authorId: (session.user as any).id ?? null,
+              content: `Recurring occurrence skipped for ${new Date(s.start).toISOString()} due to ${s.reason || 'conflict'}.`,
+            },
+          })
+        }
+      } catch {}
+
+      try { realtimeService.emitServiceRequestUpdate(parent.id, { action: 'created' }) } catch {}
+      try { await logAudit({ action: 'service-request:create:recurring', actorId: (session.user as any).id ?? null, targetId: parent.id, details: { serviceId: parent.serviceId, occurrences: plan.plan.length, created: childrenCreated.length, skipped: skipped.length } }) } catch {}
+
+      return respond.created({ parent, childrenCreated, skipped })
     }
 
     const created = await prisma.serviceRequest.create({
