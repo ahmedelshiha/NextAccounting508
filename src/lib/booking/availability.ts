@@ -64,6 +64,44 @@ function clampToBusinessHours(d: Date, bh?: { startMinutes: number; endMinutes: 
   return { start, end }
 }
 
+function normalizeBusinessHours(raw: unknown): BusinessHours | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const out: BusinessHours = {} as any
+  const asObj = raw as Record<string, any>
+  const keys = Array.isArray(raw) ? Object.keys(raw as any) : Object.keys(asObj)
+  for (const k of keys) {
+    const idx = Number(k)
+    const val = (Array.isArray(raw) ? (raw as any)[k as any] : asObj[k])
+    if (val == null) continue
+    if (typeof val === 'string') {
+      const parts = val.split('-')
+      if (parts.length === 2) {
+        const s = toMinutes(parts[0].trim())
+        const e = toMinutes(parts[1].trim())
+        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
+      }
+      continue
+    }
+    if (typeof val === 'object') {
+      if (typeof val.startMinutes === 'number' && typeof val.endMinutes === 'number') {
+        out[idx] = { startMinutes: val.startMinutes, endMinutes: val.endMinutes }
+        continue
+      }
+      if (typeof val.start === 'number' && typeof val.end === 'number') {
+        out[idx] = { startMinutes: val.start, endMinutes: val.end }
+        continue
+      }
+      if (typeof val.startTime === 'string' && typeof val.endTime === 'string') {
+        const s = toMinutes(val.startTime)
+        const e = toMinutes(val.endTime)
+        if (s != null && e != null) out[idx] = { startMinutes: s, endMinutes: e }
+        continue
+      }
+    }
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
 export function generateAvailability(
   from: Date,
   to: Date,
@@ -157,6 +195,39 @@ export async function getAvailabilityForService(params: {
   const baseDuration = svc.duration ?? 60
   const minutes = slotMinutes ?? baseDuration
 
+  // If a team member is requested, prefer their working hours, buffer and capacity
+  let member: { id: string; workingHours?: any; bookingBuffer?: number; maxConcurrentBookings?: number; isAvailable?: boolean; timeZone?: string } | null = null
+  if (teamMemberId) {
+    try {
+      member = await prisma.teamMember.findUnique({ where: { id: teamMemberId }, select: { id: true, workingHours: true, bookingBuffer: true, maxConcurrentBookings: true, isAvailable: true, timeZone: true } })
+    } catch {
+      member = null
+    }
+  }
+
+  // If the member exists but is not available, return empty
+  if (member && member.isAvailable === false) {
+    return { slots: [] as AvailabilitySlot[] }
+  }
+
+  // Determine booking buffer and daily cap: prefer member settings, fallback to service
+  const bookingBufferMinutes = typeof (member?.bookingBuffer) === 'number' ? (member!.bookingBuffer || 0) : (typeof svc.bufferTime === 'number' ? svc.bufferTime : 0)
+  const maxDailyBookings = typeof (member?.maxConcurrentBookings) === 'number' && (member!.maxConcurrentBookings > 0) ? member!.maxConcurrentBookings : (typeof svc.maxDailyBookings === 'number' ? svc.maxDailyBookings : 0)
+
+  // Determine business hours: prefer member.workingHours if present
+  let businessHours = undefined
+  try {
+    if (member && member.workingHours) {
+      businessHours = normalizeBusinessHours(member.workingHours as any)
+    }
+  } catch {
+    businessHours = undefined
+  }
+  if (!businessHours) {
+    businessHours = normalizeBusinessHours(svc.businessHours as any)
+  }
+
+  // Fetch busy bookings for the given window. If a team member is specified, filter to that member.
   const busyBookings = await prisma.booking.findMany({
     where: {
       serviceId,
@@ -173,6 +244,48 @@ export async function getAvailabilityForService(params: {
     return { start, end }
   })
 
-  const slots = generateAvailability(from, to, minutes, busy, options)
+  // Include admin-managed AvailabilitySlot entries as busy windows when they block availability
+  try {
+    const slotWhere: any = { serviceId, date: { gte: from, lte: to } }
+    if (teamMemberId) slotWhere.teamMemberId = teamMemberId
+    const availSlots = await prisma.availabilitySlot.findMany({ where: slotWhere })
+    for (const s of availSlots) {
+      try {
+        // If the slot is explicitly unavailable, block the interval
+        if (s.available === false) {
+          const date = new Date(s.date)
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const start = new Date(date)
+          start.setHours(sh, sm, 0, 0)
+          const end = new Date(date)
+          end.setHours(eh, em, 0, 0)
+          busy.push({ start, end })
+        } else if (typeof s.maxBookings === 'number' && s.maxBookings > 0 && typeof s.currentBookings === 'number' && s.currentBookings >= s.maxBookings) {
+          // If slot is full according to maxBookings/currentBookings, treat as busy
+          const date = new Date(s.date)
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const start = new Date(date)
+          start.setHours(sh, sm, 0, 0)
+          const end = new Date(date)
+          end.setHours(eh, em, 0, 0)
+          busy.push({ start, end })
+        }
+      } catch {}
+    }
+  } catch (e) {
+    // ignore availability slot errors and continue with bookings
+  }
+
+  const slots = generateAvailability(from, to, minutes, busy, {
+    ...options,
+    bookingBufferMinutes,
+    maxDailyBookings,
+    businessHours,
+    skipWeekends: options?.skipWeekends ?? false,
+    now: options?.now,
+  })
+
   return { slots }
 }

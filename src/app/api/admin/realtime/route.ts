@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions)
-  if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
+  if (!session?.user) return new Response('Unauthorized', { status: 401 })
 
   const { searchParams } = new URL(request.url)
   const eventTypes = (searchParams.get('events')?.split(',') ?? ['all']).filter(Boolean)
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     },
   })
 
-  return new NextResponse(stream, {
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',

@@ -38,6 +38,44 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       })
     } catch {}
 
+    // Persist scheduled reminders based on user preferences (if DB available)
+    try {
+      const prefs = await prisma.bookingPreferences.findUnique({ where: { userId: String(updated.clientId) } }).catch(() => null)
+      const reminderHours = Array.isArray(prefs?.reminderHours) && prefs!.reminderHours.length > 0 ? prefs!.reminderHours : [24, 2]
+      const now = new Date()
+      for (const h of reminderHours) {
+        try {
+          const scheduledAt = new Date(updated.scheduledAt.getTime() - Number(h) * 60 * 60 * 1000)
+          if (scheduledAt > now) {
+            // Avoid duplicates by checking existing similar reminders
+            const exists = await prisma.scheduledReminder.findFirst({ where: { serviceRequestId: id, scheduledAt } }).catch(() => null)
+            if (!exists) {
+              const tId = (updated as any).tenantId || undefined
+              await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'EMAIL', tenantId: tId } }).catch(() => null)
+            }
+          }
+        } catch {}
+      }
+
+      // Optionally schedule SMS reminders if user opted-in
+      if (prefs?.smsReminder) {
+        for (const h of reminderHours) {
+          try {
+            const scheduledAt = new Date(updated.scheduledAt.getTime() - Number(h) * 60 * 60 * 1000)
+            if (scheduledAt > now) {
+              const exists = await prisma.scheduledReminder.findFirst({ where: { serviceRequestId: id, scheduledAt, channel: 'SMS' } }).catch(() => null)
+              if (!exists) {
+                const tId = (updated as any).tenantId || undefined
+                await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'SMS', tenantId: tId } }).catch(() => null)
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      // non-fatal
+    }
+
     return respond.ok({ booking: updated })
   } catch (e: any) {
     const msg = String(e?.message || '')
