@@ -90,17 +90,17 @@ export default function BookingWizard(props: BookingWizardProps) {
       try {
         const res = await apiFetch('/api/services')
         if (res.ok) {
-          type ApiService = { id: string; name: string; shortDesc?: string | null; description: string; price?: number | null; duration?: number | null }
-          const data = (await res.json()) as ApiService[]
-          const mapped: Service[] = Array.isArray(data)
-            ? data.map((s) => ({
-                id: s.id,
-                name: s.name,
-                description: s.shortDesc || s.description,
-                price: s.price ?? 0,
-                duration: s.duration ?? 60,
-              }))
-            : []
+          type ApiService = { id: string; name: string; shortDesc?: string | null; description?: string | null; price?: number | null; duration?: number | null }
+          const json = await res.json().catch(() => null)
+          const raw: any = json && (json.data || json.services || json)
+          const list: ApiService[] = Array.isArray(raw) ? raw : []
+          const mapped: Service[] = list.map((s) => ({
+            id: String((s as any).id),
+            name: String((s as any).name || ''),
+            description: String(((s as any).shortDesc || (s as any).description || '') || ''),
+            price: typeof (s as any).price === 'number' ? (s as any).price : Number((s as any).price || 0),
+            duration: typeof (s as any).duration === 'number' ? (s as any).duration : Number((s as any).duration || 60),
+          }))
           setServices(mapped)
           if (props.serviceId) {
             const preset = mapped.find(s => s.id === props.serviceId) || null
@@ -447,6 +447,9 @@ export default function BookingWizard(props: BookingWizardProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {services.length === 0 && (
+                <div className="text-sm text-gray-500">No services available at this time.</div>
+              )}
               {services.map((service) => (
                 <button
                   key={service.id}
