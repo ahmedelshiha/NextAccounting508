@@ -51,8 +51,8 @@ export default function OfflineQueueInspector() {
     try {
       const reg = await navigator.serviceWorker?.ready
       // Prefer Background Sync if available
-      // @ts-ignore
-      if (reg && 'sync' in reg) { try { /* @ts-ignore */ await reg.sync.register('service-requests-sync') } catch {} }
+      // @ts-expect-error
+      if (reg && 'sync' in reg) { try { /* @ts-expect-error */ await reg.sync.register('service-requests-sync') } catch {} }
       // Also send a message to SW to process now
       try { navigator.serviceWorker.controller?.postMessage({ type: 'process-queue' }) } catch {}
     } finally { setTimeout(() => setFlushing(false), 800) }
