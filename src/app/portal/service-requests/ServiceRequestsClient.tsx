@@ -240,7 +240,18 @@ export default function ServiceRequestsClient() {
               <p className="text-gray-600">Track your service requests and their status.</p>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
+            {/* PWA offline queue indicator (visible when NEXT_PUBLIC_ENABLE_PWA=1) */}
+            {pwaEnabled && queuedCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} pending</Badge>
+                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success('Queued submissions synced'); } catch { toast.error('Sync failed') } }}>
+                  Sync
+                </Button>
+              </div>
+            )}
+
             <Button variant="outline" onClick={exportCSV}>Export CSV</Button>
             <Button asChild>
               <Link href="/portal/service-requests/new">
