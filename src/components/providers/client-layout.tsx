@@ -171,6 +171,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         try { navigator.serviceWorker.register('/sw.js') } catch {}
+        import('@/lib/offline-queue').then(mod => { mod.registerBackgroundSync?.().catch(() => {}) }).catch(() => {})
       })
     }
   }, [])
