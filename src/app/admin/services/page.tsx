@@ -14,8 +14,8 @@ import { Service as ServiceType, ServiceFilters as ServiceFiltersType, BulkActio
 // Lightweight local helpers
 function toServiceType(raw: any): ServiceType {
   return {
-    id: String(raw.id || raw.id ?? ''),
-    slug: String(raw.slug || ''),
+    id: String(raw.id ?? ''),
+    slug: String(raw.slug ?? ''),
     name: String(raw.name || ''),
     description: String(raw.description || ''),
     shortDesc: raw.shortDesc ?? null,
