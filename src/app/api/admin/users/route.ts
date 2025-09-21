@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { NextRequest, NextResponse } from 'next/server'
+
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
@@ -8,7 +7,7 @@ import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const tenantId = getTenantFromRequest(request as unknown as Request)
   try {
     const session = await getServerSession(authOptions)
