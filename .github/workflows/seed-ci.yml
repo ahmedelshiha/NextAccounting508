@@ -55,11 +55,13 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
-      - name: Ensure schema exists (db push fallback)
-        run: pnpm exec prisma db push --accept-data-loss || true
+      - name: Reset DB and apply migrations (ephemeral CI DB)
+        run: |
+          # For ephemeral CI databases we reset and apply migrations from scratch
+          pnpm exec prisma migrate reset --force --skip-seed || pnpm exec prisma migrate deploy
 
-      - name: Run migrations
-        run: pnpm db:migrate
+      - name: Generate Prisma client (post-migrate)
+        run: pnpm db:generate
 
       - name: Run seed
         run: pnpm db:seed
