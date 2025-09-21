@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, ClipboardList, ChevronRight } from 'lucide-react'
 import { useBookings } from '@/hooks/useBookings'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useOfflineQueue } from '@/hooks/useOfflineQueue'
+import { toast } from 'sonner'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
