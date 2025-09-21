@@ -46,7 +46,7 @@ Completed now ✅
 - Audit of booking module completed and docs/service-portal-TODO.md updated to reflect findings and prioritized next steps.
 - AvailabilitySlot admin endpoints and minimal admin UI implemented: /api/admin/availability-slots (CRUD), Admin page (src/app/admin/availability/page.tsx), and manager component (src/components/admin/AvailabilitySlotsManager.tsx).
 - Emergency booking flow enhanced: UI requires emergency details; server-side validation for emergency bookings (phone and details), auto-priority set to URGENT, and pricing flag integrated.
-- Payments: Added Stripe Checkout session endpoint (/api/payments/checkout), webhook handler (/api/payments/webhook), and Pay now action in PaymentStep.
+- Payments: Added Stripe Checkout session endpoint (/api/payments/checkout), webhook handler (/api/payments/webhook), Pay now action in PaymentStep, and Cash on delivery (COD) option wired through BookingWizard requirements.
 - Reminders: Admin review page (src/app/admin/reminders/page.tsx) to list pending reminders and a Run now action via /api/admin/reminders/run.
 
 Next up: harden offline queue and SW caching; add tests; WS auth; capacity enforcement.
