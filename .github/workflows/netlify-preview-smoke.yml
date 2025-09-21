@@ -62,8 +62,26 @@ jobs:
         run: |
           URL="${{ steps.get_preview.outputs.preview_url }}"
           echo "Testing $URL"
+
           # Check root returns 200
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/")
           echo "Root status: $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ne 200 ]; then echo "Smoke test failed: root returned $HTTP_STATUS" && exit 1; fi
+
+          # Check DB health endpoint
+          DB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/db-check")
+          echo "/api/db-check status: $DB_STATUS"
+          if [ "$DB_STATUS" -ne 200 ]; then echo "Smoke test failed: /api/db-check returned $DB_STATUS" && exit 1; fi
+
+          # Check admin system health endpoint (may be auth-protected)
+          ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/admin/system/health")
+          echo "/api/admin/system/health status: $ADMIN_STATUS"
+          if [ "$ADMIN_STATUS" -eq 200 ]; then
+            echo "Admin system health OK"
+          elif [ "$ADMIN_STATUS" -eq 401 ]; then
+            echo "Admin system health requires authentication (401). Treating as reachable."
+          else
+            echo "Smoke test failed: /api/admin/system/health returned $ADMIN_STATUS" && exit 1
+          fi
+
           echo "Smoke test passed"
