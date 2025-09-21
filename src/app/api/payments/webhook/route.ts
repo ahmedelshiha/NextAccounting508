@@ -21,6 +21,28 @@ export async function POST(request: NextRequest) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as any
       try {
+        const explicitId = String(session?.metadata?.serviceRequestId || '')
+        if (explicitId) {
+          try {
+            const prisma = (await import('@/lib/prisma')).default
+            const sr = await prisma.serviceRequest.findUnique({ where: { id: explicitId } })
+            if (sr) {
+              await prisma.serviceRequest.update({
+                where: { id: sr.id },
+                data: {
+                  paymentStatus: 'PAID' as any,
+                  paymentProvider: 'STRIPE',
+                  paymentSessionId: session.id,
+                  paymentAmountCents: session.amount_total ?? null,
+                  paymentCurrency: (session.currency || '').toUpperCase() || null,
+                  paymentUpdatedAt: new Date(),
+                  paymentAttempts: (sr.paymentAttempts ?? 0) + 1,
+                }
+              })
+              return NextResponse.json({ received: true })
+            }
+          } catch {}
+        }
         const userId = String(session?.metadata?.userId || '')
         const serviceId = String(session?.metadata?.serviceId || '')
         const scheduledAtISO = String(session?.metadata?.scheduledAt || '')
@@ -33,7 +55,6 @@ export async function POST(request: NextRequest) {
             })
           }
           if (!target && userId && serviceId) {
-            // fallback: latest submitted booking in last 24h for this user/service
             const since = new Date(Date.now() - 24 * 60 * 60 * 1000)
             target = await (await import('@/lib/prisma')).default.serviceRequest.findFirst({
               where: { clientId: userId, serviceId, createdAt: { gte: since }, isBooking: true },

@@ -1,31 +1,9 @@
-Update:
-- Implemented exponential backoff for offline queue in service worker with nextAttemptAt scheduling, max retries, and jitter.
-- Extended Offline Queue Inspector to display next attempt and last status.
-- Added reusable backoff utilities and unit tests.
+# Service Portal Dev Log
 
-Why:
-- Prevents tight retry loops, smooths load on network, and provides visibility and deterministic tests for backoff logic.
-
-Files changed/added:
-- public/sw.js (UPDATED) — backoff and retry policy
-- src/components/portal/OfflineQueueInspector.tsx (UPDATED) — extra columns
-- src/lib/offline/backoff.ts (NEW)
-- tests/offline-backoff.test.ts (NEW)
-
----
-
-Update:
-- Began payment status reflection plumbing: added payment fields to ServiceRequest, webhook now links Stripe sessions to matching requests and marks PAID/FAILED, checkout optionally binds session to an existing ServiceRequest.
-
-Why:
-- Provides end-to-end visibility of payment state and a foundation for admin UI reconciliation.
-
-Files changed/added:
-- prisma/schema.prisma (UPDATED) — PaymentStatus enum and ServiceRequest payment fields
-- src/app/api/payments/webhook/route.ts (UPDATED) — update SR on session completed/failed
-- src/app/api/payments/checkout/route.ts (UPDATED) — metadata includes serviceRequestId; pre-mark pending payment
-
-Next steps:
-- Expose payment status in admin service-requests table and details view; add nightly reconciliation job.
-
-Logged by: Autonomous Dev (assistant)
+## 2025-09-21
+- Reviewed docs/service-portal-TODO.md and booking_enhancement_plan.md.
+- Implemented ServiceRequest binding for Stripe checkout:
+  - BookingWizard pre-creates ServiceRequest on CARD payment path and passes serviceRequestId to checkout.
+  - Payments webhook updated to reconcile directly via serviceRequestId metadata.
+- Updated docs/service-portal-TODO.md with completion, rationale, and next actions.
+- Planned follow-on work: admin payment badges/filters, nightly reconciliation, tests.

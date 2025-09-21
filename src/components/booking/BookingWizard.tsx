@@ -64,6 +64,7 @@ export default function BookingWizard(props: BookingWizardProps) {
 
   // Payment method (CARD | COD)
   const [paymentMethod, setPaymentMethod] = useState<'CARD'|'COD'>('CARD')
+  const [serviceRequestId, setServiceRequestId] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<BookingForm>({
     clientName: session?.user?.name || '',
@@ -130,6 +131,11 @@ export default function BookingWizard(props: BookingWizardProps) {
     }
     loadCurrencies()
   }, [])
+
+  // Reset pre-created ServiceRequest when core selection changes
+  useEffect(() => {
+    setServiceRequestId(null)
+  }, [selectedService?.id, selectedDate, selectedTime, bookingType])
 
   // Availability loader for a selected service/date
   useEffect(() => {
@@ -225,6 +231,45 @@ export default function BookingWizard(props: BookingWizardProps) {
   const nextStep = () => setCurrentStep((s) => Math.min(7, s + 1))
   const prevStep = () => setCurrentStep((s) => Math.max(1, s - 1))
 
+  // Ensure a pending ServiceRequest exists (used for CARD checkout binding)
+  const ensureServiceRequestId = async (): Promise<string | null> => {
+    try {
+      if (serviceRequestId) return serviceRequestId
+      if (!selectedService || !selectedDate || !selectedTime) return null
+      const scheduledISO = new Date(`${selectedDate}T${selectedTime}`).toISOString()
+      const payload: any = {
+        serviceId: selectedService.id,
+        isBooking: true,
+        scheduledAt: scheduledISO,
+        duration: selectedService.duration,
+        bookingType: bookingType || 'STANDARD',
+        description: formData.notes || undefined,
+        requirements: {
+          booking: {
+            clientName: formData.clientName,
+            clientEmail: formData.clientEmail,
+            clientPhone: formData.clientPhone,
+            assignedTeamMemberId: selectedTeamMemberId || undefined,
+            currency,
+            promoCode: promoCode || undefined,
+            ...(bookingType === 'EMERGENCY' && formData.emergencyReason ? { emergencyReason: formData.emergencyReason } : {}),
+          },
+          payment: { method: 'CARD', status: 'INTENT' },
+        },
+      }
+      const res = await apiFetch('/api/portal/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const json = await res.json().catch(() => null as any)
+      const createdId: string | null = res.ok && json && (json.data?.id || json?.id) ? (json.data?.id || json.id) : null
+      if (createdId) {
+        setServiceRequestId(createdId)
+        return createdId
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
   const handleSubmit = async () => {
     if (!selectedService || !selectedDate || !selectedTime || !formData.clientName || !formData.clientEmail) {
       toast.error('Please fill in all required fields')
@@ -271,6 +316,14 @@ export default function BookingWizard(props: BookingWizardProps) {
           const err = await res.json().catch(() => ({} as any))
           toast.error(err?.error || 'Failed to submit recurring series')
         }
+        return
+      }
+
+      // If a ServiceRequest was pre-created (e.g., for CARD checkout), skip duplicate creation
+      if (serviceRequestId) {
+        toast.success('Your booking is already created. We will contact you to confirm.')
+        setCurrentStep(7)
+        props.onComplete?.()
         return
       }
 
@@ -570,6 +623,7 @@ export default function BookingWizard(props: BookingWizardProps) {
             paymentMethod={paymentMethod}
             onPaymentMethodChange={setPaymentMethod}
             onApplyPromo={(code) => setPromoCode(code)}
+            ensureServiceRequestId={ensureServiceRequestId}
           />
           <div className="flex justify-between">
             <Button variant="outline" onClick={prevStep}>
