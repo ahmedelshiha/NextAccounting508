@@ -78,3 +78,20 @@ Files changed/added:
 - src/components/booking/BookingWizard.tsx (UPDATED) — wires method and persists in requirements.payment
 - src/app/api/payments/cod/route.ts (NEW)
 - docs/service-portal-TODO.md (UPDATED)
+
+---
+
+Update:
+- Added Netlify Scheduled Function to dispatch booking reminders every 15 minutes and reorganized TODO into actionable plan.
+
+Why:
+- Ensures reminder windows (24h/2h) are never missed; decouples scheduling from external cron. Clear plan enables continuous autonomous delivery.
+
+Files changed/added:
+- netlify/functions/cron-reminders.ts (NEW)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Offline/PWA hardening (SW caching + background sync) and begin unit tests for availability/pricing.
+
+Logged by: Autonomous Dev (assistant)
