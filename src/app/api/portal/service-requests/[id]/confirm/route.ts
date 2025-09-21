@@ -65,7 +65,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             if (scheduledAt > now) {
               const exists = await prisma.scheduledReminder.findFirst({ where: { serviceRequestId: id, scheduledAt, channel: 'SMS' } }).catch(() => null)
               if (!exists) {
-                await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'SMS', tenantId: updated.tenantId || undefined } }).catch(() => null)
+                const tId = (updated as any).tenantId || undefined
+                await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'SMS', tenantId: tId } }).catch(() => null)
               }
             }
           } catch {}
