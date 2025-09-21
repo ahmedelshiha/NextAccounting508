@@ -165,6 +165,17 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     // no-op: removed keepalive ping to avoid dev fetch noise
   }, [])
 
+  const [showPortalChat, setShowPortalChat] = React.useState(false)
+
+  React.useEffect(() => {
+    try {
+      const path = typeof window !== 'undefined' ? window.location.pathname : ''
+      setShowPortalChat(path.startsWith('/portal'))
+    } catch {
+      setShowPortalChat(false)
+    }
+  }, [])
+
   return (
     <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
@@ -174,6 +185,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </main>
         <Footer />
       </div>
+      {showPortalChat ? (await import('@/components/portal/LiveChatWidget')).default() : null}
       <Toaster />
     </SessionProvider>
   )
