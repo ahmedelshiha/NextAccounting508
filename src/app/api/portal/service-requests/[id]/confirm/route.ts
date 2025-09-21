@@ -50,7 +50,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             // Avoid duplicates by checking existing similar reminders
             const exists = await prisma.scheduledReminder.findFirst({ where: { serviceRequestId: id, scheduledAt } }).catch(() => null)
             if (!exists) {
-              await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'EMAIL', tenantId: updated.tenantId || undefined } }).catch(() => null)
+              const tId = (updated as any).tenantId || undefined
+              await prisma.scheduledReminder.create({ data: { serviceRequestId: id, scheduledAt, channel: 'EMAIL', tenantId: tId } }).catch(() => null)
             }
           }
         } catch {}
