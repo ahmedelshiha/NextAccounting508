@@ -1,5 +1,6 @@
 import { checkBookingConflict } from './conflict-detection'
 import { addMinutes } from './availability'
+import { checkBookingConflict } from './conflict-detection'
 
 export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
 

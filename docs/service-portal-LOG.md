@@ -78,3 +78,59 @@ Files changed/added:
 - src/components/booking/BookingWizard.tsx (UPDATED) — wires method and persists in requirements.payment
 - src/app/api/payments/cod/route.ts (NEW)
 - docs/service-portal-TODO.md (UPDATED)
+
+---
+
+Update:
+- Added Netlify Scheduled Function to dispatch booking reminders every 15 minutes and reorganized TODO into actionable plan.
+
+Why:
+- Ensures reminder windows (24h/2h) are never missed; decouples scheduling from external cron. Clear plan enables continuous autonomous delivery.
+
+Files changed/added:
+- netlify/functions/cron-reminders.ts (NEW)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Offline/PWA hardening (SW caching + background sync) and begin unit tests for availability/pricing.
+
+Logged by: Autonomous Dev (assistant)
+
+---
+
+Update:
+- Hardened PWA offline support and added initial unit tests.
+
+Why:
+- Improve resilience offline: cache services APIs, queue portal service-requests when offline (Background Sync), and fix cache versioning.
+
+Files changed/added:
+- public/sw.js (UPDATED) — single CACHE_NAME (booking-system-v3), stale-while-revalidate for /api/services*, enqueue + 202 for POST /api/portal/service-requests and /api/bookings; Background Sync tag service-requests-sync.
+- src/components/providers/client-layout.tsx (UPDATED) — registers Background Sync after SW ready; processes queue on online.
+- tests/booking-availability.test.ts (NEW)
+- tests/pricing-calculation.test.ts (NEW, prisma mocked)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Expand tests coverage for recurrence and API routes; add idempotency keys to queued submissions.
+
+Logged by: Autonomous Dev (assistant)
+
+---
+
+Update:
+- Fixed missing import in recurring planner; added unit tests for recurrence and an integration test for recurring preview API.
+
+Why:
+- Ensures recurrence planning compiles and behaves deterministically in tests without DB.
+
+Files changed/added:
+- src/lib/booking/recurring.ts (UPDATED) — import checkBookingConflict
+- tests/recurrence-planner.test.ts (NEW)
+- tests/api-recurring-preview.test.ts (NEW)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Optionally run full test suite in CI; consider adding idempotency keys and more API failure-path tests.
+
+Logged by: Autonomous Dev (assistant)
