@@ -198,6 +198,20 @@ export async function POST(request: Request) {
   }
 
   const tenantId = getTenantFromRequest(request as any)
+  const idemKey = request.headers.get('x-idempotency-key') || ''
+  if (idemKey) {
+    try {
+      const { findIdempotentResult, reserveIdempotencyKey } = await import('@/lib/idempotency')
+      const existing = await findIdempotentResult(idemKey)
+      if (existing && existing.entityId && existing.entityType === 'ServiceRequest') {
+        try {
+          const existingEntity = await prisma.serviceRequest.findUnique({ where: { id: existing.entityId }, include: { service: { select: { id: true, name: true, slug: true, category: true } } } })
+          if (existingEntity) return respond.created(existingEntity)
+        } catch {}
+      }
+      await reserveIdempotencyKey(idemKey, (session.user as any)?.id || null, (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null)
+    } catch {}
+  }
   const ip = getClientIp(request)
   if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
     return respond.tooMany()
