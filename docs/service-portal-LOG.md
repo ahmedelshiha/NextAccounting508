@@ -72,3 +72,9 @@
 - Added src/lib/booking/recurring.ts to generate occurrences and preflight conflict checks for recurring patterns (daily/weekly/monthly).
 - Why: groundwork for recurring bookings P1; enables UI/API to preview conflicts and skip with logs.
 - Next: wire into API when Phase 1 schema lands; provide client-side UI for pattern configuration.
+
+## 2025-09-21 — Seed enhancements (demo data)
+- Created/ensured demo users (admin, staff, team lead, client1@example.com, client2@example.com).
+- Seeded services, posts (as before), plus team members linked to staff/lead, assigned sample service requests, and created linked demo bookings.
+- Assigned sample tasks and linked them to demo service requests via RequestTask.
+- Updated login page to list Client 1 and Client 2 demo accounts.

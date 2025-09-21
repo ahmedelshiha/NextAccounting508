@@ -65,7 +65,7 @@ async function main() {
 
   // Create team lead user
   const leadPassword = await bcrypt.hash('lead123', 12)
-  await prisma.user.upsert({
+  const lead = await prisma.user.upsert({
     where: { email: 'lead@accountingfirm.com' },
     update: {},
     create: {
@@ -78,6 +78,49 @@ async function main() {
   })
 
   console.log('✅ Users created')
+
+  // Create or ensure Team Members linked to staff/lead users
+  let tmStaff = await prisma.teamMember.findFirst({ where: { userId: staff.id } })
+  if (!tmStaff) {
+    tmStaff = await prisma.teamMember.create({
+      data: {
+        name: staff.name || 'Staff Member',
+        email: staff.email || 'staff@accountingfirm.com',
+        userId: staff.id,
+        title: 'Accountant',
+        role: 'TEAM_MEMBER' as any,
+        department: 'Operations',
+        specialties: ['Bookkeeping','Payroll'],
+        hourlyRate: 75,
+        isAvailable: true,
+        timeZone: 'UTC',
+        maxConcurrentBookings: 3,
+        bookingBuffer: 15,
+      },
+    })
+  }
+
+  let tmLead = await prisma.teamMember.findFirst({ where: { userId: lead.id } })
+  if (!tmLead) {
+    tmLead = await prisma.teamMember.create({
+      data: {
+        name: lead.name || 'Team Lead',
+        email: lead.email || 'lead@accountingfirm.com',
+        userId: lead.id,
+        title: 'Team Lead',
+        role: 'TEAM_LEAD' as any,
+        department: 'Advisory',
+        specialties: ['Tax','CFO'],
+        hourlyRate: 120,
+        isAvailable: true,
+        timeZone: 'UTC',
+        maxConcurrentBookings: 5,
+        bookingBuffer: 15,
+      },
+    })
+  }
+
+  console.log('✅ Team members created')
 
   // Create services
   const services = [
@@ -247,6 +290,61 @@ Our consultation sessions are designed to provide you with actionable insights a
       },
     })
     console.log('✅ Sample service requests created')
+
+    // Assign service requests and create linked demo bookings
+    try {
+      await prisma.serviceRequest.update({ where: { id: 'sr_demo_1' }, data: { assignedTeamMemberId: tmStaff.id, assignedBy: admin.id, assignedAt: new Date() } })
+      await prisma.serviceRequest.update({ where: { id: 'sr_demo_2' }, data: { assignedTeamMemberId: tmLead.id, assignedBy: admin.id, assignedAt: new Date() } })
+      const sr1 = await prisma.serviceRequest.findUnique({ where: { id: 'sr_demo_1' } })
+      const sr2 = await prisma.serviceRequest.findUnique({ where: { id: 'sr_demo_2' } })
+
+      if (svcBookkeeping && sr1) {
+        const start1 = new Date(); start1.setDate(start1.getDate() + 3); start1.setHours(10,0,0,0)
+        const svc1 = await prisma.service.findUnique({ where: { id: svcBookkeeping.id }, select: { duration: true } })
+        await prisma.booking.upsert({
+          where: { id: 'bk_demo_1' },
+          update: {},
+          create: {
+            id: 'bk_demo_1',
+            clientId: client1.id,
+            serviceId: svcBookkeeping.id,
+            status: 'PENDING' as any,
+            scheduledAt: start1,
+            duration: svc1?.duration ?? 60,
+            clientName: client1.name || 'Client One',
+            clientEmail: client1.email,
+            assignedTeamMemberId: tmStaff.id,
+            serviceRequestId: sr1.id,
+            confirmed: false,
+          },
+        })
+      }
+
+      if (svcTax && sr2) {
+        const start2 = new Date(); start2.setDate(start2.getDate() + 5); start2.setHours(14,0,0,0)
+        const svc2 = await prisma.service.findUnique({ where: { id: svcTax.id }, select: { duration: true } })
+        await prisma.booking.upsert({
+          where: { id: 'bk_demo_2' },
+          update: {},
+          create: {
+            id: 'bk_demo_2',
+            clientId: client2.id,
+            serviceId: svcTax.id,
+            status: 'CONFIRMED' as any,
+            scheduledAt: start2,
+            duration: svc2?.duration ?? 90,
+            clientName: client2.name || 'Client Two',
+            clientEmail: client2.email,
+            assignedTeamMemberId: tmLead.id,
+            serviceRequestId: sr2.id,
+            confirmed: true,
+          },
+        })
+      }
+      console.log('✅ Demo bookings created')
+    } catch (e) {
+      console.warn('Skipping assignments/bookings due to error:', (e as any)?.message)
+    }
   }
 
   // Create blog posts
@@ -641,12 +739,25 @@ Effective cash flow management requires ongoing attention and planning. Regular 
     },
   })
 
+  // Assign tasks to users and link to service requests
+  try {
+    await prisma.task.update({ where: { id: t1.id }, data: { assigneeId: staff.id } })
+    await prisma.task.update({ where: { id: t2.id }, data: { assigneeId: staff.id } })
+    await prisma.task.update({ where: { id: t3.id }, data: { assigneeId: admin.id } })
+
+    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t1.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t1.id } })
+    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_1', taskId: t2.id } }, update: {}, create: { serviceRequestId: 'sr_demo_1', taskId: t2.id } })
+    await prisma.requestTask.upsert({ where: { serviceRequestId_taskId: { serviceRequestId: 'sr_demo_2', taskId: t3.id } }, update: {}, create: { serviceRequestId: 'sr_demo_2', taskId: t3.id } })
+  } catch {}
+
   console.log('✅ Sample tasks and compliance records created')
 
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
   console.log('Admin: admin@accountingfirm.com / admin123')
   console.log('Staff: staff@accountingfirm.com / staff123')
+  console.log('Client 1: client1@example.com / client123')
+  console.log('Client 2: client2@example.com / client123')
 }
 
 main()
