@@ -40,3 +40,16 @@ Next Steps
 - Add route tests for preview endpoints and series creation flows.
 - Extend UI to expose pricing breakdown per occurrence when includePrice is requested.
 - Consider admin-configurable defaults for recurrence (e.g., default weekly days).
+
+
+## 2025-09-21 — Realtime availability auto-refresh
+
+Summary
+- BookingWizard now subscribes to portal SSE (availability-updated) and refreshes slots when matching service/date updates occur.
+
+Why
+- Keeps availability accurate after create/reschedule/cancel events without manual reload.
+
+Files Changed
+- src/components/booking/BookingWizard.tsx (SSE subscription)
+- docs/service-portal-TODO.md (mark item complete)
