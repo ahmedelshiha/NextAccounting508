@@ -20,16 +20,18 @@
 
 ### P1 — High Priority
 - [x] PricingEngine
-  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability endpoints via includePrice.
-  - Next: Integrate into multi-step Booking Wizard UI for on-the-fly totals; add admin settings for pricing modifiers.
+  - Done: Implemented src/lib/booking/pricing.ts with weekend/peak, duration overage, emergency, and promo resolver; integrated optional pricing in availability via includePrice; surfaced totals in BookingWizard summary.
+  - Next: Add admin settings for pricing modifiers and currency selection UI.
   - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
 - [ ] ConflictDetectionService
   - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
   - Deps: Phase 1 schema; AvailabilityEngine
   - Complexity: M • Owner: backend
-- [ ] Multi-step Booking Wizard
-  - Next: Build src/components/booking/BookingWizard.tsx + steps; integrate availability/pricing; wire to portal create.
+- [x] Multi-step Booking Wizard
+  - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and server-side pricing via includePrice; prepared props/interfaces to wire PricingEngine options.
+  - Done: Wired portal create flow to reuse the wizard (/portal/bookings/new) with redirect on completion.
+  - Next: Add responsive/unit tests and finalize promo admin settings.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
 - [ ] Recurring bookings
@@ -54,8 +56,9 @@
   - Next: Add manifest + SW; IndexedDB caches (services, user bookings); pending-offline queue; flag-gated.
   - Deps: Frontend build; security review
   - Complexity: M • Owner: frontend
-- [ ] Touch-optimized calendar
-  - Next: Implement TouchCalendar; integrate in DateTime step; responsive tests.
+- [x] Touch-optimized calendar
+  - Done: Implemented TouchCalendar (mobile-first) and integrated into BookingWizard DateTime step with large tap targets.
+  - Next: Add responsive tests and keyboard navigation.
   - Deps: AvailabilityEngine
   - Complexity: M • Owner: frontend
 

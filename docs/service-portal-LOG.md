@@ -42,3 +42,22 @@
 - Integrated optional pricing into availability endpoints via includePrice and currency query params; returns priceCents and currency per slot.
 - Added tests (tests/pricing.engine.test.ts) — all passing. Updated availability tests to include compatibility change (all slots returned with available flag).
 - Next: surface pricing in Booking Wizard UI and add admin-configurable pricing settings.
+
+## 2025-09-21 — Server-side pricing in availability + UI
+- Enhanced /api/bookings/availability to support includePrice and currency; slots may include { priceCents, currency }.
+- BookingWizard now requests includePrice and shows server-priced totals in the summary for the selected time.
+- Why: ensure accurate, policy-aware pricing per slot (weekend/peak/overage) and reduce client-side logic.
+- Next: Reuse wizard in portal create flow.
+
+## 2025-09-21 — TouchCalendar + currency/promo in BookingWizard
+- Added src/components/mobile/TouchCalendar.tsx and integrated in DateTime step (mobile view) while keeping native date input.
+- BookingWizard now supports currency selection (from /api/currencies) and promo codes (WELCOME10, SAVE15) reflected in slot pricing.
+- Availability API enhanced to accept promoCode and apply discounts via promoResolver.
+- Why: improve mobile UX and pricing flexibility; align with internationalization goals.
+- Next: responsive/unit tests, keyboard a11y for calendar, portal integration.
+
+## 2025-09-21 — Portal booking create flow reuses BookingWizard
+- Added /portal/bookings/new using BookingWizard with consistent portal styling and back link.
+- Updated portal bookings list to include a New Appointment button and empty-state CTA to the new page.
+- Why: unify booking creation UX across public and portal; reduce maintenance surface.
+- Next: add tests for API includePrice and BookingWizard flow; accessibility tests for TouchCalendar.

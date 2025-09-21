@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { addDays, startOfDay, endOfDay, addMinutes, format, isWeekend } from 'date-fns'
+import { calculateServicePrice } from '@/lib/booking/pricing'
 
 // GET /api/bookings/availability - Get available time slots
 export async function GET(request: NextRequest) {
@@ -9,6 +10,10 @@ export async function GET(request: NextRequest) {
     const serviceId = searchParams.get('serviceId')
     const date = searchParams.get('date')
     const days = parseInt(searchParams.get('days') || '7')
+    const includePriceFlag = (searchParams.get('includePrice') || '').toLowerCase()
+    const includePrice = includePriceFlag === '1' || includePriceFlag === 'true' || includePriceFlag === 'yes'
+    const currency = searchParams.get('currency') || undefined
+    const promoCode = (searchParams.get('promoCode') || '').trim() || undefined
 
     if (!serviceId) {
       return NextResponse.json(
@@ -97,10 +102,46 @@ export async function GET(request: NextRequest) {
           })
 
           if (!hasConflict) {
+            let priceCents: number | undefined
+            let priceCurrency: string | undefined
+            if (includePrice) {
+              try {
+                const price = await calculateServicePrice({
+                  serviceId,
+                  scheduledAt: slotStart,
+                  durationMinutes: duration,
+                  options: {
+                    currency,
+                    promoCode,
+                    promoResolver: async (code: string, { serviceId }) => {
+                      const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+                      if (!svc) return null
+                      const base = Number(svc.price ?? 0)
+                      const baseCents = Math.round(base * 100)
+                      const uc = code.toUpperCase()
+                      if (uc === 'WELCOME10') {
+                        const amt = Math.round(baseCents * -0.10)
+                        return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: amt }
+                      }
+                      if (uc === 'SAVE15') {
+                        const amt = Math.round(baseCents * -0.15)
+                        return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: amt }
+                      }
+                      return null
+                    }
+                  }
+                })
+                priceCents = price.totalCents
+                priceCurrency = price.currency
+              } catch (e) {
+                // If pricing fails, continue without price to avoid failing availability
+              }
+            }
             daySlots.push({
               start: slotStart.toISOString(),
               end: slotEnd.toISOString(),
-              available: true
+              available: true,
+              ...(priceCents != null ? { priceCents, currency: priceCurrency } : {})
             })
           }
         }
