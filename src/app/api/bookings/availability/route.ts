@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { addDays, startOfDay, endOfDay, addMinutes, format, isWeekend } from 'date-fns'
+import { calculateServicePrice } from '@/lib/booking/pricing'
 
 // GET /api/bookings/availability - Get available time slots
 export async function GET(request: NextRequest) {
@@ -9,6 +10,9 @@ export async function GET(request: NextRequest) {
     const serviceId = searchParams.get('serviceId')
     const date = searchParams.get('date')
     const days = parseInt(searchParams.get('days') || '7')
+    const includePriceFlag = (searchParams.get('includePrice') || '').toLowerCase()
+    const includePrice = includePriceFlag === '1' || includePriceFlag === 'true' || includePriceFlag === 'yes'
+    const currency = searchParams.get('currency') || undefined
 
     if (!serviceId) {
       return NextResponse.json(
@@ -97,10 +101,27 @@ export async function GET(request: NextRequest) {
           })
 
           if (!hasConflict) {
+            let priceCents: number | undefined
+            let priceCurrency: string | undefined
+            if (includePrice) {
+              try {
+                const price = await calculateServicePrice({
+                  serviceId,
+                  scheduledAt: slotStart,
+                  durationMinutes: duration,
+                  options: { currency }
+                })
+                priceCents = price.totalCents
+                priceCurrency = price.currency
+              } catch (e) {
+                // If pricing fails, continue without price to avoid failing availability
+              }
+            }
             daySlots.push({
               start: slotStart.toISOString(),
               end: slotEnd.toISOString(),
-              available: true
+              available: true,
+              ...(priceCents != null ? { priceCents, currency: priceCurrency } : {})
             })
           }
         }
