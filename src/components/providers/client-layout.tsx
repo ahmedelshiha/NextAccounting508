@@ -166,6 +166,15 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     // no-op: removed keepalive ping to avoid dev fetch noise
   }, [])
 
+  // PWA registration (flag-gated)
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        try { navigator.serviceWorker.register('/sw.js') } catch {}
+      })
+    }
+  }, [])
+
   const [showPortalChat, setShowPortalChat] = React.useState(false)
 
   React.useEffect(() => {
