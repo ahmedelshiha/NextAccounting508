@@ -271,11 +271,21 @@ export async function POST(request: Request) {
     }
     if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
 
-    // For booking-type requests, enforce conflict detection prior to creation
+    // For booking-type requests, enforce minAdvance and conflict detection prior to creation
     if ((data as any).isBooking) {
       try {
+        const bookingType = String((data as any).bookingType || '').toUpperCase()
+        const svcRec = await prisma.service.findUnique({ where: { id: (data as any).serviceId } })
+        const minAdvanceHours = typeof svcRec?.minAdvanceHours === 'number' ? svcRec!.minAdvanceHours : 0
+        if (bookingType !== 'EMERGENCY' && minAdvanceHours > 0) {
+          const now = new Date()
+          const scheduled = new Date((data as any).scheduledAt)
+          const diffHours = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60)
+          if (diffHours < minAdvanceHours) return respond.badRequest('Selected time is too soon for this service. Please respect min advance booking rules.')
+        }
+
         const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
-        const svcDuration = (await prisma.service.findUnique({ where: { id: (data as any).serviceId } }))?.duration ?? 60
+        const svcDuration = (svcRec?.duration) ?? 60
         const check = await checkBookingConflict({
           serviceId: (data as any).serviceId,
           start: new Date((data as any).scheduledAt),
