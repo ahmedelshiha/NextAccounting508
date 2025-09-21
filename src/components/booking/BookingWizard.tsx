@@ -494,6 +494,7 @@ export default function BookingWizard(props: BookingWizardProps) {
             durationMinutes={selectedService?.duration || null}
             currency={currency}
             promoCode={promoCode}
+            bookingType={bookingType}
             onApplyPromo={(code) => setPromoCode(code)}
           />
           <div className="flex justify-between">
