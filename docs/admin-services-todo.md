@@ -43,6 +43,9 @@ Actionable checklist (ordered, with acceptance criteria)
 Notes and blockers
 - Typecheck and test runs could not be executed in this environment due to execution policy/ACL. Run locally and paste errors if you want me to fix them.
 
+Recent fixes
+- Fixed /admin/services UI to consume API object shape ({ services, total, ...}) so real DB data renders instead of empty state.
+
 Immediate next actions you can run locally
 - pnpm run lint
 - pnpm run typecheck
