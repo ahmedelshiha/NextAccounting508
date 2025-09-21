@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+
+function isDbSchemaError(e: any) {
+  const code = String(e?.code || '')
+  const msg = String(e?.message || '')
+  return code.startsWith('P10') || code.startsWith('P20') || /relation|table|column/i.test(msg)
+}
 
 export async function GET(request: NextRequest) {
   try {
