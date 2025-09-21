@@ -83,8 +83,6 @@
 - Returns conflict-aware plan via planner; falls back to naive plan when DB is not configured; includes summary totals.
 - Why: enables UI to preview series before creation and surface skipped/conflicting occurrences.
 
-## 2025-09-21 — Seed enhancements (demo data)
-- Created/ensured demo users (admin, staff, team lead, client1@example.com, client2@example.com).
-- Seeded services, posts (as before), plus team members linked to staff/lead, assigned sample service requests, and created linked demo bookings.
-- Assigned sample tasks and linked them to demo service requests via RequestTask.
-- Updated login page to list Client 1 and Client 2 demo accounts.
+## 2025-09-21 — API compatibility completed
+- Confirmed deprecation headers on /api/bookings, conflict 409 tests present; forwarding maintained.
+- Next: add docs note on deprecation window and communicate timeline.
