@@ -123,3 +123,9 @@
 - Netlify: NETLIFY_DATABASE_URL, NETLIFY_BLOBS_TOKEN, NEXTAUTH_SECRET, NEXTAUTH_URL, REALTIME_TRANSPORT, REALTIME_PG_URL (optional)
 - GitHub: DATABASE_URL, CRON_TARGET_URL, CRON_SECRET, NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID
 - AV: UPLOADS_AV_SCAN_URL + API key reachable from deploy environment
+
+## 2025-09-21 — CI Build Fixes
+- ✅ Fixed TypeScript build error caused by missing NextResponse imports in API route handlers.
+  - Files updated: src/app/api/admin/users/route.ts, src/app/api/admin/stats/users/route.ts
+  - Why: Netlify build failed during tsc step with "Cannot find name 'NextResponse'". Importing NextResponse from 'next/server' resolves runtime types and avoids compilation failures.
+  - Next steps: Trigger a Netlify deploy to verify the build completes; scan repository for other route files referencing NextResponse without import and fix as needed.
