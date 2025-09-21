@@ -19,7 +19,9 @@ In progress 🔄
 Outstanding work (ordered, actionable)
 
 1) Payments — status visibility & reconciliation
-- [ ] Expose paymentStatus/paymentSessionId/paymentAmount in Admin service-requests table and detail view (badges + filters)
+- [x] Expose paymentStatus/paymentSessionId/paymentAmount in Admin service-requests table (badges)
+- [x] Add paymentStatus filter in Admin filters; plumbed through API and hook
+- [ ] Expose payment fields in Admin service-request detail view
 - [ ] Implement nightly reconciliation job to fix mismatches and stale sessions (uses webhook idempotency and Stripe session lookup)
 - [ ] Tests: webhook success/fail, reconciliation, and UI badges
 
