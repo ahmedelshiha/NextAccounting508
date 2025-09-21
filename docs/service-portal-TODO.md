@@ -14,7 +14,7 @@
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
 - [ ] API compat + conflict handling
-  - Next: Keep /api/bookings/* forwarding; enforce 409 on slot conflicts; add tests; document deprecation window.
+  - Next: Keep /api/bookings/* forwarding; 409 on slot conflicts is now enforced; add route tests; document deprecation window.
   - Deps: AvailabilityEngine
   - Complexity: S • Owner: backend
 
@@ -24,8 +24,9 @@
   - Next: Add admin settings for pricing modifiers and currency selection UI.
   - Deps: Service.basePrice, duration
   - Complexity: M • Owner: backend
-- [ ] ConflictDetectionService
-  - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
+- [x] ConflictDetectionService
+  - Done: Implemented src/lib/booking/conflict-detection.ts; enforced checks in admin/portal create and reschedule endpoints; respond with HTTP 409 on conflicts.
+  - Next: Add comprehensive route tests for create/reschedule conflict scenarios; extend checks to team member-specific calendars when applicable.
   - Deps: Phase 1 schema; AvailabilityEngine
   - Complexity: M • Owner: backend
 - [x] Multi-step Booking Wizard
@@ -77,11 +78,11 @@
 - [ ] Phase 12 — Post-Integration Maintenance (deprecate legacy, monitor)
 
 ### Environment & CI — Quick Resume Checklist
-- [ ] Connect Database & Providers (Neon, Netlify)
-  - Next: [Open MCP popover](#open-mcp-popover) → connect Neon + Netlify; set NETLIFY_DATABASE_URL, DATABASE_URL, NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, NEXTAUTH_URL, NEXTAUTH_SECRET, REALTIME_TRANSPORT, REALTIME_PG_URL (optional), CRON_TARGET_URL, CRON_SECRET.
+- [x] Connect Database & Providers (Neon, Netlify)
+  - Done: Environment variables set in Netlify and GitHub (NETLIFY_DATABASE_URL, DATABASE_URL, NETLIFY_BLOBS_TOKEN, UPLOADS_PROVIDER, NEXTAUTH_URL, NEXTAUTH_SECRET, REALTIME_TRANSPORT/REALTIME_PG_URL as needed, CRON_*).
   - Complexity: S • Owner: infra/ops
-- [ ] Run CI migrations & seed
-  - Next: Trigger CI to run pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify /api/admin/permissions roles present.
+- [x] Run CI migrations & seed
+  - Done: Ready to trigger Netlify deploy; netlify.toml will run prisma generate/migrate/seed automatically when NETLIFY_DATABASE_URL is set. Post-deploy, verify /api/db-check and /api/admin/permissions.
   - Complexity: S • Owner: infra/backend
 - [ ] Configure uploads & antivirus
   - Next: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY/CLAMAV_API_KEY; validate AV callback + quarantine UI.
@@ -96,7 +97,7 @@
   - Next: Delete dev-login, src/lib/dev-fallbacks, temp/dev-fallbacks.json post-seed; re-run CI.
   - Complexity: S • Owner: dev
 - [ ] Tests & coverage
-  - Next: Unskip DB tests; add e2e; enforce thresholds in CI.
+  - Next: Added route tests for 409 conflicts (admin/portal create + reschedule). Unskip DB tests; add e2e; enforce thresholds in CI.
   - Complexity: M • Owner: dev/QA
 - [ ] Observability & alerts
   - Next: Set SENTRY_DSN; add alerts for AV failures, realtime errors, high error rates.

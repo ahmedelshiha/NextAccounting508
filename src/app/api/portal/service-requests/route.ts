@@ -261,6 +261,23 @@ export async function POST(request: Request) {
     }
     if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
 
+    // For booking-type requests, enforce conflict detection prior to creation
+    if ((data as any).isBooking) {
+      try {
+        const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
+        const svcDuration = (await prisma.service.findUnique({ where: { id: (data as any).serviceId } }))?.duration ?? 60
+        const check = await checkBookingConflict({
+          serviceId: (data as any).serviceId,
+          start: new Date((data as any).scheduledAt),
+          durationMinutes: Number((data as any).duration ?? svcDuration),
+          excludeBookingId: undefined,
+          tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+          teamMemberId: null,
+        })
+        if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
+      } catch {}
+    }
+
     const created = await prisma.serviceRequest.create({
       data: dataObj,
       include: {

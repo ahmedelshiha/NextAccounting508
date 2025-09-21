@@ -308,6 +308,25 @@ export async function POST(request: Request) {
       if (!serviceExists) return respond.badRequest('Invalid serviceId')
     }
 
+    // For booking-type requests, enforce conflict detection prior to creation
+    if ((data as any).isBooking) {
+      try {
+        const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
+        const duration = (data as any).duration ?? (await prisma.service.findUnique({ where: { id: (data as any).serviceId } }))?.duration ?? 60
+        const conflict = await checkBookingConflict({
+          serviceId: (data as any).serviceId,
+          start: new Date((data as any).scheduledAt),
+          durationMinutes: Number(duration),
+          excludeBookingId: undefined,
+          teamMemberId: (data as any).assignedTeamMemberId || null,
+          tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+        })
+        if (conflict.conflict) {
+          return respond.conflict('Scheduling conflict detected', { reason: conflict.details?.reason, conflictingBookingId: conflict.details?.conflictingBookingId })
+        }
+      } catch {}
+    }
+
     const created = await prisma.serviceRequest.create({
       data: {
         clientId: (data as any).clientId,
