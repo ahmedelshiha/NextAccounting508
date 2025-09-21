@@ -58,6 +58,37 @@ export default function PaymentStep(props: PaymentStepProps) {
 
   useEffect(() => { loadPricing() }, [props.serviceId, props.dateISO, props.time, props.durationMinutes, props.currency, props.promoCode])
 
+  const [redirecting, setRedirecting] = useState(false)
+  async function startCheckout() {
+    if (!breakdown || !props.serviceId || !props.dateISO || !props.time) return
+    setRedirecting(true)
+    try {
+      const scheduledAt = new Date(`${props.dateISO}T${props.time}:00`).toISOString()
+      const resp = await apiFetch('/api/payments/checkout', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          serviceId: props.serviceId,
+          scheduledAt,
+          duration: props.durationMinutes || undefined,
+          currency: props.currency,
+          promoCode: (props.promoCode || '').trim() || undefined,
+          bookingType: props.bookingType || undefined,
+          successUrl: typeof window !== 'undefined' ? window.location.origin + '/portal' : undefined,
+          cancelUrl: typeof window !== 'undefined' ? window.location.href : undefined,
+        })
+      })
+      const json = await resp.json().catch(() => null)
+      if (resp.ok && json?.url) {
+        if (typeof window !== 'undefined') window.location.href = json.url
+      } else {
+        alert(json?.error || 'Failed to start checkout')
+      }
+    } catch {
+      alert('Failed to start checkout')
+    } finally {
+      setRedirecting(false)
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
