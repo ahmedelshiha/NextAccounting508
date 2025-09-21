@@ -22,7 +22,7 @@ Outstanding work (ordered, actionable)
 - [x] Expose paymentStatus/paymentSessionId/paymentAmount in Admin service-requests table (badges)
 - [x] Add paymentStatus filter in Admin filters; plumbed through API and hook
 - [ ] Expose payment fields in Admin service-request detail view
-- [ ] Implement nightly reconciliation job to fix mismatches and stale sessions (uses webhook idempotency and Stripe session lookup)
+- [x] Implement nightly reconciliation job to fix mismatches and stale sessions (Netlify function netlify/functions/cron-payments-reconcile.ts)
 - [ ] Tests: webhook success/fail, reconciliation, and UI badges
 
 2) Capacity enforcement improvements
