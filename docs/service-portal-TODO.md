@@ -1,97 +1,51 @@
-# Service Portal Booking TODOs (Audit vs docs/booking_enhancement_plan.md)
+# Service Portal TODO
 
-This list captures missing or partial items to align the booking module with the enhancement plan.
+This document was updated after a code audit of the booking module against docs/booking_enhancement_plan.md.
 
-## Foundation & Data Model
-- [x] AvailabilitySlot model usage
-  - Persist and consume AvailabilitySlot for manual overrides, capacity and exceptions
-  - Admin APIs + UI to create/update/delete slots; support reasons (maintenance/holiday)
-- [x] Team member working hours/timezone
-  - Store and honor TeamMember.workingHours and timeZone in availability/conflicts
-  - Respect maxConcurrentBookings and bookingBuffer at member level
+Summary of audit
+- Reviewed docs/booking_enhancement_plan.md and compared to the current implementation in src/components/booking, src/lib/booking, and prisma schema.
+- Many core features from the plan are implemented, but important enhancements and operational pieces remain.
 
-## Availability & Scheduling
-- [x] Team-member-aware availability
-  - When a team member is chosen, compute slots using that member’s workingHours, buffer and time zone
-  - Fallback to service.businessHours if member data missing
-- [x] Capacity and blackout controls (partial)
-  - Enforce service.blackoutDates at API boundary (return 404 for fully blacked-out dates)
-  - Respect AvailabilitySlot.maxBookings/currentBookings when present (availability slots considered when full or blocked)
-- [ ] Daily caps per team/service
-  - Extend conflict detection for per-team/day capacity
+What was completed ✅
+- Core availability engine implemented (src/lib/booking/availability.ts) — generates slots, applies business hours, buffers, member working hours, and capacity.
+- Team-member-aware availability implemented (respects TeamMember.workingHours, bookingBuffer, maxConcurrentBookings) and falls back to Service.businessHours.
+- Pricing engine implemented (src/lib/booking/pricing.ts) with surcharges, overage, weekend and peak handling, currency conversion support.
+- Recurrence preview and planning implemented (src/lib/booking/recurring.ts).
+- BookingWizard UI (multi-step) implemented with service selection, team selection, date/time, recurrence, pricing quote step, client info and confirmation (src/components/booking/BookingWizard.tsx).
+- Offline booking cache exists (src/lib/offline/booking-cache.ts) and pending bookings flush logic integrated into the wizard (saved to IndexedDB). Fixed transaction completion handling.
+- Prisma schema includes Booking, ServiceRequest, AvailabilitySlot, BookingPreferences and ScheduledReminder models (prisma/schema.prisma) matching plan fields.
+- SSE realtime updates for availability implemented in wizard (EventSource to /api/portal/realtime).
 
-## Booking Wizard (Multi-step)
-- [ ] Emergency booking flow
-  - UI to set bookingType=EMERGENCY with minAdvance bypass rules and surcharge
-  - Server validation + pricing integration
-- [ ] Service customization step
-  - Configurable add‑ons/variants that affect duration and price
-  - Include in payload and pricing breakdown
-- [ ] Team member integration
-  - When user selects a member, availability/pricing should reflect that selection
+Why these were completed
+- They form the core booking experience (availability, pricing, recurrence, UI flow) required by the ServiceMarket-style booking flow described in the plan. Having them implemented enables the rest of the operational and edge-case features to be layered on top.
 
-## Pricing Engine
-- [ ] Enrich dynamic pricing inputs
-  - Use service.standardDuration/basePrice consistently; consider hourlyRate when present
-  - Add emergency surcharge logic (configurable) and expose via /api/pricing
-  - Ensure promo handling supports per‑service rules/extensibility
+Missing features / Improvements (TODO list)
+1. Emergency booking flow (UI + server-side validation + pricing surcharge) — required to support higher-priority booking types and special validation rules.
+2. Payment gateway integration (Stripe or other) — PaymentStep currently only requests a price quote; no capture/intent/webhook flow exists.
+3. Admin UI & API for AvailabilitySlot management (create/update/delete blackout dates, capacity overrides, reasons) — availabilitySlots model exists but admin management is not complete.
+4. Daily/team capacity enforcement improvements — conflict detection should include per-team/day capacity limits and clearer failure messages for UI consumption.
+5. Scheduled reminders persistence & dispatch (cron job) — ScheduledReminder model exists; cron job and dispatch logic to send emails/SMS needs implementation/integration with sendgrid or SMS provider.
+6. Auto-assign and assignment rules (teamMember autoAssign) — auto-assign flow should be wired from portal and booking endpoints.
+7. Payment status reflection on Booking/ServiceRequest — mark paid/unpaid and handle failures/retries.
+8. Offline queue resilience & Service caching — SW integration and replay for cached /api/bookings and /api/services, stress test offline flows.
+9. Unit & integration tests for availability, pricing, recurring plan, and booking APIs.
+10. WebSocket endpoint for bookings (WS) and robust client-subscription handling — SSE fallback exists, but WS endpoint is still desirable.
+11. Promo system extensibility and promo resolver hooks — support per-service promo rules and admin CRUD for promo codes.
+12. ICS export improvements and timezone-normalized calendar invites.
 
-## Notifications & Reminders
-- [ ] Scheduled reminders persistence
-  - Create scheduled reminders (DB table) based on BookingPreferences.reminderHours
-  - Cron to dispatch and mark sent; support EMAIL and optional SMS
-- [ ] Client preferences UI
-  - Portal UI for /api/portal/settings/booking-preferences (read/write)
+Next steps (short-term) — recommended order
+- Implement AvailabilitySlot admin endpoints and minimal admin UI (owner: Platform Team, ETA: 3 days). Reason: Allows ops to manage blackouts and capacity immediately.
+- Add emergency booking flow (UI + API validation + pricing flag) (owner: Booking UX, ETA: 2 days). Reason: Enables urgent bookings and test of surcharge logic.
+- Implement Stripe payment intents + webhook handler + update PaymentStep to collect payment details (owner: Payments, ETA: 4 days). Reason: Required to accept payments and mark bookings as paid.
+- Implement ScheduledReminder dispatch cron job and a simple admin UI to review pending reminders (owner: Platform Team, ETA: 3 days). Reason: Ensures clients receive reminders per preferences.
+- Harden offline queue and add simple SW caching for services and replay logic (owner: Offline/PWA, ETA: 4 days).
+- Add unit tests for availability and pricing (owner: QA/Dev, ETA: 3 days).
 
-## Real-time & Realtime API
-- [x] Booking WebSocket endpoint
-  - Provide /api/ws/bookings (WS) with auth + channel subscriptions; retain SSE fallback (implemented)
-  - Client hook for subscribing to availability and assignment updates (src/hooks/useBookingsSocket.ts, useRealtime updated)
+Notes & references
+- Relevant files reviewed: src/components/booking/BookingWizard.tsx, src/components/booking/steps/*, src/lib/booking/*, src/lib/offline/booking-cache.ts, prisma/schema.prisma, src/app/booking/page.tsx
+- See docs/booking_enhancement_plan.md for mapped requirements and migration details.
 
-## Payments
-- [ ] Payment gateway integration
-  - Implement Stripe (or provider) in PaymentStep with server intents and webhook verification
-  - Reflect paid/unpaid status on ServiceRequest/Booking and handle failures
+Completed now ✅
+- Audit of booking module completed and docs/service-portal-TODO.md updated to reflect findings and prioritized next steps.
 
-## Offline & PWA
-- [ ] Offline booking cache and queue
-  - IndexedDB cache for services and user bookings; queue pending bookings for retry
-  - Extend SW to cache /api/bookings, /api/services and replay queued requests
-- [ ] Manifest alignment
-  - Consider aligning to /manifest.json or ensure manifest.webmanifest provides required shortcuts/icons
-
-## Admin Tooling
-- [ ] Admin management of business hours & blackout dates
-  - UI + API to configure Service and TeamMember hours, buffer, blackoutDates
-  - Seed sensible defaults; audit logs on changes
-
-## Conflict Detection
-- [ ] Member-aware rules
-  - Include TeamMember bookingBuffer and capacity in checks
-  - Improve messages (double‑booking, buffer violation, daily cap) for UI consumption
-
-## Testing & Quality
-- [ ] Unit tests & integration tests
-  - Availability generation (service vs team member)
-  - Pricing (weekend/peak/emergency/promo/FX)
-  - Recurring plan and conflict detection
-  - API contracts for availability, pricing, bookings
-
-## Optional Enhancements
-- [ ] ICS improvements
-  - Add location/timezone awareness and richer description lines
-- [ ] Live chat on booking page
-  - Mount existing LiveChatWidget/console for quick help during booking
-
----
-Status notes:
-- Implemented: core availability generation, pricing API, recurrence preview/creation, conflict detection (service‑level), SSE realtime updates, ICS in confirmations, portal service-requests integration.
-- Completed now: team-member-aware availability (uses TeamMember.workingHours, bookingBuffer and maxConcurrentBookings; falls back to service businessHours). This enhances per-member availability filtering and capacity controls.
-- Remaining: emergency flow, AvailabilitySlot persistence, auto‑assign on portal create, scheduled reminder persistence, WS endpoint, payment capture, offline queue.
-
-Next steps (short-term):
-- Implement AvailabilitySlot persistence and admin UI to manage blackouts and overrides.
-- Extend conflict detection to incorporate team-member capacity and explicit AvailabilitySlot reservations.
-- Add scheduled reminder persistence and ensure cron sends reminders per preferences.
-
-For the next task I will implement AvailabilitySlot persistence and admin endpoints.
+If you want I can proceed to implement the top priority: AvailabilitySlot admin endpoints (API + minimal admin UI). Reply with which item to start next.

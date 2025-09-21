@@ -196,7 +196,7 @@ export async function getAvailabilityForService(params: {
   const minutes = slotMinutes ?? baseDuration
 
   // If a team member is requested, prefer their working hours, buffer and capacity
-  let member: { id: string; workingHours?: any; bookingBuffer?: number; maxConcurrentBookings?: number; isAvailable?: boolean; timeZone?: string } | null = null
+  let member: { id: string; workingHours?: any; bookingBuffer?: number; maxConcurrentBookings?: number; isAvailable?: boolean; timeZone?: string | null } | null = null
   if (teamMemberId) {
     try {
       member = await prisma.teamMember.findUnique({ where: { id: teamMemberId }, select: { id: true, workingHours: true, bookingBuffer: true, maxConcurrentBookings: true, isAvailable: true, timeZone: true } })

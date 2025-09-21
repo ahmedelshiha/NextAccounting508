@@ -98,7 +98,11 @@ export async function cacheServices(services: any[]) {
     for (const s of services) {
       store.put({ ...s, cachedAt: new Date().toISOString() })
     }
-    return tx.complete ? await (tx as any).complete : await new Promise((r) => tx.oncomplete = r)
+    return await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error)
+    })
   } catch (e) { console.error('cacheServices', e) }
 }
 

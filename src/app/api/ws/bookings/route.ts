@@ -10,7 +10,7 @@ import { realtimeService } from '@/lib/realtime-enhanced'
 export async function GET(request: Request) {
   try {
     // WebSocketPair is provided by the Next runtime in edge handlers
-    // @ts-ignore
+    // @ts-expect-error: WebSocketPair provided by runtime at execution time
     const pair = new WebSocketPair()
     const [client, server] = pair
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     })
 
     // Return the client side of the pair to complete the WS upgrade
-    // @ts-ignore - Next's edge WebSocket pairing is available at runtime; cast to any for typing
+    // WebSocket return typing provided by runtime; using client object for upgrade
     return new Response(null as any, { status: 101, webSocket: client } as any)
   } catch (e) {
     console.error('ws/bookings upgrade failed', e)
