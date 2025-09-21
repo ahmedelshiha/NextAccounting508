@@ -31,6 +31,11 @@
 
 ---
 
+## 2025-09-21 — Durable realtime enabled (Postgres)
+- Config: REALTIME_TRANSPORT=postgres, REALTIME_PG_URL set (or fallback to DATABASE_URL). Adapter listens on sanitized channel and publishes via pg_notify.
+- Verification: Admin Chat Console shows transport=postgres and increments connection/event metrics; cross-tab/browser chat messages delivered.
+- Next: Add admin dashboard health widget and alerting on adapter reconnects.
+
 ## 2025-09-21 — PWA + offline cache (flag-gated)
 - Added manifest.webmanifest and service worker (runtime caching for assets + /api/services and portal request lists). Registration controlled by NEXT_PUBLIC_ENABLE_PWA.
 - Added offline queue in LiveChatWidget to store portal chat POSTs and flush on reconnect.
