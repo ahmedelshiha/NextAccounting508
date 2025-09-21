@@ -17,6 +17,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 3. Availability route tests for includePrice/promo
    - Steps: Add route tests validating price currency and promoCode application on sample dates.
    - Acceptance: Tests cover base, promo=WELCOME10, promo=SAVE15; currency conversion branch exercised.
+   - Status: Implemented for /api/bookings/availability (tests/bookings-availability.pricing.test.ts).
 
 4. Unit tests: availability engine (buffers, weekends via businessHours, caps)
    - Steps: Add cases for buffer overlap, weekend closed, maxDailyBookings skip.
