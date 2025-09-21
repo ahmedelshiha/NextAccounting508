@@ -30,6 +30,7 @@ export type BookingForm = {
   clientEmail: string
   clientPhone: string
   notes: string
+  emergencyReason?: string
 }
 
 export type BookingWizardProps = {
@@ -61,11 +62,15 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState<boolean>(false)
   const [recurrence, setRecurrence] = useState<RecurrencePattern | null>(null)
 
+  // Payment method (CARD | COD)
+  const [paymentMethod, setPaymentMethod] = useState<'CARD'|'COD'>('CARD')
+
   const [formData, setFormData] = useState<BookingForm>({
     clientName: session?.user?.name || '',
     clientEmail: session?.user?.email || '',
     clientPhone: '',
-    notes: ''
+    notes: '',
+    emergencyReason: ''
   })
 
   // Initialize user data from session when available
@@ -253,7 +258,8 @@ export default function BookingWizard(props: BookingWizardProps) {
               assignedTeamMemberId: selectedTeamMemberId || undefined,
               currency,
               promoCode: promoCode || undefined,
-            }
+            },
+            payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
           }
         }
         const res = await apiFetch('/api/portal/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -268,18 +274,29 @@ export default function BookingWizard(props: BookingWizardProps) {
         return
       }
 
-      // Default: single booking via legacy compatibility endpoint
-      const payload = {
+      // Default: single booking via portal endpoint for richer validation/details
+      const payload: any = {
         serviceId: selectedService.id,
+        isBooking: true,
         scheduledAt: scheduledISO,
-        notes: formData.notes,
-        clientName: formData.clientName,
-        clientEmail: formData.clientEmail,
-        clientPhone: formData.clientPhone,
-        assignedTeamMemberId: selectedTeamMemberId || undefined,
+        duration: selectedService.duration,
         bookingType: bookingType || 'STANDARD',
+        description: formData.notes || undefined,
+        requirements: {
+          booking: {
+            clientName: formData.clientName,
+            clientEmail: formData.clientEmail,
+            clientPhone: formData.clientPhone,
+            assignedTeamMemberId: selectedTeamMemberId || undefined,
+            currency,
+            promoCode: promoCode || undefined,
+            ...(bookingType === 'EMERGENCY' && formData.emergencyReason ? { emergencyReason: formData.emergencyReason } : {}),
+          },
+          payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
+          ...(bookingType === 'EMERGENCY' && formData.emergencyReason ? { emergencyReason: formData.emergencyReason } : {}),
+        },
       }
-      const res = await apiFetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const res = await apiFetch('/api/portal/service-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (res.ok) {
         toast.success('Booking submitted successfully! We will contact you to confirm.')
         setCurrentStep(6)
@@ -302,6 +319,16 @@ export default function BookingWizard(props: BookingWizardProps) {
             clientPhone: formData.clientPhone,
             assignedTeamMemberId: selectedTeamMemberId || undefined,
             bookingType: bookingType || 'STANDARD',
+            // Include requirements so emergency details are preserved when offline
+            requirements: {
+              emergencyReason: bookingType === 'EMERGENCY' ? (formData.emergencyReason || '') : undefined,
+              booking: {
+                emergencyReason: bookingType === 'EMERGENCY' ? (formData.emergencyReason || '') : undefined,
+                currency,
+                promoCode: promoCode || undefined,
+              },
+              payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'PENDING' : 'INTENT' },
+            }
           }
           await savePendingBooking(pendingPayload)
           toast.success('You are offline — booking saved locally and will be submitted when online.')
@@ -540,6 +567,8 @@ export default function BookingWizard(props: BookingWizardProps) {
             currency={currency}
             promoCode={promoCode}
             bookingType={bookingType}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
             onApplyPromo={(code) => setPromoCode(code)}
           />
           <div className="flex justify-between">
@@ -578,6 +607,13 @@ export default function BookingWizard(props: BookingWizardProps) {
               <Label htmlFor="phone">Phone Number</Label>
               <Input id="phone" type="tel" value={formData.clientPhone} onChange={(e) => setFormData(prev => ({ ...prev, clientPhone: e.target.value }))} placeholder="(555) 123-4567" />
             </div>
+
+            {bookingType === 'EMERGENCY' && (
+              <div className="mt-6">
+                <Label htmlFor="emergency">Emergency Details *</Label>
+                <Textarea id="emergency" rows={3} value={formData.emergencyReason || ''} onChange={(e) => setFormData(prev => ({ ...prev, emergencyReason: e.target.value }))} placeholder="Briefly describe the emergency (min 10 characters)" />
+              </div>
+            )}
 
             <div className="mt-6">
               <Label htmlFor="notes">Additional Notes</Label>
