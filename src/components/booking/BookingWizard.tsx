@@ -218,18 +218,19 @@ export default function BookingWizard(props: BookingWizardProps) {
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
               </div>
-              {step < 3 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
+              {step < 4 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-sm text-gray-600">
           <span>Select Service</span>
-          <span>Choose Date & Time</span>
+          <span>Choose Specialist</span>
+          <span>Date & Time</span>
           <span>Your Information</span>
         </div>
       </div>
