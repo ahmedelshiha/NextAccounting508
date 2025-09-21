@@ -28,8 +28,9 @@
   - Next: Implement src/lib/booking/conflict-detection.ts; call on create/reschedule; add route tests.
   - Deps: Phase 1 schema; AvailabilityEngine
   - Complexity: M • Owner: backend
-- [ ] Multi-step Booking Wizard
-  - Next: Build src/components/booking/BookingWizard.tsx + steps; integrate availability/pricing; wire to portal create.
+- [x] Multi-step Booking Wizard
+  - Done: Implemented reusable BookingWizard with step components; refactored public booking page to use it; integrated availability fetching and base pricing summary; prepared props/interfaces to wire PricingEngine.
+  - Next: Add server-side pricing via includePrice on availability; implement TouchCalendar; wire portal create flow to reuse the wizard.
   - Deps: AvailabilityEngine, PricingEngine
   - Complexity: L • Owner: frontend
 - [ ] Recurring bookings

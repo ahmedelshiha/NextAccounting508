@@ -28,6 +28,8 @@ interface TimeSlot {
 
 const sampleServices: Service[] = []
 
+import BookingWizard from '@/components/booking/BookingWizard'
+
 export default function BookingPage() {
   const { data: session } = useSession()
   const [currentStep, setCurrentStep] = useState(1)
@@ -217,6 +219,7 @@ export default function BookingPage() {
       </section>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <BookingWizard />
         <div className="mb-8">
           <div className="flex items-center justify-between">
             {[1, 2, 3].map((step) => (
