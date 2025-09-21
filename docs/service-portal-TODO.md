@@ -31,6 +31,7 @@ This replaces the previous ad-hoc checklist with a prioritized, dependency-aware
 6. Configure uploads provider & antivirus
    - Steps: Set UPLOADS_PROVIDER=netlify, NETLIFY_BLOBS_TOKEN, UPLOADS_AV_SCAN_URL, UPLOADS_AV_API_KEY; run smoke upload and verify quarantine UI.
    - Acceptance: Clean file → status clean; EICAR → quarantined with details; CSV export works.
+   - Status: Route and admin tests added (uploads.clean, uploads.infected.lenient, admin-quarantine). Pending deploy env configuration and manual smoke.
 
 ## P1 — Staging Smoke Tests
 7. End-to-end smoke on staging
