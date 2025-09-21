@@ -18,8 +18,9 @@
   - Next: Wire into Multi-step Booking Wizard and PricingEngine; expand blackoutDates once Phase 1 schema lands.
   - Deps: businessHours, blackoutDates, bookingBuffer, maxDailyBookings (Phase 1 schema)
   - Complexity: L • Owner: backend
-- [ ] API compat + conflict handling
-  - Next: Keep /api/bookings/* forwarding; 409 on slot conflicts is now enforced; add route tests; document deprecation window.
+- [x] API compat + conflict handling
+  - Done: /api/bookings/* forwards with deprecation headers; 409 on conflicts enforced; route tests added.
+  - Next: Document deprecation window in README/Docs and announce in change log.
   - Deps: AvailabilityEngine
   - Complexity: S • Owner: backend
 
