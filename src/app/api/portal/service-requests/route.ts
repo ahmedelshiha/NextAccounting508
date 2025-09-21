@@ -269,6 +269,10 @@ export async function POST(request: Request) {
         recurringPattern: (data as any).recurringPattern ?? undefined,
       } : {}),
     }
+    // Elevate priority for emergency bookings
+    if (String((data as any).bookingType || '').toUpperCase() === 'EMERGENCY') {
+      dataObj.priority = 'URGENT'
+    }
     if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
 
     // For booking-type requests, enforce minAdvance and conflict detection prior to creation
@@ -295,6 +299,21 @@ export async function POST(request: Request) {
           teamMemberId: null,
         })
         if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
+
+        // Extra validation for emergency bookings
+        if (bookingType === 'EMERGENCY') {
+          try {
+            const req: any = (data as any).requirements || {}
+            const emReason = (req.booking && req.booking.emergencyReason) || req.emergencyReason
+            const phone = (req.booking && req.booking.clientPhone) || null
+            if (!emReason || String(emReason).trim().length < 10) {
+              return respond.badRequest('Emergency details are required (min 10 characters).')
+            }
+            if (!phone || String(phone).trim().length < 5) {
+              return respond.badRequest('Phone number is required for emergency bookings.')
+            }
+          } catch {}
+        }
       } catch {}
     }
 
