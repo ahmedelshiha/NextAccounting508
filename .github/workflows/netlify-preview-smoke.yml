@@ -85,3 +85,18 @@ jobs:
           fi
 
           echo "Smoke test passed"
+
+      - name: Run Playwright preview login test
+        env:
+          PREVIEW_URL: ${{ steps.get_preview.outputs.preview_url }}
+          PREVIEW_ADMIN_EMAIL: ${{ secrets.PREVIEW_ADMIN_EMAIL }}
+          PREVIEW_ADMIN_PASSWORD: ${{ secrets.PREVIEW_ADMIN_PASSWORD }}
+          PREVIEW_SESSION_COOKIE: ${{ secrets.PREVIEW_SESSION_COOKIE }}
+          PREVIEW_LOGIN_PATH: ${{ secrets.PREVIEW_LOGIN_PATH }}
+        run: |
+          corepack enable && corepack prepare pnpm@latest --activate
+          pnpm init -y --silent
+          pnpm add -D @playwright/test@1.41.0 playwright@1.41.0 --silent
+          npx playwright install --with-deps
+          # Run the single test file
+          npx playwright test tests/e2e/preview-login.spec.ts --config=./node_modules/@playwright/test/lib/cli/test/config.js --reporter=list
