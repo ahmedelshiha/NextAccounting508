@@ -90,17 +90,17 @@ export default function BookingWizard(props: BookingWizardProps) {
       try {
         const res = await apiFetch('/api/services')
         if (res.ok) {
-          type ApiService = { id: string; name: string; shortDesc?: string | null; description: string; price?: number | null; duration?: number | null }
-          const data = (await res.json()) as ApiService[]
-          const mapped: Service[] = Array.isArray(data)
-            ? data.map((s) => ({
-                id: s.id,
-                name: s.name,
-                description: s.shortDesc || s.description,
-                price: s.price ?? 0,
-                duration: s.duration ?? 60,
-              }))
-            : []
+          type ApiService = { id: string; name: string; shortDesc?: string | null; description?: string | null; price?: number | null; duration?: number | null }
+          const json = await res.json().catch(() => null)
+          const raw: any = json && (json.data || json.services || json)
+          const list: ApiService[] = Array.isArray(raw) ? raw : []
+          const mapped: Service[] = list.map((s) => ({
+            id: String((s as any).id),
+            name: String((s as any).name || ''),
+            description: String(((s as any).shortDesc || (s as any).description || '') || ''),
+            price: typeof (s as any).price === 'number' ? (s as any).price : Number((s as any).price || 0),
+            duration: typeof (s as any).duration === 'number' ? (s as any).duration : Number((s as any).duration || 60),
+          }))
           setServices(mapped)
           if (props.serviceId) {
             const preset = mapped.find(s => s.id === props.serviceId) || null
@@ -414,27 +414,27 @@ export default function BookingWizard(props: BookingWizardProps) {
     return base > 0 ? formatCents(Math.round(base * 100), 'USD') : 'Free'
   }, [selectedService, selectedTime, timeSlots])
 
+  const stepTitles = ['Select Service','Choose Specialist','Date & Time','Recurrence','Payment','Your Information','Confirmation']
+  const totalSteps = stepTitles.length
+
   return (
     <div>
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          {[1, 2, 3, 4, 5, 6].map((step) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
             <div key={step} className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {currentStep > step ? <CheckCircle className="h-5 w-5" /> : step}
               </div>
-              {step < 4 && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
+              {step < totalSteps && <div className={`w-full h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />}
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-sm text-gray-600">
-          <span>Select Service</span>
-          <span>Choose Specialist</span>
-          <span>Date & Time</span>
-          <span>Recurrence</span>
-          <span>Payment</span>
-          <span>Your Information</span>
+          {stepTitles.map((title, idx) => (
+            <span key={idx}>{title}</span>
+          ))}
         </div>
       </div>
 
@@ -447,6 +447,9 @@ export default function BookingWizard(props: BookingWizardProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {services.length === 0 && (
+                <div className="text-sm text-gray-500">No services available at this time.</div>
+              )}
               {services.map((service) => (
                 <button
                   key={service.id}

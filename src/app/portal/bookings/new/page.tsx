@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import BookingWizard from '@/components/booking/BookingWizard'
 import { Button } from '@/components/ui/button'
+import { BookingProvider } from '@/contexts/BookingContext'
 
 export default function PortalNewBookingPage() {
   const router = useRouter()
@@ -23,7 +24,9 @@ export default function PortalNewBookingPage() {
           </div>
         </div>
 
-        <BookingWizard onComplete={() => router.push('/portal/bookings')} />
+        <BookingProvider>
+          <BookingWizard onComplete={() => router.push('/portal/bookings')} />
+        </BookingProvider>
       </div>
     </div>
   )
