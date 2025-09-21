@@ -44,3 +44,9 @@ Changes:
 
 Impact:
 - Prevents 500 errors from invalid query values, ensures updates/deletes succeed, and displays complete data set.
+
+## [2025-09-21] Test fixes: availability pricing, uploads File polyfill, recurring mapping
+Changes:
+- Availability API: do not cap by advanceBookingDays unless configured; allows future-dated queries for tests.
+- vitest.setup: added global File polyfill for Node, fixing uploads.* tests.
+- Recurring planner: varied conflict probe time per occurrence to align with alternating-conflict mock.
