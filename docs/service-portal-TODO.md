@@ -9,11 +9,13 @@ What was completed ✅
 Why these were completed
 - Improve resiliency, prevent duplicates, provide visibility and robust offline behavior.
 
+In progress 🔄
+- Payment status reflection plumbing: schema fields, webhook linking, checkout binding; next add admin UI and reconciliation.
+
 Outstanding work (actionable, prioritized)
 1) Payment status reflection
-- Link payment sessions to ServiceRequest/Booking
-- Persist paid/unpaid and retries; expose in admin UI
-- Reconcile via webhook idempotency; nightly audit job
+- Expose payment status in admin service-requests table and detail view
+- Add nightly reconciliation job using webhook idempotency
 
 2) Capacity enforcement improvements
 - Per-team/day capacity limits and error codes
@@ -29,8 +31,8 @@ Outstanding work (actionable, prioritized)
 - Idempotency duplicate POST path, WS auth scoping, payment reconciliation failure paths
 
 Next steps (2-week plan)
-- Week 1: Payment status reflection plumbing + admin exposure
+- Week 1: Finish payment status reflection + admin exposure
 - Week 2: Capacity enforcement; start promo CRUD scaffolding
 
 Notes
-- Key files: public/sw.js, src/lib/offline/backoff.ts, src/app/api/portal/service-requests/route.ts, src/components/portal/*
+- Key files: public/sw.js, src/lib/offline/backoff.ts, src/app/api/portal/service-requests/route.ts, src/app/api/payments/*, prisma/schema.prisma, src/components/portal/*
