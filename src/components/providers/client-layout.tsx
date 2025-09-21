@@ -5,6 +5,7 @@ import { SessionProvider } from 'next-auth/react'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
+import LiveChatWidget from '@/components/portal/LiveChatWidget'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -185,7 +186,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         </main>
         <Footer />
       </div>
-      {showPortalChat ? (await import('@/components/portal/LiveChatWidget')).default() : null}
+      {showPortalChat ? <LiveChatWidget /> : null}
       <Toaster />
     </SessionProvider>
   )
