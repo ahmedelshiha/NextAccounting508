@@ -8,6 +8,11 @@
   - Next: Set Neon/Netlify envs; run: pnpm db:generate && pnpm db:migrate && pnpm db:seed; verify scheduledAt/isBooking fields live.
   - Deps: Neon DB, Netlify/GitHub secrets; netlify.toml migration steps.
   - Complexity: M • Owner: infra/backend
+
+- [x] Demo data refresh
+  - Done: Seed enhanced with team members, assignments, linked bookings, task links; login page updated to list client1@example.com and client2@example.com accounts.
+  - Next: Review staging after deploy to confirm demo flows and adjust copy if needed.
+  - Owner: frontend/backend
 - [x] AvailabilityEngine (production-grade)
   - Done: Implemented src/lib/booking/availability.ts; refactored admin/portal routes to use it; added unit tests for buffers, weekends, daily caps; deterministic now option.
   - Next: Wire into Multi-step Booking Wizard and PricingEngine; expand blackoutDates once Phase 1 schema lands.
