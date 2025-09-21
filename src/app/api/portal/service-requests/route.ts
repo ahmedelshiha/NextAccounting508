@@ -384,6 +384,18 @@ export async function POST(request: Request) {
     })
 
     try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+
+    // Auto-assign if team autoAssign is enabled (prefer team-based autoAssign flag)
+    try {
+      const autoCount = await prisma.teamMember.count({ where: { autoAssign: true, isAvailable: true } }).catch(() => 0)
+      if (autoCount > 0) {
+        try {
+          const { autoAssignServiceRequest } = await import('@/lib/service-requests/assignment')
+          await autoAssignServiceRequest(created.id).catch(() => null)
+        } catch {}
+      }
+    } catch {}
+
     try {
       if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
         const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
