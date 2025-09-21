@@ -14,6 +14,15 @@ export async function GET(request: Request) {
     const pair = new WebSocketPair()
     const [client, server] = pair
 
+    // Try to authenticate user from NextAuth JWT (cookie or Authorization header)
+    let userId: string | null = null
+    try {
+      const mod = await import('next-auth/jwt')
+      const secret = (process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET) as string | undefined
+      const token = await (mod as any).getToken({ req: request as any, secret })
+      if (token?.sub) userId = String(token.sub)
+    } catch {}
+
     // Prepare a controller-like object that realtimeService understands
     const controller = {
       enqueue: (bytes: Uint8Array) => {
@@ -34,9 +43,12 @@ export async function GET(request: Request) {
     // Default connection id storage
     let connectionId: string | null = null
 
-    // On open, register subscription for 'all' events for this anonymous connection
+    // On open, register subscription using query param events if provided
     try {
-      connectionId = realtimeService.subscribe(controller as any, 'anon', ['all'])
+      const url = new URL((request as any).url || 'http://localhost')
+      const eventsParam = url.searchParams.get('events')
+      const events = eventsParam ? eventsParam.split(',').map(s => s.trim()).filter(Boolean) : ['all']
+      connectionId = realtimeService.subscribe(controller as any, userId || 'anon', events)
     } catch (e) {
       // ignore
     }
@@ -50,7 +62,7 @@ export async function GET(request: Request) {
             const events = Array.isArray(data.events) && data.events.length ? data.events : ['all']
             // Replace subscription by creating a new one
             if (connectionId) realtimeService.cleanup(connectionId)
-            connectionId = realtimeService.subscribe(controller as any, String(data.userId || 'anon'), events)
+            connectionId = realtimeService.subscribe(controller as any, String(userId || data.userId || 'anon'), events)
           } catch {}
         }
       } catch {}

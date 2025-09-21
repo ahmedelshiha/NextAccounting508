@@ -10,6 +10,8 @@ import { apiFetch } from '@/lib/api'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import OfflineQueueInspector from '@/components/portal/OfflineQueueInspector'
+import RealtimeConnectionPanel from '@/components/portal/RealtimeConnectionPanel'
 import { signOut } from 'next-auth/react'
 
 function BookingPreferencesForm() {
@@ -334,6 +336,11 @@ export default function PortalSettingsPage() {
           </CardHeader>
           <CardContent>
             <BookingPreferencesForm />
+
+            <div className="grid grid-cols-1 gap-6 mt-8">
+              <OfflineQueueInspector />
+              <RealtimeConnectionPanel />
+            </div>
 
             <div className="mt-8 border-t pt-6">
               <h3 className="text-lg font-medium text-gray-900 mb-2">Danger zone</h3>

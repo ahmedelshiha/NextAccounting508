@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
     const successUrl = String(body.successUrl || `${new URL(request.url).origin}/portal`)
     const cancelUrl = String(body.cancelUrl || `${new URL(request.url).origin}/booking`)
 
+    // Optional: serviceRequestId to bind payment session preemptively
+    const serviceRequestId = body.serviceRequestId ? String(body.serviceRequestId) : undefined
+
     const sessionObj = await stripe.checkout.sessions.create({
       mode: 'payment',
       success_url: successUrl,
@@ -83,8 +86,15 @@ export async function POST(request: NextRequest) {
         scheduledAt: scheduledAt.toISOString(),
         duration: String(duration || ''),
         bookingType: bookingType || 'STANDARD',
+        ...(serviceRequestId ? { serviceRequestId } : {}),
       }
     })
+
+    try {
+      if (serviceRequestId) {
+        await prisma.serviceRequest.update({ where: { id: serviceRequestId }, data: { paymentProvider: 'STRIPE', paymentSessionId: sessionObj.id, paymentStatus: 'UNPAID' as any, paymentAmountCents: quote.totalCents, paymentCurrency: quote.currency, paymentUpdatedAt: new Date() } })
+      }
+    } catch {}
 
     return NextResponse.json({ url: sessionObj.url, sessionId: sessionObj.id, amountCents: quote.totalCents, currency: quote.currency })
   } catch (e: any) {

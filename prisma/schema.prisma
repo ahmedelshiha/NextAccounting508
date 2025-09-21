@@ -454,6 +454,15 @@ model ServiceRequest {
   linkedBookings        Booking[]
   scheduledReminders    ScheduledReminder[]
 
+  // Payment reflection fields
+  paymentStatus        PaymentStatus?
+  paymentProvider      String?
+  paymentSessionId     String? @unique
+  paymentAmountCents   Int?
+  paymentCurrency      String?
+  paymentUpdatedAt     DateTime?
+  paymentAttempts      Int? @default(0)
+
   @@index([clientId])
   @@index([scheduledAt])
   @@index([isBooking, status])
@@ -644,6 +653,21 @@ model ChatMessage {
 }
 
 // Enums and other models
+model IdempotencyKey {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  userId     String?
+  tenantId   String?
+  entityType String?
+  entityId   String?
+  status     String   @default("RESERVED")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime?
+
+  @@index([tenantId])
+}
+
 enum ExpertiseLevel {
   junior
   mid
@@ -721,6 +745,14 @@ enum TaskStatus {
   REVIEW
   COMPLETED
   BLOCKED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+  PARTIAL
 }
 
 enum BookingType {

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
       )
     }
 
-    return NextResponse.json(service)
+    return NextResponse.json(service, { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } })
   } catch (error) {
     console.error('Error fetching service:', error)
     return NextResponse.json(
