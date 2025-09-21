@@ -31,6 +31,11 @@
 
 ---
 
+## 2025-09-21 — PWA + offline cache (flag-gated)
+- Added manifest.webmanifest and service worker (runtime caching for assets + /api/services and portal request lists). Registration controlled by NEXT_PUBLIC_ENABLE_PWA.
+- Added offline queue in LiveChatWidget to store portal chat POSTs and flush on reconnect.
+- Next: Expand caches via IndexedDB, offline portal UX for bookings/services, and add offline indicator UI.
+
 ## 2025-09-21 — Chat persistence + retention
 - Schema: Added ChatMessage model (chat_messages). No migration yet; deploy-safe until CI migration added.
 - Runtime: broadcastChatMessage persists to DB when available; failures are swallowed to keep UX smooth.
