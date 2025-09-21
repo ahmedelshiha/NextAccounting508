@@ -31,6 +31,12 @@
 
 ---
 
+## 2025-09-21 — Chat persistence + retention
+- Schema: Added ChatMessage model (chat_messages). No migration yet; deploy-safe until CI migration added.
+- Runtime: broadcastChatMessage persists to DB when available; failures are swallowed to keep UX smooth.
+- Ops: Weekly cleanup deletes chat messages older than 30 days.
+- Next: Add migration SQL and enable in Netlify CI; admin filters and export.
+
 ## 2025-09-21 — Admin chat console
 - Added /admin/chat page with AdminChatConsole component (room filter, backlog load, SSE updates) and API (/api/admin/chat) with permission guards.
 - Why: Allows support/admins to view and respond in real time using existing realtime transport.
