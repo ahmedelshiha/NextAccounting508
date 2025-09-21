@@ -24,6 +24,17 @@ export type AvailabilityOptions = {
   now?: Date
 }
 
+export function toMinutes(str: string | number) {
+  if (typeof str === 'number') return Math.floor(str)
+  if (typeof str !== 'string') return null
+  const parts = str.split(':').map((v) => parseInt(v, 10))
+  if (parts.length === 0) return null
+  const h = Number.isNaN(parts[0]) ? NaN : parts[0]
+  const m = parts.length > 1 ? (Number.isNaN(parts[1]) ? NaN : parts[1]) : 0
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  return h * 60 + m
+}
+
 export function minutesOfDay(date: Date) {
   return date.getHours() * 60 + date.getMinutes()
 }
