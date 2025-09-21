@@ -121,7 +121,8 @@ export default function ServicesAdminPage() {
       const a = document.createElement('a'); a.href = url; a.download = 'services-export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
     } catch (e) { console.error(e); toast.error('Export failed') }
   }
-  const onCreateNew = () => { setEditing(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const [showModal, setShowModal] = useState(false)
+  const onCreateNew = () => { setEditing(null); setShowModal(true) }
 
   // Filters component change
   const onFiltersChange = (f: ServiceFiltersType) => setFilters(f)
