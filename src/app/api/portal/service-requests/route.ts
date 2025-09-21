@@ -416,6 +416,7 @@ export async function POST(request: Request) {
       },
     })
 
+    try { if (typeof idemKey === 'string' && idemKey) { const { finalizeIdempotencyKey } = await import('@/lib/idempotency'); await finalizeIdempotencyKey(idemKey, 'ServiceRequest', created.id) } } catch {}
     try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
 
     // Auto-assign if team autoAssign is enabled (prefer team-based autoAssign flag)
