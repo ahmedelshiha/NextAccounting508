@@ -129,6 +129,10 @@ export default function ServiceRequestsClient() {
     return () => { try { es?.close() } catch {} }
   }, [session, refresh])
 
+  // Offline queue indicator (PWA feature gated)
+  const pwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
+  const { queuedCount, processQueue, refreshQueue } = useOfflineQueue()
+
   const exportCSV = async () => {
     if (!Array.isArray(items) || !items.length) return
     const params = new URLSearchParams()
