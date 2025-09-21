@@ -115,3 +115,22 @@ Next steps:
 - Expand tests coverage for recurrence and API routes; add idempotency keys to queued submissions.
 
 Logged by: Autonomous Dev (assistant)
+
+---
+
+Update:
+- Fixed missing import in recurring planner; added unit tests for recurrence and an integration test for recurring preview API.
+
+Why:
+- Ensures recurrence planning compiles and behaves deterministically in tests without DB.
+
+Files changed/added:
+- src/lib/booking/recurring.ts (UPDATED) — import checkBookingConflict
+- tests/recurrence-planner.test.ts (NEW)
+- tests/api-recurring-preview.test.ts (NEW)
+- docs/service-portal-TODO.md (UPDATED)
+
+Next steps:
+- Optionally run full test suite in CI; consider adding idempotency keys and more API failure-path tests.
+
+Logged by: Autonomous Dev (assistant)
