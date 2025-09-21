@@ -268,6 +268,29 @@ export default function BookingWizard(props: BookingWizardProps) {
         toast.error(err?.error || 'Failed to submit booking')
       }
     } catch (e) {
+      try {
+        const isNetworkError = !navigator.onLine || (e && (e as any).message && String((e as any).message).toLowerCase().includes('failed to fetch'))
+        if (isNetworkError && typeof window !== 'undefined') {
+          const { savePendingBooking } = await import('@/lib/offline/booking-cache')
+          const pendingPayload: any = {
+            serviceId: selectedService.id,
+            scheduledAt: scheduledISO,
+            notes: formData.notes,
+            clientName: formData.clientName,
+            clientEmail: formData.clientEmail,
+            clientPhone: formData.clientPhone,
+            assignedTeamMemberId: selectedTeamMemberId || undefined,
+            bookingType: bookingType || 'STANDARD',
+          }
+          await savePendingBooking(pendingPayload)
+          toast.success('You are offline — booking saved locally and will be submitted when online.')
+          setCurrentStep(7)
+          props.onComplete?.()
+          return
+        }
+      } catch (inner) {
+        // ignore
+      }
       toast.error('An error occurred. Please try again.')
     } finally {
       setIsSubmitting(false)
