@@ -40,6 +40,7 @@ export default function BookingWizard(props: BookingWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [services, setServices] = useState<Service[]>([])
   const [selectedService, setSelectedService] = useState<Service | null>(null)
+  const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
