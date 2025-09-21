@@ -1,7 +1,5 @@
 import { checkBookingConflict } from './conflict-detection'
-import prisma from '@/lib/prisma'
 import { addMinutes } from './availability'
-import { checkBookingConflict } from './conflict-detection'
 
 export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
 
