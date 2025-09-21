@@ -65,8 +65,9 @@
   - Next: Per-tenant rooms/groups UI, targeted notifications, optional persistence to DB, agent handoff/routing, tests.
   - Deps: Realtime; auth
   - Complexity: M • Owner: frontend/backend
-- [ ] PWA + offline cache
-  - Next: Add manifest + SW; IndexedDB caches (services, user bookings); pending-offline queue; flag-gated.
+- [x] PWA + offline cache
+  - Done: Added manifest.webmanifest, flag-gated service worker (NEXT_PUBLIC_ENABLE_PWA), runtime caching for assets and key APIs, and offline queue for portal chat POSTs; manifest linked in layout.
+  - Next: Expand caches (IndexedDB), offline portal views for bookings/services, add offline indicator UI.
   - Deps: Frontend build; security review
   - Complexity: M • Owner: frontend
 - [x] Touch-optimized calendar
