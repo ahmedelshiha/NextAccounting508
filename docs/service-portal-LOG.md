@@ -12,7 +12,20 @@ Files changed/added:
 - src/lib/offline/backoff.ts (NEW)
 - tests/offline-backoff.test.ts (NEW)
 
+---
+
+Update:
+- Began payment status reflection plumbing: added payment fields to ServiceRequest, webhook now links Stripe sessions to matching requests and marks PAID/FAILED, checkout optionally binds session to an existing ServiceRequest.
+
+Why:
+- Provides end-to-end visibility of payment state and a foundation for admin UI reconciliation.
+
+Files changed/added:
+- prisma/schema.prisma (UPDATED) — PaymentStatus enum and ServiceRequest payment fields
+- src/app/api/payments/webhook/route.ts (UPDATED) — update SR on session completed/failed
+- src/app/api/payments/checkout/route.ts (UPDATED) — metadata includes serviceRequestId; pre-mark pending payment
+
 Next steps:
-- Begin payment status reflection plumbing and admin UI exposure.
+- Expose payment status in admin service-requests table and details view; add nightly reconciliation job.
 
 Logged by: Autonomous Dev (assistant)
