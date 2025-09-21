@@ -1,4 +1,8 @@
 import React from 'react'
+import React from 'react'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 import { formatISO } from 'date-fns'
 
@@ -7,6 +11,17 @@ import { formatISO } from 'date-fns'
 // renders a compact dashboard with recent run summaries and aggregated tenant stats.
 export default async function Page({ searchParams }: { searchParams?: { limit?: string } }) {
   const limit = Number(searchParams?.limit || '20')
+  // Require admin analytics permission to view this page
+  const session = await getServerSession(authOptions)
+  const role = (session?.user as any)?.role as string | undefined
+  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-semibold">Unauthorized</h1>
+      </div>
+    )
+  }
+
   // Read recent audit health logs that contain reminders:batch_summary
   const logs = await prisma.healthLog.findMany({
     where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
