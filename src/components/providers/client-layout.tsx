@@ -166,6 +166,15 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     // no-op: removed keepalive ping to avoid dev fetch noise
   }, [])
 
+  // When connectivity returns, attempt to process any queued submissions
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1') {
+      const onOnline = () => { import('@/lib/offline-queue').then(mod => { mod.processQueuedServiceRequests?.().catch(() => {}) }) }
+      window.addEventListener('online', onOnline)
+      return () => window.removeEventListener('online', onOnline)
+    }
+  }, [])
+
   // PWA registration (flag-gated)
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_ENABLE_PWA === '1' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
