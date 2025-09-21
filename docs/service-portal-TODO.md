@@ -14,9 +14,9 @@ This list captures missing or partial items to align the booking module with the
 - [x] Team-member-aware availability
   - When a team member is chosen, compute slots using that member’s workingHours, buffer and time zone
   - Fallback to service.businessHours if member data missing
-- [ ] Capacity and blackout controls
+- [x] Capacity and blackout controls (partial)
   - Enforce service.blackoutDates at API boundary (return 404 for fully blacked-out dates)
-  - Respect AvailabilitySlot.maxBookings/currentBookings when present
+  - Respect AvailabilitySlot.maxBookings/currentBookings when present (availability slots considered when full or blocked)
 - [ ] Daily caps per team/service
   - Extend conflict detection for per-team/day capacity
 
