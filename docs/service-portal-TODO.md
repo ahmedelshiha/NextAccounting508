@@ -3,15 +3,15 @@
 This list captures missing or partial items to align the booking module with the enhancement plan.
 
 ## Foundation & Data Model
-- [ ] AvailabilitySlot model usage
+- [x] AvailabilitySlot model usage
   - Persist and consume AvailabilitySlot for manual overrides, capacity and exceptions
   - Admin APIs + UI to create/update/delete slots; support reasons (maintenance/holiday)
-- [ ] Team member working hours/timezone
+- [x] Team member working hours/timezone
   - Store and honor TeamMember.workingHours and timeZone in availability/conflicts
   - Respect maxConcurrentBookings and bookingBuffer at member level
 
 ## Availability & Scheduling
-- [ ] Team-member-aware availability
+- [x] Team-member-aware availability
   - When a team member is chosen, compute slots using that member’s workingHours, buffer and time zone
   - Fallback to service.businessHours if member data missing
 - [ ] Capacity and blackout controls
@@ -86,4 +86,12 @@ This list captures missing or partial items to align the booking module with the
 ---
 Status notes:
 - Implemented: core availability generation, pricing API, recurrence preview/creation, conflict detection (service‑level), SSE realtime updates, ICS in confirmations, portal service-requests integration.
-- Missing/Partial: team‑member working hours/timezone, AvailabilitySlot persistence, emergency flow, auto‑assign on portal create, scheduled reminder persistence, WS endpoint, payment capture, offline queue.
+- Completed now: team-member-aware availability (uses TeamMember.workingHours, bookingBuffer and maxConcurrentBookings; falls back to service businessHours). This enhances per-member availability filtering and capacity controls.
+- Remaining: emergency flow, AvailabilitySlot persistence, auto‑assign on portal create, scheduled reminder persistence, WS endpoint, payment capture, offline queue.
+
+Next steps (short-term):
+- Implement AvailabilitySlot persistence and admin UI to manage blackouts and overrides.
+- Extend conflict detection to incorporate team-member capacity and explicit AvailabilitySlot reservations.
+- Add scheduled reminder persistence and ensure cron sends reminders per preferences.
+
+For the next task I will implement AvailabilitySlot persistence and admin endpoints.

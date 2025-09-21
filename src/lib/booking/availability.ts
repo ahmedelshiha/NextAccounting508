@@ -146,6 +146,39 @@ export async function getAvailabilityForService(params: {
   const baseDuration = svc.duration ?? 60
   const minutes = slotMinutes ?? baseDuration
 
+  // If a team member is requested, prefer their working hours, buffer and capacity
+  let member: { id: string; workingHours?: any; bookingBuffer?: number; maxConcurrentBookings?: number; isAvailable?: boolean; timeZone?: string } | null = null
+  if (teamMemberId) {
+    try {
+      member = await prisma.teamMember.findUnique({ where: { id: teamMemberId }, select: { id: true, workingHours: true, bookingBuffer: true, maxConcurrentBookings: true, isAvailable: true, timeZone: true } })
+    } catch {
+      member = null
+    }
+  }
+
+  // If the member exists but is not available, return empty
+  if (member && member.isAvailable === false) {
+    return { slots: [] as AvailabilitySlot[] }
+  }
+
+  // Determine booking buffer and daily cap: prefer member settings, fallback to service
+  const bookingBufferMinutes = typeof (member?.bookingBuffer) === 'number' ? (member!.bookingBuffer || 0) : (typeof svc.bufferTime === 'number' ? svc.bufferTime : 0)
+  const maxDailyBookings = typeof (member?.maxConcurrentBookings) === 'number' && (member!.maxConcurrentBookings > 0) ? member!.maxConcurrentBookings : (typeof svc.maxDailyBookings === 'number' ? svc.maxDailyBookings : 0)
+
+  // Determine business hours: prefer member.workingHours if present
+  let businessHours = undefined
+  try {
+    if (member && member.workingHours) {
+      businessHours = normalizeBusinessHours(member.workingHours as any)
+    }
+  } catch {
+    businessHours = undefined
+  }
+  if (!businessHours) {
+    businessHours = normalizeBusinessHours(svc.businessHours as any)
+  }
+
+  // Fetch busy bookings for the given window. If a team member is specified, filter to that member.
   const busyBookings = await prisma.booking.findMany({
     where: {
       serviceId,
@@ -162,6 +195,14 @@ export async function getAvailabilityForService(params: {
     return { start, end }
   })
 
-  const slots = generateAvailability(from, to, minutes, busy, options)
+  const slots = generateAvailability(from, to, minutes, busy, {
+    ...options,
+    bookingBufferMinutes,
+    maxDailyBookings,
+    businessHours,
+    skipWeekends: options?.skipWeekends ?? false,
+    now: options?.now,
+  })
+
   return { slots }
 }
