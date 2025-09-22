@@ -1,6 +1,5 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { getServerSession } from 'next-auth/next';
 import { NextRequest, NextResponse } from 'next/server';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { getTenantFromRequest } from '@/lib/tenant';
