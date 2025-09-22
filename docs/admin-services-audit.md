@@ -1,180 +1,249 @@
 # Admin → Services Module Audit
 
-Updated: 2025-09-21
+Last updated: {{DATE}}
 
-## Overview
-- Purpose: Provide an administrative interface to list, create, update, soft-delete, feature, and bulk manage service offerings.
-- Placement: Admin UI at `/admin/services` (Next.js App Router page component) backed by API routes. Exposed public endpoints for consumer/portal use.
-- Workflows today:
-  - List/filter/search services (active/inactive/featured/category) with lightweight analytics visualizations.
-  - Create a new service; edit fields (name, descriptions, price, duration, category, featured, active); soft-delete (active=false).
-  - Bulk actions: activate/deactivate, feature/unfeature, delete.
-  - Currency “mass convert” helper (preview via currencies API, apply via multiple PUTs).
+## 1. Overview
+- Purpose: Centralize creation, management, analytics, and export of the firm’s service offerings.
+- Placement: Admin UI at `src/app/admin/services/page.tsx` with reusable UI in `@/components/admin/services/*` and REST API in `src/app/api/admin/services/*`. Business logic lives in `@/services/services.service.ts`. Shared types/schemas/utils under `@/types/services`, `@/schemas/services`, `@/lib/services/utils`.
+- Workflows supported:
+  - List, filter, paginate services
+  - Create/edit/delete (soft-delete via active=false)
+  - Bulk actions (activate/deactivate, feature/unfeature, category update, price update, delete)
+  - Export (CSV/JSON)
+  - View high-level analytics (counts/averages; placeholder for trends)
 
-## Complete Current Directory Structure
+How it fits overall:
+- Admin: Full CRUD + analytics and exports.
+- Portal/Client: Consumes services for bookings and service requests (pricing, availability, selection).
+- API: Validates with Zod; uses Prisma to query `Service` model; handles multitenancy via `tenantId`.
+
+## 2. Complete Current Directory Structure
+Annotated file tree related to Services.
 
 - src/app/admin/services/
-  - page.tsx — Admin page component (list, analytics, CRUD UI, bulk ops, currency converter). Role: page (UI controller, view, and interaction logic).
+  - page.tsx — Admin Services page (client component): list/filter/paginate; CRUD via API; bulk actions; analytics panel modal for create/edit.
+
+- src/components/admin/services/
+  - ServicesHeader.tsx — Header with stats, search, actions; permission-gated buttons via `useServicesPermissions`.
+  - ServicesFilters.tsx — Dropdown-based filter controls; emits `ServiceFilters` changes.
+  - ServiceCard.tsx — Card view for one service; action buttons (edit/copy/toggle active/featured/delete).
+  - ServiceForm.tsx — RHF + Zod form for create/edit; features editor; auto slug generation.
+  - BulkActionsPanel.tsx — Applies bulk operations on selected service IDs with client-side validation.
+  - ServicesAnalytics.tsx — Summary analytics tiles and simple charts fed by `/api/admin/services/stats`.
+
 - src/app/api/admin/services/
-  - route.ts — Admin-only listing endpoint (GET). Role: API (list for admin grid, supports filters/search/tenant scoping).
-- src/components/admin/services/ — Not Found
-- src/lib/services/ — Not Found
+  - route.ts — GET list with filters and demo fallback; POST create (Zod validate; 501 if DB missing).
+  - [id]/route.ts — GET one; PATCH update (Zod validate); DELETE soft-delete.
+  - bulk/route.ts — POST bulk actions (Zod validate) delegated to service layer.
+  - export/route.ts — GET CSV/JSON export; content-disposition for CSV.
+  - stats/route.ts — GET aggregated stats.
 
-Related (used by the module and part of the data plane)
-- src/app/api/services/route.ts — Public services collection API (GET list with fallbacks; POST create). Role: API.
-- src/app/api/services/[slug]/route.ts — Public service item API (GET by slug; PUT update; DELETE soft delete). Role: API.
-- Shared UI used by the page (not services-specific):
-  - @/components/ui/{card, button, input, textarea, badge}
-  - lucide-react icons, sonner toast
-- Shared libs:
-  - @/lib/api (apiFetch helper)
-  - @/lib/tenant (tenantFilter, getTenantFromRequest)
-  - @/lib/auth, @/lib/permissions (admin API usage)
-  - @/lib/prisma (DB access)
+- src/lib/services/
+  - utils.ts — Slug generation; form sanitization; price/duration formatting; filter/sort helpers; bulk-action validator; Prisma-backed slug uniqueness check.
 
-## Component Architecture Details
+- src/services/
+  - services.service.ts — Business service layer: Prisma CRUD, bulk ops, stats, export; cache + notifications hooks.
 
-Admin Page: src/app/admin/services/page.tsx
-- State:
-  - services: Service[]; loading flags; analytics state (range, data, loading)
-  - View state: viewMode, showInactive, filters (search, featured, category)
-  - Selection: selectedIds (Set), bulkAction
-  - Create/Edit forms: inputs for all service fields; selected Service for edit
-  - Currency converter UI state: fromCurrency, toCurrency, conversionRate, previewCount, dialog toggle
-- Effects:
-  - Initial load() of admin services list `/api/admin/services`
-  - Initial loadAnalytics() `/api/admin/analytics?range=...`
-  - Auto-generate slug from name
-- Actions (internal functions):
-  - load, loadAnalytics: fetch, normalize response, set state
-  - createService: POST to `/api/services`
-  - selectService: populate edit form from selected record
-  - saveEdits: PUT `/api/services/[slug]`
-  - deleteService: DELETE `/api/services/[slug]` (soft delete via active=false)
-  - toggleActive: PUT `/api/services/[slug]` with active toggle
-  - duplicateService: POST `/api/services` with copied fields and new slug
-  - applyBulk: executes delete/feature/activate operations via multiple calls
-  - previewConversion: calls `/api/currencies/convert` to compute rate and preview count
-  - applyConversion: PUT `/api/services/[slug]` for each priced service
-- Dependencies:
-  - apiFetch (@/lib/api) with built-in retry/timeout behavior
-  - Analytics uses `/api/admin/analytics` response fields (dailyBookings, revenueByService, topServices, avgLeadTimeDays)
-- Reusability: This page is admin-specific; chart helpers (LineAreaChart, HBarChart, PieDonutChart) are inline and not exported; could be refactored into reusable components.
+- src/schemas/services.ts — Zod schemas: ServiceSchema/ServiceUpdateSchema/BulkActionSchema/ServiceFiltersSchema and response shapes.
+- src/types/services.ts — TypeScript types for Service, ServiceFormData, filters, stats, analytics, bulk actions.
+- prisma/schema.prisma — Service model definition and relations (Bookings, ServiceRequest, AvailabilitySlot).
 
-## Data Flow Architecture
-- UI → API:
-  - Listing: GET `/api/admin/services` (admin-only; supports search/featured/active and tenant filter)
-  - Create/Update/Delete: calls public endpoints `/api/services` and `/api/services/[slug]`
-  - Analytics: GET `/api/admin/analytics` (shared analytics API)
-  - Currency: GET `/api/currencies/convert` preview
-- API → DB:
-  - Admin listing: @/app/api/admin/services/route.ts uses @/lib/prisma.service.findMany
-  - Public services collection/item: @/app/api/services/* uses @/lib/prisma (findMany, create, update)
-- Validation & error handling:
-  - UI: basic field checks; uses toast to display errors; no schema validation on client
-  - API (public collection): minimal validation for required fields on POST; no zod; returns 400/500
-  - API (public [slug]): parses payload and conditionally sets fields; no auth/permission guard
-  - Admin list API: permission check via @/lib/permissions.hasPermission(..., PERMISSIONS.TEAM_VIEW)
-- Caching:
-  - Public GET by slug adds cache-control header; others are dynamic
+Related hooks/utilities used:
+- src/hooks/useServicesPermissions.ts — Permission derivation from NextAuth session.
+- src/hooks/useServicesData.ts — Fetches list + stats with debounce and optional auto-refresh.
+- Shared libs frequently integrating services: `@/lib/booking/*` (availability, pricing, conflict detection), `@/lib/audit`, `@/lib/rate-limit`, `@/lib/tenant`.
 
-### Custom Hooks
-- None dedicated to Services. Admin page uses inline effects and functions.
-- Shared helper: @/lib/api(apiFetch) centralizes retries, timeouts, and relative vs absolute base URL.
+## 3. Component Architecture Details
 
-## API Architecture
-- @/app/api/admin/services/route.ts
-  - GET /api/admin/services
-    - Auth: requires session user with PERMISSIONS.TEAM_VIEW (surprising choice; see issues)
-    - Query params: search, featured, active; multi-tenancy via @/lib/tenant
-    - Response: Service[]; in no-DB mode returns fallback list (active, featured annotated)
-    - Errors: 401 Unauthorized; 500 on failure
-  - Missing: POST/PUT/DELETE endpoints under /api/admin/services for explicit admin CRUD
+Components under `@/components/admin/services`:
+- ServicesHeader
+  - Props: `{ stats: ServiceStats|null, searchTerm: string, onSearchChange, onRefresh, onExport, onCreateNew, loading }`.
+  - Dependencies: `useServicesPermissions`, `@/components/ui/*`, lucide icons.
+  - Notes: Reusable across admin dashboards that need similar header pattern; shows analytics button behind permission.
 
-- @/app/api/services/route.ts (public)
-  - GET /api/services
-    - No auth; returns active services only; in no-DB mode returns a fallback list
-    - If DB query returns zero, returns the same fallback list
-  - POST /api/services
-    - No auth guard; creates a service; basic required fields check (name, slug, description)
-    - No zod schema; minimal parsing of numeric fields
+- ServicesFilters
+  - Props: `{ filters: ServiceFilters, onFiltersChange, categories: string[], className? }`.
+  - Behavior: Maintains no internal state; emits filter updates; shows active filter badges and quick clear.
+  - Reusability: Can be reused in list/table contexts that operate on `ServiceFilters`.
 
-- @/app/api/services/[slug]/route.ts (public)
-  - GET /api/services/[slug]
-    - No auth; returns active service by slug; 404/500 on not found/failure; cache-control header added
-  - PUT /api/services/[slug]
-    - No auth guard (comment says admin only); updates fields; soft conversion of numeric fields
-  - DELETE /api/services/[slug]
-    - No auth guard; soft delete via active=false
+- ServiceCard
+  - Props: `{ service, isSelected?, onSelect?, onEdit, onDuplicate, onDelete, onToggleActive, onToggleFeatured }`.
+  - Dependencies: `useServicesPermissions`, `formatPrice`, `formatDuration`.
+  - Notes: Stateless UI; selection checkbox optional.
 
-## Integration Points
-- Bookings/Portal
-  - Admin bulk price conversion and status toggles affect portal availability and pricing indirectly (downstream pricing resolvers reference service.duration/price).
-  - Public services endpoints are consumed in many places:
-    - @/components/home/services-section.tsx (marketing cards)
-    - @/app/admin/{bookings, service-requests}/new/pages (lists available services)
-    - @/components/booking/BookingWizard.tsx (portal booking flow loads `/api/services`)
-- Analytics
-  - Uses `/api/admin/analytics` to render trends and totals in the services page.
-- Multi-tenancy
-  - Listing endpoints leverage @/lib/tenant (getTenantFromRequest, tenantFilter); create/update do not attach tenant explicitly via admin endpoints (public POST optionally sets tenant in collection route based on request — see code path). Admin UI does not set tenant.
-- Currencies
-  - Uses `/api/currencies/convert` preview; applies converted prices via multiple PUTs to `/api/services/[slug]`.
+- ServiceForm
+  - Props: `{ initialData?, onSubmit, onCancel, loading?, categories? }`.
+  - State: Uses react-hook-form with `ServiceSchema`; dynamic features list editing; auto-generate slug from name for create mode.
+  - Notes: Validates strictly via Zod; serializes clean `ServiceFormData` back to caller.
 
-## Known Issues & Improvements (Audit Findings)
-1. Security gaps on public endpoints
-   - POST /api/services and PUT/DELETE /api/services/[slug] perform administrative mutations without any auth/permission checks. The Admin UI relies on these public endpoints for all mutations.
-   - Risk: unauthenticated clients could create/update/delete services if routes are exposed.
-2. Permission mismatch on admin list
-   - /api/admin/services GET requires PERMISSIONS.TEAM_VIEW, which does not semantically match “services.manage” capability. Consider a dedicated SERVICES_* permission set.
-3. Missing dedicated admin CRUD endpoints
-   - No /api/admin/services POST/PUT/DELETE; public endpoints are overloaded for admin operations.
-4. Absent schema validation
-   - No zod or server-side schema for POST/PUT payloads; potential type coercion issues.
-5. Inconsistent tenant handling
-   - Admin UI does not set tenant; public POST path conditionally attaches tenant via @/lib/tenant in collection API, but [slug] routes don’t guard tenant or enforce scoping.
-6. Inline chart components and complex page
-   - Chart helpers are inline; page.tsx combines analytics, list, edit, bulk ops. High cognitive load; hard to test.
-7. Tests
-   - No unit/integration tests found for services APIs or Admin UI.
-8. Error handling and UX
-   - Bulk ops fire many requests without transactional feedback; failures partially update state; no retry/undo.
-9. Caching strategy
-   - Only GET by slug has cache headers; list endpoints are fully dynamic. Consider SWR or tag-based revalidation strategy.
+- BulkActionsPanel
+  - Props: `{ selectedIds: string[], onClearSelection, onBulkAction, categories: string[], loading? }`.
+  - State: Local selected action and value fields; client-side validation via `validateBulkAction`.
+  - Notes: Delegates execution to parent; previews effect.
 
-## Recommendations
-1. Introduce explicit Services permissions
-   - Add to @/lib/permissions: SERVICES_VIEW, SERVICES_MANAGE, SERVICES_WRITE (as needed);
-   - Map ADMIN/TEAM_LEAD appropriately. Update Admin endpoints to use these.
-2. Lock down mutations
-   - Move create/update/delete to /api/admin/services and enforce session + permission checks.
-   - Keep public GET endpoints read-only for portal/marketing.
-3. Add server-side schema validation
-   - Define zod schemas for ServiceCreate/ServiceUpdate; validate payloads and coerce numbers safely; return consistent error shapes (@/lib/api-response helpers if available).
-4. Tenant safety
-   - On admin CRUD, always set tenantId using getTenantFromRequest; enforce tenantFilter on updates/deletes; add compound unique constraints if needed (tenantId+slug).
-5. Refactor Admin page
-   - Split into subcomponents: ServicesToolbar, ServicesGrid, ServicesTable, ServiceForm, CurrencyConverterModal, AnalyticsPanel.
-   - Consider hooks: useServicesList, useServiceMutations, useCurrencyConversion, useServicesAnalytics to encapsulate side-effects and API contracts.
-6. Create admin services API surface
-   - /api/admin/services: GET (list), POST (create)
-   - /api/admin/services/[id|slug]: GET (detail), PUT (update), DELETE (soft-delete)
-   - Update Admin UI to call only admin endpoints.
-7. Add tests
-   - API route tests (auth guard, schema validation, tenant scoping, CRUD); UI tests for create/edit/bulk flows.
-8. Improve analytics data contract
-   - Provide typed responses and consistent keys for charts; document contract in a types module.
-9. Performance & UX
-   - Debounce search; show optimistic UI on toggle/feature; batch bulk requests server-side.
-10. Documentation
-   - Add README in src/app/admin/services/ with data flow diagram, endpoint references, and extension points.
+- ServicesAnalytics
+  - Props: `{ analytics: ServiceAnalytics|null, loading?, className? }`.
+  - Behavior: Skeleton while loading; simple computed summaries.
+  - Notes: Purely presentational; expects normalized analytics structure.
 
-## Appendix: Current Endpoints Summary
-- Admin
-  - GET @/app/api/admin/services/route.ts → /api/admin/services
-- Public
-  - GET @/app/api/services/route.ts → /api/services
-  - POST @/app/api/services/route.ts → /api/services (no auth; risky)
-  - GET @/app/api/services/[slug]/route.ts → /api/services/[slug]
-  - PUT @/app/api/services/[slug]/route.ts → /api/services/[slug] (no auth; risky)
-  - DELETE @/app/api/services/[slug]/route.ts → /api/services/[slug] (no auth; risky)
+Admin Page `@/app/admin/services/page.tsx`:
+- Manages local state for list, filters, selection, pagination, analytics modal, and form modal.
+- Fetches via `apiFetch` from `/api/admin/services` and `/api/admin/services/stats` (fallback to `/api/admin/analytics`).
+- Performs CRUD + bulk operations directly via API; includes client-side filtering and pagination over fetched list.
+
+## 4. Data Flow Architecture
+
+Flow:
+- Database (Prisma) ⇄ Service layer (`@/services/services.service.ts`) ⇄ API routes (`/api/admin/services/*`) ⇄ Fetch (`@/lib/api`) ⇄ Hooks/components ⇄ UI.
+
+Where DB queries occur:
+- `@/services/services.service.ts` using Prisma models: `service.findMany/findFirst/create/update/updateMany/count/groupBy/aggregate`.
+- Utilities occasionally use Prisma (slug uniqueness) in `@/lib/services/utils`.
+
+Validation and error handling:
+- Request validation: Zod schemas in `@/schemas/services` applied in API handlers (list filters, create, update, bulk).
+- Server-side sanitization: `sanitizeServiceData` enforces constraints, length limits, numeric ranges; `validateSlugUniqueness` ensures uniqueness per tenant.
+- Rate limiting: `@/lib/rate-limit` on list/create endpoints (IP-scoped keys).
+- Audit logging: `@/lib/audit` on list/create/update/delete/bulk.
+- Fallbacks: List endpoint returns demo data if `NETLIFY_DATABASE_URL` missing or schema errors; create returns 501 without DB.
+
+Caching:
+- `CacheService` used in service layer for `getServiceById` and stats; `clearCaches` is currently a stub pattern (no real invalidation driver implemented).
+
+Custom hooks related to Services:
+- `useServicesPermissions` — Maps session role to booleans (view/create/edit/delete/bulk/export/analytics/featured management).
+- `useServicesData` — Debounced filtered list and stats fetcher with optional auto-refresh; maintains `{ services, stats, loading, error, filters }` and `refresh` function.
+
+## 5. API Architecture
+
+Base: `/api/admin/services` (all require authenticated session and role/permission checks via `@/lib/permissions`). Multitenancy via `getTenantFromRequest`.
+
+- GET `/api/admin/services`
+  - Query: `ServiceFiltersSchema` (`search, category, featured, status, limit, offset, sortBy, sortOrder`).
+  - Response: `{ services, total, page, limit, totalPages }` (see `ServiceListResponseSchema`).
+  - Errors: 401/403/429; 500; demo fallback when DB missing or schema errors.
+
+- POST `/api/admin/services`
+  - Body: `ServiceSchema` (Zod) then `sanitizeServiceData` + slug uniqueness.
+  - Response: `{ service }` with 201; 501 if DB missing; 409 on unique slug violation; 500 otherwise.
+
+- GET `/api/admin/services/[id]`
+  - Response: `{ service }` or 404 if not found.
+
+- PATCH `/api/admin/services/[id]`
+  - Body: `ServiceUpdateSchema` (partial; includes id in schema) sanitized; slug uniqueness if changed.
+  - Response: `{ service }`; 404 if not found.
+
+- DELETE `/api/admin/services/[id]`
+  - Behavior: Soft-delete by setting `active=false`.
+  - Response: `{ message }`; 404 if not found.
+
+- POST `/api/admin/services/bulk`
+  - Body: `BulkActionSchema` with `action` in `['activate','deactivate','feature','unfeature','delete','category','price-update']`.
+  - Response: `{ message, result: { updatedCount, errors } }`.
+
+- GET `/api/admin/services/export`
+  - Query: `format=csv|json`, `includeInactive=true|false`.
+  - Response: CSV stream with content-disposition or JSON body.
+
+- GET `/api/admin/services/stats`
+  - Query: `range=30d|...` (currently unused in service layer; cache key fixed to 30d).
+  - Response: `ServiceStats & { analytics: ServiceAnalytics }` (analytics lists are placeholders currently empty from DB).
+
+Permissions:
+- Enforced per route with `hasPermission(session.user.role, PERMISSIONS.*)`.
+
+## 6. Integration Points
+
+Downstream consumers and shared libs referencing Services:
+- Bookings
+  - Availability: `@/lib/booking/availability.ts` loads `prisma.service` and `AvailabilitySlot` by `serviceId`.
+  - Conflict detection: `@/lib/booking/conflict-detection.ts` validates `service.active`/`bookingEnabled`.
+  - Pricing: `@/lib/booking/pricing.ts` reads service to compute price breakdown; promo resolvers dereference `serviceId`.
+  - UI: `@/components/booking/BookingWizard.tsx` loads services and threads `serviceId` through steps (TeamMemberSelection/RecurrenceStep/PaymentStep).
+- Service Requests
+  - API creation/guest endpoints validate `serviceId` and `service.active` in multiple routes under `/api/portal/service-requests/*` and `/api/public/service-requests`.
+  - Admin pages for SR creation (`@/app/admin/service-requests/new/page.tsx`) select service by `id` and hydrate selection details.
+- Admin Availability
+  - `@/components/admin/AvailabilitySlotsManager.tsx` uses `serviceId` to create/manage slots.
+- Prisma relations
+  - `Service` relates to `Booking`, `ServiceRequest`, and `AvailabilitySlot` (see `prisma/schema.prisma`).
+
+Shared utilities
+- `@/types/services` used across UI and service layer.
+- `@/schemas/services` used in API, paired with `@/lib/services/utils` sanitization.
+
+## 7. Known Issues & Improvements (Audit Findings)
+
+- Inconsistent DB fallback behavior
+  - List endpoint has robust demo fallback (no DB or schema errors). Create returns 501 if DB missing. Other endpoints (`stats`, `export`, `bulk`, `[id]`) return 500 on missing DB; consider consistent 501 + helpful message.
+
+- Client-side filtering/pagination duplication
+  - Admin page performs additional client-side filtering and paginates locally after fetching up to 100 items, while API supports server filtering/sorting/pagination. Risk of divergence and heavy payloads for large datasets.
+
+- Mixed validation layers
+  - Zod validation (API) + `sanitizeServiceData` (service layer). Some constraints duplicated (lengths, ranges). Centralize to avoid drift.
+
+- Cache invalidation is a stub
+  - `clearCaches` composes patterns but performs no real cache delete operations; caching may not reflect updates.
+
+- Analytics placeholders
+  - `getServiceStats` returns counts and averages; `analytics` arrays are empty. Admin page fakes shape by normalizing any admin analytics endpoint when stats missing.
+
+- Code duplication
+  - Fallback service list duplicated in two places within `GET /api/admin/services` (normal path and error path). Extract to utility.
+
+- Param typing smell
+  - `[id]/route.ts` uses `interface Ctx { params: Promise<{ id: string }> }`; typical Next.js App Router uses synchronous `params` object. Not harmful but inconsistent.
+
+- Missing comprehensive tests
+  - No targeted tests for Services API, service layer, or components. Hooks like `useServicesData` and permission gating lack coverage.
+
+- Multitenancy edge cases
+  - `validateSlugUniqueness` scopes by `tenantId` but does not enforce unique composite `(tenantId, slug)` at DB level (DB has global unique on `slug`). Consider tenant-aware uniqueness if multi-tenant DB is required.
+
+## 8. Recommendations
+
+Architecture & Consistency
+- Consolidate validation by driving from Zod schemas and deriving sanitization or vice versa; ensure single source of truth.
+- Prefer server-side pagination/filtering exclusively. Update Admin page to depend on API paging (remove client filtering/pagination), or explicitly cap lists.
+- Normalize analytics: have `getServiceStats` return a consistent analytics payload and let UI consume it directly (drop fallback to `/api/admin/analytics`).
+
+Caching & Performance
+- Implement real cache keys and deletion in `CacheService` (e.g., Redis) and wire into `clearCaches` to invalidate `service:*`, `services-list:*`, and `service-stats:*` after mutations.
+- Add ETag/If-None-Match for list endpoints or cache-control for stable filters; consider SWR in Admin page via `useServicesData`.
+
+API Hardening
+- Harmonize DB-missing behavior: respond 501 with helpful messages consistently across all services endpoints when DB unavailable; optionally provide demo data for `stats/export` similar to list fallback.
+- Add explicit 409 handling for slug conflicts on update as well (not only create), surfaced with user-friendly messages.
+- Enforce tenant-scoped unique slug at DB (composite index) if multi-tenant is truly required; or document global uniqueness.
+
+UI/UX
+- Replace custom fetch logic in Admin page with `useServicesData` to reduce duplication; wire paging and server filters.
+- Add optimistic UI for toggles and bulk actions where safe; show per-item error reporting in bulk operations.
+- Extract fallback dataset into a shared client util to keep demo mode consistent.
+
+Testing
+- Add unit tests for:
+  - `sanitizeServiceData`, `generateSlug`, `validateBulkAction`, `formatPrice/formatDuration`.
+  - Service layer CRUD and bulk (with Prisma test DB or mocking).
+  - API route handlers (happy/error paths, permissions, DB-missing behavior).
+  - Component snapshot/interactions (ServiceForm validation, BulkActionsPanel logic).
+
+Integrations
+- Bookings/Service Requests: publish service changes (status/price/category) to downstream consumers via a lightweight event bus or invalidate caches where used (availability/pricing calculators).
+- Define a shared DTO for "ServiceLite" used by BookingWizard and SR creation to avoid repeated ad-hoc projections.
+
+Security & DX
+- CSV export already escapes quotes; consider prefixing cells with apostrophe if you anticipate CSV injection scenarios in Excel.
+- Rate limits: evaluate per-tenant keys in addition to IP.
+
+---
+
+References (aliases)
+- UI: `@/app/admin/services/page.tsx`, `@/components/admin/services/*`
+- API: `@/app/api/admin/services/*`
+- Service layer: `@/services/services.service.ts`
+- Schemas/Types: `@/schemas/services`, `@/types/services`
+- Utils: `@/lib/services/utils`
+- Prisma Model: `prisma/schema.prisma` (Service)
