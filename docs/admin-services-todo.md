@@ -58,9 +58,9 @@ PRIORITIZED WORK (critical path first)
 - [x] 6.3.1 CSV export sanitization & throttling
 
 7) Phase 7 — Tests & QA (start after Phase 2/3 complete)
-- [ ] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
-- [ ] 7.2.1 Integration tests for all service API routes (including 409 slug conflicts)
-- [ ] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
+- [x] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
+- [x] 7.2.1 Integration tests for all service API routes (including 409 slug conflicts)
+- [x] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
 
 8) Phase 8 — Documentation & Monitoring (ongoing)
 - [ ] 8.1.1 Generate OpenAPI spec for admin service endpoints
@@ -71,7 +71,7 @@ Actionable immediate next steps (top 5)
 - [ ] Create Prisma migration files for Service.views and ServiceView model, commit migration (developer to run with DB creds)
 - [x] Enhance Netlify build to run lint, typecheck, tests and build
 - [x] Add Redis wrapper and plan migration from in-memory cache to Redis (design + implementation tasks)
-- [ ] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
+- [x] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
 - [ ] Surface revenueTimeSeries & conversionsByService in admin UI (charts already wired — verify accessibility and responsiveness)
 
 Notes about completed work
