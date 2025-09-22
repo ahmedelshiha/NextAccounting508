@@ -60,3 +60,17 @@ Why:
 
 Next steps:
 - Run typecheck; address any fallout. Continue migrating remaining endpoints away from direct active checks.
+
+## [2025-09-22] Phase 2.2 – Service Layer Business Logic
+What I changed:
+- Implemented cloneService(name, fromId) with tenant-scoped slug dedup; clones as DRAFT, not active.
+- Added getServiceVersionHistory(id) stub returning [].
+- Added validateServiceDependencies(service) for basic booking/duration/buffer checks.
+- Implemented bulkUpdateServiceSettings(updates) with shallow JSON merge per service.
+- Strengthened cache invalidation to wipe service:*:tenant patterns.
+
+Why:
+- Prepares service module for future workflows (versions, dependency checks) and operational settings updates.
+
+Next steps:
+- Proceed to Phase 3.1: error handling standardization (structured error responses, codes, 409 on slug conflict).
