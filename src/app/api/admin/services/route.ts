@@ -7,7 +7,6 @@ import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
-import { getDemoServicesList } from '@/lib/services/utils';
 import { createHash } from 'crypto';
 
 const svc = new ServicesService();
@@ -35,17 +34,7 @@ export async function GET(request: NextRequest) {
 
     const tenantId = getTenantFromRequest(request);
 
-    // Graceful fallback when DB isn't configured (demo mode)
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      const result = getDemoServicesList(filters as any)
-      await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters, demo: true } });
-      const etag = '"' + createHash('sha1').update(JSON.stringify({ t: result.total, ids: (result.services||[]).map((s:any)=>s.id), up: (result.services||[]).map((s:any)=>s.updatedAt) })).digest('hex') + '"'
-      const ifNoneMatch = request.headers.get('if-none-match')
-      if (ifNoneMatch && ifNoneMatch === etag) {
-        return new NextResponse(null, { status: 304, headers: { ETag: etag } })
-      }
-      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
-    }
+
 
     const result = await svc.getServicesList(tenantId, filters as any);
 
@@ -60,19 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
   } catch (e: any) {
     console.error('services GET error', e);
-    const code = String(e?.code || '')
-    const msg = String(e?.message || '')
-    const isSchemaErr = code.startsWith('P10') || code.startsWith('P20') || /relation|table|column|does not exist|schema/i.test(msg)
-    if (isSchemaErr) {
-      const result = getDemoServicesList({ ...Object.fromEntries(new URL(request.url).searchParams.entries()) } as any)
-      const etag = '"' + createHash('sha1').update(JSON.stringify({ t: result.total, ids: (result.services||[]).map((s:any)=>s.id), up: (result.services||[]).map((s:any)=>s.updatedAt) })).digest('hex') + '"'
-      const ifNoneMatch = request.headers.get('if-none-match')
-      if (ifNoneMatch && ifNoneMatch === etag) {
-        return new NextResponse(null, { status: 304, headers: { ETag: etag } })
-      }
-      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } })
-    }
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
   }
 }
 
@@ -85,9 +62,6 @@ export async function POST(request: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_CREATE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      return NextResponse.json({ error: 'Database is not configured. Connect a database to create services.' }, { status: 501 });
-    }
 
     const body = await request.json();
     const validated = ServiceSchema.parse(body);

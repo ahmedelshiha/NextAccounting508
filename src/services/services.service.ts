@@ -164,10 +164,15 @@ export class ServicesService {
       ...(tenantId ? ({ service: { tenantId } } as any) : {}),
     };
 
-    const bookings = await prisma.booking.findMany({
-      where: bookingWhere,
-      select: { id: true, scheduledAt: true, serviceId: true, service: { select: { id: true, name: true, price: true } } },
-    });
+    let bookings: Array<{ id: string; scheduledAt: any; serviceId: string; service?: { id: string; name: string; price: any } }> = []
+    try {
+      if ((prisma as any)?.booking?.findMany) {
+        bookings = await (prisma as any).booking.findMany({
+          where: bookingWhere,
+          select: { id: true, scheduledAt: true, serviceId: true, service: { select: { id: true, name: true, price: true } } },
+        })
+      }
+    } catch { bookings = [] }
 
     // monthly bookings counts
     const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -211,11 +216,19 @@ export class ServicesService {
       from.setMonth(from.getMonth() - i);
       from.setDate(1);
       const to = new Date(from.getFullYear(), from.getMonth() + 1, 1);
-      const [tot, done] = await Promise.all([
-        prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to } } }),
-        prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to }, status: 'COMPLETED' as any } }),
-      ]);
-      conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: tot ? (done / tot) * 100 : 0 });
+      try {
+        if ((prisma as any)?.booking?.count) {
+          const [tot, done] = await Promise.all([
+            (prisma as any).booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to } } }),
+            (prisma as any).booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to }, status: 'COMPLETED' as any } }),
+          ]);
+          conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: tot ? (done / tot) * 100 : 0 });
+        } else {
+          conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: 0 });
+        }
+      } catch {
+        conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: 0 });
+      }
     }
 
     const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv };
