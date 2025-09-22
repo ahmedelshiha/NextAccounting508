@@ -1,5 +1,3 @@
-type CacheEntry = { value: any; expiresAt: number | null }
-
 import RedisCache from './cache/redis'
 
 type CacheEntry = { value: any; expiresAt: number | null }
