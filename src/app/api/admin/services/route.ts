@@ -61,6 +61,21 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function HEAD(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return new NextResponse(null, { status: 401 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return new NextResponse(null, { status: 403 });
+    return new NextResponse(null, { status: 200, headers: { 'Cache-Control': 'private, max-age=60' } });
+  } catch (e: any) {
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    console.error('services HEAD error', e);
+    return new NextResponse(null, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request as any);
