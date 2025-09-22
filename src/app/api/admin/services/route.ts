@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
     const msg = String(e?.message || '')
     const isSchemaErr = code.startsWith('P10') || code.startsWith('P20') || /relation|table|column|does not exist|schema/i.test(msg)
     if (isSchemaErr) {
-      const fallback = getDemoServices()
-      return NextResponse.json({ services: fallback, total: fallback.length, page: 1, limit: fallback.length, totalPages: 1 }, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(fallback.length) } })
+      const result = getDemoServicesList({ ...Object.fromEntries(new URL(request.url).searchParams.entries()) } as any)
+      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } })
     }
     return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
   }
