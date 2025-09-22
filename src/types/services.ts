@@ -47,6 +47,8 @@ export interface ServiceStats {
   totalRevenue: number;
 }
 
+export interface ServiceLite { id: string; name: string; shortDesc?: string | null; price?: number | null; duration?: number | null }
+
 export interface ServiceAnalytics {
   monthlyBookings: { month: string; bookings: number }[];
   revenueByService: { service: string; revenue: number }[];
