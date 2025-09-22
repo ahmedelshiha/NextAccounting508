@@ -1,12 +1,12 @@
-## [2025-09-22] Phase 1.1 – Type System Unification completed
+## [2025-09-22] Phase 1.2 – UI Component Consolidation completed
 What I changed:
-- Refactored `@/app/admin/services/page.tsx` to remove local `Service`, `ServiceStats`, `ServiceFilters`, and `ServiceAnalytics` interfaces.
-- Imported shared types from `@/types/services` and split sorting state into `sortBy`/`sortOrder` separate from `ServiceFilters`.
-- Updated query parameter construction and UI controls to use the new sort state.
+- Replaced custom header/controls in `@/app/admin/services/page.tsx` with `ServicesHeader`.
+- Integrated `ServicesFilters` into the Advanced Filters area; delegated category/status/featured to shared component.
+- Replaced ad-hoc analytics tab content with `ServicesAnalytics` wired to `/api/admin/services/stats` data.
+- Preserved local sort controls and bulk actions; kept view mode toggle.
 
 Why:
-- Eliminate type duplication and drift; enforce a single source of truth for service-related types; improve maintainability and type safety.
+- Remove duplication, improve consistency, and centralize UX patterns for maintainability.
 
 Next steps:
-- Phase 1.2 – replace inline header/filters/analytics with shared components and verify UX parity.
-- Run `pnpm run typecheck` locally and address any residual type issues if present.
+- Phase 1.3 – consolidate validation: migrate URL checks to Zod and keep `sanitizeServiceData` transform-only.
