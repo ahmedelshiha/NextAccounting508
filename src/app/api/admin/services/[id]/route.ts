@@ -9,11 +9,19 @@ import { logAudit } from '@/lib/audit';
 
 const svc = new ServicesService();
 
-interface Ctx { params: { id: string }; }
+type Ctx = { params: { id: string } } | { params: Promise<{ id: string }> } | any;
 
-export async function GET(request: NextRequest, { params }: Ctx) {
+async function resolveId(ctx: any): Promise<string | undefined> {
   try {
-    const { id } = params;
+    const p = ctx?.params;
+    const v = p && typeof p.then === 'function' ? await p : p;
+    return v?.id;
+  } catch { return undefined }
+}
+
+export async function GET(request: NextRequest, context: Ctx) {
+  try {
+    const id = await resolveId(context);
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -28,18 +36,19 @@ export async function GET(request: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: Ctx) {
+export async function PATCH(request: NextRequest, context: Ctx) {
   try {
-    const { id } = params;
+    const id = await resolveId(context);
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
 
     const body = await request.json();
-    ServiceUpdateSchema.parse({ ...body, id });
+    ServiceUpdateSchema.parse({ ...body, id: String(id || '') });
 
     const tenantId = getTenantFromRequest(request);
+    if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const original = await svc.getServiceById(tenantId, id);
     if (!original) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -60,15 +69,16 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: Ctx) {
+export async function DELETE(request: NextRequest, context: Ctx) {
   try {
-    const { id } = params;
+    const id = await resolveId(context);
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_DELETE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
 
     const tenantId = getTenantFromRequest(request);
+    if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const original = await svc.getServiceById(tenantId, id);
     if (!original) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
