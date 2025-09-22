@@ -388,13 +388,13 @@ export class ServicesService {
     }
 
     // revenue by service (sum of current service.price per booking)
-    const revenueByServiceArr = Array.from(serviceTotals.entries()).map(([id, revenue]) => ({ id, service: serviceNames.get(id) || 'Unknown', revenue }));
+    const revenueByServiceArr = Array.from(serviceTotals.entries()).map(([id, revenue]) => ({ id: String(id), service: serviceNames.get(String(id)) || 'Unknown', revenue }));
     const revenueByService = revenueByServiceArr.sort((a,b) => b.revenue - a.revenue).slice(0, 10).map(r => ({ service: r.service, revenue: r.revenue }));
 
     const popularServices = Array.from(popularMap.values()).sort((a,b) => b.bookings - a.bookings).slice(0, 10);
 
     // revenue time-series for top services (top 5 by revenue)
-    const topServiceIds = revenueByServiceArr.sort((a,b) => b.revenue - a.revenue).slice(0, 5).map(r => r.id);
+    const topServiceIds = revenueByServiceArr.sort((a,b) => b.revenue - a.revenue).slice(0, 5).map(r => String(r.id));
     const revenueTimeSeries: { service: string; monthly: { month: string; revenue: number }[] }[] = topServiceIds.map(id => {
       const name = serviceNames.get(id) || 'Unknown';
       const perMonth = serviceMonthlyRevenue.get(id) || new Map();
@@ -438,10 +438,11 @@ export class ServicesService {
         const viewMap = new Map<string, number>(viewGroups.map(v => [v.serviceId, v._count._all || 0]));
 
         const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true } as any });
-        for (const s of svcRows) {
-          const bCount = serviceTotals.get(s.id) || 0; // revenue total treated as bookings? keep consistent — serviceTotals was revenue; use popularMap for bookings
-          const bookingsCount = popularMap.get(s.id)?.bookings || 0;
-          const vCount = viewMap.get(s.id) || 0;
+        for (const s of svcRows as Array<{ id: string; name: string }>) {
+          const sid = String(s.id)
+          const bCount = serviceTotals.get(sid) || 0; // revenue total treated as bookings? keep consistent — serviceTotals was revenue; use popularMap for bookings
+          const bookingsCount = popularMap.get(sid)?.bookings || 0;
+          const vCount = viewMap.get(sid) || 0;
           const rate = vCount > 0 ? (bookingsCount / vCount) * 100 : 0;
           conversionsByService.push({ service: s.name || 'Unknown', bookings: bookingsCount, views: vCount, conversionRate: Number(rate.toFixed(2)) });
         }
