@@ -39,7 +39,12 @@ export async function GET(request: NextRequest) {
     if (!process.env.NETLIFY_DATABASE_URL) {
       const result = getDemoServicesList(filters as any)
       await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters, demo: true } });
-      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
+      const etag = '"' + createHash('sha1').update(JSON.stringify({ t: result.total, ids: (result.services||[]).map((s:any)=>s.id), up: (result.services||[]).map((s:any)=>s.updatedAt) })).digest('hex') + '"'
+      const ifNoneMatch = request.headers.get('if-none-match')
+      if (ifNoneMatch && ifNoneMatch === etag) {
+        return new NextResponse(null, { status: 304, headers: { ETag: etag } })
+      }
+      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
     }
 
     const result = await svc.getServicesList(tenantId, filters as any);
