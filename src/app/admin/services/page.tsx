@@ -287,7 +287,7 @@ export default function ServicesAdminPage() {
     } catch { toast.error('Failed to export services') }
   }
 
-  const formatCurrency = (amount?: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(typeof amount === 'number' ? amount : 0)
+  const formatCurrency = (amount: number | null | undefined) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(typeof amount === 'number' ? amount : 0)
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 
   const categories = useMemo(() => Array.from(new Set(services.filter(s => s.category).map(s => s.category as string))), [services])
