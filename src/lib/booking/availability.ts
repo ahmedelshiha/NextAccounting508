@@ -191,7 +191,7 @@ export async function getAvailabilityForService(params: {
   const { serviceId, from, to, slotMinutes, teamMemberId, options } = params
 
   const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-  if (!svc || svc.active === false) {
+  if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') {
     return { slots: [] as AvailabilitySlot[] }
   }
   const baseDuration = svc.duration ?? 60
