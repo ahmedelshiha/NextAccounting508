@@ -7,17 +7,26 @@ async function main() {
     return
   }
 
+  // Prisma logs show schema "public"; allow override via POSTGRES_SCHEMA
+  const targetSchema = process.env.POSTGRES_SCHEMA || 'public'
+
   const client = new Client({ connectionString: url })
   try {
     await client.connect()
 
-    // Check for existing prisma migration tables
+    // Ensure target schema exists and is selected
+    await client.query(`CREATE SCHEMA IF NOT EXISTS "${targetSchema}";`)
+    await client.query(`SET search_path TO "${targetSchema}";`)
+
+    // Check for existing prisma migration tables in the target schema
     const { rows } = await client.query<{ exists: boolean }>(
       `SELECT EXISTS (
-         SELECT 1 FROM information_schema.tables 
-         WHERE table_schema = current_schema()
+         SELECT 1
+         FROM information_schema.tables
+         WHERE table_schema = $1
            AND table_name IN ('_prisma_migrations', 'prisma_migrations')
-       ) AS exists;`
+       ) AS exists;`,
+      [targetSchema]
     )
 
     if (rows[0]?.exists) {
@@ -25,11 +34,11 @@ async function main() {
       return
     }
 
-    console.log('[prisma-init] Initializing migration persistence table _prisma_migrations...')
+    console.log(`[prisma-init] Initializing migration persistence table _prisma_migrations in schema "${targetSchema}"...`)
 
     // Create the _prisma_migrations table following Prisma's expected shape
     await client.query(`
-      CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
+      CREATE TABLE IF NOT EXISTS "${targetSchema}"."_prisma_migrations" (
         id TEXT PRIMARY KEY,
         checksum TEXT NOT NULL,
         finished_at TIMESTAMP(3),
@@ -39,7 +48,7 @@ async function main() {
         started_at TIMESTAMP(3) NOT NULL DEFAULT NOW(),
         applied_steps_count INTEGER NOT NULL DEFAULT 0
       );
-      CREATE UNIQUE INDEX IF NOT EXISTS "_prisma_migrations_migration_name_key" ON "_prisma_migrations" (migration_name);
+      CREATE UNIQUE INDEX IF NOT EXISTS "_prisma_migrations_migration_name_key" ON "${targetSchema}"."_prisma_migrations" (migration_name);
     `)
 
     console.log('[prisma-init] Migration persistence initialized.')
