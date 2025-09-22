@@ -91,7 +91,19 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
       }
       try {
         const { randomUUID } = await import('node:crypto')
-        const mod = await import('@netlify/blobs')
+        let mod: any = null
+        if (process.env.NODE_ENV === 'test') {
+          mod = await import('@netlify/blobs')
+        } else {
+          const dynamicImport = (s: string) => (Function('x', 'return import(x)'))(s) as Promise<any>
+          mod = await dynamicImport('@netlify/blobs').catch(() => null as any)
+        }
+        if (!mod) {
+          return NextResponse.json({
+            error: 'Netlify Blobs SDK not available',
+            hint: 'Install @netlify/blobs or enable the Netlify Blobs runtime, then redeploy',
+          }, { status: 501 })
+        }
         const Blobs = (mod as any).Blobs || (mod as any).default?.Blobs || mod
         const store = new Blobs({ token })
         const safeName = typeof (file as any).name === 'string' ? String((file as any).name).replace(/[^a-zA-Z0-9._-]/g, '_') : 'upload.bin'
