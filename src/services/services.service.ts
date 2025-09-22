@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
 import { CacheService } from '@/lib/cache.service';
@@ -151,7 +152,73 @@ export class ServicesService {
       prisma.service.aggregate({ where: { ...where, active: true, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
     ]);
 
-    const analytics: ServiceAnalytics = { monthlyBookings: [], revenueByService: [], popularServices: [], conversionRates: [] };
+    // Analytics window: last 6 months
+    const start = new Date();
+    start.setMonth(start.getMonth() - 5);
+    start.setDate(1);
+
+    // Fetch bookings joined with service to compute revenue/popularity; filter by tenant if provided
+    const bookingWhere: Prisma.BookingWhereInput = {
+      scheduledAt: { gte: start },
+      status: { in: ['COMPLETED','CONFIRMED'] as any },
+      ...(tenantId ? ({ service: { tenantId } } as any) : {}),
+    };
+
+    const bookings = await prisma.booking.findMany({
+      where: bookingWhere,
+      select: { id: true, scheduledAt: true, serviceId: true, service: { select: { id: true, name: true, price: true } } },
+    });
+
+    // monthly bookings counts
+    const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const monthLabel = (d: Date) => d.toLocaleString('en-US', { month: 'short' });
+    const monthlyMap = new Map<string, number>();
+    for (const b of bookings) {
+      const d = new Date(b.scheduledAt as any);
+      const key = monthKey(d);
+      monthlyMap.set(key, (monthlyMap.get(key) || 0) + 1);
+    }
+    // Generate last 6 months in order
+    const monthlyBookings: { month: string; bookings: number }[] = [];
+    const base = new Date(start);
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+      const key = monthKey(d);
+      monthlyBookings.push({ month: monthLabel(d), bookings: monthlyMap.get(key) || 0 });
+    }
+
+    // revenue by service (sum of current service.price per booking)
+    const revenueMap = new Map<string, { service: string; revenue: number }>();
+    const popularMap = new Map<string, { service: string; bookings: number }>();
+    for (const b of bookings) {
+      const name = b.service?.name || 'Unknown';
+      const price = b.service?.price != null ? Number(b.service.price) : 0;
+      const rev = revenueMap.get(b.serviceId) || { service: name, revenue: 0 };
+      rev.revenue += price;
+      revenueMap.set(b.serviceId, rev);
+      const pop = popularMap.get(b.serviceId) || { service: name, bookings: 0 };
+      pop.bookings += 1;
+      popularMap.set(b.serviceId, pop);
+    }
+
+    const revenueByService = Array.from(revenueMap.values()).sort((a,b) => b.revenue - a.revenue).slice(0, 10);
+    const popularServices = Array.from(popularMap.values()).sort((a,b) => b.bookings - a.bookings).slice(0, 10);
+
+    // conversion rates per last 3 months (completed/total)
+    const conv: { service: string; rate: number }[] = [];
+    for (let i = 2; i >= 0; i--) {
+      const from = new Date();
+      from.setMonth(from.getMonth() - i);
+      from.setDate(1);
+      const to = new Date(from.getFullYear(), from.getMonth() + 1, 1);
+      const [tot, done] = await Promise.all([
+        prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to } } }),
+        prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to }, status: 'COMPLETED' as any } }),
+      ]);
+      conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: tot ? (done / tot) * 100 : 0 });
+    }
+
+    const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv };
     const avgPriceVal = priceAgg && priceAgg._avg && priceAgg._avg.price != null ? Number(priceAgg._avg.price) : 0;
     const totalRevenueVal = priceAgg && priceAgg._sum && priceAgg._sum.price != null ? Number(priceAgg._sum.price) : 0;
     const stats: ServiceStats & { analytics: ServiceAnalytics } = { total, active, featured, categories: catGroups.length, averagePrice: avgPriceVal, totalRevenue: totalRevenueVal, analytics };

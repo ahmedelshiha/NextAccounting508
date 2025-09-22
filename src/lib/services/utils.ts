@@ -22,6 +22,19 @@ export function getDemoServices() {
   ];
 }
 
+export function getDemoServicesList(filters: { search?: string; category?: string; featured?: string; status?: string; limit?: number; offset?: number; sortBy?: string; sortOrder?: 'asc'|'desc' }) {
+  const list = getDemoServices()
+  let items = filterServices(list, filters)
+  const safeSortBy = ['name','createdAt','updatedAt','price'].includes(filters.sortBy || '') ? (filters.sortBy as string) : 'updatedAt'
+  items = sortServices(items as any, safeSortBy, (filters.sortOrder || 'desc') as any) as any
+  const limit = Math.max(1, Math.min(200, Number(filters.limit || items.length)))
+  const offset = Math.max(0, Number(filters.offset || 0))
+  const total = items.length
+  const page = Math.floor(offset / limit) + 1
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  return { services: items.slice(offset, offset + limit), total, page, limit, totalPages }
+}
+
 export async function validateSlugUniqueness(
   slug: string,
   tenantId: string | null,
@@ -75,6 +88,14 @@ export function sanitizeServiceData(data: Partial<ServiceFormData>): Partial<Ser
 
   if (data.image !== undefined) {
     const v = data.image ? String(data.image) : '';
+    if (v) {
+      try {
+        const u = new URL(v)
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('Invalid image URL')
+      } catch {
+        throw new Error('Invalid image URL')
+      }
+    }
     out.image = v || undefined;
   }
 
