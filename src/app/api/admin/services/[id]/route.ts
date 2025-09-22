@@ -7,6 +7,7 @@ import { ServiceUpdateSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { logAudit } from '@/lib/audit';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
+import { createHash } from 'crypto';
 
 const svc = new ServicesService();
 
