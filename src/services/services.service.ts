@@ -189,8 +189,11 @@ export class ServicesService {
 
   private async clearCaches(tenantId: string | null, serviceId?: string) {
     const patterns = [`service-stats:${tenantId}:*`, `services-list:${tenantId}:*`];
-    if (serviceId) patterns.push(`service:${serviceId}:${tenantId}`);
-    await Promise.all(patterns.map(() => Promise.resolve()));
+    await Promise.all(patterns.map(p => this.cache.deletePattern(p)));
+    if (serviceId) {
+      const key = `service:${serviceId}:${tenantId}`;
+      await this.cache.delete(key);
+    }
   }
 
   private detectChanges(original: ServiceType, updates: Partial<ServiceFormData>): string[] {

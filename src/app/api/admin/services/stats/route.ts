@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+    if (!process.env.NETLIFY_DATABASE_URL) {
+      return NextResponse.json({ error: 'Database is not configured. Connect a database to view service statistics.' }, { status: 501 });
+    }
+
     const sp = new URL(request.url).searchParams;
     const range = sp.get('range') || '30d';
 
