@@ -4,6 +4,20 @@ set -euo pipefail
 # Retry prisma migrate deploy with exponential backoff to handle advisory lock contention
 # Usage: ./scripts/prisma-deploy-retry.sh
 
+# Fast-fail if no DB URL is present (defensive)
+if [ -z "${NETLIFY_DATABASE_URL:-}" ] && [ -z "${DATABASE_URL:-}" ]; then
+  echo "[prisma-deploy-retry] No database URL provided. Skipping migrations."
+  exit 0
+fi
+
+# If there are no migration.sql files committed, fall back to a non-destructive prisma db push
+if ! find prisma/migrations -maxdepth 2 -name 'migration.sql' -type f -print -quit | grep -q .; then
+  echo "[prisma-deploy-retry] No migration.sql files found in prisma/migrations. Running prisma db push as a one-time fallback."
+  pnpm db:push
+  echo "[prisma-deploy-retry] prisma db push completed."
+  exit 0
+fi
+
 MAX_ATTEMPTS=${MAX_ATTEMPTS:-5}
 SLEEP_BASE=${SLEEP_BASE:-2}
 
