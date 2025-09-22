@@ -178,6 +178,7 @@ model Service {
   featured    Boolean   @default(false)
   image       String?
   serviceSettings Json?
+  views        Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   basePrice     Decimal?
@@ -199,11 +200,27 @@ model Service {
   bookings Booking[]
   serviceRequests ServiceRequest[]
   availabilitySlots AvailabilitySlot[]
+  serviceViews ServiceView[]
 
   @@index([tenantId])
   @@unique([tenantId, slug])
   @@index([active, bookingEnabled])
   @@map("services")
+}
+
+// Per-month/per-hit view tracking for services to compute time-windowed conversions
+model ServiceView {
+  id         String   @id @default(cuid())
+  serviceId  String
+  tenantId   String?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, createdAt])
+  @@map("service_views")
 }
 
 // Booking system for client appointments

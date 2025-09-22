@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { ServicesService } from '@/services/services.service';
@@ -8,28 +7,29 @@ import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/ap
 
 const svc = new ServicesService();
 
-export async function GET(request: NextRequest) {
+type Ctx = { params: { id: string } } | { params: Promise<{ id: string }> } | any;
+
+async function resolveId(ctx: any): Promise<string | undefined> {
   try {
+    const p = ctx?.params;
+    const v = p && typeof p.then === 'function' ? await p : p;
+    return v?.id;
+  } catch { return undefined }
+}
+
+export async function GET(request: NextRequest, context: Ctx) {
+  try {
+    const id = await resolveId(context);
     const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EXPORT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!session?.user) return NextResponse.json(makeErrorBody({ code: 'UNAUTHORIZED', message: 'Unauthorized' } as any), { status: 401 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json(makeErrorBody({ code: 'FORBIDDEN', message: 'Forbidden' } as any), { status: 403 });
 
-
-    const sp = new URL(request.url).searchParams;
-    const format = sp.get('format') || 'csv';
-    const includeInactive = sp.get('includeInactive') === 'true';
+    if (!id) return NextResponse.json(makeErrorBody({ code: 'INVALID_ID', message: 'Invalid id' } as any), { status: 400 });
 
     const tenantId = getTenantFromRequest(request);
-    const data = await svc.exportServices(tenantId, { format, includeInactive });
+    const versions = await svc.getServiceVersionHistory(id);
 
-    const ts = new Date().toISOString().split('T')[0];
-    const filename = `services-export-${ts}.${format}`;
-
-    if (format === 'csv') {
-      return new NextResponse(data, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="${filename}"` } });
-    }
-
-    return NextResponse.json(JSON.parse(data));
+    return NextResponse.json({ versions });
   } catch (e: any) {
     const prismaMapped = mapPrismaError(e);
     if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
     }
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
-    console.error('export error', e);
+    console.error('versions error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }

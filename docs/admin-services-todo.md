@@ -1,200 +1,84 @@
-# Services Management System ��� Implementation Plan
+Last updated: 2025-09-24
 
-Last updated: 2025-09-22
+Overview
+- Purpose: Reorganize Phase tasks into dependency-ordered, actionable items. Break large items into measurable steps and mark completed work.
+- Status: Some Phase 1–3 items are implemented; remaining work broken into small tasks ready for execution.
 
-Status
-- [x] Architecture audit documented in `docs/admin-services-audit.md`
-- [x] Implementation plan created and organized with dependencies and checklists
-- [ ] Phase 1 in progress
+Guidelines
+- Each task is specific, measurable, and outcome-oriented.
+- Tasks are ordered so prerequisites appear first.
+- Completed tasks are checked [x].
 
-Note: Always review this file before coding. Keep tasks production-grade and deployment-ready.
+PRIORITIZED WORK (critical path first)
 
-## Phase 1: Foundation & Type Consistency
+1) Phase 1 — Foundation & Type Consistency (complete prerequisites)
+- [x] 1.1.1 Remove duplicate Service types and unify imports to src/types/services.ts
+- [x] 1.1.2 Run full typecheck and fix conflicts (pnpm run typecheck)
+- [x] 1.2.1 Replace inline filters with components (ServicesFilters)
+- [x] 1.2.2 Move analytics into ServicesAnalytics component and wire props
+- [x] 1.3.1 Centralize schema validation in src/schemas/services.ts (zod)
 
-### 1.1 Type System Unification (Immediate)
-- [x] Remove duplicate `Service` and `ServiceStats` from `@/app/admin/services/page.tsx`
-- [x] Import shared types from `@/types/services.ts`
-- [x] Replace local filter state type with `ServiceFilters` (moved sortBy/sortOrder to dedicated state)
-- [x] Align component props to shared types (cards, forms, filters, header)
-- [x] Run `pnpm run typecheck` and fix conflicts
+2) Phase 2 — Data schema & service layer (must complete before API hardening)
+- [x] 2.1.1 Add composite unique (tenantId, slug) to Service Prisma model and add serviceSettings Json?
+- [x] 2.1.2 Add Service.status enum values (DRAFT, RETIRED) and migrate read paths to use status
+- [x] 2.1.3 Wire migration-run logic in CI/Netlify (netlify.toml + scripts/prisma-deploy-retry.sh)
+- [x] 2.2.1 Implement cloneService(name, fromId) with tenant-scoped slug dedup
+- [x] 2.2.2 Implement bulkUpdateServiceSettings(updates) with shallow merge
+- [x] 2.2.3 Strengthen cache invalidation patterns (service-*/services-list:*)
+- [x] 2.3.1 Compute booking-driven analytics (monthlyBookings, revenueByService, popularServices)
+- [x] 2.3.2 Add revenueTimeSeries (per-service monthly series for top services)
+- [x] 2.3.3 Add conversionsByService (views→bookings) using service.views counter
+- [x] 2.1.4 Add service.views counter and ServiceView model for per-hit tracking
 
-### 1.2 UI Component Consolidation (Depends on 1.1)
-- [x] Replace inline filters with `@/components/admin/services/ServicesFilters`
-- [x] Replace custom header with `@/components/admin/services/ServicesHeader`
-- [x] Replace ad-hoc analytics with `@/components/admin/services/ServicesAnalytics`
-- [x] Adjust state wiring to consolidated components
-- [x] Verify UX parity: search, filters, toggles, pagination, modals
+3) Phase 3 — API Layer Hardening & Endpoints (after Phase 2)
+- [x] 3.1.1 Create src/lib/api/error-responses.ts (ApiError, mappers for Prisma/Zod)
+- [x] 3.1.2 Normalize error handling in admin service routes (/api/admin/services/*)
+- [x] 3.2.1 Add POST /api/admin/services/[id]/clone (created)
+- [x] 3.2.2 Add HEAD /api/admin/services (created)
+- [x] 3.2.3 Add GET /api/admin/services/[id]/versions (stub) (created)
+- [x] 3.2.4 Add PATCH /api/admin/services/[id]/settings (created)
+- [x] 3.2.5 Add GET /api/admin/services/slug-check/[slug] (created)
+- [x] 3.3.1 Extend bulk actions to include clone and settings-update with per-item results and rollback behavior
 
-### 1.3 Schema Validation Consolidation (Depends on 1.1)
-- [x] Move image URL checks into Zod using `z.preprocess`/refinement in `@/schemas/services`
-- [x] Keep `sanitizeServiceData` transform-only (no validation)
-- [x] Ensure all routes validate via Zod exclusively
-- [x] Remove duplicate validations in utils
+4) Phase 4 — Performance & Caching (post Phase 2/3)
+- [ ] 4.1.1 Add Redis client wrapper (create src/lib/cache/redis.ts)
+- [ ] 4.1.2 Implement Redis-backed CacheService and wire via DI in ServicesService
+- [ ] 4.1.3 Implement safe deletePattern (prefix matching, rate-limited)
+- [ ] 4.2.1 Implement ETag/Last-Modified heuristics for lists & single resources
+- [ ] 4.2.2 Add cache warming for hot paths (services list top queries)
 
-## Phase 2: Data Architecture Improvements
+5) Phase 5 — Integration & Events
+- [ ] 5.1.1 Create typed service events (src/lib/events/service-events.ts)
+- [ ] 5.1.2 Publish events on service create/update/delete and hook cache invalidation listeners
+- [ ] 5.2.1 Add ServiceLite DTO and expose to booking wizard
 
-### 2.1 Database Schema Enhancements (Depends on Phase 1)
-- [x] Prisma schema prepared: composite unique `(tenantId, slug)` on `Service`
-- [x] Added `serviceSettings Json?` field (default to be handled at DB migration time)
-- [x] Extended `ServiceStatus` enum with `DRAFT` and `RETIRED` (kept `INACTIVE` for compatibility)
-- [x] Updated seed and public service endpoints to work without slug uniqueness
-- [x] Migrate queries from boolean `active` to `status` (begin)
-- [ ] Apply DB migration in deployment pipeline
+6) Phase 6 — Security & Rate Limiting (parallel)
+- [ ] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
+- [ ] 6.2.1 Tenant-scoped rate limiting for bulk operations (per-tenant keys)
+- [ ] 6.3.1 CSV export sanitization & throttling
 
-### 2.2 Service Layer Business Logic (Depends on 2.1)
-- [x] `cloneService(name, fromId)` with slug generation/dedup
-- [x] `getServiceVersionHistory(id)` placeholder (returns [])
-- [x] `validateServiceDependencies(service)` for future checks
-- [x] `bulkUpdateServiceSettings(updates)`
-- [x] Strengthen `clearCaches` to cover all keys
+7) Phase 7 — Tests & QA (start after Phase 2/3 complete)
+- [ ] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
+- [ ] 7.2.1 Integration tests for all service API routes (including 409 slug conflicts)
+- [ ] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
 
-### 2.3 Analytics Enhancements (Depends on 2.1)
-- [ ] Use bookings to compute analytics (no placeholders)
-- [ ] Time-series grouping for `revenueByService`
-- [ ] Rank `popularServices` by booking count
-- [ ] Monthly conversion from views→bookings
-- [ ] Enforce tenant scoping across analytics
+8) Phase 8 — Documentation & Monitoring (ongoing)
+- [ ] 8.1.1 Generate OpenAPI spec for admin service endpoints
+- [ ] 8.1.2 Document cache invalidation strategy and fallback behavior
+- [ ] 8.2.1 Add Sentry integration and monitoring dashboards (Netlify + Sentry best practices)
 
-## Phase 3: API Layer Hardening
+Actionable immediate next steps (top 5)
+- [ ] Create Prisma migration files for Service.views and ServiceView model, commit migration (developer to run with DB creds)
+- [ ] Add GitHub Actions CI yaml to run typecheck, lint, tests and build on PRs
+- [ ] Add Redis wrapper and plan migration from in-memory cache to Redis (design + implementation tasks)
+- [ ] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
+- [ ] Surface revenueTimeSeries & conversionsByService in admin UI (charts already wired — verify accessibility and responsiveness)
 
-### 3.1 Error Handling Standardization (Depends on Phase 2)
-- [ ] Create `@/lib/api/error-responses.ts` with `{ code, message, details? }`
-- [ ] Return structured errors in all service routes
-- [ ] Error codes: `SLUG_CONFLICT`, `VALIDATION_FAILED`, `NOT_FOUND`, `UNAUTHORIZED`
-- [ ] Consistent 409 handling for slug conflicts
-- [ ] Contextual error logging
+Notes about completed work
+- ✅ What was completed: centralized types, schema updates, service layer improvements (clone, bulk settings), analytics (time-series + conversions), API error normalization, new admin endpoints, ServiceView model and UI charts.
+- ✅ Why: to support tenant-scoped services, richer analytics, safer bulk ops, and consistent API error handling.
+- ✅ Next steps: migrations, CI, Redis caching, tests, and final UI polish.
 
-### 3.2 New API Endpoints (Depends on 3.1)
-- [ ] POST `/api/admin/services/[id]/clone`
-- [ ] HEAD `/api/admin/services`
-- [ ] GET `/api/admin/services/[id]/versions`
-- [ ] PATCH `/api/admin/services/[id]/settings`
-- [ ] GET `/api/admin/services/slug-check/[slug]`
+Change log
+- See docs/admin-services-log.md for detailed entries of changes and rationales.
 
-### 3.3 Enhanced Bulk Operations (Depends on 3.1)
-- [ ] Add `clone` to `BulkActionSchema`
-- [ ] Add `settings-update` bulk action
-- [ ] Progress tracking for >50 items
-- [ ] Rollback on failures
-- [ ] Per-item error details in results
-
-## Phase 4: Performance & Caching
-
-### 4.1 Cache System Upgrade (Depends on Phase 2)
-- [ ] Add Redis client (e.g., `@upstash/redis`)
-- [ ] `@/lib/cache/redis.ts` connection wrapper
-- [ ] Swap in Redis-backed CacheService
-- [ ] Key patterns: `service:${tenantId}:${id}`, `services-list:${tenantId}:${hash}`
-- [ ] Implement `deletePattern` safely
-
-### 4.2 ETag and Perf Optimization (Depends on 4.1)
-- [ ] Optimize/weak ETags for lists
-- [ ] Add `Last-Modified` for single resources
-- [ ] Cache warming for hot paths
-- [ ] Measure cache hit/miss
-
-### 4.3 Fallback Behavior Documentation (Depends on 4.1)
-- [ ] Feature flag `ENABLE_FALLBACK_QUERIES`
-- [ ] Document fallback in `getServicesList`
-- [ ] Telemetry when fallback used
-- [ ] Alerting on excessive fallbacks
-- [ ] Keep parity with main query logic
-
-## Phase 5: Integration & Event System
-
-### 5.1 Service Change Notifications (Depends on Phase 4)
-- [ ] `@/lib/events/service-events.ts` with typed events
-- [ ] Publish events on status/price/category changes
-- [ ] Cross-module listeners for cache invalidation
-- [ ] Webhooks for external systems
-- [ ] Audit trail with before/after snapshots
-
-### 5.2 Downstream Integration (Depends on 5.1)
-- [ ] Add `ServiceLite` DTO (`id,name,price,duration,active`)
-- [ ] Booking wizard consumes `ServiceLite`
-- [ ] SR forms validate against current service status
-- [ ] Availability check in booking flow
-- [ ] Block new bookings on deactivated services
-
-### 5.3 Multi-module Cache Coordination (Depends on 5.1)
-- [ ] Inventory all service-data caches
-- [ ] Cross-module invalidation wiring
-- [ ] Booking/availability refresh triggers
-- [ ] Dependency map for invalidation
-- [ ] Consistency tests across lifecycle
-
-## Phase 6: Security & Rate Limiting
-
-### 6.1 Granular Permissions (Parallel)
-- [ ] Add: `MANAGE_FEATURED`, `BULK_OPERATIONS`, `VIEW_ANALYTICS`
-- [ ] Update `useServicesPermissions` accordingly
-- [ ] Permission audit logs for sensitive ops
-- [ ] Tenant-admin role and settings permissions
-
-### 6.2 Rate Limiting (Depends on 6.1)
-- [ ] Tenant-scoped keys: `services:${tenantId}:${operation}`
-- [ ] Per-operation limits (list/create/bulk)
-- [ ] Internal bypass
-- [ ] Rate limit headers: `X-RateLimit-*`
-- [ ] Backoff guidance in 429 responses
-
-### 6.3 CSV Export Security (Parallel)
-- [ ] Prefix dangerous cells with `'`
-- [ ] Sanitize `= + - @` formula starters
-- [ ] Export audit logging with user id
-- [ ] CSV size limits (≤10k rows)
-- [ ] Throttle exports (≤3/hour/user)
-
-## Phase 7: Testing & QA
-
-### 7.1 Service Layer Unit Tests (Depends on Phase 2)
-- [ ] CRUD tests for `services.service.ts`
-- [ ] Bulk edge cases
-- [ ] Cache invalidation (Redis mock)
-- [ ] Analytics math using sample bookings
-- [ ] Tenant isolation tests
-
-### 7.2 API Integration Tests (Depends on Phase 3)
-- [ ] Route tests for all endpoints
-- [ ] Auth/permission tests
-- [ ] Error scenarios (validation, not found, conflicts)
-- [ ] Rate limit concurrency tests
-- [ ] Bulk with 500+ services
-
-### 7.3 Component Tests (Depends on Phase 1)
-- [ ] `ServiceForm` validation cases
-- [ ] `BulkActionsPanel` action coverage
-- [ ] `ServicesFilters` filter combinations
-- [ ] Permission-based UI visibility
-- [ ] Accessibility checks
-
-## Phase 8: Documentation & Monitoring
-
-### 8.1 Technical Documentation (Depends on previous phases)
-- [ ] OpenAPI spec for service endpoints
-- [ ] Fallback query behavior docs
-- [ ] Cache invalidation strategy
-- [ ] Troubleshooting guide
-- [ ] Service events & integration patterns
-
-### 8.2 Operational Monitoring (Depends on 4 & 5)
-- [ ] Ops metrics (create/update/delete rates)
-- [ ] Cache performance dashboards
-- [ ] Alerts (API errors, cache misses, fallbacks)
-- [ ] Data integrity monitors
-- [ ] Performance dashboards
-
-### 8.3 UX Documentation (Parallel)
-- [ ] Admin guide for services workflows
-- [ ] Bulk operations safety guidelines
-- [ ] Configuration recommendations by business type
-- [ ] Video tutorials for complex setups
-- [ ] Contextual help tooltips
-
----
-
-Totals
-- Total Tasks: 89
-- Critical Path: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
-- Estimated Timeline: 10–14 weeks
-- Parallel Tracks: Phase 6 and Phase 8.3 can start early

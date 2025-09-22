@@ -1,5 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RevenueTimeSeriesChart from './RevenueTimeSeriesChart';
+import ConversionsTable from './ConversionsTable';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, Users, Calendar, Target } from 'lucide-react';
 import { ServiceAnalytics } from '@/types/services';
@@ -186,6 +188,30 @@ export function ServicesAnalytics({ analytics, loading, className = '' }: Servic
           </div>
         </CardContent>
       </Card>
+
+      {/* Revenue time series for top services */}
+      {analytics.revenueTimeSeries && analytics.revenueTimeSeries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5" />Revenue Time Series (Top Services)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RevenueTimeSeriesChart revenueTimeSeries={analytics.revenueTimeSeries} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Conversions table */}
+      {analytics.conversionsByService && analytics.conversionsByService.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5" />Conversions (Views → Bookings)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConversionsTable conversions={analytics.conversionsByService} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

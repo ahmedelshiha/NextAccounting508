@@ -10,6 +10,7 @@ export interface Service {
   category?: string | null;
   featured: boolean;
   active: boolean;
+  views?: number;
   image?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -51,12 +52,15 @@ export interface ServiceAnalytics {
   revenueByService: { service: string; revenue: number }[];
   popularServices: { service: string; bookings: number }[];
   conversionRates: { service: string; rate: number }[];
+  // Per-service monthly revenue time-series for top services
+  revenueTimeSeries?: { service: string; monthly: { month: string; revenue: number }[] }[];
+  conversionsByService?: { service: string; bookings: number; views: number; conversionRate: number }[];
 }
 
 export interface BulkAction {
-  action: 'activate' | 'deactivate' | 'feature' | 'unfeature' | 'delete' | 'category' | 'price-update';
+  action: 'activate' | 'deactivate' | 'feature' | 'unfeature' | 'delete' | 'category' | 'price-update' | 'clone' | 'settings-update';
   serviceIds: string[];
-  value?: string | number;
+  value?: string | number | Record<string, any> | undefined;
 }
 
 export interface CurrencyConversion {

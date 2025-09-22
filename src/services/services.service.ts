@@ -225,19 +225,28 @@ export class ServicesService {
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
   }
 
-  async performBulkAction(tenantId: string | null, action: BulkAction, by: string): Promise<{ updatedCount: number; errors: string[] }> {
+  async performBulkAction(tenantId: string | null, action: BulkAction, by: string): Promise<{ updatedCount: number; errors: Array<{ id: string; error: string }>; createdIds?: string[]; rollback?: { rolledBack: boolean; errors?: string[] } }> {
     const { action: type, serviceIds, value } = action;
     const where: Prisma.ServiceWhereInput = { id: { in: serviceIds } } as any;
     if (tenantId) (where as any).tenantId = tenantId;
 
-    let data: any = {};
-    if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
-    else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
-    else if (type === 'feature') data.featured = true;
-    else if (type === 'unfeature') data.featured = false;
-    else if (type === 'category') data.category = String(value || '') || null;
-    else if (type === 'price-update') data.price = Number(value);
+    // Simple update actions
+    if (['activate','deactivate','feature','unfeature','category','price-update'].includes(type)) {
+      let data: any = {};
+      if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
+      else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
+      else if (type === 'feature') data.featured = true;
+      else if (type === 'unfeature') data.featured = false;
+      else if (type === 'category') data.category = String(value || '') || null;
+      else if (type === 'price-update') data.price = Number(value);
 
+      const res = await prisma.service.updateMany({ where, data });
+      await this.clearCaches(tenantId);
+      if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
+      return { updatedCount: res.count, errors: [] };
+    }
+
+    // Delete -> soft deactivate
     if (type === 'delete') {
       const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tenantId);
@@ -245,10 +254,54 @@ export class ServicesService {
       return { updatedCount: res.count, errors: [] };
     }
 
-    const res = await prisma.service.updateMany({ where, data });
-    await this.clearCaches(tenantId);
-    if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
-    return { updatedCount: res.count, errors: [] };
+    // Clone -> create copies per serviceId, return created ids and per-item errors
+    if (type === 'clone') {
+      const createdIds: string[] = [];
+      const errors: Array<{ id: string; error: string }> = [];
+      for (const id of serviceIds) {
+        try {
+          const orig = await this.getServiceById(tenantId, id);
+          if (!orig) { errors.push({ id, error: 'Source service not found' }); continue }
+          const cloneName = value && typeof value === 'string' ? `${value}` : `${orig.name} (copy)`;
+          const c = await this.cloneService(cloneName, id);
+          createdIds.push(c.id);
+        } catch (e: any) {
+          errors.push({ id, error: String(e?.message || 'Failed to clone') });
+        }
+      }
+      // If any errors and we created some clones, attempt best-effort rollback by deleting created clones
+      let rollbackResult: { rolledBack: boolean; errors?: string[] } | undefined = undefined;
+      if (errors.length && createdIds.length) {
+        const rbErrors: string[] = [];
+        for (const cid of createdIds) {
+          try {
+            // hard delete to clean up drafts created during clone
+            await prisma.service.delete({ where: { id: cid } });
+          } catch (err: any) {
+            rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
+          }
+        }
+        rollbackResult = { rolledBack: rbErrors.length === 0, errors: rbErrors.length ? rbErrors : undefined };
+      }
+
+      await this.clearCaches(tenantId);
+      if (createdIds.length) await this.notifications.notifyBulkAction(type, createdIds.length, by);
+      return { updatedCount: createdIds.length, errors, createdIds, rollback: rollbackResult };
+    }
+
+    // settings-update -> value expected to be an object of settings to shallow-merge
+    if (type === 'settings-update') {
+      if (!value || typeof value !== 'object') return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Invalid settings payload' })) };
+      const updates = serviceIds.map(id => ({ id, settings: value as Record<string, any> }));
+      const res = await this.bulkUpdateServiceSettings(tenantId, updates);
+      await this.clearCaches(tenantId);
+      if (res.updated) await this.notifications.notifyBulkAction(type, res.updated, by);
+      // Map errors into expected shape
+      const errors = res.errors || [];
+      return { updatedCount: res.updated, errors };
+    }
+
+    return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Unknown bulk action' })) };
   }
 
   async getServiceStats(tenantId: string | null, _range: string = '30d'): Promise<ServiceStats & { analytics: ServiceAnalytics }> {
@@ -291,36 +344,63 @@ export class ServicesService {
     const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const monthLabel = (d: Date) => d.toLocaleString('en-US', { month: 'short' });
     const monthlyMap = new Map<string, number>();
+
+    // revenue and popularity maps, plus per-service monthly revenue map
+    const serviceMonthlyRevenue = new Map<string, Map<string, number>>();
+    const serviceNames = new Map<string, string>();
+    const serviceTotals = new Map<string, number>();
+    const popularMap = new Map<string, { service: string; bookings: number }>();
+
     for (const b of bookings) {
       const d = new Date(b.scheduledAt as any);
       const key = monthKey(d);
       monthlyMap.set(key, (monthlyMap.get(key) || 0) + 1);
+
+      const sid = b.serviceId || 'unknown';
+      const name = b.service?.name || 'Unknown';
+      const price = b.service?.price != null ? Number(b.service.price) : 0;
+
+      serviceNames.set(sid, name);
+
+      // per-service monthly revenue
+      let m = serviceMonthlyRevenue.get(sid);
+      if (!m) { m = new Map<string, number>(); serviceMonthlyRevenue.set(sid, m); }
+      m.set(key, (m.get(key) || 0) + price);
+
+      // totals
+      serviceTotals.set(sid, (serviceTotals.get(sid) || 0) + price);
+
+      // popularity
+      const pop = popularMap.get(sid) || { service: name, bookings: 0 };
+      pop.bookings += 1;
+      popularMap.set(sid, pop);
     }
+
     // Generate last 6 months in order
     const monthlyBookings: { month: string; bookings: number }[] = [];
     const base = new Date(start);
+    const monthKeys: string[] = [];
     for (let i = 0; i < 6; i++) {
       const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
       const key = monthKey(d);
+      monthKeys.push(key);
       monthlyBookings.push({ month: monthLabel(d), bookings: monthlyMap.get(key) || 0 });
     }
 
     // revenue by service (sum of current service.price per booking)
-    const revenueMap = new Map<string, { service: string; revenue: number }>();
-    const popularMap = new Map<string, { service: string; bookings: number }>();
-    for (const b of bookings) {
-      const name = b.service?.name || 'Unknown';
-      const price = b.service?.price != null ? Number(b.service.price) : 0;
-      const rev = revenueMap.get(b.serviceId) || { service: name, revenue: 0 };
-      rev.revenue += price;
-      revenueMap.set(b.serviceId, rev);
-      const pop = popularMap.get(b.serviceId) || { service: name, bookings: 0 };
-      pop.bookings += 1;
-      popularMap.set(b.serviceId, pop);
-    }
+    const revenueByServiceArr = Array.from(serviceTotals.entries()).map(([id, revenue]) => ({ id, service: serviceNames.get(id) || 'Unknown', revenue }));
+    const revenueByService = revenueByServiceArr.sort((a,b) => b.revenue - a.revenue).slice(0, 10).map(r => ({ service: r.service, revenue: r.revenue }));
 
-    const revenueByService = Array.from(revenueMap.values()).sort((a,b) => b.revenue - a.revenue).slice(0, 10);
     const popularServices = Array.from(popularMap.values()).sort((a,b) => b.bookings - a.bookings).slice(0, 10);
+
+    // revenue time-series for top services (top 5 by revenue)
+    const topServiceIds = revenueByServiceArr.sort((a,b) => b.revenue - a.revenue).slice(0, 5).map(r => r.id);
+    const revenueTimeSeries: { service: string; monthly: { month: string; revenue: number }[] }[] = topServiceIds.map(id => {
+      const name = serviceNames.get(id) || 'Unknown';
+      const perMonth = serviceMonthlyRevenue.get(id) || new Map();
+      const monthly = monthKeys.map((k, idx) => ({ month: monthlyBookings[idx].month, revenue: perMonth.get(k) || 0 }));
+      return { service: name, monthly };
+    });
 
     // conversion rates per last 3 months (completed/total)
     const conv: { service: string; rate: number }[] = [];
@@ -344,7 +424,34 @@ export class ServicesService {
       }
     }
 
-    const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv };
+    // Compute conversion from views -> bookings for top services using ServiceView aggregation
+    const topIds = revenueByServiceArr.sort((a,b)=>b.revenue-a.revenue).slice(0,10).map(r=>r.id);
+    let conversionsByService: { service: string; bookings: number; views: number; conversionRate: number }[] = [];
+    if (topIds.length) {
+      try {
+        // Group views by serviceId within the analytics window (start..now)
+        const viewGroups = await prisma.serviceView.groupBy({
+          by: ['serviceId'],
+          where: { serviceId: { in: topIds } as any, createdAt: { gte: start } },
+          _count: { _all: true }
+        });
+        const viewMap = new Map<string, number>(viewGroups.map(v => [v.serviceId, v._count._all || 0]));
+
+        const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true } as any });
+        for (const s of svcRows) {
+          const bCount = serviceTotals.get(s.id) || 0; // revenue total treated as bookings? keep consistent — serviceTotals was revenue; use popularMap for bookings
+          const bookingsCount = popularMap.get(s.id)?.bookings || 0;
+          const vCount = viewMap.get(s.id) || 0;
+          const rate = vCount > 0 ? (bookingsCount / vCount) * 100 : 0;
+          conversionsByService.push({ service: s.name || 'Unknown', bookings: bookingsCount, views: vCount, conversionRate: Number(rate.toFixed(2)) });
+        }
+      } catch (err) {
+        conversionsByService = [];
+      }
+    }
+
+    const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv, revenueTimeSeries };
+    analytics.conversionsByService = conversionsByService;
     const avgPriceVal = priceAgg && priceAgg._avg && priceAgg._avg.price != null ? Number(priceAgg._avg.price) : 0;
     const totalRevenueVal = priceAgg && priceAgg._sum && priceAgg._sum.price != null ? Number(priceAgg._sum.price) : 0;
     const stats: ServiceStats & { analytics: ServiceAnalytics } = { total, active, featured, categories: catGroups.length, averagePrice: avgPriceVal, totalRevenue: totalRevenueVal, analytics };
