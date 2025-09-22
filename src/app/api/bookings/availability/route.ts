@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Service ID is required' }, { status: 400 })
     }
 
-    const service = await prisma.service.findUnique({ where: { id: serviceId, active: true } })
+    const service = await prisma.service.findFirst({ where: { id: serviceId, status: 'ACTIVE' as any } })
     if (!service || service.bookingEnabled === false) {
       return NextResponse.json({ error: 'Service not available for booking' }, { status: 404 })
     }
