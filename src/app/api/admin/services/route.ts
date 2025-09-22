@@ -107,8 +107,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ service }, { status: 201 });
   } catch (e: any) {
-    const msg = e?.message || 'Failed to create service';
-    const status = msg.includes('already exists') ? 409 : 500;
-    return NextResponse.json({ error: msg }, { status });
+    const code = String(e?.code || '')
+    const rawMsg = String(e?.message || 'Failed to create service')
+    const isUnique = code === 'P2002' || /Unique constraint failed|already exists/i.test(rawMsg)
+    const msg = isUnique ? 'Slug already exists. Please choose a different slug.' : rawMsg
+    const status = isUnique ? 409 : 500
+    return NextResponse.json({ error: msg }, { status })
   }
 }
