@@ -265,7 +265,7 @@ Our consultation sessions are designed to provide you with actionable insights a
 
   for (const service of services) {
     // Prisma's composite unique where cannot accept null for optional fields; use findFirst instead
-    const exists = await prisma.service.findFirst({ where: { slug: service.slug, tenantId: null } })
+    const exists = await prisma.service.findFirst({ where: { slug: service.slug, tenantId: null }, select: { id: true } })
     if (!exists) {
       await prisma.service.create({ data: service as any })
     }
