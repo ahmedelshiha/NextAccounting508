@@ -167,7 +167,7 @@ model NotificationSettings {
 model Service {
   id          String    @id @default(cuid())
   name        String
-  slug        String    @unique
+  slug        String
   description String    @db.Text
   shortDesc   String?
   features    String[]
@@ -177,6 +177,7 @@ model Service {
   active      Boolean   @default(true)
   featured    Boolean   @default(false)
   image       String?
+  serviceSettings Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   basePrice     Decimal?
@@ -200,6 +201,7 @@ model Service {
   availabilitySlots AvailabilitySlot[]
 
   @@index([tenantId])
+  @@unique([tenantId, slug])
   @@index([active, bookingEnabled])
   @@map("services")
 }
