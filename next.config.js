@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const { withSentryConfig } = require('@sentry/nextjs')
+
 const nextConfig = {
   eslint: {
     // Skip ESLint checks during production builds to prevent build failures on lint-only issues
@@ -11,4 +13,5 @@ const nextConfig = {
   allowedDevOrigins: ["*.projects.builder.codes", "*.fly.dev"],
   turbopack: {},
 }
-module.exports = nextConfig
+
+module.exports = withSentryConfig(nextConfig, { silent: true })
