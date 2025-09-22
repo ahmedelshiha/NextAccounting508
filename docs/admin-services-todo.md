@@ -34,11 +34,12 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 ## Phase 2: Data Architecture Improvements
 
 ### 2.1 Database Schema Enhancements (Depends on Phase 1)
-- [ ] Prisma migration: composite unique `(tenantId, slug)` on `Service`
-- [ ] Update `validateSlugUniqueness` to be tenant-scoped
-- [ ] Add `serviceSettings JSONB` with default `{}`
-- [ ] Add `status` enum: `draft|active|deprecated|retired`
-- [ ] Migrate queries from boolean `active` to `status`
+- [x] Prisma schema prepared: composite unique `(tenantId, slug)` on `Service`
+- [x] Added `serviceSettings Json?` field (default to be handled at DB migration time)
+- [x] Extended `ServiceStatus` enum with `DRAFT` and `RETIRED` (kept `INACTIVE` for compatibility)
+- [x] Updated seed and public service endpoints to work without slug uniqueness
+- [ ] Migrate queries from boolean `active` to `status` (begin)
+- [ ] Apply DB migration in deployment pipeline
 
 ### 2.2 Service Layer Business Logic (Depends on 2.1)
 - [ ] `cloneService(name, fromId)` with slug generation/dedup
