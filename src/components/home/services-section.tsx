@@ -133,7 +133,7 @@ export function ServicesSection() {
                     {service.shortDesc}
                   </CardDescription>
                   
-                  {service.price && (
+                  {service.price != null && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
                         {formatCurrencyFromDecimal(service.price)}
