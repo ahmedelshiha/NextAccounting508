@@ -1,4 +1,4 @@
-Last updated: 2025-09-24
+Last updated: 2025-09-25
 
 Overview
 - Purpose: Reorganize Phase tasks into dependency-ordered, actionable items. Break large items into measurable steps and mark completed work.
@@ -41,9 +41,9 @@ PRIORITIZED WORK (critical path first)
 - [x] 3.3.1 Extend bulk actions to include clone and settings-update with per-item results and rollback behavior
 
 4) Phase 4 — Performance & Caching (post Phase 2/3)
-- [ ] 4.1.1 Add Redis client wrapper (create src/lib/cache/redis.ts)
-- [ ] 4.1.2 Implement Redis-backed CacheService and wire via DI in ServicesService
-- [ ] 4.1.3 Implement safe deletePattern (prefix matching, rate-limited)
+- [x] 4.1.1 Add Redis client wrapper (create src/lib/cache/redis.ts)
+- [x] 4.1.2 Implement Redis-backed CacheService and wire via DI in ServicesService
+- [x] 4.1.3 Implement safe deletePattern (prefix matching, rate-limited)
 - [ ] 4.2.1 Implement ETag/Last-Modified heuristics for lists & single resources
 - [ ] 4.2.2 Add cache warming for hot paths (services list top queries)
 
@@ -69,7 +69,7 @@ PRIORITIZED WORK (critical path first)
 
 Actionable immediate next steps (top 5)
 - [ ] Create Prisma migration files for Service.views and ServiceView model, commit migration (developer to run with DB creds)
-- [ ] Add GitHub Actions CI yaml to run typecheck, lint, tests and build on PRs
+- [x] Enhance Netlify build to run lint, typecheck, tests and build
 - [ ] Add Redis wrapper and plan migration from in-memory cache to Redis (design + implementation tasks)
 - [ ] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
 - [ ] Surface revenueTimeSeries & conversionsByService in admin UI (charts already wired — verify accessibility and responsiveness)
