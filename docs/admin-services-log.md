@@ -21,3 +21,18 @@ Why:
 
 Next steps:
 - Migrate server filters/toggles from boolean active to enum status, and update bulk actions and analytics accordingly.
+
+## [2025-09-22] Phase 2.1 – Begin migration from active→status
+What I changed:
+- Core service layer now filters, counts, and exports using Service.status ('ACTIVE') instead of active boolean.
+- Kept active boolean in sync for backward compatibility on create/update/bulk/delete.
+- Fallback raw SELECT includes status; Service DTO derives active from status when missing.
+- Public SR API validates service status via enum (ACTIVE) instead of active bool.
+
+Why:
+- Prepare for richer lifecycle states (DRAFT, RETIRED) and remove ambiguity around "inactive".
+
+Next steps:
+- Update booking/pricing/payment endpoints to read status instead of active.
+- Migrate UI toggle/actions to call status-aware endpoints (no behavior change required).
+- Remove remaining direct active checks post-QA, then deprecate active field in a future migration.
