@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params
-    const service = await prisma.service.findUnique({
+    const service = await prisma.service.findFirst({
       where: {
         slug,
         active: true
@@ -48,8 +48,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       image
     } = body
 
+    const existing = await prisma.service.findFirst({ where: { slug } })
+    if (!existing) return NextResponse.json({ error: 'Service not found' }, { status: 404 })
     const updated = await prisma.service.update({
-      where: { slug },
+      where: { id: existing.id },
       data: {
         ...(name && { name }),
         ...(description && { description }),
@@ -79,8 +81,10 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   try {
     const { slug } = await context.params
     // Soft delete by setting active to false
+    const existing = await prisma.service.findFirst({ where: { slug } })
+    if (!existing) return NextResponse.json({ error: 'Service not found' }, { status: 404 })
     await prisma.service.update({
-      where: { slug },
+      where: { id: existing.id },
       data: { active: false }
     })
 

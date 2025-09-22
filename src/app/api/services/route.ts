@@ -95,9 +95,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if slug already exists
-    const existingService = await prisma.service.findUnique({
-      where: { slug }
+    // Check if slug already exists (tenant-scoped)
+    const tenantId = getTenantFromRequest(request as any)
+    const existingService = await prisma.service.findFirst({
+      where: { slug, ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}) }
     })
 
     if (existingService) {
@@ -107,7 +108,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const tenantId = getTenantFromRequest(request as any)
     const service = await prisma.service.create({
       data: {
         name,
