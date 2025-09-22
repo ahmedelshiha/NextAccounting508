@@ -50,7 +50,7 @@ PRIORITIZED WORK (critical path first)
 5) Phase 5 — Integration & Events
 - [x] 5.1.1 Create typed service events (src/lib/events/service-events.ts)
 - [x] 5.1.2 Publish events on service create/update/delete and hook cache invalidation listeners
-- [ ] 5.2.1 Add ServiceLite DTO and expose to booking wizard
+- [x] 5.2.1 Add ServiceLite DTO and expose to booking wizard
 
 6) Phase 6 — Security & Rate Limiting (parallel)
 - [ ] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
