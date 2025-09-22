@@ -1,4 +1,4 @@
-## [2025-09-22] Phase 1 verification – Typecheck passed
+
 What I changed:
 - Fixed Service filters type narrowing for Select components (status/featured unions).
 - Resolved RHF + Zod resolver typing by simplifying resolver typing and adding React import.
@@ -74,3 +74,13 @@ Why:
 
 Next steps:
 - Proceed to Phase 3.1: error handling standardization (structured error responses, codes, 409 on slug conflict).
+
+## [2025-09-22] Phase 2.1 – DB migration in deployment pipeline
+What I changed:
+- Added prisma deploy/seed flow to netlify.toml build command and included scripts/prisma-deploy-retry.sh to retry migrations on advisory lock contention during CI (Netlify).
+
+Why:
+- Ensure DB schema changes are applied reliably during Netlify builds and reduce deployment failures caused by migration contention.
+
+Next steps:
+- Monitor Netlify deploy logs for migration success, validate migrations on staging, and plan phased production migration and alerting.

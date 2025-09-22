@@ -39,7 +39,11 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 - [x] Extended `ServiceStatus` enum with `DRAFT` and `RETIRED` (kept `INACTIVE` for compatibility)
 - [x] Updated seed and public service endpoints to work without slug uniqueness
 - [x] Migrate queries from boolean `active` to `status` (begin)
-- [ ] Apply DB migration in deployment pipeline
+- [x] Apply DB migration in deployment pipeline
+
+  - Completed: Added prisma deploy/seed flow to netlify.toml and retry script (scripts/prisma-deploy-retry.sh) to ensure migrations run during Netlify builds and handle advisory lock contention (2025-09-22).
+  - Why: Ensure DB schema changes are applied reliably during CI/CD, avoiding migration failures caused by advisory lock contention.
+  - Next steps: Monitor Netlify deploys for migration success, validate on staging, and plan phased production migration and alerting.
 
 ### 2.2 Service Layer Business Logic (Depends on 2.1)
 - [x] `cloneService(name, fromId)` with slug generation/dedup
