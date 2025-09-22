@@ -48,5 +48,15 @@ Why:
 - Ensure end-user flows (availability, pricing, checkout) honor lifecycle states consistently.
 
 Next steps:
-- Align admin UI toggle actions with status + active writes (begin).
 - Typecheck and QA paths; audit remaining direct `active` checks and migrate gradually.
+
+## [2025-09-22] Phase 2.1 – Admin UI toggles aligned
+What I changed:
+- PATCH /api/admin/services/[id] maps active->status in ServicesService.updateService.
+- Bulk actions already synchronize both fields for activate/deactivate.
+
+Why:
+- Ensure UI toggles keep enum status in sync without UI changes.
+
+Next steps:
+- Run typecheck; address any fallout. Continue migrating remaining endpoints away from direct active checks.
