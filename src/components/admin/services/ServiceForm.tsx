@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import type { Resolver } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,9 +23,9 @@ interface ServiceFormProps {
 
 export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, categories = [] }: ServiceFormProps) {
   const isEditing = !!initialData;
-  const formSchema: z.ZodType<ServiceFormData, z.ZodTypeDef, ServiceFormData> = ServiceSchema as unknown as z.ZodType<ServiceFormData, z.ZodTypeDef, ServiceFormData>;
+  const formSchema = ServiceSchema;
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ServiceFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as unknown as Resolver<ServiceFormData>,
     defaultValues: {
       name: initialData?.name || '',
       slug: initialData?.slug || '',
