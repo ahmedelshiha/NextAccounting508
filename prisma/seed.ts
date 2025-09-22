@@ -265,7 +265,7 @@ Our consultation sessions are designed to provide you with actionable insights a
 
   for (const service of services) {
     await prisma.service.upsert({
-      where: { slug: service.slug },
+      where: { tenantId_slug: { tenantId: null, slug: service.slug } },
       update: {},
       create: service,
     })
@@ -274,8 +274,8 @@ Our consultation sessions are designed to provide you with actionable insights a
   console.log('✅ Services created')
 
   // Seed sample service requests for demo clients
-  const svcBookkeeping = await prisma.service.findUnique({ where: { slug: 'bookkeeping' }, select: { id: true, name: true } })
-  const svcTax = await prisma.service.findUnique({ where: { slug: 'tax-preparation' }, select: { id: true, name: true } })
+  const svcBookkeeping = await prisma.service.findFirst({ where: { slug: 'bookkeeping' }, select: { id: true, name: true } })
+  const svcTax = await prisma.service.findFirst({ where: { slug: 'tax-preparation' }, select: { id: true, name: true } })
   if (svcBookkeeping && svcTax) {
     await prisma.serviceRequest.upsert({
       where: { id: 'sr_demo_1' },
