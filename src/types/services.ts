@@ -56,9 +56,9 @@ export interface ServiceAnalytics {
 }
 
 export interface BulkAction {
-  action: 'activate' | 'deactivate' | 'feature' | 'unfeature' | 'delete' | 'category' | 'price-update';
+  action: 'activate' | 'deactivate' | 'feature' | 'unfeature' | 'delete' | 'category' | 'price-update' | 'clone' | 'settings-update';
   serviceIds: string[];
-  value?: string | number;
+  value?: string | number | Record<string, any> | undefined;
 }
 
 export interface CurrencyConversion {
