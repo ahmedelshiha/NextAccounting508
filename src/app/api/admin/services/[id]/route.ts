@@ -71,6 +71,13 @@ export async function PATCH(request: NextRequest, context: Ctx) {
     const body = await request.json();
     ServiceUpdateSchema.parse({ ...body, id: String(id || '') });
 
+    // Enforce granular permission for changing 'featured'
+    if (Object.prototype.hasOwnProperty.call(body, 'featured')) {
+      if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_MANAGE_FEATURED)) {
+        return NextResponse.json({ error: 'Forbidden: missing permission to manage featured' }, { status: 403 })
+      }
+    }
+
     const tenantId = getTenantFromRequest(request);
     if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const original = await svc.getServiceById(tenantId, id);

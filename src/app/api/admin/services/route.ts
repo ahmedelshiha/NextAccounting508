@@ -89,6 +89,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validated = ServiceSchema.parse(body);
 
+    // If attempting to set 'featured' without permission, block
+    if (Object.prototype.hasOwnProperty.call(validated, 'featured') && !!validated.featured) {
+      if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_MANAGE_FEATURED)) {
+        return NextResponse.json({ error: 'Forbidden: missing permission to set featured' }, { status: 403 })
+      }
+    }
+
     const tenantId = getTenantFromRequest(request);
     const service = await svc.createService(tenantId, validated as any, session.user.id);
 

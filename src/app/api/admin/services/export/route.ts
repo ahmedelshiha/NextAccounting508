@@ -5,6 +5,7 @@ import { ServicesService } from '@/services/services.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const svc = new ServicesService();
 
@@ -13,6 +14,10 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EXPORT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const ip = getClientIp(request as any)
+    const tenantId = getTenantFromRequest(request)
+    if (!rateLimit(`export:${tenantId || 'global'}:${ip}`, 5, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
 
 
     const sp = new URL(request.url).searchParams;
@@ -26,6 +31,7 @@ export async function GET(request: NextRequest) {
     const filename = `services-export-${ts}.${format}`;
 
     if (format === 'csv') {
+      // CSV is already sanitized/escaped at source (see services.service.ts exportServices)
       return new NextResponse(data, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="${filename}"` } });
     }
 

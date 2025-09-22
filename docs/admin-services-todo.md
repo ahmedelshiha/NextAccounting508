@@ -53,9 +53,9 @@ PRIORITIZED WORK (critical path first)
 - [x] 5.2.1 Add ServiceLite DTO and expose to booking wizard
 
 6) Phase 6 — Security & Rate Limiting (parallel)
-- [ ] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
-- [ ] 6.2.1 Tenant-scoped rate limiting for bulk operations (per-tenant keys)
-- [ ] 6.3.1 CSV export sanitization & throttling
+- [x] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
+- [x] 6.2.1 Tenant-scoped rate limiting for bulk operations (per-tenant keys)
+- [x] 6.3.1 CSV export sanitization & throttling
 
 7) Phase 7 — Tests & QA (start after Phase 2/3 complete)
 - [ ] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
