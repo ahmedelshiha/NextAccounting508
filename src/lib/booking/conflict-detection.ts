@@ -38,7 +38,7 @@ export async function checkBookingConflict(params: CheckConflictParams): Promise
   const { serviceId, start, durationMinutes, excludeBookingId, teamMemberId } = params
 
   const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-  if (!svc || svc.active === false || (svc as any).bookingEnabled === false) {
+  if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE' || (svc as any).bookingEnabled === false) {
     return { conflict: true, details: { reason: 'SERVICE_INACTIVE' } }
   }
 

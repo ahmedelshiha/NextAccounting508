@@ -49,9 +49,9 @@ export async function POST(request: NextRequest) {
   const data = parsed.data
 
   try {
-    // Validate service exists and is active
-    const service = await prisma.service.findUnique({ where: { id: data.serviceId }, select: { id: true, name: true, active: true } })
-    if (!service || service.active === false) {
+    // Validate service exists and is active (status = ACTIVE)
+    const service = await prisma.service.findUnique({ where: { id: data.serviceId }, select: { id: true, name: true, status: true } })
+    if (!service || String((service as any).status).toUpperCase() !== 'ACTIVE') {
       return respond.badRequest('Service not found or inactive')
     }
 

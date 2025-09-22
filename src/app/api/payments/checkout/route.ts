@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!svc || (svc as any).active === false) return bad('Service not found or inactive', 400)
+    if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') return bad('Service not found or inactive', 400)
 
     const emergencyPct = bookingType === 'EMERGENCY' ? 0.5 : 0
     const quote = await calculateServicePrice({

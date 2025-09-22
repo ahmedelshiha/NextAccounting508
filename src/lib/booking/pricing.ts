@@ -50,7 +50,7 @@ export async function calculateServicePrice(params: {
   const options = params.options || {}
 
   const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-  if (!svc || svc.active === false) {
+  if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') {
     return { currency: 'USD', baseCents: 0, components: [], subtotalCents: 0, totalCents: 0 }
   }
 

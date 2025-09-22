@@ -229,7 +229,7 @@ export async function POST(request: Request) {
   let svc: any = null
   try {
     svc = await prisma.service.findUnique({ where: { id: data.serviceId } })
-    if (!svc || (svc as any).active === false) {
+    if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') {
       return respond.badRequest('Service not found or inactive')
     }
   } catch (e: any) {

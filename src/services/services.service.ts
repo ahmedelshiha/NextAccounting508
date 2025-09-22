@@ -12,6 +12,113 @@ export class ServicesService {
     private notifications: NotificationService = new NotificationService()
   ) {}
 
+  /**
+   * Clone an existing service into a new one with a provided name.
+   * - Generates a unique, tenant-scoped slug
+   * - Sets featured=false, active=false, status=DRAFT
+   * - Copies pricing, duration, category, features, image and settings
+   */
+  async cloneService(name: string, fromId: string): Promise<ServiceType> {
+    const src = await prisma.service.findUnique({ where: { id: fromId } })
+    if (!src) throw new Error('Source service not found')
+
+    const tenantId: string | null = (src as any).tenantId ?? null
+    const baseSlug = generateSlug(name)
+
+    // Ensure tenant-scoped slug uniqueness
+    let slug = baseSlug || `service-${Date.now()}`
+    let attempt = 1
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+      if (!exists) break
+      attempt += 1
+      slug = `${baseSlug}-${attempt}`
+    }
+
+    const created = await prisma.service.create({
+      data: {
+        name,
+        slug,
+        description: src.description,
+        shortDesc: src.shortDesc ?? null,
+        features: Array.isArray(src.features) ? src.features : [],
+        price: src.price as any,
+        duration: src.duration as any,
+        category: src.category ?? null,
+        featured: false,
+        active: false,
+        status: 'DRAFT' as any,
+        image: (src as any).image ?? null,
+        serviceSettings: (src as any).serviceSettings ?? undefined,
+        ...(tenantId ? { tenantId } : {}),
+      },
+    })
+
+    await this.clearCaches(tenantId)
+    try { await this.notifications.notifyServiceCreated(created as any, 'system') } catch {}
+    return this.toType(created as any)
+  }
+
+  /**
+   * Returns version history for a service. Placeholder for future implementation.
+   */
+  async getServiceVersionHistory(_id: string): Promise<any[]> {
+    return []
+  }
+
+  /**
+   * Basic dependency validation for a service. Returns issues found.
+   */
+  async validateServiceDependencies(service: Partial<ServiceType> | any): Promise<{ valid: boolean; issues: string[] }> {
+    const issues: string[] = []
+    const bookingEnabled = (service as any).bookingEnabled
+    const duration = (service as any).duration
+    const bufferTime = (service as any).bufferTime
+
+    if (bookingEnabled === true) {
+      const d = typeof duration === 'number' ? duration : null
+      if (d == null || d <= 0) issues.push('Booking enabled but duration is missing or invalid')
+    }
+    if (bufferTime != null && typeof bufferTime === 'number' && bufferTime < 0) {
+      issues.push('bufferTime cannot be negative')
+    }
+    const valid = issues.length === 0
+    return { valid, issues }
+  }
+
+  /**
+   * Bulk update serviceSettings with shallow merge per service.
+   */
+  async bulkUpdateServiceSettings(
+    tenantId: string | null,
+    updates: Array<{ id: string; settings: Record<string, any> }>
+  ): Promise<{ updated: number; errors: Array<{ id: string; error: string }> }> {
+    if (!updates || updates.length === 0) return { updated: 0, errors: [] }
+    const ids = updates.map(u => u.id)
+
+    const existing = await prisma.service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } })
+    const map = new Map(existing.map(e => [e.id, e]))
+
+    let updated = 0
+    const errors: Array<{ id: string; error: string }> = []
+
+    for (const u of updates) {
+      try {
+        const before = map.get(u.id)
+        const prev = (before?.serviceSettings as any) ?? {}
+        const next = { ...prev, ...u.settings }
+        await prisma.service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        updated += 1
+      } catch (e: any) {
+        errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
+      }
+    }
+
+    await this.clearCaches(tenantId)
+    return { updated, errors }
+  }
+
   async getServicesList(
     tenantId: string | null,
     filters: ServiceFilters & { limit?: number; offset?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }
@@ -19,7 +126,8 @@ export class ServicesService {
     const { search, category, featured, status, limit = 20, offset = 0, sortBy = 'updatedAt', sortOrder = 'desc' } = filters;
 
     const where: Prisma.ServiceWhereInput = { ...(tenantId ? { tenantId } : {}), };
-    if (status === 'active') where.active = true; else if (status === 'inactive') where.active = false;
+    if (status === 'active') (where as any).status = 'ACTIVE';
+    else if (status === 'inactive') (where as any).status = { not: 'ACTIVE' } as any;
     if (featured === 'featured') (where as any).featured = true; else if (featured === 'non-featured') (where as any).featured = false;
     if (category && category !== 'all') (where as any).category = category;
     if (search) {
@@ -49,7 +157,7 @@ export class ServicesService {
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
       const all = await prisma.$queryRawUnsafe<any[]>(
-        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","image","createdAt","updatedAt" FROM "services"'
+        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt" FROM "services"'
       );
       let items = all.map(this.toType);
       // Apply basic filters client-side
@@ -83,7 +191,8 @@ export class ServicesService {
     if (!sanitized.slug) sanitized.slug = generateSlug(sanitized.name);
     await validateSlugUniqueness(sanitized.slug, tenantId);
 
-    const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: sanitized.active ?? true } });
+    const isActive = sanitized.active ?? true;
+    const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: isActive, status: (isActive ? 'ACTIVE' : 'INACTIVE') as any } });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     return this.toType(s as any);
@@ -96,7 +205,11 @@ export class ServicesService {
     const sanitized = sanitizeServiceData(data);
     if (sanitized.slug && sanitized.slug !== existing.slug) await validateSlugUniqueness(sanitized.slug, tenantId, id);
 
-    const s = await prisma.service.update({ where: { id }, data: { ...sanitized } });
+    const updateData: any = { ...sanitized };
+    if (Object.prototype.hasOwnProperty.call(sanitized, 'active')) {
+      updateData.status = (sanitized as any).active ? ('ACTIVE' as any) : ('INACTIVE' as any);
+    }
+    const s = await prisma.service.update({ where: { id }, data: updateData });
     await this.clearCaches(tenantId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
@@ -107,7 +220,7 @@ export class ServicesService {
     const existing = await this.getServiceById(tenantId, id);
     if (!existing) throw new Error('Service not found');
 
-    await prisma.service.update({ where: { id }, data: { active: false } });
+    await prisma.service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
     await this.clearCaches(tenantId, id);
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
   }
@@ -118,15 +231,15 @@ export class ServicesService {
     if (tenantId) (where as any).tenantId = tenantId;
 
     let data: any = {};
-    if (type === 'activate') data.active = true;
-    else if (type === 'deactivate') data.active = false;
+    if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
+    else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
     else if (type === 'feature') data.featured = true;
     else if (type === 'unfeature') data.featured = false;
     else if (type === 'category') data.category = String(value || '') || null;
     else if (type === 'price-update') data.price = Number(value);
 
     if (type === 'delete') {
-      const res = await prisma.service.updateMany({ where, data: { active: false } });
+      const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tenantId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       return { updatedCount: res.count, errors: [] };
@@ -146,10 +259,10 @@ export class ServicesService {
     const where: Prisma.ServiceWhereInput = tenantId ? ({ tenantId } as any) : {};
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
       prisma.service.count({ where }),
-      prisma.service.count({ where: { ...where, active: true } as any }),
-      prisma.service.count({ where: { ...where, featured: true, active: true } as any }),
-      prisma.service.groupBy({ by: ['category'], where: { ...where, active: true, category: { not: null } } as any }),
-      prisma.service.aggregate({ where: { ...where, active: true, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
+      prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
+      prisma.service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
+      prisma.service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
+      prisma.service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
     ]);
 
     // Analytics window: last 6 months
@@ -240,10 +353,10 @@ export class ServicesService {
   }
 
   async exportServices(tenantId: string | null, options: { format: string; includeInactive?: boolean }): Promise<string> {
-    const services = await prisma.service.findMany({ where: { ...(tenantId ? { tenantId } : {}), ...(options.includeInactive ? {} : { active: true }) }, orderBy: { name: 'asc' } });
+    const services = await prisma.service.findMany({ where: { ...(tenantId ? { tenantId } : {}), ...(options.includeInactive ? {} : ({ status: 'ACTIVE' } as any)) }, orderBy: { name: 'asc' } });
     if (options.format === 'json') return JSON.stringify(services, null, 2);
     const headers = ['ID','Name','Slug','Description','Short Description','Price','Duration','Category','Featured','Active','Created At','Updated At'];
-    const rows = services.map(s => [s.id, `"${String(s.name).replace(/"/g,'""')}"`, s.slug, `"${String(s.description).replace(/"/g,'""')}"`, s.shortDesc ? `"${String(s.shortDesc).replace(/"/g,'""')}"` : '', s.price ?? '', s.duration ?? '', s.category ?? '', s.featured ? 'Yes' : 'No', s.active ? 'Yes' : 'No', s.createdAt.toISOString(), s.updatedAt.toISOString()]);
+    const rows = services.map(s => [s.id, `"${String(s.name).replace(/"/g,'""')}"`, s.slug, `"${String(s.description).replace(/"/g,'""')}"`, s.shortDesc ? `"${String(s.shortDesc).replace(/"/g,'""')}"` : '', s.price ?? '', s.duration ?? '', s.category ?? '', s.featured ? 'Yes' : 'No', ((s as any).status === 'ACTIVE' || (s as any).active === true) ? 'Yes' : 'No', s.createdAt.toISOString(), s.updatedAt.toISOString()]);
     return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   }
 
@@ -259,7 +372,7 @@ export class ServicesService {
       duration: s.duration,
       category: s.category,
       featured: s.featured,
-      active: s.active,
+      active: (s.active !== undefined ? s.active : (s.status ? String(s.status).toUpperCase() === 'ACTIVE' : true)),
       image: s.image,
       createdAt: s.createdAt?.toISOString?.() || String(s.createdAt),
       updatedAt: s.updatedAt?.toISOString?.() || String(s.updatedAt),
@@ -268,7 +381,11 @@ export class ServicesService {
   }
 
   private async clearCaches(tenantId: string | null, serviceId?: string) {
-    const patterns = [`service-stats:${tenantId}:*`, `services-list:${tenantId}:*`];
+    const patterns = [
+      `service-stats:${tenantId}:*`,
+      `services-list:${tenantId}:*`,
+      `service:*:${tenantId}`,
+    ];
     await Promise.all(patterns.map(p => this.cache.deletePattern(p)));
     if (serviceId) {
       const key = `service:${serviceId}:${tenantId}`;

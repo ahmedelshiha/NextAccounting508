@@ -21,3 +21,56 @@ Why:
 
 Next steps:
 - Migrate server filters/toggles from boolean active to enum status, and update bulk actions and analytics accordingly.
+
+## [2025-09-22] Phase 2.1 – Begin migration from active→status
+What I changed:
+- Core service layer now filters, counts, and exports using Service.status ('ACTIVE') instead of active boolean.
+- Kept active boolean in sync for backward compatibility on create/update/bulk/delete.
+- Fallback raw SELECT includes status; Service DTO derives active from status when missing.
+- Public SR API validates service status via enum (ACTIVE) instead of active bool.
+
+Why:
+- Prepare for richer lifecycle states (DRAFT, RETIRED) and remove ambiguity around "inactive".
+
+Next steps:
+- Update booking/pricing/payment endpoints to read status instead of active.
+- Migrate UI toggle/actions to call status-aware endpoints (no behavior change required).
+- Remove remaining direct active checks post-QA, then deprecate active field in a future migration.
+
+## [2025-09-22] Phase 2.1 – Booking/Pricing/Payment endpoints migrated
+What I changed:
+- Availability API now requires Service.status = ACTIVE (findFirst).
+- Domain availability/conflict/pricing use status enum checks.
+- Pricing API and Payments Checkout validate status via enum.
+- Services page static params query uses status = ACTIVE for slug generation.
+
+Why:
+- Ensure end-user flows (availability, pricing, checkout) honor lifecycle states consistently.
+
+Next steps:
+- Typecheck and QA paths; audit remaining direct `active` checks and migrate gradually.
+
+## [2025-09-22] Phase 2.1 – Admin UI toggles aligned
+What I changed:
+- PATCH /api/admin/services/[id] maps active->status in ServicesService.updateService.
+- Bulk actions already synchronize both fields for activate/deactivate.
+
+Why:
+- Ensure UI toggles keep enum status in sync without UI changes.
+
+Next steps:
+- Run typecheck; address any fallout. Continue migrating remaining endpoints away from direct active checks.
+
+## [2025-09-22] Phase 2.2 – Service Layer Business Logic
+What I changed:
+- Implemented cloneService(name, fromId) with tenant-scoped slug dedup; clones as DRAFT, not active.
+- Added getServiceVersionHistory(id) stub returning [].
+- Added validateServiceDependencies(service) for basic booking/duration/buffer checks.
+- Implemented bulkUpdateServiceSettings(updates) with shallow JSON merge per service.
+- Strengthened cache invalidation to wipe service:*:tenant patterns.
+
+Why:
+- Prepares service module for future workflows (versions, dependency checks) and operational settings updates.
+
+Next steps:
+- Proceed to Phase 3.1: error handling standardization (structured error responses, codes, 409 on slug conflict).

@@ -142,8 +142,9 @@ export function filterServices(services: any[], filters: any) {
       const txt = [s.name, s.slug, s.shortDesc, s.description, s.category].filter(Boolean).join(' ').toLowerCase();
       if (!txt.includes(q)) return false;
     }
-    if (filters.status === 'active' && !s.active) return false;
-    if (filters.status === 'inactive' && s.active) return false;
+    const isActive = (s.active !== undefined ? !!s.active : (s.status ? String(s.status).toUpperCase() === 'ACTIVE' : true));
+    if (filters.status === 'active' && !isActive) return false;
+    if (filters.status === 'inactive' && isActive) return false;
     if (filters.featured === 'featured' && !s.featured) return false;
     if (filters.featured === 'non-featured' && s.featured) return false;
     if (filters.category && filters.category !== 'all' && s.category !== filters.category) return false;
