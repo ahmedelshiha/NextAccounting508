@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import type { Prisma } from '@prisma/client'
+
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
 import { CacheService } from '@/lib/cache.service';
@@ -205,7 +205,7 @@ export class ServicesService {
     const popularServices = Array.from(popularMap.values()).sort((a,b) => b.bookings - a.bookings).slice(0, 10);
 
     // conversion rates per last 3 months (completed/total)
-    const conv: { period: string; rate: number }[] = [];
+    const conv: { service: string; rate: number }[] = [];
     for (let i = 2; i >= 0; i--) {
       const from = new Date();
       from.setMonth(from.getMonth() - i);
@@ -215,7 +215,7 @@ export class ServicesService {
         prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to } } }),
         prisma.booking.count({ where: { ...bookingWhere, scheduledAt: { gte: from, lt: to }, status: 'COMPLETED' as any } }),
       ]);
-      conv.push({ period: from.toLocaleString('en-US', { month: 'short' }), rate: tot ? (done / tot) * 100 : 0 });
+      conv.push({ service: from.toLocaleString('en-US', { month: 'short' }), rate: tot ? (done / tot) * 100 : 0 });
     }
 
     const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv };
