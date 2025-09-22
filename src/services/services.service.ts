@@ -98,7 +98,11 @@ export class ServicesService {
     const sanitized = sanitizeServiceData(data);
     if (sanitized.slug && sanitized.slug !== existing.slug) await validateSlugUniqueness(sanitized.slug, tenantId, id);
 
-    const s = await prisma.service.update({ where: { id }, data: { ...sanitized } });
+    const updateData: any = { ...sanitized };
+    if (Object.prototype.hasOwnProperty.call(sanitized, 'active')) {
+      updateData.status = (sanitized as any).active ? ('ACTIVE' as any) : ('INACTIVE' as any);
+    }
+    const s = await prisma.service.update({ where: { id }, data: updateData });
     await this.clearCaches(tenantId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
