@@ -196,8 +196,8 @@ Status legend: [Resolved], [Open], [Planned]
 - Multitenancy edge cases — [Open]
   - DB enforces global unique slug. If multi-tenant uniqueness is required, add composite unique `(tenantId, slug)` and adjust code/validation accordingly.
 
-- API caching headers — [Open]
-  - Consider ETag/If-None-Match for list endpoints or Cache-Control for stable filters.
+- API caching headers — [Resolved]
+  - Implemented ETag/If-None-Match on list endpoint; keeps Cache-Control headers.
 
 ## 8. Recommendations
 
