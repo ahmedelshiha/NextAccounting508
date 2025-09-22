@@ -15,7 +15,7 @@ import { planRecurringBookings } from '@/lib/booking/recurring'
 const CreateBase = z.object({
   clientId: z.string().min(1),
   serviceId: z.string().min(1),
-  title: z.string().min(5).max(300).optional(),
+  title: z.string().min(1).max(300).optional(),
   description: z.string().optional(),
   priority: z.union([
     z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),

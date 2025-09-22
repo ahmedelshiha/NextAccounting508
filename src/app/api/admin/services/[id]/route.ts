@@ -18,9 +18,6 @@ export async function GET(request: NextRequest, { params }: Ctx) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      return NextResponse.json({ error: 'Database is not configured. Connect a database to view services.' }, { status: 501 });
-    }
 
     const tenantId = getTenantFromRequest(request);
     const service = await svc.getServiceById(tenantId, id);
@@ -38,9 +35,6 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      return NextResponse.json({ error: 'Database is not configured. Connect a database to update services.' }, { status: 501 });
-    }
 
     const body = await request.json();
     ServiceUpdateSchema.parse({ ...body, id });
@@ -73,9 +67,6 @@ export async function DELETE(request: NextRequest, { params }: Ctx) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_DELETE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      return NextResponse.json({ error: 'Database is not configured. Connect a database to delete services.' }, { status: 501 });
-    }
 
     const tenantId = getTenantFromRequest(request);
     const original = await svc.getServiceById(tenantId, id);

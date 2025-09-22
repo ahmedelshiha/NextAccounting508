@@ -7,7 +7,6 @@ import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
-import { getDemoServices } from '@/lib/services/utils';
 
 const svc = new ServicesService();
 
@@ -34,26 +33,6 @@ export async function GET(request: NextRequest) {
 
     const tenantId = getTenantFromRequest(request);
 
-    // Graceful fallback when DB isn't configured (demo mode)
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      const fallback = getDemoServices();
-      const filteredList = fallback.filter((s) => {
-        if (filters.status === 'active' && !s.active) return false;
-        if (filters.status === 'inactive' && s.active) return false;
-        if (filters.featured === 'featured' && !s.featured) return false;
-        if (filters.featured === 'non-featured' && s.featured) return false;
-        if (filters.category && filters.category !== 'all' && s.category !== filters.category) return false;
-        if (filters.search) {
-          const q = String(filters.search).toLowerCase();
-          const hay = [s.name, s.slug, s.shortDesc || '', s.description || '', s.category || ''].join(' ').toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      });
-      const result = { services: filteredList, total: filteredList.length, page: 1, limit: filteredList.length, totalPages: 1 };
-      await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters, demo: true } });
-      return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
-    }
 
     const result = await svc.getServicesList(tenantId, filters as any);
 
@@ -62,14 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
   } catch (e: any) {
     console.error('services GET error', e);
-    const code = String(e?.code || '')
-    const msg = String(e?.message || '')
-    const isSchemaErr = code.startsWith('P10') || code.startsWith('P20') || /relation|table|column|does not exist|schema/i.test(msg)
-    if (isSchemaErr) {
-      const fallback = getDemoServices()
-      return NextResponse.json({ services: fallback, total: fallback.length, page: 1, limit: fallback.length, totalPages: 1 }, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(fallback.length) } })
-    }
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
   }
 }
 
@@ -82,9 +54,6 @@ export async function POST(request: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_CREATE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      return NextResponse.json({ error: 'Database is not configured. Connect a database to create services.' }, { status: 501 });
-    }
 
     const body = await request.json();
     const validated = ServiceSchema.parse(body);
