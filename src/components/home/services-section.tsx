@@ -21,9 +21,9 @@ interface Service {
   id: string
   name: string
   slug: string
-  shortDesc: string
-  price: number
-  featured: boolean
+  shortDesc?: string | null
+  price?: number | null
+  featured?: boolean
 }
 
 export function ServicesSection() {
