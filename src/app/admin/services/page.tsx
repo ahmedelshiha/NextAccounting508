@@ -65,48 +65,7 @@ import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { BulkActionsPanel } from '@/components/admin/services/BulkActionsPanel'
 import { Modal } from '@/components/ui/Modal'
 
-// Local types aligned with @/types/services
-interface Service {
-  id: string
-  slug: string
-  name: string
-  description: string
-  shortDesc?: string | null
-  features: string[]
-  price?: number
-  duration?: number
-  category?: string | null
-  featured: boolean
-  active: boolean
-  image?: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-interface ServiceFilters {
-  search: string
-  category: string
-  featured: string
-  status: string
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
-}
-
-interface ServiceStats {
-  total: number
-  active: number
-  featured: number
-  categories: number
-  averagePrice: number
-  totalRevenue: number
-}
-
-interface ServiceAnalytics {
-  monthlyBookings: Array<{ month: string; bookings: number }>
-  revenueByService: Array<{ service: string; revenue: number }>
-  popularServices: Array<{ service: string; bookings: number }>
-  conversionRates: Array<{ period: string; rate: number }>
-}
+import type { Service, ServiceFilters, ServiceStats, ServiceAnalytics } from '@/types/services'
 
 const statusStyles = {
   active: 'bg-green-100 text-green-800 border-green-200',
@@ -148,10 +107,10 @@ export default function ServicesAdminPage() {
     search: '',
     category: 'all',
     featured: 'all',
-    status: 'all',
-    sortBy: 'updatedAt',
-    sortOrder: 'desc'
+    status: 'all'
   })
+  const [sortBy, setSortBy] = useState<'name'|'createdAt'|'updatedAt'|'price'>('updatedAt')
+  const [sortOrder, setSortOrder] = useState<'asc'|'desc'>('desc')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [showAdvanced, setShowAdvanced] = useState(false)
 
@@ -188,8 +147,8 @@ export default function ServicesAdminPage() {
       if (filters.status !== 'all') qp.set('status', filters.status)
       qp.set('limit', pageSize.toString())
       qp.set('offset', ((page - 1) * pageSize).toString())
-      qp.set('sortBy', filters.sortBy)
-      qp.set('sortOrder', filters.sortOrder)
+      qp.set('sortBy', sortBy)
+      qp.set('sortOrder', sortOrder)
 
       const res = await apiFetch(`/api/admin/services${qp.toString() ? `?${qp.toString()}` : ''}`)
       const data = await res.json()
@@ -454,7 +413,7 @@ export default function ServicesAdminPage() {
                       </SelectContent>
                     </Select>
 
-                    <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
                       <SelectTrigger><SelectValue placeholder="Sort By" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="updatedAt">Recently Updated</SelectItem>
@@ -464,12 +423,12 @@ export default function ServicesAdminPage() {
                       </SelectContent>
                     </Select>
 
-                    <Button variant="outline" size="sm" onClick={() => setFilters(prev => ({ ...prev, sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' }))}>
-                      {filters.sortOrder === 'asc' ? <ArrowUpRight className="h-3 w-3 mr-2" /> : <ArrowDownRight className="h-3 w-3 mr-2" />}
-                      {filters.sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                    <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}>
+                      {sortOrder === 'asc' ? <ArrowUpRight className="h-3 w-3 mr-2" /> : <ArrowDownRight className="h-3 w-3 mr-2" />}
+                      {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
                     </Button>
 
-                    <Button variant="outline" size="sm" onClick={() => setFilters({ search: '', category: 'all', featured: 'all', status: 'all', sortBy: 'updatedAt', sortOrder: 'desc' })}>Clear Filters</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setFilters({ search: '', category: 'all', featured: 'all', status: 'all' }); setSortBy('updatedAt'); setSortOrder('desc'); }}>Clear Filters</Button>
                   </div>
                 )}
 
