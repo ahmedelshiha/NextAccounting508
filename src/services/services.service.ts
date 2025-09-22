@@ -424,7 +424,24 @@ export class ServicesService {
       }
     }
 
+    // Compute conversion from views -> bookings for top services
+    const topIds = revenueByServiceArr.sort((a,b)=>b.revenue-a.revenue).slice(0,10).map(r=>r.id);
+    let conversionsByService: { service: string; bookings: number; views: number; conversionRate: number }[] = [];
+    if (topIds.length) {
+      try {
+        const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true, views: true } as any });
+        for (const s of svcRows) {
+          const bCount = serviceTotals.get(s.id) || 0;
+          const vCount = (s.views ?? 0) || 0;
+          const rate = vCount > 0 ? (bCount / vCount) * 100 : 0;
+          conversionsByService.push({ service: s.name || 'Unknown', bookings: bCount, views: vCount, conversionRate: Number(rate.toFixed(2)) });
+        }
+      } catch { conversionsByService = [] }
+    }
+
     const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv, revenueTimeSeries };
+    // Attach conversionsByService to analytics under a new key if consumers need it
+    (analytics as any).conversionsByService = conversionsByService;
     const avgPriceVal = priceAgg && priceAgg._avg && priceAgg._avg.price != null ? Number(priceAgg._avg.price) : 0;
     const totalRevenueVal = priceAgg && priceAgg._sum && priceAgg._sum.price != null ? Number(priceAgg._sum.price) : 0;
     const stats: ServiceStats & { analytics: ServiceAnalytics } = { total, active, featured, categories: catGroups.length, averagePrice: avgPriceVal, totalRevenue: totalRevenueVal, analytics };
