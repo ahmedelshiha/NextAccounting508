@@ -33,7 +33,20 @@ export async function GET(request: NextRequest, context: Ctx) {
     if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const service = await svc.getServiceById(tenantId, String(id));
     if (!service) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ service });
+
+    const lastMod = new Date(service.updatedAt || service.createdAt || Date.now())
+    const etag = '"' + createHash('sha1').update(String(service.id) + '|' + String(service.updatedAt)).digest('hex') + '"'
+
+    const inm = request.headers.get('if-none-match')
+    if (inm && inm === etag) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag, 'Last-Modified': lastMod.toUTCString() } })
+    }
+    const ims = request.headers.get('if-modified-since')
+    if (ims && new Date(ims).getTime() >= lastMod.getTime()) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag, 'Last-Modified': lastMod.toUTCString() } })
+    }
+
+    return NextResponse.json({ service }, { headers: { 'Cache-Control': 'private, max-age=60', ETag: etag, 'Last-Modified': lastMod.toUTCString() } });
   } catch (e: any) {
     const prismaMapped = mapPrismaError(e);
     if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
