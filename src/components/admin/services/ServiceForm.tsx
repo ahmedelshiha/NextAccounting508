@@ -23,9 +23,9 @@ interface ServiceFormProps {
 
 export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, categories = [] }: ServiceFormProps) {
   const isEditing = !!initialData;
-  const formSchema: z.ZodType<ServiceFormData> = ServiceSchema;
+  const formSchema: z.ZodType<ServiceFormData, z.ZodTypeDef, ServiceFormData> = ServiceSchema as unknown as z.ZodType<ServiceFormData, z.ZodTypeDef, ServiceFormData>;
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ServiceFormData>({
-    resolver: zodResolver<ServiceFormData, any, ServiceFormData>(formSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: initialData?.name || '',
       slug: initialData?.slug || '',
