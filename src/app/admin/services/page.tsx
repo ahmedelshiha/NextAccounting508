@@ -265,23 +265,39 @@ export default function ServicesAdminPage() {
   }
 
   const handleToggleActive = async (service: Service) => {
+    const prev = service.active
+    // optimistic update
+    setServices((list) => list.map((s) => (s.id === service.id ? { ...s, active: !prev, updatedAt: new Date().toISOString() } : s)))
     try {
-      const res = await apiFetch(`/api/admin/services/${service.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: !service.active }) })
+      const res = await apiFetch(`/api/admin/services/${service.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ active: !prev }) })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(j?.error || 'Failed to toggle service status')
-      toast.success(`Service ${!service.active ? 'activated' : 'deactivated'}`)
+      toast.success(`Service ${!prev ? 'activated' : 'deactivated'}`)
+    } catch (e: any) {
+      // revert
+      setServices((list) => list.map((s) => (s.id === service.id ? { ...s, active: prev } : s)))
+      toast.error(e?.message || 'Failed to toggle service status')
+    } finally {
       refresh()
-    } catch (e: any) { toast.error(e?.message || 'Failed to toggle service status') }
+    }
   }
 
   const handleToggleFeatured = async (service: Service) => {
+    const prev = service.featured
+    // optimistic update
+    setServices((list) => list.map((s) => (s.id === service.id ? { ...s, featured: !prev, updatedAt: new Date().toISOString() } : s)))
     try {
-      const res = await apiFetch(`/api/admin/services/${service.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured: !service.featured }) })
+      const res = await apiFetch(`/api/admin/services/${service.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ featured: !prev }) })
       const j = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(j?.error || 'Failed to toggle featured status')
-      toast.success(`Service ${!service.featured ? 'featured' : 'unfeatured'}`)
+      toast.success(`Service ${!prev ? 'featured' : 'unfeatured'}`)
+    } catch (e: any) {
+      // revert
+      setServices((list) => list.map((s) => (s.id === service.id ? { ...s, featured: prev } : s)))
+      toast.error(e?.message || 'Failed to toggle featured status')
+    } finally {
       refresh()
-    } catch (e: any) { toast.error(e?.message || 'Failed to toggle featured status') }
+    }
   }
 
   const handleBulkAction = async (action: any) => {
