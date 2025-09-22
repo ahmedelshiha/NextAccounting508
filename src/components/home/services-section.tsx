@@ -21,9 +21,9 @@ interface Service {
   id: string
   name: string
   slug: string
-  shortDesc: string
-  price: number
-  featured: boolean
+  shortDesc?: string | null
+  price?: number | null
+  featured?: boolean
 }
 
 export function ServicesSection() {
@@ -33,7 +33,7 @@ export function ServicesSection() {
   useEffect(() => {
     async function fetchServices() {
       try {
-        const response = await apiFetch('/api/services')
+        const response = await apiFetch('/api/services?featured=true')
         if (response.ok) {
           let data: unknown = null
           try {
@@ -133,7 +133,7 @@ export function ServicesSection() {
                     {service.shortDesc}
                   </CardDescription>
                   
-                  {service.price && (
+                  {service.price != null && (
                     <div className="mb-4">
                       <span className="text-2xl font-bold text-gray-900">
                         {formatCurrencyFromDecimal(service.price)}
