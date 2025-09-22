@@ -10,6 +10,7 @@ export interface Service {
   category?: string | null;
   featured: boolean;
   active: boolean;
+  views?: number;
   image?: string | null;
   createdAt: string;
   updatedAt: string;
