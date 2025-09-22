@@ -1,15 +1,15 @@
 
 
-## [2025-09-24] Phase 2 – Completion
+## [2025-09-25] Reorganization & actionable todo breakdown
 What I changed:
-- Added `views` counter to `Service` model in prisma/schema.prisma and updated public service GET route to increment views on each fetch.
-- Enhanced analytics to compute conversions from views→bookings per top services and included revenueTimeSeries, monthlyBookings, revenueByService, and popularServices in `ServicesService.getServiceStats`.
-- Updated service APIs to use `status = 'ACTIVE'` for public lookups and ensured tenant scoping across analytics queries.
-- Extended BulkAction schema and service layer to support `clone` and `settings-update` with per-item results and rollback for clones.
+- Reorganized docs/admin-services-todo.md into dependency-ordered, granular tasks with explicit acceptance criteria and measurable outputs.
+- Marked already-implemented items as completed and created a concise set of immediate next steps (migrations, CI, Redis, tests, UI verification).
 
 Why:
-- Complete Phase 2 by ensuring the data model, service layer, and analytics are aligned to support richer admin features and reliable deployment migrations.
+- Large tasks and phases were ambiguous and prevented incremental progress; breaking them down reduces review friction and enables parallel workstreams.
 
 Next steps:
-- Add per-month view tracking for improved conversion accuracy (introduce service_views table or use analytics provider).
-- Surface analytics (revenueTimeSeries & conversionsByService) in admin UI and add unit/integration tests to validate analytics math.
+- Implement CI workflow and create Prisma migration for ServiceView + service.views (migration file added to git and must be run with DB credentials).
+- Add unit/integration tests for analytics and bulk operations.
+- Plan Redis adoption and schedule Netlify staging validation for migrations.
+
