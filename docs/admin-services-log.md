@@ -1,15 +1,13 @@
 
 
-## [2025-09-23] Phase 3.3 – Enhanced Bulk Operations
+## [2025-09-24] Deployment readiness & Netlify
 What I changed:
-- Extended bulk actions to support `clone` and `settings-update`.
-- `clone`: clones each selected service as a DRAFT, returns createdIds and per-item errors; attempts best-effort rollback (deletes created clones) if any clone operations fail.
-- `settings-update`: accepts a settings object and shallow-merges it into each target service's `serviceSettings` via `bulkUpdateServiceSettings`, returns per-item errors if any.
-- Bulk API returns 207 Multi-Status when some items fail, and includes detailed per-item errors for client handling.
+- Prepared deployment guidance and Netlify-specific instructions in DEPLOYMENT.md, including environment variable recommendations, migration handling via netlify.toml and scripts/prisma-deploy-retry.sh, CI pre-deploy checks, backup/rollback guidance, and suggested MCP integrations (Neon, Netlify, Sentry, Builder CMS, etc.).
 
 Why:
-- Allow admins to perform operational changes at scale (clone demos, apply settings changes) with clear visibility into successes and failures and safer cleanup when partial failures occur.
+- Ensure safe, repeatable production deployments with migration safety, monitoring, and secrets handling.
 
 Next steps:
-- Add client-side support in BulkActionsPanel to show per-item progress, retry failed items, and surface 207 responses.
-- Add tests for bulk clone rollback behavior and settings-update merge semantics.
+- Add GitHub Actions CI workflow to run typecheck, lint, tests and optional build on PRs.
+- Add frontend UI to surface analytics revenueTimeSeries and bulk action progress UI.
+- Add automated smoke tests post-deploy and Sentry integration for production monitoring.
