@@ -19,11 +19,11 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 - [ ] Run `pnpm run typecheck` and fix conflicts
 
 ### 1.2 UI Component Consolidation (Depends on 1.1)
-- [ ] Replace inline filters with `@/components/admin/services/ServicesFilters`
-- [ ] Replace custom header with `@/components/admin/services/ServicesHeader`
-- [ ] Replace ad-hoc analytics with `@/components/admin/services/ServicesAnalytics`
-- [ ] Adjust state wiring to consolidated components
-- [ ] Verify UX parity: search, filters, toggles, pagination, modals
+- [x] Replace inline filters with `@/components/admin/services/ServicesFilters`
+- [x] Replace custom header with `@/components/admin/services/ServicesHeader`
+- [x] Replace ad-hoc analytics with `@/components/admin/services/ServicesAnalytics`
+- [x] Adjust state wiring to consolidated components
+- [x] Verify UX parity: search, filters, toggles, pagination, modals
 
 ### 1.3 Schema Validation Consolidation (Depends on 1.1)
 - [ ] Move image URL checks into Zod using `z.preprocess`/refinement in `@/schemas/services`
