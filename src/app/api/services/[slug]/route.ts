@@ -8,7 +8,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     const service = await prisma.service.findFirst({
       where: {
         slug,
-        active: true
+        status: 'ACTIVE'
       }
     })
 
@@ -17,6 +17,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
         { error: 'Service not found' },
         { status: 404 }
       )
+    }
+
+    // Increment views counter (best-effort)
+    try {
+      await prisma.service.update({ where: { id: service.id }, data: { views: { increment: 1 } } })
+    } catch (err) {
+      // ignore
     }
 
     return NextResponse.json(service, { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } })
