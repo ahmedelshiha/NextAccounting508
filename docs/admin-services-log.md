@@ -1,12 +1,10 @@
-## [2025-09-22] Phase 1.2 – UI Component Consolidation completed
+## [2025-09-22] Phase 1.3 – Schema Validation Consolidation completed
 What I changed:
-- Replaced custom header/controls in `@/app/admin/services/page.tsx` with `ServicesHeader`.
-- Integrated `ServicesFilters` into the Advanced Filters area; delegated category/status/featured to shared component.
-- Replaced ad-hoc analytics tab content with `ServicesAnalytics` wired to `/api/admin/services/stats` data.
-- Preserved local sort controls and bulk actions; kept view mode toggle.
+- Moved image URL validation into Zod using `z.preprocess` and protocol refinement in `@/schemas/services.ts`.
+- Updated `sanitizeServiceData` to be transform-only, removing duplicate URL validations.
 
 Why:
-- Remove duplication, improve consistency, and centralize UX patterns for maintainability.
+- Establish a single source of truth for validation, reduce drift, and simplify maintenance.
 
 Next steps:
-- Phase 1.3 – consolidate validation: migrate URL checks to Zod and keep `sanitizeServiceData` transform-only.
+- Phase 2.1 – Database schema enhancements (tenant-scoped slug uniqueness, serviceSettings JSONB, status enum) and query updates.
