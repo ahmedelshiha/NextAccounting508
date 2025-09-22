@@ -53,11 +53,15 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 - [x] Strengthen `clearCaches` to cover all keys
 
 ### 2.3 Analytics Enhancements (Depends on 2.1)
-- [ ] Use bookings to compute analytics (no placeholders)
-- [ ] Time-series grouping for `revenueByService`
-- [ ] Rank `popularServices` by booking count
-- [ ] Monthly conversion from views→bookings
-- [ ] Enforce tenant scoping across analytics
+- [x] Use bookings to compute analytics (no placeholders)
+- [x] Time-series grouping for `revenueByService` (per-service monthly series for top services)
+- [x] Rank `popularServices` by booking count
+- [ ] Monthly conversion from views→bookings (requires views/traffic data)
+- [x] Enforce tenant scoping across analytics
+
+  - Completed: Implemented booking-driven analytics in ServicesService.getServiceStats — monthlyBookings, revenueByService, popularServices, conversionRates (booking completion), and revenueTimeSeries for top services (last 6 months). Tenant scoping is applied to booking queries.
+  - Why: Provide actionable time-series and ranking data for admin dashboards and to power charts.
+  - Next steps: Integrate traffic/view metrics to compute true conversion (views→bookings) and expose revenueTimeSeries to frontend visualizations.
 
 ## Phase 3: API Layer Hardening
 
