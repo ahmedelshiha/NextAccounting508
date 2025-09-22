@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=${PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT:-300000}; export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; bash ./scripts/prisma-deploy-retry.sh && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
+  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=${PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT:-300000}; export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; pnpm tsx scripts/prisma-init-persistence.ts && bash ./scripts/prisma-deploy-retry.sh && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm build"
   publish = ".next"
 
 [build.environment]
