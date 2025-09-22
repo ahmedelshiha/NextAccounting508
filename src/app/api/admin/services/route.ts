@@ -51,7 +51,13 @@ export async function GET(request: NextRequest) {
 
     await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters } });
 
-    return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
+    const etag = '"' + createHash('sha1').update(JSON.stringify({ t: result.total, ids: (result.services||[]).map((s:any)=>s.id), up: (result.services||[]).map((s:any)=>s.updatedAt) })).digest('hex') + '"'
+    const ifNoneMatch = request.headers.get('if-none-match')
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag } })
+    }
+
+    return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
   } catch (e: any) {
     console.error('services GET error', e);
     const code = String(e?.code || '')
