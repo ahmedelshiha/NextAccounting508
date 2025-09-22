@@ -19,7 +19,8 @@ export class ServicesService {
     const { search, category, featured, status, limit = 20, offset = 0, sortBy = 'updatedAt', sortOrder = 'desc' } = filters;
 
     const where: Prisma.ServiceWhereInput = { ...(tenantId ? { tenantId } : {}), };
-    if (status === 'active') where.active = true; else if (status === 'inactive') where.active = false;
+    if (status === 'active') (where as any).status = 'ACTIVE';
+    else if (status === 'inactive') (where as any).status = { not: 'ACTIVE' } as any;
     if (featured === 'featured') (where as any).featured = true; else if (featured === 'non-featured') (where as any).featured = false;
     if (category && category !== 'all') (where as any).category = category;
     if (search) {
@@ -49,7 +50,7 @@ export class ServicesService {
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
       const all = await prisma.$queryRawUnsafe<any[]>(
-        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","image","createdAt","updatedAt" FROM "services"'
+        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt" FROM "services"'
       );
       let items = all.map(this.toType);
       // Apply basic filters client-side
@@ -83,7 +84,8 @@ export class ServicesService {
     if (!sanitized.slug) sanitized.slug = generateSlug(sanitized.name);
     await validateSlugUniqueness(sanitized.slug, tenantId);
 
-    const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: sanitized.active ?? true } });
+    const isActive = sanitized.active ?? true;
+    const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: isActive, status: (isActive ? 'ACTIVE' : 'INACTIVE') as any } });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     return this.toType(s as any);
@@ -107,7 +109,7 @@ export class ServicesService {
     const existing = await this.getServiceById(tenantId, id);
     if (!existing) throw new Error('Service not found');
 
-    await prisma.service.update({ where: { id }, data: { active: false } });
+    await prisma.service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
     await this.clearCaches(tenantId, id);
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
   }
@@ -118,15 +120,15 @@ export class ServicesService {
     if (tenantId) (where as any).tenantId = tenantId;
 
     let data: any = {};
-    if (type === 'activate') data.active = true;
-    else if (type === 'deactivate') data.active = false;
+    if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
+    else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
     else if (type === 'feature') data.featured = true;
     else if (type === 'unfeature') data.featured = false;
     else if (type === 'category') data.category = String(value || '') || null;
     else if (type === 'price-update') data.price = Number(value);
 
     if (type === 'delete') {
-      const res = await prisma.service.updateMany({ where, data: { active: false } });
+      const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tenantId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       return { updatedCount: res.count, errors: [] };
@@ -146,10 +148,10 @@ export class ServicesService {
     const where: Prisma.ServiceWhereInput = tenantId ? ({ tenantId } as any) : {};
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
       prisma.service.count({ where }),
-      prisma.service.count({ where: { ...where, active: true } as any }),
-      prisma.service.count({ where: { ...where, featured: true, active: true } as any }),
-      prisma.service.groupBy({ by: ['category'], where: { ...where, active: true, category: { not: null } } as any }),
-      prisma.service.aggregate({ where: { ...where, active: true, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
+      prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
+      prisma.service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
+      prisma.service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
+      prisma.service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
     ]);
 
     // Analytics window: last 6 months
@@ -240,10 +242,10 @@ export class ServicesService {
   }
 
   async exportServices(tenantId: string | null, options: { format: string; includeInactive?: boolean }): Promise<string> {
-    const services = await prisma.service.findMany({ where: { ...(tenantId ? { tenantId } : {}), ...(options.includeInactive ? {} : { active: true }) }, orderBy: { name: 'asc' } });
+    const services = await prisma.service.findMany({ where: { ...(tenantId ? { tenantId } : {}), ...(options.includeInactive ? {} : ({ status: 'ACTIVE' } as any)) }, orderBy: { name: 'asc' } });
     if (options.format === 'json') return JSON.stringify(services, null, 2);
     const headers = ['ID','Name','Slug','Description','Short Description','Price','Duration','Category','Featured','Active','Created At','Updated At'];
-    const rows = services.map(s => [s.id, `"${String(s.name).replace(/"/g,'""')}"`, s.slug, `"${String(s.description).replace(/"/g,'""')}"`, s.shortDesc ? `"${String(s.shortDesc).replace(/"/g,'""')}"` : '', s.price ?? '', s.duration ?? '', s.category ?? '', s.featured ? 'Yes' : 'No', s.active ? 'Yes' : 'No', s.createdAt.toISOString(), s.updatedAt.toISOString()]);
+    const rows = services.map(s => [s.id, `"${String(s.name).replace(/"/g,'""')}"`, s.slug, `"${String(s.description).replace(/"/g,'""')}"`, s.shortDesc ? `"${String(s.shortDesc).replace(/"/g,'""')}"` : '', s.price ?? '', s.duration ?? '', s.category ?? '', s.featured ? 'Yes' : 'No', ((s as any).status === 'ACTIVE' || (s as any).active === true) ? 'Yes' : 'No', s.createdAt.toISOString(), s.updatedAt.toISOString()]);
     return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   }
 
@@ -259,7 +261,7 @@ export class ServicesService {
       duration: s.duration,
       category: s.category,
       featured: s.featured,
-      active: s.active,
+      active: (s.active !== undefined ? s.active : (s.status ? String(s.status).toUpperCase() === 'ACTIVE' : true)),
       image: s.image,
       createdAt: s.createdAt?.toISOString?.() || String(s.createdAt),
       updatedAt: s.updatedAt?.toISOString?.() || String(s.updatedAt),
