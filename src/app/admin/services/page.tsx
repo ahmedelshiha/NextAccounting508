@@ -142,6 +142,9 @@ export default function ServicesAdminPage() {
       if (!res.ok) {
         let msg = 'Failed to create'
         try { const j = await res.json(); if (j?.error) msg = j.error } catch {}
+        if (res.status === 409 || /unique constraint failed|slug.*exists/i.test(msg)) {
+          throw new Error('Slug already exists. Please choose a different slug.')
+        }
         throw new Error(msg)
       }
       toast.success('Service created')
