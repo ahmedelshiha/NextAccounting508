@@ -28,7 +28,8 @@ export async function GET(request: NextRequest, context: Ctx) {
 
 
     const tenantId = getTenantFromRequest(request);
-    const service = await svc.getServiceById(tenantId, id);
+    if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+    const service = await svc.getServiceById(tenantId, String(id));
     if (!service) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ service });
   } catch {
