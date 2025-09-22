@@ -1,62 +1,10 @@
-## [2025-09-21] Playwright preview login test added
-What I implemented:
-- Added Playwright E2E test (tests/e2e/preview-login.spec.ts) that attempts a headless UI login using PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD or uses PREVIEW_SESSION_COOKIE fallback.
-- Updated Netlify preview workflow to install Playwright and run the E2E test against the preview URL after the basic smoke checks.
-
-Why:
-- Validate that protected admin endpoints are reachable and authenticated in preview environments, reducing surprises when merging.
-
-Next steps:
-- Ensure repository secrets are set:
-  - PREVIEW_ADMIN_EMAIL, PREVIEW_ADMIN_PASSWORD (or PREVIEW_SESSION_COOKIE)
-  - NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (already used by workflow)
-- Monitor runs and adapt selectors/login flow if the preview login form uses a non-standard structure.
-
-
-## [2025-09-21] CI and Netlify preview smoke workflows added
-What I implemented:
-- Added .github/workflows/ci.yml to run lint and typecheck; tests run only when DATABASE_URL secret is provided.
-- Added .github/workflows/netlify-preview-smoke.yml and scripts/netlify-preview-smoke.js to poll Netlify for deploy previews and run GET / smoke tests.
-
-Why:
-- Establish quality gates and ensure preview deployments are healthy before merge.
-
-Next steps:
-- Add repository secrets: NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (required for preview smoke); optionally DATABASE_URL to enable tests in CI.
-- Run pnpm run lint and pnpm run typecheck locally and address any findings.
-
-## [2025-09-21] Fix: /admin/services fetched zero items
+## [2025-09-22] Services implementation plan and TODO reorganized
 What I changed:
-- Updated src/app/admin/services/page.tsx to handle API response shape { services, total, ... } in addition to plain arrays.
-- Now maps json.services (or json.items) to Service list to display real DB data.
+- Rewrote `docs/admin-services-todo.md` into a phased, dependency-ordered plan with explicit checkboxes and measurable tasks.
+- Aligned tasks with the architecture audit in `docs/admin-services-audit.md` and clarified acceptance goals.
 
 Why:
-- API returns a paginated object; the client previously assumed an array and thus rendered none.
-
-Verification:
-- Load /admin/services after login; services list populates from DB; filters and pagination work.
-
-## [2025-09-21] Audit: services module consistency fixes
-Changes:
-- Fixed client query params to use featured/status enums (not boolean) and added limit=100 to align with API schema.
-- Switched all single-item mutations to PATCH /api/admin/services/{id} and DELETE by id.
-- Normalized list response handling for both array and { services, total } shapes.
-
-Impact:
-- Prevents 500 errors from invalid query values, ensures updates/deletes succeed, and displays complete data set.
-
-## [2025-09-21] Test fixes: availability pricing, uploads File polyfill, recurring mapping
-Changes:
-- Availability API: do not cap by advanceBookingDays unless configured; allows future-dated queries for tests.
-- vitest.setup: added global File polyfill for Node, fixing uploads.* tests.
-- Recurring planner: varied conflict probe time per occurrence to align with alternating-conflict mock.
-
-## [2025-09-22] Styling hygiene for Services page
-What I changed:
-- Replaced inline style minWidth: 360 on sidebar container in src/app/admin/services/page.tsx with Tailwind utility class min-w-[360px].
-
-Why:
-- Align with code style guidelines to avoid inline styles, improve maintainability, and keep styling consistent with Tailwind.
+- Establish a clear critical path and enable autonomous, production-grade execution with traceable progress.
 
 Next steps:
-- None.
+- Start Phase 1.1 (Type System Unification): remove local types in `@/app/admin/services/page.tsx`, import from `@/types/services.ts`, run typecheck, and fix issues.
