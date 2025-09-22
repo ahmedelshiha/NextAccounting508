@@ -424,24 +424,34 @@ export class ServicesService {
       }
     }
 
-    // Compute conversion from views -> bookings for top services
+    // Compute conversion from views -> bookings for top services using ServiceView aggregation
     const topIds = revenueByServiceArr.sort((a,b)=>b.revenue-a.revenue).slice(0,10).map(r=>r.id);
     let conversionsByService: { service: string; bookings: number; views: number; conversionRate: number }[] = [];
     if (topIds.length) {
       try {
-        const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true, views: true } as any });
+        // Group views by serviceId within the analytics window (start..now)
+        const viewGroups = await prisma.serviceView.groupBy({
+          by: ['serviceId'],
+          where: { serviceId: { in: topIds } as any, createdAt: { gte: start } },
+          _count: { _all: true }
+        });
+        const viewMap = new Map<string, number>(viewGroups.map(v => [v.serviceId, v._count._all || 0]));
+
+        const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true } as any });
         for (const s of svcRows) {
-          const bCount = serviceTotals.get(s.id) || 0;
-          const vCount = (s.views ?? 0) || 0;
-          const rate = vCount > 0 ? (bCount / vCount) * 100 : 0;
-          conversionsByService.push({ service: s.name || 'Unknown', bookings: bCount, views: vCount, conversionRate: Number(rate.toFixed(2)) });
+          const bCount = serviceTotals.get(s.id) || 0; // revenue total treated as bookings? keep consistent — serviceTotals was revenue; use popularMap for bookings
+          const bookingsCount = popularMap.get(s.id)?.bookings || 0;
+          const vCount = viewMap.get(s.id) || 0;
+          const rate = vCount > 0 ? (bookingsCount / vCount) * 100 : 0;
+          conversionsByService.push({ service: s.name || 'Unknown', bookings: bookingsCount, views: vCount, conversionRate: Number(rate.toFixed(2)) });
         }
-      } catch { conversionsByService = [] }
+      } catch (err) {
+        conversionsByService = [];
+      }
     }
 
     const analytics: ServiceAnalytics = { monthlyBookings, revenueByService, popularServices, conversionRates: conv, revenueTimeSeries };
-    // Attach conversionsByService to analytics under a new key if consumers need it
-    (analytics as any).conversionsByService = conversionsByService;
+    analytics.conversionsByService = conversionsByService;
     const avgPriceVal = priceAgg && priceAgg._avg && priceAgg._avg.price != null ? Number(priceAgg._avg.price) : 0;
     const totalRevenueVal = priceAgg && priceAgg._sum && priceAgg._sum.price != null ? Number(priceAgg._sum.price) : 0;
     const stats: ServiceStats & { analytics: ServiceAnalytics } = { total, active, featured, categories: catGroups.length, averagePrice: avgPriceVal, totalRevenue: totalRevenueVal, analytics };
