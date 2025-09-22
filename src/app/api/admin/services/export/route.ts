@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
     const format = sp.get('format') || 'csv';
     const includeInactive = sp.get('includeInactive') === 'true';
 
-    const tenantId = getTenantFromRequest(request);
     const data = await svc.exportServices(tenantId, { format, includeInactive });
 
     const ts = new Date().toISOString().split('T')[0];
