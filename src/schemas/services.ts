@@ -32,9 +32,10 @@ export const ServiceUpdateSchema = ServiceSchema.partial().extend({
 });
 
 export const BulkActionSchema = z.object({
-  action: z.enum(['activate', 'deactivate', 'feature', 'unfeature', 'delete', 'category', 'price-update']),
+  action: z.enum(['activate', 'deactivate', 'feature', 'unfeature', 'delete', 'category', 'price-update', 'clone', 'settings-update']),
   serviceIds: z.array(z.string()).min(1, 'At least one service must be selected'),
-  value: z.union([z.string(), z.number()]).optional(),
+  // value may be a string/number (category/price), an object (settings), or a string (clone name prefix)
+  value: z.any().optional(),
 });
 
 export const ServiceFiltersSchema = z.object({
