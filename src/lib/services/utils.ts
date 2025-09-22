@@ -87,15 +87,8 @@ export function sanitizeServiceData(data: Partial<ServiceFormData>): Partial<Ser
   if (data.active !== undefined) out.active = !!data.active;
 
   if (data.image !== undefined) {
-    const v = data.image ? String(data.image) : '';
-    if (v) {
-      try {
-        const u = new URL(v)
-        if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error('Invalid image URL')
-      } catch {
-        throw new Error('Invalid image URL')
-      }
-    }
+    const v = data.image ? String(data.image).trim() : '';
+    // Validation is handled by Zod schemas; keep this transform-only
     out.image = v || undefined;
   }
 
