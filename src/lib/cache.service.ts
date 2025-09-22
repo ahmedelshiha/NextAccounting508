@@ -1,36 +1,56 @@
 type CacheEntry = { value: any; expiresAt: number | null }
 
-export class CacheService {
-  private static store: Map<string, CacheEntry> = new Map()
+import RedisCache from './cache/redis'
+
+type CacheEntry = { value: any; expiresAt: number | null }
+
+class InMemoryCache {
+  private store: Map<string, CacheEntry> = new Map()
 
   async get<T>(key: string): Promise<T | null> {
-    const entry = CacheService.store.get(key)
+    const entry = this.store.get(key)
     if (!entry) return null
-    if (entry.expiresAt && Date.now() > entry.expiresAt) {
-      CacheService.store.delete(key)
-      return null
-    }
+    if (entry.expiresAt && Date.now() > entry.expiresAt) { this.store.delete(key); return null }
     return entry.value as T
   }
 
   async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
     const expiresAt = ttlSeconds && ttlSeconds > 0 ? Date.now() + ttlSeconds * 1000 : null
-    CacheService.store.set(key, { value, expiresAt })
+    this.store.set(key, { value, expiresAt })
   }
 
-  async delete(key: string): Promise<void> {
-    CacheService.store.delete(key)
-  }
+  async delete(key: string): Promise<void> { this.store.delete(key) }
 
   async deletePattern(pattern: string): Promise<void> {
-    // Convert simple glob pattern "service-stats:tenant:*" to a regex
     const regex = new RegExp('^' + pattern.split('*').map(this.escapeRegex).join('.*') + '$')
-    for (const k of Array.from(CacheService.store.keys())) {
-      if (regex.test(k)) CacheService.store.delete(k)
+    for (const k of Array.from(this.store.keys())) { if (regex.test(k)) this.store.delete(k) }
+  }
+
+  private escapeRegex(str: string) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+}
+
+export class CacheService {
+  private backend: any
+
+  constructor() {
+    // Lazy initialization to avoid throwing in environments without Redis configured
+    const redisUrl = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL
+    if (redisUrl) {
+      try {
+        this.backend = new RedisCache(redisUrl)
+      } catch (e) {
+        // If Redis client not available, fallback to in-memory and log
+        // eslint-disable-next-line no-console
+        console.warn('RedisCache unavailable, falling back to in-memory cache:', (e as any)?.message)
+        this.backend = new InMemoryCache()
+      }
+    } else {
+      this.backend = new InMemoryCache()
     }
   }
 
-  private escapeRegex(str: string) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  }
+  async get<T>(key: string): Promise<T | null> { return this.backend.get(key) }
+  async set(key: string, value: any, ttlSeconds?: number): Promise<void> { return this.backend.set(key, value, ttlSeconds) }
+  async delete(key: string): Promise<void> { return this.backend.delete(key) }
+  async deletePattern(pattern: string): Promise<void> { return this.backend.deletePattern(pattern) }
 }
