@@ -217,7 +217,7 @@ API Hardening
 - If adopting tenant-scoped slug uniqueness, migrate schema and adapt validation and queries.
 
 UI/UX
-- Consider optimistic UI for toggles/bulk where safe, with rollback on error.
+- Optimistic UI implemented for active/featured toggles with automatic rollback on error; consider extending to bulk operations.
 - Ensure table/cards parity with booking page patterns; keep responsive behaviors.
 - Keep demo dataset helper client-side as well if needed for offline preview.
 
