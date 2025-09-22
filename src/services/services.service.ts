@@ -437,9 +437,12 @@ export class ServicesService {
         });
         const viewMap = new Map<string, number>(viewGroups.map(v => [v.serviceId, v._count._all || 0]));
 
-        const svcRows = await prisma.service.findMany({ where: { id: { in: topIds } as any }, select: { id: true, name: true } as any });
-        for (const s of svcRows as Array<{ id: string; name: string }>) {
-          const sid = String(s.id)
+        const svcRows: Array<{ id: string; name: string }> = await prisma.service.findMany({
+          where: { id: { in: topIds } },
+          select: { id: true, name: true },
+        });
+        for (const s of svcRows) {
+          const sid = s.id
           const bCount = serviceTotals.get(sid) || 0; // revenue total treated as bookings? keep consistent — serviceTotals was revenue; use popularMap for bookings
           const bookingsCount = popularMap.get(sid)?.bookings || 0;
           const vCount = viewMap.get(sid) || 0;
