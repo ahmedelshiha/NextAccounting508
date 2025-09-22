@@ -8,6 +8,7 @@ import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
 import { getDemoServicesList } from '@/lib/services/utils';
+import { createHash } from 'crypto';
 
 const svc = new ServicesService();
 
