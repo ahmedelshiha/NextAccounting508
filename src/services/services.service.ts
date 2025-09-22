@@ -12,6 +12,113 @@ export class ServicesService {
     private notifications: NotificationService = new NotificationService()
   ) {}
 
+  /**
+   * Clone an existing service into a new one with a provided name.
+   * - Generates a unique, tenant-scoped slug
+   * - Sets featured=false, active=false, status=DRAFT
+   * - Copies pricing, duration, category, features, image and settings
+   */
+  async cloneService(name: string, fromId: string): Promise<ServiceType> {
+    const src = await prisma.service.findUnique({ where: { id: fromId } })
+    if (!src) throw new Error('Source service not found')
+
+    const tenantId: string | null = (src as any).tenantId ?? null
+    const baseSlug = generateSlug(name)
+
+    // Ensure tenant-scoped slug uniqueness
+    let slug = baseSlug || `service-${Date.now()}`
+    let attempt = 1
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+      if (!exists) break
+      attempt += 1
+      slug = `${baseSlug}-${attempt}`
+    }
+
+    const created = await prisma.service.create({
+      data: {
+        name,
+        slug,
+        description: src.description,
+        shortDesc: src.shortDesc ?? null,
+        features: Array.isArray(src.features) ? src.features : [],
+        price: src.price as any,
+        duration: src.duration as any,
+        category: src.category ?? null,
+        featured: false,
+        active: false,
+        status: 'DRAFT' as any,
+        image: (src as any).image ?? null,
+        serviceSettings: (src as any).serviceSettings ?? undefined,
+        ...(tenantId ? { tenantId } : {}),
+      },
+    })
+
+    await this.clearCaches(tenantId)
+    try { await this.notifications.notifyServiceCreated(created as any, 'system') } catch {}
+    return this.toType(created as any)
+  }
+
+  /**
+   * Returns version history for a service. Placeholder for future implementation.
+   */
+  async getServiceVersionHistory(_id: string): Promise<any[]> {
+    return []
+  }
+
+  /**
+   * Basic dependency validation for a service. Returns issues found.
+   */
+  async validateServiceDependencies(service: Partial<ServiceType> | any): Promise<{ valid: boolean; issues: string[] }> {
+    const issues: string[] = []
+    const bookingEnabled = (service as any).bookingEnabled
+    const duration = (service as any).duration
+    const bufferTime = (service as any).bufferTime
+
+    if (bookingEnabled === true) {
+      const d = typeof duration === 'number' ? duration : null
+      if (d == null || d <= 0) issues.push('Booking enabled but duration is missing or invalid')
+    }
+    if (bufferTime != null && typeof bufferTime === 'number' && bufferTime < 0) {
+      issues.push('bufferTime cannot be negative')
+    }
+    const valid = issues.length === 0
+    return { valid, issues }
+  }
+
+  /**
+   * Bulk update serviceSettings with shallow merge per service.
+   */
+  async bulkUpdateServiceSettings(
+    tenantId: string | null,
+    updates: Array<{ id: string; settings: Record<string, any> }>
+  ): Promise<{ updated: number; errors: Array<{ id: string; error: string }> }> {
+    if (!updates || updates.length === 0) return { updated: 0, errors: [] }
+    const ids = updates.map(u => u.id)
+
+    const existing = await prisma.service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } })
+    const map = new Map(existing.map(e => [e.id, e]))
+
+    let updated = 0
+    const errors: Array<{ id: string; error: string }> = []
+
+    for (const u of updates) {
+      try {
+        const before = map.get(u.id)
+        const prev = (before?.serviceSettings as any) ?? {}
+        const next = { ...prev, ...u.settings }
+        await prisma.service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        updated += 1
+      } catch (e: any) {
+        errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
+      }
+    }
+
+    await this.clearCaches(tenantId)
+    return { updated, errors }
+  }
+
   async getServicesList(
     tenantId: string | null,
     filters: ServiceFilters & { limit?: number; offset?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }
