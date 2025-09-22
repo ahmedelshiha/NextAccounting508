@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { ServicesService } from '@/services/services.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { getTenantFromRequest } from '@/lib/tenant';
+import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
 
 const svc = new ServicesService();
 
@@ -29,8 +30,15 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(JSON.parse(data));
-  } catch (e) {
+  } catch (e: any) {
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (e?.name === 'ZodError') {
+      const apiErr = mapZodError(e);
+      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+    }
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
     console.error('export error', e);
-    return NextResponse.json({ error: 'Failed to export services' }, { status: 500 });
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
