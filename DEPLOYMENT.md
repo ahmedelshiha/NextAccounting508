@@ -1,4 +1,3 @@
-# Deployment Guide
 
 This guide provides step-by-step instructions for deploying the Accounting Firm application to various hosting platforms.
 
@@ -489,4 +488,67 @@ This endpoint checks:
 ---
 
 **Need help with deployment? Contact our support team or check the main README for additional resources.**
+
+
+## ⚓ Netlify Deployment (Recommended for this repo)
+
+This repository includes a Netlify deployment configuration (netlify.toml) that runs Prisma migrations and seeds during builds when a database URL is present. Follow these steps and best practices to deploy safely on Netlify.
+
+### Key repo notes
+- netlify.toml contains build commands which run Prisma generate, a prisma-init step and a retry script for migrations (scripts/prisma-deploy-retry.sh) to handle advisory lock contention.
+- The build will only run migrations when NETLIFY_DATABASE_URL (or NETLIFY_DATABASE_URL_UNPOOLED) is provided; otherwise migrations/seed are skipped to avoid accidental schema changes on preview/branch deploys.
+
+### Recommended Netlify deployment steps
+1. In Netlify, create a new site and connect your Git repository.
+2. Under Site settings → Build & deploy, verify the build command matches netlify.toml (it should be picked up automatically). Ensure the Publish directory is `.next`.
+3. Add required environment variables in Site settings → Build & deploy → Environment:
+   - NETLIFY_DATABASE_URL or NETLIFY_DATABASE_URL_UNPOOLED
+   - NEXTAUTH_URL (e.g. https://your-site.netlify.app)
+   - NEXTAUTH_SECRET
+   - SENDGRID_API_KEY
+   - FROM_EMAIL
+   - CRON_SECRET
+   - PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=300000
+4. Protect production branch: require PR reviews and passing CI checks before merging to main.
+5. Prefer running migrations in the Netlify build using netlify.toml only for production (the repo already handles skipping in previews).
+
+### CI & Pre-deploy checks (recommended)
+- Add a CI job (GitHub Actions) to run on PRs that executes:
+  - pnpm install --frozen-lockfile
+  - pnpm run typecheck
+  - pnpm run lint
+  - pnpm test:thresholds (and other unit tests)
+  - pnpm build (optional in CI for faster Netlify builds)
+- If running migrations from CI, use scripts/prisma-deploy-retry.sh to safely apply migrations.
+
+### Backups, rollbacks and monitoring
+- Backup DB before major migrations (pg_dump or provider backups).
+- Netlify Deploys panel allows atomic rollbacks to previous deploys.
+- Configure Sentry for error monitoring and Netlify build alerts for failed deploys.
+
+### Security and secrets
+- Store secrets in Netlify environment variables.
+- Rotate secrets (NEXTAUTH_SECRET, SENDGRID_API_KEY) regularly.
+
+### Post-deploy smoke tests
+- Use scripts/netlify-preview-smoke.js to run post-deploy smoke tests against the deployed URL.
+- Verify _prisma_migrations table exists in the target schema (scripts/prisma-init-persistence.ts creates it if missing).
+
+### Suggested MCP Integrations
+You can connect the following MCP integrations (Open MCP popover) to help with deployment, monitoring, and data:
+
+- Neon — serverless Postgres (database management, serverless postgres)
+- Netlify — deployment, hosting, CDN, build plugins
+- Zapier — automation and workflows
+- Figma — design-to-code plugin (Get Plugin link in MCP)
+- Supabase — alternative DB + auth + realtime
+- Builder CMS — content management (Builder.io)
+- Linear — project management / issue tracking
+- Notion — documentation and runbooks
+- Sentry — error monitoring and performance tracing
+- Context7 — up-to-date library/framework docs
+- Semgrep — SAST/static security scanning
+- Prisma Postgres — ORM/database management
+
+To connect MCP servers open the MCP popover in the Builder UI and select the integration you want.
 
