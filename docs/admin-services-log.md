@@ -1,10 +1,12 @@
-## [2025-09-22] Services implementation plan and TODO reorganized
+## [2025-09-22] Phase 1.1 – Type System Unification completed
 What I changed:
-- Rewrote `docs/admin-services-todo.md` into a phased, dependency-ordered plan with explicit checkboxes and measurable tasks.
-- Aligned tasks with the architecture audit in `docs/admin-services-audit.md` and clarified acceptance goals.
+- Refactored `@/app/admin/services/page.tsx` to remove local `Service`, `ServiceStats`, `ServiceFilters`, and `ServiceAnalytics` interfaces.
+- Imported shared types from `@/types/services` and split sorting state into `sortBy`/`sortOrder` separate from `ServiceFilters`.
+- Updated query parameter construction and UI controls to use the new sort state.
 
 Why:
-- Establish a clear critical path and enable autonomous, production-grade execution with traceable progress.
+- Eliminate type duplication and drift; enforce a single source of truth for service-related types; improve maintainability and type safety.
 
 Next steps:
-- Start Phase 1.1 (Type System Unification): remove local types in `@/app/admin/services/page.tsx`, import from `@/types/services.ts`, run typecheck, and fix issues.
+- Phase 1.2 – replace inline header/filters/analytics with shared components and verify UX parity.
+- Run `pnpm run typecheck` locally and address any residual type issues if present.
