@@ -7,7 +7,7 @@ import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
-import { getDemoServices } from '@/lib/services/utils';
+import { getDemoServicesList } from '@/lib/services/utils';
 
 const svc = new ServicesService();
 
