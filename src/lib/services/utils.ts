@@ -12,6 +12,16 @@ export function generateSlug(name: string): string {
   return slug
 }
 
+export function getDemoServices() {
+  const now = new Date().toISOString();
+  return [
+    { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', description: 'Monthly bookkeeping and reconciliations', shortDesc: 'Monthly bookkeeping and reconciliations', features: [], price: 299, duration: 60, category: 'Accounting', featured: true, active: true, image: null, createdAt: now, updatedAt: now },
+    { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', description: 'Personal and business tax filings', shortDesc: 'Personal and business tax filings', features: [], price: 450, duration: 90, category: 'Tax', featured: true, active: true, image: null, createdAt: now, updatedAt: now },
+    { id: '3', name: 'Payroll Management', slug: 'payroll', description: 'Payroll processing and compliance', shortDesc: 'Payroll processing and compliance', features: [], price: 199, duration: 45, category: 'Payroll', featured: false, active: true, image: null, createdAt: now, updatedAt: now },
+    { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', description: 'Strategic financial guidance', shortDesc: 'Strategic financial guidance', features: [], price: 1200, duration: 120, category: 'Advisory', featured: true, active: true, image: null, createdAt: now, updatedAt: now },
+  ];
+}
+
 export async function validateSlugUniqueness(
   slug: string,
   tenantId: string | null,
@@ -25,50 +35,34 @@ export async function validateSlugUniqueness(
 }
 
 export function sanitizeServiceData(data: Partial<ServiceFormData>): Partial<ServiceFormData> {
+  // Transform-only normalizer; input validation is enforced via Zod schemas at API layer
   const out: Partial<ServiceFormData> = {};
 
-  if (data.name !== undefined) {
-    out.name = String(data.name).trim();
-    if (out.name.length > 100) throw new Error('Service name is too long (max 100)');
-  }
+  if (data.name !== undefined) out.name = String(data.name).trim();
 
   if (data.slug !== undefined) {
     const s = String(data.slug).trim().toLowerCase();
-    if (!/^[a-z0-9-]+$/.test(s)) throw new Error('Slug must contain only lowercase letters, numbers, and hyphens');
     out.slug = s;
   }
 
-  if (data.description !== undefined) {
-    out.description = String(data.description).trim();
-    if (out.description.length > 2000) throw new Error('Description too long (max 2000)');
-  }
+  if (data.description !== undefined) out.description = String(data.description).trim();
 
   if (data.shortDesc !== undefined) {
     const v = String(data.shortDesc || '').trim();
-    if (v && v.length > 200) throw new Error('Short description too long (max 200)');
     out.shortDesc = v || undefined;
   }
 
   if (data.category !== undefined) {
     const v = String(data.category || '').trim();
-    if (v && v.length > 50) throw new Error('Category name too long (max 50)');
     out.category = v || undefined;
   }
 
   if (data.price !== undefined) {
-    if (data.price === null) out.price = null; else {
-      const n = Number(data.price);
-      if (!isFinite(n) || n < 0 || n > 999999) throw new Error('Invalid price');
-      out.price = n;
-    }
+    if (data.price === null) out.price = null; else out.price = Number(data.price);
   }
 
   if (data.duration !== undefined) {
-    if (data.duration === null) out.duration = null; else {
-      const n = Math.floor(Number(data.duration));
-      if (!isFinite(n) || n < 1 || n > 1440) throw new Error('Invalid duration');
-      out.duration = n;
-    }
+    if (data.duration === null) out.duration = null; else out.duration = Math.floor(Number(data.duration));
   }
 
   if (data.features !== undefined) {
@@ -81,10 +75,7 @@ export function sanitizeServiceData(data: Partial<ServiceFormData>): Partial<Ser
 
   if (data.image !== undefined) {
     const v = data.image ? String(data.image) : '';
-    if (v) {
-      try { new URL(v); } catch { throw new Error('Invalid image URL'); }
-      out.image = v;
-    } else out.image = undefined;
+    out.image = v || undefined;
   }
 
   return out;
