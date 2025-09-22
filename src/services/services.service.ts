@@ -225,19 +225,28 @@ export class ServicesService {
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
   }
 
-  async performBulkAction(tenantId: string | null, action: BulkAction, by: string): Promise<{ updatedCount: number; errors: string[] }> {
+  async performBulkAction(tenantId: string | null, action: BulkAction, by: string): Promise<{ updatedCount: number; errors: Array<{ id: string; error: string }>; createdIds?: string[]; rollback?: { rolledBack: boolean; errors?: string[] } }> {
     const { action: type, serviceIds, value } = action;
     const where: Prisma.ServiceWhereInput = { id: { in: serviceIds } } as any;
     if (tenantId) (where as any).tenantId = tenantId;
 
-    let data: any = {};
-    if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
-    else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
-    else if (type === 'feature') data.featured = true;
-    else if (type === 'unfeature') data.featured = false;
-    else if (type === 'category') data.category = String(value || '') || null;
-    else if (type === 'price-update') data.price = Number(value);
+    // Simple update actions
+    if (['activate','deactivate','feature','unfeature','category','price-update'].includes(type)) {
+      let data: any = {};
+      if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
+      else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
+      else if (type === 'feature') data.featured = true;
+      else if (type === 'unfeature') data.featured = false;
+      else if (type === 'category') data.category = String(value || '') || null;
+      else if (type === 'price-update') data.price = Number(value);
 
+      const res = await prisma.service.updateMany({ where, data });
+      await this.clearCaches(tenantId);
+      if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
+      return { updatedCount: res.count, errors: [] };
+    }
+
+    // Delete -> soft deactivate
     if (type === 'delete') {
       const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tenantId);
@@ -245,10 +254,54 @@ export class ServicesService {
       return { updatedCount: res.count, errors: [] };
     }
 
-    const res = await prisma.service.updateMany({ where, data });
-    await this.clearCaches(tenantId);
-    if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
-    return { updatedCount: res.count, errors: [] };
+    // Clone -> create copies per serviceId, return created ids and per-item errors
+    if (type === 'clone') {
+      const createdIds: string[] = [];
+      const errors: Array<{ id: string; error: string }> = [];
+      for (const id of serviceIds) {
+        try {
+          const orig = await this.getServiceById(tenantId, id);
+          if (!orig) { errors.push({ id, error: 'Source service not found' }); continue }
+          const cloneName = value && typeof value === 'string' ? `${value}` : `${orig.name} (copy)`;
+          const c = await this.cloneService(cloneName, id);
+          createdIds.push(c.id);
+        } catch (e: any) {
+          errors.push({ id, error: String(e?.message || 'Failed to clone') });
+        }
+      }
+      // If any errors and we created some clones, attempt best-effort rollback by deleting created clones
+      let rollbackResult: { rolledBack: boolean; errors?: string[] } | undefined = undefined;
+      if (errors.length && createdIds.length) {
+        const rbErrors: string[] = [];
+        for (const cid of createdIds) {
+          try {
+            // hard delete to clean up drafts created during clone
+            await prisma.service.delete({ where: { id: cid } });
+          } catch (err: any) {
+            rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
+          }
+        }
+        rollbackResult = { rolledBack: rbErrors.length === 0, errors: rbErrors.length ? rbErrors : undefined };
+      }
+
+      await this.clearCaches(tenantId);
+      if (createdIds.length) await this.notifications.notifyBulkAction(type, createdIds.length, by);
+      return { updatedCount: createdIds.length, errors, createdIds, rollback: rollbackResult };
+    }
+
+    // settings-update -> value expected to be an object of settings to shallow-merge
+    if (type === 'settings-update') {
+      if (!value || typeof value !== 'object') return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Invalid settings payload' })) };
+      const updates = serviceIds.map(id => ({ id, settings: value as Record<string, any> }));
+      const res = await this.bulkUpdateServiceSettings(tenantId, updates);
+      await this.clearCaches(tenantId);
+      if (res.updated) await this.notifications.notifyBulkAction(type, res.updated, by);
+      // Map errors into expected shape
+      const errors = res.errors || [];
+      return { updatedCount: res.updated, errors };
+    }
+
+    return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Unknown bulk action' })) };
   }
 
   async getServiceStats(tenantId: string | null, _range: string = '30d'): Promise<ServiceStats & { analytics: ServiceAnalytics }> {
