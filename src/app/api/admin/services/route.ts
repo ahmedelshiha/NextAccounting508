@@ -8,6 +8,7 @@ import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
 import { createHash } from 'crypto';
+import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
 
 const svc = new ServicesService();
 
@@ -48,8 +49,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
   } catch (e: any) {
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (e?.name === 'ZodError') {
+      const apiErr = mapZodError(e);
+      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+    }
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
     console.error('services GET error', e);
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
 
@@ -73,11 +81,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ service }, { status: 201 });
   } catch (e: any) {
-    const code = String(e?.code || '')
-    const rawMsg = String(e?.message || 'Failed to create service')
-    const isUnique = code === 'P2002' || /Unique constraint failed|already exists/i.test(rawMsg)
-    const msg = isUnique ? 'Slug already exists. Please choose a different slug.' : rawMsg
-    const status = isUnique ? 409 : 500
-    return NextResponse.json({ error: msg }, { status })
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (e?.name === 'ZodError') {
+      const apiErr = mapZodError(e);
+      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+    }
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    console.error('services POST error', e);
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
