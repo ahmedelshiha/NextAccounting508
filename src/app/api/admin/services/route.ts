@@ -7,6 +7,7 @@ import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
+import { createHash } from 'crypto';
 
 const svc = new ServicesService();
 
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
   } catch (e: any) {
     console.error('services GET error', e);
-
+    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
   }
 }
 
