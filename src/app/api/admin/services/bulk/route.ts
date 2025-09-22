@@ -7,6 +7,7 @@ import { BulkActionSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { logAudit } from '@/lib/audit';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const svc = new ServicesService();
 
@@ -15,6 +16,10 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_BULK_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const ip = getClientIp(request as any)
+    const tenantKey = getTenantFromRequest(request) || 'global'
+    if (!rateLimit(`bulk:${tenantKey}:${ip}`, 10, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
 
 
     const body = await request.json();
