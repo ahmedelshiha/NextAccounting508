@@ -1,4 +1,4 @@
-# Services Management System – Implementation Plan
+# Services Management System ��� Implementation Plan
 
 Last updated: 2025-09-22
 
@@ -26,10 +26,10 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 - [x] Verify UX parity: search, filters, toggles, pagination, modals
 
 ### 1.3 Schema Validation Consolidation (Depends on 1.1)
-- [ ] Move image URL checks into Zod using `z.preprocess`/refinement in `@/schemas/services`
-- [ ] Keep `sanitizeServiceData` transform-only (no validation)
-- [ ] Ensure all routes validate via Zod exclusively
-- [ ] Remove duplicate validations in utils
+- [x] Move image URL checks into Zod using `z.preprocess`/refinement in `@/schemas/services`
+- [x] Keep `sanitizeServiceData` transform-only (no validation)
+- [x] Ensure all routes validate via Zod exclusively
+- [x] Remove duplicate validations in utils
 
 ## Phase 2: Data Architecture Improvements
 
