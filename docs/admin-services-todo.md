@@ -12,10 +12,10 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 ## Phase 1: Foundation & Type Consistency
 
 ### 1.1 Type System Unification (Immediate)
-- [ ] Remove duplicate `Service` and `ServiceStats` from `@/app/admin/services/page.tsx`
-- [ ] Import shared types from `@/types/services.ts`
-- [ ] Replace local filter state type with `ServiceFilters`
-- [ ] Align component props to shared types (cards, forms, filters, header)
+- [x] Remove duplicate `Service` and `ServiceStats` from `@/app/admin/services/page.tsx`
+- [x] Import shared types from `@/types/services.ts`
+- [x] Replace local filter state type with `ServiceFilters` (moved sortBy/sortOrder to dedicated state)
+- [x] Align component props to shared types (cards, forms, filters, header)
 - [ ] Run `pnpm run typecheck` and fix conflicts
 
 ### 1.2 UI Component Consolidation (Depends on 1.1)
