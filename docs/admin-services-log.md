@@ -1,10 +1,12 @@
-## [2025-09-22] Phase 1.3 – Schema Validation Consolidation completed
+## [2025-09-22] Phase 1 verification – Typecheck passed
 What I changed:
-- Moved image URL validation into Zod using `z.preprocess` and protocol refinement in `@/schemas/services.ts`.
-- Updated `sanitizeServiceData` to be transform-only, removing duplicate URL validations.
+- Fixed Service filters type narrowing for Select components (status/featured unions).
+- Resolved RHF + Zod resolver typing by simplifying resolver typing and adding React import.
+- Ensured ServiceForm handler and defaults align with shared ServiceFormData.
 
 Why:
-- Establish a single source of truth for validation, reduce drift, and simplify maintenance.
+- Remove TS errors introduced by type unification and ensure shared types are the single source of truth.
 
 Next steps:
-- Phase 2.1 – Database schema enhancements (tenant-scoped slug uniqueness, serviceSettings JSONB, status enum) and query updates.
+- Begin Phase 2.1 Prisma schema prep: composite unique (tenantId, slug), JSONB serviceSettings with default {}, status enum and code updates.
+

@@ -16,7 +16,7 @@ Note: Always review this file before coding. Keep tasks production-grade and dep
 - [x] Import shared types from `@/types/services.ts`
 - [x] Replace local filter state type with `ServiceFilters` (moved sortBy/sortOrder to dedicated state)
 - [x] Align component props to shared types (cards, forms, filters, header)
-- [ ] Run `pnpm run typecheck` and fix conflicts
+- [x] Run `pnpm run typecheck` and fix conflicts
 
 ### 1.2 UI Component Consolidation (Depends on 1.1)
 - [x] Replace inline filters with `@/components/admin/services/ServicesFilters`
