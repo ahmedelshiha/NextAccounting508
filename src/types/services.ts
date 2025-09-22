@@ -51,6 +51,8 @@ export interface ServiceAnalytics {
   revenueByService: { service: string; revenue: number }[];
   popularServices: { service: string; bookings: number }[];
   conversionRates: { service: string; rate: number }[];
+  // Per-service monthly revenue time-series for top services
+  revenueTimeSeries?: { service: string; monthly: { month: string; revenue: number }[] }[];
 }
 
 export interface BulkAction {
