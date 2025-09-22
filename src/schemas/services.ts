@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+// Image URL: accept empty/undefined, otherwise must be valid http/https URL
+const ImageUrlSchema = z.preprocess((v) => {
+  const s = typeof v === 'string' ? v.trim() : ''
+  return s === '' ? undefined : s
+}, z.string()
+  .url('Invalid image URL')
+  .refine((u) => {
+    try { const p = new URL(u).protocol; return p === 'http:' || p === 'https:' } catch { return false }
+  }, { message: 'Invalid image URL' }))
+
 export const ServiceSchema = z.object({
   name: z.string().min(1, 'Service name is required').max(100, 'Name too long'),
   slug: z.string()
@@ -14,7 +24,7 @@ export const ServiceSchema = z.object({
   category: z.string().max(50, 'Category name too long').optional(),
   featured: z.boolean(),
   active: z.boolean(),
-  image: z.string().url('Invalid image URL').optional(),
+  image: ImageUrlSchema.optional(),
 });
 
 export const ServiceUpdateSchema = ServiceSchema.partial().extend({

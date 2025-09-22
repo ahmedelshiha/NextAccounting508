@@ -63,50 +63,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { BulkActionsPanel } from '@/components/admin/services/BulkActionsPanel'
+import { ServicesHeader } from '@/components/admin/services/ServicesHeader'
+import { ServicesFilters } from '@/components/admin/services/ServicesFilters'
+import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'
 import { Modal } from '@/components/ui/Modal'
 
-// Local types aligned with @/types/services
-interface Service {
-  id: string
-  slug: string
-  name: string
-  description: string
-  shortDesc?: string | null
-  features: string[]
-  price?: number
-  duration?: number
-  category?: string | null
-  featured: boolean
-  active: boolean
-  image?: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-interface ServiceFilters {
-  search: string
-  category: string
-  featured: string
-  status: string
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
-}
-
-interface ServiceStats {
-  total: number
-  active: number
-  featured: number
-  categories: number
-  averagePrice: number
-  totalRevenue: number
-}
-
-interface ServiceAnalytics {
-  monthlyBookings: Array<{ month: string; bookings: number }>
-  revenueByService: Array<{ service: string; revenue: number }>
-  popularServices: Array<{ service: string; bookings: number }>
-  conversionRates: Array<{ period: string; rate: number }>
-}
+import type { Service, ServiceFilters, ServiceStats, ServiceAnalytics } from '@/types/services'
 
 const statusStyles = {
   active: 'bg-green-100 text-green-800 border-green-200',
@@ -148,10 +110,10 @@ export default function ServicesAdminPage() {
     search: '',
     category: 'all',
     featured: 'all',
-    status: 'all',
-    sortBy: 'updatedAt',
-    sortOrder: 'desc'
+    status: 'all'
   })
+  const [sortBy, setSortBy] = useState<'name'|'createdAt'|'updatedAt'|'price'>('updatedAt')
+  const [sortOrder, setSortOrder] = useState<'asc'|'desc'>('desc')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [showAdvanced, setShowAdvanced] = useState(false)
 
@@ -188,8 +150,8 @@ export default function ServicesAdminPage() {
       if (filters.status !== 'all') qp.set('status', filters.status)
       qp.set('limit', pageSize.toString())
       qp.set('offset', ((page - 1) * pageSize).toString())
-      qp.set('sortBy', filters.sortBy)
-      qp.set('sortOrder', filters.sortOrder)
+      qp.set('sortBy', sortBy)
+      qp.set('sortOrder', sortOrder)
 
       const res = await apiFetch(`/api/admin/services${qp.toString() ? `?${qp.toString()}` : ''}`)
       const data = await res.json()
@@ -356,31 +318,15 @@ export default function ServicesAdminPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold text-gray-900">Service Management</h1>
-              <Badge variant={autoRefresh ? 'default' : 'outline'} className="text-xs">{autoRefresh ? 'Live' : 'Static'}</Badge>
-              <Badge variant="outline" className="text-xs">{services.length} services</Badge>
-            </div>
-            <p className="text-gray-600">Manage your service offerings and track performance</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={() => setAutoRefresh(v => !v)}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />Auto Refresh
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline"><Download className="h-4 w-4 mr-2" />Export</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={exportCSV}>Export CSV</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button onClick={() => { setEditing(null); setShowModal(true) }}><Plus className="h-4 w-4 mr-2" />New Service</Button>
-            <Button variant="outline" asChild><Link href="/admin">Back to Dashboard</Link></Button>
-          </div>
-        </div>
+        <ServicesHeader
+          stats={stats as any}
+          searchTerm={filters.search}
+          onSearchChange={(v) => setFilters(prev => ({ ...prev, search: v }))}
+          onRefresh={refresh}
+          onExport={exportCSV}
+          onCreateNew={() => { setEditing(null); setShowModal(true) }}
+          loading={loading}
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -391,14 +337,6 @@ export default function ServicesAdminPage() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total Services</p><p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p><div className="flex items-center mt-1 text-xs text-blue-600"><TrendingUp className="h-3 w-3 mr-1" />Services available</div></div><Package className="h-8 w-8 text-blue-600" /></div></CardContent></Card>
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Active Services</p><p className="text-2xl font-bold text-gray-900">{stats?.active || 0}</p><div className="flex items-center mt-1 text-xs text-green-600"><CheckCircle className="h-3 w-3 mr-1" />Currently available</div></div><CheckCircle className="h-8 w-8 text-green-600" /></div></CardContent></Card>
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Featured</p><p className="text-2xl font-bold text-gray-900">{stats?.featured || 0}</p><div className="flex items-center mt-1 text-xs text-yellow-600"><Star className="h-3 w-3 mr-1" />Highlighted services</div></div><Star className="h-8 w-8 text-yellow-500" /></div></CardContent></Card>
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Categories</p><p className="text-2xl font-bold text-gray-900">{stats?.categories || 0}</p><div className="flex items-center mt-1 text-xs text-purple-600"><Target className="h-3 w-3 mr-1" />Service types</div></div><Target className="h-8 w-8 text-purple-600" /></div></CardContent></Card>
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Avg. Price</p><p className="text-2xl font-bold text-gray-900">{formatCurrency(stats?.averagePrice)}</p><div className="flex items-center mt-1 text-xs text-green-600"><DollarSign className="h-3 w-3 mr-1" />Per service</div></div><DollarSign className="h-8 w-8 text-green-600" /></div></CardContent></Card>
-              <Card className="hover:shadow-md transition-shadow"><CardContent className="p-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Bookings</p><p className="text-2xl font-bold text-gray-900">{analyticsData.totalBookings}</p><div className="flex items-center mt-1 text-xs text-blue-600"><ArrowUpRight className="h-3 w-3 mr-1" />+{analyticsData.monthlyGrowth.toFixed(1)}%</div></div><Calendar className="h-8 w-8 text-blue-600" /></div></CardContent></Card>
-            </div>
 
             <Card>
               <CardHeader>
@@ -422,10 +360,8 @@ export default function ServicesAdminPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col lg:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input value={filters.search} onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))} placeholder="Search by name, description, or category..." className="pl-10" />
-                  </div>
+                  <div className="flex-1" />
+                  {/* Sort controls remain local */}
                   <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
                     <SelectTrigger className="w-full lg:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
                     <SelectContent>
@@ -445,31 +381,28 @@ export default function ServicesAdminPage() {
                 </div>
 
                 {showAdvanced && (
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-                    <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
-                      <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories.map(cat => (<SelectItem key={cat} value={cat}>{cat}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}>
-                      <SelectTrigger><SelectValue placeholder="Sort By" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="updatedAt">Recently Updated</SelectItem>
-                        <SelectItem value="createdAt">Recently Created</SelectItem>
-                        <SelectItem value="name">Name</SelectItem>
-                        <SelectItem value="price">Price</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button variant="outline" size="sm" onClick={() => setFilters(prev => ({ ...prev, sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' }))}>
-                      {filters.sortOrder === 'asc' ? <ArrowUpRight className="h-3 w-3 mr-2" /> : <ArrowDownRight className="h-3 w-3 mr-2" />}
-                      {filters.sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-                    </Button>
-
-                    <Button variant="outline" size="sm" onClick={() => setFilters({ search: '', category: 'all', featured: 'all', status: 'all', sortBy: 'updatedAt', sortOrder: 'desc' })}>Clear Filters</Button>
+                  <div className="pt-4 border-t border-gray-200">
+                    <ServicesFilters
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      categories={categories}
+                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                      <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                        <SelectTrigger><SelectValue placeholder="Sort By" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="updatedAt">Recently Updated</SelectItem>
+                          <SelectItem value="createdAt">Recently Created</SelectItem>
+                          <SelectItem value="name">Name</SelectItem>
+                          <SelectItem value="price">Price</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'))}>
+                        {sortOrder === 'asc' ? <ArrowUpRight className="h-3 w-3 mr-2" /> : <ArrowDownRight className="h-3 w-3 mr-2" />}
+                        {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setFilters({ search: '', category: 'all', featured: 'all', status: 'all' }); setSortBy('updatedAt'); setSortOrder('desc'); }}>Clear Filters</Button>
+                    </div>
                   </div>
                 )}
 
@@ -640,64 +573,7 @@ export default function ServicesAdminPage() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader><CardTitle>Revenue Analytics</CardTitle><CardDescription>Service performance and revenue trends</CardDescription></CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="h-64 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-sm text-gray-600">Revenue Chart</p>
-                        <div className="mt-4 space-y-2 text-sm">
-                          <div>Total Revenue: {formatCurrency(stats?.totalRevenue || 0)}</div>
-                          <div>Average per Service: {formatCurrency(stats?.averagePrice || 0)}</div>
-                          <div className="text-green-600">Growth: +{analyticsData.monthlyGrowth.toFixed(1)}%</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader><CardTitle>Service Performance</CardTitle><CardDescription>Booking rates and completion metrics</CardDescription></CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm"><span>Completion Rate</span><span className="font-medium">{analyticsData.completionRate.toFixed(1)}%</span></div>
-                      <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${analyticsData.completionRate}%` }} /></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                      <div className="text-center p-4 border rounded-lg"><div className="text-2xl font-bold text-blue-600">{analyticsData.totalBookings}</div><div className="text-sm text-gray-600">Total Bookings</div></div>
-                      <div className="text-center p-4 border rounded-lg"><div className="text-2xl font-bold text-green-600">{stats?.active || 0}</div><div className="text-sm text-gray-600">Active Services</div></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="lg:col-span-2">
-                <CardHeader><CardTitle>Top Performing Services</CardTitle><CardDescription>Services with highest booking rates</CardDescription></CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {services.slice(0, 5).map((service, index) => {
-                      const bookings = Math.floor(Math.random() * 50 + 10)
-                      const revenue = (service.price || 0) * bookings
-                      const growth = Math.floor(Math.random() * 30 - 10)
-                      return (
-                        <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">{index + 1}</div>
-                            <div><div className="font-medium">{service.name}</div><div className="text-sm text-gray-600">{bookings} bookings</div></div>
-                          </div>
-                          <div className="text-right"><div className="font-medium text-green-600">{formatCurrency(revenue)}</div><div className={`text-sm flex items-center ${growth > 0 ? 'text-green-600' : 'text-red-600'}`}>{growth > 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}{Math.abs(growth)}%</div></div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <ServicesAnalytics analytics={analytics} loading={loading && !analytics} />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
