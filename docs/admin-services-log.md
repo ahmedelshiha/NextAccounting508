@@ -36,3 +36,17 @@ Next steps:
 - Update booking/pricing/payment endpoints to read status instead of active.
 - Migrate UI toggle/actions to call status-aware endpoints (no behavior change required).
 - Remove remaining direct active checks post-QA, then deprecate active field in a future migration.
+
+## [2025-09-22] Phase 2.1 – Booking/Pricing/Payment endpoints migrated
+What I changed:
+- Availability API now requires Service.status = ACTIVE (findFirst).
+- Domain availability/conflict/pricing use status enum checks.
+- Pricing API and Payments Checkout validate status via enum.
+- Services page static params query uses status = ACTIVE for slug generation.
+
+Why:
+- Ensure end-user flows (availability, pricing, checkout) honor lifecycle states consistently.
+
+Next steps:
+- Align admin UI toggle actions with status + active writes (begin).
+- Typecheck and QA paths; audit remaining direct `active` checks and migrate gradually.
