@@ -381,7 +381,11 @@ export class ServicesService {
   }
 
   private async clearCaches(tenantId: string | null, serviceId?: string) {
-    const patterns = [`service-stats:${tenantId}:*`, `services-list:${tenantId}:*`];
+    const patterns = [
+      `service-stats:${tenantId}:*`,
+      `services-list:${tenantId}:*`,
+      `service:*:${tenantId}`,
+    ];
     await Promise.all(patterns.map(p => this.cache.deletePattern(p)));
     if (serviceId) {
       const key = `service:${serviceId}:${tenantId}`;
