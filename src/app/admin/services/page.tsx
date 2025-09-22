@@ -362,7 +362,7 @@ export default function ServicesAdminPage() {
                 <div className="flex flex-col lg:flex-row gap-4">
                   <div className="flex-1" />
                   {/* Sort controls remain local */}
-                  <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                  <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value as ServiceFilters['status'] }))}>
                     <SelectTrigger className="w-full lg:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
@@ -370,7 +370,7 @@ export default function ServicesAdminPage() {
                       <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={filters.featured} onValueChange={(value) => setFilters(prev => ({ ...prev, featured: value }))}>
+                  <Select value={filters.featured} onValueChange={(value) => setFilters(prev => ({ ...prev, featured: value as ServiceFilters['featured'] }))}>
                     <SelectTrigger className="w-full lg:w-48"><SelectValue placeholder="Featured" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Services</SelectItem>
