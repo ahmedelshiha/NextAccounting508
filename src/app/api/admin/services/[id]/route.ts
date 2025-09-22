@@ -6,6 +6,7 @@ import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { ServiceUpdateSchema } from '@/schemas/services';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { logAudit } from '@/lib/audit';
+import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
 
 const svc = new ServicesService();
 
@@ -32,8 +33,16 @@ export async function GET(request: NextRequest, context: Ctx) {
     const service = await svc.getServiceById(tenantId, String(id));
     if (!service) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json({ service });
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch service' }, { status: 500 });
+  } catch (e: any) {
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (e?.name === 'ZodError') {
+      const apiErr = mapZodError(e);
+      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+    }
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    console.error('service GET error', e);
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
 
@@ -58,15 +67,21 @@ export async function PATCH(request: NextRequest, context: Ctx) {
       await logAudit({ action: 'SERVICE_UPDATED', actorId: session.user.id, targetId: id, details: { fields: Object.keys(body) } });
       return NextResponse.json({ service: updated });
     } catch (err: any) {
-      const code = String(err?.code || '')
-      const msg = String(err?.message || '')
-      const isUnique = code === 'P2002' || /Unique constraint failed|already exists|slug.*exists/i.test(msg)
-      if (isUnique) return NextResponse.json({ error: 'Slug already exists. Please choose a different slug.' }, { status: 409 })
-      throw err
+      const prismaMapped = mapPrismaError(err);
+      if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+      if (err?.name === 'ZodError') {
+        const apiErr = mapZodError(err);
+        return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+      }
+      if (isApiError(err)) return NextResponse.json(makeErrorBody(err), { status: err.status });
+      throw err;
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('service PATCH error', e);
-    return NextResponse.json({ error: 'Failed to update service' }, { status: 500 });
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
 
@@ -87,7 +102,11 @@ export async function DELETE(request: NextRequest, context: Ctx) {
     await logAudit({ action: 'SERVICE_DELETED', actorId: session.user.id, targetId: id });
 
     return NextResponse.json({ message: 'Service deleted successfully' });
-  } catch {
-    return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
+  } catch (e: any) {
+    const prismaMapped = mapPrismaError(e);
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    console.error('service DELETE error', e);
+    return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
 }
