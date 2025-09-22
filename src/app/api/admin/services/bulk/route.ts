@@ -15,6 +15,10 @@ export async function POST(request: NextRequest) {
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_BULK_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+    if (!process.env.NETLIFY_DATABASE_URL) {
+      return NextResponse.json({ error: 'Database is not configured. Connect a database to perform bulk actions.' }, { status: 501 });
+    }
+
     const body = await request.json();
     const data = BulkActionSchema.parse(body);
 
