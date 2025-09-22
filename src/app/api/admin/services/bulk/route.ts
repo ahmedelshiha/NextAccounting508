@@ -25,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     await logAudit({ action: 'SERVICES_BULK_ACTION', actorId: session.user.id, details: { action: data.action, count: result.updatedCount } });
 
+    // If partial errors exist, return 207 Multi-Status with details
+    if (result.errors && result.errors.length) {
+      return NextResponse.json({ message: `Completed with errors: ${result.updatedCount} succeeded, ${result.errors.length} failed`, result }, { status: 207 });
+    }
+
     return NextResponse.json({ message: `Successfully ${data.action} ${result.updatedCount} services`, result });
   } catch (e: any) {
     const prismaMapped = mapPrismaError(e);
