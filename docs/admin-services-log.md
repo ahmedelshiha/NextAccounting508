@@ -1,13 +1,15 @@
 
 
-## [2025-09-24] Deployment readiness & Netlify
+## [2025-09-24] Phase 2 – Completion
 What I changed:
-- Prepared deployment guidance and Netlify-specific instructions in DEPLOYMENT.md, including environment variable recommendations, migration handling via netlify.toml and scripts/prisma-deploy-retry.sh, CI pre-deploy checks, backup/rollback guidance, and suggested MCP integrations (Neon, Netlify, Sentry, Builder CMS, etc.).
+- Added `views` counter to `Service` model in prisma/schema.prisma and updated public service GET route to increment views on each fetch.
+- Enhanced analytics to compute conversions from views→bookings per top services and included revenueTimeSeries, monthlyBookings, revenueByService, and popularServices in `ServicesService.getServiceStats`.
+- Updated service APIs to use `status = 'ACTIVE'` for public lookups and ensured tenant scoping across analytics queries.
+- Extended BulkAction schema and service layer to support `clone` and `settings-update` with per-item results and rollback for clones.
 
 Why:
-- Ensure safe, repeatable production deployments with migration safety, monitoring, and secrets handling.
+- Complete Phase 2 by ensuring the data model, service layer, and analytics are aligned to support richer admin features and reliable deployment migrations.
 
 Next steps:
-- Add GitHub Actions CI workflow to run typecheck, lint, tests and optional build on PRs.
-- Add frontend UI to surface analytics revenueTimeSeries and bulk action progress UI.
-- Add automated smoke tests post-deploy and Sentry integration for production monitoring.
+- Add per-month view tracking for improved conversion accuracy (introduce service_views table or use analytics provider).
+- Surface analytics (revenueTimeSeries & conversionsByService) in admin UI and add unit/integration tests to validate analytics math.
