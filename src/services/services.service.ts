@@ -5,6 +5,8 @@ import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceSt
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
 import { CacheService } from '@/lib/cache.service';
 import { NotificationService } from '@/lib/notification.service';
+import { createHash } from 'crypto';
+import { serviceEvents } from '@/lib/events/service-events';
 
 export class ServicesService {
   constructor(
@@ -57,6 +59,7 @@ export class ServicesService {
 
     await this.clearCaches(tenantId)
     try { await this.notifications.notifyServiceCreated(created as any, 'system') } catch {}
+    try { serviceEvents.emit('service:created', { tenantId, service: { id: created.id, slug: created.slug, name: created.name } }) } catch {}
     return this.toType(created as any)
   }
 
@@ -125,6 +128,12 @@ export class ServicesService {
   ): Promise<{ services: ServiceType[]; total: number; page: number; limit: number; totalPages: number; }> {
     const { search, category, featured, status, limit = 20, offset = 0, sortBy = 'updatedAt', sortOrder = 'desc' } = filters;
 
+    // Cache key for list queries (60s TTL)
+    const cacheKeyRaw = JSON.stringify({ tenantId, search, category, featured, status, limit, offset, sortBy, sortOrder })
+    const listCacheKey = `services-list:${tenantId}:${createHash('sha1').update(cacheKeyRaw).digest('hex')}`
+    const cachedList = await this.cache.get<{ services: ServiceType[]; total: number; page: number; limit: number; totalPages: number }>(listCacheKey)
+    if (cachedList) return cachedList;
+
     const where: Prisma.ServiceWhereInput = { ...(tenantId ? { tenantId } : {}), };
     if (status === 'active') (where as any).status = 'ACTIVE';
     else if (status === 'inactive') (where as any).status = { not: 'ACTIVE' } as any;
@@ -153,7 +162,9 @@ export class ServicesService {
       ]);
       const totalPages = Math.ceil(total / limit);
       const page = Math.floor(offset / limit) + 1;
-      return { services: rows.map(this.toType), total, page, limit, totalPages };
+      const result = { services: rows.map(this.toType), total, page, limit, totalPages };
+      await this.cache.set(listCacheKey, result, 60);
+      return result;
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
       const all = await prisma.$queryRawUnsafe<any[]>(
@@ -170,7 +181,9 @@ export class ServicesService {
       const page = Math.floor(offset / limit) + 1;
       const totalPages = Math.max(1, Math.ceil(total / limit));
       const paged = items.slice(offset, offset + limit);
-      return { services: paged, total, page, limit, totalPages };
+      const result = { services: paged, total, page, limit, totalPages };
+      await this.cache.set(listCacheKey, result, 60);
+      return result;
     }
   }
 
@@ -195,6 +208,7 @@ export class ServicesService {
     const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: isActive, status: (isActive ? 'ACTIVE' : 'INACTIVE') as any } });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
+    try { serviceEvents.emit('service:created', { tenantId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
     return this.toType(s as any);
   }
 
@@ -213,6 +227,7 @@ export class ServicesService {
     await this.clearCaches(tenantId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
+    try { serviceEvents.emit('service:updated', { tenantId, service: { id: s.id, slug: s.slug, name: s.name }, changes }) } catch {}
     return this.toType(s as any);
   }
 
@@ -223,6 +238,7 @@ export class ServicesService {
     await prisma.service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
     await this.clearCaches(tenantId, id);
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
+    try { serviceEvents.emit('service:deleted', { tenantId, id }) } catch {}
   }
 
   async performBulkAction(tenantId: string | null, action: BulkAction, by: string): Promise<{ updatedCount: number; errors: Array<{ id: string; error: string }>; createdIds?: string[]; rollback?: { rolledBack: boolean; errors?: string[] } }> {
@@ -243,6 +259,7 @@ export class ServicesService {
       const res = await prisma.service.updateMany({ where, data });
       await this.clearCaches(tenantId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
+      try { serviceEvents.emit('service:bulk', { tenantId, action: type, count: res.count }) } catch {}
       return { updatedCount: res.count, errors: [] };
     }
 
@@ -251,6 +268,7 @@ export class ServicesService {
       const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tenantId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
+      try { serviceEvents.emit('service:bulk', { tenantId, action: type, count: res.count }) } catch {}
       return { updatedCount: res.count, errors: [] };
     }
 
@@ -286,6 +304,7 @@ export class ServicesService {
 
       await this.clearCaches(tenantId);
       if (createdIds.length) await this.notifications.notifyBulkAction(type, createdIds.length, by);
+      try { serviceEvents.emit('service:bulk', { tenantId, action: type, count: createdIds.length }) } catch {}
       return { updatedCount: createdIds.length, errors, createdIds, rollback: rollbackResult };
     }
 
@@ -296,6 +315,7 @@ export class ServicesService {
       const res = await this.bulkUpdateServiceSettings(tenantId, updates);
       await this.clearCaches(tenantId);
       if (res.updated) await this.notifications.notifyBulkAction(type, res.updated, by);
+      try { serviceEvents.emit('service:bulk', { tenantId, action: type, count: res.updated }) } catch {}
       // Map errors into expected shape
       const errors = res.errors || [];
       return { updatedCount: res.updated, errors };

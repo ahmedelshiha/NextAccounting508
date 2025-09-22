@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_ANALYTICS)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
 
     const sp = new URL(request.url).searchParams;

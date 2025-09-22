@@ -44,23 +44,23 @@ PRIORITIZED WORK (critical path first)
 - [x] 4.1.1 Add Redis client wrapper (create src/lib/cache/redis.ts)
 - [x] 4.1.2 Implement Redis-backed CacheService and wire via DI in ServicesService
 - [x] 4.1.3 Implement safe deletePattern (prefix matching, rate-limited)
-- [ ] 4.2.1 Implement ETag/Last-Modified heuristics for lists & single resources
-- [ ] 4.2.2 Add cache warming for hot paths (services list top queries)
+- [x] 4.2.1 Implement ETag/Last-Modified heuristics for lists & single resources
+- [x] 4.2.2 Add cache warming for hot paths (services list top queries)
 
 5) Phase 5 — Integration & Events
-- [ ] 5.1.1 Create typed service events (src/lib/events/service-events.ts)
-- [ ] 5.1.2 Publish events on service create/update/delete and hook cache invalidation listeners
-- [ ] 5.2.1 Add ServiceLite DTO and expose to booking wizard
+- [x] 5.1.1 Create typed service events (src/lib/events/service-events.ts)
+- [x] 5.1.2 Publish events on service create/update/delete and hook cache invalidation listeners
+- [x] 5.2.1 Add ServiceLite DTO and expose to booking wizard
 
 6) Phase 6 — Security & Rate Limiting (parallel)
-- [ ] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
-- [ ] 6.2.1 Tenant-scoped rate limiting for bulk operations (per-tenant keys)
-- [ ] 6.3.1 CSV export sanitization & throttling
+- [x] 6.1.1 Add granular permissions: MANAGE_FEATURED, BULK_OPERATIONS, VIEW_ANALYTICS
+- [x] 6.2.1 Tenant-scoped rate limiting for bulk operations (per-tenant keys)
+- [x] 6.3.1 CSV export sanitization & throttling
 
 7) Phase 7 — Tests & QA (start after Phase 2/3 complete)
-- [ ] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
-- [ ] 7.2.1 Integration tests for all service API routes (including 409 slug conflicts)
-- [ ] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
+- [x] 7.1.1 Unit tests for services.service.ts (clone, bulkUpdateServiceSettings, getServiceStats)
+- [x] 7.2.1 Integration tests for all service API routes (including 409 slug conflicts)
+- [x] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
 
 8) Phase 8 — Documentation & Monitoring (ongoing)
 - [ ] 8.1.1 Generate OpenAPI spec for admin service endpoints
@@ -70,8 +70,8 @@ PRIORITIZED WORK (critical path first)
 Actionable immediate next steps (top 5)
 - [ ] Create Prisma migration files for Service.views and ServiceView model, commit migration (developer to run with DB creds)
 - [x] Enhance Netlify build to run lint, typecheck, tests and build
-- [ ] Add Redis wrapper and plan migration from in-memory cache to Redis (design + implementation tasks)
-- [ ] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
+- [x] Add Redis wrapper and plan migration from in-memory cache to Redis (design + implementation tasks)
+- [x] Add unit tests for analytics math (getServiceStats) and bulk operations rollback logic
 - [ ] Surface revenueTimeSeries & conversionsByService in admin UI (charts already wired — verify accessibility and responsiveness)
 
 Notes about completed work
