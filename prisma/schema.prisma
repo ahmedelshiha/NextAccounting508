@@ -686,9 +686,11 @@ enum AvailabilityStatus {
 }
 
 enum ServiceStatus {
+  DRAFT
   ACTIVE
   INACTIVE
   DEPRECATED
+  RETIRED
 }
 
 enum RequestPriority {
