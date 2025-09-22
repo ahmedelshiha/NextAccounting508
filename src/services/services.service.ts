@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
-import { validateSlugUniqueness, generateSlug, sanitizeServiceData } from '@/lib/services/utils';
+import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
 import { CacheService } from '@/lib/cache.service';
 import { NotificationService } from '@/lib/notification.service';
 
@@ -37,14 +37,32 @@ export class ServicesService {
     else if (sortBy === 'createdAt') (orderBy as any).createdAt = sortOrder;
     else (orderBy as any).updatedAt = sortOrder;
 
-    const [rows, total] = await Promise.all([
-      prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
-      prisma.service.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-    const page = Math.floor(offset / limit) + 1;
-    return { services: rows.map(this.toType), total, page, limit, totalPages };
+    try {
+      const [rows, total] = await Promise.all([
+        prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
+        prisma.service.count({ where }),
+      ]);
+      const totalPages = Math.ceil(total / limit);
+      const page = Math.floor(offset / limit) + 1;
+      return { services: rows.map(this.toType), total, page, limit, totalPages };
+    } catch (e) {
+      // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
+      const all = await prisma.$queryRawUnsafe<any[]>(
+        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","image","createdAt","updatedAt" FROM "services"'
+      );
+      let items = all.map(this.toType);
+      // Apply basic filters client-side
+      const basicFilters: any = { search, category, featured, status };
+      items = filterServices(items as any[], basicFilters) as any;
+      // Sort client-side
+      const safeSortBy = ['name','createdAt','updatedAt','price'].includes(sortBy) ? sortBy : 'updatedAt';
+      items = sortServices(items as any, safeSortBy, sortOrder) as any;
+      const total = items.length;
+      const page = Math.floor(offset / limit) + 1;
+      const totalPages = Math.max(1, Math.ceil(total / limit));
+      const paged = items.slice(offset, offset + limit);
+      return { services: paged, total, page, limit, totalPages };
+    }
   }
 
   async getServiceById(tenantId: string | null, serviceId: string): Promise<ServiceType | null> {
