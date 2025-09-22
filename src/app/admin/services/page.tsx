@@ -305,7 +305,7 @@ export default function ServicesAdminPage() {
             </div>
           </div>
 
-          <div style={{ minWidth: 360 }}>
+          <div className="min-w-[360px]">
             <div className="mb-4">
               <BulkActionsPanel selectedIds={Array.from(selectedIds)} onClearSelection={clearSelection} onBulkAction={onBulkAction} categories={categories} loading={loading} />
             </div>
