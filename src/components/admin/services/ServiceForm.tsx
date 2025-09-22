@@ -1,5 +1,4 @@
 import React from 'react';
-import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,7 +25,7 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
   const isEditing = !!initialData;
   const formSchema: z.ZodType<ServiceFormData> = ServiceSchema;
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ServiceFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver<ServiceFormData>(formSchema),
     defaultValues: {
       name: initialData?.name || '',
       slug: initialData?.slug || '',
