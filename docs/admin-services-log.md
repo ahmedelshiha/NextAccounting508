@@ -50,3 +50,13 @@ Changes:
 - Availability API: do not cap by advanceBookingDays unless configured; allows future-dated queries for tests.
 - vitest.setup: added global File polyfill for Node, fixing uploads.* tests.
 - Recurring planner: varied conflict probe time per occurrence to align with alternating-conflict mock.
+
+## [2025-09-22] Styling hygiene for Services page
+What I changed:
+- Replaced inline style minWidth: 360 on sidebar container in src/app/admin/services/page.tsx with Tailwind utility class min-w-[360px].
+
+Why:
+- Align with code style guidelines to avoid inline styles, improve maintainability, and keep styling consistent with Tailwind.
+
+Next steps:
+- None.

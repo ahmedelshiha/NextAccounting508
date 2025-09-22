@@ -45,6 +45,7 @@ Notes and blockers
 
 Recent fixes
 - Fixed /admin/services UI to consume API object shape ({ services, total, ...}) so real DB data renders instead of empty state.
+- Styling hygiene: replaced inline minWidth style on Services page sidebar with Tailwind utility class (min-w-[360px]) to align with code style guidelines.
 
 Immediate next actions you can run locally
 - pnpm run lint
