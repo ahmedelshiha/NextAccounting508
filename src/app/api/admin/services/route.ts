@@ -36,21 +36,7 @@ export async function GET(request: NextRequest) {
 
     // Graceful fallback when DB isn't configured (demo mode)
     if (!process.env.NETLIFY_DATABASE_URL) {
-      const fallback = getDemoServices();
-      const filteredList = fallback.filter((s) => {
-        if (filters.status === 'active' && !s.active) return false;
-        if (filters.status === 'inactive' && s.active) return false;
-        if (filters.featured === 'featured' && !s.featured) return false;
-        if (filters.featured === 'non-featured' && s.featured) return false;
-        if (filters.category && filters.category !== 'all' && s.category !== filters.category) return false;
-        if (filters.search) {
-          const q = String(filters.search).toLowerCase();
-          const hay = [s.name, s.slug, s.shortDesc || '', s.description || '', s.category || ''].join(' ').toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
-      });
-      const result = { services: filteredList, total: filteredList.length, page: 1, limit: filteredList.length, totalPages: 1 };
+      const result = getDemoServicesList(filters as any)
       await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters, demo: true } });
       return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total) } });
     }
