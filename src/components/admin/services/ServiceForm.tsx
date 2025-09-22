@@ -25,7 +25,7 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
   const isEditing = !!initialData;
   const formSchema: z.ZodType<ServiceFormData> = ServiceSchema;
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ServiceFormData>({
-    resolver: zodResolver<ServiceFormData>(formSchema),
+    resolver: zodResolver<ServiceFormData, any, ServiceFormData>(formSchema),
     defaultValues: {
       name: initialData?.name || '',
       slug: initialData?.slug || '',
