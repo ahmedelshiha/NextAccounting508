@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import * as Sentry from '@sentry/nextjs'
 import { authOptions } from '@/lib/auth';
 import { ServicesService } from '@/services/services.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
     }
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    Sentry.captureException(e);
     console.error('stats error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
