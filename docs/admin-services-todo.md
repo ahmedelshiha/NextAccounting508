@@ -63,9 +63,9 @@ PRIORITIZED WORK (critical path first)
 - [x] 7.3.1 Component tests for ServiceForm, BulkActionsPanel, ServicesAnalytics
 
 8) Phase 8 — Documentation & Monitoring (ongoing)
-- [ ] 8.1.1 Generate OpenAPI spec for admin service endpoints
-- [ ] 8.1.2 Document cache invalidation strategy and fallback behavior
-- [ ] 8.2.1 Add Sentry integration and monitoring dashboards (Netlify + Sentry best practices)
+- [x] 8.1.1 Generate OpenAPI spec for admin service endpoints (src/openapi/admin-services.json, /api/openapi/admin-services)
+- [x] 8.1.2 Document cache invalidation strategy and fallback behavior (docs/admin-services-cache-invalidation.md)
+- [x] 8.2.1 Add Sentry integration and monitoring dashboards (Sentry SDK configured; captureException added in key routes; set SENTRY_DSN on Netlify; optional sourcemaps upload)
 
 Actionable immediate next steps (top 5)
 - [ ] Create Prisma migration files for Service.views and ServiceView model, commit migration (developer to run with DB creds)
@@ -77,7 +77,7 @@ Actionable immediate next steps (top 5)
 Notes about completed work
 - ✅ What was completed: centralized types, schema updates, service layer improvements (clone, bulk settings), analytics (time-series + conversions), API error normalization, new admin endpoints, ServiceView model and UI charts.
 - ✅ Why: to support tenant-scoped services, richer analytics, safer bulk ops, and consistent API error handling.
-- ✅ Next steps: migrations, CI, Redis caching, tests, and final UI polish.
+- ✅ Next steps: run DB migrations for ServiceView/Service.views, set SENTRY_DSN and (optional) Sentry auth for sourcemaps on Netlify, configure REDIS_URL for cross-instance cache, final UI accessibility pass.
 
 Change log
 - See docs/admin-services-log.md for detailed entries of changes and rationales.
