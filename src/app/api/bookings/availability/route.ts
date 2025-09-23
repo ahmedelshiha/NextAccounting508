@@ -74,7 +74,11 @@ export async function GET(request: NextRequest) {
     }
 
     const service = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!service || String((service as any).status).toUpperCase() !== 'ACTIVE' || service.bookingEnabled === false) {
+    if (!service) return NextResponse.json({ error: 'Service not available for booking' }, { status: 404 })
+    // Support either string status OR legacy boolean active flag on service
+    const hasStatus = typeof (service as any).status === 'string'
+    const isActive = hasStatus ? String((service as any).status).toUpperCase() === 'ACTIVE' : ((service as any).active !== false)
+    if (!isActive || service.bookingEnabled === false) {
       return NextResponse.json({ error: 'Service not available for booking' }, { status: 404 })
     }
 
