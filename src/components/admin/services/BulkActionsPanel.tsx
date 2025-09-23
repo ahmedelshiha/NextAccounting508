@@ -42,6 +42,9 @@ export function BulkActionsPanel({ selectedIds, onClearSelection, onBulkAction, 
   const canExecute = Boolean(selectedAction && selectedIds.length > 0 && (!needsValue || (selectedAction === 'category' && categoryValue) || (selectedAction === 'price-update' && priceValue && !isNaN(parseFloat(priceValue)))));
   if (selectedIds.length === 0) return null;
 
+  // Debug: log the summary text expected by tests
+  try { console.log('BULKACTION_SUMMARY:', `${selectedIds.length} service${selectedIds.length !== 1 ? 's' : ''} selected`) } catch {}
+
   return (
     <Card className="border-blue-200 bg-blue-50">
       <CardContent className="p-4">
