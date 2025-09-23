@@ -1,9 +1,9 @@
 import { Client } from 'pg'
 
 async function main() {
-  const url = process.env.NETLIFY_DATABASE_URL
+  const url = process.env.DATABASE_URL || process.env.NETLIFY_DATABASE_URL
   if (!url) {
-    console.log('[prisma-init] NETLIFY_DATABASE_URL not set. Skipping init.')
+    console.log('[prisma-init] DATABASE_URL/NETLIFY_DATABASE_URL not set. Skipping init.')
     return
   }
 
