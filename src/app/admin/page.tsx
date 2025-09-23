@@ -2025,6 +2025,79 @@ export default function ProfessionalAdminDashboard() {
     return () => clearInterval(interval)
   }, [autoRefresh, loadDashboardData])
 
+  const tabs: TabItem[] = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'bookings', label: 'Bookings', count: dashboardData?.stats?.bookings?.total ?? 0 },
+    { key: 'clients', label: 'Clients', count: dashboardData?.stats?.clients?.total ?? 0 },
+    { key: 'revenue', label: 'Revenue' },
+  ]
+
+  const filterConfigs: FilterConfig[] = [
+    { key: 'dateRange', label: 'Date Range', options: [
+      { value: 'today', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+      { value: 'year', label: 'This Year' },
+    ], value: filters.dateRange },
+    { key: 'status', label: 'Status', options: [
+      { value: 'all', label: 'All Status' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'confirmed', label: 'Confirmed' },
+      { value: 'in_progress', label: 'In Progress' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' },
+    ], value: filters.status },
+  ]
+
+  const onFilterChange = (key: string, value: string) => setFilters(prev => ({ ...prev, [key]: value as any }))
+
+  function withinRange(dateISO: string, range: 'today'|'week'|'month'|'year') {
+    const d = new Date(dateISO)
+    const now = new Date()
+    if (range === 'today') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+    }
+    if (range === 'week') {
+      const diffMs = now.getTime() - d.getTime()
+      const weekMs = 7 * 24 * 60 * 60 * 1000
+      return diffMs >= 0 && diffMs <= weekMs
+    }
+    if (range === 'month') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    }
+    if (range === 'year') {
+      return d.getFullYear() === now.getFullYear()
+    }
+    return true
+  }
+
+  const filteredBookings = useMemo(() => {
+    let items = dashboardData.recentBookings || []
+    if (filters.status && filters.status !== 'all') items = items.filter(b => b.status === (filters.status as any))
+    if (filters.dateRange) items = items.filter(b => withinRange(b.scheduledAt, filters.dateRange))
+    return items
+  }, [dashboardData.recentBookings, filters])
+
+  type BookingRow = { id: string; clientName: string; service: string; scheduledAt: string; status: string; revenue: number }
+  const bookingRows: BookingRow[] = filteredBookings.map(b => ({ id: b.id, clientName: b.clientName, service: b.service, scheduledAt: b.scheduledAt, status: b.status, revenue: b.revenue }))
+  const bookingColumns: Column<BookingRow>[] = [
+    { key: 'clientName', label: 'Client', sortable: true },
+    { key: 'service', label: 'Service', sortable: true },
+    { key: 'scheduledAt', label: 'Date & Time', sortable: true, render: (v) => new Date(v).toLocaleString() },
+    { key: 'status', label: 'Status' },
+    { key: 'revenue', label: 'Amount', align: 'right', sortable: true, render: (v) => `$${Number(v||0).toLocaleString()}` },
+  ]
+
+  type ClientRow = { id: string; name: string; revenue: number; bookings: number; lastBooking: string; tier: string }
+  const clientRows: ClientRow[] = (dashboardData.clientInsights?.topClients || []).map(c => ({ id: c.id, name: c.name, revenue: c.revenue, bookings: c.bookings, lastBooking: c.lastBooking, tier: c.tier }))
+  const clientColumns: Column<ClientRow>[] = [
+    { key: 'name', label: 'Client', sortable: true },
+    { key: 'bookings', label: 'Bookings', align: 'center', sortable: true },
+    { key: 'revenue', label: 'Revenue', align: 'right', sortable: true, render: (v) => `$${Number(v||0).toLocaleString()}` },
+    { key: 'lastBooking', label: 'Last Booking', sortable: true },
+    { key: 'tier', label: 'Tier' },
+  ]
+
   if (loading) {
     return (
       <DashboardLayout>
