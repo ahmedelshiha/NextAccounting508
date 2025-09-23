@@ -20,9 +20,10 @@ export function render(node: React.ReactElement) {
 export const screen = {
   getByText: (t: string) => {
     const arr: string[] = (globalThis as any).__renderedTexts || []
-    const hay = arr.join(' ').toLowerCase()
+    const original = arr.join(' ')
+    const hay = original.toLowerCase()
     const needle = String(t).toLowerCase()
-    if (hay.includes(needle)) return { textContent: hay }
+    if (hay.includes(needle)) return { textContent: original }
     throw new Error('Text not found: ' + t)
   }
 }
