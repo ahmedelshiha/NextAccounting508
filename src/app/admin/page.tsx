@@ -43,6 +43,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
+import DashboardLayout from '@/components/dashboard/DashboardLayout'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
@@ -2020,9 +2021,8 @@ export default function ProfessionalAdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-8">
+      <DashboardLayout>
+        <div className="animate-pulse space-y-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
@@ -2036,7 +2036,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-lg p-6 shadow-sm">
@@ -2052,7 +2052,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               ))}
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
                 <div className="h-64 bg-gray-200 rounded"></div>
@@ -2061,40 +2061,37 @@ export default function ProfessionalAdminDashboard() {
                 <div className="h-64 bg-gray-200 rounded"></div>
               </div>
             </div>
-          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-red-900 mb-2">Dashboard Error</h2>
-              <p className="text-red-700 mb-4">{error}</p>
-              <div className="flex justify-center gap-4">
-                <Button onClick={() => window.location.reload()}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Retry Loading
-                </Button>
-                <Button variant="outline" onClick={() => console.log('Contact support')}>
-                  Contact Support
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <DashboardLayout>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-red-900 mb-2">Dashboard Error</h2>
+            <p className="text-red-700 mb-4">{error}</p>
+            <div className="flex justify-center gap-4">
+              <Button onClick={() => window.location.reload()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Loading
+              </Button>
+              <Button variant="outline" onClick={() => console.log('Contact support')}>
+                Contact Support
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <DashboardLayout>
+      <div className="space-y-8">
         <ProfessionalHeader
           data={dashboardData}
           autoRefresh={autoRefresh}
@@ -2152,6 +2149,6 @@ export default function ProfessionalAdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
