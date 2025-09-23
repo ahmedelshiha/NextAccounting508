@@ -274,7 +274,16 @@ export class BookingSettingsService {
       }
 
       if (overwriteExisting && selectedSections.includes('settings')) {
-        await tx.bookingSettings.update({ where: { id: settings.id }, data: { ...data.settings, id: undefined as any, tenantId: tenantId ?? null } })
+        const settingsData: any = { ...(data.settings ?? {}) }
+        const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? Prisma.DbNull : v))
+        settingsData.businessHours = toNullableJson(settingsData.businessHours)
+        settingsData.blackoutDates = toNullableJson(settingsData.blackoutDates)
+        settingsData.holidaySchedule = toNullableJson(settingsData.holidaySchedule)
+        settingsData.reminderHours = toNullableJson(settingsData.reminderHours)
+        await tx.bookingSettings.update({
+          where: { id: settings.id },
+          data: { ...settingsData, id: undefined as any, tenantId: tenantId ?? null },
+        })
       }
 
       if (selectedSections.includes('steps')) {
