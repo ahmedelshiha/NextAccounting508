@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 import { CacheService } from '@/lib/cache.service'
+import { Prisma } from '@prisma/client'
 import type {
   BookingSettings,
   BookingSettingsUpdateRequest,
@@ -118,8 +119,8 @@ export class BookingSettingsService {
           required: s.required ?? true,
           title: s.title ?? (s.stepName ?? `Step ${i + 1}`),
           description: s.description ?? null,
-          validationRules: s.validationRules ?? null,
-          customFields: s.customFields ?? null,
+          validationRules: (s as any).validationRules === undefined ? Prisma.DbNull : ((s as any).validationRules as any),
+          customFields: (s as any).customFields === undefined ? Prisma.DbNull : ((s as any).customFields as any),
         })),
       })
       return tx.bookingStepConfig.findMany({ where: { bookingSettingsId: settingsId }, orderBy: { stepOrder: 'asc' } })
