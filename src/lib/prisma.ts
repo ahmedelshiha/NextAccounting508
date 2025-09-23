@@ -5,7 +5,7 @@ declare global {
   var __prisma__: PrismaClientType | undefined;
 }
 
-let dbUrl = process.env.NETLIFY_DATABASE_URL || "";
+let dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "";
 
 if (dbUrl && dbUrl.startsWith("neon://")) {
   dbUrl = dbUrl.replace("neon://", "postgresql://");
