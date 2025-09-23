@@ -54,7 +54,11 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 
 ## Phase 5 – Wiring & Pages
 - [x] Replace admin shell with DashboardLayout in src/app/admin/page.tsx
-- [ ] Wire tabs + filters to existing hooks (bookings/clients/services/tasks)
+- [ ] Wire tabs + filters to existing hooks
+  - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
+  - [ ] Clients → use SWR to /api/admin/users + FilterBar/DataTable
+  - [ ] Services → use SWR to /api/admin/services + FilterBar/DataTable
+  - [ ] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
 - [ ] Add batch actions (export/cancel/assign) where selection is enabled
 
