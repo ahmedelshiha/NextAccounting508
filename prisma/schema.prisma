@@ -655,6 +655,160 @@ model Attachment {
   @@index([tenantId])
 }
 
+// Booking Settings models
+model BookingSettings {
+  id                         String   @id @default(cuid())
+  tenantId                   String?
+  // General
+  bookingEnabled             Boolean  @default(true)
+  requireApproval            Boolean  @default(false)
+  allowCancellation          Boolean  @default(true)
+  allowRescheduling          Boolean  @default(true)
+  cancellationDeadlineHours  Int      @default(24)
+  rescheduleDeadlineHours    Int      @default(4)
+  // Payments
+  paymentRequired            Boolean  @default(false)
+  acceptCash                 Boolean  @default(true)
+  acceptCard                 Boolean  @default(true)
+  acceptBankTransfer         Boolean  @default(false)
+  acceptWire                 Boolean  @default(false)
+  acceptCrypto               Boolean  @default(false)
+  requireFullPayment         Boolean  @default(false)
+  allowPartialPayment        Boolean  @default(true)
+  depositPercentage          Int      @default(50)
+  // Steps
+  enableServiceSelection     Boolean  @default(true)
+  enableDateTimeSelection    Boolean  @default(true)
+  enableCustomerDetails      Boolean  @default(true)
+  enableAdditionalServices   Boolean  @default(true)
+  enablePaymentStep          Boolean  @default(false)
+  enableConfirmationStep     Boolean  @default(true)
+  enableFileUpload           Boolean  @default(false)
+  enableSpecialRequests      Boolean  @default(true)
+  // Availability
+  advanceBookingDays         Int      @default(365)
+  minAdvanceBookingHours     Int      @default(2)
+  maxBookingsPerDay          Int      @default(50)
+  maxBookingsPerCustomer     Int      @default(5)
+  bufferTimeBetweenBookings  Int      @default(15)
+  // Calendars
+  businessHours              Json?
+  blackoutDates              Json?
+  holidaySchedule            Json?
+  // Notifications
+  sendBookingConfirmation    Boolean  @default(true)
+  sendReminders              Boolean  @default(true)
+  reminderHours              Json?
+  notifyTeamMembers          Boolean  @default(true)
+  emailNotifications         Boolean  @default(true)
+  smsNotifications           Boolean  @default(false)
+  // Customer
+  requireLogin               Boolean  @default(false)
+  allowGuestBooking          Boolean  @default(true)
+  showPricing                Boolean  @default(true)
+  showTeamMemberSelection    Boolean  @default(false)
+  allowRecurringBookings     Boolean  @default(false)
+  enableWaitlist             Boolean  @default(false)
+  // Assignment
+  enableAutoAssignment       Boolean  @default(false)
+  assignmentStrategy         String   @default("ROUND_ROBIN")
+  considerWorkload           Boolean  @default(true)
+  considerSpecialization     Boolean  @default(true)
+  // Pricing
+  enableDynamicPricing       Boolean  @default(false)
+  peakHoursSurcharge         Decimal  @default(0.0)
+  weekendSurcharge           Decimal  @default(0.0)
+  emergencyBookingSurcharge  Decimal  @default(0.5)
+  // Integration
+  calendarSync               Boolean  @default(false)
+  webhookUrl                 String?
+  apiAccessEnabled           Boolean  @default(false)
+  // Meta
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  updatedBy                  String?
+
+  // Relations
+  steps                      BookingStepConfig[]
+  businessHoursConfig        BusinessHoursConfig[]
+  paymentMethods             PaymentMethodConfig[]
+  notificationTemplates      NotificationTemplate[]
+
+  @@index([tenantId])
+  @@unique([tenantId])
+  @@map("booking_settings")
+}
+
+model BookingStepConfig {
+  id                 String  @id @default(cuid())
+  bookingSettingsId  String
+  stepName           String
+  stepOrder          Int
+  enabled            Boolean @default(true)
+  required           Boolean @default(true)
+  title              String
+  description        String?
+  validationRules    Json?
+  customFields       Json?
+  createdAt          DateTime @default(now())
+
+  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
+
+  @@index([bookingSettingsId, stepOrder])
+  @@map("booking_step_config")
+}
+
+model BusinessHoursConfig {
+  id                 String  @id @default(cuid())
+  bookingSettingsId  String
+  dayOfWeek          Int
+  isWorkingDay       Boolean @default(true)
+  startTime          String?
+  endTime            String?
+  breakStartTime     String?
+  breakEndTime       String?
+  maxBookingsPerHour Int     @default(4)
+
+  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
+
+  @@index([bookingSettingsId, dayOfWeek])
+  @@map("business_hours_config")
+}
+
+model PaymentMethodConfig {
+  id                 String  @id @default(cuid())
+  bookingSettingsId  String
+  methodType         String
+  enabled            Boolean @default(true)
+  displayName        String
+  description        String?
+  processingFee      Decimal @default(0.0)
+  minAmount          Decimal @default(0.0)
+  maxAmount          Decimal?
+  gatewayConfig      Json?
+
+  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingSettingsId, methodType])
+  @@map("payment_method_config")
+}
+
+model NotificationTemplate {
+  id                 String  @id @default(cuid())
+  bookingSettingsId  String
+  templateType       String
+  channel            String
+  enabled            Boolean @default(true)
+  subject            String?
+  content            String   @db.Text
+  variables          Json?
+
+  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
+
+  @@index([bookingSettingsId, templateType])
+  @@map("notification_templates")
+}
+
 // ... rest of schema unchanged (omitted for brevity) 
 
 model ChatMessage {
