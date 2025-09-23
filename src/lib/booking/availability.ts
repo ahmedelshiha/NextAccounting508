@@ -274,7 +274,7 @@ export async function getAvailabilityForService(params: {
         if (s.available === false) {
           const date = new Date(s.date)
           const [sh, sm] = (s.startTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
-          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
           const start = new Date(date)
           start.setHours(sh, sm, 0, 0)
           const end = new Date(date)
@@ -284,7 +284,7 @@ export async function getAvailabilityForService(params: {
           // If slot is full according to maxBookings/currentBookings, treat as busy
           const date = new Date(s.date)
           const [sh, sm] = (s.startTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
-          const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [eh, em] = (s.endTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
           const start = new Date(date)
           start.setHours(sh, sm, 0, 0)
           const end = new Date(date)
