@@ -295,7 +295,18 @@ export class BookingSettingsService {
       if (selectedSections.includes('steps')) {
         await tx.bookingStepConfig.deleteMany({ where: { bookingSettingsId: settings.id } })
         if ((data.steps ?? []).length) {
-          await tx.bookingStepConfig.createMany({ data: data.steps.map((s) => ({ ...s, id: undefined as any, bookingSettingsId: settings!.id })) })
+          const stepsData = (data.steps as any[]).map((s: any) => ({
+            bookingSettingsId: settings!.id,
+            stepName: s.stepName,
+            stepOrder: s.stepOrder,
+            enabled: s.enabled,
+            required: s.required,
+            title: s.title,
+            description: s.description ?? null,
+            validationRules: s.validationRules === undefined ? Prisma.DbNull : (s.validationRules === null ? Prisma.DbNull : s.validationRules),
+            customFields: s.customFields === undefined ? Prisma.DbNull : (s.customFields === null ? Prisma.DbNull : s.customFields),
+          }))
+          await tx.bookingStepConfig.createMany({ data: stepsData as any })
         }
       }
 
@@ -309,14 +320,34 @@ export class BookingSettingsService {
       if (selectedSections.includes('paymentMethods')) {
         await tx.paymentMethodConfig.deleteMany({ where: { bookingSettingsId: settings.id } })
         if ((data.paymentMethods ?? []).length) {
-          await tx.paymentMethodConfig.createMany({ data: data.paymentMethods.map((m) => ({ ...m, id: undefined as any, bookingSettingsId: settings!.id })) })
+          const pmData = (data.paymentMethods as any[]).map((m: any) => ({
+            bookingSettingsId: settings!.id,
+            methodType: m.methodType,
+            enabled: m.enabled ?? true,
+            displayName: m.displayName ?? m.methodType,
+            description: m.description ?? null,
+            processingFee: m.processingFee ?? 0,
+            minAmount: m.minAmount ?? 0,
+            maxAmount: m.maxAmount ?? null,
+            gatewayConfig: m.gatewayConfig === undefined ? Prisma.DbNull : (m.gatewayConfig === null ? Prisma.DbNull : m.gatewayConfig),
+          }))
+          await tx.paymentMethodConfig.createMany({ data: pmData as any })
         }
       }
 
       if (selectedSections.includes('notifications')) {
         await tx.notificationTemplate.deleteMany({ where: { bookingSettingsId: settings.id } })
         if ((data.notificationTemplates ?? []).length) {
-          await tx.notificationTemplate.createMany({ data: data.notificationTemplates.map((t) => ({ ...t, id: undefined as any, bookingSettingsId: settings!.id })) })
+          const notifData = (data.notificationTemplates as any[]).map((t: any) => ({
+            bookingSettingsId: settings!.id,
+            templateType: t.templateType,
+            channel: t.channel,
+            enabled: t.enabled ?? true,
+            subject: t.subject ?? null,
+            content: t.content,
+            variables: t.variables === undefined ? Prisma.DbNull : (t.variables === null ? Prisma.DbNull : t.variables),
+          }))
+          await tx.notificationTemplate.createMany({ data: notifData as any })
         }
       }
     })
