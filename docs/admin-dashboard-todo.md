@@ -6,7 +6,7 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
 - [x] Implement using the component blueprints: ./dashboard-structure.md
 
-## Traceability Matrix (Spec → Deliverable)
+## Traceability Matrix (Spec ��� Deliverable)
 - [x] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
 - [x] Left Sidebar (grouped nav) → Sidebar.tsx (./dashboard-structure.md) and IA in ./quickbooks_dashboard_complete.md
 - [x] Top Bar → Topbar.tsx (./dashboard-structure.md)
@@ -28,18 +28,18 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Map existing data hooks/endpoints to new views (bookings, clients, services, tasks, analytics)
 
 ## Phase 2 – Information Architecture (IA)
-- [ ] Define grouped nav for accounting + booking system
+- [x] Define grouped nav for accounting + booking system
   - [ ] Clients → Client List, Invitations, Profiles
   - [ ] Bookings → Appointments, Services, Availability, Booking Settings
   - [ ] Accounting → Invoices, Payments, Expenses, Reports, Taxes
   - [ ] Team → Staff, Roles, Permissions
   - [ ] System → Settings, Notifications, Integrations
 - [ ] Validate routes exist or add redirects/stubs for missing pages
-- [ ] Finalize iconography (lucide-react) for each item
+- [x] Finalize iconography (lucide-react) for each item
 
 ## Phase 3 – Type System & Config
 - [x] Create src/types/dashboard.ts (NavItem/NavGroup/Tab/Filters/DataTable types) per ./dashboard-structure.md
-- [ ] Create nav config object to drive Sidebar (labels, hrefs, icons, badges)
+- [x] Create nav config object to drive Sidebar (labels, hrefs, icons, badges)
 - [x] Define Filter config schema for common filter patterns (date/status/search)
 
 ## Phase 4 – UI Components (Tailwind only)

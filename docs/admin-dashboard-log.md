@@ -12,3 +12,8 @@
 - Wired PrimaryTabs and FilterBar into admin dashboard with DataTable views for Bookings and Clients; added date/status filtering and formatting.
 - Why: Delivers actionable list views consistent with new shell and aligns with TODO Phase 5 wiring.
 - Next: A11y (ARIA/keyboard nav), integrate server-backed filters, and run lint/typecheck/tests.
+
+## 2025-09-23 (later)
+- Extracted Sidebar navigation to a reusable config (src/components/dashboard/nav.config.ts). Updated Sidebar to consume the config and added minimal ARIA (aria-expanded, aria-current).
+- Why: Decouple IA from UI, enable reuse across admin/portal, and simplify future route validation and icon updates.
+- Next: Validate routes exist or add redirects/stubs; add keyboard navigation; wire tabs/filters to hooks; ensure DataTable columns align with Prisma models.
