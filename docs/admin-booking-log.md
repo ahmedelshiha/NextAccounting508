@@ -11,6 +11,6 @@
 - Outcome: Booking Settings module is feature-complete and performant. Next: add automated tests (service/API/UI), run admin QA, verify Netlify envs/build.
 
 ## 2025-09-23 (tests)
-- Work: Added service tests (`tests/booking-settings.service.test.ts`) covering validation, defaults, updates, export/import/reset, and caching behavior. Added API tests (`tests/booking-settings.api.test.ts`) covering GET/PUT, export/reset, business-hours, payment-methods.
-- Why: Ensure correctness and prevent regressions across core flows.
-- Outcome: Service coverage in place; API basic coverage in place. Next: expand API auth/RBAC tests and add component tests for `BookingSettingsPanel`.
+- Work: Added service tests (`tests/booking-settings.service.test.ts`) and API tests (`tests/booking-settings.api.test.ts`, `tests/booking-settings.api-auth.test.ts`). Added static UI render test (`tests/booking-settings.panel.render.test.tsx`).
+- Why: Ensure correctness and RBAC enforcement; begin UI coverage.
+- Outcome: Service + API coverage complete; UI static render covered. Interactive UI tests limited by current static renderer.
