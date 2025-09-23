@@ -92,6 +92,13 @@ describe('BookingSettingsService', () => {
     expect(updated.requireApproval).toBe(true)
   })
 
+  it('persists assignment strategy changes', async () => {
+    const svc = (await import('@/services/booking-settings.service')).default
+    await svc.createDefaultSettings('t1')
+    const updated = await svc.updateBookingSettings('t1', { assignmentSettings: { assignmentStrategy: 'LOAD_BALANCED' } as any })
+    expect(updated.assignmentStrategy).toBe('LOAD_BALANCED')
+  })
+
   it('export/import/reset cycle works', async () => {
     const svc = (await import('@/services/booking-settings.service')).default
     await svc.createDefaultSettings('t2')
