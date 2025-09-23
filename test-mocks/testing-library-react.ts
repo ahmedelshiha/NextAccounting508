@@ -12,6 +12,7 @@ export function render(node: React.ReactElement) {
     ;(globalThis as any).__renderedTexts = [text]
     return { container: html }
   } catch (e) {
+    console.error('RENDER_ERROR:', String(e && (e as any).message) || e)
     ;(globalThis as any).__renderedTexts = []
     return { container: '' }
   }
