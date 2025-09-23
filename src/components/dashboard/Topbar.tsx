@@ -5,8 +5,11 @@ import { Search, Bell, Settings, User, ChevronDown, HelpCircle } from 'lucide-re
 
 export default function Topbar() {
   const [open, setOpen] = useState<'none' | 'notifications' | 'profile'>('none')
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen('none')
+  }
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3">
+    <header className="bg-white border-b border-gray-200 px-6 py-3" onKeyDown={onKeyDown}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button className="flex items-center px-3 py-1.5 text-sm bg-gray-50 hover:bg-gray-100 rounded-lg">
@@ -24,12 +27,17 @@ export default function Topbar() {
         <div className="flex items-center space-x-3">
           <button className="p-2 text-gray-500 hover:text-gray-700"><HelpCircle className="w-5 h-5" /></button>
           <div className="relative">
-            <button onClick={() => setOpen((v) => (v === 'notifications' ? 'none' : 'notifications'))} className="relative p-2 text-gray-500 hover:text-gray-700">
+            <button
+              aria-haspopup="menu"
+              aria-expanded={open === 'notifications'}
+              onClick={() => setOpen((v) => (v === 'notifications' ? 'none' : 'notifications'))}
+              className="relative p-2 text-gray-500 hover:text-gray-700"
+            >
               <Bell className="w-5 h-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
             </button>
             {open === 'notifications' && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 text-sm text-gray-700">
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 text-sm text-gray-700" role="menu" aria-label="Notifications">
                 <div className="px-4 pb-2 font-medium">Notifications</div>
                 <div className="px-4 py-6 text-center text-gray-500">No new notifications</div>
               </div>
@@ -37,12 +45,17 @@ export default function Topbar() {
           </div>
           <button className="p-2 text-gray-500 hover:text-gray-700"><Settings className="w-5 h-5" /></button>
           <div className="relative">
-            <button onClick={() => setOpen((v) => (v === 'profile' ? 'none' : 'profile'))} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-lg">
+            <button
+              aria-haspopup="menu"
+              aria-expanded={open === 'profile'}
+              onClick={() => setOpen((v) => (v === 'profile' ? 'none' : 'profile'))}
+              className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded-lg"
+            >
               <div className="w-8 h-8 bg-green-500 rounded-full grid place-items-center"><User className="w-4 h-4 text-white" /></div>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
             {open === 'profile' && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50" role="menu" aria-label="Profile">
                 <div className="px-4 py-2 border-b border-gray-100">
                   <p className="text-sm font-medium text-gray-900">Admin User</p>
                   <p className="text-xs text-gray-500">admin@example.com</p>
