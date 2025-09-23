@@ -1,7 +1,5 @@
 import prisma from '@/lib/prisma'
 
-import prisma from '@/lib/prisma'
-
 interface AuditEntry {
   action: string
   actorId?: string | null
@@ -10,7 +8,7 @@ interface AuditEntry {
 }
 
 export async function logAudit(entry: AuditEntry) {
-  const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+  const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
   const message = JSON.stringify({
     action: entry.action,
     actorId: entry.actorId ?? null,
@@ -25,7 +23,12 @@ export async function logAudit(entry: AuditEntry) {
   }
 
   try {
-    await prisma.healthLog.create({
+    const target: any = (prisma as any)
+    if (!target?.healthLog || typeof target.healthLog.create !== 'function') {
+      console.info('[AUDIT]', message)
+      return { ok: true, stored: false }
+    }
+    await target.healthLog.create({
       data: {
         service: 'AUDIT',
         status: 'INFO',

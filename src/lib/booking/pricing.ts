@@ -1,5 +1,4 @@
 import prisma from '@/lib/prisma'
-import prisma from '@/lib/prisma'
 import { decimalToNumber } from '@/lib/decimal-utils'
 import { convertCents } from '@/lib/exchange'
 
@@ -51,7 +50,9 @@ export async function calculateServicePrice(params: {
   const options = params.options || {}
 
   const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-  if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') {
+  const status = (svc as any)?.status ? String((svc as any).status).toUpperCase() : undefined
+  const active = (svc as any)?.active
+  if (!svc || (status ? status !== 'ACTIVE' : active === false)) {
     return { currency: 'USD', baseCents: 0, components: [], subtotalCents: 0, totalCents: 0 }
   }
 

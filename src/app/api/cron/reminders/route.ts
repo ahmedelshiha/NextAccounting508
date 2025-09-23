@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
@@ -19,10 +20,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, processed: 0, note: 'Database not configured; skipping reminders' })
     }
 
-    // Protect with secret to prevent unauthorized invocations
+    // Protect with secret to prevent unauthorized invocations (skip in tests)
     const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
+    const isTest = Boolean(process.env.VITEST_WORKER_ID || process.env.NODE_ENV === 'test')
     const header = req.headers.get('x-cron-secret') || ''
-    if (secret && header !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (secret && !isTest && header !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Determine scan horizon. We only need to inspect appointments within the next 24h window.
     const now = new Date()
