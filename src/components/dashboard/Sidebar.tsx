@@ -30,27 +30,28 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 border-b border-gray-200">
-        <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center justify-center gap-2 transition-colors">
+        <button aria-label="Create new" className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center justify-center gap-2 transition-colors">
           <Plus className="w-4 h-4" />
           <span className="font-medium">New</span>
         </button>
       </div>
 
-      <nav className="flex-1 px-4 py-4 overflow-y-auto">
+      <nav className="flex-1 px-4 py-4 overflow-y-auto" role="navigation" aria-label="Admin navigation">
         <div className="space-y-1">
           {groups.map((group) => {
             const isDash = group.label === 'Dashboard'
             const isOpen = isDash || expanded.includes(group.label)
+            const groupKey = `group-${group.label.toLowerCase().replace(/\s+/g, '-')}`
             return (
               <div key={group.label}>
                 {!isDash && (
-                  <button onClick={() => toggle(group.label)} aria-expanded={isOpen} className="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
+                  <button onClick={() => toggle(group.label)} aria-expanded={isOpen} aria-controls={groupKey} className="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
                     <span>{group.label}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                 )}
                 {isOpen && (
-                  <div className={isDash ? 'space-y-1' : 'ml-3 mt-1 space-y-1'}>
+                  <div id={groupKey} className={isDash ? 'space-y-1' : 'ml-3 mt-1 space-y-1'}>
                     {group.items.map((item) => {
                       const active = isActive(item.href)
                       const Icon = item.icon
