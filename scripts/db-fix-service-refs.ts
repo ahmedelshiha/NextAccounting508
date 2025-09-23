@@ -22,7 +22,7 @@ async function run() {
       const name = `Migrated ${id.substring(0, 8)}`
       const desc = 'Auto-created during schema migration to satisfy FK from ServiceRequest.'
       await client.query(
-        `INSERT INTO "${schema}"."services" (id, name, slug, description) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`,
+        `INSERT INTO "${schema}"."services" (id, name, slug, description, "updatedAt") VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (id) DO NOTHING`,
         [id, name, slug, desc]
       )
       console.log(`[db-fix-service-refs] Inserted service id=${id} slug=${slug}`)
