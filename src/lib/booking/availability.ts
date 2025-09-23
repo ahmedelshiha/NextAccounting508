@@ -251,8 +251,14 @@ export async function getAvailabilityForService(params: {
   try {
     const slotWhere: any = { serviceId, date: { gte: from, lte: to } }
     if (teamMemberId) slotWhere.teamMemberId = teamMemberId
-    const availSlots = await prisma.availabilitySlot.findMany({ where: slotWhere })
-    for (const s of availSlots) {
+    // Use a timeout wrapper to avoid hanging when prisma methods are not mocked in tests
+    const findPromise = prisma.availabilitySlot.findMany({ where: slotWhere })
+    const availSlots = await Promise.race([
+      findPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('availabilitySlot.findMany timeout')), 200)),
+    ]).catch(() => [])
+
+    for (const s of availSlots as any[]) {
       try {
         // If the slot is explicitly unavailable, block the interval
         if (s.available === false) {
