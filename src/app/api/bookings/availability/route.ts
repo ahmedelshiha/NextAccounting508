@@ -131,46 +131,54 @@ export async function GET(request: NextRequest) {
 
     // Group slots by day and compute optional pricing
     const byDay = new Map<string, any[]>()
+    const pricePromises: Promise<any>[] = []
     for (const s of filtered) {
       if (!s.available) continue
       const start = new Date(s.start)
       const key = ymd(start)
       if (!byDay.has(key)) byDay.set(key, [])
 
-      let priceCents: number | undefined
-      let priceCurrency: string | undefined
-      if (includePrice) {
-        try {
-          const price = await calculateServicePrice({
-            serviceId,
-            scheduledAt: start,
-            durationMinutes: service.duration || 60,
-            options: {
-              currency,
-              promoCode,
-              promoResolver: async (code: string, { serviceId }) => {
-                const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-                if (!svc) return null
-                const base = Number(svc.price ?? 0)
-                const baseCents = Math.round(base * 100)
-                const uc = code.toUpperCase()
-                if (uc === 'WELCOME10') return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: Math.round(baseCents * -0.1) }
-                if (uc === 'SAVE15') return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: Math.round(baseCents * -0.15) }
-                return null
-              },
-            },
-          })
-          priceCents = price.totalCents
-          priceCurrency = price.currency
-        } catch {}
-      }
-
-      byDay.get(key)!.push({
+      const entry: any = {
         start: s.start,
         end: s.end,
         available: true,
-        ...(priceCents != null ? { priceCents, currency: priceCurrency } : {}),
-      })
+      }
+
+      if (includePrice) {
+        const p = (async () => {
+          try {
+            const price = await calculateServicePrice({
+              serviceId,
+              scheduledAt: start,
+              durationMinutes: service.duration || 60,
+              options: {
+                currency,
+                promoCode,
+                promoResolver: async (code: string, { serviceId }) => {
+                  const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+                  if (!svc) return null
+                  const base = Number(svc.price ?? 0)
+                  const baseCents = Math.round(base * 100)
+                  const uc = code.toUpperCase()
+                  if (uc === 'WELCOME10') return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: Math.round(baseCents * -0.1) }
+                  if (uc === 'SAVE15') return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: Math.round(baseCents * -0.15) }
+                  return null
+                },
+              },
+            })
+            entry.priceCents = price.totalCents
+            entry.currency = price.currency
+          } catch {}
+        })()
+        pricePromises.push(p)
+      }
+
+      byDay.get(key)!.push(entry)
+    }
+
+    // await price resolution in parallel
+    if (pricePromises.length) {
+      try { await Promise.all(pricePromises) } catch {}
     }
 
     const availability = Array.from(byDay.entries())
