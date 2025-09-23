@@ -22,3 +22,8 @@
 - Validated Sidebar routes and added redirects for missing pages to closest existing destinations (e.g., /admin/clients/invitations → /admin/users, accounting pages → /admin/analytics, roles/permissions → /admin/users, notifications/integrations → /admin/settings).
 - Why: Prevent broken navigation while IA stabilizes; ensures users land on a functional page without 404s.
 - Next: Keyboard navigation for Sidebar/Topbar and tabs; begin wiring filters to hooks.
+
+## 2025-09-23 (final)
+- Added keyboard navigation and ARIA roles/states: tablists (primary/secondary tabs) with Arrow/Home/End support; aria-selected/tabIndex management; Topbar menus now announce expanded state and close on Escape; Sidebar landmark/expanded/controls wiring; FilterBar inputs labeled.
+- Why: Improve accessibility and usability to meet A11y goals in Phase 6.
+- Next: Announce filter changes via aria-live and selection counts; proceed to wiring filters to hooks.
