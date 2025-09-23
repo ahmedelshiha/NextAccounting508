@@ -16,9 +16,10 @@ export default class RedisCache {
 
     let IORedis: any
     try {
-      // Prefer ioredis for server deployments
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      IORedis = require('ioredis')
+      // Prefer ioredis for server deployments. Use eval to avoid bundlers resolving at build time.
+      // eslint-disable-next-line no-eval
+      const req: any = eval('require')
+      IORedis = req('ioredis')
     } catch (err) {
       throw new Error('ioredis not installed. Install ioredis or unset REDIS_URL to use in-memory cache')
     }

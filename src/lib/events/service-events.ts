@@ -48,7 +48,8 @@ function registerDefaultListeners() {
   const warm = async (tenantId: string | null) => {
     try {
       // Dynamic import to avoid circular dependency at module load
-      const mod = await (Function('m', 'return import(m)'))<Promise<any>>('@/services/services.service')
+      const dynamicImport = Function('m', 'return import(m)') as (m: string) => Promise<any>
+      const mod = await dynamicImport('@/services/services.service')
       const svc = new mod.ServicesService()
       // Warm a couple of hot queries and stats
       const combos: Array<{ featured?: 'all' | 'featured' | 'non-featured'; status?: 'all' | 'active' | 'inactive' }> = [

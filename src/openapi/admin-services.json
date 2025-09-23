@@ -1,0 +1,134 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Admin Services API",
+    "version": "1.0.0",
+    "description": "Admin endpoints for managing Services, analytics, and exports."
+  },
+  "servers": [
+    { "url": "/api" }
+  ],
+  "paths": {
+    "/admin/services": {
+      "get": {
+        "summary": "List services",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "featured", "in": "query", "schema": { "type": "string", "enum": ["all","featured","non-featured"] } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["all","active","inactive"] } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 0, "maximum": 100 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "minimum": 0 } }
+        ],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ServiceListResponse" } } } }
+        }
+      }
+    },
+    "/admin/services/export": {
+      "get": {
+        "summary": "Export services",
+        "parameters": [
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["csv","json"] } },
+          { "name": "includeInactive", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "429": { "description": "Rate limited" }
+        }
+      }
+    },
+    "/admin/services/bulk": {
+      "post": {
+        "summary": "Perform bulk actions on services",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BulkRequest" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/admin/services/{id}/settings": {
+      "patch": {
+        "summary": "Update service settings (shallow merge)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ServiceSettingsUpdate" } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/admin/services/{id}/clone": {
+      "post": {
+        "summary": "Clone a service",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Service" } } } } }
+      }
+    },
+    "/admin/services/{id}/versions": {
+      "get": {
+        "summary": "Get service versions (history)",
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/admin/services/stats": {
+      "get": {
+        "summary": "Get services analytics/stats",
+        "parameters": [ { "name": "range", "in": "query", "schema": { "type": "string", "enum": ["7d","30d","90d"] } } ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/admin/services/slug-check/{slug}": {
+      "get": {
+        "summary": "Check slug availability",
+        "parameters": [ { "name": "slug", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "description": { "type": "string" },
+          "shortDesc": { "type": ["string","null"] },
+          "features": { "type": "array", "items": { "type": "string" } },
+          "price": { "type": ["number","null"] },
+          "duration": { "type": ["integer","null"] },
+          "category": { "type": ["string","null"] },
+          "active": { "type": "boolean" },
+          "featured": { "type": "boolean" },
+          "image": { "type": ["string","null"] },
+          "serviceSettings": { "type": ["object","null"] },
+          "views": { "type": "integer" },
+          "tenantId": { "type": ["string","null"] }
+        },
+        "required": ["id","name","slug","description","active","featured","views"]
+      },
+      "ServiceListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Service" } },
+          "total": { "type": "integer" }
+        },
+        "required": ["items","total"]
+      },
+      "BulkRequest": {
+        "type": "object",
+        "properties": {
+          "action": { "type": "string", "enum": ["clone","settings-update","activate","deactivate","feature","unfeature"] },
+          "serviceIds": { "type": "array", "items": { "type": "string" } },
+          "value": {}
+        },
+        "required": ["action","serviceIds"]
+      },
+      "ServiceSettingsUpdate": {
+        "type": "object",
+        "properties": {
+          "settings": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["settings"]
+      }
+    }
+  }
+}
