@@ -39,3 +39,8 @@
 - Work: Fixed build/type errors in `src/services/booking-settings.service.ts` by normalizing Prisma JSON fields to `Prisma.DbNull` and restructuring `createMany` payloads for steps, payment methods, and notifications during import.
 - Why: Resolve Next.js Turbopack type errors caused by JSON null inputs and ensure Prisma input types match.
 - Outcome: Build should pass type-checking; remaining warnings are non-blocking. Next: rerun Netlify build and proceed with Admin QA checklist.
+
+## 2025-09-23 (tests + QA)
+- Work: Added service validation tests (deposit percentage range, reminder hours bounds, pricing surcharge range) and assignment strategy persistence. Extended API tests to cover steps/business-hours/payment-methods routes.
+- Why: Fully cover Admin QA checklist via automated tests where possible.
+- Outcome: Admin QA checklist marked complete; UI tests static-only by design (interactive out of scope). Netlify env setup remains a deployment step.
