@@ -105,7 +105,7 @@ describe('admin/booking-settings API', () => {
     expect(out?.settings?.id).toBeDefined()
   })
 
-  it('business-hours and payment-methods routes update when settings exist', async () => {
+  it('business-hours, steps, and payment-methods routes update when settings exist', async () => {
     const main = await import('@/app/api/admin/booking-settings/route')
     const bh = await import('@/app/api/admin/booking-settings/business-hours/route')
     const pm = await import('@/app/api/admin/booking-settings/payment-methods/route')
