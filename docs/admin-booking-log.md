@@ -1,4 +1,4 @@
-# Admin Booking — Progress Log
+# Admin Booking — Change Log
 
 ## 2025-09-23
 - Work: Created and reorganized `docs/admin-booking-todo.md` with dependency-ordered, measurable tasks and checkboxes. Added status update (what/why/next).
@@ -34,3 +34,8 @@
 - Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
 - Why: Ensure smooth production deploys and structured QA before release.
 - Outcome: Ready for final Admin QA and Netlify env configuration; deployment steps clear.
+
+## 2025-09-23 (fixes)
+- Work: Fixed build/type errors in `src/services/booking-settings.service.ts` by normalizing Prisma JSON fields to `Prisma.DbNull` and restructuring `createMany` payloads for steps, payment methods, and notifications during import.
+- Why: Resolve Next.js Turbopack type errors caused by JSON null inputs and ensure Prisma input types match.
+- Outcome: Build should pass type-checking; remaining warnings are non-blocking. Next: rerun Netlify build and proceed with Admin QA checklist.
