@@ -233,7 +233,7 @@ function Payments({ settings, onChange, pending }:{ settings:any; onChange:(k:st
             ['acceptWire','Wire Transfer'],
             ['acceptCrypto','Crypto'],
           ].map(([key,label])=> (
-            <button key={key} onClick={()=>onChange(key as string, !(pending as any)[key] ?? !settings?.[key as any])} className={`border rounded-lg p-3 text-left ${((pending as any)[key] ?? settings?.[key as any])? 'border-blue-500 bg-blue-50':'border-gray-200 bg-gray-50'}`}>
+            <button key={key} onClick={()=>{ const current = (((pending as any)[key] ?? settings?.[key as any]) ?? false) as boolean; onChange(key as string, !current) }} className={`border rounded-lg p-3 text-left ${((pending as any)[key] ?? settings?.[key as any])? 'border-blue-500 bg-blue-50':'border-gray-200 bg-gray-50'}`}>
               <div className="text-sm font-medium text-gray-900">{label}</div>
             </button>
           ))}
