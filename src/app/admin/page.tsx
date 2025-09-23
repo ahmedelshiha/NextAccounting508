@@ -2265,7 +2265,7 @@ export default function ProfessionalAdminDashboard() {
         {activeTab === 'bookings' && (
           <>
             <FilterBar filters={filterConfigs} onFilterChange={onFilterChange} />
-            <DataTable columns={bookingColumns} rows={bookingRows} loading={loading} />
+            <DataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
           </>
         )}
 
