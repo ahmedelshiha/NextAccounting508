@@ -297,24 +297,27 @@ export async function POST(request: Request) {
         const bookingType = String((data as any).bookingType || '').toUpperCase()
         const svcRec = await prisma.service.findUnique({ where: { id: (data as any).serviceId } })
         const minAdvanceHours = typeof svcRec?.minAdvanceHours === 'number' ? svcRec!.minAdvanceHours : 0
-        if (bookingType !== 'EMERGENCY' && minAdvanceHours > 0) {
+        if (bookingType !== 'EMERGENCY' && minAdvanceHours > 0 && bookingType !== 'RECURRING') {
           const now = new Date()
           const scheduled = new Date((data as any).scheduledAt)
           const diffHours = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60)
           if (diffHours < minAdvanceHours) return respond.badRequest('Selected time is too soon for this service. Please respect min advance booking rules.')
         }
 
-        const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
-        const svcDuration = (svcRec?.duration) ?? 60
-        const check = await checkBookingConflict({
-          serviceId: (data as any).serviceId,
-          start: new Date((data as any).scheduledAt),
-          durationMinutes: Number((data as any).duration ?? svcDuration),
-          excludeBookingId: undefined,
-          tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
-          teamMemberId: null,
-        })
-        if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
+        // For recurring bookings, conflict checks are handled per-instance during plan application.
+        if (bookingType !== 'RECURRING') {
+          const { checkBookingConflict } = await import('@/lib/booking/conflict-detection')
+          const svcDuration = (svcRec?.duration) ?? 60
+          const check = await checkBookingConflict({
+            serviceId: (data as any).serviceId,
+            start: new Date((data as any).scheduledAt),
+            durationMinutes: Number((data as any).duration ?? svcDuration),
+            excludeBookingId: undefined,
+            tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+            teamMemberId: null,
+          })
+          if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
+        }
 
         // Extra validation for emergency bookings
         if (bookingType === 'EMERGENCY') {
