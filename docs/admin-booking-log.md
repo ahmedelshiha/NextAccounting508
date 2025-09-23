@@ -20,6 +20,11 @@
 - Why: Match permissions mapping (TEAM_LEAD has view/edit/export only) and prevent privilege escalation.
 - Outcome: RBAC behavior verified via tests in `tests/booking-settings.api-auth.test.ts`.
 
+## 2025-09-23 (Admin QA automation)
+- Work: Added integration tests covering PUT success, export/import cycle, business-hours, payment-methods, and reset flows in `tests/booking-settings.api.test.ts`.
+- Why: Automate admin QA checklist assertions to prevent regressions.
+- Outcome: Full CRUD and lifecycle behaviors verified under default ADMIN session.
+
 ## 2025-09-23 (ops)
 - Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
 - Why: Ensure smooth production deploys and structured QA before release.
