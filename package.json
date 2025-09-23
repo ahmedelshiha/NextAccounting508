@@ -18,7 +18,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
-    "test:tenant": "vitest run tests/tenant-filter.test.ts"
+    "test:tenant": "vitest run tests/tenant-filter.test.ts",
+    "vercel:build": "pnpm db:generate && if [ -n \"$DATABASE_URL\" ]; then export PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=${PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT:-300000}; pnpm tsx scripts/prisma-init-persistence.ts && pnpm db:migrate || pnpm db:push; else echo 'Skipping Prisma migrate (DATABASE_URL not set)'; fi && pnpm lint && pnpm typecheck && pnpm -s vitest run && pnpm build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
