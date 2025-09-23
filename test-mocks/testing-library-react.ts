@@ -5,8 +5,9 @@ export function render(node: React.ReactElement) {
   try {
     const html = renderToStaticMarkup(node)
     // crude extraction of visible text — keep full text so tests can match multi-word phrases
-    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    console.log('RENDERED_TEXT:', text)
+    const raw = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    // Basic HTML entity decode for common entities used in components
+    const text = raw.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
     ;(globalThis as any).__renderedTexts = [text]
     return { container: html }
   } catch (e) {
