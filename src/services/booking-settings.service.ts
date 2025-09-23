@@ -98,6 +98,12 @@ export class BookingSettingsService {
       updatedAt: new Date(),
     }
 
+    const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? Prisma.DbNull : v))
+    if ('businessHours' in data) (data as any).businessHours = toNullableJson((data as any).businessHours)
+    if ('blackoutDates' in data) (data as any).blackoutDates = toNullableJson((data as any).blackoutDates)
+    if ('holidaySchedule' in data) (data as any).holidaySchedule = toNullableJson((data as any).holidaySchedule)
+    if ('reminderHours' in data) (data as any).reminderHours = toNullableJson((data as any).reminderHours)
+
     await prisma.bookingSettings.update({ where: { tenantId: tenantId ?? undefined }, data })
 
     const updated = (await this.getBookingSettings(tenantId)) as BookingSettings
