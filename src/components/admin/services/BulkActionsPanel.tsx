@@ -17,7 +17,6 @@ interface BulkActionsPanelProps {
 }
 
 export function BulkActionsPanel({ selectedIds, onClearSelection, onBulkAction, categories, loading = false }: BulkActionsPanelProps) {
-  console.log('BulkActionsPanel render, selectedIds=', Array.isArray(selectedIds) ? selectedIds.join(',') : String(selectedIds))
   const [selectedAction, setSelectedAction] = useState<string>('');
   const [categoryValue, setCategoryValue] = useState('');
   const [priceValue, setPriceValue] = useState('');
