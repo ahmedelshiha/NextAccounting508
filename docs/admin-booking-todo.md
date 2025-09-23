@@ -5,9 +5,9 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 
 ## Status Update
 
-- Completed: Prisma models, Types, Service layer (CRUD/validation/import/export/reset), API endpoints, RBAC permissions/mapping, BookingSettingsPanel UI, Booking Settings page wrapper, caching with invalidation.
-- Why: Provide a fully functional, secure, and performant admin module ready for QA and deployment.
-- Next: Add automated tests (service/API/UI), conduct admin QA, finalize Netlify deployment checks.
+- Completed: Prisma models, Types, Service layer (CRUD/validation/import/export/reset), API endpoints, RBAC permissions/mapping, BookingSettingsPanel UI, Booking Settings page wrapper, caching with invalidation, initial Vitest tests (service + API basics).
+- Why: Provide a fully functional, secure, and performant admin module with growing automated coverage, ready for QA and deployment.
+- Next: Expand API tests (auth/RBAC), add component tests for the panel, run admin QA, verify Netlify envs/build.
 
 
 ## 0) Current State Audit
@@ -23,15 +23,6 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 
 ## 1) Data Model (Prisma) — add models and indexes
 
-Update `prisma/schema.prisma` with the following models and constraints. Keep naming consistent with existing conventions and enable tenant/org extension later if needed.
-
-- BookingSettings (one per org/tenant, unique)
-- BookingStepConfig (steps order + toggles)
-- BusinessHoursConfig (per day config)
-- PaymentMethodConfig (method toggles and limits)
-- NotificationTemplate (email/SMS templates)
-- AuditLog (generic audit trail for admin ops)
-
 Migration checklist:
 - [x] Add models to `prisma/schema.prisma`.
 - [x] Run `pnpm db:generate`.
@@ -41,16 +32,12 @@ Migration checklist:
 
 ## 2) Types
 
-Create `src/types/booking-settings.types.ts` with interfaces and unions aligned to Prisma models.
-
 - [x] Define all interfaces and export payload types.
 - [x] Export enums/unions.
 - [x] Ensure numeric ranges and optionality match defaults.
 
 
 ## 3) Service Layer
-
-Add `src/services/booking-settings.service.ts` implementing business logic and validation.
 
 - [x] getBookingSettings(orgId) including relations.
 - [x] createDefaultSettings(orgId) seed defaults transactionally.
@@ -62,8 +49,6 @@ Add `src/services/booking-settings.service.ts` implementing business logic and v
 
 
 ## 4) API Endpoints (Next.js App Router)
-
-Create endpoints under `src/app/api/admin/booking-settings/` with RBAC + audit logging.
 
 - [x] `route.ts` GET/PUT with validation and audit.
 - [x] `steps/route.ts` PUT.
@@ -77,8 +62,6 @@ Create endpoints under `src/app/api/admin/booking-settings/` with RBAC + audit l
 
 ## 5) RBAC
 
-Update `src/lib/permissions.ts` with booking permissions and role mapping.
-
 - [x] Add: BOOKING_SETTINGS_VIEW/EDIT/EXPORT/IMPORT/RESET.
 - [x] Map to ADMIN (all) and TEAM_LEAD (VIEW, EDIT, EXPORT).
 - [x] Verify usage across endpoints.
@@ -86,15 +69,11 @@ Update `src/lib/permissions.ts` with booking permissions and role mapping.
 
 ## 6) UI — Admin Panel
 
-Add Booking Settings UI and page.
-
 - [x] `src/components/admin/BookingSettingsPanel.tsx` (tabbed UI with save/reset/export + validation errors).
 - [x] `src/app/admin/settings/booking/page.tsx` wrapper using PermissionGate.
 
 
 ## 7) Caching & Defaults
-
-Settings retrieval performance and consistency.
 
 - [x] Cache resolved settings by `tenantId` with TTL (300s) using `src/lib/cache.service.ts`.
 - [x] Invalidate cache on update/import/reset and per-section updates.
@@ -103,16 +82,12 @@ Settings retrieval performance and consistency.
 
 ## 8) Testing (Vitest)
 
-Comprehensive coverage using existing Vitest setup.
-
-- [ ] Service tests: validation cases, transactions, defaults, import/export, reset, caching behavior.
-- [ ] API tests: auth failures, RBAC, happy-path, validation errors, export/import/reset.
+- [x] Service tests: validation cases, transactions, defaults, import/export, reset, caching behavior.
+- [ ] API tests: auth failures, RBAC, happy-path, validation errors, export/import/reset (basic happy-path added; expand coverage).
 - [ ] Component tests: panel rendering, toggles, save flow, export download, reset flow.
 
 
 ## 9) Netlify & Ops
-
-Verify deployability and env setup.
 
 - [ ] Ensure `NETLIFY_DATABASE_URL` and NextAuth envs are set in Netlify settings.
 - [ ] Confirm `@netlify/plugin-nextjs` builds API routes in `netlify.toml`.
@@ -128,6 +103,6 @@ Verify deployability and env setup.
 - [x] RBAC keys/mapping
 - [x] UI page + component
 - [x] Caching + invalidation
-- [ ] Vitest tests (service/API/UI)
+- [/] Vitest tests (service complete; API partial; UI pending)
 - [ ] Admin QA
 - [ ] Netlify deploy
