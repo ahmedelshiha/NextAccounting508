@@ -10,25 +10,16 @@
 - Verified and aligned core layout/navigation components under src/components/dashboard/* (Sidebar, Topbar, PageHeader, PrimaryTabs, SecondaryTabs, FilterBar, DataTable, DashboardLayout).
 - Wrapped src/app/admin/page.tsx with DashboardLayout, preserving existing UI while standardizing the shell.
 - Wired PrimaryTabs and FilterBar into admin dashboard with DataTable views for Bookings and Clients; added date/status filtering and formatting.
-- Why: Delivers actionable list views consistent with new shell and aligns with TODO Phase 5 wiring.
-- Next: A11y (ARIA/keyboard nav), integrate server-backed filters, and run lint/typecheck/tests.
 
 ## 2025-09-23 (later)
-- Extracted Sidebar navigation to a reusable config (src/components/dashboard/nav.config.ts). Updated Sidebar to consume the config and added minimal ARIA (aria-expanded, aria-current).
-- Why: Decouple IA from UI, enable reuse across admin/portal, and simplify future route validation and icon updates.
-- Next: Validate routes exist or add redirects/stubs; add keyboard navigation; wire tabs/filters to hooks; ensure DataTable columns align with Prisma models.
-
-## 2025-09-23 (later+)
-- Validated Sidebar routes and added redirects for missing pages to closest existing destinations (e.g., /admin/clients/invitations → /admin/users, accounting pages → /admin/analytics, roles/permissions → /admin/users, notifications/integrations → /admin/settings).
-- Why: Prevent broken navigation while IA stabilizes; ensures users land on a functional page without 404s.
-- Next: Keyboard navigation for Sidebar/Topbar and tabs; begin wiring filters to hooks.
+- Extracted Sidebar navigation to a reusable config (src/components/dashboard/nav.config.ts). Added ARIA (aria-expanded, aria-current). Added redirects for missing routes.
 
 ## 2025-09-23 (final)
-- Added keyboard navigation and ARIA roles/states: tablists (primary/secondary tabs) with Arrow/Home/End support; aria-selected/tabIndex management; Topbar menus now announce expanded state and close on Escape; Sidebar landmark/expanded/controls wiring; FilterBar inputs labeled.
-- Why: Improve accessibility and usability to meet A11y goals in Phase 6.
-- Next: Announce filter changes via aria-live and selection counts; proceed to wiring filters to hooks.
+- A11y: Added keyboard navigation/ARIA to tabs, Topbar menus, Sidebar, and FilterBar labels.
 
 ## 2025-09-23 (bookings wiring)
-- Implemented reusable BookingsList wired to useBookings with shared FilterBar and DataTable (src/components/dashboard/lists/BookingsList.tsx) and added demo page at /admin/service-requests/list.
-- Why: Establish the pattern for wiring hooks to shared dashboard primitives; prepares similar implementations for Clients, Services, and Tasks.
-- Next: Create ClientsList, ServicesList, TasksList using same pattern; align columns with Prisma models; add batch actions.
+- Implemented BookingsList wired to useBookings with FilterBar and DataTable (src/components/dashboard/lists/BookingsList.tsx) and demo page at /admin/service-requests/list.
+
+## 2025-09-23 (bookings alignment + batch)
+- Aligned columns with Prisma ServiceRequest/Booking: added ID, Client, Service, Status, Payment (status+amount from paymentAmountCents or service.price), Date (scheduledAt/createdAt fallback). Implemented batch actions: export (filters), cancel (bulk /api/admin/service-requests/bulk), assign (loop /[id]/assign). Selection-aware toolbar appears when items selected.
+- Next: replicate pattern for Clients, Services, Tasks; finalize columns per Prisma; add tests and ensure types.
