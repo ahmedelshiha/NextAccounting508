@@ -2071,15 +2071,44 @@ export default function ProfessionalAdminDashboard() {
     return true
   }
 
-  const filteredBookings = useMemo(() => {
-    let items = dashboardData.recentBookings || []
-    if (filters.status && filters.status !== 'all') items = items.filter(b => b.status === (filters.status as any))
-    if (filters.dateRange) items = items.filter(b => withinRange(b.scheduledAt, filters.dateRange))
-    return items
-  }, [dashboardData.recentBookings, filters])
+  function rangeToDates(range: 'today'|'week'|'month'|'year') {
+    const now = new Date()
+    const start = new Date(now)
+    if (range === 'today') {
+      start.setHours(0,0,0,0)
+    } else if (range === 'week') {
+      start.setDate(now.getDate() - 7)
+    } else if (range === 'month') {
+      start.setDate(1); start.setHours(0,0,0,0)
+    } else if (range === 'year') {
+      start.setMonth(0,1); start.setHours(0,0,0,0)
+    }
+    return { startDate: start.toISOString(), endDate: now.toISOString() }
+  }
+
+  const bookingQuery = useMemo(() => {
+    if (activeTab !== 'bookings') return null
+    const params = new URLSearchParams()
+    params.set('limit', '50')
+    if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+    const { startDate, endDate } = rangeToDates(filters.dateRange)
+    params.set('startDate', startDate)
+    params.set('endDate', endDate)
+    return `/api/admin/bookings?${params.toString()}`
+  }, [activeTab, filters])
+
+  const { data: bookingsApi, isLoading: bookingsLoading } = useSWR(bookingQuery, fetcher)
+  const bookingsList = isAdminBookingsList(bookingsApi) ? bookingsApi.bookings : []
 
   type BookingRow = { id: string; clientName: string; service: string; scheduledAt: string; status: string; revenue: number }
-  const bookingRows: BookingRow[] = filteredBookings.map(b => ({ id: b.id, clientName: b.clientName, service: b.service, scheduledAt: b.scheduledAt, status: b.status, revenue: b.revenue }))
+  const bookingRows: BookingRow[] = bookingsList.map((b) => ({
+    id: b.id,
+    clientName: b.clientName || b.client?.name || 'Client',
+    service: b.service?.name || 'Service',
+    scheduledAt: typeof b.scheduledAt === 'string' ? b.scheduledAt : new Date(b.scheduledAt).toISOString(),
+    status: String(b.status || 'CONFIRMED').toLowerCase(),
+    revenue: toNumberish(b.service?.price),
+  }))
   const bookingColumns: Column<BookingRow>[] = [
     { key: 'clientName', label: 'Client', sortable: true },
     { key: 'service', label: 'Service', sortable: true },
