@@ -165,7 +165,7 @@ export class BookingSettingsService {
             processingFee: (m.processingFee ?? 0) as any,
             minAmount: (m.minAmount ?? 0) as any,
             maxAmount: (m.maxAmount ?? null) as any,
-            gatewayConfig: m.gatewayConfig ?? null,
+            gatewayConfig: (m as any).gatewayConfig === undefined ? Prisma.DbNull : ((m as any).gatewayConfig === null ? Prisma.DbNull : (m as any).gatewayConfig),
           },
           create: {
             bookingSettingsId: settingsId,
@@ -176,7 +176,7 @@ export class BookingSettingsService {
             processingFee: (m.processingFee ?? 0) as any,
             minAmount: (m.minAmount ?? 0) as any,
             maxAmount: (m.maxAmount ?? null) as any,
-            gatewayConfig: m.gatewayConfig ?? null,
+            gatewayConfig: (m as any).gatewayConfig === undefined ? Prisma.DbNull : ((m as any).gatewayConfig === null ? Prisma.DbNull : (m as any).gatewayConfig),
           },
         })
       }
