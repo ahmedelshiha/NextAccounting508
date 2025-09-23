@@ -204,14 +204,18 @@ export async function getAvailabilityForService(params: {
   let member: { id: string; workingHours?: any; bookingBuffer?: number; maxConcurrentBookings?: number; isAvailable?: boolean; timeZone?: string | null } | null = null
   if (teamMemberId) {
     try {
+      console.log('[getAvailabilityForService] fetching teamMember', teamMemberId)
       member = await prisma.teamMember.findUnique({ where: { id: teamMemberId }, select: { id: true, workingHours: true, bookingBuffer: true, maxConcurrentBookings: true, isAvailable: true, timeZone: true } })
-    } catch {
+      console.log('[getAvailabilityForService] got teamMember', !!member)
+    } catch (err) {
+      console.error('[getAvailabilityForService] teamMember error', err)
       member = null
     }
   }
 
   // If the member exists but is not available, return empty
   if (member && member.isAvailable === false) {
+    console.log('[getAvailabilityForService] member not available')
     return { slots: [] as AvailabilitySlot[] }
   }
 
@@ -225,14 +229,17 @@ export async function getAvailabilityForService(params: {
     if (member && member.workingHours) {
       businessHours = normalizeBusinessHours(member.workingHours as any)
     }
-  } catch {
+  } catch (e) {
+    console.error('[getAvailabilityForService] normalize member workingHours error', e)
     businessHours = undefined
   }
   if (!businessHours) {
     businessHours = normalizeBusinessHours(svc.businessHours as any)
   }
+  console.log('[getAvailabilityForService] businessHours present?', !!businessHours, 'bookingBuffer', bookingBufferMinutes, 'maxDaily', maxDailyBookings)
 
   // Fetch busy bookings for the given window. If a team member is specified, filter to that member.
+  console.log('[getAvailabilityForService] fetching bookings window', from.toISOString(), to.toISOString())
   const busyBookings = await prisma.booking.findMany({
     where: {
       serviceId,
@@ -242,6 +249,7 @@ export async function getAvailabilityForService(params: {
     },
     select: { scheduledAt: true, duration: true },
   })
+  console.log('[getAvailabilityForService] bookings fetched', (busyBookings || []).length)
 
   const busy: BusyInterval[] = busyBookings.map((b) => {
     const start = new Date(b.scheduledAt)
