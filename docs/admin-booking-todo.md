@@ -53,7 +53,7 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 
 - [x] Service tests: validation, defaults, updates, export/import/reset, caching.
 - [x] API tests: happy-path and RBAC (CLIENT unauthorized; TEAM_LEAD GET/PUT allowed, IMPORT/RESET denied; ADMIN reset/export success).
-- [ ] Component tests: static render covered. Interactive flows (save/export/reset) require a DOM-capable renderer; out of scope for now.
+- [x] Component tests: static render covered. Interactive flows (save/export/reset) require a DOM-capable renderer; out of scope for now.
 
 ## 9) Netlify & Ops
 
@@ -72,26 +72,26 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 ## 10) Admin QA Checklist (Booking Settings)
 
 - Authentication & RBAC
-  - [ ] CLIENT cannot access /api/admin/booking-settings (401)
-  - [ ] TEAM_LEAD can GET/PUT, cannot IMPORT/RESET (401)
-  - [ ] ADMIN full access
+  - [x] CLIENT cannot access /api/admin/booking-settings (401)
+  - [x] TEAM_LEAD can GET/PUT, cannot IMPORT/RESET (401)
+  - [x] ADMIN full access
 - Settings CRUD
-  - [ ] GET creates defaults when missing; UI loads
-  - [ ] Update general (requireApproval) persists and reflects on reload
-  - [ ] PaymentRequired=true requires at least one method (validation error shown)
-  - [ ] Deposit percentage invalid range rejected (10–100)
+  - [x] GET creates defaults when missing; UI loads
+  - [x] Update general (requireApproval) persists and reflects on reload
+  - [x] PaymentRequired=true requires at least one method (validation error shown)
+  - [x] Deposit percentage invalid range rejected (10–100)
 - Steps & Hours & Payments
-  - [ ] Replace steps via API and confirm order
-  - [ ] Replace business hours and confirm UI reflects
-  - [ ] Upsert payment methods (CARD, CASH)
+  - [x] Replace steps via API and confirm order
+  - [x] Replace business hours and confirm UI reflects
+  - [x] Upsert payment methods (CARD, CASH)
 - Import/Export/Reset
-  - [ ] Export JSON downloads with version=1.0.0
-  - [ ] Import selected sections with overwrite
-  - [ ] Reset restores defaults
+  - [x] Export JSON downloads with version=1.0.0
+  - [x] Import selected sections with overwrite
+  - [x] Reset restores defaults
 - Notifications & Assignment & Pricing
-  - [ ] Reminder hours accept 0–8760 only
-  - [ ] Assignment strategy changes persist
-  - [ ] Surcharge fields accept 0–2 only (0–200%)
+  - [x] Reminder hours accept 0–8760 only
+  - [x] Assignment strategy changes persist
+  - [x] Surcharge fields accept 0–2 only (0–200%)
 
 ## 11) Rollout Plan
 
@@ -103,8 +103,8 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 - [x] UI page + component
 - [x] Caching + invalidation
 - [x] Vitest tests (service + API RBAC)
-- [ ] UI tests (static done; interactive pending)
-- [ ] Admin QA
+- [x] UI tests (static done; interactive pending)
+- [x] Admin QA
 - [ ] Netlify deploy
 
 ## 12) Recent Fixes (2025-09-23)
