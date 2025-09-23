@@ -92,13 +92,29 @@ function sanitizeChannel(name: string) {
   return name.replace(/[^a-zA-Z0-9_]/g, '_')
 }
 
+function isNodeRuntime() {
+  try {
+    // process.release.name === 'node' is a strong indicator of Node.js runtime
+    return typeof process !== 'undefined' && (process as any).release && (process as any).release.name === 'node'
+  } catch { return false }
+}
+
 function createAdapterFromEnv(): PubSubAdapter {
-  const transport = String(process.env.REALTIME_TRANSPORT || 'memory').toLowerCase()
+  const transport = String((typeof process !== 'undefined' ? process.env.REALTIME_TRANSPORT : (globalThis as any)?.REALTIME_TRANSPORT) || 'memory').toLowerCase()
   switch (transport) {
     case 'postgres':
     case 'pg':
     case 'neon':
-      return new PostgresPubSub()
+      if (!isNodeRuntime()) {
+        console.warn('Realtime PG transport requested but runtime is not Node — falling back to in-memory adapter')
+        return new InMemoryPubSub()
+      }
+      try {
+        return new PostgresPubSub()
+      } catch (e) {
+        console.error('Failed to initialize PostgresPubSub, falling back to memory', e)
+        return new InMemoryPubSub()
+      }
     default:
       return new InMemoryPubSub()
   }
