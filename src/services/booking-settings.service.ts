@@ -269,9 +269,9 @@ export class BookingSettingsService {
       }
 
       if (selectedSections.includes('notifications')) {
-        await tx.notificationTemplates.deleteMany({ where: { bookingSettingsId: settings.id } })
+        await tx.notificationTemplate.deleteMany({ where: { bookingSettingsId: settings.id } })
         if ((data.notificationTemplates ?? []).length) {
-          await tx.notificationTemplates.createMany({ data: data.notificationTemplates.map((t) => ({ ...t, id: undefined as any, bookingSettingsId: settings!.id })) })
+          await tx.notificationTemplate.createMany({ data: data.notificationTemplates.map((t) => ({ ...t, id: undefined as any, bookingSettingsId: settings!.id })) })
         }
       }
     })
@@ -289,7 +289,7 @@ export class BookingSettingsService {
         await tx.bookingStepConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
         await tx.businessHoursConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
         await tx.paymentMethodConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
-        await tx.notificationTemplates.deleteMany({ where: { bookingSettingsId: existing.id } })
+        await tx.notificationTemplate.deleteMany({ where: { bookingSettingsId: existing.id } })
         await tx.bookingSettings.delete({ where: { id: existing.id } })
       }
     })
