@@ -25,6 +25,11 @@
 - Why: Automate admin QA checklist assertions to prevent regressions.
 - Outcome: Full CRUD and lifecycle behaviors verified under default ADMIN session.
 
+## 2025-09-23 (UI tests + lint)
+- Work: Strengthened static render test to assert presence of Export/Reset/Save actions. Resolved ESLint warning by exporting a named instance from booking-settings.service.
+- Why: Improve confidence in panel rendering with current static renderer; keep CI clean.
+- Outcome: Tests pass locally; lint warning removed.
+
 ## 2025-09-23 (ops)
 - Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
 - Why: Ensure smooth production deploys and structured QA before release.
