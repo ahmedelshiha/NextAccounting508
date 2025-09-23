@@ -8,6 +8,7 @@ export function render(node: React.ReactElement) {
     const raw = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
     // Basic HTML entity decode for common entities used in components
     const text = raw.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    console.log('RENDERED_DECODED:', text)
     ;(globalThis as any).__renderedTexts = [text]
     return { container: html }
   } catch (e) {
