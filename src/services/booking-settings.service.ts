@@ -46,7 +46,7 @@ export class BookingSettingsService {
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
       await tx.businessHoursConfig.createMany({ data: this.defaultBusinessHours(settings.id) })
       await tx.paymentMethodConfig.createMany({ data: this.defaultPaymentMethods(settings.id) })
-      await tx.notificationTemplates.createMany({ data: this.defaultNotificationTemplates(settings.id) })
+      await tx.notificationTemplate.createMany({ data: this.defaultNotificationTemplates(settings.id) })
     })
     const full = await this.getBookingSettings(tenantId)
     return full as BookingSettings
