@@ -6,6 +6,7 @@ export function render(node: React.ReactElement) {
     const html = renderToStaticMarkup(node)
     // crude extraction of visible text — keep full text so tests can match multi-word phrases
     const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    console.log('RENDERED_TEXT:', text)
     ;(globalThis as any).__renderedTexts = [text]
     return { container: html }
   } catch (e) {
