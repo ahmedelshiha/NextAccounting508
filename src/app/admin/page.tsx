@@ -1768,6 +1768,8 @@ export default function ProfessionalAdminDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [activeTab, setActiveTab] = useState<'overview'|'bookings'|'clients'|'revenue'>('overview')
+  const [filters, setFilters] = useState<{ dateRange: 'today'|'week'|'month'|'year'; status: string }>({ dateRange: 'month', status: 'all' })
 
   // Configurable thresholds (fetched from server)
   const [thresholds, setThresholds] = useState<{ responseTime: number; errorRate: number; storageGrowth: number }>({ responseTime: 100, errorRate: 1, storageGrowth: 20 })
