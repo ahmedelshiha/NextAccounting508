@@ -18,9 +18,9 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
 
 ## Phase 0 – Prep
-- [ ] Read ./quickbooks_dashboard_complete.md and extract UI + IA requirements
-- [ ] Confirm Tailwind v4 utilities and existing shadcn components usage (Button, Card, etc.)
-- [ ] Identify any blocking tech constraints (Next.js app router, auth, i18n)
+- [x] Read ./quickbooks_dashboard_complete.md and extract UI + IA requirements
+- [x] Confirm Tailwind v4 utilities and existing shadcn components usage (Button, Card, etc.)
+- [x] Identify any blocking tech constraints (Next.js app router, auth, i18n)
 
 ## Phase 1 – Inventory & Reuse Targets
 - [ ] Audit existing admin pages/components to reuse (src/app/admin/*, components/admin/*, components/ui/*)
