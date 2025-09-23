@@ -27,3 +27,8 @@
 - Added keyboard navigation and ARIA roles/states: tablists (primary/secondary tabs) with Arrow/Home/End support; aria-selected/tabIndex management; Topbar menus now announce expanded state and close on Escape; Sidebar landmark/expanded/controls wiring; FilterBar inputs labeled.
 - Why: Improve accessibility and usability to meet A11y goals in Phase 6.
 - Next: Announce filter changes via aria-live and selection counts; proceed to wiring filters to hooks.
+
+## 2025-09-23 (bookings wiring)
+- Implemented reusable BookingsList wired to useBookings with shared FilterBar and DataTable (src/components/dashboard/lists/BookingsList.tsx) and added demo page at /admin/service-requests/list.
+- Why: Establish the pattern for wiring hooks to shared dashboard primitives; prepares similar implementations for Clients, Services, and Tasks.
+- Next: Create ClientsList, ServicesList, TasksList using same pattern; align columns with Prisma models; add batch actions.
