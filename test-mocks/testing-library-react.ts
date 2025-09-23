@@ -4,10 +4,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 export function render(node: React.ReactElement) {
   try {
     const html = renderToStaticMarkup(node)
-    // crude extraction of visible text
-    const text = html.replace(/<[^>]+>/g, ' ')
-    const parts = text.split(/\s+/).map(p => p.trim()).filter(Boolean)
-    ;(globalThis as any).__renderedTexts = parts
+    // crude extraction of visible text — keep full text so tests can match multi-word phrases
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    ;(globalThis as any).__renderedTexts = [text]
     return { container: html }
   } catch (e) {
     ;(globalThis as any).__renderedTexts = []
