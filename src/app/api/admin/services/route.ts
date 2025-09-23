@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
+import * as Sentry from '@sentry/nextjs'
 import { authOptions } from '@/lib/auth';
 import { ServicesService } from '@/services/services.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
     }
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    Sentry.captureException(e);
     console.error('services GET error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
@@ -71,6 +73,7 @@ export async function HEAD(request: NextRequest) {
     const prismaMapped = mapPrismaError(e);
     if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    Sentry.captureException(e);
     console.error('services HEAD error', e);
     return new NextResponse(null, { status: 500 });
   }
@@ -110,6 +113,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
     }
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
+    Sentry.captureException(e);
     console.error('services POST error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
