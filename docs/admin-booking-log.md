@@ -14,3 +14,8 @@
 - Work: Added service tests (`tests/booking-settings.service.test.ts`) and API tests (`tests/booking-settings.api.test.ts`, `tests/booking-settings.api-auth.test.ts`). Added static UI render test (`tests/booking-settings.panel.render.test.tsx`).
 - Why: Ensure correctness and RBAC enforcement; begin UI coverage.
 - Outcome: Service + API coverage complete; UI static render covered. Interactive UI tests limited by current static renderer.
+
+## 2025-09-23 (ops)
+- Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
+- Why: Ensure smooth production deploys and structured QA before release.
+- Outcome: Ready for final Admin QA and Netlify env configuration; deployment steps clear.
