@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import useSWR from 'swr'
 import { Pie, Bar, Line } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title as ChartTitle } from 'chart.js'
@@ -43,6 +43,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
+import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import PrimaryTabs from '@/components/dashboard/PrimaryTabs'
+import FilterBar from '@/components/dashboard/FilterBar'
+import DataTable from '@/components/dashboard/DataTable'
+import type { FilterConfig, TabItem, Column } from '@/types/dashboard'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
@@ -1763,6 +1768,8 @@ export default function ProfessionalAdminDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [activeTab, setActiveTab] = useState<'overview'|'bookings'|'clients'|'revenue'>('overview')
+  const [filters, setFilters] = useState<{ dateRange: 'today'|'week'|'month'|'year'; status: string }>({ dateRange: 'month', status: 'all' })
 
   // Configurable thresholds (fetched from server)
   const [thresholds, setThresholds] = useState<{ responseTime: number; errorRate: number; storageGrowth: number }>({ responseTime: 100, errorRate: 1, storageGrowth: 20 })
@@ -2018,11 +2025,112 @@ export default function ProfessionalAdminDashboard() {
     return () => clearInterval(interval)
   }, [autoRefresh, loadDashboardData])
 
+  const tabs: TabItem[] = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'bookings', label: 'Bookings', count: dashboardData?.stats?.bookings?.total ?? 0 },
+    { key: 'clients', label: 'Clients', count: dashboardData?.stats?.clients?.total ?? 0 },
+    { key: 'revenue', label: 'Revenue' },
+  ]
+
+  const filterConfigs: FilterConfig[] = [
+    { key: 'dateRange', label: 'Date Range', options: [
+      { value: 'today', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+      { value: 'year', label: 'This Year' },
+    ], value: filters.dateRange },
+    { key: 'status', label: 'Status', options: [
+      { value: 'all', label: 'All Status' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'confirmed', label: 'Confirmed' },
+      { value: 'in_progress', label: 'In Progress' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'cancelled', label: 'Cancelled' },
+    ], value: filters.status },
+  ]
+
+  const onFilterChange = (key: string, value: string) => setFilters(prev => ({ ...prev, [key]: value as any }))
+
+  function withinRange(dateISO: string, range: 'today'|'week'|'month'|'year') {
+    const d = new Date(dateISO)
+    const now = new Date()
+    if (range === 'today') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+    }
+    if (range === 'week') {
+      const diffMs = now.getTime() - d.getTime()
+      const weekMs = 7 * 24 * 60 * 60 * 1000
+      return diffMs >= 0 && diffMs <= weekMs
+    }
+    if (range === 'month') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    }
+    if (range === 'year') {
+      return d.getFullYear() === now.getFullYear()
+    }
+    return true
+  }
+
+  function rangeToDates(range: 'today'|'week'|'month'|'year') {
+    const now = new Date()
+    const start = new Date(now)
+    if (range === 'today') {
+      start.setHours(0,0,0,0)
+    } else if (range === 'week') {
+      start.setDate(now.getDate() - 7)
+    } else if (range === 'month') {
+      start.setDate(1); start.setHours(0,0,0,0)
+    } else if (range === 'year') {
+      start.setMonth(0,1); start.setHours(0,0,0,0)
+    }
+    return { startDate: start.toISOString(), endDate: now.toISOString() }
+  }
+
+  const bookingQuery = useMemo(() => {
+    if (activeTab !== 'bookings') return null
+    const params = new URLSearchParams()
+    params.set('limit', '50')
+    if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+    const { startDate, endDate } = rangeToDates(filters.dateRange)
+    params.set('startDate', startDate)
+    params.set('endDate', endDate)
+    return `/api/admin/bookings?${params.toString()}`
+  }, [activeTab, filters])
+
+  const { data: bookingsApi, isLoading: bookingsLoading } = useSWR(bookingQuery, fetcher)
+  const bookingsList = isAdminBookingsList(bookingsApi) ? bookingsApi.bookings : []
+
+  type BookingRow = { id: string; clientName: string; service: string; scheduledAt: string; status: string; revenue: number }
+  const bookingRows: BookingRow[] = bookingsList.map((b) => ({
+    id: b.id,
+    clientName: b.clientName || b.client?.name || 'Client',
+    service: b.service?.name || 'Service',
+    scheduledAt: typeof b.scheduledAt === 'string' ? b.scheduledAt : new Date(b.scheduledAt).toISOString(),
+    status: String(b.status || 'CONFIRMED').toLowerCase(),
+    revenue: toNumberish(b.service?.price),
+  }))
+  const bookingColumns: Column<BookingRow>[] = [
+    { key: 'clientName', label: 'Client', sortable: true },
+    { key: 'service', label: 'Service', sortable: true },
+    { key: 'scheduledAt', label: 'Date & Time', sortable: true, render: (v) => new Date(v).toLocaleString() },
+    { key: 'status', label: 'Status' },
+    { key: 'revenue', label: 'Amount', align: 'right', sortable: true, render: (v) => `$${Number(v||0).toLocaleString()}` },
+  ]
+
+  type ClientRow = { id: string; name: string; revenue: number; bookings: number; lastBooking: string; tier: string }
+  const clientRows: ClientRow[] = (dashboardData.clientInsights?.topClients || []).map(c => ({ id: c.id, name: c.name, revenue: c.revenue, bookings: c.bookings, lastBooking: c.lastBooking, tier: c.tier }))
+  const clientColumns: Column<ClientRow>[] = [
+    { key: 'name', label: 'Client', sortable: true },
+    { key: 'bookings', label: 'Bookings', align: 'center', sortable: true },
+    { key: 'revenue', label: 'Revenue', align: 'right', sortable: true, render: (v) => `$${Number(v||0).toLocaleString()}` },
+    { key: 'lastBooking', label: 'Last Booking', sortable: true },
+    { key: 'tier', label: 'Tier' },
+  ]
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-8">
+      <DashboardLayout>
+        <div className="animate-pulse space-y-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
@@ -2036,7 +2144,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-lg p-6 shadow-sm">
@@ -2052,7 +2160,7 @@ export default function ProfessionalAdminDashboard() {
                 </div>
               ))}
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
                 <div className="h-64 bg-gray-200 rounded"></div>
@@ -2061,40 +2169,37 @@ export default function ProfessionalAdminDashboard() {
                 <div className="h-64 bg-gray-200 rounded"></div>
               </div>
             </div>
-          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-lg font-semibold text-red-900 mb-2">Dashboard Error</h2>
-              <p className="text-red-700 mb-4">{error}</p>
-              <div className="flex justify-center gap-4">
-                <Button onClick={() => window.location.reload()}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Retry Loading
-                </Button>
-                <Button variant="outline" onClick={() => console.log('Contact support')}>
-                  Contact Support
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <DashboardLayout>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-red-900 mb-2">Dashboard Error</h2>
+            <p className="text-red-700 mb-4">{error}</p>
+            <div className="flex justify-center gap-4">
+              <Button onClick={() => window.location.reload()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Loading
+              </Button>
+              <Button variant="outline" onClick={() => console.log('Contact support')}>
+                Contact Support
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <DashboardLayout>
+      <div className="space-y-8">
         <ProfessionalHeader
           data={dashboardData}
           autoRefresh={autoRefresh}
@@ -2103,7 +2208,10 @@ export default function ProfessionalAdminDashboard() {
           onExport={handleExport}
           onMarkAllRead={handleMarkAllRead}
         />
-        <ProfessionalKPIGrid data={dashboardData} />
+        <PrimaryTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+        {activeTab === 'overview' && (
+          <>
+            <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
         <ServiceRequestsSummary />
         <TeamWorkloadSummary />
@@ -2151,7 +2259,40 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </div>
         </div>
+          </>
+        )}
+
+        {activeTab === 'bookings' && (
+          <>
+            <FilterBar filters={filterConfigs} onFilterChange={onFilterChange} />
+            <DataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
+          </>
+        )}
+
+        {activeTab === 'clients' && (
+          <DataTable columns={clientColumns} rows={clientRows} loading={loading} />
+        )}
+
+        {activeTab === 'revenue' && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Business Intelligence</CardTitle>
+                  <CardDescription>Advanced analytics and performance insights</CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Full Analytics
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <BusinessIntelligence dashboard={dashboardData} />
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

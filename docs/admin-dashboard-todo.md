@@ -7,14 +7,14 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Implement using the component blueprints: ./dashboard-structure.md
 
 ## Traceability Matrix (Spec → Deliverable)
-- [ ] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
-- [ ] Left Sidebar (grouped nav) → Sidebar.tsx (./dashboard-structure.md) and IA in ./quickbooks_dashboard_complete.md
-- [ ] Top Bar → Topbar.tsx (./dashboard-structure.md)
-- [ ] Page Header → PageHeader.tsx (./dashboard-structure.md)
-- [ ] Primary Tabs → PrimaryTabs.tsx (./dashboard-structure.md)
-- [ ] Secondary Tabs → SecondaryTabs.tsx (./dashboard-structure.md)
-- [ ] Filters/Controls → FilterBar.tsx (./dashboard-structure.md); tags behavior spec in ./quickbooks_dashboard_complete.md
-- [ ] Data Table/List → DataTable.tsx (./dashboard-structure.md); empty/hover/sort states in ./quickbooks_dashboard_complete.md
+- [x] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
+- [x] Left Sidebar (grouped nav) → Sidebar.tsx (./dashboard-structure.md) and IA in ./quickbooks_dashboard_complete.md
+- [x] Top Bar → Topbar.tsx (./dashboard-structure.md)
+- [x] Page Header → PageHeader.tsx (./dashboard-structure.md)
+- [x] Primary Tabs → PrimaryTabs.tsx (./dashboard-structure.md)
+- [x] Secondary Tabs → SecondaryTabs.tsx (./dashboard-structure.md)
+- [x] Filters/Controls → FilterBar.tsx (./dashboard-structure.md); tags behavior spec in ./quickbooks_dashboard_complete.md
+- [x] Data Table/List → DataTable.tsx (./dashboard-structure.md); empty/hover/sort states in ./quickbooks_dashboard_complete.md
 - [ ] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
 
 ## Phase 0 – Prep
@@ -38,22 +38,22 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] Finalize iconography (lucide-react) for each item
 
 ## Phase 3 – Type System & Config
-- [ ] Create src/types/dashboard.ts (NavItem/NavGroup/Tab/Filters/DataTable types) per ./dashboard-structure.md
+- [x] Create src/types/dashboard.ts (NavItem/NavGroup/Tab/Filters/DataTable types) per ./dashboard-structure.md
 - [ ] Create nav config object to drive Sidebar (labels, hrefs, icons, badges)
-- [ ] Define Filter config schema for common filter patterns (date/status/search)
+- [x] Define Filter config schema for common filter patterns (date/status/search)
 
 ## Phase 4 – UI Components (Tailwind only)
-- [ ] Sidebar.tsx (grouped nav + primary action)
-- [ ] Topbar.tsx (context switcher, search, help, notifications, settings, profile)
-- [ ] PageHeader.tsx (title/subtitle + primary/secondary actions)
-- [ ] PrimaryTabs.tsx (underline style)
-- [ ] SecondaryTabs.tsx (pill buttons)
-- [ ] FilterBar.tsx (dropdown filters, search, customize, active tags)
-- [ ] DataTable.tsx (sortable headers, row hover, action column, empty state)
-- [ ] DashboardLayout.tsx (compose everything: Sidebar + Topbar + workspace)
+- [x] Sidebar.tsx (grouped nav + primary action)
+- [x] Topbar.tsx (context switcher, search, help, notifications, settings, profile)
+- [x] PageHeader.tsx (title/subtitle + primary/secondary actions)
+- [x] PrimaryTabs.tsx (underline style)
+- [x] SecondaryTabs.tsx (pill buttons)
+- [x] FilterBar.tsx (dropdown filters, search, customize, active tags)
+- [x] DataTable.tsx (sortable headers, row hover, action column, empty state)
+- [x] DashboardLayout.tsx (compose everything: Sidebar + Topbar + workspace)
 
 ## Phase 5 – Wiring & Pages
-- [ ] Replace admin shell with DashboardLayout in src/app/admin/page.tsx
+- [x] Replace admin shell with DashboardLayout in src/app/admin/page.tsx
 - [ ] Wire tabs + filters to existing hooks (bookings/clients/services/tasks)
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
 - [ ] Add batch actions (export/cancel/assign) where selection is enabled
