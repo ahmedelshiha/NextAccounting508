@@ -66,6 +66,7 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
   - FROM_EMAIL
   - CRON_SECRET
   - PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=300000
+  - SENTRY_SUPPRESS_TURBOPACK_WARNING=1
 - [ ] Trigger production build; confirm deploy success and serverless functions availability.
 
 ## 10) Admin QA Checklist (Booking Settings)
