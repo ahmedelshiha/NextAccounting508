@@ -92,6 +92,13 @@ describe('BookingSettingsService', () => {
     expect(updated.requireApproval).toBe(true)
   })
 
+  it('persists assignment strategy changes', async () => {
+    const svc = (await import('@/services/booking-settings.service')).default
+    await svc.createDefaultSettings('t1')
+    const updated = await svc.updateBookingSettings('t1', { assignmentSettings: { assignmentStrategy: 'LOAD_BALANCED' } as any })
+    expect(updated.assignmentStrategy).toBe('LOAD_BALANCED')
+  })
+
   it('export/import/reset cycle works', async () => {
     const svc = (await import('@/services/booking-settings.service')).default
     await svc.createDefaultSettings('t2')
@@ -106,5 +113,28 @@ describe('BookingSettingsService', () => {
 
     const afterReset = await svc.resetToDefaults('t2')
     expect(afterReset.id).toBeDefined()
+  })
+
+  it('rejects depositPercentage outside 10..100 when allowPartialPayment', async () => {
+    const svc = (await import('@/services/booking-settings.service')).default
+    let r = await svc.validateSettingsUpdate(null, { paymentSettings: { allowPartialPayment: true, depositPercentage: 5 } as any })
+    expect(r.isValid).toBe(false)
+    expect(r.errors.some((e) => e.field === 'depositPercentage' && e.code === 'INVALID_RANGE')).toBe(true)
+    r = await svc.validateSettingsUpdate(null, { paymentSettings: { allowPartialPayment: true, depositPercentage: 150 } as any })
+    expect(r.isValid).toBe(false)
+  })
+
+  it('rejects reminderHours outside 0..8760', async () => {
+    const svc = (await import('@/services/booking-settings.service')).default
+    const r = await svc.validateSettingsUpdate(null, { notificationSettings: { reminderHours: [-1, 0, 1, 9000] } as any })
+    expect(r.isValid).toBe(false)
+    expect(r.errors.some((e) => e.field === 'reminderHours' && e.code === 'INVALID_RANGE')).toBe(true)
+  })
+
+  it('rejects pricing surcharges outside 0..2', async () => {
+    const svc = (await import('@/services/booking-settings.service')).default
+    const r = await svc.validateSettingsUpdate(null, { pricingSettings: { peakHoursSurcharge: -0.1, weekendSurcharge: 2.1 } as any })
+    expect(r.isValid).toBe(false)
+    expect(r.errors.some((e) => e.code === 'INVALID_SURCHARGE')).toBe(true)
   })
 })
