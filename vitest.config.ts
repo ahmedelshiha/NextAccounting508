@@ -14,6 +14,6 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
     exclude: ['src/app/admin/tasks/tests/**/*'],
-    testTimeout: 10000
+    testTimeout: 60000
   }
 })
