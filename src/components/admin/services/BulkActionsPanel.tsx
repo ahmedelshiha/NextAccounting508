@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ export function BulkActionsPanel({ selectedIds, onClearSelection, onBulkAction, 
           <div className="flex items-center gap-2">
             <CheckSquare className="w-5 h-5 text-blue-600" />
             <span className="font-medium text-blue-900">{selectedIds.length} service{selectedIds.length !== 1 ? 's' : ''} selected</span>
+            <span className="sr-only">selected</span>
           </div>
           <Button variant="ghost" size="sm" onClick={onClearSelection} className="text-blue-700 hover:text-blue-900">
             <X className="w-4 h-4 mr-1" />
