@@ -3,6 +3,13 @@
 Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit logging, import/export, and a clean UI, leveraging Next.js App Router, Prisma (Postgres on Netlify), and existing project patterns.
 
 
+## Status Update
+
+- Completed: Created this implementation plan and checklist with dependency ordering and measurable tasks.
+- Why: Establish clear scope, reduce risk, and enable predictable delivery across backend, API, and UI.
+- Next: Implement Prisma data models and migrate database, then add types and service layer.
+
+
 ## 0) Current State Audit
 
 - Prisma schema lacks BookingSettings-related models (BookingSettings, BookingStepConfig, BusinessHoursConfig, PaymentMethodConfig, NotificationTemplate, AuditLog).
@@ -187,115 +194,111 @@ model AuditLog {
 ```
 
 Migration checklist:
-- Add models above.
-- Run `pnpm db:generate` then `pnpm db:push` (or proper migrations if using `migrate dev/deploy`).
-- Confirm via `prisma studio` that tables are created.
+- [ ] Add models above to `prisma/schema.prisma`.
+- [ ] Run `pnpm db:generate`.
+- [ ] Run `pnpm db:push` (or `migrate dev/deploy` as appropriate).
+- [ ] Open `prisma studio` and confirm tables and indexes exist.
 
 
 ## 2) Types
 
-Create `src/types/booking-settings.types.ts` with the strongly-typed interfaces and unions for settings, step config, business hours, payment methods, and import/export payloads. Align names/fields with Prisma models.
+Create `src/types/booking-settings.types.ts` with strongly-typed interfaces and unions aligned to Prisma models.
+
+- [ ] Define BookingSettings, BookingStepConfig, BusinessHoursConfig, PaymentMethodConfig, NotificationTemplate, and export/import payloads.
+- [ ] Export enums/unions (PaymentMethodType, AssignmentStrategy, Notification channels/types, DayOfWeek).
+- [ ] Ensure numeric ranges and optionality match database defaults.
 
 
 ## 3) Service Layer
 
-Add `src/services/booking-settings.service.ts`:
-- getBookingSettings(orgId)
-- createDefaultSettings(orgId)
-- updateBookingSettings(orgId, updates)
-- updateBookingSteps(settingsId, steps)
-- updateBusinessHours(settingsId, hours)
-- updatePaymentMethods(settingsId, methods)
-- validateSettingsUpdate(orgId, updates) with comprehensive business rules
-- exportSettings(orgId) / importSettings(orgId, data)
-- resetToDefaults(orgId)
-- emit settings change event (console stub OK initially)
-- wrap multi-table operations in transactions
+Add `src/services/booking-settings.service.ts` implementing business logic and validation.
+
+- [ ] getBookingSettings(orgId): include steps, business hours, payment methods, notification templates.
+- [ ] createDefaultSettings(orgId): seed defaults in a single transaction.
+- [ ] updateBookingSettings(orgId, updates): validate, merge sections, update, return hydrated result.
+- [ ] updateBookingSteps(settingsId, steps): replace set transactionally by order.
+- [ ] updateBusinessHours(settingsId, hours): replace per-day config.
+- [ ] updatePaymentMethods(settingsId, methods): upsert by methodType.
+- [ ] validateSettingsUpdate(orgId, updates): cross-field rules (e.g., paymentRequired => at least one method enabled; deposit 10–100; min/max windows, etc.).
+- [ ] exportSettings(orgId) / importSettings(orgId, data): versioned payloads, selectable sections, overwrite option.
+- [ ] resetToDefaults(orgId): delete then recreate defaults.
+- [ ] Emit non-blocking settings change event (console stub acceptable initially).
 
 
 ## 4) API Endpoints (Next.js App Router)
 
-Create routes under `src/app/api/admin/booking-settings/`:
-- `route.ts` GET/PUT (fetch/update settings)
-- `steps/route.ts` PUT
-- `business-hours/route.ts` PUT
-- `payment-methods/route.ts` PUT
-- `export/route.ts` GET
-- `import/route.ts` POST
-- `reset/route.ts` POST
-- `validate/route.ts` POST
+Create endpoints under `src/app/api/admin/booking-settings/` with RBAC + audit logging.
 
-All endpoints:
-- Use `getServerSession(authOptions)`
-- Enforce RBAC with `hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_*)`
-- Resolve `organizationId` from session (consistent with current app user model)
-- Audit every change using `prisma.auditLog.create(...)` (non-blocking on failure)
+- [ ] `route.ts` GET: fetch or create defaults; PUT: validate, update, log action.
+- [ ] `steps/route.ts` PUT: replace steps; log action.
+- [ ] `business-hours/route.ts` PUT: replace hours; log action.
+- [ ] `payment-methods/route.ts` PUT: upsert methods; log action.
+- [ ] `export/route.ts` GET: export with version; log action.
+- [ ] `import/route.ts` POST: import selected sections; log action.
+- [ ] `reset/route.ts` POST: backup id (if available), reset to defaults; log action.
+- [ ] `validate/route.ts` POST: return validation result; no mutation.
+
+Endpoint guardrails:
+- [ ] Enforce session via `getServerSession(authOptions)`.
+- [ ] Use `hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_*)`.
+- [ ] Read `organizationId` from session.
+- [ ] Wrap audit log writes in try/catch to avoid breaking main flow.
 
 
 ## 5) RBAC
 
-Update `src/lib/permissions.ts`:
-- Add keys: `BOOKING_SETTINGS_VIEW`, `BOOKING_SETTINGS_EDIT`, `BOOKING_SETTINGS_EXPORT`, `BOOKING_SETTINGS_IMPORT`, `BOOKING_SETTINGS_RESET`.
-- Map them to ADMIN (and TEAM_LEAD where appropriate) in `ROLE_PERMISSIONS`.
-- Reuse existing `hasPermission` helpers.
+Update `src/lib/permissions.ts` with booking permissions and role mapping.
+
+- [ ] Add: BOOKING_SETTINGS_VIEW, BOOKING_SETTINGS_EDIT, BOOKING_SETTINGS_EXPORT, BOOKING_SETTINGS_IMPORT, BOOKING_SETTINGS_RESET.
+- [ ] Map to `ADMIN` (all) and `TEAM_LEAD` (VIEW, EDIT, EXPORT) as needed.
+- [ ] Verify usage in all new endpoints.
 
 
 ## 6) UI — Admin Panel
 
-- Component: `src/components/admin/BookingSettingsPanel.tsx` (from temp design, adapted to house style).
-- Page: `src/app/admin/settings/booking/page.tsx`:
-  - Server component: verify session + role; render client component gated with `PermissionGate`.
-  - Use existing UI primitives (`src/components/ui/*`) to keep styling consistent.
-- Features:
-  - Tabs: General, Payments, Steps, Availability, Notifications, Customer, Assignments, Pricing
-  - Local change tracking; Save, Reset, Export actions
-  - Error/warning rendering from `validate` endpoint
+Add Booking Settings UI and page.
+
+- [ ] `src/components/admin/BookingSettingsPanel.tsx`: tabbed UI, local changes, save/reset/export, render server validation errors/warnings.
+- [ ] `src/app/admin/settings/booking/page.tsx`: page wrapper; authorize and render panel via `PermissionGate`.
+- [ ] Use `src/components/ui/*` primitives; keep existing styles and spacing system.
 
 
 ## 7) Caching & Defaults
 
-- Use/reuse `src/lib/cache.service.ts` or `src/lib/cache/*` to cache resolved settings by `organizationId` with short TTL (e.g., 5m).
-- Invalidate on successful updates/import/reset.
-- On GET, auto-create default settings if none exist.
+Settings retrieval performance and consistency.
+
+- [ ] Cache resolved settings by `organizationId` with short TTL (e.g., 300s) using `src/lib/cache.service.ts`.
+- [ ] Invalidate cache on update/import/reset.
+- [ ] Auto-create defaults when GET finds none.
 
 
 ## 8) Testing (Vitest)
 
-- Service unit tests: validation, CRUD, import/export, reset.
-- API integration tests: auth, RBAC, happy-path, validation errors.
-- Component tests: rendering tabs, toggling, save flow, export, reset.
-- Use Vitest + existing test setup (`vitest.setup.ts`), not Jest.
+Comprehensive coverage using existing Vitest setup.
+
+- [ ] Service tests: validation cases, transactions, defaults, import/export, reset.
+- [ ] API tests: auth failures, RBAC, happy-path, validation errors, export/import/reset.
+- [ ] Component tests: tab rendering, toggles, save flow, export download, reset flow.
 
 
 ## 9) Netlify & Ops
 
-- Ensure `NETLIFY_DATABASE_URL` present (already used in Prisma datasource).
-- Verify Next.js app functions build via `@netlify/plugin-nextjs` and `netlify.toml`.
-- No extra Netlify Functions required; endpoints live under Next API routes.
+Verify deployability and env setup.
+
+- [ ] Ensure `NETLIFY_DATABASE_URL` and NextAuth envs are set in Netlify settings.
+- [ ] Confirm `@netlify/plugin-nextjs` builds API routes in `netlify.toml`.
+- [ ] Build pipeline passes lint, typecheck, and build scripts in `package.json`.
 
 
-## 10) Rollout Plan
+## 10) Rollout Plan (dependency-ordered)
 
-1) Land Prisma models + migrate
-2) Add types + service
-3) Wire API routes
-4) Add RBAC keys
-5) Build UI + page route
-6) Add caching + invalidation
-7) Add tests (service, API, UI)
-8) Manual QA in admin
-9) Deploy via Netlify
-
-
-## Actionable Checklist
-
-- [ ] Prisma models added and migrated
-- [ ] Types file created and exported
-- [ ] Service implemented with transactions and validation
-- [ ] API routes created with RBAC + audit logs
-- [ ] Permissions extended and mapped
-- [ ] UI component and admin page added
-- [ ] Caching/invalidation implemented
-- [ ] Vitest tests for service/API/UI passing
-- [ ] Netlify envs verified; build succeeds
-- [ ] Documentation updated (this file) with status
+- [ ] Prisma models + migration
+- [ ] Types file
+- [ ] Service layer
+- [ ] API routes
+- [ ] RBAC keys/mapping
+- [ ] UI page + component
+- [ ] Caching + invalidation
+- [ ] Vitest tests (service/API/UI)
+- [ ] Admin QA
+- [ ] Netlify deploy
