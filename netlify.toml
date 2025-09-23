@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=${PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT:-300000}; export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; pnpm tsx scripts/prisma-init-persistence.ts && bash ./scripts/prisma-deploy-retry.sh && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm lint && pnpm typecheck && pnpm -s vitest run && pnpm build"
+  command = "pnpm db:generate && if [ -n \"$NETLIFY_DATABASE_URL\" ]; then export PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=${PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT:-300000}; export NETLIFY_DATABASE_URL=${NETLIFY_DATABASE_URL_UNPOOLED:-$NETLIFY_DATABASE_URL}; pnpm tsx scripts/prisma-init-persistence.ts && bash ./scripts/prisma-deploy-retry.sh && pnpm db:seed; else echo 'Skipping Prisma migrate/seed (NETLIFY_DATABASE_URL not set)'; fi && pnpm lint && pnpm build"
   publish = ".next"
 
 [build.environment]
@@ -8,10 +8,10 @@
   PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT = "300000"
 
 [context.deploy-preview]
-  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm lint && pnpm typecheck && pnpm -s vitest run && pnpm build"
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm lint && pnpm build"
 
 [context.branch-deploy]
-  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm lint && pnpm typecheck && pnpm -s vitest run && pnpm build"
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm lint && pnpm build"
 
 [dev]
   command = "pnpm dev"

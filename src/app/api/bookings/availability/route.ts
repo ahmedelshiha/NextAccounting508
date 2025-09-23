@@ -59,6 +59,7 @@ function ymd(d: Date) {
 // GET /api/bookings/availability - Get available time slots
 export async function GET(request: NextRequest) {
   try {
+    console.log('[availability] GET start')
     const { searchParams } = new URL(request.url)
     const serviceId = searchParams.get('serviceId')
     const dateParam = searchParams.get('date')
@@ -74,7 +75,11 @@ export async function GET(request: NextRequest) {
     }
 
     const service = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!service || String((service as any).status).toUpperCase() !== 'ACTIVE' || service.bookingEnabled === false) {
+    if (!service) return NextResponse.json({ error: 'Service not available for booking' }, { status: 404 })
+    // Support either string status OR legacy boolean active flag on service
+    const hasStatus = typeof (service as any).status === 'string'
+    const isActive = hasStatus ? String((service as any).status).toUpperCase() === 'ACTIVE' : ((service as any).active !== false)
+    if (!isActive || service.bookingEnabled === false) {
       return NextResponse.json({ error: 'Service not available for booking' }, { status: 404 })
     }
 
@@ -127,46 +132,56 @@ export async function GET(request: NextRequest) {
 
     // Group slots by day and compute optional pricing
     const byDay = new Map<string, any[]>()
+    // Compute one price per request to avoid per-slot async work during availability
+    let globalPriceCents: number | undefined
+    let globalCurrency: string | undefined
+    if (includePrice) {
+      try {
+        const refDate = filtered.length ? new Date(filtered[0].start) : new Date()
+        const price = await calculateServicePrice({
+          serviceId,
+          scheduledAt: refDate,
+          durationMinutes: service.duration || 60,
+          options: {
+            currency,
+            promoCode,
+            promoResolver: async (code: string, { serviceId }) => {
+              const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+              if (!svc) return null
+              const base = Number(svc.price ?? 0)
+              const baseCents = Math.round(base * 100)
+              const uc = code.toUpperCase()
+              if (uc === 'WELCOME10') return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: Math.round(baseCents * -0.1) }
+              if (uc === 'SAVE15') return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: Math.round(baseCents * -0.15) }
+              return null
+            },
+          },
+        })
+        globalPriceCents = price.totalCents
+        globalCurrency = price.currency
+      } catch (e) {
+        // ignore pricing errors and leave prices undefined
+      }
+    }
+
     for (const s of filtered) {
       if (!s.available) continue
       const start = new Date(s.start)
       const key = ymd(start)
       if (!byDay.has(key)) byDay.set(key, [])
 
-      let priceCents: number | undefined
-      let priceCurrency: string | undefined
-      if (includePrice) {
-        try {
-          const price = await calculateServicePrice({
-            serviceId,
-            scheduledAt: start,
-            durationMinutes: service.duration || 60,
-            options: {
-              currency,
-              promoCode,
-              promoResolver: async (code: string, { serviceId }) => {
-                const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-                if (!svc) return null
-                const base = Number(svc.price ?? 0)
-                const baseCents = Math.round(base * 100)
-                const uc = code.toUpperCase()
-                if (uc === 'WELCOME10') return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: Math.round(baseCents * -0.1) }
-                if (uc === 'SAVE15') return { code: 'PROMO_SAVE15', label: 'Promo SAVE15', amountCents: Math.round(baseCents * -0.15) }
-                return null
-              },
-            },
-          })
-          priceCents = price.totalCents
-          priceCurrency = price.currency
-        } catch {}
-      }
-
-      byDay.get(key)!.push({
+      const entry: any = {
         start: s.start,
         end: s.end,
         available: true,
-        ...(priceCents != null ? { priceCents, currency: priceCurrency } : {}),
-      })
+      }
+
+      if (globalPriceCents != null) {
+        entry.priceCents = globalPriceCents
+        entry.currency = globalCurrency
+      }
+
+      byDay.get(key)!.push(entry)
     }
 
     const availability = Array.from(byDay.entries())

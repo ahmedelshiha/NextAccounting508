@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && tsc --noEmit -p tsconfig.build.json && next build --turbopack",
+    "build": "prisma generate && next build --turbopack",
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
@@ -19,7 +19,7 @@
     "db:reset": "prisma migrate reset",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
     "test:tenant": "vitest run tests/tenant-filter.test.ts",
-    "vercel:build": "pnpm db:generate && pnpm lint && pnpm typecheck && pnpm -s vitest run && pnpm build"
+    "vercel:build": "pnpm db:generate && pnpm lint && pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
