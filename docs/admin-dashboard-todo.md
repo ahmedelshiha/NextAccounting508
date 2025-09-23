@@ -80,3 +80,81 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
 - [ ] If IA changes, update the Sidebar section in both ./quickbooks_dashboard_complete.md and ./dashboard-structure.md
 - [ ] Capture deviations from spec in this TODO with rationale and link to commit
+
+---
+
+## Portal Audit – Action Items (pre-coding)
+Source: Client Portal Audit (user-provided)
+
+### Navigation & IA
+- [ ] Align labels: “Service Requests” vs “Appointments/Bookings” across UI and filters
+  - Acceptance: identical wording in portal pages and query param names; no mixed terms in UI strings
+- [ ] Add shared filter components to reduce duplication between admin and portal
+  - Acceptance: portal pages use src/components/dashboard/FilterBar.tsx or a shared variant without regressions
+
+### Access Control & Security
+- [ ] Enforce ownership/tenant on booking cancellation (DELETE /api/bookings/:id)
+  - Acceptance: request rejected when session.user.id doesn’t own booking or tenantId mismatch; tests cover both
+- [ ] Confirm all /api/portal/** routes check getServerSession + client ownership
+  - Acceptance: negative tests for cross-user access return 403/404 consistently
+- [ ] Add 405 handling to all portal route handlers for unsupported methods
+  - Acceptance: OPTIONS/PUT/etc. on GET-only routes return 405 with Allow header
+
+### Realtime (WS/SSE)
+- [ ] Create portal-specific notifications hook backed by /api/portal/realtime
+  - Acceptance: useClientNotifications no longer connects to /api/admin/realtime from portal; events rendered in UI
+- [ ] Decide SSE naming: keep /api/portal/realtime and restrict /api/admin/realtime to admin, or expose shared /api/realtime
+  - Acceptance: doc updated; code uses the chosen endpoint; rate limits unchanged
+- [ ] Log SSE connection counts and errors with route tags
+  - Acceptance: events visible via src/app/api/health/logs/route.ts output
+
+### Notifications & Chat
+- [ ] LiveChatWidget uses /api/portal/chat and /api/portal/realtime (chat-message); supports offline queue
+  - Acceptance: sending while offline enqueues and flushes on reconnect; badge count updates
+
+### Booking UX
+- [ ] Portal dashboard page.tsx supports cancel + CSV export; verify query filters in useBookings scope 'portal'
+  - Acceptance: cancel calls mutate cache; export respects current filters
+- [ ] ServiceRequestsClient tabs (all/requests/appointments) map to back-end type filters
+  - Acceptance: URL params reflect current tab; API returns filtered data
+
+### Preferences (Settings)
+- [ ] GET/PUT /api/portal/settings/booking-preferences connected to settings page
+  - Acceptance: zod-validated form; optimistic update with rollback on error
+
+### Offline/PWA
+- [ ] Ensure OfflineQueueInspector works with IndexedDB “af-offline”; SW background sync flush
+  - Acceptance: create SR offline, verify it flushes and UI reflects success after reconnect
+
+### API & Schemas
+- [ ] Export zod schemas/types for portal client consumption
+  - Acceptance: shared types imported in portal components; type-safe api client created
+- [ ] Enforce pagination caps and document cursor pagination option for large data
+  - Acceptance: page size > max is clamped; API returns warning meta field
+
+### Testing
+- [ ] Unit: zod validators and owner/tenant guards for all portal routes
+- [ ] Integration: create SR/booking, comments, confirm/reschedule happy-path
+- [ ] E2E (Playwright): filters, pagination, CSV export, offline queue, chat send/receive
+  - Acceptance: green test suite; documented in CI job
+
+### Observability & Performance
+- [ ] Add debounce for client CSV generation for large datasets
+  - Acceptance: 500+ rows export without UI stutter
+- [ ] Ensure realtime errors captured with route labels (lib/observability)
+  - Acceptance: errors visible with correct tags in logs
+
+### A11y & i18n
+- [ ] Apply existing locales under src/app/locales/* to portal UI strings; ensure aria labels present
+  - Acceptance: en/ar/hi keys added where strings exist; basic keyboard nav works across controls
+
+### Integration & Shared Modules
+- [ ] Consolidate availability/pricing adapters behind shared facade with clear error surfaces
+  - Acceptance: both portal and admin use the adapter; errors rendered consistently
+
+References
+- Portal pages: src/app/portal/*
+- Portal APIs: src/app/api/portal/*
+- Portal components: src/components/portal/*
+- Hooks: src/hooks/useBookings.ts, src/hooks/useBookingsSocket.ts, src/hooks/useRealtime.ts, src/hooks/useClientNotifications.ts
+- Middleware/guards: src/middleware.ts, src/lib/auth.ts, src/lib/tenant.ts, src/lib/permissions.ts
