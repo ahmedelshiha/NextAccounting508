@@ -45,10 +45,33 @@ describe('admin/booking-settings API RBAC', () => {
     expect(res.status).toBe(401)
   })
 
+  it('TEAM_LEAD can GET settings', async () => {
+    mockSession('TEAM_LEAD')
+    const mod = await import('@/app/api/admin/booking-settings/route')
+    const res: any = await mod.GET(new Request(`${base}/api/admin/booking-settings`))
+    expect(res.status).toBe(200)
+  })
+
+  it('TEAM_LEAD can PUT updates', async () => {
+    mockSession('TEAM_LEAD')
+    const mod = await import('@/app/api/admin/booking-settings/route')
+    // Ensure defaults exist
+    await mod.GET(new Request(`${base}/api/admin/booking-settings`))
+    const res: any = await mod.PUT(new Request(`${base}/api/admin/booking-settings`, { method: 'PUT', body: JSON.stringify({}) }))
+    expect(res.status).toBe(200)
+  })
+
   it('IMPORT returns 401 for TEAM_LEAD (no import permission)', async () => {
     mockSession('TEAM_LEAD')
     const mod = await import('@/app/api/admin/booking-settings/import/route')
     const res: any = await mod.POST(new Request(`${base}/api/admin/booking-settings/import`, { method: 'POST', body: JSON.stringify({ data: { version: '1.0.0', settings: {}, steps: [], businessHours: [], paymentMethods: [], notificationTemplates: [], exportedAt: new Date().toISOString(), }, overwriteExisting: false, selectedSections: [] }) }))
+    expect(res.status).toBe(401)
+  })
+
+  it('RESET returns 401 for TEAM_LEAD (no reset permission)', async () => {
+    mockSession('TEAM_LEAD')
+    const mod = await import('@/app/api/admin/booking-settings/reset/route')
+    const res: any = await mod.POST(new Request(`${base}/api/admin/booking-settings/reset`, { method: 'POST' }))
     expect(res.status).toBe(401)
   })
 

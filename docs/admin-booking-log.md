@@ -15,6 +15,21 @@
 - Why: Ensure correctness and RBAC enforcement; begin UI coverage.
 - Outcome: Service + API coverage complete; UI static render covered. Interactive UI tests limited by current static renderer.
 
+## 2025-09-23 (RBAC)
+- Work: Extended RBAC tests to ensure TEAM_LEAD can GET/PUT but cannot IMPORT/RESET for booking-settings endpoints.
+- Why: Match permissions mapping (TEAM_LEAD has view/edit/export only) and prevent privilege escalation.
+- Outcome: RBAC behavior verified via tests in `tests/booking-settings.api-auth.test.ts`.
+
+## 2025-09-23 (Admin QA automation)
+- Work: Added integration tests covering PUT success, export/import cycle, business-hours, payment-methods, and reset flows in `tests/booking-settings.api.test.ts`.
+- Why: Automate admin QA checklist assertions to prevent regressions.
+- Outcome: Full CRUD and lifecycle behaviors verified under default ADMIN session.
+
+## 2025-09-23 (UI tests + lint)
+- Work: Strengthened static render test to assert presence of Export/Reset/Save actions. Resolved ESLint warning by exporting a named instance from booking-settings.service.
+- Why: Improve confidence in panel rendering with current static renderer; keep CI clean.
+- Outcome: Tests pass locally; lint warning removed.
+
 ## 2025-09-23 (ops)
 - Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
 - Why: Ensure smooth production deploys and structured QA before release.

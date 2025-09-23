@@ -64,6 +64,15 @@ describe('admin/booking-settings API', () => {
     expect(Array.isArray(out.errors)).toBe(true)
   })
 
+  it('PUT accepts a valid minimal update (200)', async () => {
+    const mod = await import('@/app/api/admin/booking-settings/route')
+    await mod.GET(new Request(`${base}/api/admin/booking-settings`))
+    const res: any = await mod.PUT(new Request(`${base}/api/admin/booking-settings`, { method: 'PUT', body: JSON.stringify({}) }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json?.settings?.id).toBeDefined()
+  })
+
   it('export and reset routes respond successfully', async () => {
     const expMod = await import('@/app/api/admin/booking-settings/export/route')
     const resetMod = await import('@/app/api/admin/booking-settings/reset/route')
@@ -78,6 +87,22 @@ describe('admin/booking-settings API', () => {
 
     const res2: any = await resetMod.POST(new Request(`${base}/api/admin/booking-settings/reset`, { method: 'POST' }))
     expect(res2.status).toBe(200)
+  })
+
+  it('import route accepts exported payload (200)', async () => {
+    const main = await import('@/app/api/admin/booking-settings/route')
+    const expMod = await import('@/app/api/admin/booking-settings/export/route')
+    const impMod = await import('@/app/api/admin/booking-settings/import/route')
+
+    await main.GET(new Request(`${base}/api/admin/booking-settings`))
+    const resExport: any = await expMod.GET(new Request(`${base}/api/admin/booking-settings/export`))
+    const exported = await resExport.json()
+
+    const importBody = { data: exported, overwriteExisting: true, selectedSections: ['settings','steps','businessHours','paymentMethods','notifications'] }
+    const resImport: any = await impMod.POST(new Request(`${base}/api/admin/booking-settings/import`, { method: 'POST', body: JSON.stringify(importBody) }))
+    expect(resImport.status).toBe(200)
+    const out = await resImport.json()
+    expect(out?.settings?.id).toBeDefined()
   })
 
   it('business-hours and payment-methods routes update when settings exist', async () => {
