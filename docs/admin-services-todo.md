@@ -82,3 +82,8 @@ Notes about completed work
 Change log
 - See docs/admin-services-log.md for detailed entries of changes and rationales.
 
+
+Sentry Verification Hardening
+- [x] Configure Sentry tunnel (/monitoring) in Next + SDK to bypass ad blockers and CORS
+- [x] Add /api/sentry-check to verify DSN presence on server/client
+- [ ] Ensure Sentry Allowed Domains include preview/prod hosts (*.projects.builder.codes, *.fly.dev, production host)

@@ -13,4 +13,4 @@ const nextConfig = {
   turbopack: {},
 }
 
-export default withSentryConfig(nextConfig, { silent: true })
+export default withSentryConfig(nextConfig, { silent: true, tunnelRoute: '/monitoring' })
