@@ -4,7 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckSquare, Trash2, Eye, EyeOff, Star, StarOff, Tag, DollarSign, X } from 'lucide-react';
+import * as Lucide from 'lucide-react';
+const CheckSquare = (Lucide as any).CheckSquare || (() => null);
+const Trash2 = (Lucide as any).Trash2 || (() => null);
+const Eye = (Lucide as any).Eye || (() => null);
+const EyeOff = (Lucide as any).EyeOff || (() => null);
+const Star = (Lucide as any).Star || (() => null);
+const StarOff = (Lucide as any).StarOff || (() => null);
+const Tag = (Lucide as any).Tag || (() => null);
+const DollarSign = (Lucide as any).DollarSign || (() => null);
+const X = (Lucide as any).X || (() => null);
 import { BulkAction } from '@/types/services';
 import { validateBulkAction } from '@/lib/services/utils';
 
