@@ -26,7 +26,7 @@ const prisma: PrismaClientType = (() => {
     get(_target, prop) {
       if (!client) {
         if (!dbUrl) {
-          throw new Error('Database is not configured. Set NETLIFY_DATABASE_URL to enable DB features.')
+          throw new Error('Database is not configured. Set NETLIFY_DATABASE_URL or DATABASE_URL to enable DB features.')
         }
         client = createClient(dbUrl)
         if (process.env.NODE_ENV !== 'production') {
