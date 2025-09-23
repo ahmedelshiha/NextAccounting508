@@ -9,5 +9,6 @@
 - Implemented dashboard type system (src/types/dashboard.ts).
 - Verified and aligned core layout/navigation components under src/components/dashboard/* (Sidebar, Topbar, PageHeader, PrimaryTabs, SecondaryTabs, FilterBar, DataTable, DashboardLayout).
 - Wrapped src/app/admin/page.tsx with DashboardLayout, preserving existing UI while standardizing the shell.
-- Why: Aligns with QuickBooks-style shell for consistency and reuse across admin/portal.
-- Next: Wire tabs/filters to existing hooks/APIs; add A11y; run lint/typecheck/tests and address any issues.
+- Wired PrimaryTabs and FilterBar into admin dashboard with DataTable views for Bookings and Clients; added date/status filtering and formatting.
+- Why: Delivers actionable list views consistent with new shell and aligns with TODO Phase 5 wiring.
+- Next: A11y (ARIA/keyboard nav), integrate server-backed filters, and run lint/typecheck/tests.
