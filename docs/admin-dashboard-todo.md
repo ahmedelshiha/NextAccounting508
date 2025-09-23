@@ -60,7 +60,15 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
   - [ ] Services → use SWR to /api/admin/services + FilterBar/DataTable
   - [ ] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
+  - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
+  - [ ] Clients: columns id, name, email, role, status, createdAt
+  - [ ] Services: columns id, name, category, price, status, updatedAt
+  - [ ] Tasks: columns id, title, assignee, status, dueAt
 - [ ] Add batch actions (export/cancel/assign) where selection is enabled
+  - [x] Bookings/Service Requests: export (filters), cancel (bulk), assign (per id loop)
+  - [ ] Clients: bulk deactivate/role change
+  - [ ] Services: bulk activate/deactivate
+  - [ ] Tasks: bulk status update/export
 
 ## Phase 6 – UX, A11y, i18n
 - [x] Keyboard nav for Sidebar/Topbar and tabs
