@@ -21,7 +21,9 @@ export async function POST(request: Request) {
   const { serviceId, scheduledAt, duration, currency, promoCode, bookingType } = parsed.data
   try {
     const svc = await prisma.service.findUnique({ where: { id: serviceId } })
-    if (!svc || String((svc as any).status).toUpperCase() !== 'ACTIVE') return respond.notFound('Service not found or inactive')
+    const _status = (svc as any)?.status ? String((svc as any).status).toUpperCase() : undefined
+    const _active = (svc as any)?.active
+    if (!svc || (_status ? _status !== 'ACTIVE' : _active === false)) return respond.notFound('Service not found or inactive')
 
     const { calculateServicePrice } = await import('@/lib/booking/pricing')
     const bookingTypeNormalized = (bookingType || '').toUpperCase()
