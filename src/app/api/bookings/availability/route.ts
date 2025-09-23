@@ -59,6 +59,7 @@ function ymd(d: Date) {
 // GET /api/bookings/availability - Get available time slots
 export async function GET(request: NextRequest) {
   try {
+    console.log('[availability] GET start')
     const { searchParams } = new URL(request.url)
     const serviceId = searchParams.get('serviceId')
     const dateParam = searchParams.get('date')
