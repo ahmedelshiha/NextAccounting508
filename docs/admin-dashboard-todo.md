@@ -3,8 +3,8 @@
 Status legend: [ ] pending, [x] done, (→) owner/actionable note
 
 ## Linked Specifications (authoritative sources)
-- [ ] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
-- [ ] Implement using the component blueprints: ./dashboard-structure.md
+- [x] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
+- [x] Implement using the component blueprints: ./dashboard-structure.md
 
 ## Traceability Matrix (Spec → Deliverable)
 - [ ] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
