@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
+import { CacheService } from '@/lib/cache.service'
 import type {
   BookingSettings,
   BookingSettingsUpdateRequest,
@@ -19,9 +20,28 @@ import type {
  * All multi-entity updates are performed in transactions for consistency.
  * Settings are tenant-scoped: one record per tenantId (nullable for single-tenant deployments).
  */
+const cache = new CacheService()
+
 export class BookingSettingsService {
+  private cacheKey(tenantId: string | null) {
+    return `booking-settings:${tenantId ?? 'default'}`
+  }
+
+  private async invalidateByTenant(tenantId: string | null) {
+    await cache.delete(this.cacheKey(tenantId))
+  }
+
+  private async invalidateBySettingsId(settingsId: string) {
+    const row = await prisma.bookingSettings.findUnique({ where: { id: settingsId }, select: { tenantId: true } })
+    await this.invalidateByTenant(row?.tenantId ?? null)
+  }
+
   /** Fetch full settings for a tenant, including related configuration. */
   async getBookingSettings(tenantId: string | null): Promise<BookingSettings | null> {
+    const key = this.cacheKey(tenantId)
+    const cached = await cache.get<BookingSettings | null>(key)
+    if (cached) return cached
+
     const settings = await prisma.bookingSettings.findFirst({
       where: { tenantId: tenantId ?? undefined },
       include: {
@@ -31,23 +51,27 @@ export class BookingSettingsService {
         notificationTemplates: true,
       },
     })
+
+    if (settings) {
+      await cache.set(key, settings as unknown as BookingSettings, 300)
+    }
     return settings as unknown as BookingSettings | null
   }
 
   /** Create default settings for a tenant with sensible defaults. */
   async createDefaultSettings(tenantId: string | null): Promise<BookingSettings> {
-    let createdId = ''
     await prisma.$transaction(async (tx) => {
       const settings = await tx.bookingSettings.create({
         data: { tenantId: tenantId ?? null },
       })
-      createdId = settings.id
 
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
       await tx.businessHoursConfig.createMany({ data: this.defaultBusinessHours(settings.id) })
       await tx.paymentMethodConfig.createMany({ data: this.defaultPaymentMethods(settings.id) })
       await tx.notificationTemplate.createMany({ data: this.defaultNotificationTemplates(settings.id) })
     })
+
+    await this.invalidateByTenant(tenantId)
     const full = await this.getBookingSettings(tenantId)
     return full as BookingSettings
   }
@@ -75,8 +99,10 @@ export class BookingSettingsService {
 
     await prisma.bookingSettings.update({ where: { tenantId: tenantId ?? undefined }, data })
 
-    const updated = await this.getBookingSettings(tenantId)
-    return updated as BookingSettings
+    const updated = (await this.getBookingSettings(tenantId)) as BookingSettings
+    // Refresh cache with updated value
+    await cache.set(this.cacheKey(tenantId), updated, 300)
+    return updated
   }
 
   /** Replace step configuration. */
@@ -98,6 +124,7 @@ export class BookingSettingsService {
       })
       return tx.bookingStepConfig.findMany({ where: { bookingSettingsId: settingsId }, orderBy: { stepOrder: 'asc' } })
     })
+    await this.invalidateBySettingsId(settingsId)
     return result as unknown as BookingStepConfig[]
   }
 
@@ -119,6 +146,7 @@ export class BookingSettingsService {
       })
       return tx.businessHoursConfig.findMany({ where: { bookingSettingsId: settingsId }, orderBy: { dayOfWeek: 'asc' } })
     })
+    await this.invalidateBySettingsId(settingsId)
     return result as unknown as BusinessHoursConfig[]
   }
 
@@ -153,6 +181,7 @@ export class BookingSettingsService {
       }
     })
     const list = await prisma.paymentMethodConfig.findMany({ where: { bookingSettingsId: settingsId } })
+    await this.invalidateBySettingsId(settingsId)
     return list as unknown as PaymentMethodConfig[]
   }
 
@@ -276,6 +305,7 @@ export class BookingSettingsService {
       }
     })
 
+    await this.invalidateByTenant(tenantId)
     const updated = await this.getBookingSettings(tenantId)
     await logAudit({ action: 'booking-settings:import', details: { tenantId, sections: payload.selectedSections, overwrite: payload.overwriteExisting } })
     return updated as BookingSettings
@@ -293,6 +323,7 @@ export class BookingSettingsService {
         await tx.bookingSettings.delete({ where: { id: existing.id } })
       }
     })
+    await this.invalidateByTenant(tenantId)
     const fresh = await this.createDefaultSettings(tenantId)
     await logAudit({ action: 'booking-settings:reset', details: { tenantId } })
     return fresh

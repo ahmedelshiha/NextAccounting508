@@ -5,300 +5,103 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 
 ## Status Update
 
-- Completed: Created this implementation plan and checklist with dependency ordering and measurable tasks.
-- Why: Establish clear scope, reduce risk, and enable predictable delivery across backend, API, and UI.
-- Next: Implement Prisma data models and migrate database, then add types and service layer.
+- Completed: Prisma models, Types, Service layer (CRUD/validation/import/export/reset), API endpoints, RBAC permissions/mapping, BookingSettingsPanel UI, Booking Settings page wrapper, caching with invalidation, Vitest tests (service + API including RBAC), Netlify config verification.
+- Why: Provide a fully functional, secure, and performant admin module with automated coverage, ready for QA and deployment.
+- Next: Perform Admin QA using checklist below; finalize Netlify envs; optional UI interactive tests (requires DOM-capable renderer).
 
 
 ## 0) Current State Audit
 
-- Prisma schema lacks BookingSettings-related models (BookingSettings, BookingStepConfig, BusinessHoursConfig, PaymentMethodConfig, NotificationTemplate, AuditLog).
-- No API routes under `src/app/api/admin/booking-settings/*`.
-- No `src/services/booking-settings.service.ts` or `src/types/booking-settings.types.ts`.
-- Admin settings page exists (`src/app/admin/settings/page.tsx`), but no Booking Settings subpage.
-- Permissions do not include booking-specific keys (see `src/lib/permissions.ts`).
-- Netlify + Next.js + Prisma infrastructure is already configured (see `netlify.toml`, `package.json`).
+- Prisma schema includes BookingSettings and related models.
+- API routes under `src/app/api/admin/booking-settings/*` implemented.
+- `src/services/booking-settings.service.ts` implemented with validation and caching.
+- `src/types/booking-settings.types.ts` present.
+- Admin settings subpage created at `src/app/admin/settings/booking/page.tsx` and Panel at `src/components/admin/BookingSettingsPanel.tsx`.
+- Permissions include booking-specific keys (see `src/lib/permissions.ts`).
+- Netlify `netlify.toml` present with `@netlify/plugin-nextjs` and guarded Prisma migrate/seed steps.
 
 
-## 1) Data Model (Prisma) — add models and indexes
+## 1) Data Model (Prisma)
 
-Update `prisma/schema.prisma` with the following models and constraints. Keep naming consistent with existing conventions and enable tenant/org extension later if needed.
-
-- BookingSettings (one per org/tenant, unique)
-- BookingStepConfig (steps order + toggles)
-- BusinessHoursConfig (per day config)
-- PaymentMethodConfig (method toggles and limits)
-- NotificationTemplate (email/SMS templates)
-- AuditLog (generic audit trail for admin ops)
-
-Example Prisma models (adapt names/@@map as needed to match table naming style):
-
-```prisma
-model BookingSettings {
-  id                       String   @id @default(cuid())
-  organizationId           String   @unique
-  // General
-  bookingEnabled           Boolean  @default(true)
-  requireApproval          Boolean  @default(false)
-  allowCancellation        Boolean  @default(true)
-  allowRescheduling        Boolean  @default(true)
-  cancellationDeadlineHours Int     @default(24)
-  rescheduleDeadlineHours  Int      @default(4)
-  // Payments
-  paymentRequired          Boolean  @default(false)
-  acceptCash               Boolean  @default(true)
-  acceptCard               Boolean  @default(true)
-  acceptBankTransfer       Boolean  @default(false)
-  acceptWire               Boolean  @default(false)
-  acceptCrypto             Boolean  @default(false)
-  requireFullPayment       Boolean  @default(false)
-  allowPartialPayment      Boolean  @default(true)
-  depositPercentage        Int      @default(50)
-  // Steps
-  enableServiceSelection   Boolean  @default(true)
-  enableDateTimeSelection  Boolean  @default(true)
-  enableCustomerDetails    Boolean  @default(true)
-  enableAdditionalServices Boolean  @default(true)
-  enablePaymentStep        Boolean  @default(false)
-  enableConfirmationStep   Boolean  @default(true)
-  enableFileUpload         Boolean  @default(false)
-  enableSpecialRequests    Boolean  @default(true)
-  // Availability
-  advanceBookingDays       Int      @default(365)
-  minAdvanceBookingHours   Int      @default(2)
-  maxBookingsPerDay        Int      @default(50)
-  maxBookingsPerCustomer   Int      @default(5)
-  bufferTimeBetweenBookings Int     @default(15)
-  // Calendars
-  businessHours            Json?
-  blackoutDates            Json?
-  holidaySchedule          Json?
-  // Notifications
-  sendBookingConfirmation  Boolean  @default(true)
-  sendReminders            Boolean  @default(true)
-  reminderHours            Json?    // array of ints, e.g. [24,2]
-  notifyTeamMembers        Boolean  @default(true)
-  emailNotifications       Boolean  @default(true)
-  smsNotifications         Boolean  @default(false)
-  // Customer
-  requireLogin             Boolean  @default(false)
-  allowGuestBooking        Boolean  @default(true)
-  showPricing              Boolean  @default(true)
-  showTeamMemberSelection  Boolean  @default(false)
-  allowRecurringBookings   Boolean  @default(false)
-  enableWaitlist           Boolean  @default(false)
-  // Assignment
-  enableAutoAssignment     Boolean  @default(false)
-  assignmentStrategy       String   @default("ROUND_ROBIN")
-  considerWorkload         Boolean  @default(true)
-  considerSpecialization   Boolean  @default(true)
-  // Pricing
-  enableDynamicPricing     Boolean  @default(false)
-  peakHoursSurcharge       Decimal  @default(0.0)
-  weekendSurcharge         Decimal  @default(0.0)
-  emergencyBookingSurcharge Decimal @default(0.5)
-  // Integration
-  calendarSync             Boolean  @default(false)
-  webhookUrl               String?
-  apiAccessEnabled         Boolean  @default(false)
-  // Meta
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
-  updatedBy                String?
-  // Relations
-  steps                    BookingStepConfig[]
-  businessHoursConfig      BusinessHoursConfig[]
-  paymentMethods           PaymentMethodConfig[]
-  notificationTemplates    NotificationTemplate[]
-}
-
-model BookingStepConfig {
-  id                 String  @id @default(cuid())
-  bookingSettingsId  String
-  stepName           String
-  stepOrder          Int
-  enabled            Boolean @default(true)
-  required           Boolean @default(true)
-  title              String
-  description        String?
-  validationRules    Json?
-  customFields       Json?
-  createdAt          DateTime @default(now())
-
-  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
-
-  @@index([bookingSettingsId, stepOrder])
-}
-
-model BusinessHoursConfig {
-  id                 String  @id @default(cuid())
-  bookingSettingsId  String
-  dayOfWeek          Int     // 0-6
-  isWorkingDay       Boolean @default(true)
-  startTime          String?
-  endTime            String?
-  breakStartTime     String?
-  breakEndTime       String?
-  maxBookingsPerHour Int     @default(4)
-
-  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
-
-  @@index([bookingSettingsId, dayOfWeek])
-}
-
-model PaymentMethodConfig {
-  id                 String  @id @default(cuid())
-  bookingSettingsId  String
-  methodType         String
-  enabled            Boolean @default(true)
-  displayName        String
-  description        String?
-  processingFee      Decimal @default(0.0)
-  minAmount          Decimal @default(0.0)
-  maxAmount          Decimal?
-  gatewayConfig      Json?
-
-  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
-
-  @@unique([bookingSettingsId, methodType])
-}
-
-model NotificationTemplate {
-  id                 String  @id @default(cuid())
-  bookingSettingsId  String
-  templateType       String
-  channel            String
-  enabled            Boolean @default(true)
-  subject            String?
-  content            String   @db.Text
-  variables          Json?
-
-  settings BookingSettings @relation(fields: [bookingSettingsId], references: [id], onDelete: Cascade)
-
-  @@index([bookingSettingsId, templateType])
-}
-
-model AuditLog {
-  id             String   @id @default(cuid())
-  userId         String?
-  organizationId String?
-  action         String
-  resource       String
-  details        Json?
-  ipAddress      String?
-  userAgent      String?
-  timestamp      DateTime @default(now())
-
-  @@index([organizationId, timestamp])
-}
-```
-
-Migration checklist:
-- [ ] Add models above to `prisma/schema.prisma`.
-- [ ] Run `pnpm db:generate`.
-- [ ] Run `pnpm db:push` (or `migrate dev/deploy` as appropriate).
-- [ ] Open `prisma studio` and confirm tables and indexes exist.
-
+- [x] Models added and pushed.
 
 ## 2) Types
 
-Create `src/types/booking-settings.types.ts` with strongly-typed interfaces and unions aligned to Prisma models.
-
-- [ ] Define BookingSettings, BookingStepConfig, BusinessHoursConfig, PaymentMethodConfig, NotificationTemplate, and export/import payloads.
-- [ ] Export enums/unions (PaymentMethodType, AssignmentStrategy, Notification channels/types, DayOfWeek).
-- [ ] Ensure numeric ranges and optionality match database defaults.
-
+- [x] Interfaces and unions defined.
 
 ## 3) Service Layer
 
-Add `src/services/booking-settings.service.ts` implementing business logic and validation.
+- [x] All operations + validation + caching/invalidation.
 
-- [ ] getBookingSettings(orgId): include steps, business hours, payment methods, notification templates.
-- [ ] createDefaultSettings(orgId): seed defaults in a single transaction.
-- [ ] updateBookingSettings(orgId, updates): validate, merge sections, update, return hydrated result.
-- [ ] updateBookingSteps(settingsId, steps): replace set transactionally by order.
-- [ ] updateBusinessHours(settingsId, hours): replace per-day config.
-- [ ] updatePaymentMethods(settingsId, methods): upsert by methodType.
-- [ ] validateSettingsUpdate(orgId, updates): cross-field rules (e.g., paymentRequired => at least one method enabled; deposit 10–100; min/max windows, etc.).
-- [ ] exportSettings(orgId) / importSettings(orgId, data): versioned payloads, selectable sections, overwrite option.
-- [ ] resetToDefaults(orgId): delete then recreate defaults.
-- [ ] Emit non-blocking settings change event (console stub acceptable initially).
+## 4) API Endpoints (App Router)
 
-
-## 4) API Endpoints (Next.js App Router)
-
-Create endpoints under `src/app/api/admin/booking-settings/` with RBAC + audit logging.
-
-- [ ] `route.ts` GET: fetch or create defaults; PUT: validate, update, log action.
-- [ ] `steps/route.ts` PUT: replace steps; log action.
-- [ ] `business-hours/route.ts` PUT: replace hours; log action.
-- [ ] `payment-methods/route.ts` PUT: upsert methods; log action.
-- [ ] `export/route.ts` GET: export with version; log action.
-- [ ] `import/route.ts` POST: import selected sections; log action.
-- [ ] `reset/route.ts` POST: backup id (if available), reset to defaults; log action.
-- [ ] `validate/route.ts` POST: return validation result; no mutation.
-
-Endpoint guardrails:
-- [ ] Enforce session via `getServerSession(authOptions)`.
-- [ ] Use `hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_*)`.
-- [ ] Read `organizationId` from session.
-- [ ] Wrap audit log writes in try/catch to avoid breaking main flow.
-
+- [x] GET/PUT + steps + business-hours + payment-methods + export + import + reset + validate.
 
 ## 5) RBAC
 
-Update `src/lib/permissions.ts` with booking permissions and role mapping.
-
-- [ ] Add: BOOKING_SETTINGS_VIEW, BOOKING_SETTINGS_EDIT, BOOKING_SETTINGS_EXPORT, BOOKING_SETTINGS_IMPORT, BOOKING_SETTINGS_RESET.
-- [ ] Map to `ADMIN` (all) and `TEAM_LEAD` (VIEW, EDIT, EXPORT) as needed.
-- [ ] Verify usage in all new endpoints.
-
+- [x] Permissions and role mapping; endpoint checks.
 
 ## 6) UI — Admin Panel
 
-Add Booking Settings UI and page.
-
-- [ ] `src/components/admin/BookingSettingsPanel.tsx`: tabbed UI, local changes, save/reset/export, render server validation errors/warnings.
-- [ ] `src/app/admin/settings/booking/page.tsx`: page wrapper; authorize and render panel via `PermissionGate`.
-- [ ] Use `src/components/ui/*` primitives; keep existing styles and spacing system.
-
+- [x] Panel and page wrapper implemented.
 
 ## 7) Caching & Defaults
 
-Settings retrieval performance and consistency.
-
-- [ ] Cache resolved settings by `organizationId` with short TTL (e.g., 300s) using `src/lib/cache.service.ts`.
-- [ ] Invalidate cache on update/import/reset.
-- [ ] Auto-create defaults when GET finds none.
-
+- [x] Tenant-scoped cache with TTL; invalidation on mutations; auto-defaults.
 
 ## 8) Testing (Vitest)
 
-Comprehensive coverage using existing Vitest setup.
-
-- [ ] Service tests: validation cases, transactions, defaults, import/export, reset.
-- [ ] API tests: auth failures, RBAC, happy-path, validation errors, export/import/reset.
-- [ ] Component tests: tab rendering, toggles, save flow, export download, reset flow.
-
+- [x] Service tests: validation, defaults, updates, export/import/reset, caching.
+- [x] API tests: happy-path and RBAC (unauthorized cases for CLIENT/TEAM_LEAD, admin reset/export success).
+- [ ] Component tests: static render covered. Interactive flows (save/export/reset) require a DOM-capable renderer; out of scope for now.
 
 ## 9) Netlify & Ops
 
-Verify deployability and env setup.
+- [x] netlify.toml verified: build runs Prisma generate, guarded migrate/seed, lint, build; plugin `@netlify/plugin-nextjs` included; publish `.next`.
+- [ ] Set environment variables in Netlify → Site settings → Build & deploy → Environment:
+  - NETLIFY_DATABASE_URL or NETLIFY_DATABASE_URL_UNPOOLED
+  - NEXTAUTH_URL
+  - NEXTAUTH_SECRET
+  - SENDGRID_API_KEY
+  - FROM_EMAIL
+  - CRON_SECRET
+  - PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT=300000
+- [ ] Trigger production build; confirm deploy success and serverless functions availability.
 
-- [ ] Ensure `NETLIFY_DATABASE_URL` and NextAuth envs are set in Netlify settings.
-- [ ] Confirm `@netlify/plugin-nextjs` builds API routes in `netlify.toml`.
-- [ ] Build pipeline passes lint, typecheck, and build scripts in `package.json`.
+## 10) Admin QA Checklist (Booking Settings)
 
+- Authentication & RBAC
+  - [ ] CLIENT cannot access /api/admin/booking-settings (401)
+  - [ ] TEAM_LEAD can GET/PUT, cannot IMPORT/RESET (401)
+  - [ ] ADMIN full access
+- Settings CRUD
+  - [ ] GET creates defaults when missing; UI loads
+  - [ ] Update general (requireApproval) persists and reflects on reload
+  - [ ] PaymentRequired=true requires at least one method (validation error shown)
+  - [ ] Deposit percentage invalid range rejected (10–100)
+- Steps & Hours & Payments
+  - [ ] Replace steps via API and confirm order
+  - [ ] Replace business hours and confirm UI reflects
+  - [ ] Upsert payment methods (CARD, CASH)
+- Import/Export/Reset
+  - [ ] Export JSON downloads with version=1.0.0
+  - [ ] Import selected sections with overwrite
+  - [ ] Reset restores defaults
+- Notifications & Assignment & Pricing
+  - [ ] Reminder hours accept 0–8760 only
+  - [ ] Assignment strategy changes persist
+  - [ ] Surcharge fields accept 0–2 only (0–200%)
 
-## 10) Rollout Plan (dependency-ordered)
+## 11) Rollout Plan
 
-- [ ] Prisma models + migration
-- [ ] Types file
-- [ ] Service layer
-- [ ] API routes
-- [ ] RBAC keys/mapping
-- [ ] UI page + component
-- [ ] Caching + invalidation
-- [ ] Vitest tests (service/API/UI)
+- [x] Prisma models + migration
+- [x] Types file
+- [x] Service layer (+ caching)
+- [x] API routes
+- [x] RBAC keys/mapping
+- [x] UI page + component
+- [x] Caching + invalidation
+- [x] Vitest tests (service + API RBAC)
+- [ ] UI tests (static done; interactive pending)
 - [ ] Admin QA
 - [ ] Netlify deploy
