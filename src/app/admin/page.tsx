@@ -2179,7 +2179,10 @@ export default function ProfessionalAdminDashboard() {
           onExport={handleExport}
           onMarkAllRead={handleMarkAllRead}
         />
-        <ProfessionalKPIGrid data={dashboardData} />
+        <PrimaryTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+        {activeTab === 'overview' && (
+          <>
+            <ProfessionalKPIGrid data={dashboardData} />
         <SmartQuickActions data={dashboardData} />
         <ServiceRequestsSummary />
         <TeamWorkloadSummary />
@@ -2227,6 +2230,39 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </div>
         </div>
+          </>
+        )}
+
+        {activeTab === 'bookings' && (
+          <>
+            <FilterBar filters={filterConfigs} onFilterChange={onFilterChange} />
+            <DataTable columns={bookingColumns} rows={bookingRows} loading={loading} />
+          </>
+        )}
+
+        {activeTab === 'clients' && (
+          <DataTable columns={clientColumns} rows={clientRows} loading={loading} />
+        )}
+
+        {activeTab === 'revenue' && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Business Intelligence</CardTitle>
+                  <CardDescription>Advanced analytics and performance insights</CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Full Analytics
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <BusinessIntelligence dashboard={dashboardData} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   )
