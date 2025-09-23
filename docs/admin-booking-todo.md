@@ -5,9 +5,9 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 
 ## Status Update
 
-- Completed: Prisma models, Types, Service layer (CRUD/validation/import/export/reset), API endpoints, RBAC permissions/mapping, BookingSettingsPanel UI, Booking Settings page wrapper, caching with invalidation, Vitest tests (service + API including RBAC), Netlify config verification.
+- Completed: Prisma models, Types, Service layer (CRUD/validation/import/export/reset), API endpoints, RBAC permissions/mapping, BookingSettingsPanel UI, Booking Settings page wrapper, caching with invalidation, Vitest tests (service + API incl. RBAC), extended RBAC tests for TEAM_LEAD (GET/PUT allowed; IMPORT/RESET denied), Netlify config verification.
 - Why: Provide a fully functional, secure, and performant admin module with automated coverage, ready for QA and deployment.
-- Next: Perform Admin QA using checklist below; finalize Netlify envs; optional UI interactive tests (requires DOM-capable renderer).
+- Next: Admin QA automation (CRUD, steps, hours, payments, export/import/reset), finalize Netlify envs, optional UI interactive tests (DOM-capable renderer).
 
 
 ## 0) Current State Audit
