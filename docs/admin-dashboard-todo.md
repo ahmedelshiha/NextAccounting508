@@ -27,6 +27,46 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] List reusable primitives (buttons, cards, dropdowns, badges) and adopt them
 - [x] Map existing data hooks/endpoints to new views (bookings, clients, services, tasks, analytics)
 
+## Ordered Work Plan (Next Steps)
+
+1) Clients module
+- [ ] Build ClientsList (src/components/dashboard/lists/ClientsList.tsx) using SWR to GET /api/admin/users with q, role/status, dateFrom/dateTo
+- [ ] Add list host page at /admin/users/list
+- [ ] Columns: id, name, email, role, status, createdAt
+- [ ] Batch: loop PATCH /api/admin/users/:id for role/status changes; show confirmation; refresh list
+  - Acceptance: table renders ≥10 users with sortable columns; changing role/status updates server and UI; selection toolbar shows count and disables when 0
+
+2) Services module
+- [ ] Build ServicesList (src/components/dashboard/lists/ServicesList.tsx) using SWR to GET /api/admin/services
+- [ ] Add list host page at /admin/services/list
+- [ ] Columns: id, name, category, price, status, updatedAt
+- [ ] Batch: POST /api/admin/services/bulk with ACTIVATE/DEACTIVATE; show result and partial error counts
+  - Acceptance: bulk operations update status for selected rows; CSV export respects filters; selection persists across pages only within current page
+
+3) Tasks module
+- [ ] Build TasksList (src/components/dashboard/lists/TasksList.tsx) using GET /api/admin/tasks (+filters q,status,assignee,date)
+- [ ] Add list host page at /admin/tasks/list
+- [ ] Columns: id, title, assignee, status, dueAt
+- [ ] Batch: POST /api/admin/tasks/bulk (status/export); wire to selection toolbar
+  - Acceptance: status changes reflect instantly; export contains visible columns; error toasts on failed updates
+
+4) UX/A11y/i18n enhancements
+- [ ] Announce filter changes and selection counts via aria-live region in FilterBar/DataTable footer
+- [ ] Localize new UI strings (en/ar/hi) using src/app/locales/*
+  - Acceptance: screen readers announce “3 filters active” and “N selected”; visible strings translated for existing locales
+
+5) Performance & Quality
+- [ ] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
+- [ ] Memoize heavy cell renderers; verify no unnecessary re-renders
+- [ ] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
+  - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
+
+6) Docs & Handoff
+- [ ] Validate ./dashboard-structure.md code blocks compile as-is
+- [ ] Cross-check naming/props against ./quickbooks_dashboard_complete.md
+- [ ] Note extension points (adding nav items, columns, filters) and migration notes
+  - Acceptance: docs reflect final IA and component APIs; examples compile in isolation
+
 ## Phase 2 – Information Architecture (IA)
 - [x] Define grouped nav for accounting + booking system
   - [ ] Clients → Client List, Invitations, Profiles
@@ -88,6 +128,21 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] Note extension points (adding nav items, columns, filters)
 - [ ] Record migration notes for any route reorganizations
 
+## Documentation Update – 2025-09-23
+- [x] What was completed
+  - Extracted Sidebar nav config and added ARIA/keyboard navigation across Sidebar/Topbar/Tabs
+  - Validated routes and added redirects for missing admin paths
+  - Implemented BookingsList wired to useBookings with FilterBar and DataTable
+  - Aligned bookings columns with Prisma (ID, Client, Service, Status, Payment, Date)
+  - Added selection toolbar with batch Export/Cancel/Assign for bookings
+- [x] Why it was done
+  - Decouple IA from UI, prevent broken navigation, and establish a reusable pattern for list views
+  - Improve accessibility and set a baseline for all subsequent list modules
+- [x] Next steps
+  - Implement Clients/Services/Tasks lists following the established pattern
+  - Add aria-live announcements and localization for new strings
+  - Run lint/typecheck/tests and finalize docs/handoff
+
 ## Doc Sync Tasks (keep in sync as work progresses)
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
 - [ ] If IA changes, update the Sidebar section in both ./quickbooks_dashboard_complete.md and ./dashboard-structure.md
@@ -99,7 +154,7 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 Source: Client Portal Audit (user-provided)
 
 ### Navigation & IA
-- [ ] Align labels: “Service Requests” vs “Appointments/Bookings” across UI and filters
+- [ ] Align labels: “Service Requests�� vs “Appointments/Bookings” across UI and filters
   - Acceptance: identical wording in portal pages and query param names; no mixed terms in UI strings
 - [ ] Add shared filter components to reduce duplication between admin and portal
   - Acceptance: portal pages use src/components/dashboard/FilterBar.tsx or a shared variant without regressions
