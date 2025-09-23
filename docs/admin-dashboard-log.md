@@ -17,3 +17,8 @@
 - Extracted Sidebar navigation to a reusable config (src/components/dashboard/nav.config.ts). Updated Sidebar to consume the config and added minimal ARIA (aria-expanded, aria-current).
 - Why: Decouple IA from UI, enable reuse across admin/portal, and simplify future route validation and icon updates.
 - Next: Validate routes exist or add redirects/stubs; add keyboard navigation; wire tabs/filters to hooks; ensure DataTable columns align with Prisma models.
+
+## 2025-09-23 (later+)
+- Validated Sidebar routes and added redirects for missing pages to closest existing destinations (e.g., /admin/clients/invitations → /admin/users, accounting pages → /admin/analytics, roles/permissions → /admin/users, notifications/integrations → /admin/settings).
+- Why: Prevent broken navigation while IA stabilizes; ensures users land on a functional page without 404s.
+- Next: Keyboard navigation for Sidebar/Topbar and tabs; begin wiring filters to hooks.
