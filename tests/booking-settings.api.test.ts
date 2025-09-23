@@ -112,8 +112,15 @@ describe('admin/booking-settings API', () => {
 
     await main.GET(new Request(`${base}/api/admin/booking-settings`))
 
-    const resBh: any = await bh.PUT(new Request(`${base}/api/admin/booking-settings/business-hours`, { method: 'PUT', body: JSON.stringify({ businessHours: [{ dayOfWeek: 1, isWorkingDay: true }] }) }))
+    const resBh: any = await bh.PUT(new Request(`${base}/api/admin/booking-settings/business-hours`, { method: 'PUT', body: JSON.stringify({ businessHours: [{ dayOfWeek: 2, isWorkingDay: true }, { dayOfWeek: 1, isWorkingDay: true }] }) }))
     expect(resBh.status).toBe(200)
+
+    const steps = await import('@/app/api/admin/booking-settings/steps/route')
+    const resSteps: any = await steps.PUT(new Request(`${base}/api/admin/booking-settings/steps`, { method: 'PUT', body: JSON.stringify({ steps: [
+      { stepName: 'X', stepOrder: 2, enabled: true, required: true, title: 'X' },
+      { stepName: 'A', stepOrder: 1, enabled: true, required: true, title: 'A' },
+    ] }) }))
+    expect(resSteps.status).toBe(200)
 
     const resPm: any = await pm.PUT(new Request(`${base}/api/admin/booking-settings/payment-methods`, { method: 'PUT', body: JSON.stringify({ paymentMethods: [{ methodType: 'CARD', enabled: true }] }) }))
     expect(resPm.status).toBe(200)
