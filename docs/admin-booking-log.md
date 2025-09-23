@@ -15,6 +15,11 @@
 - Why: Ensure correctness and RBAC enforcement; begin UI coverage.
 - Outcome: Service + API coverage complete; UI static render covered. Interactive UI tests limited by current static renderer.
 
+## 2025-09-23 (RBAC)
+- Work: Extended RBAC tests to ensure TEAM_LEAD can GET/PUT but cannot IMPORT/RESET for booking-settings endpoints.
+- Why: Match permissions mapping (TEAM_LEAD has view/edit/export only) and prevent privilege escalation.
+- Outcome: RBAC behavior verified via tests in `tests/booking-settings.api-auth.test.ts`.
+
 ## 2025-09-23 (ops)
 - Work: Verified `netlify.toml` build steps and Next.js plugin configuration; added Admin QA checklist to `docs/admin-booking-todo.md` and documented required Netlify environment variables.
 - Why: Ensure smooth production deploys and structured QA before release.
