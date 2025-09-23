@@ -44,6 +44,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import PrimaryTabs from '@/components/dashboard/PrimaryTabs'
+import FilterBar from '@/components/dashboard/FilterBar'
+import DataTable from '@/components/dashboard/DataTable'
+import type { FilterConfig, TabItem, Column } from '@/types/dashboard'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
