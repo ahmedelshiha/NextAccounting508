@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
-import { logAudit } from '@/lib/audit'
+import { logAuditSafe } from '@/lib/observability-helpers'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 import { scanBuffer } from '@/lib/clamav'
 
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   const ext = extFromSniff || extFromName
 
   if ((ALLOWED_TYPES.length && detectedMime && !ALLOWED_TYPES.includes(detectedMime)) || (ext && !ALLOWED_EXTS.includes(ext as any))) {
-    try { await logAudit({ action: 'upload:reject', details: { reason: 'unsupported_type', detectedMime, ext, size: buf.length } }) } catch {}
+    try { await logAuditSafe({ action: 'upload:reject', details: { reason: 'unsupported_type', detectedMime, ext, size: buf.length } }) } catch {}
     return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
   }
 
@@ -58,7 +58,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
   try {
     avScanResult = await scanBuffer(buf)
     if (!avScanResult?.clean) {
-      try { await logAudit({ action: AV_POLICY === 'strict' ? 'upload:infected_reject' : 'upload:infected', details: { policy: AV_POLICY, detected: avScanResult?.details || avScanResult } }) } catch {}
+      try { await logAuditSafe({ action: AV_POLICY === 'strict' ? 'upload:infected_reject' : 'upload:infected', details: { policy: AV_POLICY, detected: avScanResult?.details || avScanResult } }) } catch {}
       if (AV_POLICY === 'strict') {
         return NextResponse.json({ error: 'File failed antivirus scan', details: avScanResult?.details || avScanResult }, { status: 422 })
       }
@@ -68,7 +68,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
     avScanError = e
     try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan', policy: AV_POLICY }) } catch {}
     console.warn('AV scan failed', e)
-    try { await logAudit({ action: AV_POLICY === 'strict' ? 'upload:av_error_reject' : 'upload:av_error', details: { error: String(e), policy: AV_POLICY } }) } catch {}
+    try { await logAuditSafe({ action: AV_POLICY === 'strict' ? 'upload:av_error_reject' : 'upload:av_error', details: { error: String(e), policy: AV_POLICY } }) } catch {}
     if (AV_POLICY === 'strict') {
       return NextResponse.json({ error: 'Antivirus scan unavailable, try again later' }, { status: 503 })
     }
@@ -110,7 +110,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
         const key = `${folder}/${Date.now()}-${(randomUUID?.() || Math.random().toString(36).slice(2))}-${safeName}`
         await store.set(key, buf, { contentType: detectedMime || (file as any).type || 'application/octet-stream' })
         const url = typeof store.getPublicUrl === 'function' ? store.getPublicUrl(key) : undefined
-        try { await logAudit({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
+        try { await logAuditSafe({ action: 'upload:create', details: { key, contentType: detectedMime, size: buf.length, provider: 'netlify' } }) } catch {}
         // Persist Attachment record in DB (best-effort)
         try {
           const { default: prisma } = await import('@/lib/prisma')
