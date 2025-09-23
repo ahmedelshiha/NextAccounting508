@@ -6,7 +6,7 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
 - [x] Implement using the component blueprints: ./dashboard-structure.md
 
-## Traceability Matrix (Spec ��� Deliverable)
+## Traceability Matrix (Spec → Deliverable)
 - [x] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
 - [x] Left Sidebar (grouped nav) → Sidebar.tsx (./dashboard-structure.md) and IA in ./quickbooks_dashboard_complete.md
 - [x] Top Bar → Topbar.tsx (./dashboard-structure.md)
@@ -34,7 +34,7 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
   - [ ] Accounting → Invoices, Payments, Expenses, Reports, Taxes
   - [ ] Team → Staff, Roles, Permissions
   - [ ] System → Settings, Notifications, Integrations
-- [ ] Validate routes exist or add redirects/stubs for missing pages
+- [x] Validate routes exist or add redirects/stubs for missing pages
 - [x] Finalize iconography (lucide-react) for each item
 
 ## Phase 3 – Type System & Config
