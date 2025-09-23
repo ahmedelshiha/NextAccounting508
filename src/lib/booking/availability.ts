@@ -27,7 +27,7 @@ export type AvailabilityOptions = {
 export function toMinutes(str: string | number) {
   if (typeof str === 'number') return Math.floor(str)
   if (typeof str !== 'string') return null
-  const parts = str.split(':').map((v) => parseInt(v, 10))
+  const parts = str.split(':').map((v: string) => parseInt(v, 10))
   if (parts.length === 0) return null
   const h = Number.isNaN(parts[0]) ? NaN : parts[0]
   const m = parts.length > 1 ? (Number.isNaN(parts[1]) ? NaN : parts[1]) : 0
@@ -273,7 +273,7 @@ export async function getAvailabilityForService(params: {
         // If the slot is explicitly unavailable, block the interval
         if (s.available === false) {
           const date = new Date(s.date)
-          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
           const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
           const start = new Date(date)
           start.setHours(sh, sm, 0, 0)
@@ -283,7 +283,7 @@ export async function getAvailabilityForService(params: {
         } else if (typeof s.maxBookings === 'number' && s.maxBookings > 0 && typeof s.currentBookings === 'number' && s.currentBookings >= s.maxBookings) {
           // If slot is full according to maxBookings/currentBookings, treat as busy
           const date = new Date(s.date)
-          const [sh, sm] = (s.startTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
+          const [sh, sm] = (s.startTime || '00:00').split(':').map((n: string) => parseInt(n || '0', 10))
           const [eh, em] = (s.endTime || '00:00').split(':').map((n) => parseInt(n || '0', 10))
           const start = new Date(date)
           start.setHours(sh, sm, 0, 0)
