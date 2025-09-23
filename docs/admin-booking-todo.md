@@ -106,3 +106,15 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 - [ ] UI tests (static done; interactive pending)
 - [ ] Admin QA
 - [ ] Netlify deploy
+
+## 12) Recent Fixes (2025-09-23)
+
+- [x] Fixed Prisma JSON null handling in booking settings import/update (businessHours, blackoutDates, holidaySchedule, reminderHours) using `Prisma.DbNull`.
+  - Why: Resolve type errors during Next.js build with Turbopack.
+- [x] Normalized import createMany payloads:
+  - Steps: mapped `validationRules` and `customFields` to `Prisma.DbNull`; excluded ids.
+  - Payment methods: mapped `gatewayConfig` to `Prisma.DbNull`.
+  - Notifications: mapped `variables` to `Prisma.DbNull`.
+  - Why: Match Prisma input types and avoid JSON null mismatches.
+- [x] CI stability: avoided lockfile drift by not adding runtime-only deps in `package.json`.
+  - Next: If needed, set `SENTRY_SUPPRESS_TURBOPACK_WARNING=1` in Netlify env to silence Sentry + Turbopack warning.
