@@ -17,14 +17,26 @@ export async function POST(req: Request) {
     const header = req.headers.get('x-cron-secret') || ''
     if (secret && header && header !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // If database is not configured, noop for safety (skip) — this takes precedence when no header was provided.
-    const hasDb = !!process.env.NETLIFY_DATABASE_URL || !!process.env.DATABASE_URL
+    // If database env is not configured, noop for safety (skip).
+    const hasDbEnv = !!process.env.NETLIFY_DATABASE_URL || !!process.env.DATABASE_URL
+
+    // When an env var exists it might still not be reachable in deploy previews (Netlify sets NETLIFY_DATABASE_URL without attaching a DB).
+    // If prisma exposes a raw query function, attempt a lightweight check; on failure treat as no DB and skip.
+    let hasDb = hasDbEnv
+    try {
+      if (hasDbEnv && typeof (prisma as any).$queryRaw === 'function') {
+        await (prisma as any).$queryRaw`SELECT 1`
+      }
+    } catch (e) {
+      hasDb = false
+    }
+
     if (!hasDb) {
       try { await logAuditSafe({ action: 'cron:reminders:skipped', details: { reason: 'no_db' } }) } catch {}
       return NextResponse.json({ success: true, processed: 0, note: 'Database not configured; skipping reminders' })
     }
 
-    // If DB is configured, require the secret header when a secret is configured.
+    // If DB is configured and reachable, require the secret header when a secret is configured.
     if (secret && !header) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Determine scan horizon. We only need to inspect appointments within the next 24h window.
