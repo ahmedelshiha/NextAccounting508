@@ -12,17 +12,20 @@ export const runtime = 'nodejs'
 // Auth: requires header x-cron-secret to match CRON_SECRET (or NEXT_CRON_SECRET) when configured.
 export async function POST(req: Request) {
   try {
-    // If database is not configured, noop for safety (do this before enforcing a secret)
+    // Read secret and header first. If a header is provided and mismatches the secret, reject immediately.
+    const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
+    const header = req.headers.get('x-cron-secret') || ''
+    if (secret && header && header !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // If database is not configured, noop for safety (skip) — this takes precedence when no header was provided.
     const hasDb = !!process.env.NETLIFY_DATABASE_URL || !!process.env.DATABASE_URL
     if (!hasDb) {
       try { await logAuditSafe({ action: 'cron:reminders:skipped', details: { reason: 'no_db' } }) } catch {}
       return NextResponse.json({ success: true, processed: 0, note: 'Database not configured; skipping reminders' })
     }
 
-    // Protect with secret to prevent unauthorized invocations. Enforce only when a secret is configured and DB is present.
-    const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
-    const header = req.headers.get('x-cron-secret') || ''
-    if (secret && header !== secret) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // If DB is configured, require the secret header when a secret is configured.
+    if (secret && !header) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Determine scan horizon. We only need to inspect appointments within the next 24h window.
     const now = new Date()
