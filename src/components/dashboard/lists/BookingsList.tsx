@@ -16,6 +16,20 @@ interface SRItem {
   priority?: string | null
   bookingType?: string | null
   scheduledAt?: string | Date | null
+  paymentStatus?: 'UNPAID'|'INTENT'|'PAID'|'FAILED'|'REFUNDED' | null
+  paymentAmountCents?: number | null
+}
+
+const toNumberish = (v: unknown): number => {
+  if (v == null) return 0
+  if (typeof v === 'number') return v
+  if (typeof v === 'bigint') return Number(v)
+  if (typeof v === 'string') { const n = Number(v); return Number.isFinite(n) ? n : 0 }
+  try {
+    const s = (v as any)?.toString?.()
+    if (typeof s === 'string') { const n = Number(s); return Number.isFinite(n) ? n : 0 }
+  } catch {}
+  return 0
 }
 
 export default function BookingsList() {
@@ -26,6 +40,7 @@ export default function BookingsList() {
     bookingType?: string
     paymentStatus?: string
   }>({})
+  const [selectedIds, setSelectedIds] = useState<Array<string | number>>([])
 
   const params: BookingsQuery = {
     scope: 'admin',
@@ -56,15 +71,18 @@ export default function BookingsList() {
 
   const filterConfigs: FilterConfig[] = [
     { key: 'status', label: 'Status', options: [
-      { value: 'PENDING', label: 'Pending' },
-      { value: 'CONFIRMED', label: 'Confirmed' },
+      { value: 'DRAFT', label: 'Draft' },
+      { value: 'SUBMITTED', label: 'Submitted' },
+      { value: 'IN_REVIEW', label: 'In Review' },
+      { value: 'APPROVED', label: 'Approved' },
+      { value: 'ASSIGNED', label: 'Assigned' },
+      { value: 'IN_PROGRESS', label: 'In Progress' },
       { value: 'COMPLETED', label: 'Completed' },
       { value: 'CANCELLED', label: 'Cancelled' },
-      { value: 'NO_SHOW', label: 'No Show' },
     ], value: filters.status },
     { key: 'priority', label: 'Priority', options: [
       { value: 'LOW', label: 'Low' },
-      { value: 'NORMAL', label: 'Normal' },
+      { value: 'MEDIUM', label: 'Medium' },
       { value: 'HIGH', label: 'High' },
       { value: 'URGENT', label: 'Urgent' },
     ], value: filters.priority },
@@ -84,6 +102,7 @@ export default function BookingsList() {
   ]
 
   const columns: Column<SRItem>[] = [
+    { key: 'id', label: 'ID', render: (v) => <span className="text-xs text-gray-500">{String(v).slice(0,6)}</span> },
     { key: 'clientName', label: 'Client', sortable: true, render: (_, r) => (
       <div className="flex flex-col">
         <span className="font-medium text-gray-900">{r.clientName || r.client?.name || '—'}</span>
@@ -95,12 +114,16 @@ export default function BookingsList() {
         <span>{(v?.name as string) || '—'}</span>
       </div>
     ) },
-    { key: 'scheduledAt', label: 'Date', sortable: true, render: (v) => (
-      <span>{v ? new Date(v).toLocaleString() : '—'}</span>
-    ) },
     { key: 'status', label: 'Status', sortable: true },
-    { key: 'priority', label: 'Priority' },
-    { key: 'bookingType', label: 'Type' },
+    { key: 'paymentStatus', label: 'Payment', render: (v, r) => {
+      const cents = (r as any).paymentAmountCents ?? null
+      const fromSvc = toNumberish((r.service as any)?.price) * 100
+      const amount = cents != null ? cents : (fromSvc || 0)
+      return <span className="whitespace-nowrap">{v || '—'}{amount ? ` • $${(amount/100).toFixed(2)}` : ''}</span>
+    } },
+    { key: 'scheduledAt', label: 'Date', sortable: true, render: (v, r) => (
+      <span>{v ? new Date(v as any).toLocaleString() : (r as any).createdAt ? new Date((r as any).createdAt).toLocaleString() : '—'}</span>
+    ) },
   ]
 
   const actions: RowAction<SRItem>[] = [
@@ -116,17 +139,63 @@ export default function BookingsList() {
     arr.sort((a, b) => {
       const av = (a as any)[sortBy]
       const bv = (b as any)[sortBy]
-      const ax = av == null ? '' : String(av)
-      const bx = bv == null ? '' : String(bv)
       if (sortBy === 'scheduledAt') {
-        const ad = av ? new Date(av).getTime() : 0
-        const bd = bv ? new Date(bv).getTime() : 0
+        const ad = av ? new Date(av as any).getTime() : new Date((a as any).createdAt || 0).getTime()
+        const bd = bv ? new Date(bv as any).getTime() : new Date((b as any).createdAt || 0).getTime()
         return (ad - bd) * (sortOrder === 'asc' ? 1 : -1)
       }
+      const ax = av == null ? '' : String(av)
+      const bx = bv == null ? '' : String(bv)
       return ax.localeCompare(bx) * (sortOrder === 'asc' ? 1 : -1)
     })
     return arr
   }, [items, sortBy, sortOrder])
+
+  const exportCsv = async () => {
+    const qs = new URLSearchParams()
+    if (q) qs.set('q', q)
+    if (filters.status) qs.set('status', filters.status)
+    if (filters.priority) qs.set('priority', filters.priority)
+    if (filters.bookingType) qs.set('bookingType', filters.bookingType)
+    if (filters.paymentStatus) qs.set('paymentStatus', filters.paymentStatus)
+    const res = await fetch(`/api/admin/service-requests/export?${qs.toString()}`)
+    if (!res.ok) return
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `service-requests-${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  }
+
+  const cancelSelected = async () => {
+    if (!selectedIds.length) return
+    await fetch('/api/admin/service-requests/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status', ids: selectedIds, status: 'CANCELLED' }),
+    })
+    setSelectedIds([])
+    await refresh()
+  }
+
+  const assignSelected = async () => {
+    if (!selectedIds.length) return
+    const teamMemberId = window.prompt('Enter team member ID to assign to:')
+    if (!teamMemberId) return
+    for (const id of selectedIds) {
+      await fetch(`/api/admin/service-requests/${id}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamMemberId }),
+      }).catch(() => {})
+    }
+    setSelectedIds([])
+    await refresh()
+  }
 
   return (
     <div className="space-y-4">
@@ -153,8 +222,19 @@ export default function BookingsList() {
         sortOrder={sortOrder}
         actions={actions}
         selectable
-        onSelectionChange={() => { /* selection available for future batch actions */ }}
+        onSelectionChange={(ids) => setSelectedIds(ids)}
       />
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+          <div className="text-sm text-gray-700">{selectedIds.length} selected</div>
+          <div className="flex items-center gap-2">
+            <button onClick={exportCsv} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Export CSV</button>
+            <button onClick={cancelSelected} className="px-3 py-2 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50">Cancel</button>
+            <button onClick={assignSelected} className="px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-md hover:bg-gray-50">Assign</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50">Clear</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
