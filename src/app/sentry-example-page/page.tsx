@@ -10,7 +10,6 @@ export default function SentryExamplePage() {
     Sentry.captureException(new Error('Sentry Frontend Test Error'))
     // Also attempt an undefined call to mimic framework guide
     try {
-      // @ts-expect-error intentional
       ;(window as any).myUndefinedFunction()
     } catch {}
   }
