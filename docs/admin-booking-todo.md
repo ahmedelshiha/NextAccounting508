@@ -52,7 +52,7 @@ Goal: Ship a production-grade Booking Settings module (admin) with RBAC, audit l
 ## 8) Testing (Vitest)
 
 - [x] Service tests: validation, defaults, updates, export/import/reset, caching.
-- [x] API tests: happy-path and RBAC (unauthorized cases for CLIENT/TEAM_LEAD, admin reset/export success).
+- [x] API tests: happy-path and RBAC (CLIENT unauthorized; TEAM_LEAD GET/PUT allowed, IMPORT/RESET denied; ADMIN reset/export success).
 - [ ] Component tests: static render covered. Interactive flows (save/export/reset) require a DOM-capable renderer; out of scope for now.
 
 ## 9) Netlify & Ops
