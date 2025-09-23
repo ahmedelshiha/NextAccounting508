@@ -30,7 +30,14 @@ export const PERMISSIONS = {
   SERVICES_BULK_EDIT: 'services.bulk.edit',
   SERVICES_EXPORT: 'services.export',
   SERVICES_ANALYTICS: 'services.analytics',
-  SERVICES_MANAGE_FEATURED: 'services.manage.featured'
+  SERVICES_MANAGE_FEATURED: 'services.manage.featured',
+
+  // Booking settings management
+  BOOKING_SETTINGS_VIEW: 'booking.settings.view',
+  BOOKING_SETTINGS_EDIT: 'booking.settings.edit',
+  BOOKING_SETTINGS_EXPORT: 'booking.settings.export',
+  BOOKING_SETTINGS_IMPORT: 'booking.settings.import',
+  BOOKING_SETTINGS_RESET: 'booking.settings.reset',
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -68,6 +75,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.SERVICES_VIEW,
     PERMISSIONS.SERVICES_ANALYTICS,
     PERMISSIONS.SERVICES_EXPORT,
+    PERMISSIONS.BOOKING_SETTINGS_VIEW,
+    PERMISSIONS.BOOKING_SETTINGS_EDIT,
+    PERMISSIONS.BOOKING_SETTINGS_EXPORT,
   ],
   ADMIN: [
     ...Object.values(PERMISSIONS),
