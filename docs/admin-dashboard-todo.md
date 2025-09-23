@@ -59,8 +59,8 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] Add batch actions (export/cancel/assign) where selection is enabled
 
 ## Phase 6 – UX, A11y, i18n
-- [ ] Keyboard nav for Sidebar/Topbar and tabs
-- [ ] Proper aria labels/roles on interactive controls
+- [x] Keyboard nav for Sidebar/Topbar and tabs
+- [x] Proper aria labels/roles on interactive controls
 - [ ] Announce filter changes and selection counts to SR users
 - [ ] Preserve existing locales under src/app/locales/* where text is user-facing
 
