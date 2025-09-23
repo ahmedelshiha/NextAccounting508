@@ -2,8 +2,23 @@
 
 Status legend: [ ] pending, [x] done, (→) owner/actionable note
 
+## Linked Specifications (authoritative sources)
+- [ ] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
+- [ ] Implement using the component blueprints: ./dashboard-structure.md
+
+## Traceability Matrix (Spec → Deliverable)
+- [ ] Layout shell → DashboardLayout.tsx (./dashboard-structure.md)
+- [ ] Left Sidebar (grouped nav) → Sidebar.tsx (./dashboard-structure.md) and IA in ./quickbooks_dashboard_complete.md
+- [ ] Top Bar → Topbar.tsx (./dashboard-structure.md)
+- [ ] Page Header → PageHeader.tsx (./dashboard-structure.md)
+- [ ] Primary Tabs → PrimaryTabs.tsx (./dashboard-structure.md)
+- [ ] Secondary Tabs → SecondaryTabs.tsx (./dashboard-structure.md)
+- [ ] Filters/Controls → FilterBar.tsx (./dashboard-structure.md); tags behavior spec in ./quickbooks_dashboard_complete.md
+- [ ] Data Table/List → DataTable.tsx (./dashboard-structure.md); empty/hover/sort states in ./quickbooks_dashboard_complete.md
+- [ ] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
+
 ## Phase 0 – Prep
-- [ ] Read docs/quickbooks_dashboard_complete.md and extract UI+IA requirements
+- [ ] Read ./quickbooks_dashboard_complete.md and extract UI + IA requirements
 - [ ] Confirm Tailwind v4 utilities and existing shadcn components usage (Button, Card, etc.)
 - [ ] Identify any blocking tech constraints (Next.js app router, auth, i18n)
 
@@ -23,7 +38,7 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] Finalize iconography (lucide-react) for each item
 
 ## Phase 3 – Type System & Config
-- [ ] Create src/types/dashboard.ts (NavItem/NavGroup/Tab/Filters/DataTable types)
+- [ ] Create src/types/dashboard.ts (NavItem/NavGroup/Tab/Filters/DataTable types) per ./dashboard-structure.md
 - [ ] Create nav config object to drive Sidebar (labels, hrefs, icons, badges)
 - [ ] Define Filter config schema for common filter patterns (date/status/search)
 
@@ -56,6 +71,12 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [ ] Validate no CLS/contrast regressions (QuickBooks green #2CA01C as accent)
 
 ## Phase 8 – Docs & Handoff
-- [ ] Generate docs/dashboard-structure.md with component code blocks
+- [ ] Validate ./dashboard-structure.md code blocks compile as-is when placed into paths
+- [ ] Cross-check naming/props against ./quickbooks_dashboard_complete.md
 - [ ] Note extension points (adding nav items, columns, filters)
 - [ ] Record migration notes for any route reorganizations
+
+## Doc Sync Tasks (keep in sync as work progresses)
+- [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
+- [ ] If IA changes, update the Sidebar section in both ./quickbooks_dashboard_complete.md and ./dashboard-structure.md
+- [ ] Capture deviations from spec in this TODO with rationale and link to commit
