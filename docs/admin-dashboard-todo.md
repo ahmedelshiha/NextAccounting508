@@ -23,9 +23,9 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Identify any blocking tech constraints (Next.js app router, auth, i18n)
 
 ## Phase 1 – Inventory & Reuse Targets
-- [ ] Audit existing admin pages/components to reuse (src/app/admin/*, components/admin/*, components/ui/*)
-- [ ] List reusable primitives (buttons, cards, dropdowns, badges) and adopt them
-- [ ] Map existing data hooks/endpoints to new views (bookings, clients, services, tasks, analytics)
+- [x] Audit existing admin pages/components to reuse (src/app/admin/*, components/admin/*, components/ui/*)
+- [x] List reusable primitives (buttons, cards, dropdowns, badges) and adopt them
+- [x] Map existing data hooks/endpoints to new views (bookings, clients, services, tasks, analytics)
 
 ## Phase 2 – Information Architecture (IA)
 - [ ] Define grouped nav for accounting + booking system
