@@ -1,18 +1,13 @@
-
-## [2025-09-25] Phase 8 — Docs & Monitoring
+## [2025-09-23] Sentry verification hardening
 What I added:
-- Expanded OpenAPI spec for Admin Services (HEAD /admin/services, error schema, richer params/responses).
-- API route export already available at /api/openapi/admin-services.
-- Sentry instrumentation in admin services API (stats + list) to capture handled exceptions.
-- Auth/perm errors and rate-limit responses reflected in OpenAPI.
-- Wrote cache invalidation guide: docs/admin-services-cache-invalidation.md.
+- Enabled Sentry tunnel route (/monitoring) via withSentryConfig and client SDK to avoid ad blockers/CORS issues.
+- Added /api/sentry-check endpoint that reports DSN presence (boolean) without exposing secrets.
 
 Why:
-- Provide consumers with accurate API contract and error shapes.
-- Ensure operational visibility by capturing caught exceptions in Sentry.
-- Document cache patterns/TTLs to standardize invalidation and ops runbooks.
+- Reports of "Trigger Client/Server Error" not verifying are often due to blocked /envelope requests, missing server DSN, or CORS.
 
 Next steps:
-- Set SENTRY_DSN on Netlify; optionally configure sourcemaps upload.
-- Ensure REDIS_URL is set for distributed cache in production.
-- Apply/verify Prisma migrations for ServiceView/Service.views in production DB.
+- In Sentry Project Settings → Security → Allowed Domains, add preview/prod domains (*.projects.builder.codes, *.fly.dev, and your production host).
+- Re-test at /sentry-example-page; verify /monitoring responses (200) and events appearing in Sentry.
+
+
