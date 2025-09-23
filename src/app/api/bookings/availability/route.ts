@@ -179,7 +179,9 @@ export async function GET(request: NextRequest) {
 
     // await price resolution in parallel
     if (pricePromises.length) {
-      try { await Promise.all(pricePromises) } catch {}
+      console.log('[availability] awaiting pricePromises:', pricePromises.length)
+      try { await Promise.all(pricePromises) } catch (e) { console.error('[availability] pricePromises error', e) }
+      console.log('[availability] pricePromises resolved')
     }
 
     const availability = Array.from(byDay.entries())
