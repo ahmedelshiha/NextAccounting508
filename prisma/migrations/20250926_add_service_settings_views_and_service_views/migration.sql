@@ -35,4 +35,18 @@ CREATE TABLE IF NOT EXISTS "service_views" (
   CONSTRAINT "service_views_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "services"("id") ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS "service_views_serviceId_createdAt_idx" ON "service_views" ("serviceId", "createdAt");
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'service_views' AND column_name = 'serviceId'
+  ) THEN
+    EXECUTE 'CREATE INDEX IF NOT EXISTS "service_views_serviceId_createdAt_idx" ON "service_views" ("serviceId", "createdAt")';
+  ELSIF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'service_views' AND column_name = 'service_id'
+  ) THEN
+    -- Legacy snake_case table (from 20250924); ensure composite index exists
+    EXECUTE 'CREATE INDEX IF NOT EXISTS "service_views_service_created_idx" ON "service_views" (service_id, created_at)';
+  END IF;
+END $$;
