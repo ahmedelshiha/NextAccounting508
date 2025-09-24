@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import type { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 // GET /api/bookings/[id] - Get booking by ID
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
