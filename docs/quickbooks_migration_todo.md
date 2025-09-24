@@ -110,7 +110,7 @@ Inventory Snapshot — Priority and Owners (2025-09-24)
 
 Acceptance: all /admin pages render under the new layout without visual overlaps; login/portal redirects correct; zero console errors.
 
-Progress Update — Phase 1
+Progress Update �� Phase 1
 - Completed: global admin/layout.tsx, AdminProviders, AdminContext, and removal of local wrappers in admin/page.tsx.
 - Why: ensures a single consistent dashboard shell, prevents overlay/double-layout issues, and enforces auth/role gating.
 - Next: Phase 2 sidebar enhancements (permission-based IA, collapse state via AdminContext) and Phase 3 templates; add AdminContext unit tests.
@@ -184,7 +184,7 @@ Update — Legacy Table Replacement
 - [x] Service Requests
   - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
   - [x] Add filters (status, priority, type, payment) and actions (open)
-  - [x] Validate assignment workflows and status transitions — covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
+  - [x] Validate assignment workflows and status transitions �� covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [x] Services
   - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
   - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
@@ -220,8 +220,8 @@ Acceptance: task operations, client management, and reporting flows function end
 - [x] Finance Ops
   - [x] Migrate src/app/admin/invoices/page.tsx, payments/page.tsx, expenses/page.tsx
   - [x] Ensure totals, filters, and exports work
-- [ ] Content & System
-  - [ ] Migrate src/app/admin/posts/page.tsx
+- [x] Content & System
+  - [x] Migrate src/app/admin/posts/page.tsx
   - [x] Migrate src/app/admin/newsletter/page.tsx, audits/page.tsx, integrations/page.tsx, uploads/quarantine/page.tsx
 
 Acceptance: all P3 pages load under new layout, preserve feature parity, and pass navigation/access tests.
