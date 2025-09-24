@@ -81,7 +81,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 5) Performance & Quality
 - [x] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
 - [x] Memoize heavy cell renderers; verify no unnecessary re-renders
-- [ ] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
+- [x] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
   - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
 
 6) Docs & Handoff
@@ -142,7 +142,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 ## Phase 7 – Performance & Quality
 - [ ] Avoid layout shift; use skeleton states in tables/cards
 - [ ] Memoize heavy render paths where needed
-- [ ] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
+- [x] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
 - [ ] Validate no CLS/contrast regressions (QuickBooks green #2CA01C as accent)
 
 ## Phase 8 – Docs & Handoff
