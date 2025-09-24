@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { withSpan, captureError } from '@/lib/observability'
 
 // In-memory buffer for posted samples (best-effort; not persisted).
 const samples: Array<{ ts: number; path: string; metrics: Record<string, number | null> }> = []
@@ -16,17 +17,18 @@ export async function GET(_request: NextRequest) {
     }
 
     // In real setup, aggregate from Sentry/Lighthouse/Netlify builds
-    const data = {
+    const data = await withSpan('perf-metrics.snapshot', async () => ({
       pageLoad: { current: 1.2, previous: 1.8, trend: 'up' },
       apiResponse: { current: 245, previous: 310, trend: 'up' },
       uptime: { current: 99.8, previous: 99.2, trend: 'up' },
       errorRate: { current: 0.02, previous: 0.08, trend: 'up' },
       // Include the last N client-reported samples for ad-hoc inspection
       recent: samples.slice(-20)
-    }
+    }))
 
     return NextResponse.json(data)
   } catch (error) {
+    captureError(error, { tags: { route: 'admin.perf-metrics' } })
     console.error('Perf metrics API error:', error)
     return NextResponse.json({ error: 'Failed to load metrics' }, { status: 500 })
   }

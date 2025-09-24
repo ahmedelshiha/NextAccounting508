@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
+import { withSpan, captureError } from '@/lib/observability'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,15 +21,17 @@ export async function GET(request: NextRequest) {
 
     if (!hasDb) {
       const tsNow = now.getTime()
-      const entries = Array.from({ length: 12 }).map((_, i) => {
-        const ts = new Date(tsNow - (11 - i) * 60 * 60 * 1000)
-        return { timestamp: ts.toISOString(), databaseResponseTime: 80, apiErrorRate: 0.5 }
+      const entries = await withSpan('health-history.generate-fallback', async () => {
+        return Array.from({ length: 12 }).map((_, i) => {
+          const ts = new Date(tsNow - (11 - i) * 60 * 60 * 1000)
+          return { timestamp: ts.toISOString(), databaseResponseTime: 80, apiErrorRate: 0.5 }
+        })
       })
       return NextResponse.json({ entries })
     }
 
     const since = new Date(now.getTime() - 12 * 60 * 60 * 1000)
-    const logs = await prisma.healthLog.findMany({ where: { checkedAt: { gte: since } }, orderBy: { checkedAt: 'asc' } })
+    const logs = await withSpan('health-history.db.findMany', () => prisma.healthLog.findMany({ where: { checkedAt: { gte: since } }, orderBy: { checkedAt: 'asc' } }))
 
     // Bucket by hour
     const buckets = new Map<string, { total: number; errors: number }>()
@@ -47,15 +50,18 @@ export async function GET(request: NextRequest) {
       if (isError) b.errors += 1
     })
 
-    const entries = Array.from(buckets.entries()).map(([hour, { total, errors }]) => {
-      const date = new Date(hour + ':00:00.000Z')
-      const apiErrorRate = total > 0 ? Math.round((errors / total) * 100) / 100 : 0
-      const databaseResponseTime = 50 + errors * 10 // simplistic mapping
-      return { timestamp: date.toISOString(), databaseResponseTime, apiErrorRate }
-    })
+    const entries = await withSpan('health-history.bucket-and-aggregate', async () => (
+      Array.from(buckets.entries()).map(([hour, { total, errors }]) => {
+        const date = new Date(hour + ':00:00.000Z')
+        const apiErrorRate = total > 0 ? Math.round((errors / total) * 100) / 100 : 0
+        const databaseResponseTime = 50 + errors * 10 // simplistic mapping
+        return { timestamp: date.toISOString(), databaseResponseTime, apiErrorRate }
+      })
+    ))
 
     return NextResponse.json({ entries })
   } catch (e) {
+    captureError(e, { tags: { route: 'admin.health-history' } })
     console.error('health-history error', e)
     return NextResponse.json({ error: 'Failed to load health history' }, { status: 500 })
   }
