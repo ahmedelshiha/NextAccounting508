@@ -1,5 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import StandardPage from '@/components/dashboard/templates/StandardPage'
 import { Settings } from 'lucide-react'
 
 export default function AdminSettingsPage() {
@@ -7,13 +9,12 @@ export default function AdminSettingsPage() {
   const _hasNextAuth = Boolean(process.env.NEXTAUTH_URL && process.env.NEXTAUTH_SECRET)
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center"><Settings className="h-6 w-6 mr-2"/> Settings</h1>
-          <p className="text-gray-600 mt-2">Environment and system configuration overview</p>
-        </div>
-
+    <StandardPage
+      title="Settings"
+      subtitle="Environment and system configuration overview"
+      secondaryActions={[{ label: 'Docs', onClick: () => (window.location.href = '/docs') }]}
+    >
+      <div className="max-w-5xl mx-auto px-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -54,6 +55,6 @@ export default function AdminSettingsPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </StandardPage>
   )
 }

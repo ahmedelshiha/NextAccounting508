@@ -20,6 +20,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import StandardPage from '@/components/dashboard/templates/StandardPage'
 
 interface ClientFormData {
   name: string
@@ -257,15 +258,13 @@ export default function ProfessionalAddClientPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <StandardPage
+      title="Add New Client"
+      subtitle="Create a client account and capture onboarding details"
+      secondaryActions={[{ label: 'Back', onClick: () => (window.location.href = '/admin/users') }]}
+    >
+      <div className="max-w-5xl mx-auto p-0 space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/admin/users"><ArrowLeft className="h-4 w-4 mr-1" />Back</Link>
-            </Button>
-            <h1 className="text-2xl font-bold text-gray-900">Add New Client</h1>
-          </div>
           <Badge variant="outline">Admin Only</Badge>
         </div>
 
@@ -670,6 +669,6 @@ export default function ProfessionalAddClientPage() {
           </div>
         )}
       </div>
-    </div>
+    </StandardPage>
   )
 }

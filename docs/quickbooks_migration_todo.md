@@ -27,6 +27,8 @@ and
   - [x] Migrated /admin/analytics to StandardPage with BusinessIntelligence and export actions.
   - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
   - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
+  - [x] Phase 6: Migrated /admin/tasks to StandardPage; preserved board/list/table/calendar/gantt views, filters, bulk actions, and analytics; replaced inline width style in QuickStatsCard with Tailwind utility classes.
+  - [x] Phase 6: Migrated Clients — profiles to ListPage with pagination/filters/actions, invitations to StandardPage with email invite sending via /api/email/test, and new client wizard wrapped in StandardPage; preserved existing styles.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -165,12 +167,12 @@ Acceptance: each page renders with new templates, supports sorting/filters/actio
 ---
 
 ## Phase 6 — Secondary Page Migrations P2 (Depends on Phases 1–3)
-- [ ] Tasks
-  - [ ] Migrate src/app/admin/tasks/page.tsx using existing tasks components under src/app/admin/tasks/components/**
-  - [ ] Ensure TaskProvider integration, analytics blocks, and bulk actions
-- [ ] Clients
-  - [ ] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
-  - [ ] Validate create/invite flows and profile search
+- [x] Tasks
+  - [x] Migrate src/app/admin/tasks/page.tsx using existing tasks components under src/app/admin/tasks/components/**
+  - [x] Ensure TaskProvider integration, analytics blocks, and bulk actions
+- [x] Clients
+  - [x] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
+  - [x] Validate create/invite flows and profile search
 - [ ] Analytics & Reports
   - [x] Migrate src/app/admin/analytics/page.tsx and src/app/admin/reports/page.tsx to templates
   - [x] Integrate chart components and export buttons
@@ -180,9 +182,9 @@ Acceptance: task operations, client management, and reporting flows function end
 ---
 
 ## Phase 7 — Administrative/System Page Migrations P3 (Depends on Phases 1–3)
-- [ ] Settings
-  - [ ] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
-  - [ ] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
+- [x] Settings
+  - [x] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
+  - [x] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
 - [ ] Team & Access
   - [ ] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
   - [ ] Validate RBAC changes and team assignments screens
@@ -277,9 +279,9 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin (overview)
 - [x] /admin/analytics
 - [x] /admin/reports
-- [ ] /admin/clients/profiles
-- [ ] /admin/clients/invitations
-- [ ] /admin/clients/new
+- [x] /admin/clients/profiles
+- [x] /admin/clients/invitations
+- [x] /admin/clients/new
 - [x] /admin/bookings
 - [ ] /admin/calendar (redirect)
 - [x] /admin/service-requests
@@ -289,7 +291,7 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/invoices (redirect)
 - [ ] /admin/payments (redirect)
 - [ ] /admin/expenses (redirect)
-- [ ] /admin/tasks
+- [x] /admin/tasks
 - [ ] /admin/reminders
 - [ ] /admin/audits
 - [ ] /admin/posts
@@ -297,9 +299,9 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/team
 - [ ] /admin/permissions (redirect)
 - [ ] /admin/roles (redirect)
-- [ ] /admin/settings
-- [ ] /admin/settings/booking
-- [ ] /admin/settings/currencies
+- [x] /admin/settings
+- [x] /admin/settings/booking
+- [x] /admin/settings/currencies
 - [ ] /admin/integrations
 - [ ] /admin/uploads/quarantine
 
