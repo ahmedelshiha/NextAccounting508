@@ -311,7 +311,7 @@ export default function PortalPage() {
                 <div className="text-center">
                   <Button variant="outline" asChild>
                     <Link href="/portal/bookings">
-                      View All Appointments
+                      {t('portal.viewAllAppointments')}
                     </Link>
                   </Button>
                 </div>
