@@ -127,7 +127,7 @@ export default function PortalServiceRequestDetailPage() {
                 setUploadProgress((prev) => ({ ...prev, [key]: 100 }))
                 resolve({ url: (resp as any).url })
               } else {
-                resolve({ error: (resp as any)?.error || 'Upload failed' })
+                resolve({ error: (resp as any)?.error || t('portal.upload.failed') })
               }
             } catch {
               resolve({ error: 'Upload failed' })
