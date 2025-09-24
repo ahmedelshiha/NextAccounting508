@@ -9,3 +9,8 @@
 - Enhanced lib/observability.captureError to set Sentry tags when context is provided: route, feature, channel, tenantId, userId.
 - Why: improves debugging and dashboards by enabling filtering/grouping by route/channel/tenant; critical for realtime (SSE/WebSocket) errors.
 - Next: expand usage across more routes, add unit test to assert tags set via mocked Sentry scope.
+
+## 2025-09-27 – SSE header integration test
+- Updated tests/integration/portal-realtime.sse.test.ts to mock auth, prisma, and realtime service; asserts 200 and text/event-stream with proper caching headers; OPTIONS returns Allow: GET,OPTIONS.
+- Why: validates basic SSE contract for portal realtime endpoint without relying on live DB or network.
+- Next: add test that asserts a connect healthLog entry is created (via mocked prisma) and one initial data line is enqueued.
