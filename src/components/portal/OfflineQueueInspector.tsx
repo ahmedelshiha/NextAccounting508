@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from '@/lib/i18n'
 
 interface QueuedItem { id: string; url: string; body: any; createdAt: number; retries?: number; idempotencyKey?: string; nextAttemptAt?: number; lastStatus?: number }
 
