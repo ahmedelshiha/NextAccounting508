@@ -21,19 +21,27 @@ and
   - [x] Added preview pages for templates under /admin/previews (standard, list, analytics) for visual verification.
   - [x] Replaced DataTable usages with AdvancedDataTable across admin lists and overview; preserved selection/bulk actions.
   - [x] Added tests: apiFetch failure fallback, AdvancedDataTable SSR pagination, AdminContext defaults, RealtimeProvider SSR defaults, useUnifiedData initial state.
+  - [x] Implemented jsdom DOM harness; added AdvancedDataTable interaction tests (select/sort/paginate) and onSelectionChange assertions.
+  - [x] Added Sidebar IA and active-state tests (collapsed rendering, aria-current verification).
+  - [x] Added /admin/perf-metrics viewer and docs/perf-metrics-report.md for before/after tracking.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
   - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
   - Unify realtime and data fetching patterns to simplify refresh and reduce bugs.
   - Provide fast local previews for QA without backend wiring.
+  - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
+  - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
-  - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
+  - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
+  - [ ] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update.
+  - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
+  - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
 
 ---
 
@@ -78,7 +86,7 @@ Progress Update — Phase 1
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
 - [ ] Verify IA alignment
   - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
-  - [ ] Sidebar links navigate to the correct workspace container
+  - [x] Sidebar links navigate to the correct workspace container (tests: tests/dashboard/nav/sidebar-ia.test.tsx, tests/dashboard/nav/sidebar-active.dom.test.tsx)
 
 Progress Update — Phase 2
 - Completed: RBAC-gated Sidebar using session role + hasPermission; collapse state via AdminContext; active link highlighting; A11y attributes added.
@@ -102,7 +110,7 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 - [ ] Realtime and unified data layer
   - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
   - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
-  - [ ] Add tests for fetch failures, refresh, and realtime parsing
+  - [x] Add tests for fetch failures, refresh, and realtime parsing
 
 Acceptance: new templates compile and are reusable; table supports selection/sort/export; unified data hook verified with mocked endpoints.
 
@@ -196,10 +204,13 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] AdminContext default values smoke test
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
   - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
-  - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
-  - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
+  - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
+  - [ ] Bookings critical flow: create → save → list appears with correct totals
+  - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
+  - [ ] Services critical flow: create/edit/clone reflected in list and version history (if enabled)
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
+  - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
 - [ ] E2E Smoke Paths
   - [ ] Auth → Admin → Bookings → New → Save → List
   - [ ] Admin → Service Requests → Assign → Status Update
