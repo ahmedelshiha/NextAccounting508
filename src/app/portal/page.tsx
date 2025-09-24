@@ -299,7 +299,7 @@ export default function PortalPage() {
                         </Badge>
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/portal/bookings/${booking.id}`}>
-                            View
+                            {t('portal.view')}
                           </Link>
                         </Button>
                       </div>
