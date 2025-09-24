@@ -78,12 +78,12 @@ export function Navigation() {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-white shadow-sm border-b" role="banner">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" aria-label="Accounting Firm home" className="flex items-center space-x-2">
               <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">AF</span>
               </div>
@@ -99,6 +99,7 @@ export function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive(item.href)
                     ? 'text-blue-600 bg-blue-50'
@@ -121,7 +122,7 @@ export function Navigation() {
                 {!isAdminUser && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative">
+                      <Button variant="ghost" aria-label="Open notifications" className="relative">
                         <Bell className="h-5 w-5" />
                         <ClientNotificationsBadge />
                       </Button>
@@ -134,7 +135,7 @@ export function Navigation() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-2">
+                    <Button variant="ghost" aria-label="Open user menu" className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
                       <span>{session?.user?.name || session?.user?.email}</span>
                     </Button>
@@ -224,6 +225,9 @@ export function Navigation() {
             <Button
               variant="ghost"
               size="sm"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="primary-mobile-nav"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -237,12 +241,13 @@ export function Navigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
+          <div id="primary-mobile-nav" className="md:hidden" role="navigation" aria-label="Primary mobile">
             <div className="space-y-1 pb-3 pt-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
                   className={`block px-3 py-2 text-base font-medium rounded-md transition-colors ${
                     isActive(item.href)
                       ? 'text-blue-600 bg-blue-50'

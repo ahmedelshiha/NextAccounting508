@@ -40,9 +40,12 @@ and
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
   - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
+  - [x] Global site a11y: Added skip link in RootLayout, main landmark in ClientLayout, navigation aria-current/labels; tests in tests/ui/navigation.a11y.dom.test.tsx. Added route-change announcer for screen readers (AccessibleRouteAnnouncer) and tests (tests/providers/route-announcer.dom.test.tsx). Enhanced Blog section semantics (region + labeled heading) and BlogCard (article + aria-label) with tests.
   - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
+  - [x] Added skip-to-main content link, main landmark focus target, and sidebar navigation aria; introduced admin layout a11y tests. Added banner role on site header and loading live region in ServicesSection with tests.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
-  - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
+  - [x] Set alert thresholds in GET /api/admin/perf-metrics snapshot (added thresholds and alerts fields; status derives from violations; tests added: tests/api/perf-metrics.thresholds.test.ts).
+  - [ ] Monitor perf metrics for 7 days post-deploy and document thresholds/outliers.
 
 ---
 
@@ -85,7 +88,7 @@ Progress Update — Phase 1
   - [x] Upgrade src/components/dashboard/Sidebar.tsx with groups, badges, RBAC filters
   - [x] Wire to AdminContext (collapse/expand) and active route highlighting
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
-- [ ] Verify IA alignment
+- [x] Verify IA alignment
   - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
   - [x] Sidebar links navigate to the correct workspace container (tests: tests/dashboard/nav/sidebar-ia.test.tsx, tests/dashboard/nav/sidebar-active.dom.test.tsx)
 
@@ -99,16 +102,16 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 ---
 
 ## Phase 3 — Page Templates and Component Standards (Depends on Phase 1)
-- [ ] Create standardized page templates
+- [x] Create standardized page templates
   - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
   - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
   - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
   - [x] Add story/preview examples for each template
-- [ ] Advanced table and bulk actions
+- [x] Advanced table and bulk actions
   - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
   - [x] Replace legacy tables where applicable
-- [ ] Realtime and unified data layer
+- [x] Realtime and unified data layer
   - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
   - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
   - [x] Add tests for fetch failures, refresh, and realtime parsing

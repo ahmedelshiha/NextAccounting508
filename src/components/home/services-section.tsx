@@ -80,9 +80,10 @@ export function ServicesSection() {
 
   if (loading) {
     return (
-      <section className="py-12 sm:py-16 bg-white">
+      <section className="py-12 sm:py-16 bg-white" aria-busy="true">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
+          <div className="text-center mb-10" role="status" aria-live="polite">
+            <span className="sr-only">Loading services…</span>
             <div className="h-8 bg-gray-200 animate-pulse rounded w-64 mx-auto mb-4"></div>
             <div className="h-6 bg-gray-200 animate-pulse rounded w-96 mx-auto"></div>
           </div>
