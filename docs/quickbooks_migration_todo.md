@@ -26,6 +26,7 @@ and
   - [x] Added /admin/perf-metrics viewer and docs/perf-metrics-report.md for before/after tracking.
   - [x] Migrated /admin/analytics to StandardPage with BusinessIntelligence and export actions.
   - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
+  - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -197,9 +198,10 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
 - [ ] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes
-- [ ] Add Zod schemas for request/response validation at boundaries
+- [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
+  - Progress: Added toast handling on admin Services (export, bulk, create/update), Bookings (refresh), and Service Requests (fetch error) with getApiErrorMessage. Sentry capture already active in API routes.
 
 Acceptance: consistent API contracts; typed boundaries; graceful error states; Sentry captures failures.
 
@@ -267,35 +269,39 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 
 ---
 
+### Verification — Template Usage (2025-09-24)
+- Verified routes using StandardPage/ListPage/AnalyticsPage via import analysis.
+- Redirects and non-template pages are marked pending migration below.
+
 ## Appendix — Route-by-Route Checklist (Tick each as migrated to new templates)
 - [x] /admin (overview)
 - [x] /admin/analytics
 - [x] /admin/reports
-- [x] /admin/clients/profiles
-- [x] /admin/clients/invitations
-- [x] /admin/clients/new
+- [ ] /admin/clients/profiles
+- [ ] /admin/clients/invitations
+- [ ] /admin/clients/new
 - [x] /admin/bookings
-- [x] /admin/calendar
+- [ ] /admin/calendar (redirect)
 - [x] /admin/service-requests
 - [x] /admin/services
 - [x] /admin/services/list
-- [x] /admin/availability
-- [x] /admin/invoices
-- [x] /admin/payments
-- [x] /admin/expenses
-- [x] /admin/tasks
-- [x] /admin/reminders
-- [x] /admin/audits
-- [x] /admin/posts
-- [x] /admin/newsletter
-- [x] /admin/team
-- [x] /admin/permissions
-- [x] /admin/roles
-- [x] /admin/settings
-- [x] /admin/settings/booking
-- [x] /admin/settings/currencies
-- [x] /admin/integrations
-- [x] /admin/uploads/quarantine
+- [ ] /admin/availability
+- [ ] /admin/invoices (redirect)
+- [ ] /admin/payments (redirect)
+- [ ] /admin/expenses (redirect)
+- [ ] /admin/tasks
+- [ ] /admin/reminders
+- [ ] /admin/audits
+- [ ] /admin/posts
+- [ ] /admin/newsletter
+- [ ] /admin/team
+- [ ] /admin/permissions (redirect)
+- [ ] /admin/roles (redirect)
+- [ ] /admin/settings
+- [ ] /admin/settings/booking
+- [ ] /admin/settings/currencies
+- [ ] /admin/integrations
+- [ ] /admin/uploads/quarantine
 
 Notes:
 - Implement all features as separate reusable components; import explicitly. Avoid inline/lazy hacks.

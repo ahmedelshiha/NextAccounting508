@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import ListPage from "@/components/dashboard/templates/ListPage"
 import type { Column, FilterConfig, RowAction } from "@/types/dashboard"
 import { useBookings, type BookingsQuery } from "@/hooks/useBookings"
@@ -48,11 +48,20 @@ export default function AdminServiceRequestsPage() {
     type: "all",
   }
 
-  const { items, isLoading } = useBookings(params)
+  const { items, isLoading, error, refresh } = useBookings(params)
 
   const onFilterChange = (key: string, value: string) => {
     setFilters((p) => ({ ...p, [key]: value || undefined }))
   }
+
+  useEffect(() => {
+    if (error) {
+      (async () => {
+        const { toastError } = await import('@/lib/toast-api')
+        toastError(error, 'Failed to load service requests')
+      })()
+    }
+  }, [error])
 
   const filterConfigs: FilterConfig[] = [
     { key: "status", label: "Status", options: [
@@ -122,7 +131,7 @@ export default function AdminServiceRequestsPage() {
       title="Service Requests"
       subtitle="Manage and track service requests and appointments"
       primaryAction={{ label: "New Request", onClick: () => (window.location.href = "/admin/service-requests/new") }}
-      secondaryActions={[{ label: "Refresh", onClick: () => window.location.reload() }]}
+      secondaryActions={[{ label: "Refresh", onClick: () => refresh() }]}
       filters={filterConfigs}
       onFilterChange={onFilterChange}
       onSearch={(value) => setQ(value)}
