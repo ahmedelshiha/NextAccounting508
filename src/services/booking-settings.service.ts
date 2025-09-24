@@ -75,7 +75,12 @@ export class BookingSettingsService {
         sAny.paymentMethods = await prisma.paymentMethodConfig.findMany({ where: { bookingSettingsId: sAny.id } })
       }
       if (!Array.isArray(sAny.notificationTemplates) || sAny.notificationTemplates.length === 0) {
-        sAny.notificationTemplates = await prisma.notificationTemplate.findMany({ where: { bookingSettingsId: sAny.id } })
+        const nt: any = (prisma as any).notificationTemplate
+        if (nt && typeof nt.findMany === 'function') {
+          sAny.notificationTemplates = await nt.findMany({ where: { bookingSettingsId: sAny.id } })
+        } else {
+          sAny.notificationTemplates = sAny.notificationTemplates ?? []
+        }
       }
       await cache.set(key, sAny as unknown as BookingSettings, 300)
     }
