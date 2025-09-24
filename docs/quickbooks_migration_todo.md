@@ -27,6 +27,7 @@ and
   - [x] Migrated /admin/analytics to StandardPage with BusinessIntelligence and export actions.
   - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
   - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
+  - [x] Phase 6: Migrated /admin/tasks to StandardPage; preserved board/list/table/calendar/gantt views, filters, bulk actions, and analytics; replaced inline width style in QuickStatsCard with Tailwind utility classes.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -165,9 +166,9 @@ Acceptance: each page renders with new templates, supports sorting/filters/actio
 ---
 
 ## Phase 6 — Secondary Page Migrations P2 (Depends on Phases 1–3)
-- [ ] Tasks
-  - [ ] Migrate src/app/admin/tasks/page.tsx using existing tasks components under src/app/admin/tasks/components/**
-  - [ ] Ensure TaskProvider integration, analytics blocks, and bulk actions
+- [x] Tasks
+  - [x] Migrate src/app/admin/tasks/page.tsx using existing tasks components under src/app/admin/tasks/components/**
+  - [x] Ensure TaskProvider integration, analytics blocks, and bulk actions
 - [ ] Clients
   - [ ] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
   - [ ] Validate create/invite flows and profile search
@@ -289,7 +290,7 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/invoices (redirect)
 - [ ] /admin/payments (redirect)
 - [ ] /admin/expenses (redirect)
-- [ ] /admin/tasks
+- [x] /admin/tasks
 - [ ] /admin/reminders
 - [ ] /admin/audits
 - [ ] /admin/posts
