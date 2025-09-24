@@ -27,7 +27,7 @@
   
   "services.title": "हमारी पेशेवर सेवाएं",
   "services.subtitle": "आपके व्यवसाय को फलने-फूलने में मदद करने के लिए डिज़ाइन किए गए व्यापक लेखांकन समाधान। बुककीपिंग से लेकर रणनीतिक सलाह तक, हमने आपको कवर किया है।",
-  "services.cta.title": "कस्टम समाधान चाहिए?",
+  "services.cta.title": "कस्ट�� समाधान चाहिए?",
   "services.cta.subtitle": "हर व्यवसाय अनूठा है। आइए चर्चा करते हैं कि हम आपकी विशिष्ट लेखांकन और वित्तीय आवश्यकताओं को पूरा करने के लिए अपनी सेवाओं को कैसे तैयार कर सकते हैं।",
   "services.cta.primary": "कस्टम कोट प्राप्त करें",
   "services.cta.secondary": "सभी सेवाएं देखें",
@@ -47,7 +47,7 @@
   "blog.newsletter.title": "कर और वित्तीय सुझावों के साथ अपडेट रहें",
   "blog.newsletter.subtitle": "अपने इनबॉक्स में हमारी नवीनतम अंतर्दृष्टि प्राप्त करें। कोई स्पैम नहीं, केवल आपके व्यवसाय को फलने-फूलने में मदद करने के लिए मूल्यवान सामग्री।",
   "blog.newsletter.placeholder": "अपना ईमेल दर्ज करें",
-  "blog.newsletter.subscribe": "सब्सक्राइब करें",
+  "blog.newsletter.subscribe": "सब्सक्राइब ���रें",
   "blog.minRead": "मिनट पढ़ें",
   
   "footer.description": "बढ़ते व्यवसायों के लिए पेशेवर लेखांकन स���वाएं। हम आपके वित्त का प्रबंधन करने में आपकी मदद करते हैं ताकि आप जो सबसे अच्छा करते हैं उस पर ध्यान दे सकें।",
@@ -92,7 +92,7 @@
   "auth.register.signInHere": "यहाँ साइन इन करें",
   
   "portal.welcome": "वापसी पर स्वागत है, {{name}}!",
-  "portal.subtitle": "अपनी नियुक्तियों का प्रबंधन करें और अपनी लेखांकन सेवा��ं देखें।",
+  "portal.subtitle": "अपनी नियुक्तियों का प्रबंधन करें और अपनी लेखांकन सेव�����ं देखें।",
   "portal.bookNew": "नई सेवा बुक करें",
   "portal.scheduleConsultation": "परामर्श शेड्यूल करें",
   "portal.totalBookings": "कुल बुकिंग",
@@ -192,6 +192,64 @@
   "time.to": "तक",
   "time.at": "पर",
   "time.on": "को",
-  "time.in": "में"
+  "time.in": "में",
+
+  "dashboard.searchPlaceholder.generic": "खोजें...",
+  "dashboard.customize": "कस्टमाइज़",
+  "dashboard.activeFilters": "सक्रिय फ़िल्टर:",
+  "dashboard.noData": "कोई डेटा उपलब्ध नहीं",
+  "dashboard.actions": "क्रियाएँ",
+  "dashboard.selectedCount": "{{count}} चयनित",
+  "dashboard.noSelection": "कोई चयन नहीं",
+  "dashboard.filtersActiveCount": "{{count}} फ़िल्टर सक्रिय",
+
+  "dashboard.clients.title": "ग्राहक",
+  "dashboard.clients.new": "नया ग्राहक",
+  "dashboard.services.title": "सेवाएं",
+  "dashboard.services.new": "नई सेवा",
+  "dashboard.tasks.title": "कार्य",
+
+  "dashboard.clear": "साफ करें",
+  "dashboard.activate": "सक्रिय करें",
+  "dashboard.deactivate": "निष्क्रिय करें",
+  "dashboard.exportCsv": "CSV निर्यात",
+  "dashboard.setRole": "भूमिका सेट करें",
+  "dashboard.setStatus": "स्थिति सेट करें",
+
+  "dashboard.search.clients": "नाम या ईमेल खोजें…",
+  "dashboard.search.services": "सेवाएं खोजें…",
+  "dashboard.search.tasks": "कार्य खोजें…",
+
+  "common.id": "आईडी",
+  "common.name": "नाम",
+  "common.email": "ईमेल",
+  "common.role": "भूमिका",
+  "common.status": "स्थिति",
+  "common.created": "बनाया गया",
+  "common.updated": "अपडेटेड",
+  "common.title": "शीर्षक",
+  "common.assignee": "असाइनी",
+  "common.due": "नियत",
+  "common.category": "श्रेणी",
+  "common.price": "मूल्य",
+  "common.date": "तारीख",
+
+  "range.last7d": "पिछले 7 दिन",
+  "range.last30d": "पिछले 30 दिन",
+  "range.overdue": "अतिदेय",
+
+  "role.admin": "एडमिन",
+  "role.staff": "स्टाफ",
+  "role.client": "ग्राहक",
+
+  "tasks.status.open": "खुला",
+  "tasks.status.in_progress": "प्रगति पर",
+  "tasks.status.blocked": "अवरोधित",
+  "tasks.status.completed": "पूर��ण",
+  "tasks.status.cancelled": "रद्द",
+
+  "prompt.setRole": "भूमिका सेट करें (ADMIN, STAFF, CLIENT):",
+  "prompt.setStatus.users": "स्थिति सेट करें (ACTIVE, INACTIVE, SUSPENDED):",
+  "prompt.setStatus.tasks": "स्थिति सेट करें (OPEN, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED):"
 }
 
