@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useBookings, type BookingsQuery } from '@/hooks/useBookings'
 import FilterBar from '@/components/dashboard/FilterBar'
-import DataTable from '@/components/dashboard/DataTable'
+import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import Link from 'next/link'
 
@@ -210,7 +210,7 @@ export default function BookingsList() {
         active={active}
         searchPlaceholder="Search clients, services…"
       />
-      <DataTable
+      <AdvancedDataTable
         columns={columns}
         rows={sorted}
         loading={isLoading}
