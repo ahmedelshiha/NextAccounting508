@@ -42,7 +42,7 @@ and
   - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
   - [x] Global site a11y: Added skip link in RootLayout, main landmark in ClientLayout, navigation aria-current/labels; tests in tests/ui/navigation.a11y.dom.test.tsx. Added route-change announcer for screen readers (AccessibleRouteAnnouncer) and tests (tests/providers/route-announcer.dom.test.tsx).
   - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
-  - [x] Added skip-to-main content link, main landmark focus target, and sidebar navigation aria; introduced admin layout a11y tests.
+  - [x] Added skip-to-main content link, main landmark focus target, and sidebar navigation aria; introduced admin layout a11y tests. Added banner role on site header and loading live region in ServicesSection with tests.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [x] Set alert thresholds in GET /api/admin/perf-metrics snapshot (added thresholds and alerts fields; status derives from violations; tests added: tests/api/perf-metrics.thresholds.test.ts).
   - [ ] Monitor perf metrics for 7 days post-deploy and document thresholds/outliers.
