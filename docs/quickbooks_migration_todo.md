@@ -63,9 +63,9 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 
 ## Phase 3 — Page Templates and Component Standards (Depends on Phase 1)
 - [ ] Create standardized page templates
-  - [ ] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
-  - [ ] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
-  - [ ] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
+  - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
+  - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
+  - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
   - [ ] Add story/preview examples for each template
 - [ ] Advanced table and bulk actions
   - [ ] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
