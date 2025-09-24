@@ -1,3 +1,5 @@
+'use client'
+
 import type { ActionItem } from '@/types/dashboard'
 
 export default function PageHeader({ title, subtitle, primaryAction, secondaryActions = [] }: { title: string; subtitle?: string; primaryAction?: ActionItem; secondaryActions?: ActionItem[] }) {
