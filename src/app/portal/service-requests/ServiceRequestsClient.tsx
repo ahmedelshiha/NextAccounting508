@@ -47,6 +47,7 @@ const priorityStyles: Record<string, string> = {
 }
 
 export default function ServiceRequestsClient() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
