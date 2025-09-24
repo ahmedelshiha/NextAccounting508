@@ -266,6 +266,25 @@
   "portal.serviceRequests.status.Cancelled": "Cancelled",
   "portal.serviceRequests.status.Draft": "Draft",
 
+  "portal.serviceRequests.notFound": "Request not found.",
+  "portal.serviceRequests.scheduledLabel": "Scheduled:",
+  "portal.serviceRequests.confirmed": "Confirmed",
+  "portal.serviceRequests.awaitingConfirmation": "Awaiting confirmation",
+  "portal.serviceRequests.approve": "Approve",
+  "portal.serviceRequests.confirmAppointment": "Confirm appointment",
+  "portal.serviceRequests.reschedule": "Reschedule",
+
+  "portal.toast.commentFailed": "Failed to post comment",
+  "portal.toast.approveFailed": "Unable to approve",
+  "portal.toast.requestApproved": "Request approved",
+  "portal.toast.confirmFailed": "Unable to confirm appointment",
+  "portal.toast.appointmentConfirmed": "Appointment confirmed",
+  "portal.toast.rescheduleFailed": "Unable to reschedule",
+  "portal.toast.appointmentRescheduled": "Appointment rescheduled",
+  "portal.toast.requestCancelled": "Request cancelled",
+
+  "portal.upload.failed": "Upload failed",
+
   "portal.offline.pending": "pending",
   "portal.offline.synced": "Queued submissions synced",
   "portal.offline.syncFailed": "Sync failed",
