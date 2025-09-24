@@ -83,8 +83,16 @@ export class BookingSettingsService {
     })
 
     await this.invalidateByTenant(tenantId)
-    const full = await this.getBookingSettings(tenantId)
-    return full as BookingSettings
+    const full = await prisma.bookingSettings.findFirst({
+      where: { tenantId: tenantId ?? undefined },
+      include: {
+        steps: { orderBy: { stepOrder: 'asc' } },
+        businessHoursConfig: { orderBy: { dayOfWeek: 'asc' } },
+        paymentMethods: true,
+        notificationTemplates: true,
+      },
+    })
+    return full as unknown as BookingSettings
   }
 
   /** Validate and update settings; returns updated settings. */
