@@ -51,6 +51,7 @@ const statusStyles: Record<string, string> = {
 }
 
 export default function PortalServiceRequestDetailPage() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const params = useParams<{ id: string }>()
   const router = useRouter()
