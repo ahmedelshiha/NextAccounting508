@@ -194,8 +194,8 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 ## Phase 9 — Quality, Testing, and Accessibility
 - [ ] Unit & Integration Tests
   - [x] AdminContext default values smoke test
-  - [ ] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted)
-  - [ ] Template rendering tests for StandardPage/ListPage/AnalyticsPage
+  - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
+  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
   - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
   - [x] apiFetch returns 503 on network error/timeout
