@@ -247,9 +247,9 @@ export default function ServiceRequestsClient() {
             {/* PWA offline queue indicator (visible when NEXT_PUBLIC_ENABLE_PWA=1) */}
             {pwaEnabled && queuedCount > 0 && (
               <div className="flex items-center gap-2">
-                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} pending</Badge>
-                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success('Queued submissions synced'); } catch { toast.error('Sync failed') } }}>
-                  Sync
+                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} {t('portal.offline.pending')}</Badge>
+                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success(t('portal.offline.synced')); } catch { toast.error(t('portal.offline.syncFailed')) } }} aria-label={t('portal.offline.sync') }>
+                  {t('portal.offline.sync')}
                 </Button>
               </div>
             )}
