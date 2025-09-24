@@ -102,7 +102,7 @@ export default function PortalServiceRequestDetailPage() {
     connect()
     return () => { try { es?.close() } catch {} }
      
-  }, [session, id])
+  }, [session, id, refresh])
 
   const uploadFile = async (file: File, key: string): Promise<{ url?: string; error?: string }> => {
     return new Promise((resolve) => {
@@ -190,7 +190,7 @@ export default function PortalServiceRequestDetailPage() {
         body: JSON.stringify({ content: comment, attachments })
       })
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({} as any))
+        const errBody = await res.json().catch(() => ({}))
         toast.error(getApiErrorMessage(errBody, t('portal.toast.commentFailed')))
         return
       }
@@ -207,7 +207,7 @@ export default function PortalServiceRequestDetailPage() {
 
   const cancelRequest = async () => {
     if (!id) return
-    if (!confirm('Are you sure you want to cancel this request?')) return
+    if (!confirm(t('portal.serviceRequests.confirmCancel'))) return
     try {
       const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}`, {
         method: 'PATCH',
@@ -273,7 +273,7 @@ export default function PortalServiceRequestDetailPage() {
       const list = Array.isArray(json?.data?.slots) ? json.data.slots : []
       setSlots(list)
     } catch {
-      toast.error('Failed to load availability')
+      toast.error(t('portal.availability.loadFailed'))
     } finally {
       setLoadingSlots(false)
     }
@@ -328,20 +328,20 @@ export default function PortalServiceRequestDetailPage() {
             <p className="text-gray-600">{t('portal.serviceRequests.subtitle')}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild aria-label={t('common.back')}>
               <Link href="/portal/service-requests">{t('common.back')}</Link>
             </Button>
             {reqData && ['SUBMITTED','IN_REVIEW'].includes(reqData.status) && (
-              <Button onClick={approveRequest}>{t('portal.serviceRequests.approve')}</Button>
+              <Button onClick={approveRequest} aria-label={t('portal.serviceRequests.approve')}>{t('portal.serviceRequests.approve')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && !isConfirmed && (
-              <Button onClick={confirmAppointment}>{t('portal.serviceRequests.confirmAppointment')}</Button>
+              <Button onClick={confirmAppointment} aria-label={t('portal.serviceRequests.confirmAppointment')}>{t('portal.serviceRequests.confirmAppointment')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && (
-              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>{t('portal.serviceRequests.reschedule')}</Button>
+              <Button variant="outline" onClick={() => setRescheduleOpen(true)} aria-label={t('portal.serviceRequests.reschedule')}>{t('portal.serviceRequests.reschedule')}</Button>
             )}
             {reqData && !['COMPLETED','CANCELLED'].includes(reqData.status) && (
-              <Button variant="destructive" onClick={cancelRequest}>{t('portal.cancel')}</Button>
+              <Button variant="destructive" onClick={cancelRequest} aria-label={t('portal.cancel')}>{t('portal.cancel')}</Button>
             )}
           </div>
         </div>
@@ -388,18 +388,18 @@ export default function PortalServiceRequestDetailPage() {
                 )}
                 {Array.isArray(reqData.attachments) && reqData.attachments.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-900">Attachments</h4>
+                    <h4 className="text-sm font-medium text-gray-900">{t('portal.attachments.title')}</h4>
                     <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
                       {reqData.attachments.map((a: any, i: number) => {
                         const avStatus: string | undefined = a?.avStatus ?? (typeof a?.avDetails?.clean === 'boolean' ? (a.avDetails.clean ? 'clean' : 'infected') : undefined)
                         return (
                           <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-sm">
                             <span className="truncate">
-                              {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                              {(a.name || t('common.file'))} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
                               {a.url ? (
                                 <>
                                   {' '}
-                                  <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                                  <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{t('common.view')}</a>
                                 </>
                               ) : null}
                               {a.uploadError ? (
@@ -410,7 +410,7 @@ export default function PortalServiceRequestDetailPage() {
                               <span className={
                                 avStatus === 'clean' ? 'text-green-600' : avStatus === 'infected' ? 'text-red-600' : 'text-yellow-600'
                               }>
-                                {avStatus === 'clean' ? 'Clean' : avStatus === 'infected' ? 'Infected' : avStatus}
+                                {avStatus === 'clean' ? t('portal.attachments.clean') : avStatus === 'infected' ? t('portal.attachments.infected') : avStatus}
                               </span>
                             )}
                           </li>
@@ -426,10 +426,10 @@ export default function PortalServiceRequestDetailPage() {
                       if (!hasInfected) return null
                       return (
                         <div className="mt-2 flex items-center justify-between rounded-md bg-red-50 px-3 py-2">
-                          <p className="text-sm text-red-700">One or more files appear infected and may be quarantined.</p>
+                          <p className="text-sm text-red-700">{t('portal.attachments.quarantineWarning')}</p>
                           {role && role !== 'CLIENT' && (
-                            <Button variant="destructive" asChild>
-                              <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>Open Quarantine Console</Link>
+                            <Button variant="destructive" asChild aria-label={t('portal.attachments.openQuarantine')}>
+                              <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>{t('portal.attachments.openQuarantine')}</Link>
                             </Button>
                           )}
                         </div>
@@ -442,35 +442,35 @@ export default function PortalServiceRequestDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Discussion</CardTitle>
-                <CardDescription>Ask questions or provide more details.</CardDescription>
+                <CardTitle>{t('portal.discussion.title')}</CardTitle>
+                <CardDescription>{t('portal.discussion.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {(reqData.comments || []).length === 0 ? (
-                    <p className="text-sm text-gray-600">No comments yet.</p>
+                    <p className="text-sm text-gray-600">{t('portal.discussion.empty')}</p>
                   ) : (
                     <div className="space-y-3">
                       {(reqData.comments || []).map((c: any) => (
                         <div key={c.id} className="bg-gray-50 rounded-md p-3">
                           <div className="text-sm text-gray-700">{c.content}</div>
                           <div className="text-xs text-gray-500 mt-1">
-                            {c.author?.name || 'You'} • {new Date(c.createdAt).toLocaleString()}
+                            {c.author?.name || t('portal.discussion.you')} • {new Date(c.createdAt).toLocaleString()}
                           </div>
                           {Array.isArray(c.attachments) && c.attachments.length > 0 && (
                             <div className="mt-2">
-                              <h5 className="text-xs font-medium text-gray-900">Attachments</h5>
+                              <h5 className="text-xs font-medium text-gray-900">{t('portal.attachments.title')}</h5>
                               <ul className="mt-1 divide-y divide-gray-200 rounded-md border border-gray-200">
                                 {c.attachments.map((a: any, i: number) => {
                                   const avStatus: string | undefined = a?.avStatus ?? (typeof a?.avDetails?.clean === 'boolean' ? (a.avDetails.clean ? 'clean' : 'infected') : undefined)
                                   return (
                                     <li key={`${a.name || 'file'}-${i}`} className="flex items-center justify-between px-3 py-2 text-xs">
                                       <span className="truncate">
-                                        {(a.name || 'File')} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
+                                        {(a.name || t('common.file'))} {a.size ? <span className="text-gray-500">({Math.round(a.size/1024)} KB)</span> : null}
                                         {a.url ? (
                                           <>
                                             {' '}
-                                            <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">view</a>
+                                            <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{t('common.view')}</a>
                                           </>
                                         ) : null}
                                         {a.uploadError ? (
@@ -481,7 +481,7 @@ export default function PortalServiceRequestDetailPage() {
                                         <span className={
                                           avStatus === 'clean' ? 'text-green-600' : avStatus === 'infected' ? 'text-red-600' : 'text-yellow-600'
                                         }>
-                                          {avStatus === 'clean' ? 'Clean' : avStatus === 'infected' ? 'Infected' : avStatus}
+                                          {avStatus === 'clean' ? t('portal.attachments.clean') : avStatus === 'infected' ? t('portal.attachments.infected') : avStatus}
                                         </span>
                                       )}
                                     </li>
@@ -497,10 +497,10 @@ export default function PortalServiceRequestDetailPage() {
                                 if (!hasInfected) return null
                                 return (
                                   <div className="mt-2 flex items-center justify-between rounded-md bg-red-50 px-3 py-2">
-                                    <p className="text-xs text-red-700">A comment contains an infected file.</p>
+                                    <p className="text-xs text-red-700">{t('portal.attachments.commentQuarantineWarning')}</p>
                                     {role && role !== 'CLIENT' && (
-                                      <Button variant="destructive" size="sm" asChild>
-                                        <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>Open Quarantine Console</Link>
+                                      <Button variant="destructive" size="sm" asChild aria-label={t('portal.attachments.openQuarantine')}>
+                                        <Link href={`/admin/uploads/quarantine?serviceRequestId=${encodeURIComponent(String(id || ''))}`}>{t('portal.attachments.openQuarantine')}</Link>
                                       </Button>
                                     )}
                                   </div>
@@ -514,7 +514,7 @@ export default function PortalServiceRequestDetailPage() {
                   )}
 
                   <div className="mt-2">
-                    <Label htmlFor="comment">Add a comment</Label>
+                    <Label htmlFor="comment">{t('portal.discussion.addComment')}</Label>
                     <Textarea id="comment" value={comment} onChange={(e) => setComment(e.target.value)} className="mt-1" rows={3} />
                     <div className="mt-2">
                       <Input
@@ -529,6 +529,7 @@ export default function PortalServiceRequestDetailPage() {
                           setCommentFiles((prev) => [...prev, ...fresh])
                           fresh.forEach((f) => uploadSingle(f))
                         }}
+                        aria-label={t('portal.discussion.attachmentsAria')}
                       />
                       {commentFiles.length > 0 && (
                         <ul className="mt-2 divide-y divide-gray-200 rounded-md border border-gray-200">
@@ -544,7 +545,7 @@ export default function PortalServiceRequestDetailPage() {
                                   {info?.url && (
                                     <>
                                       {' '}
-                                      <a href={info.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">view</a>
+                                      <a href={info.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{t('common.view')}</a>
                                     </>
                                   )}
                                   {info?.error && (
@@ -559,11 +560,13 @@ export default function PortalServiceRequestDetailPage() {
                                     </>
                                   )}
                                   {!info?.url && !isUploading && (
-                                    <Button variant="outline" size="sm" onClick={() => uploadSingle(f)}>
-                                      {info?.error ? 'Retry Upload' : 'Upload'}
+                                    <Button variant="outline" size="sm" onClick={() => uploadSingle(f)} aria-label={t('portal.discussion.retryUpload')}>
+                                      {info?.error ? t('portal.discussion.retryUpload') : t('portal.discussion.upload')}
                                     </Button>
                                   )}
-                                  <Button variant="ghost" size="sm" onClick={() => setCommentFiles((prev) => prev.filter((_, i) => i !== idx))}>Remove</Button>
+                                  <Button variant="ghost" size="sm" onClick={() => setCommentFiles((prev) => prev.filter((_, i) => i !== idx))} aria-label={t('portal.discussion.remove')}>
+                                    {t('portal.discussion.remove')}
+                                  </Button>
                                 </div>
                               </li>
                             )
@@ -571,11 +574,11 @@ export default function PortalServiceRequestDetailPage() {
                         </ul>
                       )}
                       {commentFiles.length > 0 && hasPendingUploads && (
-                        <p className="mt-1 text-xs text-gray-600">Please wait for uploads to finish before posting.</p>
+                        <p className="mt-1 text-xs text-gray-600">{t('portal.discussion.waitUploads')}</p>
                       )}
                     </div>
                     <div className="flex justify-end mt-2">
-                      <Button onClick={submitComment} disabled={!comment.trim() || hasPendingUploads}>Post Comment</Button>
+                      <Button onClick={submitComment} disabled={!comment.trim() || hasPendingUploads} aria-label={t('portal.discussion.postComment')}>{t('portal.discussion.postComment')}</Button>
                     </div>
                   </div>
                 </div>
@@ -589,23 +592,23 @@ export default function PortalServiceRequestDetailPage() {
       <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reschedule appointment</DialogTitle>
-            <DialogDescription>Select a new date and time.</DialogDescription>
+            <DialogTitle>{t('portal.reschedule.title')}</DialogTitle>
+            <DialogDescription>{t('portal.reschedule.description')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div>
-                <Label htmlFor="apt-date">Date</Label>
+                <Label htmlFor="apt-date">{t('portal.reschedule.date')}</Label>
                 <Input id="apt-date" type="date" value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
               </div>
               <div>
-                <Label>Duration</Label>
+                <Label>{t('portal.reschedule.duration')}</Label>
                 <Select value={String(slotDuration || '')} onValueChange={(v) => setSlotDuration(v ? Number(v) as number : '')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Duration (min)" />
+                  <SelectTrigger aria-label={t('portal.reschedule.durationPlaceholder')}>
+                    <SelectValue placeholder={t('portal.reschedule.durationPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Default</SelectItem>
+                    <SelectItem value="">{t('portal.reschedule.default')}</SelectItem>
                     <SelectItem value="30">30</SelectItem>
                     <SelectItem value="45">45</SelectItem>
                     <SelectItem value="60">60</SelectItem>
@@ -614,22 +617,22 @@ export default function PortalServiceRequestDetailPage() {
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button type="button" variant="outline" onClick={fetchAvailability} disabled={!appointmentDate || loadingSlots || !reqData?.service?.id}>
-                  {loadingSlots ? 'Loading...' : 'Find Slots'}
+                <Button type="button" variant="outline" onClick={fetchAvailability} disabled={!appointmentDate || loadingSlots || !reqData?.service?.id} aria-label={t('portal.reschedule.findSlots')}>
+                  {loadingSlots ? t('common.loading') : t('portal.reschedule.findSlots')}
                 </Button>
               </div>
             </div>
 
             {slots.length > 0 && (
               <div className="mt-1">
-                <div className="text-xs text-gray-600 mb-1">Available times</div>
+                <div className="text-xs text-gray-600 mb-1">{t('portal.reschedule.availableTimes')}</div>
                 <div className="flex flex-wrap gap-2">
                   {slots.filter(s => s.available).map((s) => {
                     const dt = new Date(s.start)
                     const label = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                     const isSel = selectedSlot === s.start
                     return (
-                      <Button key={s.start} type="button" size="sm" variant={isSel ? 'default' : 'outline'} onClick={() => setSelectedSlot(s.start)}>
+                      <Button key={s.start} type="button" size="sm" variant={isSel ? 'default' : 'outline'} onClick={() => setSelectedSlot(s.start)} aria-label={label}>
                         {label}
                       </Button>
                     )
@@ -639,8 +642,8 @@ export default function PortalServiceRequestDetailPage() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Close</Button>
-            <Button onClick={submitReschedule} disabled={!selectedSlot}>Confirm Reschedule</Button>
+            <Button variant="outline" onClick={() => setRescheduleOpen(false)} aria-label={t('portal.reschedule.close')}>{t('portal.reschedule.close')}</Button>
+            <Button onClick={submitReschedule} disabled={!selectedSlot} aria-label={t('portal.reschedule.confirm')}>{t('portal.reschedule.confirm')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

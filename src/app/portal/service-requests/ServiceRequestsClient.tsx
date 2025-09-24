@@ -69,8 +69,8 @@ export default function ServiceRequestsClient() {
 
   // Debounce search input to reduce network churn
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q), 300)
-    return () => clearTimeout(t)
+    const tmo = setTimeout(() => setDebouncedQ(q), 300)
+    return () => clearTimeout(tmo)
   }, [q])
 
   // Keep URL in sync with filters/pagination
@@ -133,7 +133,7 @@ export default function ServiceRequestsClient() {
 
   // Offline queue indicator (PWA feature gated)
   const pwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === '1'
-  const { queuedCount, processQueue, refreshQueue } = useOfflineQueue()
+  const { queuedCount, processQueue } = useOfflineQueue()
 
   const exportCSV = async () => {
     if (!Array.isArray(items) || !items.length) return
@@ -210,7 +210,7 @@ export default function ServiceRequestsClient() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-gray-900 truncate">{r.title}</h3>
                     <Badge className={priorityStyles[r.priority] || 'bg-gray-100 text-gray-800'}>
-                      {r.priority}
+                      {t(`priority.${r.priority.toLowerCase()}`)}
                     </Badge>
                     <Badge className={statusStyles[r.status] || 'bg-gray-100 text-gray-800'}>
                       {r.status.replace('_', ' ')}
@@ -229,7 +229,7 @@ export default function ServiceRequestsClient() {
         ))}
       </div>
     )
-  }, [isLoading, items])
+  }, [isLoading, items, t])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -254,10 +254,10 @@ export default function ServiceRequestsClient() {
               </div>
             )}
 
-            <Button variant="outline" onClick={exportCSV}>{t('common.export')}</Button>
-            <Button asChild>
+            <Button variant="outline" onClick={exportCSV} aria-label={t('common.export')}>{t('common.export')}</Button>
+            <Button asChild aria-label={t('portal.serviceRequests.create')}>
               <Link href="/portal/service-requests/new">
-                <Plus className="h-4 w-4 mr-2" /> New Request
+                <Plus className="h-4 w-4 mr-2" /> {t('portal.serviceRequests.create')}
               </Link>
             </Button>
           </div>
@@ -282,7 +282,7 @@ export default function ServiceRequestsClient() {
               aria-label={t('portal.serviceRequests.searchAria')}
             />
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
+              <SelectTrigger aria-label={t('portal.serviceRequests.selectAllStatus')}>
                 <SelectValue placeholder={t('portal.serviceRequests.selectAllStatus')} />
               </SelectTrigger>
               <SelectContent>
@@ -298,7 +298,7 @@ export default function ServiceRequestsClient() {
               </SelectContent>
             </Select>
             <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[200px]" aria-label={t('portal.serviceRequests.selectBookingType')}>
                 <SelectValue placeholder={t('portal.serviceRequests.selectBookingType')} />
               </SelectTrigger>
               <SelectContent>
@@ -318,13 +318,13 @@ export default function ServiceRequestsClient() {
               <Input id="to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
             </div>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
-              <SelectTrigger className="w-28">
+              <SelectTrigger className="w-28" aria-label={t('portal.serviceRequests.perPage')}>
                 <SelectValue placeholder={t('portal.serviceRequests.perPage')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="10">10 / page</SelectItem>
-                <SelectItem value="20">20 / page</SelectItem>
-                <SelectItem value="50">50 / page</SelectItem>
+                <SelectItem value="10">{t('pagination.perPageOption', { count: 10 })}</SelectItem>
+                <SelectItem value="20">{t('pagination.perPageOption', { count: 20 })}</SelectItem>
+                <SelectItem value="50">{t('pagination.perPageOption', { count: 50 })}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -333,8 +333,9 @@ export default function ServiceRequestsClient() {
               type="button"
               onClick={() => { setQ(''); setStatus('ALL'); setBookingType('ALL'); setDateFrom(''); setDateTo('') }}
               className="text-sm text-gray-600 hover:underline"
+              aria-label={t('portal.serviceRequests.clearFiltersAria')}
             >
-              Clear filters
+              {t('dashboard.clear')}
             </button>
           )}
         </div>
@@ -342,13 +343,13 @@ export default function ServiceRequestsClient() {
         {content}
 
         {Array.isArray(items) && items.length > 0 && (
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between mt-4" role="navigation" aria-label={t('pagination.aria')}>
             <div className="text-sm text-gray-600">
-              Page {page} of {totalPages}{total ? ` • ${total} total` : ''}
+              {t('pagination.pageOf', { page, totalPages })}{total ? ` • ${t('pagination.total', { total })}` : ''}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>Next</Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} aria-label={t('common.previous')}>{t('common.previous')}</Button>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} aria-label={t('common.next')}>{t('common.next')}</Button>
             </div>
           </div>
         )}
