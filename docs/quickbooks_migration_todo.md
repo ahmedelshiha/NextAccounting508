@@ -21,12 +21,17 @@ and
   - [x] Added preview pages for templates under /admin/previews (standard, list, analytics) for visual verification.
   - [x] Replaced DataTable usages with AdvancedDataTable across admin lists and overview; preserved selection/bulk actions.
   - [x] Added tests: apiFetch failure fallback, AdvancedDataTable SSR pagination, AdminContext defaults, RealtimeProvider SSR defaults, useUnifiedData initial state.
+  - [x] Implemented jsdom DOM harness; added AdvancedDataTable interaction tests (select/sort/paginate) and onSelectionChange assertions.
+  - [x] Added Sidebar IA and active-state tests (collapsed rendering, aria-current verification).
+  - [x] Added /admin/perf-metrics viewer and docs/perf-metrics-report.md for before/after tracking.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
   - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
   - Unify realtime and data fetching patterns to simplify refresh and reduce bugs.
   - Provide fast local previews for QA without backend wiring.
+  - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
+  - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
@@ -34,8 +39,9 @@ and
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
-  - [x] Realtime parsing and refresh tests implemented (parseEventMessage, provider SSR defaults, SWR revalidation on events);
-  - [ ] Table interaction tests (select/sort/paginate) deferred — current SSR-only test harness lacks DOM event support; plan: enhance test-mocks to jsdom for interaction coverage.
+  - [ ] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update.
+  - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
+  - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
 
 ---
 
@@ -199,7 +205,9 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
   - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
-  - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
+  - [ ] Bookings critical flow: create → save → list appears with correct totals
+  - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
+  - [ ] Services critical flow: create/edit/clone reflected in list and version history (if enabled)
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
   - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
