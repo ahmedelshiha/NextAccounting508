@@ -6,6 +6,7 @@ import { ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import { useAdminContext } from '@/components/admin/providers/AdminContext'
+import PerfMetricsReporter from './PerfMetricsReporter'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { sidebarCollapsed } = useAdminContext()
