@@ -1,3 +1,4 @@
+import StandardPage from '@/components/dashboard/templates/StandardPage'
 import TeamManagement from '@/components/admin/team-management'
 
 export const metadata = {
@@ -7,8 +8,8 @@ export const metadata = {
 
 export default function AdminTeamPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TeamManagement />
-    </div>
+    <StandardPage title="Team Management" subtitle="Manage staff members, availability, and assignments">
+      <TeamManagement hideHeader />
+    </StandardPage>
   )
 }
