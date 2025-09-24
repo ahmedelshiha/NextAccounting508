@@ -14,3 +14,8 @@
 - Updated tests/integration/portal-realtime.sse.test.ts to mock auth, prisma, and realtime service; asserts 200 and text/event-stream with proper caching headers; OPTIONS returns Allow: GET,OPTIONS.
 - Why: validates basic SSE contract for portal realtime endpoint without relying on live DB or network.
 - Next: add test that asserts a connect healthLog entry is created (via mocked prisma) and one initial data line is enqueued.
+
+## 2025-09-27 – Portal cancel flow and export filters integration tests
+- Added tests: tests/integration/portal-bookings-cancel.test.ts (DELETE cancel path with tenant/ownership) and tests/integration/portal-export.filters.test.ts (CSV respects status/q and appointments date window).
+- Why: increases confidence in critical portal flows before adding E2E. Confirms server-side contract; UI cache update left for Playwright.
+- Next: add Playwright E2E to verify UI cache mutation on cancellation and streamed CSV large datasets.
