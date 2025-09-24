@@ -138,11 +138,11 @@ function BookingPreferencesForm() {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={smsReminder} onChange={(e) => setSmsReminder(e.target.checked)} />
-            SMS reminders
+            {t('portal.settings.smsReminder')}
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={smsConfirmation} onChange={(e) => setSmsConfirmation(e.target.checked)} />
-            SMS confirmations
+            {t('portal.settings.smsConfirmation')}
           </label>
         </div>
       </div>
