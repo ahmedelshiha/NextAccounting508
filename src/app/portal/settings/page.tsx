@@ -16,6 +16,7 @@ import { signOut } from 'next-auth/react'
 import { useTranslations } from '@/lib/i18n'
 
 function BookingPreferencesForm() {
+  const { t } = useTranslations()
   const [loading, setLoading] = useState(true)
   const [savingPrefs, setSavingPrefs] = useState(false)
   const [emailConfirmation, setEmailConfirmation] = useState(true)
