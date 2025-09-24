@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useTranslations } from '@/lib/i18n'
 
 interface Booking {
   id: string
