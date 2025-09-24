@@ -126,7 +126,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
   - [x] Clients → use SWR to /api/admin/users + FilterBar/DataTable
 - [x] Services → use SWR to /api/admin/services + FilterBar/DataTable
-- [x] Tasks ��� use TaskProvider or /api/admin/tasks + FilterBar/DataTable
+- [x] Tasks — use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
   - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
   - [x] Clients: columns id, name, email, role, status, createdAt
@@ -191,6 +191,25 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - Add unit and integration tests for tenant guards, SSE and offline chat flows; run in CI
   - Run pnpm lint, pnpm typecheck, pnpm test:thresholds and address issues
   - Update dashboard-structure.md examples where necessary
+
+## Documentation Update – 2025-09-25
+- [x] What was completed
+  - Added unit tests for tenant/guard utilities and booking-preferences Zod validator
+  - Added negative/auth unit tests for portal routes (service-requests, bookings, comments, chat)
+  - Implemented integration-style in-process HTTP test server to exercise App Router-style handlers directly
+  - Added integration tests asserting 405/Allow behavior for unsupported methods
+  - Added HTTP-level integration tests for:
+    - offline queue flush simulation (POST create flow) using mocked prisma/getServerSession
+    - large CSV export performance simulation (2k rows) asserting CSV response and line count
+  - Mocked prisma and per-test getServerSession in integration tests to validate authenticated and unauthenticated flows
+- [x] Why it was done
+  - Provide stronger, HTTP-level guarantees that route handlers return correct status codes, headers (Allow), and content for both happy-path and negative scenarios
+  - Validate offline queue flush behavior and CSV export scalability without requiring a full browser environment or service worker
+  - Increase test coverage for security guards, multi-tenant checks, and export pipelines before adding Playwright E2E
+- [x] Next steps
+  - Run the full test suite (vitest) in CI and fix any failures
+  - Add Playwright E2E tests for real browser flows: offline queue (IndexedDB+ServiceWorker), CSV export, filters/pagination, and chat send/receive
+  - Add negative integration tests for remaining routes and edge cases (idempotency, rate-limit handling, dev-fallbacks)
 
 ## Doc Sync Tasks (keep in sync as work progresses)
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
@@ -264,6 +283,8 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 7) Offline/PWA (depends on #1,#2)
 - [x] Ensure useOfflineQueue works (IndexedDB count and process functions exist) and OfflineQueueInspector reflects queuedCount
   - Files: src/hooks/useOfflineQueue.ts, src/components/portal/OfflineQueueInspector.tsx
+- [x] Add HTTP-level integration test for offline queue flush (simulated queued POSTs) — tests/integration/offline-and-csv.test.ts
+  - Acceptance: queued POSTs are delivered and create handlers invoked (mocked DB)
 - [ ] Add E2E test for offline SR creation and background sync flush (Playwright)
   - Acceptance: submission recorded in IndexedDB and flushed after network restoration
 
@@ -274,6 +295,8 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 
 9) Observability & Performance (ongoing)
 - [x] Log SSE connect/disconnect in health logs (see #3)
+- [x] Add integration test for CSV large export (2k rows simulation) — tests/integration/offline-and-csv.test.ts
+  - Acceptance: CSV body contains expected number of lines and correct headers
 - [ ] Add debounced CSV generation and background worker for large CSVs (>500 rows)
   - Action: implement server-side streaming/endpoints and client debounce (src/lib/csv-export.ts)
   - Acceptance: UI does not stutter when exporting 500+ rows
@@ -298,4 +321,4 @@ References
 - Middleware/guards: src/middleware.ts, src/lib/auth.ts, src/lib/tenant.ts, src/lib/permissions.ts
 
 Notes
-- I implemented items in groups: security hardening, SSE instrumentation, client notification switch and optimistic prefs update. Next focus should be tests (unit + integration) for coverage and CI automation.
+- I implemented items in groups: security hardening, SSE instrumentation, client notification switch and optimistic prefs update. Recent work focused on test coverage and HTTP-level integration for negative and offline/export scenarios. Next focus: run tests in CI and add Playwright E2E for browser-level validations.
