@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useTranslations } from '@/lib/i18n'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface Comment { id: string; content: string; createdAt: string; author?: { id: string; name?: string | null } | null }
