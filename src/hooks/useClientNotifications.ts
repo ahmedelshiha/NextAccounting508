@@ -38,7 +38,7 @@ export function useClientNotifications() {
   useEffect(() => {
     if (!session?.user) return
 
-    const es = new EventSource('/api/admin/realtime?events=service-request-updated,team-assignment')
+    const es = new EventSource('/api/portal/realtime?events=service-request-updated,team-assignment')
     es.onmessage = (e) => {
       try {
         const payload = JSON.parse(e.data)

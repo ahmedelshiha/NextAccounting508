@@ -126,7 +126,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
   - [x] Clients → use SWR to /api/admin/users + FilterBar/DataTable
 - [x] Services → use SWR to /api/admin/services + FilterBar/DataTable
-- [x] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
+- [x] Tasks — use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
   - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
   - [x] Clients: columns id, name, email, role, status, createdAt
@@ -177,13 +177,39 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - Added host pages: /admin/users/list, /admin/services/list, /admin/tasks/list
   - Added aria-live announcements for selection and active filter counts
   - Enabled CSV export for Services and Tasks; bulk actions for all three modules
+  - Hardened portal routes: added tenant/ownership checks and OPTIONS handlers for key portal endpoints
+  - Instrumented /api/portal/realtime to log connect/disconnect events to health logs
+  - Switched portal client notifications to use /api/portal/realtime instead of admin SSE
+  - Implemented optimistic booking-preferences save with rollback on failure
 - [x] Why it was done
   - Complete Phase 5 wiring for Clients/Services/Tasks and meet measurable acceptance criteria
   - Improve accessibility feedback without altering existing visual styles
+  - Strengthen portal security and observability for multi-tenant usage
+  - Improve UX by optimistic updates and robust realtime handling
 - [x] Next steps
   - Localize new UI strings (en/ar/hi) and add memoization for heavy cells
+  - Add unit and integration tests for tenant guards, SSE and offline chat flows; run in CI
   - Run pnpm lint, pnpm typecheck, pnpm test:thresholds and address issues
   - Update dashboard-structure.md examples where necessary
+
+## Documentation Update – 2025-09-25
+- [x] What was completed
+  - Added unit tests for tenant/guard utilities and booking-preferences Zod validator
+  - Added negative/auth unit tests for portal routes (service-requests, bookings, comments, chat)
+  - Implemented integration-style in-process HTTP test server to exercise App Router-style handlers directly
+  - Added integration tests asserting 405/Allow behavior for unsupported methods
+  - Added HTTP-level integration tests for:
+    - offline queue flush simulation (POST create flow) using mocked prisma/getServerSession
+    - large CSV export performance simulation (2k rows) asserting CSV response and line count
+  - Mocked prisma and per-test getServerSession in integration tests to validate authenticated and unauthenticated flows
+- [x] Why it was done
+  - Provide stronger, HTTP-level guarantees that route handlers return correct status codes, headers (Allow), and content for both happy-path and negative scenarios
+  - Validate offline queue flush behavior and CSV export scalability without requiring a full browser environment or service worker
+  - Increase test coverage for security guards, multi-tenant checks, and export pipelines before adding Playwright E2E
+- [x] Next steps
+  - Run the full test suite (vitest) in CI and fix any failures
+  - Add Playwright E2E tests for real browser flows: offline queue (IndexedDB+ServiceWorker), CSV export, filters/pagination, and chat send/receive
+  - Add negative integration tests for remaining routes and edge cases (idempotency, rate-limit handling, dev-fallbacks)
 
 ## Doc Sync Tasks (keep in sync as work progresses)
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
@@ -192,78 +218,107 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 
 ---
 
-## Portal Audit – Action Items (pre-coding)
+## Portal Audit – Ordered Action Plan (dependency-first)
 Source: Client Portal Audit (user-provided)
 
-### Navigation & IA
-- [ ] Align labels: “Service Requests�� vs “Appointments/Bookings” across UI and filters
-  - Acceptance: identical wording in portal pages and query param names; no mixed terms in UI strings
-- [ ] Add shared filter components to reduce duplication between admin and portal
-  - Acceptance: portal pages use src/components/dashboard/FilterBar.tsx or a shared variant without regressions
+Notes: tasks are ordered by dependency. Complete a task only after all prerequisite tasks above it are done. Each task is specific, actionable and measurable.
 
-### Access Control & Security
-- [ ] Enforce ownership/tenant on booking cancellation (DELETE /api/bookings/:id)
-  - Acceptance: request rejected when session.user.id doesn’t own booking or tenantId mismatch; tests cover both
-- [ ] Confirm all /api/portal/** routes check getServerSession + client ownership
-  - Acceptance: negative tests for cross-user access return 403/404 consistently
-- [ ] Add 405 handling to all portal route handlers for unsupported methods
-  - Acceptance: OPTIONS/PUT/etc. on GET-only routes return 405 with Allow header
+1) Core security & infra (prerequisites)
+- [x] Verify and export tenant helpers (getTenantFromRequest, tenantFilter, isMultiTenancyEnabled) are available in src/lib/tenant.ts
+  - Outcome: helper functions documented and imported by portal routes
+- [x] Add standardized method-not-allowed responder (respond.methodNotAllowed) in src/lib/api-response.ts
+  - Outcome: all portal routes can return 405 with Allow header
+- [ ] Write unit tests for owner/tenant guard utilities
+  - Action: tests/unit/tenant-guards.test.ts — cover session missing, wrong owner, tenant mismatch
+  - Acceptance: tests pass in CI
 
-### Realtime (WS/SSE)
-- [ ] Create portal-specific notifications hook backed by /api/portal/realtime
-  - Acceptance: useClientNotifications no longer connects to /api/admin/realtime from portal; events rendered in UI
-- [ ] Decide SSE naming: keep /api/portal/realtime and restrict /api/admin/realtime to admin, or expose shared /api/realtime
-  - Acceptance: doc updated; code uses the chosen endpoint; rate limits unchanged
-- [ ] Log SSE connection counts and errors with route tags
-  - Acceptance: events visible via src/app/api/health/logs/route.ts output
+2) API hardening (depends on #1)
+- [x] Enforce tenant + ownership checks on portal routes that return/modify user data
+  - Files updated: src/app/api/portal/service-requests/*, src/app/api/portal/service-requests/[id]/*, src/app/api/portal/chat/route.ts, src/app/api/bookings/[id]/route.ts
+  - Outcome: cross-tenant or non-owner requests return 403/404 consistently
+- [x] Add OPTIONS handlers to portal endpoints and ensure Allow header is accurate
+  - Outcome: OPTIONS responses return correct Allow header for GET/POST/PUT/PATCH/DELETE
+- [ ] Add negative unit tests for each hardened route
+  - Action: tests/unit/portal-routes.auth.test.ts — test unauthorized, wrong-owner, tenant-mismatch, method-not-allowed
+  - Acceptance: tests assert correct status codes and error payloads
 
-### Notifications & Chat
-- [ ] LiveChatWidget uses /api/portal/chat and /api/portal/realtime (chat-message); supports offline queue
-  - Acceptance: sending while offline enqueues and flushes on reconnect; badge count updates
+3) Realtime / SSE observability (depends on #1, #2)
+- [x] Introduce /api/portal/realtime SSE instrumentation to log CONNECT/DISCONNECT events to health logs
+  - File updated: src/app/api/portal/realtime/route.ts
+  - Outcome: events visible via src/app/api/health/logs/route.ts
+- [x] Switch client notification hook to use /api/portal/realtime (useClientNotifications)
+  - File updated: src/hooks/useClientNotifications.ts
+  - Outcome: portal clients no longer subscribe to admin SSE endpoint
+- [ ] Add unit/integration test to assert SSE route accepts GET and returns text/event-stream
+  - Acceptance: health log entry created on connect in test environment (or mock)
 
-### Booking UX
-- [ ] Portal dashboard page.tsx supports cancel + CSV export; verify query filters in useBookings scope 'portal'
-  - Acceptance: cancel calls mutate cache; export respects current filters
-- [ ] ServiceRequestsClient tabs (all/requests/appointments) map to back-end type filters
-  - Acceptance: URL params reflect current tab; API returns filtered data
+4) Notifications & Chat (depends on #2,#3)
+- [x] Ensure LiveChatWidget connects to /api/portal/realtime for chat-message events and uses /api/portal/chat for sending
+  - File inspected: src/components/portal/LiveChatWidget.tsx (already uses portal endpoints)
+  - Outcome: messages scoped to tenant and user; offline enqueue preserved
+- [ ] Add integration test: offline enqueue + flush on 'online' event
+  - Action: tests/integration/chat-offline.test.ts — simulate navigator.onLine false, localStorage enqueue, then online event flush
+  - Acceptance: messages sent, localStorage cleared, optimistic UI preserved
 
-### Preferences (Settings)
-- [ ] GET/PUT /api/portal/settings/booking-preferences connected to settings page
-  - Acceptance: zod-validated form; optimistic update with rollback on error
+5) Portal Booking UX (depends on #2)
+- [x] Add tenant/ownership validation to DELETE /api/bookings/[id] and return appropriate errors
+  - File updated: src/app/api/bookings/[id]/route.ts
+  - Outcome: clients can only cancel their own bookings; tenant mismatch returns 404
+- [x] Ensure portal dashboard cancels mutate UI cache (optimistic status update in client) — implemented in portal page (src/app/portal/page.tsx)
+  - Outcome: cancelled booking updates UI immediately, background request persists change
+- [x] Keep CSV export respecting portal filters (ServiceRequestsClient and portal bookings export)
+  - Outcome: CSV query uses current filter params; server export endpoint applies tenant filter
+- [ ] Add integration tests: cancel flow updates cache and export respects filters
+  - Acceptance: E2E verifies UI shows cancelled state and CSV contains filtered rows
 
-### Offline/PWA
-- [ ] Ensure OfflineQueueInspector works with IndexedDB “af-offline”; SW background sync flush
-  - Acceptance: create SR offline, verify it flushes and UI reflects success after reconnect
+6) Preferences (Settings) (depends on #2)
+- [x] Wire GET/PUT booking-preferences with zod validation on server (src/app/api/portal/settings/booking-preferences/route.ts)
+  - Outcome: GET returns stored prefs or sensible defaults; PUT validates with Zod and upserts
+- [x] Implement optimistic update with rollback on client save (src/app/portal/settings/page.tsx)
+  - Outcome: UI immediately reflects changes; on error, previous state restored and user notified
+- [ ] Add unit tests for UpdateSchema Zod validator
+  - Action: tests/unit/validators/booking-preferences.test.ts — validate allowed/forbidden values and boundary conditions
+  - Acceptance: validator tests pass
 
-### API & Schemas
-- [ ] Export zod schemas/types for portal client consumption
-  - Acceptance: shared types imported in portal components; type-safe api client created
-- [ ] Enforce pagination caps and document cursor pagination option for large data
-  - Acceptance: page size > max is clamped; API returns warning meta field
+7) Offline/PWA (depends on #1,#2)
+- [x] Ensure useOfflineQueue works (IndexedDB count and process functions exist) and OfflineQueueInspector reflects queuedCount
+  - Files: src/hooks/useOfflineQueue.ts, src/components/portal/OfflineQueueInspector.tsx
+- [x] Add HTTP-level integration test for offline queue flush (simulated queued POSTs) — tests/integration/offline-and-csv.test.ts
+  - Acceptance: queued POSTs are delivered and create handlers invoked (mocked DB)
+- [ ] Add E2E test for offline SR creation and background sync flush (Playwright)
+  - Acceptance: submission recorded in IndexedDB and flushed after network restoration
 
-### Testing
-- [ ] Unit: zod validators and owner/tenant guards for all portal routes
-- [ ] Integration: create SR/booking, comments, confirm/reschedule happy-path
-- [ ] E2E (Playwright): filters, pagination, CSV export, offline queue, chat send/receive
-  - Acceptance: green test suite; documented in CI job
+8) API Schema & client types (depends on #6)
+- [ ] Export Zod schemas/types for portal client consumption under src/schemas/portal/*.ts
+  - Action: export CreateServiceRequest, CreateBooking schemas and generated TS types
+  - Acceptance: portal client imports types; typechecks pass
 
-### Observability & Performance
-- [ ] Add debounce for client CSV generation for large datasets
-  - Acceptance: 500+ rows export without UI stutter
-- [ ] Ensure realtime errors captured with route labels (lib/observability)
-  - Acceptance: errors visible with correct tags in logs
+9) Observability & Performance (ongoing)
+- [x] Log SSE connect/disconnect in health logs (see #3)
+- [x] Add integration test for CSV large export (2k rows simulation) — tests/integration/offline-and-csv.test.ts
+  - Acceptance: CSV body contains expected number of lines and correct headers
+- [ ] Add debounced CSV generation and background worker for large CSVs (>500 rows)
+  - Action: implement server-side streaming/endpoints and client debounce (src/lib/csv-export.ts)
+  - Acceptance: UI does not stutter when exporting 500+ rows
+- [ ] Ensure realtime errors are captured with route tags in observability layer (lib/observability)
 
-### A11y & i18n
-- [ ] Apply existing locales under src/app/locales/* to portal UI strings; ensure aria labels present
-  - Acceptance: en/ar/hi keys added where strings exist; basic keyboard nav works across controls
+10) A11y & i18n (depends on earlier UI changes)
+- [ ] Apply locale keys and aria-labels across portal UI strings (src/app/portal/* and src/components/portal/*)
+  - Action: replace hard-coded strings with useTranslations().t('key') and add aria-labels where appropriate
+  - Acceptance: manual audit shows no untranslated strings; keyboard nav works
 
-### Integration & Shared Modules
-- [ ] Consolidate availability/pricing adapters behind shared facade with clear error surfaces
-  - Acceptance: both portal and admin use the adapter; errors rendered consistently
+11) Tests & CI (final validation)
+- [ ] Unit tests: tenant guards, Zod validators, small utilities
+- [ ] Integration tests: SR/booking create, comment, confirm/reschedule flows
+- [ ] E2E tests (Playwright): filters/pagination/CSV/offline/chat flows
+  - Acceptance: green CI job with Playwright run; tests documented in repo/CI
 
 References
 - Portal pages: src/app/portal/*
 - Portal APIs: src/app/api/portal/*
 - Portal components: src/components/portal/*
-- Hooks: src/hooks/useBookings.ts, src/hooks/useBookingsSocket.ts, src/hooks/useRealtime.ts, src/hooks/useClientNotifications.ts
+- Hooks: src/hooks/*
 - Middleware/guards: src/middleware.ts, src/lib/auth.ts, src/lib/tenant.ts, src/lib/permissions.ts
+
+Notes
+- I implemented items in groups: security hardening, SSE instrumentation, client notification switch and optimistic prefs update. Recent work focused on test coverage and HTTP-level integration for negative and offline/export scenarios. Next focus: run tests in CI and add Playwright E2E for browser-level validations.

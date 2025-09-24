@@ -44,7 +44,7 @@ export async function GET() {
   })
 }
 
-const UpdateSchema = z.object({
+export const UpdateSchema = z.object({
   emailConfirmation: z.boolean().optional(),
   emailReminder: z.boolean().optional(),
   emailReschedule: z.boolean().optional(),
@@ -82,4 +82,8 @@ export async function PUT(req: Request) {
     }
     return respond.serverError('Failed to update preferences', { message: msg })
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,PUT,OPTIONS' } })
 }

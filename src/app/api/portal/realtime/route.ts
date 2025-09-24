@@ -12,6 +12,12 @@ export async function GET(request: Request) {
   const eventTypes = (searchParams.get('events')?.split(',') ?? ['all']).filter(Boolean)
   const userId = String((session.user as any).id ?? 'anon')
 
+  // Best-effort health log for observability
+  try {
+    const { default: prisma } = await import('@/lib/prisma')
+    await prisma.healthLog.create({ data: { service: 'portal:realtime', status: 'CONNECTED', message: `user:${userId} events:${eventTypes.join(',')}` } }).catch(() => null)
+  } catch {}
+
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       const enc = new TextEncoder()
@@ -20,10 +26,15 @@ export async function GET(request: Request) {
       const pingId = setInterval(() => {
         try { controller.enqueue(enc.encode(`: ping ${Date.now()}\n\n`)) } catch {}
       }, 25000)
-      const onAbort = () => {
+      const onAbort = async () => {
         try { clearInterval(pingId) } catch {}
         realtimeService.cleanup(connectionId)
         try { controller.close() } catch {}
+        // Log disconnect
+        try {
+          const { default: prisma } = await import('@/lib/prisma')
+          await prisma.healthLog.create({ data: { service: 'portal:realtime', status: 'DISCONNECTED', message: `user:${userId}` } }).catch(() => null)
+        } catch {}
       }
       request.signal.addEventListener('abort', onAbort)
     },

@@ -57,6 +57,10 @@ export const respond = {
     const body: ApiError = { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message, details } }
     return json(body, 500)
   },
+  methodNotAllowed(allow: string) {
+    const body: ApiError = { success: false, error: { code: 'METHOD_NOT_ALLOWED', message: 'Method Not Allowed' } }
+    return json(body, { status: 405, headers: { Allow: allow } })
+  },
 }
 
 export function zodDetails(error: unknown): unknown {

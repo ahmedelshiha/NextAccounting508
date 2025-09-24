@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import type { BookingStatus } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 // GET /api/bookings/[id] - Get booking by ID
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -196,10 +197,20 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     }
 
     const booking = await prisma.booking.findUnique({
-      where: { id }
+      where: { id },
+      select: { clientId: true, status: true, tenantId: true }
     })
 
     if (!booking) {
+      return NextResponse.json(
+        { error: 'Booking not found' },
+        { status: 404 }
+      )
+    }
+
+    // Tenant and ownership checks
+    const tenantId = getTenantFromRequest(request as any)
+    if (isMultiTenancyEnabled() && tenantId && (booking as any).tenantId && (booking as any).tenantId !== tenantId) {
       return NextResponse.json(
         { error: 'Booking not found' },
         { status: 404 }
@@ -231,4 +242,8 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       { status: 500 }
     )
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,PUT,DELETE,OPTIONS' } })
 }

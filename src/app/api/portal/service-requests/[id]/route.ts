@@ -72,8 +72,12 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   if (body.action === 'cancel') allowed.status = 'CANCELLED'
 
   try {
-    const existing = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, status: true } })
+    const existing = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, status: true, tenantId: true } })
     if (!existing || existing.clientId !== session.user.id) {
+      return respond.notFound('Service request not found')
+    }
+    const tenantId = getTenantFromRequest(req as any)
+    if (isMultiTenancyEnabled() && tenantId && (existing as any).tenantId && (existing as any).tenantId !== tenantId) {
       return respond.notFound('Service request not found')
     }
     if (body.action === 'approve') {
@@ -103,6 +107,10 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
         const { getRequest, updateRequest } = await import('@/lib/dev-fallbacks')
         const existing = getRequest(id)
         if (!existing || existing.clientId !== session.user.id) return respond.notFound('Service request not found')
+        const tenantId = getTenantFromRequest(req as any)
+        if (isMultiTenancyEnabled() && tenantId && (existing as any).tenantId && (existing as any).tenantId !== tenantId) {
+          return respond.notFound('Service request not found')
+        }
         if (body.action === 'approve') {
           if (['CANCELLED','COMPLETED'].includes(existing.status as any)) {
             return respond.badRequest('Cannot approve at current status')
@@ -128,4 +136,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
     throw e
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,PATCH,OPTIONS' } })
 }

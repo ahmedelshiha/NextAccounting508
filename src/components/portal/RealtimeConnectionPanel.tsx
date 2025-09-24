@@ -16,19 +16,49 @@ export default function RealtimeConnectionPanel() {
   }, [events])
 
   useEffect(() => {
-    // Connect
+    let es: EventSource | null = null
+    // Connect: try WebSocket first, fallback to SSE
     setStatus('connecting')
-    const ws = new WebSocket(wsUrl)
-    wsRef.current = ws
-    ws.addEventListener('open', () => setStatus('connected'))
-    ws.addEventListener('close', () => setStatus('disconnected'))
-    ws.addEventListener('error', () => setStatus('disconnected'))
-    ws.addEventListener('message', (e) => {
-      // Simple log; in real UI we could surface last event
-      try { const msg = JSON.parse(e.data); console.debug('WS event', msg) } catch {}
-    })
-    return () => { try { ws.close() } catch {} }
-  }, [wsUrl])
+    try {
+      const ws = new WebSocket(wsUrl)
+      wsRef.current = ws
+      ws.addEventListener('open', () => setStatus('connected'))
+      ws.addEventListener('close', () => setStatus('disconnected'))
+      ws.addEventListener('error', () => {
+        setStatus('disconnected')
+        try { ws.close() } catch {}
+        // fallback to SSE
+        try {
+          es = new EventSource(`/api/portal/realtime?events=${encodeURIComponent(events.join(','))}`)
+          es.addEventListener('open', () => setStatus('connected'))
+          es.addEventListener('error', () => setStatus('disconnected'))
+          es.addEventListener('message', (e) => { try { const msg = JSON.parse(e.data); console.debug('SSE event', msg) } catch {} })
+          wsRef.current = null
+        } catch (e) {
+          // ignore
+        }
+      })
+      ws.addEventListener('message', (e) => {
+        try { const msg = JSON.parse(e.data); console.debug('WS event', msg) } catch {}
+      })
+    } catch (e) {
+      // WebSocket failed — fallback to SSE
+      try {
+        es = new EventSource(`/api/portal/realtime?events=${encodeURIComponent(events.join(','))}`)
+        es.addEventListener('open', () => setStatus('connected'))
+        es.addEventListener('error', () => setStatus('disconnected'))
+        es.addEventListener('message', (e) => { try { const msg = JSON.parse(e.data); console.debug('SSE event', msg) } catch {} })
+        wsRef.current = null
+      } catch (e) {
+        setStatus('disconnected')
+      }
+    }
+
+    return () => {
+      try { if (wsRef.current instanceof WebSocket) (wsRef.current as WebSocket).close() } catch {}
+      try { if (es) es.close() } catch {}
+    }
+  }, [wsUrl, events])
 
   const toggleEvent = (ev: string) => {
     setEvents((prev) => {

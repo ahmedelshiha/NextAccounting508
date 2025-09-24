@@ -21,7 +21,7 @@
 - Memoized filter configs and column definitions to reduce re-renders/heavy cell work.
 - Updated docs/admin-dashboard-todo.md to mark i18n and memoization complete; next: run lint/typecheck/tests and validate docs examples.
 
-## 2025-09-24 – Lint/Typecheck/Tests cleanup
+## 2025-09-24  – Lint/Typecheck/Tests cleanup
 - Fixed TS errors: corrected PrimaryTabs onChange handler in src/app/admin/page.tsx and removed duplicate ClientLayout import in src/app/layout.tsx.
 - Resolved ESLint warning in DataTable by replacing side-effect-only ternary with explicit if/else.
 - Ran pnpm lint (clean), pnpm typecheck (clean), pnpm test:thresholds (passed). Updated docs/admin-dashboard-todo.md to reflect completion.
@@ -33,3 +33,19 @@
 ## 2025-09-24 – Docs sync
 - Validated docs/dashboard-structure.md code blocks compile and align with current props; noted extension points for nav, filters, columns, and tabs.
 - Marked Docs & Handoff items complete in docs/admin-dashboard-todo.md.
+
+## 2025-09-25 – Portal security, SSE & preferences
+- Hardened portal APIs: enforced tenant and owner checks across portal service-requests and bookings routes; added OPTIONS handlers to provide accurate Allow headers.
+- Instrumented /api/portal/realtime to write CONNECT/DISCONNECT events to health logs for observability.
+- Switched portal notification hook to /api/portal/realtime and updated RealtimeConnectionPanel to fallback to SSE when WebSocket fails.
+- Implemented optimistic booking-preferences update on the client with rollback on server error.
+- Added respond.methodNotAllowed helper to standardize 405 responses.
+- Next: add unit tests for tenant guards, SSE connect/disconnect, and integration/E2E tests for offline chat and cancel/export flows.
+
+## 2025-09-25 – Integration & HTTP-level testing
+- Added unit and negative tests: tenant guards (tests/unit/tenant-guards.test.ts) and booking-preferences Zod validator tests (tests/unit/booking-preferences.validator.test.ts).
+- Added negative/auth unit tests for portal routes (tests/unit/portal-auth.test.ts) covering unauthenticated and wrong-owner cases.
+- Implemented an in-process HTTP integration harness (tests/integration/http-server.test.ts) that mounts route modules and asserts 405/Allow behavior, OPTIONS handling, and header correctness.
+- Added integration tests for offline queue flush simulation and large CSV export performance (tests/integration/offline-and-csv.test.ts) using mocked prisma and per-test getServerSession to verify authenticated flows and CSV output size.
+- Why: to gain strong HTTP-level confidence in route behavior (status codes, headers, export payloads) before adding full browser E2E tests.
+- Next: run the full test suite in CI; add Playwright E2E for real browser IndexedDB/service-worker flows and expand coverage for edge cases (idempotency, rate limits).

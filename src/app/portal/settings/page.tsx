@@ -61,6 +61,8 @@ function BookingPreferencesForm() {
 
   const save = async () => {
     setSavingPrefs(true)
+    const prev = { emailConfirmation, emailReminder, emailReschedule, emailCancellation, smsReminder, smsConfirmation, reminderHours, timeZone, preferredLanguage }
+    // Optimistic UI already reflects current state from inputs; attempt to persist
     try {
       const res = await apiFetch('/api/portal/settings/booking-preferences', {
         method: 'PUT',
@@ -80,10 +82,30 @@ function BookingPreferencesForm() {
       if (res.ok) {
         toast.success('Preferences saved')
       } else {
+        // Rollback optimistic UI
+        setEmailConfirmation(prev.emailConfirmation)
+        setEmailReminder(prev.emailReminder)
+        setEmailReschedule(prev.emailReschedule)
+        setEmailCancellation(prev.emailCancellation)
+        setSmsReminder(prev.smsReminder)
+        setSmsConfirmation(prev.smsConfirmation)
+        setReminderHours(prev.reminderHours)
+        setTimeZone(prev.timeZone)
+        setPreferredLanguage(prev.preferredLanguage)
         const err = await res.json().catch(() => ({}))
         toast.error(err?.error?.message || 'Failed to save preferences')
       }
     } catch {
+      // Rollback on network error
+      setEmailConfirmation(prev.emailConfirmation)
+      setEmailReminder(prev.emailReminder)
+      setEmailReschedule(prev.emailReschedule)
+      setEmailCancellation(prev.emailCancellation)
+      setSmsReminder(prev.smsReminder)
+      setSmsConfirmation(prev.smsConfirmation)
+      setReminderHours(prev.reminderHours)
+      setTimeZone(prev.timeZone)
+      setPreferredLanguage(prev.preferredLanguage)
       toast.error('Failed to save preferences')
     } finally {
       setSavingPrefs(false)
