@@ -93,9 +93,9 @@ Acceptance: overview page uses new template; real-time and filters operate; smok
 ---
 
 ## Phase 5 — High-Traffic Page Migrations P1 (Depends on Phases 1–3)
-- [ ] Bookings
-  - [ ] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
-  - [ ] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
+- [x] Bookings
+  - [x] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
+  - [x] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
   - [ ] Verify booking creation/edit flows; ensure totals consistent with stats
 - [ ] Service Requests
   - [ ] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
