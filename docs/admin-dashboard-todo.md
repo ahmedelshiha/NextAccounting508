@@ -3,7 +3,7 @@
 # Transformation Prompt (for Claude / AI Dev Agent)
 
 Act as a **senior web developer**, operating **autonomously at all times**.  
-Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-style UI** using the provided codebase, components, and data structures.
+Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-style UI**
 ---
 ### Requirements:
 - **Reorganize Information Architecture (IA):** Consolidate navigation groups into meaningful clusters for an accounting + booking system (Clients, Bookings, Accounting, Team, System).
