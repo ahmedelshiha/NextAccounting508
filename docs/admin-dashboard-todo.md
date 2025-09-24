@@ -1,33 +1,6 @@
 # Admin Dashboard – QuickBooks-Style Transformation TODO
 
-# Transformation Prompt (for Claude / AI Dev Agent)
-
-Act as a **senior web developer**, operating **autonomously at all times**.  
-Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-style UI**
----
-### Requirements:
-- **Reorganize Information Architecture (IA):** Consolidate navigation groups into meaningful clusters for an accounting + booking system (Clients, Bookings, Accounting, Team, System).
-- **Break layout into small reusable components:**  
-  Each component should be in its own file (`src/components/dashboard/*`) and exported. Avoid one large file or heavy lazy-loading.
-- **Use provided specifications:** Align with:
-  - `./quickbooks_dashboard_complete.md` (UI/IA reference)
-  - `./dashboard-structure.md` (component blueprints)
-- **Write clean, production-ready code:**  
-  Follow Next.js App Router, Prisma, SWR conventions. Use Tailwind v4 + shadcn components. Ensure accessibility (ARIA), i18n, and performance optimizations.
-- **Map existing modules to QuickBooks-style equivalents:**  
-  - Bookings/Service Requests → Booking/Appointment tables
-  - Clients → User list + profile pages
-  - Services → Catalog/Price list
-  - Tasks → Work management
-
----
-
-## Status legend
-- [ ] pending  
-- [x] done  
-- (→) owner/actionable note  
-
----
+Status legend: [ ] pending, [x] done, (→) owner/actionable note
 
 ## Linked Specifications (authoritative sources)
 - [x] Review and align with QuickBooks dashboard plan: ./quickbooks_dashboard_complete.md
@@ -57,10 +30,10 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 ## Ordered Work Plan (Next Steps)
 
 1) Clients module
-- [ ] Build ClientsList (src/components/dashboard/lists/ClientsList.tsx) using SWR to GET /api/admin/users with q, role/status, dateFrom/dateTo
-- [ ] Add list host page at /admin/users/list
-- [ ] Columns: id, name, email, role, status, createdAt
-- [ ] Batch: loop PATCH /api/admin/users/:id for role/status changes; show confirmation; refresh list
+- [x] Build ClientsList (src/components/dashboard/lists/ClientsList.tsx) using SWR to GET /api/admin/users with q, role/status, dateFrom/dateTo
+- [x] Add list host page at /admin/users/list
+- [x] Columns: id, name, email, role, status, createdAt
+- [x] Batch: loop PATCH /api/admin/users/:id for role/status changes; show confirmation; refresh list
   - Acceptance: table renders ≥10 users with sortable columns; changing role/status updates server and UI; selection toolbar shows count and disables when 0
 
 2) Services module
