@@ -61,6 +61,51 @@ export async function GET(req: NextRequest) {
     ...tenantFilter(tenantId),
   }
 
+  if (stream) {
+    const header = ['id','title','service','priority','status','createdAt','scheduledAt','bookingType']
+    const pageSize = 500
+    const body = streamCsv({
+      header,
+      async writeRows(write) {
+        let cursor: string | null = null
+        for (;;) {
+          const batch = await prisma.serviceRequest.findMany({
+            where,
+            include: { service: { select: { name: true } } },
+            orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
+            take: pageSize,
+            ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+          })
+          if (!batch.length) break
+          for (const r of batch) {
+            const row = [
+              r.id,
+              r.title,
+              r.service?.name || '',
+              r.priority,
+              r.status,
+              r.createdAt?.toISOString?.() || (r as any).createdAt,
+              (r as any).scheduledAt?.toISOString?.() || (r as any).scheduledAt || '',
+              (r as any).bookingType || '',
+            ]
+            write(row.map(toCsvCell).join(','))
+          }
+          cursor = batch[batch.length - 1]?.id ?? null
+          if (!cursor) break
+        }
+      },
+    })
+    return new NextResponse(body as any, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="service-requests-${new Date().toISOString().slice(0,10)}.csv"`,
+        'Cache-Control': 'no-store',
+        'Transfer-Encoding': 'chunked',
+      },
+    })
+  }
+
   try {
     const items = await prisma.serviceRequest.findMany({
       where,
