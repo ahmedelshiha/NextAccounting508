@@ -256,7 +256,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Ensure LiveChatWidget connects to /api/portal/realtime for chat-message events and uses /api/portal/chat for sending
   - File inspected: src/components/portal/LiveChatWidget.tsx (already uses portal endpoints)
   - Outcome: messages scoped to tenant and user; offline enqueue preserved
-- [ ] Add integration test: offline enqueue + flush on 'online' event
+- [x] Add integration test: offline enqueue + flush on 'online' event
   - Action: tests/integration/chat-offline.test.ts — simulate navigator.onLine false, localStorage enqueue, then online event flush
   - Acceptance: messages sent, localStorage cleared, optimistic UI preserved
 
