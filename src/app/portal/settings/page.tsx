@@ -148,16 +148,16 @@ function BookingPreferencesForm() {
       </div>
 
       <div>
-        <Label className="text-sm text-gray-700">Reminder timing</Label>
+        <Label className="text-sm text-gray-700">{t('portal.settings.reminderTiming')}</Label>
         <div className="mt-2 flex items-center gap-4 flex-wrap">
           {[24, 12, 6, 2].map(h => (
             <label key={h} className="flex items-center gap-2 text-sm text-gray-700">
               <input type="checkbox" checked={reminderHours.includes(h)} onChange={(e) => toggleHour(h, e.target.checked)} />
-              {h} hours before
+              {h} {t('portal.settings.hoursBefore')}
             </label>
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-1">We’ll send reminders within ~15 minutes of the selected times.</p>
+        <p className="text-xs text-gray-500 mt-1">{t('portal.settings.reminderNote')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
