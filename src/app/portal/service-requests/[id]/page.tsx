@@ -315,7 +315,7 @@ export default function PortalServiceRequestDetailPage() {
       setSlots([])
       await refresh()
     } catch {
-      toast.error('Unable to reschedule')
+      toast.error(t('portal.toast.rescheduleFailed'))
     }
   }
 
