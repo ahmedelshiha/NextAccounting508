@@ -285,13 +285,13 @@ export default function PortalServiceRequestDetailPage() {
       const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}/confirm`, { method: 'POST' })
       const json = await res.json().catch(() => ({} as any))
       if (!res.ok) {
-        toast.error(getApiErrorMessage(json, 'Unable to confirm appointment'))
+        toast.error(getApiErrorMessage(json, t('portal.toast.confirmFailed')))
         return
       }
-      toast.success('Appointment confirmed')
+      toast.success(t('portal.toast.appointmentConfirmed'))
       await refresh()
     } catch {
-      toast.error('Unable to confirm appointment')
+      toast.error(t('portal.toast.confirmFailed'))
     }
   }
 
