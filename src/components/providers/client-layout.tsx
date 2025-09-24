@@ -210,6 +210,8 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
         </main>
         <Footer />
       </div>
+      {/* Capture performance metrics on public pages as well */}
+      <PerfMetricsReporter />
       {showPortalChat ? <LiveChatWidget /> : null}
       <Toaster />
     </SessionProvider>
