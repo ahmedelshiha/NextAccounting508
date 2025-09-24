@@ -143,16 +143,16 @@ Update — Legacy Table Replacement
 - [x] Bookings
   - [x] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
   - [x] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
-  - [ ] Verify booking creation/edit flows; ensure totals consistent with stats
+  - [x] Verify booking creation/edit flows; ensure totals consistent with stats — covered by tests: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-bookings.stats-consistency.smoke.test.ts
 - [x] Service Requests
   - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
   - [x] Add filters (status, priority, type, payment) and actions (open)
-  - [ ] Validate assignment workflows and status transitions
+  - [x] Validate assignment workflows and status transitions — covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [x] Services
   - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
   - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
   - [x] Integrate existing components (analytics, filters, forms)
-  - [ ] Validate create/edit/clone and versioning flows if present
+  - [x] Validate create/edit/clone and versioning flows if present — routes covered by tests: tests/admin-services.route.test.ts, tests/admin-services.clone.route.test.ts, tests/admin-services.versions.route.test.ts
 
 Acceptance: each page renders with new templates, supports sorting/filters/actions, and matches data counts; no regressions.
 
@@ -204,7 +204,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 - [ ] Unit & Integration Tests
   - [x] AdminContext default values smoke test
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
-  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage ��� added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
+  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
   - [ ] Bookings critical flow: create → save → list appears with correct totals
   - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
@@ -216,7 +216,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] Auth → Admin → Bookings → New → Save → List — tests/e2e/admin-bookings.smoke.test.ts
   - [x] Admin → Service Requests → Assign → Status Update — tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [ ] Accessibility (A11y)
-  - [ ] Verify focus order, landmarks, roles, and aria attributes for navigation and tables
+  - [x] Verify focus order, landmarks, roles, and aria attributes for navigation and tables — tests added: tests/dashboard/tables/dom/advanced-data-table.a11y.dom.test.tsx and advanced-data-table.a11y-focus.dom.test.tsx; Sidebar covered by sidebar-keyboard.dom.test.tsx
   - [x] Keyboard-only operation of sidebar and tables — covered by tests: advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx
 
 Acceptance: tests green; axe checks pass with no critical violations.
