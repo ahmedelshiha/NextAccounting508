@@ -353,7 +353,7 @@ export default function PortalServiceRequestDetailPage() {
           </div>
         ) : !reqData ? (
           <Card>
-            <CardContent className="py-8 text-center text-gray-700">Request not found.</CardContent>
+            <CardContent className="py-8 text-center text-gray-700">{t('portal.serviceRequests.notFound')}</CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
