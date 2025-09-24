@@ -7,7 +7,7 @@ try {
   // Best-effort: if no NETLIFY_DATABASE_URL is configured (local dev), don't throw at import time.
   // The route will return an error response when executed without a DB.
   // This avoids build-time failures when the environment variable isn't present.
-  // eslint-disable-next-line no-console
+   
   console.warn('Neon client not initialized (NETLIFY_DATABASE_URL missing?):', e)
 }
 

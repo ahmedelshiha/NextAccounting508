@@ -20,7 +20,7 @@ describe('api/admin/tasks/templates route', () => {
     const mod: any = await import('@/app/api/admin/tasks/templates/route')
 
     const get1: any = await mod.GET()
-    let list = await get1.json()
+    const list = await get1.json()
     expect(Array.isArray(list)).toBe(true)
     expect(list.length).toBe(0)
 

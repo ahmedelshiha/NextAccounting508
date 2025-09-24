@@ -47,7 +47,7 @@ function generateOccurrencesLocal(start: Date, durationMinutes: number, pattern:
   const interval = Math.max(1, pattern.interval ?? 1)
   const maxCount = pattern.count ?? 0
   const until = pattern.until ? new Date(pattern.until) : null
-  let current = new Date(start)
+  const current = new Date(start)
   let occurrences = 0
   while (true) {
     if (until && current > until) break

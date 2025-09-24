@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     res.headers.set('Set-Cookie', cookie)
     return res
   } catch (e) {
-    // eslint-disable-next-line no-console
+     
     console.error('dev login error', e)
     return NextResponse.json({ success: false, error: 'internal' }, { status: 500 })
   }

@@ -27,7 +27,7 @@ export default class RedisCache {
     // Otherwise, use ioredis TCP client
     let IORedis: any
     try {
-      // eslint-disable-next-line no-eval
+       
       const req: any = eval('require')
       IORedis = req('ioredis')
     } catch (err) {

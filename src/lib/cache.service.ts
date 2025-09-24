@@ -38,7 +38,7 @@ export class CacheService {
         this.backend = new RedisCache(redisUrl)
       } catch (e) {
         // If Redis client not available, fallback to in-memory and log
-        // eslint-disable-next-line no-console
+         
         console.warn('RedisCache unavailable, falling back to in-memory cache:', (e as any)?.message)
         this.backend = new InMemoryCache()
       }
