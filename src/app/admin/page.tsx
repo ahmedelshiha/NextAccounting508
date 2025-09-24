@@ -45,7 +45,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
 import PrimaryTabs from '@/components/dashboard/PrimaryTabs'
 import FilterBar from '@/components/dashboard/FilterBar'
-import DataTable from '@/components/dashboard/DataTable'
+import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import AdminKPIGrid from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 import BusinessIntelligence from '@/components/dashboard/analytics/BusinessIntelligence'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
@@ -1935,12 +1935,12 @@ export default function ProfessionalAdminDashboard() {
         {activeTab === 'bookings' && (
           <>
             <FilterBar filters={filterConfigs} onFilterChange={onFilterChange} />
-            <DataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
+            <AdvancedDataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
           </>
         )}
 
         {activeTab === 'clients' && (
-          <DataTable columns={clientColumns} rows={clientRows} loading={loading} />
+          <AdvancedDataTable columns={clientColumns} rows={clientRows} loading={loading} />
         )}
 
         {activeTab === 'revenue' && (

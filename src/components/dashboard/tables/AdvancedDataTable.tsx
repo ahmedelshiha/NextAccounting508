@@ -18,6 +18,7 @@ interface AdvancedDataTableProps<T extends { id?: string | number }> {
   total?: number
   onPageChange?: (page: number) => void
   emptyMessage?: string
+  onSelectionChange?: (ids: Array<string | number>) => void
 }
 
 /**
@@ -39,6 +40,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
     total,
     onPageChange,
     emptyMessage = 'No records found',
+    onSelectionChange,
   } = props
 
   const [uncontrolledPage, setUncontrolledPage] = useState(1)
@@ -69,6 +71,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
           onSort={onSort}
           actions={actions}
           selectable={selectable}
+          onSelectionChange={onSelectionChange}
         />
       </div>
 

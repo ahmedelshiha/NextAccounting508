@@ -12,18 +12,27 @@ and
 ## Latest Status Update — 2025-09-24
 
 - Completed
-  - Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
-  - Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
-  - Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
-  - Phase 5: Migrated /admin/service-requests to ListPage with status/priority/type/payment filters, sorting, selection, and row actions.
+  - [x] Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
+  - [x] Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
+  - [x] Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
+  - [x] Phase 5: Migrated /admin/service-requests to ListPage with status/priority/type/payment filters, sorting, selection, and row actions.
+  - [x] Implemented admin RealtimeProvider (src/components/dashboard/realtime/RealtimeProvider.tsx) and wired into AdminProviders.
+  - [x] Created useUnifiedData hook (src/hooks/useUnifiedData.ts) with SWR integration and realtime-triggered revalidation.
+  - [x] Added preview pages for templates under /admin/previews (standard, list, analytics) for visual verification.
+  - [x] Replaced DataTable usages with AdvancedDataTable across admin lists and overview; preserved selection/bulk actions.
+  - [x] Added tests: apiFetch failure fallback, AdvancedDataTable SSR pagination, AdminContext defaults, RealtimeProvider SSR defaults, useUnifiedData initial state.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
   - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
+  - Unify realtime and data fetching patterns to simplify refresh and reduce bugs.
+  - Provide fast local previews for QA without backend wiring.
 - Next steps
-  - Migrate Services admin pages to ListPage + AdvancedDataTable and integrate existing filters/forms.
-  - Verify booking creation/edit flows and totals consistency; add tests for templates and table interactions.
-  - Continue P1 migrations, then proceed with P2–P3 pages and testing/observability items.
+  - [ ] Add tests for realtime parsing and refresh flows (subscribe to events, verify SWR revalidation triggers).
+  - [ ] Verify sidebar IA: click through all links; confirm correct workspace renders and no console errors.
+  - [ ] Run global smoke tests for overview/services/service-requests, including pagination, filters, and bulk actions.
+  - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
+  - [ ] Document template usage and AdvancedDataTable API in Phase 11 docs.
 
 ---
 
@@ -46,7 +55,7 @@ Outcomes: inventory complete, baseline metrics captured, rollback plan prepared,
 - [x] Add Admin context/providers
   - [x] Implement src/components/admin/providers/AdminProviders.tsx (SWRConfig, SessionProvider, Toaster)
   - [x] Implement src/components/admin/providers/AdminContext.tsx (sidebarCollapsed, currentTenant, userPermissions)
-  - [ ] Add unit tests for context behavior and loading states
+  - [x] Add unit tests for context behavior and loading states
 - [x] Replace legacy shells
   - [x] Remove/disable legacy overlays/wrappers that conflict with DashboardLayout
   - [x] Verify only one layout wraps /admin pages
@@ -84,17 +93,22 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
   - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
   - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
   - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
-  - [ ] Add story/preview examples for each template
+  - [x] Add story/preview examples for each template
 - [ ] Advanced table and bulk actions
   - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
-  - [ ] Replace legacy tables where applicable
+  - [x] Replace legacy tables where applicable
 - [ ] Realtime and unified data layer
-  - [ ] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
-  - [ ] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
+  - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
+  - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
   - [ ] Add tests for fetch failures, refresh, and realtime parsing
 
 Acceptance: new templates compile and are reusable; table supports selection/sort/export; unified data hook verified with mocked endpoints.
+
+Progress Update — Phase 3
+- Completed: RealtimeProvider and useUnifiedData integrated; baseline tests added for provider context and unified data initial state. Added preview pages for StandardPage, ListPage, and AnalyticsPage under /admin/previews.
+- Why: establish consistent realtime refresh and a single data-fetching pattern across admin modules, reducing duplication and improving reliability. Previews provide quick visual verification without wiring to live data.
+- Next: add failure/retry and realtime parsing tests, and replace any remaining legacy tables with AdvancedDataTable.
 
 ---
 
@@ -108,6 +122,10 @@ Acceptance: new templates compile and are reusable; table supports selection/sor
   - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
+
+Update — Legacy Table Replacement
+- Completed: Replaced remaining DataTable usages in admin lists (Bookings, Services, Clients, Tasks) and overview tabs with AdvancedDataTable; extended AdvancedDataTable to expose onSelectionChange to preserve bulk actions.
+- Why: unify table UX (sticky headers + pagination) while preserving existing selection-driven bulk actions and visual style.
 
 ---
 
@@ -174,9 +192,13 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 
 ## Phase 9 — Quality, Testing, and Accessibility
 - [ ] Unit & Integration Tests
-  - [ ] Add tests for AdminProviders/AdminContext and templates
+  - [x] AdminContext default values smoke test
+  - [ ] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted)
+  - [ ] Template rendering tests for StandardPage/ListPage/AnalyticsPage
   - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
   - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
+  - [x] apiFetch returns 503 on network error/timeout
+  - [x] AdvancedDataTable SSR pagination summary renders
 - [ ] E2E Smoke Paths
   - [ ] Auth → Admin → Bookings → New → Save → List
   - [ ] Admin → Service Requests → Assign → Status Update
