@@ -170,3 +170,50 @@ describe('HTTP-level integration tests for method-not-allowed and OPTIONS', () =
     expect(allow).toBeTruthy()
   })
 })
+
+// AUTHENTICATED / UNAUTHENTICATED FLOW TESTS
+describe('HTTP-level integration tests for auth flows', () => {
+  it('DELETE /api/bookings/:id returns 401 when unauthenticated', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    const res = await fetch(`${baseUrl}/api/bookings/b1`, { method: 'DELETE' })
+    expect(res.status).toBe(401)
+  })
+
+  it('DELETE /api/bookings/:id cancels when authenticated owner and tenant matches', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    ;(prisma as any).booking.findUnique.mockResolvedValueOnce({ id: 'b1', clientId: 'client1', tenantId: 't1', status: 'PENDING' })
+    ;(prisma as any).booking.update.mockResolvedValueOnce({ id: 'b1', status: 'CANCELLED' })
+
+    const res = await fetch(`${baseUrl}/api/bookings/b1`, { method: 'DELETE', headers: { 'x-tenant-id': 't1' } })
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.message || json?.data?.message).toBeTruthy()
+  })
+
+  it('GET /api/portal/service-requests/export returns CSV for authenticated user', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    ;(prisma as any).serviceRequest.findMany.mockResolvedValueOnce([
+      { id: 'r1', title: 'Req 1', service: { name: 'S1' }, priority: 'MEDIUM', status: 'SUBMITTED', createdAt: new Date(), scheduledAt: null, bookingType: null }
+    ])
+
+    const res = await fetch(`${baseUrl}/api/portal/service-requests/export`, { method: 'GET' })
+    expect(res.status).toBe(200)
+    const ct = res.headers.get('Content-Type') || ''
+    expect(ct).toMatch(/text\/csv/)
+    const body = await res.text()
+    expect(body).toContain('id')
+    expect(body).toContain('Req 1')
+  })
+
+  it('POST /api/portal/service-requests creates when authenticated (simulate client create)', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    ;(prisma as any).service.findUnique.mockResolvedValue({ id: 'svc1', name: 'SVC', active: true, status: 'ACTIVE' })
+    ;(prisma as any).serviceRequest.create.mockResolvedValueOnce({ id: 'new1', clientId: 'client1', serviceId: 'svc1' })
+
+    const res = await fetch(`${baseUrl}/api/portal/service-requests`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serviceId: 'svc1', isBooking: false }) })
+    expect([200,201].includes(res.status)).toBeTruthy()
+    const json = await res.json().catch(() => null)
+    const created = json?.data || json || null
+    expect(created).toBeTruthy()
+  })
+})
