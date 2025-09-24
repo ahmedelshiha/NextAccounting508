@@ -261,14 +261,14 @@ export default function PortalPage() {
               <CardContent className="text-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No upcoming appointments
+                  {t('portal.noUpcoming')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Schedule your next consultation to get started.
+                  {t('portal.noUpcomingDescription')}
                 </p>
-                <Button asChild>
+                <Button asChild aria-label={t('portal.bookAppointment')}>
                   <Link href="/booking">
-                    Book Appointment
+                    {t('portal.bookAppointment')}
                   </Link>
                 </Button>
               </CardContent>
