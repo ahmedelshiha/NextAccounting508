@@ -61,7 +61,7 @@ and
 - [x] Enable history safety: document rollback steps using platform History Tab and ensure git remote push capability
 - [x] Define acceptance criteria per phase (no console errors, responsive, RBAC enforced, tests pass)
 
-Outcomes: inventory complete, baseline metrics captured via PerfMetricsReporter, rollback plan prepared, acceptance criteria agreed. Screenshots pending.
+Outcomes: inventory complete, baseline metrics captured via PerfMetricsReporter (admin and public pages), rollback plan prepared, acceptance criteria agreed. Screenshots pending.
 
 Progress Update — Phase 0
 - Owners & scope recorded in PROJECT_SUMMARY.md: Engineering (Admin Platform), QA (Admin QA), Design (Design Lead), Ops (Netlify Ops). Timeline tracked per phase in this document.
@@ -82,7 +82,7 @@ Rollback Plan (safe operations)
 - Monitor Sentry and /admin/perf-metrics; if regressions detected, revert via History Tab and re-enable legacy flag
 - Keep backup/ legacy pages until parity is verified; remove only after UAT sign-off
 
-Inventory Snapshot — Priority and Owners (2025-09-24)
+Inventory Snapshot ��� Priority and Owners (2025-09-24)
 - P0 (Owner: ENG/Admin Platform; QA: Admin QA; Ops: Netlify Ops):
   - /admin (overview), /admin/bookings, /admin/service-requests, /admin/services
 - P1 (Owner: ENG/Admin Platform; QA: Admin QA):
