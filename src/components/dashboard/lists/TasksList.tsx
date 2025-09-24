@@ -1,11 +1,10 @@
-"use client"
-
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import FilterBar from '@/components/dashboard/FilterBar'
 import DataTable from '@/components/dashboard/DataTable'
 import type { Column, FilterConfig } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
+import { useTranslations } from '@/lib/i18n'
 
 interface TaskRow {
   id: string | number
@@ -37,6 +36,7 @@ function buildQuery(params: Record<string, string | undefined>) {
 }
 
 export default function TasksList() {
+  const { t } = useTranslations()
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<{ status?: string; assigneeId?: string; range?: string }>({})
   const [selectedIds, setSelectedIds] = useState<Array<string | number>>([])
@@ -61,40 +61,40 @@ export default function TasksList() {
 
   const active = useMemo(() => {
     const a: Array<{ key: string; label: string; value: string }> = []
-    if (search) a.push({ key: 'q', label: 'Search', value: search })
-    if (filters.status) a.push({ key: 'status', label: 'Status', value: filters.status })
-    if (filters.assigneeId) a.push({ key: 'assigneeId', label: 'Assignee', value: filters.assigneeId })
-    if (filters.range) a.push({ key: 'range', label: 'Date', value: filters.range === 'overdue' ? 'Overdue' : (filters.range === '7d' ? 'Last 7 days' : 'Last 30 days') })
+    if (search) a.push({ key: 'q', label: t('common.search'), value: search })
+    if (filters.status) a.push({ key: 'status', label: t('common.status'), value: filters.status })
+    if (filters.assigneeId) a.push({ key: 'assigneeId', label: t('common.assignee'), value: filters.assigneeId })
+    if (filters.range) a.push({ key: 'range', label: t('common.date'), value: filters.range === 'overdue' ? t('range.overdue') : (filters.range === '7d' ? t('range.last7d') : t('range.last30d')) })
     return a
-  }, [search, filters])
+  }, [search, filters, t])
 
-  const filterConfigs: FilterConfig[] = [
-    { key: 'status', label: 'Status', options: [
-      { value: 'OPEN', label: 'Open' },
-      { value: 'IN_PROGRESS', label: 'In Progress' },
-      { value: 'BLOCKED', label: 'Blocked' },
-      { value: 'COMPLETED', label: 'Completed' },
-      { value: 'CANCELLED', label: 'Cancelled' },
+  const filterConfigs: FilterConfig[] = useMemo(() => ([
+    { key: 'status', label: t('common.status'), options: [
+      { value: 'OPEN', label: t('tasks.status.open') },
+      { value: 'IN_PROGRESS', label: t('tasks.status.in_progress') },
+      { value: 'BLOCKED', label: t('tasks.status.blocked') },
+      { value: 'COMPLETED', label: t('tasks.status.completed') },
+      { value: 'CANCELLED', label: t('tasks.status.cancelled') },
     ], value: filters.status },
-    { key: 'range', label: 'Date', options: [
-      { value: 'overdue', label: 'Overdue' },
-      { value: '7d', label: 'Last 7 days' },
-      { value: '30d', label: 'Last 30 days' },
+    { key: 'range', label: t('common.date'), options: [
+      { value: 'overdue', label: t('range.overdue') },
+      { value: '7d', label: t('range.last7d') },
+      { value: '30d', label: t('range.last30d') },
     ], value: filters.range },
-  ]
+  ]), [filters.status, filters.range, t])
 
-  const columns: Column<TaskRow>[] = [
-    { key: 'id', label: 'ID', render: (v) => <span className="text-xs text-gray-500">{String(v).slice(0,6)}</span> },
-    { key: 'title', label: 'Title', sortable: true },
-    { key: 'assignee', label: 'Assignee', render: (v) => (
+  const columns: Column<TaskRow>[] = useMemo(() => ([
+    { key: 'id', label: t('common.id'), render: (v) => <span className="text-xs text-gray-500">{String(v).slice(0,6)}</span> },
+    { key: 'title', label: t('common.title'), sortable: true },
+    { key: 'assignee', label: t('common.assignee'), render: (v) => (
       <div className="flex flex-col">
         <span className="font-medium text-gray-900">{v?.name || '—'}</span>
         <span className="text-xs text-gray-500">{v?.email || ''}</span>
       </div>
     ) },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'dueAt', label: 'Due', sortable: true, render: (v) => v ? new Date(v as any).toLocaleString() : '—' },
-  ]
+    { key: 'status', label: t('common.status'), sortable: true },
+    { key: 'dueAt', label: t('common.due'), sortable: true, render: (v) => v ? new Date(v as any).toLocaleString() : '—' },
+  ]), [t])
 
   const exportCsv = async () => {
     const qs = new URLSearchParams()
@@ -119,7 +119,7 @@ export default function TasksList() {
 
   const setStatusBulk = async () => {
     if (!selectedIds.length) return
-    const next = window.prompt('Set status to (OPEN, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED):')?.toUpperCase()
+    const next = window.prompt(t('prompt.setStatus.tasks'))?.toUpperCase()
     if (!next || !['OPEN','IN_PROGRESS','BLOCKED','COMPLETED','CANCELLED'].includes(next)) return
     await apiFetch('/api/admin/tasks/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'status', taskIds: selectedIds, status: next }) })
     setSelectedIds([])
@@ -129,12 +129,12 @@ export default function TasksList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Tasks</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.tasks.title')}</h2>
       </div>
 
       <div aria-live="polite" className="sr-only">
-        {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'No selection'}
-        {active.length ? ` • ${active.length} filters active` : ''}
+        {selectedIds.length > 0 ? t('dashboard.selectedCount', { count: selectedIds.length }) : t('dashboard.noSelection')}
+        {active.length ? ` • ${t('dashboard.filtersActiveCount', { count: active.length })}` : ''}
       </div>
 
       <FilterBar
@@ -142,7 +142,7 @@ export default function TasksList() {
         onFilterChange={onFilterChange}
         onSearch={(v) => setSearch(v)}
         active={active}
-        searchPlaceholder="Search tasks…"
+        searchPlaceholder={t('dashboard.search.tasks')}
       />
 
       <DataTable<TaskRow>
@@ -155,11 +155,11 @@ export default function TasksList() {
 
       {selectedIds.length > 0 && (
         <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
-          <div className="text-sm text-gray-700">{selectedIds.length} selected</div>
+          <div className="text-sm text-gray-700">{t('dashboard.selectedCount', { count: selectedIds.length })}</div>
           <div className="flex items-center gap-2">
-            <button onClick={setStatusBulk} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Set Status</button>
-            <button onClick={exportCsv} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Export CSV</button>
-            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50">Clear</button>
+            <button onClick={setStatusBulk} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.setStatus')}</button>
+            <button onClick={exportCsv} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.exportCsv')}</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.clear')}</button>
           </div>
         </div>
       )}
