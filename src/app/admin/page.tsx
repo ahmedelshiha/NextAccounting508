@@ -1935,12 +1935,12 @@ export default function ProfessionalAdminDashboard() {
         {activeTab === 'bookings' && (
           <>
             <FilterBar filters={filterConfigs} onFilterChange={onFilterChange} />
-            <DataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
+            <AdvancedDataTable columns={bookingColumns} rows={bookingRows} loading={bookingsLoading} />
           </>
         )}
 
         {activeTab === 'clients' && (
-          <DataTable columns={clientColumns} rows={clientRows} loading={loading} />
+          <AdvancedDataTable columns={clientColumns} rows={clientRows} loading={loading} />
         )}
 
         {activeTab === 'revenue' && (
