@@ -39,6 +39,8 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 - [x] Filters/Controls → FilterBar.tsx (./dashboard-structure.md); tags behavior spec in ./quickbooks_dashboard_complete.md
 - [x] Data Table/List → DataTable.tsx (./dashboard-structure.md); empty/hover/sort states in ./quickbooks_dashboard_complete.md
 - [ ] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
+  - [x] Extract KPI grid into reusable component at src/components/dashboard/analytics/ProfessionalKPIGrid.tsx and integrate into /admin
+  - [ ] Extract analytics charts into reusable components and compose in dashboard pages
 
 ## Phase 0 – Prep
 - [x] Read ./quickbooks_dashboard_complete.md and extract UI + IA requirements
@@ -150,7 +152,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 - [x] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
 - [ ] Validate no CLS/contrast regressions (QuickBooks green #2CA01C as accent)
 
-## Phase 8 – Docs & Handoff
+## Phase 8 ��� Docs & Handoff
 - [x] Validate ./dashboard-structure.md code blocks compile as-is when placed into paths
 - [x] Cross-check naming/props against ./quickbooks_dashboard_complete.md
 - [x] Note extension points (adding nav items, columns, filters)

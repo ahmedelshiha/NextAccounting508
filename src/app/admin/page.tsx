@@ -47,6 +47,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import PrimaryTabs from '@/components/dashboard/PrimaryTabs'
 import FilterBar from '@/components/dashboard/FilterBar'
 import DataTable from '@/components/dashboard/DataTable'
+import AdminKPIGrid from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 import type { FilterConfig, TabItem, Column } from '@/types/dashboard'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
@@ -2211,7 +2212,7 @@ export default function ProfessionalAdminDashboard() {
         <PrimaryTabs tabs={tabs} active={activeTab} onChange={(key) => setActiveTab(key as 'overview' | 'bookings' | 'clients' | 'revenue')} />
         {activeTab === 'overview' && (
           <>
-            <ProfessionalKPIGrid data={dashboardData} />
+            <AdminKPIGrid stats={dashboardData.stats} />
         <SmartQuickActions data={dashboardData} />
         <ServiceRequestsSummary />
         <TeamWorkloadSummary />
