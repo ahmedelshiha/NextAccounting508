@@ -126,7 +126,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
   - [x] Clients → use SWR to /api/admin/users + FilterBar/DataTable
 - [x] Services → use SWR to /api/admin/services + FilterBar/DataTable
-- [x] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
+- [x] Tasks ��� use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
   - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
   - [x] Clients: columns id, name, email, role, status, createdAt
@@ -177,11 +177,18 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - Added host pages: /admin/users/list, /admin/services/list, /admin/tasks/list
   - Added aria-live announcements for selection and active filter counts
   - Enabled CSV export for Services and Tasks; bulk actions for all three modules
+  - Hardened portal routes: added tenant/ownership checks and OPTIONS handlers for key portal endpoints
+  - Instrumented /api/portal/realtime to log connect/disconnect events to health logs
+  - Switched portal client notifications to use /api/portal/realtime instead of admin SSE
+  - Implemented optimistic booking-preferences save with rollback on failure
 - [x] Why it was done
   - Complete Phase 5 wiring for Clients/Services/Tasks and meet measurable acceptance criteria
   - Improve accessibility feedback without altering existing visual styles
+  - Strengthen portal security and observability for multi-tenant usage
+  - Improve UX by optimistic updates and robust realtime handling
 - [x] Next steps
   - Localize new UI strings (en/ar/hi) and add memoization for heavy cells
+  - Add unit and integration tests for tenant guards, SSE and offline chat flows; run in CI
   - Run pnpm lint, pnpm typecheck, pnpm test:thresholds and address issues
   - Update dashboard-structure.md examples where necessary
 
