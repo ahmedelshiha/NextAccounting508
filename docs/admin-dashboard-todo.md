@@ -143,6 +143,20 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
   - Add aria-live announcements and localization for new strings
   - Run lint/typecheck/tests and finalize docs/handoff
 
+## Documentation Update – 2025-09-24
+- [x] What was completed
+  - Implemented ClientsList, ServicesList, TasksList with shared FilterBar/DataTable patterns
+  - Added host pages: /admin/users/list, /admin/services/list, /admin/tasks/list
+  - Added aria-live announcements for selection and active filter counts
+  - Enabled CSV export for Services and Tasks; bulk actions for all three modules
+- [x] Why it was done
+  - Complete Phase 5 wiring for Clients/Services/Tasks and meet measurable acceptance criteria
+  - Improve accessibility feedback without altering existing visual styles
+- [x] Next steps
+  - Localize new UI strings (en/ar/hi) and add memoization for heavy cells
+  - Run pnpm lint, pnpm typecheck, pnpm test:thresholds and address issues
+  - Update dashboard-structure.md examples where necessary
+
 ## Doc Sync Tasks (keep in sync as work progresses)
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md
 - [ ] If IA changes, update the Sidebar section in both ./quickbooks_dashboard_complete.md and ./dashboard-structure.md
