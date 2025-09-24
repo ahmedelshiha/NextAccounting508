@@ -36,7 +36,7 @@ export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   // Normalize to an API path; accept absolute/relative keys
   const path = useMemo(() => buildUnifiedPath(key, params), [key, JSON.stringify(params || {})])
 
-  const { data: raw, error, isValidating, mutate } = useSWR(path, undefined, {
+  const { data: raw, error, isValidating, mutate } = useSWR(path, null, {
     fallbackData: initialData as any,
     revalidateOnFocus: false,
     ...(swr || {})
