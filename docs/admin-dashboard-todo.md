@@ -85,10 +85,15 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
   - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
 
 6) Docs & Handoff
-- [ ] Validate ./dashboard-structure.md code blocks compile as-is
-- [ ] Cross-check naming/props against ./quickbooks_dashboard_complete.md
-- [ ] Note extension points (adding nav items, columns, filters) and migration notes
+- [x] Validate ./dashboard-structure.md code blocks compile as-is
+- [x] Cross-check naming/props against ./quickbooks_dashboard_complete.md
+- [x] Note extension points (adding nav items, columns, filters) and migration notes
   - Acceptance: docs reflect final IA and component APIs; examples compile in isolation
+  - Extension points:
+    - Sidebar/nav: append to src/components/dashboard/nav.config.ts
+    - DataTable: add columns with key/label/render; actions via RowAction<T>
+    - FilterBar: extend FilterConfig; wire to onFilterChange and active tags
+    - Primary/Secondary Tabs: pass TabItem[] and handle onChange(key) callbacks
 
 ## Phase 2 – Information Architecture (IA)
 - [x] Define grouped nav for accounting + booking system
