@@ -26,6 +26,7 @@ and
   - [x] Added /admin/perf-metrics viewer and docs/perf-metrics-report.md for before/after tracking.
   - [x] Migrated /admin/analytics to StandardPage with BusinessIntelligence and export actions.
   - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
+  - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -197,7 +198,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
 - [ ] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes
-- [ ] Add Zod schemas for request/response validation at boundaries
+- [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
 
