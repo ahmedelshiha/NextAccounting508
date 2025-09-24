@@ -122,17 +122,17 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 
 ## Phase 5 – Wiring & Pages
 - [x] Replace admin shell with DashboardLayout in src/app/admin/page.tsx
-- [ ] Wire tabs + filters to existing hooks
+- [x] Wire tabs + filters to existing hooks
   - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
   - [x] Clients → use SWR to /api/admin/users + FilterBar/DataTable
 - [x] Services → use SWR to /api/admin/services + FilterBar/DataTable
 - [x] Tasks — use TaskProvider or /api/admin/tasks + FilterBar/DataTable
-- [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
+- [x] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
   - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
   - [x] Clients: columns id, name, email, role, status, createdAt
   - [x] Services: columns id, name, category, price, status, updatedAt
   - [x] Tasks: columns id, title, assignee, status, dueAt
-- [ ] Add batch actions (export/cancel/assign) where selection is enabled
+- [x] Add batch actions (export/cancel/assign) where selection is enabled
   - [x] Bookings/Service Requests: export (filters), cancel (bulk), assign (per id loop)
   - [x] Clients: bulk deactivate/role change
   - [x] Services: bulk activate/deactivate
@@ -145,16 +145,16 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 - [x] Preserve existing locales under src/app/locales/* where text is user-facing
 
 ## Phase 7 – Performance & Quality
-- [ ] Avoid layout shift; use skeleton states in tables/cards
-- [ ] Memoize heavy render paths where needed
+- [x] Avoid layout shift; use skeleton states in tables/cards
+- [x] Memoize heavy render paths where needed
 - [x] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
 - [ ] Validate no CLS/contrast regressions (QuickBooks green #2CA01C as accent)
 
 ## Phase 8 – Docs & Handoff
-- [ ] Validate ./dashboard-structure.md code blocks compile as-is when placed into paths
-- [ ] Cross-check naming/props against ./quickbooks_dashboard_complete.md
-- [ ] Note extension points (adding nav items, columns, filters)
-- [ ] Record migration notes for any route reorganizations
+- [x] Validate ./dashboard-structure.md code blocks compile as-is when placed into paths
+- [x] Cross-check naming/props against ./quickbooks_dashboard_complete.md
+- [x] Note extension points (adding nav items, columns, filters)
+- [x] Record migration notes for any route reorganizations
 
 ## Documentation Update – 2025-09-23
 - [x] What was completed
@@ -228,7 +228,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
   - Outcome: helper functions documented and imported by portal routes
 - [x] Add standardized method-not-allowed responder (respond.methodNotAllowed) in src/lib/api-response.ts
   - Outcome: all portal routes can return 405 with Allow header
-- [ ] Write unit tests for owner/tenant guard utilities
+- [x] Write unit tests for owner/tenant guard utilities
   - Action: tests/unit/tenant-guards.test.ts — cover session missing, wrong owner, tenant mismatch
   - Acceptance: tests pass in CI
 
@@ -238,7 +238,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
   - Outcome: cross-tenant or non-owner requests return 403/404 consistently
 - [x] Add OPTIONS handlers to portal endpoints and ensure Allow header is accurate
   - Outcome: OPTIONS responses return correct Allow header for GET/POST/PUT/PATCH/DELETE
-- [ ] Add negative unit tests for each hardened route
+- [x] Add negative unit tests for each hardened route
   - Action: tests/unit/portal-routes.auth.test.ts — test unauthorized, wrong-owner, tenant-mismatch, method-not-allowed
   - Acceptance: tests assert correct status codes and error payloads
 
@@ -276,7 +276,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
   - Outcome: GET returns stored prefs or sensible defaults; PUT validates with Zod and upserts
 - [x] Implement optimistic update with rollback on client save (src/app/portal/settings/page.tsx)
   - Outcome: UI immediately reflects changes; on error, previous state restored and user notified
-- [ ] Add unit tests for UpdateSchema Zod validator
+- [x] Add unit tests for UpdateSchema Zod validator
   - Action: tests/unit/validators/booking-preferences.test.ts — validate allowed/forbidden values and boundary conditions
   - Acceptance: validator tests pass
 
@@ -289,7 +289,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
   - Acceptance: submission recorded in IndexedDB and flushed after network restoration
 
 8) API Schema & client types (depends on #6)
-- [ ] Export Zod schemas/types for portal client consumption under src/schemas/portal/*.ts
+- [x] Export Zod schemas/types for portal client consumption under src/schemas/portal/*.ts
   - Action: export CreateServiceRequest, CreateBooking schemas and generated TS types
   - Acceptance: portal client imports types; typechecks pass
 
@@ -297,7 +297,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Log SSE connect/disconnect in health logs (see #3)
 - [x] Add integration test for CSV large export (2k rows simulation) — tests/integration/offline-and-csv.test.ts
   - Acceptance: CSV body contains expected number of lines and correct headers
-- [ ] Add debounced CSV generation and background worker for large CSVs (>500 rows)
+- [x] Add debounced CSV generation and background worker for large CSVs (>500 rows)
   - Action: implement server-side streaming/endpoints and client debounce (src/lib/csv-export.ts)
   - Acceptance: UI does not stutter when exporting 500+ rows
 - [ ] Ensure realtime errors are captured with route tags in observability layer (lib/observability)

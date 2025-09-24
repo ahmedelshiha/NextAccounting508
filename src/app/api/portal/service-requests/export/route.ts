@@ -6,6 +6,7 @@ import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
+import { toCsvCell, streamCsv } from '@/lib/csv-export'
 
 function toCsvValue(v: unknown): string {
   const s = v == null ? '' : String(v)
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
   const bookingType = searchParams.get('bookingType') || undefined
   const dateFrom = searchParams.get('dateFrom') || undefined
   const dateTo = searchParams.get('dateTo') || undefined
+  const stream = (searchParams.get('stream') || '').toLowerCase() === 'true' || searchParams.get('stream') === '1'
 
   const tenantId = getTenantFromRequest(req as any)
   const where: any = {
