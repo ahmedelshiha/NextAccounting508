@@ -130,14 +130,14 @@ export default function PortalServiceRequestDetailPage() {
                 resolve({ error: (resp as any)?.error || t('portal.upload.failed') })
               }
             } catch {
-              resolve({ error: 'Upload failed' })
+              resolve({ error: t('portal.upload.failed') })
             }
           }
         }
-        xhr.onerror = () => resolve({ error: 'Upload failed' })
+        xhr.onerror = () => resolve({ error: t('portal.upload.failed') })
         xhr.send(form)
       } catch {
-        resolve({ error: 'Upload failed' })
+        resolve({ error: t('portal.upload.failed') })
       }
     })
   }
