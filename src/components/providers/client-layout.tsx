@@ -6,7 +6,8 @@ import type { Session } from 'next-auth'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
-import LiveChatWidget from '@/components/portal/LiveChatWidget'
+import dynamic from 'next/dynamic'
+const LiveChatWidget = dynamic(() => import('@/components/portal/LiveChatWidget'), { ssr: false })
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
 import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 
