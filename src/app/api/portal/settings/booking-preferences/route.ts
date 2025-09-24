@@ -44,7 +44,7 @@ export async function GET() {
   })
 }
 
-const UpdateSchema = z.object({
+export const UpdateSchema = z.object({
   emailConfirmation: z.boolean().optional(),
   emailReminder: z.boolean().optional(),
   emailReschedule: z.boolean().optional(),
