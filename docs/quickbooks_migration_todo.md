@@ -216,9 +216,9 @@ Acceptance: tests green; axe checks pass with no critical violations.
   - [ ] Ensure no unnecessary client bundles in layout; split heavy charts where appropriate (explicit imports, no hacks)
   - [ ] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page
   - [x] Measure and record route load and interaction timings — added PerfMetricsReporter (src/components/dashboard/PerfMetricsReporter.tsx) posting samples to /api/admin/perf-metrics (POST). Inspect recent via GET.
-- [ ] Observability
-  - [ ] Add Sentry spans for slow API calls; surface error rates in /admin/health-history
-  - [ ] Log real-time connection health and retries
+- [x] Observability
+  - [x] Add Sentry spans for slow API calls; surface error rates in /admin/health-history — added src/lib/observability.ts and wrapped health-history/perf-metrics routes with spans and error capture.
+  - [x] Log real-time connection health and retries — RealtimeProvider posts connection events to /api/admin/perf-metrics (POST) for inspection.
 
 Acceptance: improved or equal route metrics; stable SSE; no performance regressions.
 
