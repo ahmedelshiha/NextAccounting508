@@ -92,11 +92,11 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 
 ## Phase 2 – Information Architecture (IA)
 - [x] Define grouped nav for accounting + booking system
-  - [ ] Clients → Client List, Invitations, Profiles
-  - [ ] Bookings → Appointments, Services, Availability, Booking Settings
-  - [ ] Accounting → Invoices, Payments, Expenses, Reports, Taxes
-  - [ ] Team → Staff, Roles, Permissions
-  - [ ] System → Settings, Notifications, Integrations
+  - [x] Clients → Client List, Invitations, Profiles
+  - [x] Bookings → Appointments, Services, Availability, Booking Settings
+  - [x] Accounting → Invoices, Payments, Expenses, Reports, Taxes
+  - [x] Team → Staff, Roles, Permissions
+  - [x] System → Settings, Notifications, Integrations
 - [x] Validate routes exist or add redirects/stubs for missing pages
 - [x] Finalize iconography (lucide-react) for each item
 
