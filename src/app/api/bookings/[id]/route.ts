@@ -242,3 +242,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     )
   }
 }
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,PUT,DELETE,OPTIONS' } })
+}
