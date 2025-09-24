@@ -68,8 +68,8 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
   - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
   - [ ] Add story/preview examples for each template
 - [ ] Advanced table and bulk actions
-  - [ ] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
-  - [ ] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
+  - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
+  - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
   - [ ] Replace legacy tables where applicable
 - [ ] Realtime and unified data layer
   - [ ] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
