@@ -266,9 +266,9 @@ export default function ServiceRequestsClient() {
           <div className="flex items-center justify-between">
             <Tabs value={typeTab} onValueChange={(v) => setTypeTab(v as any)}>
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="requests">Requests</TabsTrigger>
-                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                <TabsTrigger value="all">{t('portal.serviceRequests.tabs.all')}</TabsTrigger>
+                <TabsTrigger value="requests">{t('portal.serviceRequests.tabs.requests')}</TabsTrigger>
+                <TabsTrigger value="appointments">{t('portal.serviceRequests.tabs.appointments')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -276,48 +276,49 @@ export default function ServiceRequestsClient() {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search requests..."
+              placeholder={t('portal.serviceRequests.searchPlaceholder')}
               className="w-64"
+              aria-label={t('portal.serviceRequests.searchAria')}
             />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="All status" />
+                <SelectValue placeholder={t('portal.serviceRequests.selectAllStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All</SelectItem>
-                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="IN_REVIEW">In Review</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="ASSIGNED">Assigned</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="ALL">{t('portal.serviceRequests.status.All')}</SelectItem>
+                <SelectItem value="SUBMITTED">{t('portal.serviceRequests.status.Submitted')}</SelectItem>
+                <SelectItem value="IN_REVIEW">{t('portal.serviceRequests.status.InReview')}</SelectItem>
+                <SelectItem value="APPROVED">{t('portal.serviceRequests.status.Approved')}</SelectItem>
+                <SelectItem value="ASSIGNED">{t('portal.serviceRequests.status.Assigned')}</SelectItem>
+                <SelectItem value="IN_PROGRESS">{t('portal.serviceRequests.status.InProgress')}</SelectItem>
+                <SelectItem value="COMPLETED">{t('portal.serviceRequests.status.Completed')}</SelectItem>
+                <SelectItem value="CANCELLED">{t('portal.serviceRequests.status.Cancelled')}</SelectItem>
+                <SelectItem value="DRAFT">{t('portal.serviceRequests.status.Draft')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Booking type" />
+                <SelectValue placeholder={t('portal.serviceRequests.selectBookingType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All booking types</SelectItem>
-                <SelectItem value="STANDARD">STANDARD</SelectItem>
-                <SelectItem value="RECURRING">RECURRING</SelectItem>
-                <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
-                <SelectItem value="CONSULTATION">CONSULTATION</SelectItem>
+                <SelectItem value="ALL">{t('portal.serviceRequests.bookingType.All')}</SelectItem>
+                <SelectItem value="STANDARD">{t('portal.serviceRequests.bookingType.STANDARD')}</SelectItem>
+                <SelectItem value="RECURRING">{t('portal.serviceRequests.bookingType.RECURRING')}</SelectItem>
+                <SelectItem value="EMERGENCY">{t('portal.serviceRequests.bookingType.EMERGENCY')}</SelectItem>
+                <SelectItem value="CONSULTATION">{t('portal.serviceRequests.bookingType.CONSULTATION')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="from">From</label>
+              <label className="text-sm text-gray-600" htmlFor="from">{t('portal.serviceRequests.from')}</label>
               <Input id="from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[160px]" />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="to">To</label>
+              <label className="text-sm text-gray-600" htmlFor="to">{t('portal.serviceRequests.to')}</label>
               <Input id="to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
             </div>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
               <SelectTrigger className="w-28">
-                <SelectValue placeholder="Per page" />
+                <SelectValue placeholder={t('portal.serviceRequests.perPage')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10 / page</SelectItem>
