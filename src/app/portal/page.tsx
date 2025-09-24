@@ -237,12 +237,12 @@ export default function PortalPage() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/portal/bookings/${booking.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
-                            View Details
+                            {t('portal.viewDetails')}
                           </Link>
                         </Button>
                         {['PENDING','CONFIRMED'].includes(booking.status) && (
-                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id}>
-                            {deletingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id} aria-label={t('portal.cancel')}>
+                            {deletingId === booking.id ? t('portal.cancelling') : t('portal.cancel')}
                           </Button>
                         )}
                       </div>
