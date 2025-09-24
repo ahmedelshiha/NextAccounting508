@@ -116,3 +116,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     throw e
   }
 }
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })
+}
