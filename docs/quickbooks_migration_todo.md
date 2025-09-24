@@ -110,7 +110,7 @@ Inventory Snapshot — Priority and Owners (2025-09-24)
 
 Acceptance: all /admin pages render under the new layout without visual overlaps; login/portal redirects correct; zero console errors.
 
-Progress Update �� Phase 1
+Progress Update — Phase 1
 - Completed: global admin/layout.tsx, AdminProviders, AdminContext, and removal of local wrappers in admin/page.tsx.
 - Why: ensures a single consistent dashboard shell, prevents overlay/double-layout issues, and enforces auth/role gating.
 - Next: Phase 2 sidebar enhancements (permission-based IA, collapse state via AdminContext) and Phase 3 templates; add AdminContext unit tests.
@@ -184,7 +184,7 @@ Update — Legacy Table Replacement
 - [x] Service Requests
   - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
   - [x] Add filters (status, priority, type, payment) and actions (open)
-  - [x] Validate assignment workflows and status transitions �� covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
+  - [x] Validate assignment workflows and status transitions — covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [x] Services
   - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
   - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
@@ -324,7 +324,7 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin/tasks
 - [ ] /admin/reminders
 - [x] /admin/audits
-- [ ] /admin/posts
+- [x] /admin/posts
 - [x] /admin/newsletter
 - [x] /admin/team
 - [x] /admin/permissions
