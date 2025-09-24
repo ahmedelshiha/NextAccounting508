@@ -13,7 +13,7 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 
 function createClient(url: string) {
   // Lazily require to avoid loading @prisma/client when DB is not configured
-   
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
   return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
 }
