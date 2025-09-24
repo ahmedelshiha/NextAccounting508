@@ -16,6 +16,7 @@ type ChatMsg = {
 }
 
 export default function LiveChatWidget() {
+  const { t } = useTranslations()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [text, setText] = useState('')
