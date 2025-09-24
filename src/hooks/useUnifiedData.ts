@@ -14,21 +14,27 @@ export type UnifiedDataOptions<T> = {
   swr?: SWRConfiguration
 }
 
+/**
+ * Build a normalized API path from a key and optional query params.
+ * If key is relative, it will be prefixed with /api/admin/.
+ */
+export function buildUnifiedPath(key: string, params?: Record<string, string | number | boolean | undefined>): string {
+  const base = key.startsWith("/") ? key : `/api/admin/${key}`
+  if (!params || Object.keys(params).length === 0) return base
+  const qs = new URLSearchParams()
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null) continue
+    qs.set(k, String(v))
+  }
+  const q = qs.toString()
+  return q ? `${base}?${q}` : base
+}
+
 export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   const { key, params, events = ["all"], revalidateOnEvents = true, parse, initialData, swr } = opts
 
   // Normalize to an API path; accept absolute/relative keys
-  const path = useMemo(() => {
-    const base = key.startsWith("/") ? key : `/api/admin/${key}`
-    if (!params || Object.keys(params).length === 0) return base
-    const qs = new URLSearchParams()
-    for (const [k, v] of Object.entries(params)) {
-      if (v === undefined || v === null) continue
-      qs.set(k, String(v))
-    }
-    const q = qs.toString()
-    return q ? `${base}?${q}` : base
-  }, [key, JSON.stringify(params || {})])
+  const path = useMemo(() => buildUnifiedPath(key, params), [key, JSON.stringify(params || {})])
 
   const { data: raw, error, isValidating, mutate } = useSWR(path, undefined, {
     fallbackData: initialData as any,
