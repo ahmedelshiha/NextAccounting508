@@ -28,6 +28,7 @@ and
   - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
   - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
   - [x] Phase 6: Migrated /admin/tasks to StandardPage; preserved board/list/table/calendar/gantt views, filters, bulk actions, and analytics; replaced inline width style in QuickStatsCard with Tailwind utility classes.
+  - [x] Phase 6: Migrated Clients — profiles to ListPage with pagination/filters/actions, invitations to StandardPage with email invite sending via /api/email/test, and new client wizard wrapped in StandardPage; preserved existing styles.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -169,9 +170,9 @@ Acceptance: each page renders with new templates, supports sorting/filters/actio
 - [x] Tasks
   - [x] Migrate src/app/admin/tasks/page.tsx using existing tasks components under src/app/admin/tasks/components/**
   - [x] Ensure TaskProvider integration, analytics blocks, and bulk actions
-- [ ] Clients
-  - [ ] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
-  - [ ] Validate create/invite flows and profile search
+- [x] Clients
+  - [x] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
+  - [x] Validate create/invite flows and profile search
 - [ ] Analytics & Reports
   - [x] Migrate src/app/admin/analytics/page.tsx and src/app/admin/reports/page.tsx to templates
   - [x] Integrate chart components and export buttons
@@ -278,9 +279,9 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin (overview)
 - [x] /admin/analytics
 - [x] /admin/reports
-- [ ] /admin/clients/profiles
-- [ ] /admin/clients/invitations
-- [ ] /admin/clients/new
+- [x] /admin/clients/profiles
+- [x] /admin/clients/invitations
+- [x] /admin/clients/new
 - [x] /admin/bookings
 - [ ] /admin/calendar (redirect)
 - [x] /admin/service-requests
