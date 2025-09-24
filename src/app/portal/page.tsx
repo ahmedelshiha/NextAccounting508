@@ -279,7 +279,7 @@ export default function PortalPage() {
         {/* Past Appointments */}
         {pastBookings.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Past Appointments</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('portal.pastAppointments')}</h2>
             <div className="space-y-4">
               {pastBookings.slice(0, 5).map((booking) => (
                 <Card key={booking.id} className="hover:shadow-md transition-shadow">
