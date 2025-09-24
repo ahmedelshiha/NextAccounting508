@@ -277,8 +277,8 @@ Acceptance: tests green; axe checks pass with no critical violations.
 
 ## Phase 10 — Performance and Telemetry
 - [x] Performance
-  - [ ] Ensure no unnecessary client bundles in layout; split heavy charts where appropriate (explicit imports, no hacks)
-  - [ ] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page
+  - [x] Ensure no unnecessary client bundles in layout; code-split portal LiveChatWidget via next/dynamic (SSR disabled) to keep public/home bundles lean.
+  - [x] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page — AdvancedDataTable default pageSize=20; no usages >50 found.
   - [x] Measure and record route load and interaction timings — added PerfMetricsReporter (src/components/dashboard/PerfMetricsReporter.tsx) posting samples to /api/admin/perf-metrics (POST). Inspect recent via GET.
 - [x] Observability
   - [x] Add Sentry spans for slow API calls; surface error rates in /admin/health-history — added src/lib/observability.ts and wrapped health-history/perf-metrics routes with spans and error capture.
