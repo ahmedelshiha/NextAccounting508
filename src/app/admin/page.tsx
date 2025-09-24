@@ -50,6 +50,7 @@ import AdminKPIGrid from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 import BusinessIntelligence from '@/components/dashboard/analytics/BusinessIntelligence'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import type { FilterConfig, TabItem, Column } from '@/types/dashboard'
+import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 
 const fetcher = (url: string) => fetch(url).then(async (r) => {
   if (!r.ok) throw new Error((await r.json().catch(() => ({ error: r.statusText }))).error || 'Request failed')
@@ -1770,6 +1771,31 @@ export default function ProfessionalAdminDashboard() {
     { key: 'lastBooking', label: 'Last Booking', sortable: true },
     { key: 'tier', label: 'Tier' },
   ]
+
+  return (
+    <AnalyticsPage
+      title="Admin Overview"
+      subtitle="Accounting & Bookings"
+      primaryAction={{ label: 'Export', onClick: handleExport }}
+      secondaryActions={[
+        { label: autoRefresh ? 'Pause Auto-Refresh' : 'Resume Auto-Refresh', onClick: handleToggleAutoRefresh },
+        { label: 'Refresh Now', onClick: loadDashboardData }
+      ]}
+      filters={filterConfigs}
+      onFilterChange={onFilterChange}
+      loading={loading}
+      error={error}
+      stats={dashboardData.stats as any}
+      revenueTrend={dashboardData.revenueAnalytics?.monthlyTrend}
+    >
+      <div className="mt-6">
+        <BusinessIntelligence dashboard={dashboardData} />
+      </div>
+      <div className="mt-6">
+        <IntelligentActivityFeed data={dashboardData} thresholds={thresholds} history={history} saveThresholds={saveThresholds} />
+      </div>
+    </AnalyticsPage>
+  )
 
   if (loading) {
     return (

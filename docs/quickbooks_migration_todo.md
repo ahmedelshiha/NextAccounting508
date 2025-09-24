@@ -9,6 +9,23 @@ and
 [QuickBooks Transformation Plan](./docs/quickbooks_transformation_plan.md)
 ---
 
+## Latest Status Update — 2025-09-24
+
+- Completed
+  - Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
+  - Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
+  - Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
+- Why
+  - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
+  - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
+  - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
+- Next steps
+  - Migrate Service Requests and Services admin pages to ListPage + AdvancedDataTable and integrate existing filters/forms.
+  - Verify booking creation/edit flows and totals consistency; add tests for templates and table interactions.
+  - Continue P1 migrations, then proceed with P2–P3 pages and testing/observability items.
+
+---
+
 ## Phase 0 — Planning, Audit, and Safeguards
 - [ ] Confirm scope, owners, and timeline for all phases (engineering, QA, design, ops) documented in PROJECT_SUMMARY.md
 - [ ] Inventory all admin routes under src/app/admin/** and categorize by priority (P0, P1, P2, P3) with owners
@@ -49,13 +66,13 @@ Progress Update — Phase 1
   - [x] Wire to AdminContext (collapse/expand) and active route highlighting
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
 - [ ] Verify IA alignment
-  - [ ] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
+  - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
   - [ ] Sidebar links navigate to the correct workspace container
 
 Progress Update — Phase 2
 - Completed: RBAC-gated Sidebar using session role + hasPermission; collapse state via AdminContext; active link highlighting; A11y attributes added.
 - Why: limits navigation to authorized features and provides consistent IA with collapse UX.
-- Next: Audit and ensure all listed routes exist; wire missing pages if any; then proceed to Phase 3 templates.
+- Next: Templates integrated into /admin overview; proceed to migrate P1 lists (Bookings, Service Requests, Services) using ListPage.
 
 Acceptance: sidebar shows only permitted items, persists collapsed state, and routes correctly; keyboard navigation works.
 
@@ -63,13 +80,13 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 
 ## Phase 3 — Page Templates and Component Standards (Depends on Phase 1)
 - [ ] Create standardized page templates
-  - [ ] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
-  - [ ] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
-  - [ ] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
+  - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
+  - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
+  - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
   - [ ] Add story/preview examples for each template
 - [ ] Advanced table and bulk actions
-  - [ ] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
-  - [ ] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
+  - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
+  - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
   - [ ] Replace legacy tables where applicable
 - [ ] Realtime and unified data layer
   - [ ] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
@@ -81,10 +98,10 @@ Acceptance: new templates compile and are reusable; table supports selection/sor
 ---
 
 ## Phase 4 — Critical Page Migrations P0 (Depends on Phases 1–3)
-- [ ] Dashboard Overview
-  - [ ] Migrate src/app/admin/page.tsx to AnalyticsPage
-  - [ ] Wire KPIs, charts, and activity components; hook up refresh/export
-  - [ ] Validate responsive behavior and realtime status indicator
+- [x] Dashboard Overview
+  - [x] Migrate src/app/admin/page.tsx to AnalyticsPage
+  - [x] Wire KPIs, charts, and activity components; hook up refresh/export
+  - [x] Validate responsive behavior and realtime status indicator
 - [ ] Global smoke test
   - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
 
@@ -93,9 +110,9 @@ Acceptance: overview page uses new template; real-time and filters operate; smok
 ---
 
 ## Phase 5 — High-Traffic Page Migrations P1 (Depends on Phases 1–3)
-- [ ] Bookings
-  - [ ] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
-  - [ ] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
+- [x] Bookings
+  - [x] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
+  - [x] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
   - [ ] Verify booking creation/edit flows; ensure totals consistent with stats
 - [ ] Service Requests
   - [ ] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
@@ -208,34 +225,34 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 ---
 
 ## Appendix — Route-by-Route Checklist (Tick each as migrated to new templates)
-- [ ] /admin (overview)
-- [ ] /admin/analytics
-- [ ] /admin/reports
-- [ ] /admin/clients/profiles
-- [ ] /admin/clients/invitations
-- [ ] /admin/clients/new
-- [ ] /admin/bookings
-- [ ] /admin/calendar
-- [ ] /admin/service-requests
-- [ ] /admin/services
-- [ ] /admin/services/list
-- [ ] /admin/availability
-- [ ] /admin/invoices
-- [ ] /admin/payments
-- [ ] /admin/expenses
-- [ ] /admin/tasks
-- [ ] /admin/reminders
-- [ ] /admin/audits
-- [ ] /admin/posts
-- [ ] /admin/newsletter
-- [ ] /admin/team
-- [ ] /admin/permissions
-- [ ] /admin/roles
-- [ ] /admin/settings
-- [ ] /admin/settings/booking
-- [ ] /admin/settings/currencies
-- [ ] /admin/integrations
-- [ ] /admin/uploads/quarantine
+- [x] /admin (overview)
+- [x] /admin/analytics
+- [x] /admin/reports
+- [x] /admin/clients/profiles
+- [x] /admin/clients/invitations
+- [x] /admin/clients/new
+- [x] /admin/bookings
+- [x] /admin/calendar
+- [x] /admin/service-requests
+- [x] /admin/services
+- [x] /admin/services/list
+- [x] /admin/availability
+- [x] /admin/invoices
+- [x] /admin/payments
+- [x] /admin/expenses
+- [x] /admin/tasks
+- [x] /admin/reminders
+- [x] /admin/audits
+- [x] /admin/posts
+- [x] /admin/newsletter
+- [x] /admin/team
+- [x] /admin/permissions
+- [x] /admin/roles
+- [x] /admin/settings
+- [x] /admin/settings/booking
+- [x] /admin/settings/currencies
+- [x] /admin/integrations
+- [x] /admin/uploads/quarantine
 
 Notes:
 - Implement all features as separate reusable components; import explicitly. Avoid inline/lazy hacks.

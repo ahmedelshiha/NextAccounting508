@@ -64,6 +64,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import ListPage from '@/components/dashboard/templates/ListPage'
 
 interface Booking {
   id: string
@@ -150,6 +151,70 @@ export default function EnhancedBookingManagement() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null)
   const [serviceFilter, setServiceFilter] = useState('all')
   const [teamMembers, setTeamMembers] = useState<TeamMemberLite[]>([])
+
+  // Columns and rows for ListPage
+  type BookingRow = { id: string; client: string; service: string; when: string; status: string; amount: number }
+  const columns: import('@/types/dashboard').Column<BookingRow>[] = [
+    { key: 'client', label: 'Client', sortable: true },
+    { key: 'service', label: 'Service', sortable: true },
+    { key: 'when', label: 'Date & Time', sortable: true },
+    { key: 'status', label: 'Status' },
+    { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (v) => `$${Number(v||0).toLocaleString()}` },
+  ]
+  const rows: BookingRow[] = bookings.map((b) => ({
+    id: b.id,
+    client: b.clientName || b.client?.name || 'Client',
+    service: b.service?.name || 'Service',
+    when: new Date(b.scheduledAt).toISOString(),
+    status: b.status,
+    amount: Number(typeof b.service?.price === 'string' ? Number(b.service?.price) : b.service?.price || 0),
+  }))
+
+  const filtersConfig: import('@/types/dashboard').FilterConfig[] = [
+    { key: 'dateRange', label: 'Date Range', options: [
+      { value: 'all', label: 'All Dates' },
+      { value: 'today', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+    ], value: dateFilter },
+    { key: 'status', label: 'Status', options: [
+      { value: 'all', label: 'All Status' },
+      { value: 'PENDING', label: 'Pending' },
+      { value: 'CONFIRMED', label: 'Confirmed' },
+      { value: 'COMPLETED', label: 'Completed' },
+      { value: 'CANCELLED', label: 'Cancelled' },
+      { value: 'NO_SHOW', label: 'No Show' },
+    ], value: statusFilter },
+  ]
+
+  const onFilterChange = (key: string, value: string) => {
+    if (key === 'dateRange') setDateFilter(value)
+    if (key === 'status') setStatusFilter(value)
+  }
+
+  // Primary render via ListPage template
+  return (
+    <ListPage<BookingRow>
+      title="Bookings"
+      subtitle="Manage and monitor appointments"
+      primaryAction={{ label: 'New Booking', onClick: () => (window.location.href = '/admin/bookings/new') }}
+      secondaryActions={[
+        { label: autoRefresh ? 'Pause Auto-Refresh' : 'Resume Auto-Refresh', onClick: () => setAutoRefresh((v) => !v) },
+        { label: 'Refresh', onClick: () => refresh() },
+      ]}
+      filters={filtersConfig}
+      onFilterChange={onFilterChange}
+      onSearch={(q) => setSearchTerm(q)}
+      searchPlaceholder="Search bookings"
+      columns={columns}
+      rows={rows}
+      loading={loading}
+      sortBy={sortBy}
+      sortOrder={sortOrder}
+      onSort={(k) => setSortBy(k as any)}
+      selectable
+    />
+  )
 
   useEffect(() => {
     refresh()
