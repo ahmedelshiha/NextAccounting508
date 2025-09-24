@@ -244,7 +244,7 @@ export async function POST(request: Request) {
         const json = await resp.json().catch(() => null)
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
         svc = list.find((s: any) => s.id === data.serviceId) || null
-        if (!svc) return respond.badRequest('Service not found or inactive')
+        if (!svc) return respond.serverError()
       } catch {
         return respond.serverError()
       }
@@ -519,4 +519,8 @@ export async function POST(request: Request) {
     }
     throw e
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })
 }
