@@ -63,11 +63,11 @@ export async function BlogSection() {
   }
 
   return (
-    <section className="py-12 sm:py-16 bg-white" suppressHydrationWarning>
+    <section className="py-12 sm:py-16 bg-white" aria-labelledby="home-blog-heading" role="region" suppressHydrationWarning>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" suppressHydrationWarning>
         {/* Section Header */}
         <div className="text-center mb-10" suppressHydrationWarning>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4" suppressHydrationWarning>
+          <h2 id="home-blog-heading" className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4" suppressHydrationWarning>
             Latest Insights & Tips
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto" suppressHydrationWarning>
