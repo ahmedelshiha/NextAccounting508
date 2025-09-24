@@ -27,6 +27,25 @@ const routes: any[] = [
       const id = m ? m[1] : ''
       return { params: Promise.resolve({ id }) }
     }
+  },
+  {
+    match: /^\/api\/bookings\/([^/]+)$/,
+    loader: () => import('@/app/api/bookings/[id]/route'),
+    buildContext: (pathname: string) => {
+      const m = pathname.match(/^\/api\/bookings\/([^/]+)$/)
+      const id = m ? m[1] : ''
+      return { params: Promise.resolve({ id }) }
+    }
+  },
+  {
+    match: /^\/api\/portal\/service-requests\/export$/,
+    loader: () => import('@/app/api/portal/service-requests/export/route'),
+    buildContext: () => undefined,
+  },
+  {
+    match: /^\/api\/portal\/service-requests$/,
+    loader: () => import('@/app/api/portal/service-requests/route'),
+    buildContext: () => undefined,
   }
 ]
 
