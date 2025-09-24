@@ -120,7 +120,8 @@ Acceptance: overview page uses new template; real-time and filters operate; smok
   - [x] Add filters (status, priority, type, payment) and actions (open)
   - [ ] Validate assignment workflows and status transitions
 - [ ] Services
-  - [ ] Migrate src/app/admin/services/page.tsx and src/app/admin/services/list/page.tsx
+  - [ ] Migrate src/app/admin/services/page.tsx
+  - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
   - [ ] Integrate existing components (analytics, filters, forms)
   - [ ] Validate create/edit/clone and versioning flows if present
 
@@ -170,7 +171,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 
 ---
 
-## Phase 9 �� Quality, Testing, and Accessibility
+## Phase 9 — Quality, Testing, and Accessibility
 - [ ] Unit & Integration Tests
   - [ ] Add tests for AdminProviders/AdminContext and templates
   - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
