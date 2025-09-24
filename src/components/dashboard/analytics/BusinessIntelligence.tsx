@@ -35,13 +35,11 @@ export default function BusinessIntelligence({ dashboard }: { dashboard: any }) 
         <h3 className="font-medium text-gray-900">Revenue Performance</h3>
         <div className="bg-white rounded-lg border p-4">
           {error ? (<div className="text-sm text-red-600">Analytics unavailable. Showing fallback.</div>) : null}
-          <div className="h-56">
-            <Pie data={pieData} options={pieOptions} />
-          </div>
+          <RevenueTrendChart data={(analytics as any)?.monthlyTrend || (dashboard?.revenueAnalytics?.monthlyTrend ?? [])} />
           <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-            {((analytics as any)?.revenueByService || []).slice(0, 3).map((service: any, idx: number) => (
+            {((analytics as any)?.serviceBreakdown || dashboard?.revenueAnalytics?.serviceBreakdown || []).slice(0,3).map((service: any, idx: number) => (
               <div key={idx} className="text-center">
-                <div className="font-medium">{Math.round((service.amount || 0) / Math.max(1, (serviceValues.reduce((a: number,b: number)=>a+b,0))) * 100)}%</div>
+                <div className="font-medium">{Math.round(((service.revenue || 0)) / Math.max(1, ((analytics as any)?.serviceBreakdown || dashboard?.revenueAnalytics?.serviceBreakdown || []).reduce((a: any,b: any)=>a+(b.revenue||0),0)) * 100)}%</div>
                 <div className="text-gray-600 truncate">{service.service}</div>
               </div>
             ))}
