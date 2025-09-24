@@ -110,6 +110,10 @@ export default function EnhancedBookingManagement() {
     setLoading(true)
     try {
       const response = await apiFetch('/api/admin/bookings')
+      if (!response.ok) {
+        const { toastFromResponse } = await import('@/lib/toast-api')
+        await toastFromResponse(response, { failure: 'Failed to load bookings' })
+      }
       const data: unknown = response.ok ? await response.json() : { bookings: [] }
 
       type ApiBookingRecord = {

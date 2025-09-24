@@ -88,28 +88,51 @@ export default function ServicesAdminPage() {
   ]
 
   const exportCsv = async () => {
-    const qs = new URLSearchParams()
-    if (search) qs.set('q', search)
-    if (filters.status) qs.set('status', filters.status)
-    if (filters.category) qs.set('category', filters.category)
-    const res = await apiFetch(`/api/admin/services/export?${qs.toString()}`)
-    if (!res.ok) return
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `services-${new Date().toISOString().slice(0,10)}.csv`
-    document.body.appendChild(a)
-    a.click()
-    URL.revokeObjectURL(url)
-    document.body.removeChild(a)
+    try {
+      const qs = new URLSearchParams()
+      if (search) qs.set('q', search)
+      if (filters.status) qs.set('status', filters.status)
+      if (filters.category) qs.set('category', filters.category)
+      const res = await apiFetch(`/api/admin/services/export?${qs.toString()}`)
+      if (!res.ok) {
+        const { toastFromResponse } = await import('@/lib/toast-api')
+        await toastFromResponse(res, { failure: 'Export failed' })
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `services-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      const { toastSuccess } = await import('@/lib/toast-api')
+      toastSuccess('Export ready')
+    } catch (e) {
+      const { toastError } = await import('@/lib/toast-api')
+      toastError(e, 'Export failed')
+    }
   }
 
   const bulkUpdate = async (action: 'ACTIVATE' | 'DEACTIVATE') => {
     if (!selectedIds.length) return
-    await apiFetch('/api/admin/services/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ids: selectedIds }) })
-    setSelectedIds([])
-    await mutate()
+    try {
+      const res = await apiFetch('/api/admin/services/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ids: selectedIds }) })
+      if (!res.ok) {
+        const { toastFromResponse } = await import('@/lib/toast-api')
+        await toastFromResponse(res, { failure: 'Bulk update failed' })
+        return
+      }
+      const { toastSuccess } = await import('@/lib/toast-api')
+      toastSuccess('Bulk update applied')
+      setSelectedIds([])
+      await mutate()
+    } catch (e) {
+      const { toastError } = await import('@/lib/toast-api')
+      toastError(e, 'Bulk update failed')
+    }
   }
 
   const primaryTabs: TabItem[] = [
@@ -175,8 +198,20 @@ export default function ServicesAdminPage() {
             onSubmit={async (form) => {
               const method = editing ? 'PATCH' : 'POST'
               const url = editing ? `/api/admin/services/${editing.id}` : '/api/admin/services'
-              const res = await apiFetch(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(form) })
-              if (res.ok) { setShowModal(false); setEditing(null); await mutate() }
+              try {
+                const res = await apiFetch(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(form) })
+                if (!res.ok) {
+                  const { toastFromResponse } = await import('@/lib/toast-api')
+                  await toastFromResponse(res, { failure: editing ? 'Update failed' : 'Create failed' })
+                  return
+                }
+                const { toastSuccess } = await import('@/lib/toast-api')
+                toastSuccess(editing ? 'Service updated' : 'Service created')
+                setShowModal(false); setEditing(null); await mutate()
+              } catch (e) {
+                const { toastError } = await import('@/lib/toast-api')
+                toastError(e, editing ? 'Update failed' : 'Create failed')
+              }
             }}
             onCancel={() => { setShowModal(false); setEditing(null) }}
             categories={(() => {
