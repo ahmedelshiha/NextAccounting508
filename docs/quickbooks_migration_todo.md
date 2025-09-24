@@ -331,16 +331,16 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin/clients/invitations
 - [x] /admin/clients/new
 - [x] /admin/bookings
-- [ ] /admin/calendar (redirect)
+- [x] /admin/calendar (redirect)
 - [x] /admin/service-requests
 - [x] /admin/services
 - [x] /admin/services/list
-- [ ] /admin/availability
+- [x] /admin/availability
 - [x] /admin/invoices
 - [x] /admin/payments
 - [x] /admin/expenses
 - [x] /admin/tasks
-- [ ] /admin/reminders
+- [x] /admin/reminders
 - [x] /admin/audits
 - [x] /admin/posts
 - [x] /admin/newsletter
