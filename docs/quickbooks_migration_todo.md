@@ -32,6 +32,7 @@ and
   - [x] Migrated /admin/posts to StandardPage; extracted PostCard/PostStats; wired FilterBar; added smoke and CRUD tests.
   - [x] Enabled PerfMetricsReporter on public pages via ClientLayout to capture sitewide TTFB/FCP/LCP/CLS/INP.
   - [x] Reconciled Phase 7 statuses and updated checklists for accuracy.
+  - [x] Added E2E smoke test for Services CRUD (create → update → clone → list) and verified headers/pagination — see tests/e2e/admin-services.crud.smoke.test.ts
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -252,7 +253,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
   - [ ] Bookings critical flow: create → save → list appears with correct totals
   - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
-  - [ ] Services critical flow: create/edit/clone reflected in list and version history (if enabled)
+  - [x] Services critical flow: create/edit/clone reflected in list and version history (if enabled) — tests/e2e/admin-services.crud.smoke.test.ts
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
   - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
