@@ -322,3 +322,17 @@ References
 
 Notes
 - I implemented items in groups: security hardening, SSE instrumentation, client notification switch and optimistic prefs update. Recent work focused on test coverage and HTTP-level integration for negative and offline/export scenarios. Next focus: run tests in CI and add Playwright E2E for browser-level validations.
+
+## Documentation Update – 2025-09-26
+- [x] What was completed
+  - Exported Zod schemas/types for portal client (src/schemas/portal/service-requests.ts)
+  - Implemented CSV streaming helpers and streaming mode for portal SR export (?stream=1)
+  - Added tests: portal schemas unit and SSE header integration
+- [x] Why it was done
+  - Reduce duplication and enable typed client usage for portal create flows
+  - Prevent UI stalls on large CSV exports via streaming; enable progressive download
+  - Raise confidence in SSE and validators
+- [x] Next steps
+  - Add SSE connect/disconnect health log assertion in tests; add chat offline enqueue/flush test
+  - Apply i18n/ARIA sweep across portal UI strings
+  - Run full CI, then add Playwright E2E for offline/CSV/filters/chat
