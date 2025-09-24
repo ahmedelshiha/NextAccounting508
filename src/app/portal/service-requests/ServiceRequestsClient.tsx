@@ -217,9 +217,9 @@ export default function ServiceRequestsClient() {
                   </div>
                   <p className="text-sm text-gray-600 mt-1 truncate">{r.service?.name}</p>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild aria-label={t('portal.serviceRequests.view')}>
                   <Link href={`/portal/service-requests/${r.id}`}>
-                    View <ChevronRight className="h-4 w-4 ml-1" />
+                    {t('portal.serviceRequests.view')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
               </div>
