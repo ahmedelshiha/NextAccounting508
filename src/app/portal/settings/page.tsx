@@ -13,6 +13,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import OfflineQueueInspector from '@/components/portal/OfflineQueueInspector'
 import RealtimeConnectionPanel from '@/components/portal/RealtimeConnectionPanel'
 import { signOut } from 'next-auth/react'
+import { useTranslations } from '@/lib/i18n'
 
 function BookingPreferencesForm() {
   const [loading, setLoading] = useState(true)
