@@ -1,8 +1,10 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { Column, RowAction } from '@/types/dashboard'
 import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n'
 
 export default function DataTable<T extends { id?: string | number }>({ columns, rows, loading, sortBy, sortOrder = 'asc', onSort, actions = [], selectable = false, onSelectionChange }: { columns: Column<T>[]; rows: T[]; loading?: boolean; sortBy?: string; sortOrder?: 'asc' | 'desc'; onSort?: (key: string) => void; actions?: RowAction<T>[]; selectable?: boolean; onSelectionChange?: (ids: Array<string | number>) => void }) {
+  const { t } = useTranslations()
   const [selected, setSelected] = useState<Set<string | number>>(new Set())
   const allSelected = useMemo(() => rows.length > 0 && selected.size === rows.length, [rows.length, selected])
 
@@ -34,7 +36,7 @@ export default function DataTable<T extends { id?: string | number }>({ columns,
   if (!rows.length) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-600">
-        No data available
+        {t('dashboard.noData')}
       </div>
     )
   }
@@ -63,7 +65,7 @@ export default function DataTable<T extends { id?: string | number }>({ columns,
                 </th>
               ))}
               {actions.length > 0 && (
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard.actions')}</th>
               )}
             </tr>
           </thead>
@@ -93,7 +95,7 @@ export default function DataTable<T extends { id?: string | number }>({ columns,
         </table>
       </div>
       {selectable && selected.size > 0 && (
-        <div className="px-4 py-3 border-t bg-gray-50 text-sm text-gray-700">{selected.size} selected</div>
+        <div className="px-4 py-3 border-t bg-gray-50 text-sm text-gray-700">{t('dashboard.selectedCount', { count: selected.size })}</div>
       )}
     </div>
   )
