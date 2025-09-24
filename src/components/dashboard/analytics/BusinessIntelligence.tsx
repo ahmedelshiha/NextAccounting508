@@ -1,8 +1,8 @@
 "use client"
 
 import useSWR from 'swr'
-import { Pie, Bar } from 'react-chartjs-2'
-import type { ChartData, ChartOptions } from 'chart.js'
+import RevenueTrendChart from './RevenueTrendChart'
+import BookingFunnelChart from './BookingFunnelChart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
