@@ -214,14 +214,15 @@ Acceptance: task operations, client management, and reporting flows function end
 - [x] Settings
   - [x] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
   - [x] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
-- [ ] Team & Access
-  - [ ] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
-  - [ ] Validate RBAC changes and team assignments screens
-- [ ] Finance Ops
-  - [ ] Migrate src/app/admin/invoices/page.tsx, payments/page.tsx, expenses/page.tsx
-  - [ ] Ensure totals, filters, and exports work
+- [x] Team & Access
+  - [x] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
+  - [x] Validate RBAC changes and team assignments screens
+- [x] Finance Ops
+  - [x] Migrate src/app/admin/invoices/page.tsx, payments/page.tsx, expenses/page.tsx
+  - [x] Ensure totals, filters, and exports work
 - [ ] Content & System
-  - [ ] Migrate src/app/admin/posts/page.tsx, newsletter/page.tsx, audits/page.tsx, integrations/page.tsx, uploads/quarantine/page.tsx
+  - [ ] Migrate src/app/admin/posts/page.tsx
+  - [x] Migrate src/app/admin/newsletter/page.tsx, audits/page.tsx, integrations/page.tsx, uploads/quarantine/page.tsx
 
 Acceptance: all P3 pages load under new layout, preserve feature parity, and pass navigation/access tests.
 
