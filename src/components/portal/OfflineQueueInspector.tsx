@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n'
 interface QueuedItem { id: string; url: string; body: any; createdAt: number; retries?: number; idempotencyKey?: string; nextAttemptAt?: number; lastStatus?: number }
 
 export default function OfflineQueueInspector() {
+  const { t } = useTranslations()
   const [items, setItems] = useState<QueuedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [flushing, setFlushing] = useState(false)
