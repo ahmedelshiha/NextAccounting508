@@ -136,10 +136,10 @@ export default function PortalPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {session?.user?.name}!
+            {t('portal.welcome', { name: session?.user?.name || '' })}
           </h1>
           <p className="text-gray-600 mt-2">
-            Manage your appointments and view your accounting services.
+            {t('portal.subtitle')}
           </p>
         </div>
 
@@ -147,13 +147,13 @@ export default function PortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Book New Service</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('portal.bookNew')}</CardTitle>
               <Plus className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full" aria-label={t('portal.scheduleConsultation')}>
                 <Link href="/booking">
-                  Schedule Consultation
+                  {t('portal.scheduleConsultation')}
                 </Link>
               </Button>
             </CardContent>
@@ -162,31 +162,31 @@ export default function PortalPage() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
-                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-                <CardDescription className="text-xs">{bookings.length} total</CardDescription>
+                <CardTitle className="text-sm font-medium">{t('portal.totalBookings')}</CardTitle>
+                <CardDescription className="text-xs">{bookings.length} {t('portal.total')}</CardDescription>
               </div>
               <Calendar className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{upcomingBookings.length}</div>
               <p className="text-xs text-gray-600">
-                upcoming
+                {t('portal.upcoming')}
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Actions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('portal.actions')}</CardTitle>
               <FileText className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">Export CSV</Button>
-                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm">
-                  <option value="upcoming">Upcoming</option>
-                  <option value="past">Past</option>
-                  <option value="all">All</option>
+                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">{t('common.export')}</Button>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm" aria-label={t('portal.filter.timeRange')}>
+                  <option value="upcoming">{t('portal.filter.upcoming')}</option>
+                  <option value="past">{t('portal.filter.past')}</option>
+                  <option value="all">{t('portal.filter.all')}</option>
                 </select>
               </div>
             </CardContent>
