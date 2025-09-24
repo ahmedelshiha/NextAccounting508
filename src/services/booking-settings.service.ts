@@ -1,7 +1,6 @@
 import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 import { CacheService } from '@/lib/cache.service'
-import { Prisma } from '@prisma/client'
 import type {
   BookingSettings,
   BookingSettingsUpdateRequest,
