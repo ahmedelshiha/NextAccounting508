@@ -324,24 +324,24 @@ export default function PortalServiceRequestDetailPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Service Request</h1>
-            <p className="text-gray-600">View details and discussion</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('portal.serviceRequests.title')}</h1>
+            <p className="text-gray-600">{t('portal.serviceRequests.subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link href="/portal/service-requests">Back</Link>
+              <Link href="/portal/service-requests">{t('common.back')}</Link>
             </Button>
             {reqData && ['SUBMITTED','IN_REVIEW'].includes(reqData.status) && (
-              <Button onClick={approveRequest}>Approve</Button>
+              <Button onClick={approveRequest}>{t('portal.serviceRequests.approve')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && !isConfirmed && (
-              <Button onClick={confirmAppointment}>Confirm appointment</Button>
+              <Button onClick={confirmAppointment}>{t('portal.serviceRequests.confirmAppointment')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && (
-              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>Reschedule</Button>
+              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>{t('portal.serviceRequests.reschedule')}</Button>
             )}
             {reqData && !['COMPLETED','CANCELLED'].includes(reqData.status) && (
-              <Button variant="destructive" onClick={cancelRequest}>Cancel</Button>
+              <Button variant="destructive" onClick={cancelRequest}>{t('portal.cancel')}</Button>
             )}
           </div>
         </div>
