@@ -273,6 +273,7 @@
   "portal.serviceRequests.approve": "Approve",
   "portal.serviceRequests.confirmAppointment": "Confirm appointment",
   "portal.serviceRequests.reschedule": "Reschedule",
+  "portal.serviceRequests.confirmCancel": "Are you sure you want to cancel this request?",
 
   "portal.toast.commentFailed": "Failed to post comment",
   "portal.toast.approveFailed": "Unable to approve",
