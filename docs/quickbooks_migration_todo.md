@@ -105,6 +105,7 @@ Acceptance: new templates compile and are reusable; table supports selection/sor
   - [x] Validate responsive behavior and realtime status indicator
 - [ ] Global smoke test
   - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
+  - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
 
@@ -119,10 +120,10 @@ Acceptance: overview page uses new template; real-time and filters operate; smok
   - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
   - [x] Add filters (status, priority, type, payment) and actions (open)
   - [ ] Validate assignment workflows and status transitions
-- [ ] Services
-  - [ ] Migrate src/app/admin/services/page.tsx
+- [x] Services
+  - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
   - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
-  - [ ] Integrate existing components (analytics, filters, forms)
+  - [x] Integrate existing components (analytics, filters, forms)
   - [ ] Validate create/edit/clone and versioning flows if present
 
 Acceptance: each page renders with new templates, supports sorting/filters/actions, and matches data counts; no regressions.
