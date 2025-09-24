@@ -192,6 +192,64 @@
   "time.to": "to",
   "time.at": "at",
   "time.on": "on",
-  "time.in": "in"
+  "time.in": "in",
+
+  "dashboard.searchPlaceholder.generic": "Search...",
+  "dashboard.customize": "Customize",
+  "dashboard.activeFilters": "Active filters:",
+  "dashboard.noData": "No data available",
+  "dashboard.actions": "Actions",
+  "dashboard.selectedCount": "{{count}} selected",
+  "dashboard.noSelection": "No selection",
+  "dashboard.filtersActiveCount": "{{count}} filters active",
+
+  "dashboard.clients.title": "Clients",
+  "dashboard.clients.new": "New Client",
+  "dashboard.services.title": "Services",
+  "dashboard.services.new": "New Service",
+  "dashboard.tasks.title": "Tasks",
+
+  "dashboard.clear": "Clear",
+  "dashboard.activate": "Activate",
+  "dashboard.deactivate": "Deactivate",
+  "dashboard.exportCsv": "Export CSV",
+  "dashboard.setRole": "Set Role",
+  "dashboard.setStatus": "Set Status",
+
+  "dashboard.search.clients": "Search name or email…",
+  "dashboard.search.services": "Search services…",
+  "dashboard.search.tasks": "Search tasks…",
+
+  "common.id": "ID",
+  "common.name": "Name",
+  "common.email": "Email",
+  "common.role": "Role",
+  "common.status": "Status",
+  "common.created": "Created",
+  "common.updated": "Updated",
+  "common.title": "Title",
+  "common.assignee": "Assignee",
+  "common.due": "Due",
+  "common.category": "Category",
+  "common.price": "Price",
+  "common.date": "Date",
+
+  "range.last7d": "Last 7 days",
+  "range.last30d": "Last 30 days",
+  "range.overdue": "Overdue",
+
+  "role.admin": "Admin",
+  "role.staff": "Staff",
+  "role.client": "Client",
+
+  "tasks.status.open": "Open",
+  "tasks.status.in_progress": "In Progress",
+  "tasks.status.blocked": "Blocked",
+  "tasks.status.completed": "Completed",
+  "tasks.status.cancelled": "Cancelled",
+
+  "prompt.setRole": "Set role to (ADMIN, STAFF, CLIENT):",
+  "prompt.setStatus.users": "Set status to (ACTIVE, INACTIVE, SUSPENDED):",
+  "prompt.setStatus.tasks": "Set status to (OPEN, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED):"
 }
 
