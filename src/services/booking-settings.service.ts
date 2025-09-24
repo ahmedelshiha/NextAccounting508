@@ -15,7 +15,7 @@ import type {
   BookingSettingsImport,
 } from '@/types/booking-settings.types'
 
-// Helper to safely access Prisma.DbNull without requiring @prisma/client at runtime (useful for tests)
+// Helper to safely access getDbNull() without requiring @prisma/client at runtime (useful for tests)
 function getDbNull(): any {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -108,7 +108,7 @@ export class BookingSettingsService {
       updatedAt: new Date(),
     }
 
-    const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? Prisma.DbNull : v))
+    const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? getDbNull() : v))
     if ('businessHours' in data) (data as any).businessHours = toNullableJson((data as any).businessHours)
     if ('blackoutDates' in data) (data as any).blackoutDates = toNullableJson((data as any).blackoutDates)
     if ('holidaySchedule' in data) (data as any).holidaySchedule = toNullableJson((data as any).holidaySchedule)
@@ -135,8 +135,8 @@ export class BookingSettingsService {
           required: s.required ?? true,
           title: s.title ?? (s.stepName ?? `Step ${i + 1}`),
           description: s.description ?? null,
-          validationRules: (s as any).validationRules === undefined ? Prisma.DbNull : ((s as any).validationRules as any),
-          customFields: (s as any).customFields === undefined ? Prisma.DbNull : ((s as any).customFields as any),
+          validationRules: (s as any).validationRules === undefined ? getDbNull() : ((s as any).validationRules as any),
+          customFields: (s as any).customFields === undefined ? getDbNull() : ((s as any).customFields as any),
         })),
       })
       return tx.bookingStepConfig.findMany({ where: { bookingSettingsId: settingsId }, orderBy: { stepOrder: 'asc' } })
@@ -181,7 +181,7 @@ export class BookingSettingsService {
             processingFee: (m.processingFee ?? 0) as any,
             minAmount: (m.minAmount ?? 0) as any,
             maxAmount: (m.maxAmount ?? null) as any,
-            gatewayConfig: (m as any).gatewayConfig === undefined ? Prisma.DbNull : ((m as any).gatewayConfig === null ? Prisma.DbNull : (m as any).gatewayConfig),
+            gatewayConfig: (m as any).gatewayConfig === undefined ? getDbNull() : ((m as any).gatewayConfig === null ? getDbNull() : (m as any).gatewayConfig),
           },
           create: {
             bookingSettingsId: settingsId,
@@ -192,7 +192,7 @@ export class BookingSettingsService {
             processingFee: (m.processingFee ?? 0) as any,
             minAmount: (m.minAmount ?? 0) as any,
             maxAmount: (m.maxAmount ?? null) as any,
-            gatewayConfig: (m as any).gatewayConfig === undefined ? Prisma.DbNull : ((m as any).gatewayConfig === null ? Prisma.DbNull : (m as any).gatewayConfig),
+            gatewayConfig: (m as any).gatewayConfig === undefined ? getDbNull() : ((m as any).gatewayConfig === null ? getDbNull() : (m as any).gatewayConfig),
           },
         })
       }
@@ -291,7 +291,7 @@ export class BookingSettingsService {
 
       if (overwriteExisting && selectedSections.includes('settings')) {
         const settingsData: any = { ...(data.settings ?? {}) }
-        const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? Prisma.DbNull : v))
+        const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? getDbNull() : v))
         settingsData.businessHours = toNullableJson(settingsData.businessHours)
         settingsData.blackoutDates = toNullableJson(settingsData.blackoutDates)
         settingsData.holidaySchedule = toNullableJson(settingsData.holidaySchedule)
@@ -313,8 +313,8 @@ export class BookingSettingsService {
             required: s.required,
             title: s.title,
             description: s.description ?? null,
-            validationRules: s.validationRules === undefined ? Prisma.DbNull : (s.validationRules === null ? Prisma.DbNull : s.validationRules),
-            customFields: s.customFields === undefined ? Prisma.DbNull : (s.customFields === null ? Prisma.DbNull : s.customFields),
+            validationRules: s.validationRules === undefined ? getDbNull() : (s.validationRules === null ? getDbNull() : s.validationRules),
+            customFields: s.customFields === undefined ? getDbNull() : (s.customFields === null ? getDbNull() : s.customFields),
           }))
           await tx.bookingStepConfig.createMany({ data: stepsData as any })
         }
@@ -339,7 +339,7 @@ export class BookingSettingsService {
             processingFee: m.processingFee ?? 0,
             minAmount: m.minAmount ?? 0,
             maxAmount: m.maxAmount ?? null,
-            gatewayConfig: m.gatewayConfig === undefined ? Prisma.DbNull : (m.gatewayConfig === null ? Prisma.DbNull : m.gatewayConfig),
+            gatewayConfig: m.gatewayConfig === undefined ? getDbNull() : (m.gatewayConfig === null ? getDbNull() : m.gatewayConfig),
           }))
           await tx.paymentMethodConfig.createMany({ data: pmData as any })
         }
@@ -355,7 +355,7 @@ export class BookingSettingsService {
             enabled: t.enabled ?? true,
             subject: t.subject ?? null,
             content: t.content,
-            variables: t.variables === undefined ? Prisma.DbNull : (t.variables === null ? Prisma.DbNull : t.variables),
+            variables: t.variables === undefined ? getDbNull() : (t.variables === null ? getDbNull() : t.variables),
           }))
           await tx.notificationTemplate.createMany({ data: notifData as any })
         }
