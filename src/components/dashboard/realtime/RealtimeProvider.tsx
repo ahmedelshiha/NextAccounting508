@@ -33,7 +33,7 @@ interface RealtimeContextValue {
   subscribeByTypes: (types: string[], handler: EventHandler) => () => void
 }
 
-const RealtimeCtx = createContext<RealtimeContextValue | null>(null)
+export const RealtimeCtx = createContext<RealtimeContextValue | null>(null)
 
 interface RealtimeProviderProps {
   events?: string[]

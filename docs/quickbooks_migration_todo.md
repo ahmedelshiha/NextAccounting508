@@ -29,7 +29,7 @@ and
   - Provide fast local previews for QA without backend wiring.
 - Next steps
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
-  - [ ] Add tests for refresh flows (verify SWR revalidation on events). Note: current test harness runs SSR-only; effectful event tests require a client/jsdom environment. Recommend adding a jsdom test suite for event-driven revalidation.
+  - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [ ] Verify sidebar IA: click through all links; confirm correct workspace renders and no console errors.
   - [ ] Run global smoke tests for overview/services/service-requests, including pagination, filters, and bulk actions.
   - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
