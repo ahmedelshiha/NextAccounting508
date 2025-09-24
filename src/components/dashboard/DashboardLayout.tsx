@@ -1,11 +1,10 @@
 'use client'
 
+'use client'
+
 import { ReactNode } from 'react'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
-
-'use client'
-
 import { useAdminContext } from '@/components/admin/providers/AdminContext'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
