@@ -22,7 +22,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
   }
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg overflow-hidden">
+    <Card role="article" aria-labelledby={`post-${post.id}-title`} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg overflow-hidden">
       <div className="blog-card-visual h-40 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
         <div className="blog-card-overlay absolute inset-0 bg-blue-600 opacity-10 group-hover:opacity-20 transition-opacity" />
         <div className="blog-card-tags absolute bottom-4 left-4">
@@ -35,7 +35,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
       </div>
 
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+        <CardTitle id={`post-${post.id}-title`} className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
           <Link href={`/blog/${post.slug}`}>{post.title}</Link>
         </CardTitle>
       </CardHeader>
@@ -67,7 +67,7 @@ export default function BlogCard({ post }: { post: BlogPost }) {
           </div>
 
           <Button variant="ghost" size="sm" className="group-hover:text-blue-600 transition-colors p-0" asChild>
-            <Link href={`/blog/${post.slug}`}>
+            <Link href={`/blog/${post.slug}`} aria-label={`Read more: ${post.title}`}>
               Read More
               <ArrowRight className="ml-1 h-3 w-3 group-hover:translate-x-1 transition-transform" />
             </Link>
