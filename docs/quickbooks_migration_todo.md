@@ -33,7 +33,7 @@ and
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
   - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
-  - [ ] Document template usage and AdvancedDataTable API in Phase 11 docs.
+  - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
 
 ---
 
