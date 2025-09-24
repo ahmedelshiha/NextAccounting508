@@ -191,7 +191,7 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({} as any))
-        toast.error(getApiErrorMessage(errBody, 'Failed to post comment'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.commentFailed')))
         return
       }
       setComment('')
