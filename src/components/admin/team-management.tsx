@@ -489,7 +489,7 @@ function TeamMemberDetails({ member, onClose, onEdit }: { member: TeamMember | n
   )
 }
 
-export default function TeamManagement() {
+export default function TeamManagement({ hideHeader = false }: { hideHeader?: boolean }) {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -613,16 +613,18 @@ export default function TeamManagement() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
-          <p className="text-gray-600">Manage team members and their assignments</p>
+      {!hideHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
+            <p className="text-gray-600">Manage team members and their assignments</p>
+          </div>
+          <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add Team Member
+          </button>
         </div>
-        <button onClick={() => setShowForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add Team Member
-        </button>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-lg border"><div className="flex items-center justify-between"><div><p className="text-sm text-gray-600">Total Members</p><p className="text-2xl font-bold text-gray-900">{stats.total}</p></div><Users className="h-8 w-8 text-blue-500" /></div></div>
