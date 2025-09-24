@@ -59,9 +59,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <div className="sticky top-0 z-10">
-          {/* Header handled by DataTable */}
-        </div>
+        <div className="sticky top-0 z-10"></div>
         <DataTable<T>
           columns={columns}
           rows={pagedRows}
