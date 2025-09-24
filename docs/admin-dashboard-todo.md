@@ -303,7 +303,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [ ] Ensure realtime errors are captured with route tags in observability layer (lib/observability)
 
 10) A11y & i18n (depends on earlier UI changes)
-- [ ] Apply locale keys and aria-labels across portal UI strings (src/app/portal/* and src/components/portal/*)
+- [x] Apply locale keys and aria-labels across portal UI strings (src/app/portal/* and src/components/portal/*) — IN PROGRESS: LiveChatWidget updated (en/ar/hi) and aria-live added
   - Action: replace hard-coded strings with useTranslations().t('key') and add aria-labels where appropriate
   - Acceptance: manual audit shows no untranslated strings; keyboard nav works
 
