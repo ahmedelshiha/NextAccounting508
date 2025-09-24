@@ -128,7 +128,7 @@ Progress Update — Phase 3
 
 ---
 
-## Phase 4 — Critical Page Migrations P0 (Depends on Phases 1–3)
+## Phase 4 — Critical Page Migrations P0 (Depends on Phases 1��3)
 - [x] Dashboard Overview
   - [x] Migrate src/app/admin/page.tsx to AnalyticsPage
   - [x] Wire KPIs, charts, and activity components; hook up refresh/export
@@ -201,6 +201,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
+  - Progress: Added toast handling on admin Services (export, bulk, create/update) and Bookings (refresh) with getApiErrorMessage. Sentry capture already active in API routes.
 
 Acceptance: consistent API contracts; typed boundaries; graceful error states; Sentry captures failures.
 
