@@ -58,6 +58,13 @@ and
   - [x] Set alert thresholds in GET /api/admin/perf-metrics snapshot (added thresholds and alerts fields; status derives from violations; tests added: tests/api/perf-metrics.thresholds.test.ts).
   - [ ] Monitor perf metrics for 7 days post-deploy and document thresholds/outliers.
 
+Update — Phase 8 API Contracts (2025-09-24)
+- [x] Added API contract tests: tests/api/admin-service-requests.contract.test.ts and tests/api/admin-bookings.contract.test.ts
+- [x] Normalized pagination headers: X-Total-Count added to /api/admin/service-requests and /api/admin/bookings
+- [x] Bookings GET now accepts offset (alias for skip) for consistency with Services
+- Why: unify pagination behavior and enable table components and exports to rely on standard headers; reduce client conditionals.
+- Next: align naming across modules (prefer limit+offset+sortBy+sortOrder), and add friendly error mapping where missing.
+
 ---
 
 ## Phase 0 — Planning, Audit, and Safeguards
@@ -235,7 +242,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 ---
 
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
-- [ ] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes
+- [x] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes — service-requests covered by contract test
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
