@@ -120,19 +120,19 @@ function BookingPreferencesForm() {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={emailConfirmation} onChange={(e) => setEmailConfirmation(e.target.checked)} />
-            Email confirmations
+            {t('portal.settings.emailConfirmation')}
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={emailReminder} onChange={(e) => setEmailReminder(e.target.checked)} />
-            Email reminders
+            {t('portal.settings.emailReminder')}
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={emailReschedule} onChange={(e) => setEmailReschedule(e.target.checked)} />
-            Email on reschedule
+            {t('portal.settings.emailReschedule')}
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-700">
             <input type="checkbox" checked={emailCancellation} onChange={(e) => setEmailCancellation(e.target.checked)} />
-            Email on cancellation
+            {t('portal.settings.emailCancellation')}
           </label>
         </div>
         <div className="space-y-2">
