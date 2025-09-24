@@ -201,7 +201,7 @@ export default function PortalServiceRequestDetailPage() {
       setUploadProgress({})
       await refresh()
     } catch (e) {
-      toast.error('Failed to post comment')
+      toast.error(t('portal.toast.commentFailed'))
     }
   }
 
