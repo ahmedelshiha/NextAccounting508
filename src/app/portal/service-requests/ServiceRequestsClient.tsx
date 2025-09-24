@@ -254,7 +254,7 @@ export default function ServiceRequestsClient() {
               </div>
             )}
 
-            <Button variant="outline" onClick={exportCSV}>Export CSV</Button>
+            <Button variant="outline" onClick={exportCSV}>{t('common.export')}</Button>
             <Button asChild>
               <Link href="/portal/service-requests/new">
                 <Plus className="h-4 w-4 mr-2" /> New Request
