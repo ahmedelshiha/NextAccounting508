@@ -88,7 +88,7 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 - [ ] Advanced table and bulk actions
   - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
-  - [ ] Replace legacy tables where applicable
+  - [x] Replace legacy tables where applicable
 - [ ] Realtime and unified data layer
   - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
   - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
@@ -113,6 +113,10 @@ Progress Update — Phase 3
   - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
+
+Update — Legacy Table Replacement
+- Completed: Replaced remaining DataTable usages in admin lists (Bookings, Services, Clients, Tasks) and overview tabs with AdvancedDataTable; extended AdvancedDataTable to expose onSelectionChange to preserve bulk actions.
+- Why: unify table UX (sticky headers + pagination) while preserving existing selection-driven bulk actions and visual style.
 
 ---
 
