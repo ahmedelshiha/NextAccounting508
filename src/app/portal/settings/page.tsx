@@ -162,17 +162,17 @@ function BookingPreferencesForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="tz">Time zone</Label>
-          <Input id="tz" value={timeZone} onChange={(e) => setTimeZone(e.target.value)} className="mt-1" placeholder="e.g. UTC or America/New_York" />
+          <Label htmlFor="tz">{t('portal.settings.timeZone')}</Label>
+          <Input id="tz" value={timeZone} onChange={(e) => setTimeZone(e.target.value)} className="mt-1" placeholder={t('portal.settings.timeZonePlaceholder')} />
         </div>
         <div>
-          <Label htmlFor="lang">Preferred language</Label>
-          <Input id="lang" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} className="mt-1" placeholder="en" />
+          <Label htmlFor="lang">{t('portal.settings.preferredLanguage')}</Label>
+          <Input id="lang" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)} className="mt-1" placeholder={t('portal.settings.languagePlaceholder')} />
         </div>
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={save} disabled={savingPrefs || loading}>{savingPrefs ? 'Saving…' : 'Save preferences'}</Button>
+        <Button onClick={save} disabled={savingPrefs || loading} aria-label={t('portal.settings.saveButton')}>{savingPrefs ? t('portal.settings.saving') : t('portal.settings.save')}</Button>
       </div>
     </div>
   )
