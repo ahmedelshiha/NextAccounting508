@@ -305,10 +305,10 @@ export default function PortalServiceRequestDetailPage() {
       })
       const json = await res.json().catch(() => ({} as any))
       if (!res.ok) {
-        toast.error(getApiErrorMessage(json, 'Unable to reschedule'))
+        toast.error(getApiErrorMessage(json, t('portal.toast.rescheduleFailed')))
         return
       }
-      toast.success('Appointment rescheduled')
+      toast.success(t('portal.toast.appointmentRescheduled'))
       setRescheduleOpen(false)
       setAppointmentDate('')
       setSelectedSlot('')
