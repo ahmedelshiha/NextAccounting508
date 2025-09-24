@@ -357,3 +357,18 @@ Notes:
 - Implement all features as separate reusable components; import explicitly. Avoid inline/lazy hacks.
 - Preserve existing style tokens and variables; keep original visual styling consistent.
 - Use concise, typed APIs and add defensive error handling with user-facing messages.
+
+---
+
+Update — Availability & Reminders Migration (2025-09-24)
+
+- Completed
+  - [x] Migrated /admin/availability to StandardPage; wrapped AvailabilitySlotsManager; retained spacing and visual style.
+  - [x] Migrated /admin/reminders to StandardPage; preserved Prisma query; improved table a11y (aria-label, caption) while keeping styling.
+  - [x] Verified /admin/calendar redirect is in place and marked complete in Appendix.
+- Why
+  - Unify all admin pages under the standardized workspace container for consistent UX and predictable Netlify builds.
+  - Improve accessibility without altering the established visual language.
+- Next
+  - [ ] Run axe checks on Reminders table and Availability manager; address any findings.
+  - [ ] Proceed with Phase 11 documentation tasks for templates and data layer.
