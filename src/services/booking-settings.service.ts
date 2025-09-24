@@ -19,7 +19,7 @@ import { Prisma } from '@prisma/client'
 
 // Return Prisma.DbNull sentinel used for nullable JSON fields
 function getDbNull(): any {
-  return Prisma?.DbNull ?? null
+
 }
 
 /**

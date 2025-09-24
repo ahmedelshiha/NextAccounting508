@@ -7,6 +7,8 @@ import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 import { toCsvCell, streamCsv } from '@/lib/csv-export'
+import type { Prisma } from '@prisma/client'
+type ServiceRequestWithService = Prisma.ServiceRequestGetPayload<{ include: { service: { select: { name: true } } } }>;
 
 function toCsvValue(v: unknown): string {
   const s = v == null ? '' : String(v)
@@ -69,7 +71,7 @@ export async function GET(req: NextRequest) {
       async writeRows(write) {
         let cursor: string | null = null
         for (;;) {
-          const batch = await prisma.serviceRequest.findMany({
+          const batch: ServiceRequestWithService[] = await prisma.serviceRequest.findMany({
             where,
             include: { service: { select: { name: true } } },
             orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
