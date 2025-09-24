@@ -1,7 +1,13 @@
-## 2025-09-28 – Analytics chart wrappers
-- Added RevenueTrendChart (src/components/dashboard/analytics/RevenueTrendChart.tsx) to render monthly revenue trends with optional target overlay.
-- Added BookingFunnelChart (src/components/dashboard/analytics/BookingFunnelChart.tsx) to visualize service booking distribution as a horizontal bar chart.
-- Updated BusinessIntelligence to compose the new chart wrappers and use server analytics when available, falling back to dashboard props.
-- Why: separate chart concerns into focused, reusable components so other pages can consume them and tests can target small units.
-- Next: create RevenueTrendChart unit tests and add a BookingFunnel export preview for large datasets.
+## 2025-09-27 – Dashboard modularization: KPI Grid extraction
+- Extracted ProfessionalKPIGrid into reusable component at src/components/dashboard/analytics/ProfessionalKPIGrid.tsx.
+- Wired it into src/app/admin/page.tsx and passed only required stats props.
+- Why: align with QuickBooks-style modular architecture; improve reuse and maintainability without changing visuals.
+- Next: extract BusinessIntelligence and Activity components; align chart slots with spec; update docs accordingly.
 
+## 2025-09-28 – Analytics chart wrappers and docs guidance
+- Added RevenueTrendChart and BookingFunnelChart chart wrappers and composed them in BusinessIntelligence.
+- Extracted IntelligentActivityFeed and moved BusinessIntelligence into src/components/dashboard/analytics for reuse.
+- Created docs/dashboard-analytics-updates.md summarizing components, props, usage and next steps.
+- Created docs/admin-dashboard-sync-instructions.md with exact text blocks to paste into dashboard-structure.md and quickbooks_dashboard_complete.md (ACL prevented direct edits).
+- Why: keep documentation aligned and provide copy/paste ready changes in case ACL prevents direct file updates.
+- Next: run lint/typecheck/tests and add unit tests for the two chart wrappers.
