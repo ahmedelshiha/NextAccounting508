@@ -55,13 +55,42 @@ and
 ---
 
 ## Phase 0 — Planning, Audit, and Safeguards
-- [ ] Confirm scope, owners, and timeline for all phases (engineering, QA, design, ops) documented in PROJECT_SUMMARY.md
-- [ ] Inventory all admin routes under src/app/admin/** and categorize by priority (P0, P1, P2, P3) with owners
+- [x] Confirm scope, owners, and timeline for all phases (engineering, QA, design, ops) documented in PROJECT_SUMMARY.md
+- [x] Inventory all admin routes under src/app/admin/** and categorize by priority (P0, P1, P2, P3) with owners
 - [ ] Capture current UX/UI screenshots and key metrics (bundle size, route TTFB, errors) for comparison
-- [ ] Enable history safety: document rollback steps using platform History Tab and ensure git remote push capability
-- [ ] Define acceptance criteria per phase (no console errors, responsive, RBAC enforced, tests pass)
+- [x] Enable history safety: document rollback steps using platform History Tab and ensure git remote push capability
+- [x] Define acceptance criteria per phase (no console errors, responsive, RBAC enforced, tests pass)
 
-Outcomes: inventory complete, baseline metrics captured, rollback plan prepared, acceptance criteria agreed.
+Outcomes: inventory complete, baseline metrics captured via PerfMetricsReporter, rollback plan prepared, acceptance criteria agreed. Screenshots pending.
+
+Progress Update — Phase 0
+- Owners & scope recorded in PROJECT_SUMMARY.md: Engineering (Admin Platform), QA (Admin QA), Design (Design Lead), Ops (Netlify Ops). Timeline tracked per phase in this document.
+- Route inventory with priorities and owners added below; aligns with Appendix route checklist.
+- Rollback safety documented (see "Rollback Plan" below). Use History Tab to revert and push via UI (no CLI required). Feature flags recommended for staging→prod rollout.
+- Acceptance criteria per phase defined (see section below). Build must be Netlify-ready: no lazy/inline hacks; explicit imports; tests green.
+
+Acceptance Criteria (applies per phase unless overridden)
+- No console errors or unhandled promise rejections
+- Responsive at existing breakpoints; original style tokens preserved
+- RBAC enforced; routes gated correctly; navigation a11y passes
+- API contracts validated (Zod) and handled with user-friendly toasts; Sentry captures errors
+- Tests pass (unit/integration/e2e smokes) and axe checks show no critical violations
+
+Rollback Plan (safe operations)
+- Use History Tab to view and revert recent changes; verify locally in preview
+- If needed, disable feature flags for the new layout in staging/production
+- Monitor Sentry and /admin/perf-metrics; if regressions detected, revert via History Tab and re-enable legacy flag
+- Keep backup/ legacy pages until parity is verified; remove only after UAT sign-off
+
+Inventory Snapshot — Priority and Owners (2025-09-24)
+- P0 (Owner: ENG/Admin Platform; QA: Admin QA; Ops: Netlify Ops):
+  - /admin (overview), /admin/bookings, /admin/service-requests, /admin/services
+- P1 (Owner: ENG/Admin Platform; QA: Admin QA):
+  - /admin/clients/(profiles|invitations|new), /admin/analytics, /admin/reports
+- P2 (Owner: ENG/Admin Platform):
+  - /admin/tasks, /admin/settings/(booking|currencies), /admin/settings
+- P3 (Owner: ENG/Admin Platform):
+  - /admin/calendar, /admin/availability, /admin/invoices, /admin/payments, /admin/expenses, /admin/reminders, /admin/audits, /admin/posts, /admin/newsletter, /admin/team, /admin/permissions, /admin/roles, /admin/integrations, /admin/uploads/quarantine, /admin/chat, /admin/notifications, /admin/perf-metrics, /admin/cron-telemetry, /admin/taxes, /admin/users
 
 ---
 
