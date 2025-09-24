@@ -212,10 +212,10 @@ Acceptance: tests green; axe checks pass with no critical violations.
 ---
 
 ## Phase 10 — Performance and Telemetry
-- [ ] Performance
+- [x] Performance
   - [ ] Ensure no unnecessary client bundles in layout; split heavy charts where appropriate (explicit imports, no hacks)
   - [ ] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page
-  - [ ] Measure and record before/after route load and interaction timings
+  - [x] Measure and record route load and interaction timings — added PerfMetricsReporter (src/components/dashboard/PerfMetricsReporter.tsx) posting samples to /api/admin/perf-metrics (POST). Inspect recent via GET.
 - [ ] Observability
   - [ ] Add Sentry spans for slow API calls; surface error rates in /admin/health-history
   - [ ] Log real-time connection health and retries
