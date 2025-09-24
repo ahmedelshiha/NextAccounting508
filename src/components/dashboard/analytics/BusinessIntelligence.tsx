@@ -18,16 +18,6 @@ export default function BusinessIntelligence({ dashboard }: { dashboard: any }) 
 
   const serviceLabels = (analytics as any)?.revenueByService?.map((s: any) => s.service) || []
   const serviceValues = (analytics as any)?.revenueByService?.map((s: any) => s.amount) || []
-  const pieData: ChartData<'pie', number[], string> = {
-    labels: serviceLabels,
-    datasets: [{ label: 'Revenue by Service', data: serviceValues, backgroundColor: ['#60a5fa','#34d399','#fbbf24','#f87171','#a78bfa','#f472b6'], borderWidth: 0 }]
-  }
-  const pieOptions: ChartOptions<'pie'> = { plugins: { legend: { position: 'bottom' } }, maintainAspectRatio: false }
-
-  const dailyLabels = (analytics as any)?.dailyBookings?.map((d: any, i: number) => (d as any).date || `D${i+1}`) || []
-  const dailyValues = (analytics as any)?.dailyBookings?.map((d: any) => d.count) || []
-  const barData: ChartData<'bar', number[], string> = { labels: dailyLabels, datasets: [{ label: 'Daily Bookings', data: dailyValues, backgroundColor: '#93c5fd' }] }
-  const barOptions: ChartOptions<'bar'> = { plugins: { legend: { display: false } }, maintainAspectRatio: false, scales: { x: { ticks: { display: false } } } }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
