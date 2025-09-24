@@ -3,6 +3,11 @@
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
 ---
+For implementation details, see 
+[QuickBooks Dashboard Complete](./docs/quickbooks_dashboard_complete.md) 
+and 
+[QuickBooks Transformation Plan](./docs/quickbooks_transformation_plan.md)
+---
 
 ## Phase 0 — Planning, Audit, and Safeguards
 - [ ] Confirm scope, owners, and timeline for all phases (engineering, QA, design, ops) documented in PROJECT_SUMMARY.md
