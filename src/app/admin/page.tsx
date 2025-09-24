@@ -43,7 +43,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card as UCard, CardContent as UCardContent } from '@/components/ui/card'
-import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import PrimaryTabs from '@/components/dashboard/PrimaryTabs'
 import FilterBar from '@/components/dashboard/FilterBar'
 import DataTable from '@/components/dashboard/DataTable'
@@ -1774,7 +1773,7 @@ export default function ProfessionalAdminDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      
         <div className="animate-pulse space-y-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <div className="flex justify-between items-center">
@@ -1815,13 +1814,13 @@ export default function ProfessionalAdminDashboard() {
               </div>
             </div>
         </div>
-      </DashboardLayout>
+      
     )
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      
         <Card className="border-red-200 bg-red-50">
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -1838,12 +1837,12 @@ export default function ProfessionalAdminDashboard() {
             </div>
           </CardContent>
         </Card>
-      </DashboardLayout>
+      
     )
   }
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-8">
         <ProfessionalHeader
           data={dashboardData}
@@ -1938,6 +1937,6 @@ export default function ProfessionalAdminDashboard() {
           </Card>
         )}
       </div>
-    </DashboardLayout>
+    
   )
 }
