@@ -80,7 +80,7 @@ Progress Update — Phase 1
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
 - [ ] Verify IA alignment
   - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
-  - [ ] Sidebar links navigate to the correct workspace container
+  - [x] Sidebar links navigate to the correct workspace container (tests: tests/dashboard/nav/sidebar-ia.test.tsx, tests/dashboard/nav/sidebar-active.dom.test.tsx)
 
 Progress Update — Phase 2
 - Completed: RBAC-gated Sidebar using session role + hasPermission; collapse state via AdminContext; active link highlighting; A11y attributes added.
@@ -198,10 +198,11 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] AdminContext default values smoke test
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
   - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
-  - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
+  - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
   - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
+  - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
 - [ ] E2E Smoke Paths
   - [ ] Auth → Admin → Bookings → New → Save → List
   - [ ] Admin → Service Requests → Assign → Status Update
