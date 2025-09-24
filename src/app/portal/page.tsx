@@ -91,20 +91,20 @@ export default function PortalPage() {
 
 
   const handleCancel = async (id: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment?')) return
+    if (!confirm(t('portal.confirmCancel'))) return
     setDeletingId(id)
     try {
       const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' })
       if (res.ok) {
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b))
-        toast.success('Appointment cancelled')
+        toast.success(t('portal.toast.cancelled'))
       } else {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Failed to cancel appointment'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.cancelFailed')))
       }
     } catch (e) {
       console.error('Cancel error', e)
-      toast.error('Failed to cancel appointment')
+      toast.error(t('portal.toast.cancelFailed'))
     } finally {
       setDeletingId(null)
     }
