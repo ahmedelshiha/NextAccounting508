@@ -40,7 +40,7 @@ and
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
   - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
-  - [ ] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update.
+  - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
 
@@ -204,7 +204,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 - [ ] Unit & Integration Tests
   - [x] AdminContext default values smoke test
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
-  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
+  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage ��� added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
   - [ ] Bookings critical flow: create → save → list appears with correct totals
   - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
@@ -212,9 +212,9 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
   - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
-- [ ] E2E Smoke Paths
-  - [ ] Auth → Admin → Bookings → New → Save → List
-  - [ ] Admin → Service Requests → Assign → Status Update
+- [x] E2E Smoke Paths
+  - [x] Auth → Admin → Bookings → New → Save → List — tests/e2e/admin-bookings.smoke.test.ts
+  - [x] Admin → Service Requests → Assign → Status Update — tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [ ] Accessibility (A11y)
   - [ ] Verify focus order, landmarks, roles, and aria attributes for navigation and tables
   - [x] Keyboard-only operation of sidebar and tables — covered by tests: advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx
