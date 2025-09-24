@@ -18,7 +18,7 @@ import type {
 // Helper to safely access getDbNull() without requiring @prisma/client at runtime (useful for tests)
 function getDbNull(): any {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const mod = require('@prisma/client') as { Prisma?: { DbNull?: any } }
     return mod?.Prisma?.DbNull ?? null
   } catch {
