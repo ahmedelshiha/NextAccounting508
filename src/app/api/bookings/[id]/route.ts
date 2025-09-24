@@ -196,10 +196,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       )
     }
 
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      select: { clientId: true, status: true, tenantId: true }
-    })
+    const booking = await prisma.booking.findUnique({ where: { id } })
 
     if (!booking) {
       return NextResponse.json(
