@@ -17,7 +17,11 @@ export default function DataTable<T extends { id?: string | number }>({ columns,
   const toggleOne = (id?: string | number) => {
     if (id == null) return
     const next = new Set(selected)
-    next.has(id) ? next.delete(id) : next.add(id)
+    if (next.has(id)) {
+      next.delete(id)
+    } else {
+      next.add(id)
+    }
     setSelected(next)
     onSelectionChange?.(Array.from(next))
   }

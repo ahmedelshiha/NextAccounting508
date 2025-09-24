@@ -81,22 +81,27 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 5) Performance & Quality
 - [x] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
 - [x] Memoize heavy cell renderers; verify no unnecessary re-renders
-- [ ] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
+- [x] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
   - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
 
 6) Docs & Handoff
-- [ ] Validate ./dashboard-structure.md code blocks compile as-is
-- [ ] Cross-check naming/props against ./quickbooks_dashboard_complete.md
-- [ ] Note extension points (adding nav items, columns, filters) and migration notes
+- [x] Validate ./dashboard-structure.md code blocks compile as-is
+- [x] Cross-check naming/props against ./quickbooks_dashboard_complete.md
+- [x] Note extension points (adding nav items, columns, filters) and migration notes
   - Acceptance: docs reflect final IA and component APIs; examples compile in isolation
+  - Extension points:
+    - Sidebar/nav: append to src/components/dashboard/nav.config.ts
+    - DataTable: add columns with key/label/render; actions via RowAction<T>
+    - FilterBar: extend FilterConfig; wire to onFilterChange and active tags
+    - Primary/Secondary Tabs: pass TabItem[] and handle onChange(key) callbacks
 
 ## Phase 2 – Information Architecture (IA)
 - [x] Define grouped nav for accounting + booking system
-  - [ ] Clients → Client List, Invitations, Profiles
-  - [ ] Bookings → Appointments, Services, Availability, Booking Settings
-  - [ ] Accounting → Invoices, Payments, Expenses, Reports, Taxes
-  - [ ] Team → Staff, Roles, Permissions
-  - [ ] System → Settings, Notifications, Integrations
+  - [x] Clients → Client List, Invitations, Profiles
+  - [x] Bookings → Appointments, Services, Availability, Booking Settings
+  - [x] Accounting → Invoices, Payments, Expenses, Reports, Taxes
+  - [x] Team → Staff, Roles, Permissions
+  - [x] System → Settings, Notifications, Integrations
 - [x] Validate routes exist or add redirects/stubs for missing pages
 - [x] Finalize iconography (lucide-react) for each item
 
@@ -142,7 +147,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 ## Phase 7 – Performance & Quality
 - [ ] Avoid layout shift; use skeleton states in tables/cards
 - [ ] Memoize heavy render paths where needed
-- [ ] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
+- [x] Run lint/typecheck/tests: pnpm lint, pnpm typecheck, pnpm test:thresholds
 - [ ] Validate no CLS/contrast regressions (QuickBooks green #2CA01C as accent)
 
 ## Phase 8 – Docs & Handoff

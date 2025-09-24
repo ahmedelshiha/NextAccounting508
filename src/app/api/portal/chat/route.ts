@@ -51,3 +51,7 @@ export async function GET(request: NextRequest) {
   const list = chatBacklog.list(tenantId, limit)
   return NextResponse.json({ messages: list })
 }
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })
+}

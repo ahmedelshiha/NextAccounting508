@@ -1,5 +1,4 @@
 import { ClientLayout } from '@/components/providers/client-layout'
-import { ClientLayout } from '@/components/providers/client-layout'
 import './globals.css'
 import { TranslationProvider } from '@/components/providers/translation-provider'
 import { Inter } from 'next/font/google'

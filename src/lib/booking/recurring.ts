@@ -24,7 +24,7 @@ export function generateOccurrences(start: Date, durationMinutes: number, patter
   const maxCount = pattern.count ?? 0
   const until = pattern.until ? new Date(pattern.until) : null
 
-  let current = new Date(start)
+  const current = new Date(start)
   let occurrences = 0
 
   while (true) {

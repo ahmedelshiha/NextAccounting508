@@ -1,4 +1,3 @@
-
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { realtimeService } from '@/lib/realtime-enhanced'
@@ -37,4 +36,8 @@ export async function GET(request: Request) {
       Connection: 'keep-alive',
     },
   })
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,OPTIONS' } })
 }

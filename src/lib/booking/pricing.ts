@@ -63,8 +63,8 @@ export async function calculateServicePrice(params: {
   const basePrice = decimalToNumber(svc.basePrice ?? svc.price ?? 0)
   const standardDuration = Math.max(15, svc.duration ?? 60)
 
-  let baseCents = Math.round(basePrice * 100)
-  let components: PriceComponent[] = []
+  const baseCents = Math.round(basePrice * 100)
+  const components: PriceComponent[] = []
 
   const durationMinutes = Math.max(15, params.durationMinutes ?? standardDuration)
 

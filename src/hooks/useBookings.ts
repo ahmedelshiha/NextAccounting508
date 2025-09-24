@@ -55,7 +55,7 @@ export function useBookings(params: BookingsQuery = {}) {
   if (dateTo) query.set('dateTo', dateTo)
   if (teamMemberId) query.set('teamMemberId', teamMemberId)
 
-  let base = scope === 'portal' ? '/api/portal/service-requests' : '/api/admin/service-requests'
+  const base = scope === 'portal' ? '/api/portal/service-requests' : '/api/admin/service-requests'
   if (type && type !== 'all') query.set('type', type)
 
   const key = `${base}?${query.toString()}`

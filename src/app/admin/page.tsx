@@ -2208,7 +2208,7 @@ export default function ProfessionalAdminDashboard() {
           onExport={handleExport}
           onMarkAllRead={handleMarkAllRead}
         />
-        <PrimaryTabs tabs={tabs} active={activeTab} onChange={setActiveTab} />
+        <PrimaryTabs tabs={tabs} active={activeTab} onChange={(key) => setActiveTab(key as 'overview' | 'bookings' | 'clients' | 'revenue')} />
         {activeTab === 'overview' && (
           <>
             <ProfessionalKPIGrid data={dashboardData} />

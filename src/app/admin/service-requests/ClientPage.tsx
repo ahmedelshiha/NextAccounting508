@@ -59,7 +59,7 @@ export default function AdminServiceRequestsClient() {
     else if (v === 'analytics') setViewMode('ANALYTICS')
     const p = parseInt(get('page') || '1', 10)
     if (!Number.isNaN(p) && p > 0) setPage(p)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [])
 
   // Build URL query string (optional, useful for deep linking)

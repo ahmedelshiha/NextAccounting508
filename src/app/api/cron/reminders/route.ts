@@ -204,7 +204,7 @@ export async function POST(req: Request) {
           const parsed = JSON.parse(String(l.message))
           const details = parsed.details || {}
           const stats = details.tenantStats || {}
-          let localProcessed = Number(details.processed || 0)
+          const localProcessed = Number(details.processed || 0)
           let localFailed = 0
           // aggregate failed from tenantStats if present
           for (const t in stats) {

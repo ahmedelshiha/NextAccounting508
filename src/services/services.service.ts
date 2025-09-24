@@ -30,7 +30,7 @@ export class ServicesService {
     // Ensure tenant-scoped slug uniqueness
     let slug = baseSlug || `service-${Date.now()}`
     let attempt = 1
-    // eslint-disable-next-line no-constant-condition
+     
     while (true) {
       const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
       if (!exists) break
@@ -248,7 +248,7 @@ export class ServicesService {
 
     // Simple update actions
     if (['activate','deactivate','feature','unfeature','category','price-update'].includes(type)) {
-      let data: any = {};
+      const data: any = {};
       if (type === 'activate') { data.active = true; data.status = 'ACTIVE' as any; }
       else if (type === 'deactivate') { data.active = false; data.status = 'INACTIVE' as any; }
       else if (type === 'feature') data.featured = true;

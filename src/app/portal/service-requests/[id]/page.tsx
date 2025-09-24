@@ -99,7 +99,7 @@ export default function PortalServiceRequestDetailPage() {
     }
     connect()
     return () => { try { es?.close() } catch {} }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [session, id])
 
   const uploadFile = async (file: File, key: string): Promise<{ url?: string; error?: string }> => {

@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
 import { getAvailabilityForService } from '@/lib/booking/availability'
 import { z } from 'zod'
+import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 
 const QuerySchema = z.object({
   serviceId: z.string().min(1),
@@ -54,7 +55,15 @@ export async function GET(request: Request) {
 
   const { serviceId, dateFrom, dateTo, duration, teamMemberId, includePrice, currency } = parsed.data
 
+  // Enforce tenant scoping for requested service
+  const tenantId = getTenantFromRequest(request as any)
   try {
+    const svcRow = await prisma.service.findUnique({ where: { id: serviceId }, select: { id: true, tenantId: true } })
+    if (!svcRow) return respond.notFound('Service not found')
+    if (isMultiTenancyEnabled() && tenantId && (svcRow as any).tenantId && (svcRow as any).tenantId !== tenantId) {
+      return respond.notFound('Service not found')
+    }
+
     const from = new Date(dateFrom)
     const to = new Date(dateTo)
     const { slots } = await getAvailabilityForService({ serviceId, from, to, slotMinutes: duration, teamMemberId, options: { now: from } })
@@ -96,4 +105,8 @@ export async function GET(request: Request) {
     }
     return respond.serverError('Failed to compute availability', { code, message: msg })
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,OPTIONS' } })
 }
