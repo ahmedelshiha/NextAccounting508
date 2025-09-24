@@ -11,6 +11,22 @@ export type AdminRealtimeEvent<T = any> = {
 
 type EventHandler = (event: AdminRealtimeEvent) => void
 
+/**
+ * Safely parse a Server-Sent Event message payload.
+ * Returns a typed AdminRealtimeEvent when valid, otherwise null.
+ */
+export function parseEventMessage(raw: string): AdminRealtimeEvent | null {
+  try {
+    const parsed = JSON.parse(raw) as AdminRealtimeEvent
+    if (parsed && typeof parsed === 'object' && typeof (parsed as any).type === 'string' && (parsed as any).type.length > 0) {
+      return parsed
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 interface RealtimeContextValue {
   connected: boolean
   lastEvent: AdminRealtimeEvent | null
@@ -49,12 +65,8 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
     es.onopen = () => setConnected(true)
     es.onerror = () => setConnected(false)
     es.onmessage = (e) => {
-      try {
-        const parsed = JSON.parse(e.data) as AdminRealtimeEvent
-        if (parsed && parsed.type) deliver(parsed)
-      } catch {
-        // ignore non-JSON keep-alives
-      }
+      const evt = parseEventMessage(e.data)
+      if (evt) deliver(evt)
     }
 
     return () => {
