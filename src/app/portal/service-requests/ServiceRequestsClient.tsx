@@ -16,6 +16,7 @@ import { useBookings } from '@/hooks/useBookings'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
 import { toast } from 'sonner'
+import { useTranslations } from '@/lib/i18n'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
@@ -47,6 +48,7 @@ const priorityStyles: Record<string, string> = {
 }
 
 export default function ServiceRequestsClient() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -189,10 +191,10 @@ export default function ServiceRequestsClient() {
         <Card>
           <CardContent className="text-center py-12">
             <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No service requests yet</h3>
-            <p className="text-gray-600 mb-4">Create your first request to get started.</p>
-            <Button asChild>
-              <Link href="/portal/service-requests/new">Create Request</Link>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('portal.serviceRequests.noRequests')}</h3>
+            <p className="text-gray-600 mb-4">{t('portal.serviceRequests.createHelp')}</p>
+            <Button asChild aria-label={t('portal.serviceRequests.create')}>
+              <Link href="/portal/service-requests/new">{t('portal.serviceRequests.create')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -216,9 +218,9 @@ export default function ServiceRequestsClient() {
                   </div>
                   <p className="text-sm text-gray-600 mt-1 truncate">{r.service?.name}</p>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild aria-label={t('portal.serviceRequests.view')}>
                   <Link href={`/portal/service-requests/${r.id}`}>
-                    View <ChevronRight className="h-4 w-4 ml-1" />
+                    {t('portal.serviceRequests.view')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
               </div>
@@ -236,8 +238,8 @@ export default function ServiceRequestsClient() {
           <div className="flex items-center gap-3">
             <ClipboardList className="h-6 w-6 text-blue-600" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Service Requests</h1>
-              <p className="text-gray-600">Track your service requests and their status.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('portal.serviceRequests.title')}</h1>
+              <p className="text-gray-600">{t('portal.serviceRequests.subtitle')}</p>
             </div>
           </div>
 
@@ -245,14 +247,14 @@ export default function ServiceRequestsClient() {
             {/* PWA offline queue indicator (visible when NEXT_PUBLIC_ENABLE_PWA=1) */}
             {pwaEnabled && queuedCount > 0 && (
               <div className="flex items-center gap-2">
-                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} pending</Badge>
-                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success('Queued submissions synced'); } catch { toast.error('Sync failed') } }}>
-                  Sync
+                <Badge className="bg-yellow-100 text-yellow-800">{queuedCount} {t('portal.offline.pending')}</Badge>
+                <Button size="sm" variant="ghost" onClick={async () => { try { await processQueue(); toast.success(t('portal.offline.synced')); } catch { toast.error(t('portal.offline.syncFailed')) } }} aria-label={t('portal.offline.sync') }>
+                  {t('portal.offline.sync')}
                 </Button>
               </div>
             )}
 
-            <Button variant="outline" onClick={exportCSV}>Export CSV</Button>
+            <Button variant="outline" onClick={exportCSV}>{t('common.export')}</Button>
             <Button asChild>
               <Link href="/portal/service-requests/new">
                 <Plus className="h-4 w-4 mr-2" /> New Request
@@ -265,9 +267,9 @@ export default function ServiceRequestsClient() {
           <div className="flex items-center justify-between">
             <Tabs value={typeTab} onValueChange={(v) => setTypeTab(v as any)}>
               <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="requests">Requests</TabsTrigger>
-                <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                <TabsTrigger value="all">{t('portal.serviceRequests.tabs.all')}</TabsTrigger>
+                <TabsTrigger value="requests">{t('portal.serviceRequests.tabs.requests')}</TabsTrigger>
+                <TabsTrigger value="appointments">{t('portal.serviceRequests.tabs.appointments')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -275,48 +277,49 @@ export default function ServiceRequestsClient() {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search requests..."
+              placeholder={t('portal.serviceRequests.searchPlaceholder')}
               className="w-64"
+              aria-label={t('portal.serviceRequests.searchAria')}
             />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="All status" />
+                <SelectValue placeholder={t('portal.serviceRequests.selectAllStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All</SelectItem>
-                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="IN_REVIEW">In Review</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="ASSIGNED">Assigned</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="ALL">{t('portal.serviceRequests.status.All')}</SelectItem>
+                <SelectItem value="SUBMITTED">{t('portal.serviceRequests.status.Submitted')}</SelectItem>
+                <SelectItem value="IN_REVIEW">{t('portal.serviceRequests.status.InReview')}</SelectItem>
+                <SelectItem value="APPROVED">{t('portal.serviceRequests.status.Approved')}</SelectItem>
+                <SelectItem value="ASSIGNED">{t('portal.serviceRequests.status.Assigned')}</SelectItem>
+                <SelectItem value="IN_PROGRESS">{t('portal.serviceRequests.status.InProgress')}</SelectItem>
+                <SelectItem value="COMPLETED">{t('portal.serviceRequests.status.Completed')}</SelectItem>
+                <SelectItem value="CANCELLED">{t('portal.serviceRequests.status.Cancelled')}</SelectItem>
+                <SelectItem value="DRAFT">{t('portal.serviceRequests.status.Draft')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={bookingType} onValueChange={(v) => setBookingType(v as any)}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Booking type" />
+                <SelectValue placeholder={t('portal.serviceRequests.selectBookingType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All booking types</SelectItem>
-                <SelectItem value="STANDARD">STANDARD</SelectItem>
-                <SelectItem value="RECURRING">RECURRING</SelectItem>
-                <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
-                <SelectItem value="CONSULTATION">CONSULTATION</SelectItem>
+                <SelectItem value="ALL">{t('portal.serviceRequests.bookingType.All')}</SelectItem>
+                <SelectItem value="STANDARD">{t('portal.serviceRequests.bookingType.STANDARD')}</SelectItem>
+                <SelectItem value="RECURRING">{t('portal.serviceRequests.bookingType.RECURRING')}</SelectItem>
+                <SelectItem value="EMERGENCY">{t('portal.serviceRequests.bookingType.EMERGENCY')}</SelectItem>
+                <SelectItem value="CONSULTATION">{t('portal.serviceRequests.bookingType.CONSULTATION')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="from">From</label>
+              <label className="text-sm text-gray-600" htmlFor="from">{t('portal.serviceRequests.from')}</label>
               <Input id="from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[160px]" />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="to">To</label>
+              <label className="text-sm text-gray-600" htmlFor="to">{t('portal.serviceRequests.to')}</label>
               <Input id="to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
             </div>
             <Select value={String(limit)} onValueChange={(v) => setLimit(parseInt(v, 10) || 10)}>
               <SelectTrigger className="w-28">
-                <SelectValue placeholder="Per page" />
+                <SelectValue placeholder={t('portal.serviceRequests.perPage')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10 / page</SelectItem>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useTranslations } from '@/lib/i18n'
 
 type ChatMsg = {
   id: string
@@ -15,6 +16,7 @@ type ChatMsg = {
 }
 
 export default function LiveChatWidget() {
+  const { t } = useTranslations()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [text, setText] = useState('')
@@ -116,16 +118,16 @@ export default function LiveChatWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-40">
       {!open ? (
-        <Button onClick={() => setOpen(true)} aria-label="Open live chat" size="lg">
-          Live chat
+        <Button onClick={() => setOpen(true)} aria-label={t('portal.chat.open')} size="lg">
+          {t('portal.chat.open')}
         </Button>
       ) : (
         <div className="w-80 sm:w-96 h-96 bg-white shadow-xl border rounded-xl flex flex-col overflow-hidden">
           <div className="px-3 py-2 border-b flex items-center justify-between">
-            <div className="text-sm font-medium">Support chat</div>
-            <div className={`text-xs ${connected ? 'text-green-600' : 'text-gray-500'}`}>{connected ? 'Online' : 'Connecting...'}</div>
+            <div className="text-sm font-medium">{t('portal.chat.title')}</div>
+            <div className={`text-xs ${connected ? 'text-green-600' : 'text-gray-500'}`}>{connected ? t('portal.chat.online') : t('portal.chat.connecting')}</div>
           </div>
-          <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
+          <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50" role="log" aria-live="polite">
             {messages.map((m) => (
               <div key={m.id} className="text-sm">
                 <div className="font-medium">{m.userName} <span className="text-gray-500 text-xs">{new Date(m.createdAt).toLocaleTimeString()}</span></div>
@@ -133,7 +135,7 @@ export default function LiveChatWidget() {
               </div>
             ))}
             {messages.length === 0 && (
-              <div className="text-sm text-gray-500 text-center mt-6">No messages yet. Say hello!</div>
+              <div className="text-sm text-gray-500 text-center mt-6">{t('portal.chat.noMessages')}</div>
             )}
           </div>
           <div className="p-2 border-t flex items-center gap-2">
@@ -141,10 +143,11 @@ export default function LiveChatWidget() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && canSend) void send() }}
-              placeholder="Type your message..."
+              placeholder={t('portal.chat.placeholder')}
+              aria-label={t('portal.chat.inputAria')}
             />
-            <Button onClick={() => void send()} disabled={!canSend}>Send</Button>
-            <Button variant="secondary" onClick={() => setOpen(false)}>Close</Button>
+            <Button onClick={() => void send()} disabled={!canSend}>{t('portal.chat.send')}</Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>{t('common.close')}</Button>
           </div>
         </div>
       )}

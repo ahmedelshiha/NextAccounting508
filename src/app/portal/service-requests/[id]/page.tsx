@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useTranslations } from '@/lib/i18n'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface Comment { id: string; content: string; createdAt: string; author?: { id: string; name?: string | null } | null }
@@ -50,6 +51,7 @@ const statusStyles: Record<string, string> = {
 }
 
 export default function PortalServiceRequestDetailPage() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const params = useParams<{ id: string }>()
   const router = useRouter()
@@ -125,17 +127,17 @@ export default function PortalServiceRequestDetailPage() {
                 setUploadProgress((prev) => ({ ...prev, [key]: 100 }))
                 resolve({ url: (resp as any).url })
               } else {
-                resolve({ error: (resp as any)?.error || 'Upload failed' })
+                resolve({ error: (resp as any)?.error || t('portal.upload.failed') })
               }
             } catch {
-              resolve({ error: 'Upload failed' })
+              resolve({ error: t('portal.upload.failed') })
             }
           }
         }
-        xhr.onerror = () => resolve({ error: 'Upload failed' })
+        xhr.onerror = () => resolve({ error: t('portal.upload.failed') })
         xhr.send(form)
       } catch {
-        resolve({ error: 'Upload failed' })
+        resolve({ error: t('portal.upload.failed') })
       }
     })
   }
@@ -189,7 +191,7 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({} as any))
-        toast.error(getApiErrorMessage(errBody, 'Failed to post comment'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.commentFailed')))
         return
       }
       setComment('')
@@ -199,7 +201,7 @@ export default function PortalServiceRequestDetailPage() {
       setUploadProgress({})
       await refresh()
     } catch (e) {
-      toast.error('Failed to post comment')
+      toast.error(t('portal.toast.commentFailed'))
     }
   }
 
@@ -214,14 +216,14 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Unable to cancel'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.cancelFailed')))
         return
       }
-      toast.success('Request cancelled')
+      toast.success(t('portal.toast.requestCancelled'))
       router.refresh()
       await refresh()
     } catch (e) {
-      toast.error('Unable to cancel')
+      toast.error(t('portal.toast.cancelFailed'))
     }
   }
 
@@ -235,14 +237,14 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Unable to approve'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.approveFailed')))
         return
       }
-      toast.success('Request approved')
+      toast.success(t('portal.toast.requestApproved'))
       router.refresh()
       await refresh()
     } catch (e) {
-      toast.error('Unable to approve')
+      toast.error(t('portal.toast.approveFailed'))
     }
   }
 
@@ -283,13 +285,13 @@ export default function PortalServiceRequestDetailPage() {
       const res = await apiFetch(`/api/portal/service-requests/${encodeURIComponent(id)}/confirm`, { method: 'POST' })
       const json = await res.json().catch(() => ({} as any))
       if (!res.ok) {
-        toast.error(getApiErrorMessage(json, 'Unable to confirm appointment'))
+        toast.error(getApiErrorMessage(json, t('portal.toast.confirmFailed')))
         return
       }
-      toast.success('Appointment confirmed')
+      toast.success(t('portal.toast.appointmentConfirmed'))
       await refresh()
     } catch {
-      toast.error('Unable to confirm appointment')
+      toast.error(t('portal.toast.confirmFailed'))
     }
   }
 
@@ -303,17 +305,17 @@ export default function PortalServiceRequestDetailPage() {
       })
       const json = await res.json().catch(() => ({} as any))
       if (!res.ok) {
-        toast.error(getApiErrorMessage(json, 'Unable to reschedule'))
+        toast.error(getApiErrorMessage(json, t('portal.toast.rescheduleFailed')))
         return
       }
-      toast.success('Appointment rescheduled')
+      toast.success(t('portal.toast.appointmentRescheduled'))
       setRescheduleOpen(false)
       setAppointmentDate('')
       setSelectedSlot('')
       setSlots([])
       await refresh()
     } catch {
-      toast.error('Unable to reschedule')
+      toast.error(t('portal.toast.rescheduleFailed'))
     }
   }
 
@@ -322,24 +324,24 @@ export default function PortalServiceRequestDetailPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Service Request</h1>
-            <p className="text-gray-600">View details and discussion</p>
+            <h1 className="text-2xl font-bold text-gray-900">{t('portal.serviceRequests.title')}</h1>
+            <p className="text-gray-600">{t('portal.serviceRequests.subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link href="/portal/service-requests">Back</Link>
+              <Link href="/portal/service-requests">{t('common.back')}</Link>
             </Button>
             {reqData && ['SUBMITTED','IN_REVIEW'].includes(reqData.status) && (
-              <Button onClick={approveRequest}>Approve</Button>
+              <Button onClick={approveRequest}>{t('portal.serviceRequests.approve')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && !isConfirmed && (
-              <Button onClick={confirmAppointment}>Confirm appointment</Button>
+              <Button onClick={confirmAppointment}>{t('portal.serviceRequests.confirmAppointment')}</Button>
             )}
             {reqData && !isCompletedOrCancelled && isBooking && (
-              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>Reschedule</Button>
+              <Button variant="outline" onClick={() => setRescheduleOpen(true)}>{t('portal.serviceRequests.reschedule')}</Button>
             )}
             {reqData && !['COMPLETED','CANCELLED'].includes(reqData.status) && (
-              <Button variant="destructive" onClick={cancelRequest}>Cancel</Button>
+              <Button variant="destructive" onClick={cancelRequest}>{t('portal.cancel')}</Button>
             )}
           </div>
         </div>
@@ -351,7 +353,7 @@ export default function PortalServiceRequestDetailPage() {
           </div>
         ) : !reqData ? (
           <Card>
-            <CardContent className="py-8 text-center text-gray-700">Request not found.</CardContent>
+            <CardContent className="py-8 text-center text-gray-700">{t('portal.serviceRequests.notFound')}</CardContent>
           </Card>
         ) : (
           <div className="space-y-6">
@@ -372,11 +374,11 @@ export default function PortalServiceRequestDetailPage() {
                   <div className="mb-3 rounded-md border px-3 py-2">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-900">
-                        <span className="font-medium">Scheduled:</span>{' '}
+                        <span className="font-medium">{t('portal.serviceRequests.scheduledLabel')}</span>{' '}
                         <span>{new Date(scheduledAt as string).toLocaleString()}</span>
                       </div>
                       <div className="text-xs text-gray-600">
-                        {isConfirmed ? 'Confirmed' : 'Awaiting confirmation'}
+                        {isConfirmed ? t('portal.serviceRequests.confirmed') : t('portal.serviceRequests.awaitingConfirmation')}
                       </div>
                     </div>
                   </div>

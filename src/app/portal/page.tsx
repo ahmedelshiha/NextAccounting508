@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
+import { useTranslations } from '@/lib/i18n'
 
 interface Booking {
   id: string
@@ -32,6 +33,7 @@ const statusColors = {
 }
 
 export default function PortalPage() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -89,20 +91,20 @@ export default function PortalPage() {
 
 
   const handleCancel = async (id: string) => {
-    if (!confirm('Are you sure you want to cancel this appointment?')) return
+    if (!confirm(t('portal.confirmCancel'))) return
     setDeletingId(id)
     try {
       const res = await apiFetch(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' })
       if (res.ok) {
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b))
-        toast.success('Appointment cancelled')
+        toast.success(t('portal.toast.cancelled'))
       } else {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Failed to cancel appointment'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.cancelFailed')))
       }
     } catch (e) {
       console.error('Cancel error', e)
-      toast.error('Failed to cancel appointment')
+      toast.error(t('portal.toast.cancelFailed'))
     } finally {
       setDeletingId(null)
     }
@@ -134,10 +136,10 @@ export default function PortalPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {session?.user?.name}!
+            {t('portal.welcome', { name: session?.user?.name || '' })}
           </h1>
           <p className="text-gray-600 mt-2">
-            Manage your appointments and view your accounting services.
+            {t('portal.subtitle')}
           </p>
         </div>
 
@@ -145,13 +147,13 @@ export default function PortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Book New Service</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('portal.bookNew')}</CardTitle>
               <Plus className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full" aria-label={t('portal.scheduleConsultation')}>
                 <Link href="/booking">
-                  Schedule Consultation
+                  {t('portal.scheduleConsultation')}
                 </Link>
               </Button>
             </CardContent>
@@ -160,31 +162,31 @@ export default function PortalPage() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
-                <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-                <CardDescription className="text-xs">{bookings.length} total</CardDescription>
+                <CardTitle className="text-sm font-medium">{t('portal.totalBookings')}</CardTitle>
+                <CardDescription className="text-xs">{bookings.length} {t('portal.total')}</CardDescription>
               </div>
               <Calendar className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{upcomingBookings.length}</div>
               <p className="text-xs text-gray-600">
-                upcoming
+                {t('portal.upcoming')}
               </p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Actions</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('portal.actions')}</CardTitle>
               <FileText className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">Export CSV</Button>
-                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm">
-                  <option value="upcoming">Upcoming</option>
-                  <option value="past">Past</option>
-                  <option value="all">All</option>
+                <Button onClick={exportCSV} size="sm" className="w-full sm:w-auto">{t('common.export')}</Button>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'past')} className="border border-gray-300 rounded px-2 py-1 text-sm" aria-label={t('portal.filter.timeRange')}>
+                  <option value="upcoming">{t('portal.filter.upcoming')}</option>
+                  <option value="past">{t('portal.filter.past')}</option>
+                  <option value="all">{t('portal.filter.all')}</option>
                 </select>
               </div>
             </CardContent>
@@ -193,7 +195,7 @@ export default function PortalPage() {
 
         {/* Upcoming Appointments */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Appointments</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('portal.upcomingAppointments')}</h2>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(2)].map((_, i) => (
@@ -235,12 +237,12 @@ export default function PortalPage() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/portal/bookings/${booking.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
-                            View Details
+                            {t('portal.viewDetails')}
                           </Link>
                         </Button>
                         {['PENDING','CONFIRMED'].includes(booking.status) && (
-                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id}>
-                            {deletingId === booking.id ? 'Cancelling...' : 'Cancel'}
+                          <Button variant="destructive" size="sm" onClick={() => handleCancel(booking.id)} disabled={deletingId === booking.id} aria-label={t('portal.cancel')}>
+                            {deletingId === booking.id ? t('portal.cancelling') : t('portal.cancel')}
                           </Button>
                         )}
                       </div>
@@ -259,14 +261,14 @@ export default function PortalPage() {
               <CardContent className="text-center py-12">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No upcoming appointments
+                  {t('portal.noUpcoming')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Schedule your next consultation to get started.
+                  {t('portal.noUpcomingDescription')}
                 </p>
-                <Button asChild>
+                <Button asChild aria-label={t('portal.bookAppointment')}>
                   <Link href="/booking">
-                    Book Appointment
+                    {t('portal.bookAppointment')}
                   </Link>
                 </Button>
               </CardContent>
@@ -277,7 +279,7 @@ export default function PortalPage() {
         {/* Past Appointments */}
         {pastBookings.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Past Appointments</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('portal.pastAppointments')}</h2>
             <div className="space-y-4">
               {pastBookings.slice(0, 5).map((booking) => (
                 <Card key={booking.id} className="hover:shadow-md transition-shadow">
@@ -297,7 +299,7 @@ export default function PortalPage() {
                         </Badge>
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/portal/bookings/${booking.id}`}>
-                            View
+                            {t('portal.view')}
                           </Link>
                         </Button>
                       </div>
@@ -309,7 +311,7 @@ export default function PortalPage() {
                 <div className="text-center">
                   <Button variant="outline" asChild>
                     <Link href="/portal/bookings">
-                      View All Appointments
+                      {t('portal.viewAllAppointments')}
                     </Link>
                   </Button>
                 </div>
