@@ -301,7 +301,12 @@ Acceptance: engineers can build a new admin page using docs without assistance.
 ---
 
 ## Phase 12 — Cleanup, Deprecations, and Rollout
-- [ ] Remove retired admin pages in backup/ once parity is verified
+- [x] Remove retired admin pages in backup/ once parity is verified — deleted:
+  - backup/retired-admin-bookings-page.tsx
+  - backup/retired-admin-page.tsx
+  - backup/retired-admin-posts-page.tsx
+  - backup/retired-admin-services-page.tsx
+  - backup/retired-admin-users-page.tsx
 - [ ] Remove unused CSS/assets related to legacy admin shells
 - [ ] Conduct UAT with admin users; collect sign-offs per page
 - [ ] Staged rollout
