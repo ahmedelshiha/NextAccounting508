@@ -202,7 +202,7 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
-        <main className="flex-1">
+        <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
         <Footer />

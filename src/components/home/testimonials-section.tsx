@@ -140,6 +140,7 @@ export function TestimonialsSection() {
           <Button
             variant="outline"
             size="icon"
+            aria-label="Previous testimonial"
             className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-white shadow hover:bg-gray-50"
             onClick={goToPrevious}
           >
@@ -149,6 +150,7 @@ export function TestimonialsSection() {
           <Button
             variant="outline"
             size="icon"
+            aria-label="Next testimonial"
             className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-white shadow hover:bg-gray-50"
             onClick={goToNext}
           >
@@ -160,6 +162,8 @@ export function TestimonialsSection() {
             {testimonials.map((_, index) => (
               <button
                 key={index}
+                aria-label={`Go to testimonial ${index + 1}`}
+                aria-pressed={index === currentIndex}
                 className={`w-3 h-3 rounded-full transition-colors ${
                   index === currentIndex ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
