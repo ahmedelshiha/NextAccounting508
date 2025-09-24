@@ -39,13 +39,18 @@ Progress Update — Phase 1
 ---
 
 ## Phase 2 — Navigation and IA (Depends on Phase 1)
-- [ ] Implement permission-based sidebar
-  - [ ] Create/upgrade src/components/dashboard/layout/Sidebar.tsx with groups, badges, RBAC filters
-  - [ ] Wire to AdminContext (collapse/expand) and active route highlighting
-  - [ ] Ensure accessibility (keyboard navigation, aria-current, focus states)
+- [x] Implement permission-based sidebar
+  - [x] Upgrade src/components/dashboard/Sidebar.tsx with groups, badges, RBAC filters
+  - [x] Wire to AdminContext (collapse/expand) and active route highlighting
+  - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
 - [ ] Verify IA alignment
   - [ ] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
   - [ ] Sidebar links navigate to the correct workspace container
+
+Progress Update — Phase 2
+- Completed: RBAC-gated Sidebar using session role + hasPermission; collapse state via AdminContext; active link highlighting; A11y attributes added.
+- Why: limits navigation to authorized features and provides consistent IA with collapse UX.
+- Next: Audit and ensure all listed routes exist; wire missing pages if any; then proceed to Phase 3 templates.
 
 Acceptance: sidebar shows only permitted items, persists collapsed state, and routes correctly; keyboard navigation works.
 
