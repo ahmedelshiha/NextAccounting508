@@ -46,7 +46,7 @@ Outcomes: inventory complete, baseline metrics captured, rollback plan prepared,
 - [x] Add Admin context/providers
   - [x] Implement src/components/admin/providers/AdminProviders.tsx (SWRConfig, SessionProvider, Toaster)
   - [x] Implement src/components/admin/providers/AdminContext.tsx (sidebarCollapsed, currentTenant, userPermissions)
-  - [ ] Add unit tests for context behavior and loading states
+  - [x] Add unit tests for context behavior and loading states
 - [x] Replace legacy shells
   - [x] Remove/disable legacy overlays/wrappers that conflict with DashboardLayout
   - [x] Verify only one layout wraps /admin pages
@@ -90,11 +90,16 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
   - [ ] Replace legacy tables where applicable
 - [ ] Realtime and unified data layer
-  - [ ] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
-  - [ ] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
+  - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
+  - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
   - [ ] Add tests for fetch failures, refresh, and realtime parsing
 
 Acceptance: new templates compile and are reusable; table supports selection/sort/export; unified data hook verified with mocked endpoints.
+
+Progress Update — Phase 3
+- Completed: RealtimeProvider and useUnifiedData integrated; baseline tests added for provider context and unified data initial state.
+- Why: establish consistent realtime refresh and a single data-fetching pattern across admin modules, reducing duplication and improving reliability.
+- Next: add failure/retry and realtime parsing tests, create template preview pages, and replace any remaining legacy tables with AdvancedDataTable.
 
 ---
 

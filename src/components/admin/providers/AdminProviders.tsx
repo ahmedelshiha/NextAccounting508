@@ -5,6 +5,7 @@ import { SWRConfig } from 'swr'
 import { SessionProvider } from 'next-auth/react'
 import { AdminContextProvider } from './AdminContext'
 import { Toaster } from '@/components/ui/sonner'
+import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 
 interface AdminProvidersProps {
   children: ReactNode
@@ -32,9 +33,17 @@ export function AdminProviders({ children, session }: AdminProvidersProps) {
         }
       }}>
         <AdminContextProvider>
-          {children}
-          {/* App-wide notifications (Sonner) */}
-          <Toaster richColors />
+          <RealtimeProvider events={[
+            'service-request-updated',
+            'task-updated',
+            'availability-updated',
+            'team-assignment',
+            'all'
+          ]}>
+            {children}
+            {/* App-wide notifications (Sonner) */}
+            <Toaster richColors />
+          </RealtimeProvider>
         </AdminContextProvider>
       </SWRConfig>
     </SessionProvider>
