@@ -266,6 +266,11 @@
   "portal.serviceRequests.status.Cancelled": "Cancelled",
   "portal.serviceRequests.status.Draft": "Draft",
 
+  "portal.offline.pending": "pending",
+  "portal.offline.synced": "Queued submissions synced",
+  "portal.offline.syncFailed": "Sync failed",
+  "portal.offline.sync": "Sync",
+
   "portal.total": "total",
   "portal.actions": "Actions",
   "portal.filter.timeRange": "Time range filter",
