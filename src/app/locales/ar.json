@@ -285,6 +285,23 @@
 
   "portal.upload.failed": "فشل الرفع",
 
+  "portal.settings.emailConfirmation": "تأكيدات البريد الإلكتروني",
+  "portal.settings.emailReminder": "تذكيرات البريد الإلكتروني",
+  "portal.settings.emailReschedule": "بريد عند إعادة الجدولة",
+  "portal.settings.emailCancellation": "بريد عند الإلغاء",
+  "portal.settings.smsReminder": "تذكيرات الرسائل النصية",
+  "portal.settings.smsConfirmation": "تأكيدات الرسائل النصية",
+  "portal.settings.reminderTiming": "توقيت التذكير",
+  "portal.settings.hoursBefore": "ساعات قبل",
+  "portal.settings.reminderNote": "سنرسل التذكيرات في غضون ~15 دقيقة من الأوقات المحددة.",
+  "portal.settings.timeZone": "المنطقة الزمنية",
+  "portal.settings.timeZonePlaceholder": "مثال: UTC أو America/New_York",
+  "portal.settings.preferredLanguage": "اللغة المفضلة",
+  "portal.settings.languagePlaceholder": "en",
+  "portal.settings.saving": "جاري الحفظ…",
+  "portal.settings.save": "حفظ التفضيلات",
+  "portal.settings.saveButton": "حفظ تفضيلات الحجز",
+
   "portal.offline.pending": "قيد الانتظار",
   "portal.offline.synced": "تمت مزامنة الإرسالات المعلقة",
   "portal.offline.syncFailed": "فشل المزامنة",
