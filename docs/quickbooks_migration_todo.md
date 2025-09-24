@@ -322,17 +322,17 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin/expenses
 - [x] /admin/tasks
 - [ ] /admin/reminders
-- [ ] /admin/audits
+- [x] /admin/audits
 - [ ] /admin/posts
-- [ ] /admin/newsletter
+- [x] /admin/newsletter
 - [x] /admin/team
 - [x] /admin/permissions
 - [x] /admin/roles
 - [x] /admin/settings
 - [x] /admin/settings/booking
 - [x] /admin/settings/currencies
-- [ ] /admin/integrations
-- [ ] /admin/uploads/quarantine
+- [x] /admin/integrations
+- [x] /admin/uploads/quarantine
 
 Notes:
 - Implement all features as separate reusable components; import explicitly. Avoid inline/lazy hacks.
