@@ -16,6 +16,7 @@ import { useBookings } from '@/hooks/useBookings'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
 import { toast } from 'sonner'
+import { useTranslations } from '@/lib/i18n'
 
 interface ServiceSummary { id: string; name: string; slug: string; category?: string | null }
 interface ServiceRequest {
