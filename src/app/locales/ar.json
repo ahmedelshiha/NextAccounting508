@@ -266,6 +266,25 @@
   "portal.serviceRequests.status.Cancelled": "ملغي",
   "portal.serviceRequests.status.Draft": "مسودة",
 
+  "portal.serviceRequests.notFound": "الطلب غير موجود.",
+  "portal.serviceRequests.scheduledLabel": "المجدول:",
+  "portal.serviceRequests.confirmed": "تم التأكيد",
+  "portal.serviceRequests.awaitingConfirmation": "بانتظار التأكيد",
+  "portal.serviceRequests.approve": "الموافقة",
+  "portal.serviceRequests.confirmAppointment": "تأكيد الموعد",
+  "portal.serviceRequests.reschedule": "إعادة جدولة",
+
+  "portal.toast.commentFailed": "فشل نشر التعليق",
+  "portal.toast.approveFailed": "غير قادر على الموافقة",
+  "portal.toast.requestApproved": "تمت الموافقة على الطلب",
+  "portal.toast.confirmFailed": "غير قادر على تأكيد الموعد",
+  "portal.toast.appointmentConfirmed": "تم تأكيد الموعد",
+  "portal.toast.rescheduleFailed": "فشل إعادة الجدولة",
+  "portal.toast.appointmentRescheduled": "تمت إعادة جدولة الموعد",
+  "portal.toast.requestCancelled": "تم إلغاء الطلب",
+
+  "portal.upload.failed": "فشل الرفع",
+
   "portal.offline.pending": "قيد الانتظار",
   "portal.offline.synced": "تمت مزامنة الإرسالات المعلقة",
   "portal.offline.syncFailed": "فشل المزامنة",
