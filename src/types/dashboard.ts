@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 // Core icon type for lucide-react icons or custom SVGs
 export type IconType = React.ComponentType<{ className?: string }>
 
-import type { ReactNode } from 'react'
+import type * as React from 'react'
 import type { Permission } from '@/lib/permissions'
 
 // Navigation
@@ -34,7 +34,7 @@ export interface FilterOption { value: string; label: string }
 export interface FilterConfig { key: string; label: string; options: FilterOption[]; value?: string }
 
 // Header action items
-export interface ActionItem { label: string; icon?: ReactNode; onClick: () => void }
+export interface ActionItem { label: string; icon?: React.ReactNode; onClick: () => void }
 
 // Tables
 export type Align = 'left' | 'center' | 'right'
@@ -43,7 +43,7 @@ export interface Column<T> {
   label: string
   sortable?: boolean
   align?: Align
-  render?: (value: any, row: T) => ReactNode
+  render?: (value: any, row: T) => React.ReactNode
 }
 
 export interface RowAction<T> {

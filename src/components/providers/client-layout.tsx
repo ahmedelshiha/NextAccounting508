@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { SessionProvider } from 'next-auth/react'
+import type { Session } from 'next-auth'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
@@ -9,6 +10,7 @@ import LiveChatWidget from '@/components/portal/LiveChatWidget'
 
 interface ClientLayoutProps {
   children: React.ReactNode
+  session?: Session | null
 }
 
 // extend Window to store a fetch flag without using `any`
@@ -18,7 +20,7 @@ declare global {
   }
 }
 
-export function ClientLayout({ children }: ClientLayoutProps) {
+export function ClientLayout({ children, session }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
 
@@ -197,7 +199,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   }, [])
 
   return (
-    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
+    <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1">

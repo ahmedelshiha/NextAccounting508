@@ -4,6 +4,7 @@ import StandardPage from "./StandardPage"
 import ProfessionalKPIGrid, { KPIStatsProps } from "@/components/dashboard/analytics/ProfessionalKPIGrid"
 import RevenueTrendChart from "@/components/dashboard/analytics/RevenueTrendChart"
 import type { ActionItem, FilterConfig, TabItem } from "@/types/dashboard"
+import type * as React from "react"
 
 interface AnalyticsPageProps extends KPIStatsProps {
   title: string
@@ -24,6 +25,8 @@ interface AnalyticsPageProps extends KPIStatsProps {
   error?: string | null
   /** Monthly trend data for the revenue line chart */
   revenueTrend?: Array<{ month: string; revenue: number; target?: number }>
+  /** Optional extra charts/sections */
+  children?: React.ReactNode
 }
 
 /**
@@ -51,7 +54,7 @@ export default function AnalyticsPage(props: AnalyticsPageProps) {
     stats,
     revenueTrend,
     children,
-  } = props as AnalyticsPageProps & { children?: React.ReactNode }
+  } = props
 
   return (
     <StandardPage
