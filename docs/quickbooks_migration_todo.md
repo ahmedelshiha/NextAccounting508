@@ -41,6 +41,7 @@ and
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
   - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
   - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
+  - [x] Added skip-to-main content link, main landmark focus target, and sidebar navigation aria; introduced admin layout a11y tests.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
 
