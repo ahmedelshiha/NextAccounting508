@@ -1,13 +1,13 @@
-import { ClientLayout } from '@/components/providers/client-layout'
 import './globals.css'
 import { TranslationProvider } from '@/components/providers/translation-provider'
+import { ClientLayout } from '@/components/providers/client-layout'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Accounting Firm - Professional Accounting Services',
-  description: 'Professional accounting services for growing businesses. Expert bookkeeping, tax preparation, payroll management, and CFO advisory services.',
+  title: 'Professional Accounting Services | Accounting Firm',
+  description: 'Stress-free accounting for growing businesses. Expert bookkeeping, tax preparation, payroll management, and CFO advisory services. Book your free consultation today.',
   keywords: ['accounting', 'bookkeeping', 'tax preparation', 'payroll', 'CFO advisory', 'small business accounting'],
   authors: [{ name: 'Accounting Firm' }],
   creator: 'Accounting Firm',
