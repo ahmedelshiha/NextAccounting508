@@ -37,9 +37,32 @@ export async function captureError(err: unknown, context?: Record<string, unknow
       ? (await (Function('m','return import(m)'))('@sentry/nextjs').catch(async () => (await (Function('m','return import(m)'))('@sentry/node').catch(() => null))))
       : (await (Function('m','return import(m)'))('@sentry/nextjs').catch(async () => (await (Function('m','return import(m)'))('@sentry/browser').catch(() => null))))
     if (mod && typeof mod.captureException === 'function') {
-      if (context && typeof mod.setContext === 'function') {
-        try { mod.setContext('ctx', context) } catch {}
-      }
+      try {
+        if (context) {
+          if (typeof mod.setContext === 'function') {
+            try { mod.setContext('ctx', context) } catch {}
+          }
+          // Attach useful tags when available for better filtering in Sentry
+          try {
+            const maybeSetTag: any = (mod as any).setTag
+            if (typeof maybeSetTag === 'function') {
+              if ((context as any).route) maybeSetTag('route', String((context as any).route))
+              if ((context as any).feature) maybeSetTag('feature', String((context as any).feature))
+              if ((context as any).channel) maybeSetTag('channel', String((context as any).channel))
+              if ((context as any).tenantId) maybeSetTag('tenantId', String((context as any).tenantId))
+              if ((context as any).userId) maybeSetTag('userId', String((context as any).userId))
+            } else if (typeof (mod as any).configureScope === 'function') {
+              ;(mod as any).configureScope((scope: any) => {
+                if ((context as any).route) scope.setTag('route', String((context as any).route))
+                if ((context as any).feature) scope.setTag('feature', String((context as any).feature))
+                if ((context as any).channel) scope.setTag('channel', String((context as any).channel))
+                if ((context as any).tenantId) scope.setTag('tenantId', String((context as any).tenantId))
+                if ((context as any).userId) scope.setTag('userId', String((context as any).userId))
+              })
+            }
+          } catch {}
+        }
+      } catch {}
       mod.captureException(err)
     }
   } catch {

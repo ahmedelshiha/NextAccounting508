@@ -300,7 +300,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Add debounced CSV generation and background worker for large CSVs (>500 rows)
   - Action: implement server-side streaming/endpoints and client debounce (src/lib/csv-export.ts)
   - Acceptance: UI does not stutter when exporting 500+ rows
-- [ ] Ensure realtime errors are captured with route tags in observability layer (lib/observability)
+- [x] Ensure realtime errors are captured with route tags in observability layer (lib/observability) — captureError now sets Sentry tags: route, feature, channel, tenantId, userId when provided
 
 10) A11y & i18n (depends on earlier UI changes)
 - [x] Apply locale keys and aria-labels across portal UI strings (src/app/portal/* and src/components/portal/*) — IN PROGRESS: LiveChatWidget updated (en/ar/hi) and aria-live added
