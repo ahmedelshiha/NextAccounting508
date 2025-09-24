@@ -34,7 +34,7 @@
   "services.learnMore": "اعرف المزيد",
   
   "testimonials.title": "ماذا يقول عملاؤنا",
-  "testimonials.subtitle": "لا تأخذ ك��امنا فقط. إليك ما يقوله أصحاب الأعمال حول العمل مع فريق المحاسبة لدينا.",
+  "testimonials.subtitle": "لا تأخذ كلامنا فقط. إليك ما يقوله أصحاب الأعمال حول العمل مع فريق المحاسبة لدينا.",
   "testimonials.stats.clients": "عميل سعيد",
   "testimonials.stats.satisfaction": "معدل الرضا",
   "testimonials.stats.experience": "سنوات خبرة",
@@ -50,7 +50,7 @@
   "blog.newsletter.subscribe": "اشترك",
   "blog.minRead": "دقيقة قراءة",
   
-  "footer.description": "خدمات محاسب��ة مهنية للشركات النامية. نساعدك في إدارة أموالك حتى تتمكن من التركيز على ما تجيده.",
+  "footer.description": "خدمات محاسبية مهنية للشركات النامية. نساعدك في إدارة أموالك حتى تتمكن من التركيز على ما تجيده.",
   "footer.services": "الخدمات",
   "footer.company": "الشركة",
   "footer.resources": "الموارد",
@@ -266,6 +266,11 @@
   "portal.serviceRequests.status.Cancelled": "ملغي",
   "portal.serviceRequests.status.Draft": "مسودة",
 
+  "portal.offline.pending": "قيد الانتظار",
+  "portal.offline.synced": "تمت مزامنة الإرسالات المعلقة",
+  "portal.offline.syncFailed": "فشل المزامنة",
+  "portal.offline.sync": "مزامنة",
+
   "portal.total": "الإجمالي",
   "portal.actions": "إجراءات",
   "portal.filter.timeRange": "تصفية النطاق الزمني",
@@ -332,7 +337,7 @@
   "tasks.status.completed": "مكتملة",
   "tasks.status.cancelled": "ملغاة",
 
-  "prompt.setRole": "��عيين الدور إلى (ADMIN, STAFF, CLIENT):",
+  "prompt.setRole": "تعيين الدور إلى (ADMIN, STAFF, CLIENT):",
   "prompt.setStatus.users": "تعيين الحالة إلى (ACTIVE, INACTIVE, SUSPENDED):",
   "prompt.setStatus.tasks": "تعيين الحالة إلى (OPEN, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED):"
 }
