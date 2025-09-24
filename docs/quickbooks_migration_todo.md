@@ -34,6 +34,8 @@ and
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
   - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
+  - [x] Realtime parsing and refresh tests implemented (parseEventMessage, provider SSR defaults, SWR revalidation on events);
+  - [ ] Table interaction tests (select/sort/paginate) deferred — current SSR-only test harness lacks DOM event support; plan: enhance test-mocks to jsdom for interaction coverage.
 
 ---
 
@@ -102,7 +104,7 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 - [ ] Realtime and unified data layer
   - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
   - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
-  - [ ] Add tests for fetch failures, refresh, and realtime parsing
+  - [x] Add tests for fetch failures, refresh, and realtime parsing
 
 Acceptance: new templates compile and are reusable; table supports selection/sort/export; unified data hook verified with mocked endpoints.
 
