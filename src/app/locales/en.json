@@ -285,6 +285,23 @@
 
   "portal.upload.failed": "Upload failed",
 
+  "portal.settings.emailConfirmation": "Email confirmations",
+  "portal.settings.emailReminder": "Email reminders",
+  "portal.settings.emailReschedule": "Email on reschedule",
+  "portal.settings.emailCancellation": "Email on cancellation",
+  "portal.settings.smsReminder": "SMS reminders",
+  "portal.settings.smsConfirmation": "SMS confirmations",
+  "portal.settings.reminderTiming": "Reminder timing",
+  "portal.settings.hoursBefore": "hours before",
+  "portal.settings.reminderNote": "We’ll send reminders within ~15 minutes of the selected times.",
+  "portal.settings.timeZone": "Time zone",
+  "portal.settings.timeZonePlaceholder": "e.g. UTC or America/New_York",
+  "portal.settings.preferredLanguage": "Preferred language",
+  "portal.settings.languagePlaceholder": "en",
+  "portal.settings.saving": "Saving…",
+  "portal.settings.save": "Save preferences",
+  "portal.settings.saveButton": "Save booking preferences",
+
   "portal.offline.pending": "pending",
   "portal.offline.synced": "Queued submissions synced",
   "portal.offline.syncFailed": "Sync failed",
