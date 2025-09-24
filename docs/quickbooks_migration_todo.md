@@ -317,9 +317,9 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin/services
 - [x] /admin/services/list
 - [ ] /admin/availability
-- [ ] /admin/invoices (redirect)
-- [ ] /admin/payments (redirect)
-- [ ] /admin/expenses (redirect)
+- [x] /admin/invoices
+- [x] /admin/payments
+- [x] /admin/expenses
 - [x] /admin/tasks
 - [ ] /admin/reminders
 - [ ] /admin/audits
