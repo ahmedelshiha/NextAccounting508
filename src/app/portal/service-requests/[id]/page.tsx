@@ -216,14 +216,14 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Unable to cancel'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.cancelFailed')))
         return
       }
-      toast.success('Request cancelled')
+      toast.success(t('portal.toast.requestCancelled'))
       router.refresh()
       await refresh()
     } catch (e) {
-      toast.error('Unable to cancel')
+      toast.error(t('portal.toast.cancelFailed'))
     }
   }
 
