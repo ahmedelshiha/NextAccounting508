@@ -85,7 +85,7 @@ Progress Update — Phase 1
   - [x] Upgrade src/components/dashboard/Sidebar.tsx with groups, badges, RBAC filters
   - [x] Wire to AdminContext (collapse/expand) and active route highlighting
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
-- [ ] Verify IA alignment
+- [x] Verify IA alignment
   - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
   - [x] Sidebar links navigate to the correct workspace container (tests: tests/dashboard/nav/sidebar-ia.test.tsx, tests/dashboard/nav/sidebar-active.dom.test.tsx)
 
@@ -99,16 +99,16 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 ---
 
 ## Phase 3 — Page Templates and Component Standards (Depends on Phase 1)
-- [ ] Create standardized page templates
+- [x] Create standardized page templates
   - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
   - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
   - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
   - [x] Add story/preview examples for each template
-- [ ] Advanced table and bulk actions
+- [x] Advanced table and bulk actions
   - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
   - [x] Replace legacy tables where applicable
-- [ ] Realtime and unified data layer
+- [x] Realtime and unified data layer
   - [x] src/components/dashboard/realtime/RealtimeProvider.tsx (SSE subscription, toast hooks)
   - [x] src/hooks/useUnifiedData.ts (module-param data fetching, refresh, errors)
   - [x] Add tests for fetch failures, refresh, and realtime parsing
