@@ -49,7 +49,7 @@ Progress Update — Phase 1
   - [x] Wire to AdminContext (collapse/expand) and active route highlighting
   - [x] Ensure accessibility (keyboard navigation, aria-current, focus states)
 - [ ] Verify IA alignment
-  - [ ] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
+  - [x] Routes exist for: Overview, Analytics, Reports, Clients, Bookings, Calendar, Service Requests, Services, Availability, Invoices, Payments, Expenses, Tasks, Reminders, Audits, Posts, Newsletter, Team, Permissions, Roles, Settings, Integrations, Uploads
   - [ ] Sidebar links navigate to the correct workspace container
 
 Progress Update — Phase 2
@@ -208,34 +208,34 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 ---
 
 ## Appendix — Route-by-Route Checklist (Tick each as migrated to new templates)
-- [ ] /admin (overview)
-- [ ] /admin/analytics
-- [ ] /admin/reports
-- [ ] /admin/clients/profiles
-- [ ] /admin/clients/invitations
-- [ ] /admin/clients/new
-- [ ] /admin/bookings
-- [ ] /admin/calendar
-- [ ] /admin/service-requests
-- [ ] /admin/services
-- [ ] /admin/services/list
-- [ ] /admin/availability
-- [ ] /admin/invoices
-- [ ] /admin/payments
-- [ ] /admin/expenses
-- [ ] /admin/tasks
-- [ ] /admin/reminders
-- [ ] /admin/audits
-- [ ] /admin/posts
-- [ ] /admin/newsletter
-- [ ] /admin/team
-- [ ] /admin/permissions
-- [ ] /admin/roles
-- [ ] /admin/settings
-- [ ] /admin/settings/booking
-- [ ] /admin/settings/currencies
-- [ ] /admin/integrations
-- [ ] /admin/uploads/quarantine
+- [x] /admin (overview)
+- [x] /admin/analytics
+- [x] /admin/reports
+- [x] /admin/clients/profiles
+- [x] /admin/clients/invitations
+- [x] /admin/clients/new
+- [x] /admin/bookings
+- [x] /admin/calendar
+- [x] /admin/service-requests
+- [x] /admin/services
+- [x] /admin/services/list
+- [x] /admin/availability
+- [x] /admin/invoices
+- [x] /admin/payments
+- [x] /admin/expenses
+- [x] /admin/tasks
+- [x] /admin/reminders
+- [x] /admin/audits
+- [x] /admin/posts
+- [x] /admin/newsletter
+- [x] /admin/team
+- [x] /admin/permissions
+- [x] /admin/roles
+- [x] /admin/settings
+- [x] /admin/settings/booking
+- [x] /admin/settings/currencies
+- [x] /admin/integrations
+- [x] /admin/uploads/quarantine
 
 Notes:
 - Implement all features as separate reusable components; import explicitly. Avoid inline/lazy hacks.
