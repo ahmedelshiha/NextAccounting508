@@ -3,7 +3,7 @@
 ## 2025-09-23 – Ordered plan & docs update
 - Reordered remaining dashboard tasks into a dependency-first, checkbox-based execution plan covering Clients, Services, Tasks, A11y/i18n, Performance/Quality, and Docs/Handoff.
 - Added explicit acceptance criteria per task to ensure measurable outcomes.
-- Updated docs/admin-dashboard-todo.md with a ���Ordered Work Plan (Next Steps)” section and a documentation update block (what/why/next).
+- Updated docs/admin-dashboard-todo.md with a “Ordered Work Plan (Next Steps)” section and a documentation update block (what/why/next).
 - Current status: Bookings list pattern complete; proceeding with Clients/Services/Tasks lists and aria-live/i18n.
 
 ## 2025-09-24 – Lists for Clients, Services, Tasks
@@ -25,3 +25,7 @@
 - Fixed TS errors: corrected PrimaryTabs onChange handler in src/app/admin/page.tsx and removed duplicate ClientLayout import in src/app/layout.tsx.
 - Resolved ESLint warning in DataTable by replacing side-effect-only ternary with explicit if/else.
 - Ran pnpm lint (clean), pnpm typecheck (clean), pnpm test:thresholds (passed). Updated docs/admin-dashboard-todo.md to reflect completion.
+
+## 2025-09-24 – IA verification
+- Reviewed Sidebar/nav.config.ts to confirm grouped navigation and routes exist for Clients, Bookings, Accounting, Team, and System. No missing routes detected; icons finalized via lucide-react.
+- Marked Phase 2 IA subtasks complete in docs/admin-dashboard-todo.md.
