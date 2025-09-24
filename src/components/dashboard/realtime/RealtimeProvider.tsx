@@ -59,11 +59,30 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
   useEffect(() => {
     // Establish SSE connection in browser only
     if (typeof window === "undefined") return
+
+    const start = Date.now()
+    let retries = 0
+    const post = (payload: any) => {
+      try {
+        const body = JSON.stringify({ type: 'realtime', ...payload })
+        const url = '/api/admin/perf-metrics'
+        if ('sendBeacon' in navigator) navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
+        else fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body }).catch(() => {})
+      } catch {}
+    }
+
     const es = new EventSource(`/api/admin/realtime?events=${encodeURIComponent(events.join(","))}`)
     esRef.current = es
 
-    es.onopen = () => setConnected(true)
-    es.onerror = () => setConnected(false)
+    es.onopen = () => {
+      setConnected(true)
+      post({ path: 'admin-realtime', connected: true, retries, connectMs: Date.now() - start })
+    }
+    es.onerror = () => {
+      setConnected(false)
+      retries += 1
+      post({ path: 'admin-realtime', connected: false, retries })
+    }
     es.onmessage = (e) => {
       const evt = parseEventMessage(e.data)
       if (evt) deliver(evt)
@@ -73,6 +92,7 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
       try { es.close() } catch {}
       esRef.current = null
       setConnected(false)
+      post({ path: 'admin-realtime', closed: true })
     }
   }, [events.join(",")])
 

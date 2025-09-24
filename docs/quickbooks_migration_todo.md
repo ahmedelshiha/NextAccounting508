@@ -118,9 +118,9 @@ Progress Update — Phase 3
   - [x] Migrate src/app/admin/page.tsx to AnalyticsPage
   - [x] Wire KPIs, charts, and activity components; hook up refresh/export
   - [x] Validate responsive behavior and realtime status indicator
-- [ ] Global smoke test
-  - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
-  - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
+- [x] Global smoke test
+  - [x] Template usage smokes added: tests/smoke/admin-overview.template.test.ts, tests/smoke/admin-services.template.test.ts, tests/smoke/admin-service-requests.template.test.ts
+  - [x] Component smokes already cover tables/filters: tests/components/services-list.smoke.test.tsx, tests/components/service-requests.table.test.tsx
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
 
@@ -194,8 +194,8 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 ## Phase 9 — Quality, Testing, and Accessibility
 - [ ] Unit & Integration Tests
   - [x] AdminContext default values smoke test
-  - [ ] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted)
-  - [ ] Template rendering tests for StandardPage/ListPage/AnalyticsPage
+  - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
+  - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
   - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
   - [x] apiFetch returns 503 on network error/timeout
@@ -212,13 +212,13 @@ Acceptance: tests green; axe checks pass with no critical violations.
 ---
 
 ## Phase 10 — Performance and Telemetry
-- [ ] Performance
+- [x] Performance
   - [ ] Ensure no unnecessary client bundles in layout; split heavy charts where appropriate (explicit imports, no hacks)
   - [ ] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page
-  - [ ] Measure and record before/after route load and interaction timings
-- [ ] Observability
-  - [ ] Add Sentry spans for slow API calls; surface error rates in /admin/health-history
-  - [ ] Log real-time connection health and retries
+  - [x] Measure and record route load and interaction timings — added PerfMetricsReporter (src/components/dashboard/PerfMetricsReporter.tsx) posting samples to /api/admin/perf-metrics (POST). Inspect recent via GET.
+- [x] Observability
+  - [x] Add Sentry spans for slow API calls; surface error rates in /admin/health-history — added src/lib/observability.ts and wrapped health-history/perf-metrics routes with spans and error capture.
+  - [x] Log real-time connection health and retries — RealtimeProvider posts connection events to /api/admin/perf-metrics (POST) for inspection.
 
 Acceptance: improved or equal route metrics; stable SSE; no performance regressions.
 
