@@ -39,7 +39,8 @@ and
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
-  - [ ] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update.
+  - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
+  - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
 
@@ -142,16 +143,16 @@ Update — Legacy Table Replacement
 - [x] Bookings
   - [x] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
   - [x] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
-  - [ ] Verify booking creation/edit flows; ensure totals consistent with stats
+  - [x] Verify booking creation/edit flows; ensure totals consistent with stats — covered by tests: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-bookings.stats-consistency.smoke.test.ts
 - [x] Service Requests
   - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
   - [x] Add filters (status, priority, type, payment) and actions (open)
-  - [ ] Validate assignment workflows and status transitions
+  - [x] Validate assignment workflows and status transitions — covered by tests: tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [x] Services
   - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
   - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
   - [x] Integrate existing components (analytics, filters, forms)
-  - [ ] Validate create/edit/clone and versioning flows if present
+  - [x] Validate create/edit/clone and versioning flows if present — routes covered by tests: tests/admin-services.route.test.ts, tests/admin-services.clone.route.test.ts, tests/admin-services.versions.route.test.ts
 
 Acceptance: each page renders with new templates, supports sorting/filters/actions, and matches data counts; no regressions.
 
@@ -211,12 +212,12 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
   - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
-- [ ] E2E Smoke Paths
-  - [ ] Auth → Admin → Bookings → New → Save → List
-  - [ ] Admin → Service Requests → Assign → Status Update
+- [x] E2E Smoke Paths
+  - [x] Auth → Admin → Bookings → New → Save → List — tests/e2e/admin-bookings.smoke.test.ts
+  - [x] Admin → Service Requests → Assign → Status Update — tests/e2e/admin-service-requests-assign-status.smoke.test.ts
 - [ ] Accessibility (A11y)
-  - [ ] Verify focus order, landmarks, roles, and aria attributes for navigation and tables
-  - [ ] Keyboard-only operation of sidebar and tables
+  - [x] Verify focus order, landmarks, roles, and aria attributes for navigation and tables — tests added: tests/dashboard/tables/dom/advanced-data-table.a11y.dom.test.tsx and advanced-data-table.a11y-focus.dom.test.tsx; Sidebar covered by sidebar-keyboard.dom.test.tsx
+  - [x] Keyboard-only operation of sidebar and tables — covered by tests: advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx
 
 Acceptance: tests green; axe checks pass with no critical violations.
 
