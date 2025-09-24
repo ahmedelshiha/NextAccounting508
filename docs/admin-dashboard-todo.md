@@ -75,12 +75,12 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 
 4) UX/A11y/i18n enhancements
 - [x] Announce filter changes and selection counts via aria-live region in FilterBar/DataTable footer
-- [ ] Localize new UI strings (en/ar/hi) using src/app/locales/*
+- [x] Localize new UI strings (en/ar/hi) using src/app/locales/*
   - Acceptance: screen readers announce “3 filters active” and “N selected”; visible strings translated for existing locales
 
 5) Performance & Quality
 - [x] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
-- [ ] Memoize heavy cell renderers; verify no unnecessary re-renders
+- [x] Memoize heavy cell renderers; verify no unnecessary re-renders
 - [ ] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
   - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
 
@@ -136,8 +136,8 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 ## Phase 6 – UX, A11y, i18n
 - [x] Keyboard nav for Sidebar/Topbar and tabs
 - [x] Proper aria labels/roles on interactive controls
-- [ ] Announce filter changes and selection counts to SR users
-- [ ] Preserve existing locales under src/app/locales/* where text is user-facing
+- [x] Announce filter changes and selection counts to SR users
+- [x] Preserve existing locales under src/app/locales/* where text is user-facing
 
 ## Phase 7 – Performance & Quality
 - [ ] Avoid layout shift; use skeleton states in tables/cards

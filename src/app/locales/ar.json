@@ -149,7 +149,7 @@
   "common.search": "بحث",
   "common.filter": "تصفية",
   "common.sort": "ترتيب",
-  "common.export": "تصدير",
+  "common.export": "تص��ير",
   "common.import": "استيراد",
   "common.refresh": "تحديث",
   "common.more": "المزيد",
@@ -192,6 +192,64 @@
   "time.to": "إلى",
   "time.at": "في",
   "time.on": "في",
-  "time.in": "خلال"
+  "time.in": "خلال",
+
+  "dashboard.searchPlaceholder.generic": "ابحث...",
+  "dashboard.customize": "تخصيص",
+  "dashboard.activeFilters": "عوامل التصفية النشطة:",
+  "dashboard.noData": "لا توجد بيانات",
+  "dashboard.actions": "إجراءات",
+  "dashboard.selectedCount": "{{count}} محدد",
+  "dashboard.noSelection": "لا تحديد",
+  "dashboard.filtersActiveCount": "{{count}} عوامل تصفية نشطة",
+
+  "dashboard.clients.title": "العملاء",
+  "dashboard.clients.new": "عميل جديد",
+  "dashboard.services.title": "الخدمات",
+  "dashboard.services.new": "خدمة جديدة",
+  "dashboard.tasks.title": "المهام",
+
+  "dashboard.clear": "مسح",
+  "dashboard.activate": "تفعيل",
+  "dashboard.deactivate": "تعطيل",
+  "dashboard.exportCsv": "تصدير CSV",
+  "dashboard.setRole": "تعيين الدور",
+  "dashboard.setStatus": "تعيين الحالة",
+
+  "dashboard.search.clients": "ابحث بالاسم أو البريد…",
+  "dashboard.search.services": "ابحث في الخدمات…",
+  "dashboard.search.tasks": "ابحث في المهام…",
+
+  "common.id": "المعرف",
+  "common.name": "الاسم",
+  "common.email": "البريد الإلكتروني",
+  "common.role": "الدور",
+  "common.status": "الحالة",
+  "common.created": "تاريخ الإنشاء",
+  "common.updated": "تم التحديث",
+  "common.title": "العنوان",
+  "common.assignee": "المكلف",
+  "common.due": "الاستحقاق",
+  "common.category": "الفئة",
+  "common.price": "السعر",
+  "common.date": "التاريخ",
+
+  "range.last7d": "آخر 7 أيام",
+  "range.last30d": "آخر 30 يوماً",
+  "range.overdue": "متأخر",
+
+  "role.admin": "مدير",
+  "role.staff": "موظف",
+  "role.client": "عميل",
+
+  "tasks.status.open": "مفتوحة",
+  "tasks.status.in_progress": "قيد التنفيذ",
+  "tasks.status.blocked": "محجوبة",
+  "tasks.status.completed": "مكتملة",
+  "tasks.status.cancelled": "ملغاة",
+
+  "prompt.setRole": "تعيين الدور إلى (ADMIN, STAFF, CLIENT):",
+  "prompt.setStatus.users": "تعيين الحالة إلى (ACTIVE, INACTIVE, SUSPENDED):",
+  "prompt.setStatus.tasks": "تعيين الحالة إلى (OPEN, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED):"
 }
 

@@ -1,5 +1,3 @@
-"use client"
-
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
@@ -7,6 +5,7 @@ import FilterBar from '@/components/dashboard/FilterBar'
 import DataTable from '@/components/dashboard/DataTable'
 import type { Column, FilterConfig } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
+import { useTranslations } from '@/lib/i18n'
 
 interface ServiceRow {
   id: string | number
@@ -40,6 +39,7 @@ function buildQuery(params: Record<string, string | undefined>) {
 }
 
 export default function ServicesList() {
+  const { t } = useTranslations()
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<{ status?: string; category?: string }>({})
   const [selectedIds, setSelectedIds] = useState<Array<string | number>>([])
@@ -52,11 +52,11 @@ export default function ServicesList() {
 
   const active = useMemo(() => {
     const a: Array<{ key: string; label: string; value: string }> = []
-    if (search) a.push({ key: 'q', label: 'Search', value: search })
-    if (filters.status) a.push({ key: 'status', label: 'Status', value: filters.status })
-    if (filters.category) a.push({ key: 'category', label: 'Category', value: filters.category })
+    if (search) a.push({ key: 'q', label: t('common.search'), value: search })
+    if (filters.status) a.push({ key: 'status', label: t('common.status'), value: filters.status })
+    if (filters.category) a.push({ key: 'category', label: t('common.category'), value: filters.category })
     return a
-  }, [search, filters])
+  }, [search, filters, t])
 
   // Derive categories from current results (fallback to common set)
   const categories = useMemo(() => {
@@ -66,23 +66,23 @@ export default function ServicesList() {
     return arr.length ? arr : ['Tax','Accounting','Consulting','Advisory']
   }, [items])
 
-  const filterConfigs: FilterConfig[] = [
-    { key: 'status', label: 'Status', options: [
-      { value: 'ACTIVE', label: 'Active' },
-      { value: 'INACTIVE', label: 'Inactive' },
-      { value: 'DRAFT', label: 'Draft' },
+  const filterConfigs: FilterConfig[] = useMemo(() => ([
+    { key: 'status', label: t('common.status'), options: [
+      { value: 'ACTIVE', label: t('status.active') },
+      { value: 'INACTIVE', label: t('status.inactive') },
+      { value: 'DRAFT', label: t('status.draft') },
     ], value: filters.status },
-    { key: 'category', label: 'Category', options: categories.map(c => ({ value: c, label: c })), value: filters.category },
-  ]
+    { key: 'category', label: t('common.category'), options: categories.map(c => ({ value: c, label: c })), value: filters.category },
+  ]), [filters.status, filters.category, categories, t])
 
-  const columns: Column<ServiceRow>[] = [
-    { key: 'id', label: 'ID', render: (v) => <span className="text-xs text-gray-500">{String(v).slice(0,6)}</span> },
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'category', label: 'Category', sortable: true },
-    { key: 'price', label: 'Price', align: 'right', render: (v) => v == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(v)) },
-    { key: 'status', label: 'Status', sortable: true },
-    { key: 'updatedAt', label: 'Updated', sortable: true, render: (v) => v ? new Date(v as any).toLocaleString() : '—' },
-  ]
+  const columns: Column<ServiceRow>[] = useMemo(() => ([
+    { key: 'id', label: t('common.id'), render: (v) => <span className="text-xs text-gray-500">{String(v).slice(0,6)}</span> },
+    { key: 'name', label: t('common.name'), sortable: true },
+    { key: 'category', label: t('common.category'), sortable: true },
+    { key: 'price', label: t('common.price'), align: 'right', render: (v) => v == null ? '—' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(v)) },
+    { key: 'status', label: t('common.status'), sortable: true },
+    { key: 'updatedAt', label: t('common.updated'), sortable: true, render: (v) => v ? new Date(v as any).toLocaleString() : '—' },
+  ]), [t])
 
   const exportCsv = async () => {
     const qs = new URLSearchParams()
@@ -112,13 +112,13 @@ export default function ServicesList() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Services</h2>
-        <Link href="/admin/services/new" className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">New Service</Link>
+        <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.services.title')}</h2>
+        <Link href="/admin/services/new" className="px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">{t('dashboard.services.new')}</Link>
       </div>
 
       <div aria-live="polite" className="sr-only">
-        {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'No selection'}
-        {active.length ? ` • ${active.length} filters active` : ''}
+        {selectedIds.length > 0 ? t('dashboard.selectedCount', { count: selectedIds.length }) : t('dashboard.noSelection')}
+        {active.length ? ` • ${t('dashboard.filtersActiveCount', { count: active.length })}` : ''}
       </div>
 
       <FilterBar
@@ -126,7 +126,7 @@ export default function ServicesList() {
         onFilterChange={onFilterChange}
         onSearch={(v) => setSearch(v)}
         active={active}
-        searchPlaceholder="Search services…"
+        searchPlaceholder={t('dashboard.search.services')}
       />
 
       <DataTable<ServiceRow>
@@ -139,12 +139,12 @@ export default function ServicesList() {
 
       {selectedIds.length > 0 && (
         <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
-          <div className="text-sm text-gray-700">{selectedIds.length} selected</div>
+          <div className="text-sm text-gray-700">{t('dashboard.selectedCount', { count: selectedIds.length })}</div>
           <div className="flex items-center gap-2">
-            <button onClick={() => bulkUpdate('ACTIVATE')} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Activate</button>
-            <button onClick={() => bulkUpdate('DEACTIVATE')} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Deactivate</button>
-            <button onClick={exportCsv} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">Export CSV</button>
-            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50">Clear</button>
+            <button onClick={() => bulkUpdate('ACTIVATE')} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.activate')}</button>
+            <button onClick={() => bulkUpdate('DEACTIVATE')} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.deactivate')}</button>
+            <button onClick={exportCsv} className="px-3 py-2 text-sm border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.exportCsv')}</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50">{t('dashboard.clear')}</button>
           </div>
         </div>
       )}

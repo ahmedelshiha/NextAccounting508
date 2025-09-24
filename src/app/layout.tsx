@@ -1,6 +1,8 @@
-import { Inter } from 'next/font/google'
+import { ClientLayout } from '@/components/providers/client-layout'
 import { ClientLayout } from '@/components/providers/client-layout'
 import './globals.css'
+import { TranslationProvider } from '@/components/providers/translation-provider'
+import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -30,9 +32,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#0ea5e9" />
       </head>
       <body className={inter.className}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+        <TranslationProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </TranslationProvider>
       </body>
     </html>
   )

@@ -14,3 +14,9 @@
 - Accessibility: aria-live regions announce active filter count and selection totals in each list view.
 - Skeleton states: DataTable loading skeleton used to avoid layout shift across new lists.
 - Next: localize new strings (en/ar/hi), memoize heavy cells, run lint/typecheck/tests and update docs accordingly.
+
+## 2025-09-24 – i18n integration and memoization
+- Localized dashboard UI strings across FilterBar, DataTable, and list modules (Clients/Services/Tasks) using src/app/locales (en/ar/hi) and TranslationProvider.
+- Wrapped app with TranslationProvider; preserved visual styles and ARIA. Dynamic counts announced via aria-live now localized.
+- Memoized filter configs and column definitions to reduce re-renders/heavy cell work.
+- Updated docs/admin-dashboard-todo.md to mark i18n and memoization complete; next: run lint/typecheck/tests and validate docs examples.
