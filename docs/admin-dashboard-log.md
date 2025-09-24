@@ -29,3 +29,7 @@
 ## 2025-09-24 – IA verification
 - Reviewed Sidebar/nav.config.ts to confirm grouped navigation and routes exist for Clients, Bookings, Accounting, Team, and System. No missing routes detected; icons finalized via lucide-react.
 - Marked Phase 2 IA subtasks complete in docs/admin-dashboard-todo.md.
+
+## 2025-09-24 – Docs sync
+- Validated docs/dashboard-structure.md code blocks compile and align with current props; noted extension points for nav, filters, columns, and tabs.
+- Marked Docs & Handoff items complete in docs/admin-dashboard-todo.md.
