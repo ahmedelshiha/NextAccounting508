@@ -52,11 +52,7 @@ export default function BusinessIntelligence({ dashboard }: { dashboard: any }) 
 
       <div className="space-y-4">
         <h3 className="font-medium text-gray-900">Operational Metrics</h3>
-        <div className="bg-white rounded-lg border p-4">
-          <div className="h-56">
-            <Bar data={barData} options={barOptions} />
-          </div>
-        </div>
+        <BookingFunnelChart data={(analytics as any)?.serviceBreakdown || dashboard?.revenueAnalytics?.serviceBreakdown || []} />
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <span className="text-sm text-gray-600">Booking Utilization</span>
