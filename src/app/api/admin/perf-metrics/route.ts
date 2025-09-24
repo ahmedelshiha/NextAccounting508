@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withSpan, captureError } from '@/lib/observability'
+import { PerfMetricsPostSchema, PerfMetricsGetResponseSchema } from '@/schemas/admin/perf-metrics'
 
 // In-memory buffer for posted samples (best-effort; not persisted).
 const samples: Array<{ ts: number; path: string; metrics: Record<string, number | null> }> = []
@@ -74,7 +75,8 @@ export async function GET(_request: NextRequest) {
       }
     })
 
-    return NextResponse.json(data)
+    const parsed = PerfMetricsGetResponseSchema.parse(data)
+    return NextResponse.json(parsed)
   } catch (error) {
     captureError(error, { tags: { route: 'admin.perf-metrics' } })
     console.error('Perf metrics API error:', error)
@@ -86,13 +88,14 @@ export async function POST(request: NextRequest) {
   try {
     // Accept anonymous admin-side client posts; sanitize input
     const body = await request.json().catch(() => null)
-    if (!body || typeof body !== 'object') return NextResponse.json({ ok: false }, { status: 400 })
-    const ts = Number((body as any).ts) || Date.now()
-    const path = String((body as any).path || '')
-    const metrics = (body as any).metrics
-    if (!path || typeof metrics !== 'object') return NextResponse.json({ ok: false }, { status: 400 })
+    const parsed = PerfMetricsPostSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: 'Invalid payload' }, { status: 400 })
+    }
+    const { ts, path, metrics } = parsed.data
+    const tsFinal = ts ?? Date.now()
 
-    samples.push({ ts, path, metrics })
+    samples.push({ ts: tsFinal, path, metrics })
     if (samples.length > MAX_SAMPLES) samples.splice(0, samples.length - MAX_SAMPLES)
 
     return new NextResponse(null, { status: 204 })
