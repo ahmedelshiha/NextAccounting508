@@ -326,8 +326,8 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/posts
 - [ ] /admin/newsletter
 - [x] /admin/team
-- [ ] /admin/permissions (redirect)
-- [ ] /admin/roles (redirect)
+- [x] /admin/permissions
+- [x] /admin/roles
 - [x] /admin/settings
 - [x] /admin/settings/booking
 - [x] /admin/settings/currencies
