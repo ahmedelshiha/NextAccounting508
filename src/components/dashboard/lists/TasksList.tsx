@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import FilterBar from '@/components/dashboard/FilterBar'
-import DataTable from '@/components/dashboard/DataTable'
+import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import type { Column, FilterConfig } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
 import { useTranslations } from '@/lib/i18n'
@@ -145,7 +145,7 @@ export default function TasksList() {
         searchPlaceholder={t('dashboard.search.tasks')}
       />
 
-      <DataTable<TaskRow>
+      <AdvancedDataTable<TaskRow>
         columns={columns}
         rows={items}
         loading={isLoading}
