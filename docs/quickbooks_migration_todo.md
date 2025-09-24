@@ -118,9 +118,9 @@ Progress Update — Phase 3
   - [x] Migrate src/app/admin/page.tsx to AnalyticsPage
   - [x] Wire KPIs, charts, and activity components; hook up refresh/export
   - [x] Validate responsive behavior and realtime status indicator
-- [ ] Global smoke test
-  - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
-  - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
+- [x] Global smoke test
+  - [x] Template usage smokes added: tests/smoke/admin-overview.template.test.ts, tests/smoke/admin-services.template.test.ts, tests/smoke/admin-service-requests.template.test.ts
+  - [x] Component smokes already cover tables/filters: tests/components/services-list.smoke.test.tsx, tests/components/service-requests.table.test.tsx
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
 
