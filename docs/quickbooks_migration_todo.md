@@ -16,19 +16,25 @@ Outcomes: inventory complete, baseline metrics captured, rollback plan prepared,
 ---
 
 ## Phase 1 — Foundation and Layout Architecture (Prerequisite for all migrations)
-- [ ] Create global admin layout wrapper
-  - [ ] Implement src/app/admin/layout.tsx using DashboardLayout and AdminProviders
-  - [ ] Enforce auth/redirect via getServerSession + RBAC check
-  - [ ] Validate children render correctly across all /admin routes
-- [ ] Add Admin context/providers
-  - [ ] Implement src/components/admin/providers/AdminProviders.tsx (SWRConfig, SessionProvider, ToastProvider)
-  - [ ] Implement src/components/admin/providers/AdminContext.tsx (sidebarCollapsed, currentTenant, userPermissions)
+- [x] Create global admin layout wrapper
+  - [x] Implement src/app/admin/layout.tsx using DashboardLayout and AdminProviders
+  - [x] Enforce auth/redirect via getServerSession + role gate (CLIENT → /portal)
+  - [x] Validate children render correctly across all /admin routes
+- [x] Add Admin context/providers
+  - [x] Implement src/components/admin/providers/AdminProviders.tsx (SWRConfig, SessionProvider, Toaster)
+  - [x] Implement src/components/admin/providers/AdminContext.tsx (sidebarCollapsed, currentTenant, userPermissions)
   - [ ] Add unit tests for context behavior and loading states
-- [ ] Replace legacy shells
-  - [ ] Remove/disable legacy overlays/wrappers that conflict with DashboardLayout
-  - [ ] Verify only one layout wraps /admin pages
+- [x] Replace legacy shells
+  - [x] Remove/disable legacy overlays/wrappers that conflict with DashboardLayout
+  - [x] Verify only one layout wraps /admin pages
+  - [x] Refactor src/app/admin/page.tsx to remove local DashboardLayout wrapper
 
 Acceptance: all /admin pages render under the new layout without visual overlaps; login/portal redirects correct; zero console errors.
+
+Progress Update — Phase 1
+- Completed: global admin/layout.tsx, AdminProviders, AdminContext, and removal of local wrappers in admin/page.tsx.
+- Why: ensures a single consistent dashboard shell, prevents overlay/double-layout issues, and enforces auth/role gating.
+- Next: Phase 2 sidebar enhancements (permission-based IA, collapse state via AdminContext) and Phase 3 templates; add AdminContext unit tests.
 
 ---
 
