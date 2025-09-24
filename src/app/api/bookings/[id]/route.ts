@@ -196,7 +196,13 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       )
     }
 
-
+    // Fetch the booking to validate existence, tenant, and ownership
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: {
+        service: { select: { tenantId: true } }
+      }
+    })
 
     if (!booking) {
       return NextResponse.json(
@@ -207,7 +213,12 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
     // Tenant and ownership checks
     const tenantId = getTenantFromRequest(request as any)
-    if (isMultiTenancyEnabled() && tenantId && booking.service?.tenantId && booking.service.tenantId !== tenantId) {
+    if (
+      isMultiTenancyEnabled() &&
+      tenantId &&
+      booking.service?.tenantId &&
+      booking.service.tenantId !== tenantId
+    ) {
       return NextResponse.json(
         { error: 'Booking not found' },
         { status: 404 }
