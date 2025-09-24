@@ -1,6 +1,17 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import http from 'http'
 import { URL } from 'url'
+import { vi } from 'vitest'
+
+// Mock prisma for integration tests; individual tests can override mockResolvedValueOnce
+vi.mock('@/lib/prisma', () => ({
+  serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+  serviceRequestComment: { findMany: vi.fn(), create: vi.fn() },
+  service: { findUnique: vi.fn() },
+  booking: { findUnique: vi.fn(), update: vi.fn() },
+}))
+import prisma from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
 
 // Helper to read request body
 function readBody(req: http.IncomingMessage) {
