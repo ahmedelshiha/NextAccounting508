@@ -84,7 +84,7 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
   - [x] src/components/dashboard/templates/StandardPage.tsx (header, tabs, filters, search, error/loading)
   - [x] src/components/dashboard/templates/ListPage.tsx (wraps DataTable)
   - [x] src/components/dashboard/templates/AnalyticsPage.tsx (KPI grid + charts)
-  - [ ] Add story/preview examples for each template
+  - [x] Add story/preview examples for each template
 - [ ] Advanced table and bulk actions
   - [x] src/components/dashboard/tables/AdvancedDataTable.tsx (sorting, selection, sticky columns, empty state)
   - [x] src/components/dashboard/tables/BulkActionsPanel.tsx (action registry, clear selection)
@@ -97,9 +97,9 @@ Acceptance: sidebar shows only permitted items, persists collapsed state, and ro
 Acceptance: new templates compile and are reusable; table supports selection/sort/export; unified data hook verified with mocked endpoints.
 
 Progress Update — Phase 3
-- Completed: RealtimeProvider and useUnifiedData integrated; baseline tests added for provider context and unified data initial state.
-- Why: establish consistent realtime refresh and a single data-fetching pattern across admin modules, reducing duplication and improving reliability.
-- Next: add failure/retry and realtime parsing tests, create template preview pages, and replace any remaining legacy tables with AdvancedDataTable.
+- Completed: RealtimeProvider and useUnifiedData integrated; baseline tests added for provider context and unified data initial state. Added preview pages for StandardPage, ListPage, and AnalyticsPage under /admin/previews.
+- Why: establish consistent realtime refresh and a single data-fetching pattern across admin modules, reducing duplication and improving reliability. Previews provide quick visual verification without wiring to live data.
+- Next: add failure/retry and realtime parsing tests, and replace any remaining legacy tables with AdvancedDataTable.
 
 ---
 
