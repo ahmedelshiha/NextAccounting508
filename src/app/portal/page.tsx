@@ -195,7 +195,7 @@ export default function PortalPage() {
 
         {/* Upcoming Appointments */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Appointments</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('portal.upcomingAppointments')}</h2>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[...Array(2)].map((_, i) => (
