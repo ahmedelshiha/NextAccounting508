@@ -32,7 +32,7 @@ and
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
-  - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
+  - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
   - [x] Realtime parsing and refresh tests implemented (parseEventMessage, provider SSR defaults, SWR revalidation on events);
   - [ ] Table interaction tests (select/sort/paginate) deferred — current SSR-only test harness lacks DOM event support; plan: enhance test-mocks to jsdom for interaction coverage.
