@@ -249,7 +249,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Switch client notification hook to use /api/portal/realtime (useClientNotifications)
   - File updated: src/hooks/useClientNotifications.ts
   - Outcome: portal clients no longer subscribe to admin SSE endpoint
-- [ ] Add unit/integration test to assert SSE route accepts GET and returns text/event-stream
+- [x] Add unit/integration test to assert SSE route accepts GET and returns text/event-stream (tests/integration/portal-realtime.sse.test.ts)
   - Acceptance: health log entry created on connect in test environment (or mock)
 
 4) Notifications & Chat (depends on #2,#3)
