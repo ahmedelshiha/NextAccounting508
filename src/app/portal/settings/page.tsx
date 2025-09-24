@@ -95,7 +95,7 @@ function BookingPreferencesForm() {
         setTimeZone(prev.timeZone)
         setPreferredLanguage(prev.preferredLanguage)
         const err = await res.json().catch(() => ({}))
-        toast.error(err?.error?.message || 'Failed to save preferences')
+        toast.error(err?.error?.message || t('portal.settings.saveFailed'))
       }
     } catch {
       // Rollback on network error
