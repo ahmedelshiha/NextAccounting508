@@ -3,17 +3,23 @@ import { ReactNode } from 'react'
 // Core icon type for lucide-react icons or custom SVGs
 export type IconType = React.ComponentType<{ className?: string }>
 
+import type { ReactNode } from 'react'
+import type { Permission } from '@/lib/permissions'
+
 // Navigation
 export interface NavItem {
   label: string
   href: string
   icon: IconType
   badge?: string | number
+  permission?: Permission
+  exact?: boolean
 }
 
 export interface NavGroup {
   label: string
   items: NavItem[]
+  permission?: Permission
 }
 
 // Tabs (primary/secondary)
