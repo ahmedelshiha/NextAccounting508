@@ -325,7 +325,7 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/audits
 - [ ] /admin/posts
 - [ ] /admin/newsletter
-- [ ] /admin/team
+- [x] /admin/team
 - [ ] /admin/permissions (redirect)
 - [ ] /admin/roles (redirect)
 - [x] /admin/settings
