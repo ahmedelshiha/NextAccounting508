@@ -39,6 +39,7 @@ and
   - [x] Run global smoke tests for overview/services/service-requests: added jsdom/SSR smokes for KPI grid, ServicesList (mocked api), and ServiceRequestsTable.
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
+  - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
   - [ ] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [ ] Monitor perf metrics for 7 days post-deploy; set alert thresholds in GET /api/admin/perf-metrics snapshot.
@@ -216,7 +217,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [ ] Admin → Service Requests → Assign → Status Update
 - [ ] Accessibility (A11y)
   - [ ] Verify focus order, landmarks, roles, and aria attributes for navigation and tables
-  - [ ] Keyboard-only operation of sidebar and tables
+  - [x] Keyboard-only operation of sidebar and tables — covered by tests: advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx
 
 Acceptance: tests green; axe checks pass with no critical violations.
 

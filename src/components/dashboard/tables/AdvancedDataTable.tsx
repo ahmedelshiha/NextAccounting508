@@ -79,7 +79,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
         <div className="p-6 text-center text-gray-600">{emptyMessage}</div>
       )}
 
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t">
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t" role="navigation" aria-label="Pagination">
         <div className="text-sm text-gray-600">
           Page {page} of {pageCount}
         </div>
@@ -88,6 +88,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
             className="px-3 py-1 text-sm rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50"
             onClick={() => changePage(page - 1)}
             disabled={page <= 1}
+            aria-label="Previous page"
           >
             Previous
           </button>
@@ -95,6 +96,7 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
             className="px-3 py-1 text-sm rounded text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
             onClick={() => changePage(page + 1)}
             disabled={page >= pageCount}
+            aria-label="Next page"
           >
             Next
           </button>
