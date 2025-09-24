@@ -72,18 +72,19 @@ export default function RealtimeConnectionPanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Realtime connection</CardTitle>
-        <CardDescription>WebSocket connection status and subscriptions.</CardDescription>
+        <CardTitle>{t('portal.realtime.title')}</CardTitle>
+        <CardDescription>{t('portal.realtime.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="text-sm">
-            Status: <span className={status === 'connected' ? 'text-green-600' : status === 'connecting' ? 'text-yellow-600' : 'text-gray-600'}>{status}</span>
+            <span className="font-medium">{t('portal.realtime.statusLabel')} </span>
+            <span aria-live="polite" className={status === 'connected' ? 'text-green-600' : status === 'connecting' ? 'text-yellow-600' : 'text-gray-600'}>{t(`portal.realtime.status.${status}`)}</span>
           </div>
-          <div className="flex gap-2 text-sm">
+          <div className="flex gap-2 text-sm" role="group" aria-label={t('portal.realtime.eventsGroup')}>
             {['all','availability-updated','service-request-updated'].map(e => (
               <label key={e} className="flex items-center gap-1">
-                <input type="checkbox" checked={events.includes(e)} onChange={() => toggleEvent(e)} /> {e}
+                <input aria-label={t(`portal.realtime.event.${e}`)} type="checkbox" checked={events.includes(e)} onChange={() => toggleEvent(e)} /> {t(`portal.realtime.event.${e}`)}
               </label>
             ))}
           </div>
