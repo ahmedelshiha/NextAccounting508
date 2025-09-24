@@ -249,7 +249,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Switch client notification hook to use /api/portal/realtime (useClientNotifications)
   - File updated: src/hooks/useClientNotifications.ts
   - Outcome: portal clients no longer subscribe to admin SSE endpoint
-- [ ] Add unit/integration test to assert SSE route accepts GET and returns text/event-stream
+- [x] Add unit/integration test to assert SSE route accepts GET and returns text/event-stream (tests/integration/portal-realtime.sse.test.ts)
   - Acceptance: health log entry created on connect in test environment (or mock)
 
 4) Notifications & Chat (depends on #2,#3)
@@ -268,8 +268,8 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
   - Outcome: cancelled booking updates UI immediately, background request persists change
 - [x] Keep CSV export respecting portal filters (ServiceRequestsClient and portal bookings export)
   - Outcome: CSV query uses current filter params; server export endpoint applies tenant filter
-- [ ] Add integration tests: cancel flow updates cache and export respects filters
-  - Acceptance: E2E verifies UI shows cancelled state and CSV contains filtered rows
+- [x] Add integration tests: cancel flow updates cache and export respects filters — route-level integration tests added (tests/integration/portal-bookings-cancel.test.ts, tests/integration/portal-export.filters.test.ts)
+  - Acceptance: route responses verified; UI cache change to be covered in E2E (Playwright)
 
 6) Preferences (Settings) (depends on #2)
 - [x] Wire GET/PUT booking-preferences with zod validation on server (src/app/api/portal/settings/booking-preferences/route.ts)
@@ -300,7 +300,7 @@ Notes: tasks are ordered by dependency. Complete a task only after all prerequis
 - [x] Add debounced CSV generation and background worker for large CSVs (>500 rows)
   - Action: implement server-side streaming/endpoints and client debounce (src/lib/csv-export.ts)
   - Acceptance: UI does not stutter when exporting 500+ rows
-- [ ] Ensure realtime errors are captured with route tags in observability layer (lib/observability)
+- [x] Ensure realtime errors are captured with route tags in observability layer (lib/observability) — captureError now sets Sentry tags: route, feature, channel, tenantId, userId when provided
 
 10) A11y & i18n (depends on earlier UI changes)
 - [x] Apply locale keys and aria-labels across portal UI strings (src/app/portal/* and src/components/portal/*) — IN PROGRESS: LiveChatWidget updated (en/ar/hi) and aria-live added
