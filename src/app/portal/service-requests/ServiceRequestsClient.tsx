@@ -238,8 +238,8 @@ export default function ServiceRequestsClient() {
           <div className="flex items-center gap-3">
             <ClipboardList className="h-6 w-6 text-blue-600" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Service Requests</h1>
-              <p className="text-gray-600">Track your service requests and their status.</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('portal.serviceRequests.title')}</h1>
+              <p className="text-gray-600">{t('portal.serviceRequests.subtitle')}</p>
             </div>
           </div>
 
