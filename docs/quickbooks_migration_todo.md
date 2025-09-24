@@ -299,9 +299,9 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [ ] /admin/team
 - [ ] /admin/permissions (redirect)
 - [ ] /admin/roles (redirect)
-- [ ] /admin/settings
-- [ ] /admin/settings/booking
-- [ ] /admin/settings/currencies
+- [x] /admin/settings
+- [x] /admin/settings/booking
+- [x] /admin/settings/currencies
 - [ ] /admin/integrations
 - [ ] /admin/uploads/quarantine
 
