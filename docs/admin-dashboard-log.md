@@ -3,3 +3,4 @@
 - Verified messages are added to in-memory chat backlog (chatBacklog) after POSTs.
 - This provides confidence that the client-side flush logic (on 'online' event) will result in server-side message handling and in-memory persistence.
 - Next: A11y/i18n sweep across portal UI strings and audit for any hard-coded user-facing text.
+- 2025-09-27: Started A11y/i18n sweep — translated LiveChatWidget strings and added aria-live role for message log. Updating locales for en/ar/hi.
