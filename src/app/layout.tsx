@@ -38,10 +38,6 @@ export default async function RootLayout({
         <a
           href="#site-main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 rounded"
-          onClick={(e) => {
-            const el = document.getElementById('site-main-content') as HTMLElement | null
-            if (el) el.focus()
-          }}
         >
           Skip to main content
         </a>
