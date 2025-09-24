@@ -83,3 +83,7 @@ export async function PUT(req: Request) {
     return respond.serverError('Failed to update preferences', { message: msg })
   }
 }
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: { Allow: 'GET,PUT,OPTIONS' } })
+}
