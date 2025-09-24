@@ -33,6 +33,7 @@ const statusColors = {
 }
 
 export default function PortalPage() {
+  const { t } = useTranslations()
   const { data: session } = useSession()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
