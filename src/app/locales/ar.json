@@ -26,7 +26,7 @@
   "hero.stats.satisfaction": "رضا العملاء",
   
   "services.title": "خدماتنا المهنية",
-  "services.subtitle": "حلول محاسبية شاملة مصممة لمساعدة عملك على الازدهار. من مسك الدفاتر إلى الاستشارات الاستراتيجية، نحن نغطي كل شيء.",
+  "services.subtitle": "حلول محاسبية شاملة مصممة لمساعدة عملك على ا��ازدهار. من مسك الدفاتر إلى الاستشارات الاستراتيجية، نحن نغطي كل شيء.",
   "services.cta.title": "تحتاج حلاً مخصصاً؟",
   "services.cta.subtitle": "كل عمل فريد. دعنا نناقش كيف يمكننا تخصيص خدماتنا لتلبية احتياجاتك المحاسبية والمالية المحددة.",
   "services.cta.primary": "احصل على عرض سعر مخصص",
@@ -43,7 +43,7 @@
   "blog.title": "أحدث الرؤى والنصائح",
   "blog.subtitle": "ابق على اطلاع بأحدث مقالاتنا حول استراتيجيات الضرائب والتخطيط المالي ونصائح نمو الأعمال من فريق الخبراء لدينا.",
   "blog.readMore": "اقرأ المزيد",
-  "blog.viewAll": "اطلع على جميع ال��قالات",
+  "blog.viewAll": "اطلع على جميع المقالات",
   "blog.newsletter.title": "ابق محدثاً بنصائح الضرائب والمالية",
   "blog.newsletter.subtitle": "احصل على أحدث رؤانا في صندوق الوارد الخاص بك. لا رسائل مزعجة، فقط محتوى قيم لمساعدة عملك على الازدهار.",
   "blog.newsletter.placeholder": "أدخل بريدك الإلكتروني",
@@ -123,7 +123,7 @@
   "contact.title": "تواصل معنا",
   "contact.subtitle": "لديك أسئلة؟ نحب أن نسمع منك.",
   "contact.name": "الاسم",
-  "contact.email": "البريد الإلكتروني",
+  "contact.email": "ا��بريد الإلكتروني",
   "contact.phone": "الهاتف",
   "contact.company": "الشركة",
   "contact.subject": "الموضوع",
@@ -155,7 +155,7 @@
   "common.more": "المزيد",
   "common.less": "أقل",
   "common.showMore": "عرض المزيد",
-  "common.showLess": "عرض أقل",
+  "common.showLess": "عر�� أقل",
   "common.readMore": "اقرأ المزيد",
   "common.learnMore": "اعرف المزيد",
   "common.getStarted": "ابدأ",
@@ -163,7 +163,7 @@
   "common.comingSoon": "قريباً",
   "common.notFound": "غير موجود",
   "common.unauthorized": "غير مصرح",
-  "common.forbidden": "محظ��ر",
+  "common.forbidden": "محظور",
   "common.serverError": "خطأ في الخادم",
   
   "status.pending": "معلق",
@@ -221,7 +221,7 @@
   "portal.offline.lastStatus": "الحالة الأخيرة",
   "portal.offline.retry": "أعد المحاولة الآن",
   "portal.offline.retrying": "جاري إعادة المحاولة…",
-  "portal.offline.retryAria": "أعد مزامنة قائمة ��لانتظار الآن",
+  "portal.offline.retryAria": "أعد مزامنة قائمة الانتظار الآن",
   "portal.offline.tableAria": "جدول قائمة انتظار عدم الاتصال",
 
   "portal.realtime.title": "اتصال الوقت الحقيقي",
@@ -273,6 +273,7 @@
   "portal.serviceRequests.approve": "الموافقة",
   "portal.serviceRequests.confirmAppointment": "تأكيد الموعد",
   "portal.serviceRequests.reschedule": "إعادة جدولة",
+  "portal.serviceRequests.confirmCancel": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
 
   "portal.toast.commentFailed": "فشل نشر التعليق",
   "portal.toast.approveFailed": "غير قادر على الموافقة",
@@ -320,7 +321,7 @@
   "portal.bookAppointment": "حجز موعد",
   "portal.viewDetails": "عرض التفاصيل",
   "portal.cancel": "إلغاء",
-  "portal.cancelling": "جاري الإلغاء...",
+  "portal.cancelling": "جاري ا��إلغاء...",
   "portal.pastAppointments": "المواعيد السابقة",
   "portal.view": "عرض",
   "portal.viewAllAppointments": "عرض جميع المواعيد",
@@ -382,14 +383,14 @@
   "common.file": "ملف",
 
   "pagination.perPageOption": "{{count}} / صفحة",
-  "pagination.pageOf": "الصفحة {{page}} من {{totalPages}}",
+  "pagination.pageOf": "��لصفحة {{page}} من {{totalPages}}",
   "pagination.total": "{{total}} إجمالي",
   "pagination.aria": "ترقيم الصفحات",
 
   "priority.low": "منخفضة",
   "priority.medium": "متوسطة",
   "priority.high": "عالية",
-  "priority.urgent": "��اجلة",
+  "priority.urgent": "عاجلة",
 
   "portal.attachments.title": "المرفقات",
   "portal.attachments.clean": "نظيف",
@@ -427,7 +428,7 @@
 
   "portal.serviceRequests.new.title": "طلب خدمة جديد",
   "portal.serviceRequests.new.subtitle": "قدم تفاصيل لمساعدتنا في معالجة طلبك.",
-  "portal.serviceRequests.form.title": "تفاصيل الطلب",
+  "portal.serviceRequests.form.title": "تفاصيل الطل��",
   "portal.serviceRequests.form.description": "املأ الحقول المطلوبة لإرسال طلبك.",
   "portal.serviceRequests.form.service": "الخدمة",
   "portal.serviceRequests.form.serviceSearchPlaceholder": "ابحث في الخدمات...",
@@ -460,7 +461,7 @@
   "portal.serviceRequests.created": "تم إنشاء الطلب",
   "portal.serviceRequests.clearFiltersAria": "مسح جميع عوامل التصفية",
 
-  "portal.bookings.new.title": "احجز موعداً جديداً",
+  "portal.bookings.new.title": "احجز موعداً جدي��اً",
   "portal.bookings.new.subtitle": "اختر خدمة وحدد وقتاً وقدّم معلوماتك.",
   "portal.bookings.backToAppointments": "العودة إلى المواعيد",
 
