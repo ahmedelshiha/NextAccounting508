@@ -1,10 +1,18 @@
+import StandardPage from '@/components/dashboard/templates/StandardPage'
 import AvailabilitySlotsManager from '@/components/admin/AvailabilitySlotsManager'
 
+/**
+ * Admin Availability Page
+ * - Uses the standardized admin workspace container (StandardPage)
+ * - Preserves the original content and functionality (AvailabilitySlotsManager)
+ * - Keeps spacing aligned with the dashboard shell and a clear page title
+ */
 export default function AdminAvailabilityPage() {
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Availability Slots</h1>
-      <AvailabilitySlotsManager />
-    </div>
+    <StandardPage title="Availability" subtitle="Manage team availability slots and scheduling windows">
+      <div className="max-w-6xl mx-auto">
+        <AvailabilitySlotsManager />
+      </div>
+    </StandardPage>
   )
 }
