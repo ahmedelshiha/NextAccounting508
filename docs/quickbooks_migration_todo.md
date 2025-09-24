@@ -55,7 +55,7 @@ Progress Update — Phase 1
 Progress Update — Phase 2
 - Completed: RBAC-gated Sidebar using session role + hasPermission; collapse state via AdminContext; active link highlighting; A11y attributes added.
 - Why: limits navigation to authorized features and provides consistent IA with collapse UX.
-- Next: Audit and ensure all listed routes exist; wire missing pages if any; then proceed to Phase 3 templates.
+- Next: Templates integrated into /admin overview; proceed to migrate P1 lists (Bookings, Service Requests, Services) using ListPage.
 
 Acceptance: sidebar shows only permitted items, persists collapsed state, and routes correctly; keyboard navigation works.
 
@@ -81,10 +81,10 @@ Acceptance: new templates compile and are reusable; table supports selection/sor
 ---
 
 ## Phase 4 — Critical Page Migrations P0 (Depends on Phases 1–3)
-- [ ] Dashboard Overview
-  - [ ] Migrate src/app/admin/page.tsx to AnalyticsPage
-  - [ ] Wire KPIs, charts, and activity components; hook up refresh/export
-  - [ ] Validate responsive behavior and realtime status indicator
+- [x] Dashboard Overview
+  - [x] Migrate src/app/admin/page.tsx to AnalyticsPage
+  - [x] Wire KPIs, charts, and activity components; hook up refresh/export
+  - [x] Validate responsive behavior and realtime status indicator
 - [ ] Global smoke test
   - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
 
