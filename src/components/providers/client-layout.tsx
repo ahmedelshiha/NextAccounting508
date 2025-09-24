@@ -8,6 +8,7 @@ import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
 import LiveChatWidget from '@/components/portal/LiveChatWidget'
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
+import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -209,6 +210,8 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
         </main>
         <Footer />
       </div>
+      {/* Capture performance metrics on public pages as well */}
+      <PerfMetricsReporter />
       {showPortalChat ? <LiveChatWidget /> : null}
       <Toaster />
     </SessionProvider>

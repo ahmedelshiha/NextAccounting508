@@ -29,6 +29,9 @@ and
   - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
   - [x] Phase 6: Migrated /admin/tasks to StandardPage; preserved board/list/table/calendar/gantt views, filters, bulk actions, and analytics; replaced inline width style in QuickStatsCard with Tailwind utility classes.
   - [x] Phase 6: Migrated Clients — profiles to ListPage with pagination/filters/actions, invitations to StandardPage with email invite sending via /api/email/test, and new client wizard wrapped in StandardPage; preserved existing styles.
+  - [x] Migrated /admin/posts to StandardPage; extracted PostCard/PostStats; wired FilterBar; added smoke and CRUD tests.
+  - [x] Enabled PerfMetricsReporter on public pages via ClientLayout to capture sitewide TTFB/FCP/LCP/CLS/INP.
+  - [x] Reconciled Phase 7 statuses and updated checklists for accuracy.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -38,6 +41,8 @@ and
   - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md.
+  - [ ] Review posts page accessibility with axe (modals, grid, route announcer) and resolve findings.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
@@ -61,7 +66,7 @@ and
 - [x] Enable history safety: document rollback steps using platform History Tab and ensure git remote push capability
 - [x] Define acceptance criteria per phase (no console errors, responsive, RBAC enforced, tests pass)
 
-Outcomes: inventory complete, baseline metrics captured via PerfMetricsReporter, rollback plan prepared, acceptance criteria agreed. Screenshots pending.
+Outcomes: inventory complete, baseline metrics captured via PerfMetricsReporter (admin and public pages), rollback plan prepared, acceptance criteria agreed. Screenshots pending.
 
 Progress Update — Phase 0
 - Owners & scope recorded in PROJECT_SUMMARY.md: Engineering (Admin Platform), QA (Admin QA), Design (Design Lead), Ops (Netlify Ops). Timeline tracked per phase in this document.
@@ -214,14 +219,15 @@ Acceptance: task operations, client management, and reporting flows function end
 - [x] Settings
   - [x] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
   - [x] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
-- [ ] Team & Access
-  - [ ] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
-  - [ ] Validate RBAC changes and team assignments screens
-- [ ] Finance Ops
-  - [ ] Migrate src/app/admin/invoices/page.tsx, payments/page.tsx, expenses/page.tsx
-  - [ ] Ensure totals, filters, and exports work
-- [ ] Content & System
-  - [ ] Migrate src/app/admin/posts/page.tsx, newsletter/page.tsx, audits/page.tsx, integrations/page.tsx, uploads/quarantine/page.tsx
+- [x] Team & Access
+  - [x] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
+  - [x] Validate RBAC changes and team assignments screens
+- [x] Finance Ops
+  - [x] Migrate src/app/admin/invoices/page.tsx, payments/page.tsx, expenses/page.tsx
+  - [x] Ensure totals, filters, and exports work
+- [x] Content & System
+  - [x] Migrate src/app/admin/posts/page.tsx
+  - [x] Migrate src/app/admin/newsletter/page.tsx, audits/page.tsx, integrations/page.tsx, uploads/quarantine/page.tsx
 
 Acceptance: all P3 pages load under new layout, preserve feature parity, and pass navigation/access tests.
 
@@ -323,7 +329,7 @@ Acceptance: legacy UI removed, production stable, and sign-offs recorded.
 - [x] /admin/tasks
 - [ ] /admin/reminders
 - [x] /admin/audits
-- [ ] /admin/posts
+- [x] /admin/posts
 - [x] /admin/newsletter
 - [x] /admin/team
 - [x] /admin/permissions
