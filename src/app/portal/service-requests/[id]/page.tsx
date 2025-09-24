@@ -237,14 +237,14 @@ export default function PortalServiceRequestDetailPage() {
       })
       if (!res.ok) {
         const errBody = await res.json().catch(() => ({}))
-        toast.error(getApiErrorMessage(errBody, 'Unable to approve'))
+        toast.error(getApiErrorMessage(errBody, t('portal.toast.approveFailed')))
         return
       }
-      toast.success('Request approved')
+      toast.success(t('portal.toast.requestApproved'))
       router.refresh()
       await refresh()
     } catch (e) {
-      toast.error('Unable to approve')
+      toast.error(t('portal.toast.approveFailed'))
     }
   }
 
