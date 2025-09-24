@@ -20,10 +20,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <main className="px-6 py-4">
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
-        {/* Passive performance metrics collection for admin pages */}
-        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-        {/* @ts-ignore - defer import to avoid SSR issues */}
-        {typeof window !== 'undefined' && (require('./PerfMetricsReporter').default ? require('./PerfMetricsReporter').default() : null)}
+        <PerfMetricsReporter />
       </div>
     </div>
   )
