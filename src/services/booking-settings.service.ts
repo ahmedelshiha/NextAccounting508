@@ -64,7 +64,20 @@ export class BookingSettingsService {
     })
 
     if (settings) {
-      await cache.set(key, settings as unknown as BookingSettings, 300)
+      const sAny: any = settings
+      if (!Array.isArray(sAny.steps) || sAny.steps.length === 0) {
+        sAny.steps = await prisma.bookingStepConfig.findMany({ where: { bookingSettingsId: sAny.id }, orderBy: { stepOrder: 'asc' } })
+      }
+      if (!Array.isArray(sAny.businessHoursConfig) || sAny.businessHoursConfig.length === 0) {
+        sAny.businessHoursConfig = await prisma.businessHoursConfig.findMany({ where: { bookingSettingsId: sAny.id }, orderBy: { dayOfWeek: 'asc' } })
+      }
+      if (!Array.isArray(sAny.paymentMethods) || sAny.paymentMethods.length === 0) {
+        sAny.paymentMethods = await prisma.paymentMethodConfig.findMany({ where: { bookingSettingsId: sAny.id } })
+      }
+      if (!Array.isArray(sAny.notificationTemplates) || sAny.notificationTemplates.length === 0) {
+        sAny.notificationTemplates = await prisma.notificationTemplate.findMany({ where: { bookingSettingsId: sAny.id } })
+      }
+      await cache.set(key, sAny as unknown as BookingSettings, 300)
     }
     return settings as unknown as BookingSettings | null
   }
