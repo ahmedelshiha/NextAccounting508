@@ -62,27 +62,27 @@ export default function OfflineQueueInspector() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Offline queue</CardTitle>
-        <CardDescription>Queued submissions when offline. Automatically retries when back online.</CardDescription>
+        <CardTitle>{t('portal.offline.title')}</CardTitle>
+        <CardDescription>{t('portal.offline.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-gray-600">Loading…</p>
+          <p className="text-sm text-gray-600">{t('common.loading')}</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-gray-600">Queue is empty.</p>
+          <p className="text-sm text-gray-600">{t('portal.offline.empty')}</p>
         ) : (
           <div className="space-y-3">
-            <div className="text-sm text-gray-700">{items.length} item(s) queued</div>
+            <div className="text-sm text-gray-700">{t('portal.offline.itemsQueued', { count: items.length })}</div>
             <div className="max-h-60 overflow-auto border rounded-md">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" role="table" aria-label={t('portal.offline.tableAria')}>
                 <thead>
                   <tr className="bg-gray-50 text-gray-700">
-                    <th className="text-left p-2">When</th>
-                    <th className="text-left p-2">Endpoint</th>
-                    <th className="text-left p-2">Idempotency</th>
-                    <th className="text-left p-2">Retries</th>
-                    <th className="text-left p-2">Next attempt</th>
-                    <th className="text-left p-2">Last status</th>
+                    <th className="text-left p-2">{t('portal.offline.when')}</th>
+                    <th className="text-left p-2">{t('portal.offline.endpoint')}</th>
+                    <th className="text-left p-2">{t('portal.offline.idempotency')}</th>
+                    <th className="text-left p-2">{t('portal.offline.retries')}</th>
+                    <th className="text-left p-2">{t('portal.offline.nextAttempt')}</th>
+                    <th className="text-left p-2">{t('portal.offline.lastStatus')}</th>
                   </tr>
                 </thead>
                 <tbody>
