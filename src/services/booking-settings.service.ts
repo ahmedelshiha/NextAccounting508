@@ -15,6 +15,17 @@ import type {
   BookingSettingsImport,
 } from '@/types/booking-settings.types'
 
+// Helper to safely access Prisma.DbNull without requiring @prisma/client at runtime (useful for tests)
+function getDbNull(): any {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require('@prisma/client') as { Prisma?: { DbNull?: any } }
+    return mod?.Prisma?.DbNull ?? null
+  } catch {
+    return null
+  }
+}
+
 /**
  * BookingSettingsService encapsulates all booking settings operations.
  * All multi-entity updates are performed in transactions for consistency.
