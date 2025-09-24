@@ -102,7 +102,7 @@ export default function OfflineQueueInspector() {
           </div>
         )}
         <div className="mt-4 flex justify-end">
-          <Button onClick={triggerSync} disabled={flushing}>{flushing ? 'Retrying…' : 'Retry now'}</Button>
+          <Button onClick={triggerSync} disabled={flushing} aria-label={t('portal.offline.retryAria')}>{flushing ? t('portal.offline.retrying') : t('portal.offline.retry')}</Button>
         </div>
       </CardContent>
     </Card>
