@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useTranslations } from '@/lib/i18n'
 
 export default function RealtimeConnectionPanel() {
+  const { t } = useTranslations()
   const [status, setStatus] = useState<'disconnected'|'connecting'|'connected'>('disconnected')
   const [events, setEvents] = useState<string[]>(['all'])
   const wsRef = useRef<WebSocket | null>(null)
