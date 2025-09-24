@@ -29,6 +29,9 @@ and
   - [x] Added Zod schemas and validation for /api/admin/perf-metrics (POST body, GET response).
   - [x] Phase 6: Migrated /admin/tasks to StandardPage; preserved board/list/table/calendar/gantt views, filters, bulk actions, and analytics; replaced inline width style in QuickStatsCard with Tailwind utility classes.
   - [x] Phase 6: Migrated Clients — profiles to ListPage with pagination/filters/actions, invitations to StandardPage with email invite sending via /api/email/test, and new client wizard wrapped in StandardPage; preserved existing styles.
+  - [x] Migrated /admin/posts to StandardPage; extracted PostCard/PostStats; wired FilterBar; added smoke and CRUD tests.
+  - [x] Enabled PerfMetricsReporter on public pages via ClientLayout to capture sitewide TTFB/FCP/LCP/CLS/INP.
+  - [x] Reconciled Phase 7 statuses and updated checklists for accuracy.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -82,7 +85,7 @@ Rollback Plan (safe operations)
 - Monitor Sentry and /admin/perf-metrics; if regressions detected, revert via History Tab and re-enable legacy flag
 - Keep backup/ legacy pages until parity is verified; remove only after UAT sign-off
 
-Inventory Snapshot ��� Priority and Owners (2025-09-24)
+Inventory Snapshot — Priority and Owners (2025-09-24)
 - P0 (Owner: ENG/Admin Platform; QA: Admin QA; Ops: Netlify Ops):
   - /admin (overview), /admin/bookings, /admin/service-requests, /admin/services
 - P1 (Owner: ENG/Admin Platform; QA: Admin QA):
