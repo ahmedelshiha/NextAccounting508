@@ -2,6 +2,7 @@
 
 import StandardPage from "./StandardPage"
 import DataTable from "@/components/dashboard/DataTable"
+import AdvancedDataTable from "@/components/dashboard/tables/AdvancedDataTable"
 import type { ActionItem, Column, FilterConfig, RowAction, TabItem } from "@/types/dashboard"
 import { ReactNode, useMemo, useState } from "react"
 
@@ -30,6 +31,13 @@ interface ListPageProps<T extends { id?: string | number }> {
   selectable?: boolean
   /** Optional render prop to show custom bulk actions when selection is non-empty */
   renderBulkActions?: (selectedIds: Array<string | number>) => ReactNode
+  /** Use AdvancedDataTable (adds sticky header + pagination UI) */
+  useAdvancedTable?: boolean
+  page?: number
+  pageSize?: number
+  total?: number
+  onPageChange?: (page: number) => void
+  emptyMessage?: string
 }
 
 /**
@@ -61,6 +69,12 @@ export default function ListPage<T extends { id?: string | number }>(props: List
     actions,
     selectable = true,
     renderBulkActions,
+    useAdvancedTable = false,
+    page,
+    pageSize,
+    total,
+    onPageChange,
+    emptyMessage,
   } = props
 
   const [selectedIds, setSelectedIds] = useState<Array<string | number>>([])
@@ -89,17 +103,35 @@ export default function ListPage<T extends { id?: string | number }>(props: List
         <div className="bg-white border border-gray-200 rounded-lg p-3 mb-4">{renderBulkActions(selectedIds)}</div>
       )}
 
-      <DataTable<T>
-        columns={columns}
-        rows={rows}
-        loading={loading}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={onSort}
-        actions={actions}
-        selectable={selectable}
-        onSelectionChange={setSelectedIds}
-      />
+      {useAdvancedTable ? (
+        <AdvancedDataTable<T>
+          columns={columns}
+          rows={rows}
+          loading={loading}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+          actions={actions}
+          selectable={selectable}
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={onPageChange}
+          emptyMessage={emptyMessage}
+        />
+      ) : (
+        <DataTable<T>
+          columns={columns}
+          rows={rows}
+          loading={loading}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+          actions={actions}
+          selectable={selectable}
+          onSelectionChange={setSelectedIds}
+        />
+      )}
     </StandardPage>
   )
 }

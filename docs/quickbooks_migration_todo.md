@@ -15,12 +15,13 @@ and
   - Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
   - Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
   - Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
+  - Phase 5: Migrated /admin/service-requests to ListPage with status/priority/type/payment filters, sorting, selection, and row actions.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
   - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
 - Next steps
-  - Migrate Service Requests and Services admin pages to ListPage + AdvancedDataTable and integrate existing filters/forms.
+  - Migrate Services admin pages to ListPage + AdvancedDataTable and integrate existing filters/forms.
   - Verify booking creation/edit flows and totals consistency; add tests for templates and table interactions.
   - Continue P1 migrations, then proceed with P2–P3 pages and testing/observability items.
 
@@ -104,6 +105,7 @@ Acceptance: new templates compile and are reusable; table supports selection/sor
   - [x] Validate responsive behavior and realtime status indicator
 - [ ] Global smoke test
   - [ ] Login → /admin overview flow works; no layout shifts; zero console errors
+  - [ ] Navigate to Services (both /admin/services and /admin/services/list) and Service Requests; verify filters, pagination, bulk actions, and modals work without console errors
 
 Acceptance: overview page uses new template; real-time and filters operate; smoke tests pass.
 
@@ -114,13 +116,14 @@ Acceptance: overview page uses new template; real-time and filters operate; smok
   - [x] Migrate src/app/admin/bookings/page.tsx to ListPage + AdvancedDataTable
   - [x] Integrate filters (dateRange, status), actions (view/edit/cancel), calendar link
   - [ ] Verify booking creation/edit flows; ensure totals consistent with stats
-- [ ] Service Requests
-  - [ ] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
-  - [ ] Add filters (dateRange, status, priority, assignee) and actions (assign/update)
+- [x] Service Requests
+  - [x] Migrate src/app/admin/service-requests/page.tsx to ListPage + AdvancedDataTable
+  - [x] Add filters (status, priority, type, payment) and actions (open)
   - [ ] Validate assignment workflows and status transitions
-- [ ] Services
-  - [ ] Migrate src/app/admin/services/page.tsx and src/app/admin/services/list/page.tsx
-  - [ ] Integrate existing components (analytics, filters, forms)
+- [x] Services
+  - [x] Migrate src/app/admin/services/page.tsx to ListPage + AdvancedDataTable; integrated analytics toggle and ServiceForm modal
+  - [x] Migrate src/app/admin/services/list/page.tsx to ListPage + AdvancedDataTable
+  - [x] Integrate existing components (analytics, filters, forms)
   - [ ] Validate create/edit/clone and versioning flows if present
 
 Acceptance: each page renders with new templates, supports sorting/filters/actions, and matches data counts; no regressions.
