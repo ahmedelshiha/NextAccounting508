@@ -105,3 +105,52 @@ Recommended pattern:
 - Use aria-current on active links (Sidebar handles this).
 - Include aria-live regions for selection counts and filter summaries where relevant (see ServicesList).
 
+## End-to-End Example: Services List with Realtime Refresh
+
+Path references
+- Template: src/components/dashboard/templates/ListPage.tsx
+- Table: src/components/dashboard/tables/AdvancedDataTable.tsx
+- Realtime: src/components/dashboard/realtime/RealtimeProvider.tsx (mounted via AdminProviders)
+- Data hook: src/hooks/useUnifiedData.ts
+
+Example usage in a page component (simplified from src/app/admin/services/page.tsx):
+```
+import ListPage from '@/components/dashboard/templates/ListPage'
+import type { Column, FilterConfig } from '@/types/dashboard'
+import { useUnifiedData } from '@/hooks/useUnifiedData'
+
+type ServiceRow = { id: string; name: string; price: number | null; status: string; updatedAt: string }
+
+export default function ServicesPage() {
+  const { data, isLoading, refresh } = useUnifiedData<{ services: ServiceRow[]; total: number }>({
+    key: '/api/admin/services',
+    params: { limit: 20, offset: 0, sortBy: 'updatedAt', sortOrder: 'desc' },
+    events: ['service:created','service:updated','service:deleted'],
+    parse: (json) => ({ rows: json.services, total: json.total }),
+  })
+
+  const columns: Column<ServiceRow>[] = [
+    { key: 'name', label: 'Name', sortable: true },
+    { key: 'price', label: 'Price', align: 'right', render: (v) => v == null ? '—' : Intl.NumberFormat('en-US',{ style:'currency', currency:'USD' }).format(Number(v)) },
+    { key: 'status', label: 'Status' },
+  ]
+
+  return (
+    <ListPage<ServiceRow>
+      title="Services"
+      useAdvancedTable
+      columns={columns}
+      rows={data?.rows || []}
+      total={data?.total}
+      loading={isLoading}
+      onRefresh={refresh}
+    />
+  )
+}
+```
+
+Notes
+- RealtimeProvider emits events consumed by useUnifiedData to revalidate the SWR cache automatically.
+- The table defaults to pageSize=20 (≤ 50) for performance and accessibility.
+- Preserve existing style tokens and QuickBooks green accents in headers, buttons, and pagination.
+

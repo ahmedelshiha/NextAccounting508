@@ -32,6 +32,7 @@ and
   - [x] Migrated /admin/posts to StandardPage; extracted PostCard/PostStats; wired FilterBar; added smoke and CRUD tests.
   - [x] Enabled PerfMetricsReporter on public pages via ClientLayout to capture sitewide TTFB/FCP/LCP/CLS/INP.
   - [x] Reconciled Phase 7 statuses and updated checklists for accuracy.
+  - [x] Added E2E smoke test for Services CRUD (create → update → clone → list) and verified headers/pagination — see tests/e2e/admin-services.crud.smoke.test.ts
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -56,6 +57,13 @@ and
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
   - [x] Set alert thresholds in GET /api/admin/perf-metrics snapshot (added thresholds and alerts fields; status derives from violations; tests added: tests/api/perf-metrics.thresholds.test.ts).
   - [ ] Monitor perf metrics for 7 days post-deploy and document thresholds/outliers.
+
+Update — Phase 8 API Contracts (2025-09-24)
+- [x] Added API contract tests: tests/api/admin-service-requests.contract.test.ts and tests/api/admin-bookings.contract.test.ts
+- [x] Normalized pagination headers: X-Total-Count added to /api/admin/service-requests and /api/admin/bookings
+- [x] Bookings GET now accepts offset (alias for skip) for consistency with Services
+- Why: unify pagination behavior and enable table components and exports to rely on standard headers; reduce client conditionals.
+- Next: align naming across modules (prefer limit+offset+sortBy+sortOrder), and add friendly error mapping where missing.
 
 ---
 
@@ -234,7 +242,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 ---
 
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
-- [ ] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes
+- [x] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes — service-requests covered by contract test
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
@@ -252,7 +260,7 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
   - [ ] Bookings critical flow: create → save → list appears with correct totals
   - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
-  - [ ] Services critical flow: create/edit/clone reflected in list and version history (if enabled)
+  - [x] Services critical flow: create/edit/clone reflected in list and version history (if enabled) — tests/e2e/admin-services.crud.smoke.test.ts
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
   - [x] AdvancedDataTable interaction tests added: tests/dashboard/tables/dom/advanced-data-table.interactions.dom.test.tsx
@@ -269,8 +277,8 @@ Acceptance: tests green; axe checks pass with no critical violations.
 
 ## Phase 10 — Performance and Telemetry
 - [x] Performance
-  - [ ] Ensure no unnecessary client bundles in layout; split heavy charts where appropriate (explicit imports, no hacks)
-  - [ ] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page
+  - [x] Ensure no unnecessary client bundles in layout; code-split portal LiveChatWidget via next/dynamic (SSR disabled) to keep public/home bundles lean.
+  - [x] Confirm table virtualization if dataset > 1,000 rows or paginate to <= 50 rows per page — AdvancedDataTable default pageSize=20; no usages >50 found.
   - [x] Measure and record route load and interaction timings — added PerfMetricsReporter (src/components/dashboard/PerfMetricsReporter.tsx) posting samples to /api/admin/perf-metrics (POST). Inspect recent via GET.
 - [x] Observability
   - [x] Add Sentry spans for slow API calls; surface error rates in /admin/health-history — added src/lib/observability.ts and wrapped health-history/perf-metrics routes with spans and error capture.
@@ -293,7 +301,12 @@ Acceptance: engineers can build a new admin page using docs without assistance.
 ---
 
 ## Phase 12 — Cleanup, Deprecations, and Rollout
-- [ ] Remove retired admin pages in backup/ once parity is verified
+- [x] Remove retired admin pages in backup/ once parity is verified — deleted:
+  - backup/retired-admin-bookings-page.tsx
+  - backup/retired-admin-page.tsx
+  - backup/retired-admin-posts-page.tsx
+  - backup/retired-admin-services-page.tsx
+  - backup/retired-admin-users-page.tsx
 - [ ] Remove unused CSS/assets related to legacy admin shells
 - [ ] Conduct UAT with admin users; collect sign-offs per page
 - [ ] Staged rollout

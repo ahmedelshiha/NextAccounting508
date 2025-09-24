@@ -21,7 +21,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit')
-    const skip = searchParams.get('skip')
+    const skipParam = searchParams.get('skip')
+    const offsetParam = searchParams.get('offset')
     const status = searchParams.get('status')
     const search = searchParams.get('search')
     const startDate = searchParams.get('startDate')
@@ -54,6 +55,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get bookings with pagination
+    // Derive pagination: prefer offset if provided for consistency with other modules
+    const take = limit ? parseInt(limit) : undefined
+    const skip = typeof offsetParam === 'string' ? parseInt(offsetParam) : (skipParam ? parseInt(skipParam) : undefined)
+
     const bookings = await prisma.booking.findMany({
       where,
       include: {
@@ -77,19 +82,24 @@ export async function GET(request: NextRequest) {
       orderBy: {
         scheduledAt: 'desc'
       },
-      take: limit ? parseInt(limit) : undefined,
-      skip: skip ? parseInt(skip) : undefined
+      take,
+      skip
     })
 
     // Get total count for pagination
     const total = await prisma.booking.count({ where })
 
+    const takeVal = take ?? total
+    const skipVal = skip ?? 0
+    const page = takeVal > 0 ? Math.floor(skipVal / takeVal) + 1 : 1
+    const totalPages = takeVal > 0 ? Math.max(1, Math.ceil(total / takeVal)) : 1
+
     return NextResponse.json({
       bookings,
       total,
-      page: skip ? Math.floor(parseInt(skip) / (parseInt(limit || '10'))) + 1 : 1,
-      totalPages: limit ? Math.ceil(total / parseInt(limit)) : 1
-    })
+      page,
+      totalPages
+    }, { headers: { 'X-Total-Count': String(total) } })
   } catch (error) {
     console.error('Error fetching admin bookings:', error)
     return NextResponse.json(
