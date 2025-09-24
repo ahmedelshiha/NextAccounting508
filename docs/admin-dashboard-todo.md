@@ -30,33 +30,33 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 ## Ordered Work Plan (Next Steps)
 
 1) Clients module
-- [ ] Build ClientsList (src/components/dashboard/lists/ClientsList.tsx) using SWR to GET /api/admin/users with q, role/status, dateFrom/dateTo
-- [ ] Add list host page at /admin/users/list
-- [ ] Columns: id, name, email, role, status, createdAt
-- [ ] Batch: loop PATCH /api/admin/users/:id for role/status changes; show confirmation; refresh list
+- [x] Build ClientsList (src/components/dashboard/lists/ClientsList.tsx) using SWR to GET /api/admin/users with q, role/status, dateFrom/dateTo
+- [x] Add list host page at /admin/users/list
+- [x] Columns: id, name, email, role, status, createdAt
+- [x] Batch: loop PATCH /api/admin/users/:id for role/status changes; show confirmation; refresh list
   - Acceptance: table renders ≥10 users with sortable columns; changing role/status updates server and UI; selection toolbar shows count and disables when 0
 
 2) Services module
-- [ ] Build ServicesList (src/components/dashboard/lists/ServicesList.tsx) using SWR to GET /api/admin/services
-- [ ] Add list host page at /admin/services/list
-- [ ] Columns: id, name, category, price, status, updatedAt
-- [ ] Batch: POST /api/admin/services/bulk with ACTIVATE/DEACTIVATE; show result and partial error counts
+- [x] Build ServicesList (src/components/dashboard/lists/ServicesList.tsx) using SWR to GET /api/admin/services
+- [x] Add list host page at /admin/services/list
+- [x] Columns: id, name, category, price, status, updatedAt
+- [x] Batch: POST /api/admin/services/bulk with ACTIVATE/DEACTIVATE; show result and partial error counts
   - Acceptance: bulk operations update status for selected rows; CSV export respects filters; selection persists across pages only within current page
 
 3) Tasks module
-- [ ] Build TasksList (src/components/dashboard/lists/TasksList.tsx) using GET /api/admin/tasks (+filters q,status,assignee,date)
-- [ ] Add list host page at /admin/tasks/list
-- [ ] Columns: id, title, assignee, status, dueAt
-- [ ] Batch: POST /api/admin/tasks/bulk (status/export); wire to selection toolbar
+- [x] Build TasksList (src/components/dashboard/lists/TasksList.tsx) using GET /api/admin/tasks (+filters q,status,assignee,date)
+- [x] Add list host page at /admin/tasks/list
+- [x] Columns: id, title, assignee, status, dueAt
+- [x] Batch: POST /api/admin/tasks/bulk (status/export); wire to selection toolbar
   - Acceptance: status changes reflect instantly; export contains visible columns; error toasts on failed updates
 
 4) UX/A11y/i18n enhancements
-- [ ] Announce filter changes and selection counts via aria-live region in FilterBar/DataTable footer
+- [x] Announce filter changes and selection counts via aria-live region in FilterBar/DataTable footer
 - [ ] Localize new UI strings (en/ar/hi) using src/app/locales/*
   - Acceptance: screen readers announce “3 filters active” and “N selected”; visible strings translated for existing locales
 
 5) Performance & Quality
-- [ ] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
+- [x] Add skeleton states for Clients/Services/Tasks lists; avoid layout shift
 - [ ] Memoize heavy cell renderers; verify no unnecessary re-renders
 - [ ] Run pnpm lint, pnpm typecheck, pnpm test:thresholds and fix issues
   - Acceptance: no ESLint errors, typecheck passes, thresholds tests pass
@@ -96,19 +96,19 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
 - [x] Replace admin shell with DashboardLayout in src/app/admin/page.tsx
 - [ ] Wire tabs + filters to existing hooks
   - [x] Bookings/Service Requests → useBookings + FilterBar/DataTable
-  - [ ] Clients → use SWR to /api/admin/users + FilterBar/DataTable
-  - [ ] Services → use SWR to /api/admin/services + FilterBar/DataTable
-  - [ ] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
+  - [x] Clients → use SWR to /api/admin/users + FilterBar/DataTable
+- [x] Services → use SWR to /api/admin/services + FilterBar/DataTable
+- [x] Tasks → use TaskProvider or /api/admin/tasks + FilterBar/DataTable
 - [ ] Ensure DataTable columns/data match current models (id, client, service, status, revenue)
   - [x] Bookings/Service Requests: added ID, Status, Payment (status+amount), Date from scheduledAt/createdAt; revenue derived from paymentAmountCents or service.price
-  - [ ] Clients: columns id, name, email, role, status, createdAt
-  - [ ] Services: columns id, name, category, price, status, updatedAt
-  - [ ] Tasks: columns id, title, assignee, status, dueAt
+  - [x] Clients: columns id, name, email, role, status, createdAt
+  - [x] Services: columns id, name, category, price, status, updatedAt
+  - [x] Tasks: columns id, title, assignee, status, dueAt
 - [ ] Add batch actions (export/cancel/assign) where selection is enabled
   - [x] Bookings/Service Requests: export (filters), cancel (bulk), assign (per id loop)
-  - [ ] Clients: bulk deactivate/role change
-  - [ ] Services: bulk activate/deactivate
-  - [ ] Tasks: bulk status update/export
+  - [x] Clients: bulk deactivate/role change
+  - [x] Services: bulk activate/deactivate
+  - [x] Tasks: bulk status update/export
 
 ## Phase 6 – UX, A11y, i18n
 - [x] Keyboard nav for Sidebar/Topbar and tabs
@@ -142,6 +142,20 @@ Status legend: [ ] pending, [x] done, (→) owner/actionable note
   - Implement Clients/Services/Tasks lists following the established pattern
   - Add aria-live announcements and localization for new strings
   - Run lint/typecheck/tests and finalize docs/handoff
+
+## Documentation Update – 2025-09-24
+- [x] What was completed
+  - Implemented ClientsList, ServicesList, TasksList with shared FilterBar/DataTable patterns
+  - Added host pages: /admin/users/list, /admin/services/list, /admin/tasks/list
+  - Added aria-live announcements for selection and active filter counts
+  - Enabled CSV export for Services and Tasks; bulk actions for all three modules
+- [x] Why it was done
+  - Complete Phase 5 wiring for Clients/Services/Tasks and meet measurable acceptance criteria
+  - Improve accessibility feedback without altering existing visual styles
+- [x] Next steps
+  - Localize new UI strings (en/ar/hi) and add memoization for heavy cells
+  - Run pnpm lint, pnpm typecheck, pnpm test:thresholds and address issues
+  - Update dashboard-structure.md examples where necessary
 
 ## Doc Sync Tasks (keep in sync as work progresses)
 - [ ] When a component changes, update the corresponding block in ./dashboard-structure.md

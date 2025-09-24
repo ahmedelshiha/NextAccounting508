@@ -5,3 +5,12 @@
 - Added explicit acceptance criteria per task to ensure measurable outcomes.
 - Updated docs/admin-dashboard-todo.md with a “Ordered Work Plan (Next Steps)” section and a documentation update block (what/why/next).
 - Current status: Bookings list pattern complete; proceeding with Clients/Services/Tasks lists and aria-live/i18n.
+
+## 2025-09-24 – Lists for Clients, Services, Tasks
+- Implemented ClientsList, ServicesList, TasksList as reusable, SWR-driven list modules reusing FilterBar and DataTable.
+- Added host routes: /admin/users/list, /admin/services/list, /admin/tasks/list.
+- Batch actions wired: users role/status (PATCH loop), services activate/deactivate (POST /api/admin/services/bulk), tasks status updates (POST /api/admin/tasks/bulk).
+- CSV export added for Services (/api/admin/services/export) and Tasks (/api/admin/tasks/export); filters respected in query.
+- Accessibility: aria-live regions announce active filter count and selection totals in each list view.
+- Skeleton states: DataTable loading skeleton used to avoid layout shift across new lists.
+- Next: localize new strings (en/ar/hi), memoize heavy cells, run lint/typecheck/tests and update docs accordingly.
