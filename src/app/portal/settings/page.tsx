@@ -64,7 +64,6 @@ function BookingPreferencesForm() {
   const save = async () => {
     setSavingPrefs(true)
     const prev = { emailConfirmation, emailReminder, emailReschedule, emailCancellation, smsReminder, smsConfirmation, reminderHours, timeZone, preferredLanguage }
-    // Optimistic UI already reflects current state from inputs; attempt to persist
     try {
       const res = await apiFetch('/api/portal/settings/booking-preferences', {
         method: 'PUT',
@@ -84,7 +83,6 @@ function BookingPreferencesForm() {
       if (res.ok) {
         toast.success(t('portal.settings.saved'))
       } else {
-        // Rollback optimistic UI
         setEmailConfirmation(prev.emailConfirmation)
         setEmailReminder(prev.emailReminder)
         setEmailReschedule(prev.emailReschedule)
@@ -98,7 +96,6 @@ function BookingPreferencesForm() {
         toast.error(err?.error?.message || t('portal.settings.saveFailed'))
       }
     } catch {
-      // Rollback on network error
       setEmailConfirmation(prev.emailConfirmation)
       setEmailReminder(prev.emailReminder)
       setEmailReschedule(prev.emailReschedule)
@@ -183,4 +180,221 @@ export default function PortalSettingsPage() {
   const { data: session } = useSession()
   const [_loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [name, setName] = useState('')</n
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [originalEmail, setOriginalEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true)
+        const res = await apiFetch('/api/users/me')
+        if (res.ok) {
+          const json = await res.json()
+          const user = json.user
+          setName(user.name || '')
+          setEmail(user.email || '')
+          setOriginalEmail(user.email || '')
+        }
+      } catch (e) {
+        console.error('Failed to load user', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (session) load()
+  }, [session])
+
+  const handleSave = async () => {
+    if (!name || !email) {
+      toast.error(t('portal.account.validation.nameEmailRequired'))
+      return
+    }
+    if (password && password.length < 6) {
+      toast.error(t('portal.account.validation.passwordMin'))
+      return
+    }
+    if (password && password !== confirmPassword) {
+      toast.error(t('portal.account.validation.passwordsMismatch'))
+      return
+    }
+
+    const changingEmail = email !== originalEmail
+    const changingPassword = !!password
+    if ((changingEmail || changingPassword) && !currentPassword) {
+      toast.error(t('portal.account.validation.currentPasswordRequired'))
+      return
+    }
+
+    setSaving(true)
+    try {
+      const payload: { name: string; email: string; password?: string; currentPassword?: string } = { name, email }
+      if (password) payload.password = password
+      if (currentPassword) payload.currentPassword = currentPassword
+
+      const res = await apiFetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      if (res.ok) {
+        const json = await res.json().catch(() => ({}))
+        const user = json.user
+        if (user) {
+          setName(user.name || '')
+          setEmail(user.email || '')
+        }
+        toast.success(t('portal.account.updated'))
+        if (password || (email && email !== (user?.email ?? ''))) {
+          setTimeout(async () => {
+            await signOut({ callbackUrl: '/login' })
+          }, 800)
+        }
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || t('portal.account.updateFailed'))
+      }
+    } catch (e) {
+      console.error('Save profile error', e)
+      toast.error(t('portal.account.updateFailed'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDelete || confirmDelete.length < 6) {
+      toast.error(t('portal.account.enterPasswordToConfirm'))
+      return
+    }
+    setDeleting(true)
+    try {
+      const res = await apiFetch('/api/users/me', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: confirmDelete }) })
+      if (res.ok) {
+        toast.success(t('portal.account.deleted'))
+        await signOut({ callbackUrl: '/' })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || t('portal.account.deleteFailed'))
+      }
+    } catch (e) {
+      console.error('Delete account error', e)
+      toast.error(t('portal.account.deleteFailed'))
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{t('portal.account.title')}</h1>
+            <p className="text-gray-600">{t('portal.account.subtitle')}</p>
+          </div>
+          <div>
+            <Button variant="outline" asChild aria-label={t('portal.backToPortal')}>
+              <Link href="/portal">{t('portal.backToPortal')}</Link>
+            </Button>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('portal.account.profileTitle')}</CardTitle>
+            <CardDescription>{t('portal.account.profileDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">{t('portal.account.fullName')}</Label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1" aria-label={t('portal.account.fullName')} />
+              </div>
+              <div>
+                <Label htmlFor="email">{t('common.email')}</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" aria-label={t('common.email')} />
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="password">{t('portal.account.newPassword')}</Label>
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1" placeholder={t('portal.account.passwordKeepPlaceholder')} aria-label={t('portal.account.newPassword')} />
+              </div>
+              <div>
+                <Label htmlFor="confirm">{t('portal.account.confirmPassword')}</Label>
+                <Input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-1" placeholder={t('portal.account.confirmPasswordPlaceholder')} aria-label={t('portal.account.confirmPassword')} />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <Label htmlFor="currentPassword">{t('portal.account.currentPasswordLabel')}</Label>
+              <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="mt-1" placeholder={t('portal.account.currentPasswordPlaceholder')} aria-label={t('portal.account.currentPasswordLabel')} />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" asChild aria-label={t('common.cancel')}>
+                <Link href="/portal">{t('common.cancel')}</Link>
+              </Button>
+              <Button onClick={handleSave} disabled={saving} aria-label={t('portal.account.saveChanges')}>{saving ? t('portal.account.saving') : t('portal.account.saveChanges')}</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>{t('portal.account.notificationsTitle')}</CardTitle>
+            <CardDescription>{t('portal.account.notificationsDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BookingPreferencesForm />
+
+            <div className="grid grid-cols-1 gap-6 mt-8">
+              <OfflineQueueInspector />
+              <RealtimeConnectionPanel />
+            </div>
+
+            <div className="mt-8 border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('portal.account.danger.title')}</h3>
+              <p className="text-sm text-gray-600 mb-4">{t('portal.account.danger.description')}</p>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" aria-label={t('portal.account.delete')}>{t('portal.account.delete')}</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{t('portal.account.deleteConfirm.title')}</DialogTitle>
+                    <DialogDescription>{t('portal.account.deleteConfirm.description')}</DialogDescription>
+                  </DialogHeader>
+
+                  <div className="mt-4">
+                    <Label htmlFor="confirmDelete">{t('portal.account.currentPassword')}</Label>
+                    <Input id="confirmDelete" type="password" value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} className="mt-2" placeholder={t('portal.account.currentPasswordPlaceholder')} aria-label={t('portal.account.currentPassword')} />
+                  </div>
+
+                  <DialogFooter>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" asChild aria-label={t('common.cancel')}>
+                        <Link href="/portal">{t('common.cancel')}</Link>
+                      </Button>
+                      <Button variant="destructive" onClick={handleDelete} disabled={deleting || confirmDelete.length < 6} aria-label={t('portal.account.delete')}>
+                        {deleting ? t('portal.account.deleting') : t('portal.account.delete')}
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
