@@ -40,7 +40,7 @@ and
   - [x] Measure route load and interaction timings before/after AdvancedDataTable change; documentation and viewer added. See docs/perf-metrics-report.md and /admin/perf-metrics.
   - [x] Document template usage and AdvancedDataTable API in Phase 11 docs (see docs/admin-dashboard-templates-and-table.md).
   - [x] A11y: Added keyboard-only operation tests for sidebar and tables (advanced-data-table.a11y.dom.test.tsx, sidebar-keyboard.dom.test.tsx); added pagination nav aria-labels.
-  - [x] Global site a11y: Added skip link in RootLayout, main landmark in ClientLayout, navigation aria-current/labels; tests in tests/ui/navigation.a11y.dom.test.tsx. Added route-change announcer for screen readers (AccessibleRouteAnnouncer) and tests.
+  - [x] Global site a11y: Added skip link in RootLayout, main landmark in ClientLayout, navigation aria-current/labels; tests in tests/ui/navigation.a11y.dom.test.tsx. Added route-change announcer for screen readers (AccessibleRouteAnnouncer) and tests (tests/providers/route-announcer.dom.test.tsx).
   - [x] Implement E2E smoke paths: Auth → Admin → Bookings → New → Save → List; Service Requests → Assign → Status Update — tests added: tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-service-requests-assign-status.smoke.test.ts.
   - [x] Added skip-to-main content link, main landmark focus target, and sidebar navigation aria; introduced admin layout a11y tests.
   - [ ] Complete A11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
