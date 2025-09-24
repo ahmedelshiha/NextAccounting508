@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import FilterBar from '@/components/dashboard/FilterBar'
-import DataTable from '@/components/dashboard/DataTable'
+import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import type { Column, FilterConfig } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
 import { useTranslations } from '@/lib/i18n'
@@ -138,7 +138,7 @@ export default function ClientsList() {
         searchPlaceholder={t('dashboard.search.clients')}
       />
 
-      <DataTable<UserRow>
+      <AdvancedDataTable<UserRow>
         columns={columns}
         rows={items}
         loading={isLoading}
