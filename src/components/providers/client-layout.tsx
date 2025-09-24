@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
 import { Footer } from '@/components/ui/footer'
 import LiveChatWidget from '@/components/portal/LiveChatWidget'
+import AccessibleRouteAnnouncer from './RouteAnnouncer'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -200,6 +201,7 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
 
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
+      <AccessibleRouteAnnouncer />
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
