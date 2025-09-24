@@ -24,6 +24,8 @@ and
   - [x] Implemented jsdom DOM harness; added AdvancedDataTable interaction tests (select/sort/paginate) and onSelectionChange assertions.
   - [x] Added Sidebar IA and active-state tests (collapsed rendering, aria-current verification).
   - [x] Added /admin/perf-metrics viewer and docs/perf-metrics-report.md for before/after tracking.
+  - [x] Migrated /admin/analytics to StandardPage with BusinessIntelligence and export actions.
+  - [x] Implemented /admin/reports using StandardPage with CSV export controls (users, bookings, services).
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
@@ -169,8 +171,8 @@ Acceptance: each page renders with new templates, supports sorting/filters/actio
   - [ ] Migrate src/app/admin/clients/profiles/page.tsx, src/app/admin/clients/invitations/page.tsx, src/app/admin/clients/new/page.tsx
   - [ ] Validate create/invite flows and profile search
 - [ ] Analytics & Reports
-  - [ ] Migrate src/app/admin/analytics/page.tsx and src/app/admin/reports/page.tsx to templates
-  - [ ] Integrate chart components and export buttons
+  - [x] Migrate src/app/admin/analytics/page.tsx and src/app/admin/reports/page.tsx to templates
+  - [x] Integrate chart components and export buttons
 
 Acceptance: task operations, client management, and reporting flows function end-to-end under new layout.
 
