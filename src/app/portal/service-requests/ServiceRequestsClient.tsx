@@ -190,10 +190,10 @@ export default function ServiceRequestsClient() {
         <Card>
           <CardContent className="text-center py-12">
             <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No service requests yet</h3>
-            <p className="text-gray-600 mb-4">Create your first request to get started.</p>
-            <Button asChild>
-              <Link href="/portal/service-requests/new">Create Request</Link>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('portal.serviceRequests.noRequests')}</h3>
+            <p className="text-gray-600 mb-4">{t('portal.serviceRequests.createHelp')}</p>
+            <Button asChild aria-label={t('portal.serviceRequests.create')}>
+              <Link href="/portal/service-requests/new">{t('portal.serviceRequests.create')}</Link>
             </Button>
           </CardContent>
         </Card>
