@@ -182,9 +182,9 @@ Acceptance: task operations, client management, and reporting flows function end
 ---
 
 ## Phase 7 — Administrative/System Page Migrations P3 (Depends on Phases 1–3)
-- [ ] Settings
-  - [ ] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
-  - [ ] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
+- [x] Settings
+  - [x] Migrate src/app/admin/settings/page.tsx; integrate BookingSettingsPanel and currencies screens
+  - [x] Validate flows at src/app/admin/settings/booking/page.tsx and src/app/admin/settings/currencies/page.tsx
 - [ ] Team & Access
   - [ ] Migrate src/app/admin/team/page.tsx, src/app/admin/permissions/page.tsx, src/app/admin/roles/page.tsx
   - [ ] Validate RBAC changes and team assignments screens
