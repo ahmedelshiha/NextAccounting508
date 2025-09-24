@@ -38,7 +38,7 @@ Your task is to **transform the existing Admin Dashboard** into a **QuickBooks-s
 - [x] Secondary Tabs → SecondaryTabs.tsx (./dashboard-structure.md)
 - [x] Filters/Controls → FilterBar.tsx (./dashboard-structure.md); tags behavior spec in ./quickbooks_dashboard_complete.md
 - [x] Data Table/List → DataTable.tsx (./dashboard-structure.md); empty/hover/sort states in ./quickbooks_dashboard_complete.md
-- [ ] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
+- [x] KPI/Charts (optional for phase) → Align naming and slots with ./quickbooks_dashboard_complete.md
   - [x] Extract KPI grid into reusable component at src/components/dashboard/analytics/ProfessionalKPIGrid.tsx and integrate into /admin
   - [x] Extract analytics charts into reusable components and compose in dashboard pages
 
