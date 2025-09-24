@@ -3,7 +3,7 @@
 ## 2025-09-23 – Ordered plan & docs update
 - Reordered remaining dashboard tasks into a dependency-first, checkbox-based execution plan covering Clients, Services, Tasks, A11y/i18n, Performance/Quality, and Docs/Handoff.
 - Added explicit acceptance criteria per task to ensure measurable outcomes.
-- Updated docs/admin-dashboard-todo.md with a “Ordered Work Plan (Next Steps)” section and a documentation update block (what/why/next).
+- Updated docs/admin-dashboard-todo.md with a ���Ordered Work Plan (Next Steps)” section and a documentation update block (what/why/next).
 - Current status: Bookings list pattern complete; proceeding with Clients/Services/Tasks lists and aria-live/i18n.
 
 ## 2025-09-24 – Lists for Clients, Services, Tasks
@@ -20,3 +20,8 @@
 - Wrapped app with TranslationProvider; preserved visual styles and ARIA. Dynamic counts announced via aria-live now localized.
 - Memoized filter configs and column definitions to reduce re-renders/heavy cell work.
 - Updated docs/admin-dashboard-todo.md to mark i18n and memoization complete; next: run lint/typecheck/tests and validate docs examples.
+
+## 2025-09-24 – Lint/Typecheck/Tests cleanup
+- Fixed TS errors: corrected PrimaryTabs onChange handler in src/app/admin/page.tsx and removed duplicate ClientLayout import in src/app/layout.tsx.
+- Resolved ESLint warning in DataTable by replacing side-effect-only ternary with explicit if/else.
+- Ran pnpm lint (clean), pnpm typecheck (clean), pnpm test:thresholds (passed). Updated docs/admin-dashboard-todo.md to reflect completion.
