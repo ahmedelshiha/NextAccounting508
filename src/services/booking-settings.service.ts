@@ -15,15 +15,11 @@ import type {
   BookingSettingsImport,
 } from '@/types/booking-settings.types'
 
-// Helper to safely access getDbNull() without requiring @prisma/client at runtime (useful for tests)
+import { Prisma } from '@prisma/client'
+
+// Return Prisma.DbNull sentinel used for nullable JSON fields
 function getDbNull(): any {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('@prisma/client') as { Prisma?: { DbNull?: any } }
-    return mod?.Prisma?.DbNull ?? null
-  } catch {
-    return null
-  }
+  return Prisma?.DbNull ?? null
 }
 
 /**
