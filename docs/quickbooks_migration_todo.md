@@ -12,18 +12,27 @@ and
 ## Latest Status Update — 2025-09-24
 
 - Completed
-  - Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
-  - Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
-  - Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
-  - Phase 5: Migrated /admin/service-requests to ListPage with status/priority/type/payment filters, sorting, selection, and row actions.
+  - [x] Phase 3: Implemented reusable templates (StandardPage, ListPage, AnalyticsPage), AdvancedDataTable, and BulkActionsPanel.
+  - [x] Phase 4: Migrated /admin overview to AnalyticsPage with KPIs, RevenueTrendChart, and activity feed; added explicit refresh/export actions and wired filters.
+  - [x] Phase 5: Migrated /admin/bookings to ListPage with date/status filters, sorting, selection, and primary actions.
+  - [x] Phase 5: Migrated /admin/service-requests to ListPage with status/priority/type/payment filters, sorting, selection, and row actions.
+  - [x] Implemented admin RealtimeProvider (src/components/dashboard/realtime/RealtimeProvider.tsx) and wired into AdminProviders.
+  - [x] Created useUnifiedData hook (src/hooks/useUnifiedData.ts) with SWR integration and realtime-triggered revalidation.
+  - [x] Added preview pages for templates under /admin/previews (standard, list, analytics) for visual verification.
+  - [x] Replaced DataTable usages with AdvancedDataTable across admin lists and overview; preserved selection/bulk actions.
+  - [x] Added tests: apiFetch failure fallback, AdvancedDataTable SSR pagination, AdminContext defaults, RealtimeProvider SSR defaults, useUnifiedData initial state.
 - Why
   - Establish a consistent, reusable admin scaffolding to reduce duplication and improve maintainability, accessibility, and performance.
   - Align information architecture and visuals with the QuickBooks-style design while preserving existing style tokens and green accent usage.
   - Prepare for reliable Netlify builds with explicit imports and predictable layouts (no lazy or inline hacks).
+  - Unify realtime and data fetching patterns to simplify refresh and reduce bugs.
+  - Provide fast local previews for QA without backend wiring.
 - Next steps
-  - Migrate Services admin pages to ListPage + AdvancedDataTable and integrate existing filters/forms.
-  - Verify booking creation/edit flows and totals consistency; add tests for templates and table interactions.
-  - Continue P1 migrations, then proceed with P2–P3 pages and testing/observability items.
+  - [ ] Add tests for realtime parsing and refresh flows (subscribe to events, verify SWR revalidation triggers).
+  - [ ] Verify sidebar IA: click through all links; confirm correct workspace renders and no console errors.
+  - [ ] Run global smoke tests for overview/services/service-requests, including pagination, filters, and bulk actions.
+  - [ ] Measure route load and interaction timings before/after AdvancedDataTable change; record in docs.
+  - [ ] Document template usage and AdvancedDataTable API in Phase 11 docs.
 
 ---
 
@@ -183,9 +192,13 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
 
 ## Phase 9 — Quality, Testing, and Accessibility
 - [ ] Unit & Integration Tests
-  - [ ] Add tests for AdminProviders/AdminContext and templates
+  - [x] AdminContext default values smoke test
+  - [ ] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted)
+  - [ ] Template rendering tests for StandardPage/ListPage/AnalyticsPage
   - [ ] Add table interactions tests (select, sort, paginate, bulk actions)
   - [ ] Cover critical flows: bookings CRUD, service-request assign, services edit
+  - [x] apiFetch returns 503 on network error/timeout
+  - [x] AdvancedDataTable SSR pagination summary renders
 - [ ] E2E Smoke Paths
   - [ ] Auth → Admin → Bookings → New → Save → List
   - [ ] Admin → Service Requests → Assign → Status Update
