@@ -11,6 +11,7 @@ import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { planRecurringBookings } from '@/lib/booking/recurring'
+import { NextResponse } from 'next/server'
 
 const CreateBase = z.object({
   clientId: z.string().min(1),
@@ -149,14 +150,7 @@ export async function GET(request: Request) {
       prisma.serviceRequest.count({ where }),
     ])
 
-    return respond.ok(items, {
-      pagination: {
-        page: filters.page,
-        limit: filters.limit,
-        total,
-        totalPages: Math.ceil(total / filters.limit),
-      },
-    })
+    return NextResponse.json({ success: true, data: items, pagination: { page: filters.page, limit: filters.limit, total, totalPages: Math.ceil(total / filters.limit) } }, { headers: { 'X-Total-Count': String(total) } })
   } catch (e: any) {
     const code = String((e as any)?.code || '')
     const msg = String(e?.message || '')
@@ -199,14 +193,7 @@ export async function GET(request: Request) {
         prisma.serviceRequest.count({ where: whereLegacy }),
       ])
 
-      return respond.ok(items, {
-        pagination: {
-          page: filters.page,
-          limit: filters.limit,
-          total,
-          totalPages: Math.ceil(total / filters.limit),
-        },
-      })
+      return NextResponse.json({ success: true, data: items, pagination: { page: filters.page, limit: filters.limit, total, totalPages: Math.ceil(total / filters.limit) } }, { headers: { 'X-Total-Count': String(total) } })
     }
 
     if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
@@ -265,14 +252,7 @@ export async function GET(request: Request) {
         const start = (filters.page - 1) * filters.limit
         const end = start + filters.limit
         const pageItems = all.slice(start, end)
-        return respond.ok(pageItems, {
-          pagination: {
-            page: filters.page,
-            limit: filters.limit,
-            total,
-            totalPages: Math.ceil(total / filters.limit),
-          },
-        })
+        return NextResponse.json({ success: true, data: pageItems, pagination: { page: filters.page, limit: filters.limit, total, totalPages: Math.ceil(total / filters.limit) } }, { headers: { 'X-Total-Count': String(total) } })
       } catch {
         return respond.serverError()
       }
