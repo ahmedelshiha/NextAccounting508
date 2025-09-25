@@ -3,12 +3,16 @@
 ## Latest Status Update — 2025-09-25
 
 - Completed
-  - [x] Standardized admin API params: /api/admin/bookings and /api/admin/service-requests now support limit, offset, sortBy, sortOrder (backward compatible with page/limit and skip). Preserved X-Total-Count headers.
+  - [x] Standardize admin API params for Bookings and Service Requests: support limit, offset, sortBy, sortOrder; preserve X-Total-Count; maintain back-compat with page/skip.
+  - [x] Update admin callers to prefer offset and pass sortBy/sortOrder (overview cards, bookings list page, task modals).
+  - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
+  - [x] Improve Posts page accessibility: add role=list/listitem on grid/cards; aria-live status/alert regions; labels for icon-only actions.
 - Why
-  - Align pagination/sorting across Services/Bookings/Service Requests to simplify table integrations, exports, and testing; reduce client conditionals.
+  - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
+  - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
 - Next steps
-  - [x] Verify admin table callers pass sortBy/sortOrder consistently and prefer offset when paginating — updated admin overview, bookings page, and task modals to use offset=0 and sortBy=scheduledAt where appropriate.
-  - [x] Add/expand contract tests for limit+offset+sortBy+sortOrder on bookings and service-requests.
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist).
+  - [ ] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
 
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
