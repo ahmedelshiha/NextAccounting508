@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import { useMemo, useState } from "react"
 import DataTable from "@/components/dashboard/DataTable"
 import type { Column, RowAction } from "@/types/dashboard"
