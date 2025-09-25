@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    try { const { captureError } = await import('@/lib/observability'); await captureError(error, { route: 'admin/export' }) } catch {}
+    try { const { captureError } = await import('@/lib/observability'); await captureError(error, { tags: { route: 'admin/export' } }) } catch {}
     console.error('Export error:', error)
     return new NextResponse('Failed to export', { status: 500 })
   }
