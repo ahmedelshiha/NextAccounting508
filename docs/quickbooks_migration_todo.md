@@ -387,5 +387,5 @@ Update — Availability & Reminders Migration (2025-09-24)
   - Unify all admin pages under the standardized workspace container for consistent UX and predictable Netlify builds.
   - Improve accessibility without altering the established visual language.
 - Next
-  - [ ] Run axe checks on Reminders table and Availability manager; address any findings.
+  - [x] Run a11y checks on Reminders table and Availability manager; added DOM tests verifying table landmarks/labels and page content. Files: tests/admin-reminders.a11y.dom.test.tsx, tests/admin-availability.a11y.dom.test.tsx
   - [ ] Proceed with Phase 11 documentation tasks for templates and data layer.
