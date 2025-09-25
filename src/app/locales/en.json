@@ -196,6 +196,7 @@
 
   "dashboard.searchPlaceholder.generic": "Search...",
   "dashboard.customize": "Customize",
+  "dashboard.filters": "Filters",
   "dashboard.activeFilters": "Active filters:",
   "dashboard.noData": "No data available",
   "dashboard.actions": "Actions",
