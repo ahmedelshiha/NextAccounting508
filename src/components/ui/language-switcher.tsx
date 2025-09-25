@@ -1,6 +1,5 @@
 'use client'
 
-'use client'
 
 import { useState } from 'react'
 import { ChevronDown, Globe } from 'lucide-react'
