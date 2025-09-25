@@ -1,6 +1,5 @@
 'use client'
 
-'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import useSWR from 'swr'
