@@ -100,6 +100,22 @@ export async function GET(request: Request) {
     paymentStatus: (searchParams.get('paymentStatus') as any) || null,
   }
 
+  // Pagination: prefer offset when provided to align with Services API
+  const offsetParam = searchParams.get('offset')
+  const offsetNum = offsetParam != null ? Number(offsetParam) : NaN
+  const skip = Number.isFinite(offsetNum) && offsetNum >= 0
+    ? Math.floor(offsetNum)
+    : (filters.page - 1) * filters.limit
+
+  // Sorting: allow a safe subset of columns; default varies by type
+  const sortByParam = (searchParams.get('sortBy') || (type === 'appointments' ? 'scheduledAt' : 'createdAt')).toString()
+  const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toString().toLowerCase() === 'asc' ? 'asc' : 'desc'
+  const allowedForAppointments = new Set(['scheduledAt','createdAt','priority','status'])
+  const allowedForRequests = new Set(['createdAt','priority','status','scheduledAt'])
+  const allowed = type === 'appointments' ? allowedForAppointments : allowedForRequests
+  const sortBy = allowed.has(sortByParam) ? sortByParam : (type === 'appointments' ? 'scheduledAt' : 'createdAt')
+  const sortByLegacy = (['createdAt','priority','status','deadline'].includes(sortBy) ? sortBy : 'createdAt')
+
   const tenantId = getTenantFromRequest(request as any)
   const where: any = {
     ...(filters.status && { status: filters.status }),
@@ -143,8 +159,8 @@ export async function GET(request: Request) {
           service: { select: { id: true, name: true, slug: true, category: true } },
           assignedTeamMember: { select: { id: true, name: true, email: true } },
         },
-        orderBy: type === 'appointments' ? { scheduledAt: 'desc' } : { createdAt: 'desc' },
-        skip: (filters.page - 1) * filters.limit,
+        orderBy: { [sortBy]: sortOrderParam },
+        skip,
         take: filters.limit,
       }),
       prisma.serviceRequest.count({ where }),
@@ -186,8 +202,8 @@ export async function GET(request: Request) {
             service: { select: { id: true, name: true, slug: true, category: true } },
             assignedTeamMember: { select: { id: true, name: true, email: true } },
           },
-          orderBy: { createdAt: 'desc' },
-          skip: (filters.page - 1) * filters.limit,
+          orderBy: { [sortByLegacy]: sortOrderParam },
+          skip,
           take: filters.limit,
         }),
         prisma.serviceRequest.count({ where: whereLegacy }),
