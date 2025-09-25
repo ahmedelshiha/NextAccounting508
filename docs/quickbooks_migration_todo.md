@@ -1,5 +1,14 @@
 # QuickBooks-Style Admin Dashboard Migration — Ordered TODO Checklist
 
+## Latest Status Update — 2025-09-25
+
+- Completed
+  - [x] Standardized admin API params: /api/admin/bookings and /api/admin/service-requests now support limit, offset, sortBy, sortOrder (backward compatible with page/limit and skip). Preserved X-Total-Count headers.
+- Why
+  - Align pagination/sorting across Services/Bookings/Service Requests to simplify table integrations, exports, and testing; reduce client conditionals.
+- Next steps
+  - [ ] Verify admin table callers pass sortBy/sortOrder consistently and prefer offset when paginating; adjust any remaining page-only flows. Add/expand contract tests as needed.
+
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
 ---
@@ -244,7 +253,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
 - [x] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes — service-requests covered by contract test
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
-- [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
+- [x] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
   - Progress: Added toast handling on admin Services (export, bulk, create/update), Bookings (refresh), and Service Requests (fetch error) with getApiErrorMessage. Sentry capture already active in API routes.
 
@@ -258,8 +267,8 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
   - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
-  - [ ] Bookings critical flow: create → save → list appears with correct totals
-  - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
+  - [x] Bookings critical flow: create → save → list appears with correct totals — covered by tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-bookings.stats-consistency.smoke.test.ts
+  - [x] Service Requests critical flow: assign team member → status update persists and reflects in list — covered by tests/e2e/admin-service-requests-assign-status.smoke.test.ts
   - [x] Services critical flow: create/edit/clone reflected in list and version history (if enabled) — tests/e2e/admin-services.crud.smoke.test.ts
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
