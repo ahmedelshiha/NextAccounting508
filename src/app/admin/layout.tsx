@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import { AdminProviders } from '@/components/admin/providers/AdminProviders'
+import AdminProvidersHydrator from '@/components/admin/providers/AdminProvidersHydrator.client'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
