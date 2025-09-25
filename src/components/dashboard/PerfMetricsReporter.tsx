@@ -40,9 +40,9 @@ export default function PerfMetricsReporter() {
     try {
       observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries() as any) {
-          const e = entry as LayoutShift
+          const e: any = entry
           if (!e.hadRecentInput) {
-            clsValue.current += e.value
+            clsValue.current += Number(e.value || 0)
           }
         }
       })
