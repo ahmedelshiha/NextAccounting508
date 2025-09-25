@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api'
 
 export type ServiceRequestsQuery = {
   page?: number
+  offset?: number
   limit?: number
   q?: string
   status?: string | 'ALL'
@@ -11,6 +12,8 @@ export type ServiceRequestsQuery = {
   dateFrom?: string
   dateTo?: string
   type?: 'ALL' | 'REQUESTS' | 'APPOINTMENTS'
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 export type ServiceRequestsResponse<T = any> = {
@@ -28,6 +31,7 @@ const fetcher = async (url: string) => {
 
 export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   const page = params.page ?? 1
+  const offset = params.offset
   const limit = params.limit ?? 10
   const q = params.q ?? ''
   const status = params.status ?? 'ALL'
@@ -36,10 +40,16 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   const dateFrom = params.dateFrom
   const dateTo = params.dateTo
   const type = params.type ?? 'ALL'
+  const sortBy = params.sortBy
+  const sortOrder = params.sortOrder
 
   const query = new URLSearchParams()
-  query.set('page', String(page))
   query.set('limit', String(limit))
+  if (typeof offset === 'number') {
+    query.set('offset', String(Math.max(0, Math.floor(offset))))
+  } else {
+    query.set('page', String(page))
+  }
   if (q) query.set('q', q)
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
@@ -47,6 +57,8 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   if (dateFrom) query.set('dateFrom', dateFrom)
   if (dateTo) query.set('dateTo', dateTo)
   if (type !== 'ALL') query.set('type', type === 'APPOINTMENTS' ? 'appointments' : 'requests')
+  if (sortBy) query.set('sortBy', sortBy)
+  if (sortOrder) query.set('sortOrder', sortOrder)
 
   const key = `/api/admin/service-requests?${query.toString()}`
   const { data, isLoading, error, mutate } = useSWR<ServiceRequestsResponse>(key, fetcher)

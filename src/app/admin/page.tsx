@@ -1457,7 +1457,7 @@ export default function ProfessionalAdminDashboard() {
         fetch('/api/admin/stats/bookings?range=7d'),
         fetch('/api/admin/stats/users'),
         fetch('/api/admin/tasks?limit=50'),
-        fetch('/api/admin/bookings?limit=20')
+        fetch('/api/admin/bookings?limit=20&offset=0&sortBy=scheduledAt&sortOrder=desc')
       ])
 
       const okJson = async (r: PromiseSettledResult<Response>) => {

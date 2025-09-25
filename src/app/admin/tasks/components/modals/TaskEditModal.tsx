@@ -479,7 +479,7 @@ function useBookings() {
     const abortController = new AbortController()
     ;(async () => {
       try {
-        const response = await apiFetch('/api/admin/bookings?limit=50', { signal: abortController.signal })
+        const response = await apiFetch('/api/admin/bookings?limit=50&offset=0&sortBy=scheduledAt&sortOrder=desc', { signal: abortController.signal })
         const data = await response.json().catch(() => ({}))
         const bookings = Array.isArray(data) ? data : (data?.bookings || [])
         const mapped: BookingItem[] = bookings.map((booking: any) => ({ id: booking.id, clientName: booking.client?.name || booking.clientName || 'Unknown', service: booking.service?.name || booking.serviceName || 'Service', date: (booking.scheduledAt ? String(booking.scheduledAt) : new Date().toISOString()).slice(0, 10) }))
