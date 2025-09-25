@@ -52,7 +52,7 @@ and
   - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md.
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here.
   - [x] Review posts page accessibility (modals, grid, route announcer) and resolve findings — added list semantics and ARIA on posts grid/cards, aria-live for success/alerts, and labels on icon-only actions.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
