@@ -6,6 +6,10 @@ import RevenueTrendChart from "@/components/dashboard/analytics/RevenueTrendChar
 import type { ActionItem, FilterConfig, TabItem } from "@/types/dashboard"
 import type * as React from "react"
 
+/**
+ * Props for AnalyticsPage which composes KPI grid and optional charts
+ * within the StandardPage workspace shell.
+ */
 interface AnalyticsPageProps extends KPIStatsProps {
   title: string
   subtitle?: string

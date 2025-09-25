@@ -1,3 +1,7 @@
+/**
+ * Shared table types for dashboard table components.
+ * Keep generic to support a variety of row shapes and renderers.
+ */
 export type TableColumn<Row = any> = {
   key: string
   label: string
@@ -19,5 +23,3 @@ export type AdvancedDataTableProps<Row = any> = {
   onExport?: (opts?: any) => void
   emptyState?: React.ReactNode
 }
-
-export default TableColumn;

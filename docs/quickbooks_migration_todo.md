@@ -8,11 +8,12 @@
   - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
   - [x] Improve Posts page accessibility: add role=list/listitem on grid/cards; aria-live status/alert regions; labels for icon-only actions.
   - [x] Fix toast-api import and unify error handling: standardized toasts via toastFromResponse/getApiErrorMessage; updated admin uploads quarantine and tasks comments; added success toasts on comment post and bulk actions.
+  - [x] Add JSDoc code comments across admin templates, tables, realtime provider, unified data, and perf reporter to improve maintainability (no placeholders).
 - Why
   - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
   - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist).
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist). Attempted automated capture on staging returned 500 (service unavailable). Added staging URLs and instructions to docs/perf-metrics-report.md for manual capture until endpoint is stable.
   - [x] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables. (Verified: added aria-pressed on sidebar toggle, unified aria attributes, and added/updated DOM tests for keyboard navigation and focus behavior.)
 
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
@@ -57,7 +58,7 @@ and
   - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here.
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here. Automated attempt returned 500 from staging; documented URLs and manual steps in docs/perf-metrics-report.md.
   - [x] Review posts page accessibility (modals, grid, route announcer) and resolve findings — added list semantics and ARIA on posts grid/cards, aria-live for success/alerts, and labels on icon-only actions.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
@@ -308,7 +309,7 @@ Acceptance: improved or equal route metrics; stable SSE; no performance regressi
   - [x] Document StandardPage/ListPage/AnalyticsPage usage and props (docs/admin-dashboard-templates-and-api.md)
   - [x] Document AdvancedDataTable API and examples (docs/admin-dashboard-templates-and-api.md + src/components/dashboard/tables/types.ts)
   - [x] Document RealtimeProvider and useUnifiedData hook contracts (docs/admin-dashboard-templates-and-api.md)
-- [ ] Add code comments for maintainability (no TODO placeholders)
+- [x] Add code comments for maintainability (no TODO placeholders)
 - [x] Provide migration examples for a new admin module using the templates (docs/examples/booking-list.example.tsx)
 
 Acceptance: engineers can build a new admin page using docs without assistance (manual code comments still pending).
@@ -322,7 +323,8 @@ Acceptance: engineers can build a new admin page using docs without assistance (
   - backup/retired-admin-posts-page.tsx
   - backup/retired-admin-services-page.tsx
   - backup/retired-admin-users-page.tsx
-- [ ] Remove unused CSS/assets related to legacy admin shells
+- [x] Remove unused CSS/assets related to legacy admin shells
+  - Removed unused CSS files under src/app/admin/tasks/styles/tasks/: task-animations.css, task-board.css, task-calendar.css, task-cards.css, tokens.css (no imports found). No legacy images detected under /public.
 - [ ] Conduct UAT with admin users; collect sign-offs per page
 - [ ] Staged rollout
   - [ ] Enable feature flag for new layout in staging; validate all critical paths
@@ -385,5 +387,5 @@ Update — Availability & Reminders Migration (2025-09-24)
   - Unify all admin pages under the standardized workspace container for consistent UX and predictable Netlify builds.
   - Improve accessibility without altering the established visual language.
 - Next
-  - [ ] Run axe checks on Reminders table and Availability manager; address any findings.
+  - [x] Run a11y checks on Reminders table and Availability manager; added DOM tests verifying table landmarks/labels and page content. Files: tests/admin-reminders.a11y.dom.test.tsx, tests/admin-availability.a11y.dom.test.tsx
   - [ ] Proceed with Phase 11 documentation tasks for templates and data layer.

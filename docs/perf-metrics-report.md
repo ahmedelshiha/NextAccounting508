@@ -22,3 +22,21 @@ Conclusion:
 
 Post-Change Measurements:
 - To be appended after deployment window using /admin/perf-metrics viewer.
+
+---
+
+## Baseline Screenshots (Public Pages)
+
+Captured on: Pending (initial attempt returned 500 from staging URLs). Use the following staging URLs to capture and attach screenshots:
+
+- Home: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/
+- About: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/about
+- Services: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/services
+- Booking: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/booking
+- Blog: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/blog
+- Contact: https://7ee7061003fb44fa928b19cb51823229-2d514909-49c4-4594-84dd-60a82e.fly.dev/contact
+
+Instructions:
+- Open each URL in a desktop viewport (1440x900).
+- Save PNG screenshots and attach them to this document or store under public/perf-baseline/ with links here.
+- Note timestamp and commit hash when captured.

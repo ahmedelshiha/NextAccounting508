@@ -4,13 +4,25 @@ import useSWR, { SWRConfiguration, mutate as globalMutate } from "swr"
 import { useContext, useEffect, useMemo } from "react"
 import { RealtimeCtx } from "@/components/dashboard/realtime/RealtimeProvider"
 
+/**
+ * Options for useUnifiedData which provides a normalized fetch + realtime revalidation hook.
+ * Pass a logical `key` (e.g. "services") which will resolve to /api/admin/{key} unless an
+ * absolute path is provided, and optional `params` to be encoded as a query string.
+ */
 export type UnifiedDataOptions<T> = {
+  /** Logical resource key or absolute path (e.g. "services" or "/api/admin/services") */
   key: string
+  /** Querystring parameters included in the request */
   params?: Record<string, string | number | boolean | undefined>
+  /** Realtime event types that should trigger revalidation (default: ["all"]) */
   events?: string[]
+  /** Disable SSE-triggered revalidation */
   revalidateOnEvents?: boolean
+  /** Optional transform from raw response to typed data */
   parse?: (raw: any) => T
+  /** Initial fallback data used by SWR */
   initialData?: T
+  /** Additional SWR options (revalidateOnFocus is disabled by default) */
   swr?: SWRConfiguration
 }
 
@@ -30,6 +42,11 @@ export function buildUnifiedPath(key: string, params?: Record<string, string | n
   return q ? `${base}?${q}` : base
 }
 
+/**
+ * useUnifiedData<T> — Fetch JSON from an admin API endpoint with SWR and optional
+ * realtime revalidation. When events are emitted by RealtimeProvider matching the
+ * provided `events` list, the hook will revalidate the resource.
+ */
 export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   const { key, params, events = ["all"], revalidateOnEvents = true, parse, initialData, swr } = opts
 
