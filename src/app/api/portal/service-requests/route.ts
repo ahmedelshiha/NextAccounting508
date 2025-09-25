@@ -467,7 +467,7 @@ export async function POST(request: Request) {
         }
       }
     } catch (e) {
-      try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:create:attachments' }) } catch {}
+      try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:create:attachments' } }) } catch {}
     }
 
     try { await logAudit({ action: 'service-request:create', actorId: session.user.id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
