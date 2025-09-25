@@ -1,5 +1,7 @@
 'use client'
 
+'use client'
+
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import useSWR from 'swr'
 import { Pie, Bar, Line } from 'react-chartjs-2'
