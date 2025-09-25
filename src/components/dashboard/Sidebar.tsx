@@ -44,6 +44,7 @@ export default function Sidebar() {
           <button
             type="button"
             aria-label="Toggle sidebar"
+            aria-pressed={sidebarCollapsed}
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="ml-auto p-2 rounded hover:bg-gray-100"
           >
