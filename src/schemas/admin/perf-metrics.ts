@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import { z } from 'zod'
-
 // Metrics payload sent from client (admin dashboard)
 export const PerfMetricsPostSchema = z.object({
   ts: z.number().int().positive().optional(),
