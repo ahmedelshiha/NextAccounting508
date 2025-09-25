@@ -34,7 +34,7 @@ export interface FilterOption { value: string; label: string }
 export interface FilterConfig { key: string; label: string; options: FilterOption[]; value?: string }
 
 // Header action items
-export interface ActionItem { label: string; icon?: React.ReactNode; onClick: () => void }
+export interface ActionItem { label: string; icon?: React.ReactNode; onClick: () => void; disabled?: boolean }
 
 // Tables
 export type Align = 'left' | 'center' | 'right'
