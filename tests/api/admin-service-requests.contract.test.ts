@@ -17,7 +17,19 @@ vi.mock('@/lib/prisma', () => ({
         if (where.clientId) items = items.filter((r: any) => r.clientId === where.clientId)
         if (where.serviceId) items = items.filter((r: any) => r.serviceId === where.serviceId)
         if (where.OR) items = items.filter((r: any) => where.OR.some((cond: any) => (r.title || '').toLowerCase().includes(cond.title?.contains?.toLowerCase() || '') || (r.description || '').toLowerCase().includes(cond.description?.contains?.toLowerCase() || '')))
-        items.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        const [field, dir] = (() => {
+          const key = orderBy && typeof orderBy === 'object' ? Object.keys(orderBy)[0] : 'createdAt'
+          const direction = (orderBy as any)?.[key] === 'asc' ? 'asc' : 'desc'
+          return [key, direction] as const
+        })()
+        items.sort((a: any, b: any) => {
+          const av = a[field] ?? a.createdAt
+          const bv = b[field] ?? b.createdAt
+          const cmp = field === 'status' || field === 'priority'
+            ? String(av).localeCompare(String(bv))
+            : new Date(av).getTime() - new Date(bv).getTime()
+          return dir === 'asc' ? cmp : -cmp
+        })
         return items.slice(skip, skip + take)
       }),
       count: vi.fn(async ({ where = {} }: any) => {
@@ -51,5 +63,15 @@ describe('API contract — /api/admin/service-requests GET', () => {
     expect(json.pagination.limit).toBe(2)
     expect(json.pagination.page).toBe(1)
     expect(json.pagination.totalPages).toBe(1)
+  })
+
+  it('supports limit+offset and sortBy/sortOrder', async () => {
+    const mod: any = await import('@/app/api/admin/service-requests/route')
+    const resAsc: any = await mod.GET(new Request('https://x?limit=3&offset=0&sortBy=createdAt&sortOrder=asc'))
+    const a = await resAsc.json()
+    expect(a.data[0].id).toBe('r1')
+    const resOffset: any = await mod.GET(new Request('https://x?limit=1&offset=2&sortBy=createdAt&sortOrder=asc'))
+    const o = await resOffset.json()
+    expect(o.data[0].id).toBe('r3')
   })
 })
