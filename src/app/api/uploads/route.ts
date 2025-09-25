@@ -66,7 +66,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
     }
   } catch (e) {
     avScanError = e
-    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'av_scan', policy: AV_POLICY }) } catch {}
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'uploads' }, extra: { step: 'av_scan', policy: AV_POLICY } }) } catch {}
     console.warn('AV scan failed', e)
     try { await logAuditSafe({ action: AV_POLICY === 'strict' ? 'upload:av_error_reject' : 'upload:av_error', details: { error: String(e), policy: AV_POLICY } }) } catch {}
     if (AV_POLICY === 'strict') {
