@@ -155,10 +155,10 @@ export default function ServicesAdminPage() {
         </div>
       ) : (
         <ListPage<ServiceRow>
-          title="Services"
-          subtitle="Manage service offerings, pricing, and status"
+          title="Services Management"
+          subtitle="Manage your service offerings, pricing, and availability"
           primaryAction={{ label: 'New Service', onClick: () => { setEditing(null); setShowModal(true) } }}
-          secondaryActions={[{ label: 'Export CSV', onClick: exportCsv }, { label: 'Analytics', onClick: () => setActiveTab('analytics') }, { label: 'Refresh', onClick: () => mutate() }]}
+          secondaryActions={[{ label: 'Export', onClick: exportCsv }, { label: 'Analytics', onClick: () => setActiveTab('analytics') }, { label: 'Refresh', onClick: () => mutate() }]}
           primaryTabs={primaryTabs}
           activePrimaryTab={activeTab}
           onPrimaryTabChange={setActiveTab}
