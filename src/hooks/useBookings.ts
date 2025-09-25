@@ -55,8 +55,11 @@ export function useBookings(params: BookingsQuery = {}) {
   if (typeof offset === 'number') {
     query.set('offset', String(Math.max(0, Math.floor(offset))))
   } else {
-    query.set('page', String(page))
+    const computed = Math.max(0, (page - 1) * limit)
+    query.set('offset', String(computed))
   }
+  // Keep page for backward compatibility with any legacy handlers
+  query.set('page', String(page))
   if (q) query.set('q', q)
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
