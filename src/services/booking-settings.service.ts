@@ -145,6 +145,7 @@ export class BookingSettingsService {
     if (!target) throw new Error('Booking settings not found')
     await prisma.bookingSettings.update({ where: { id: (target as any).id }, data })
 
+    await this.invalidateByTenant(tenantId)
     const updated = (await this.getBookingSettings(tenantId)) as BookingSettings
     // Refresh cache with updated value
     await cache.set(this.cacheKey(tenantId), updated, 300)
