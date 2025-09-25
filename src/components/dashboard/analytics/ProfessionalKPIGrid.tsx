@@ -115,7 +115,7 @@ export default function ProfessionalKPIGrid({ stats }: KPIStatsProps) {
               className={`transition-all duration-200 hover:shadow-lg cursor-pointer group relative ${
                 hasAlerts ? `ring-2 ring-red-200 ${kpi.borderColor}` : 'hover:border-gray-300'
               } ${isExpanded ? 'lg:col-span-2' : ''}`}
-              onClick={() => router.push(kpi.drillDown)}
+              onClick={() => { if (typeof window !== 'undefined') { window.location.href = kpi.drillDown } }}
             >
               {hasAlerts && (
                 <div className="absolute -top-2 -right-2 z-10">
