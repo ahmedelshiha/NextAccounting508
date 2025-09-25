@@ -16,7 +16,6 @@ import type {
 } from '@/types/booking-settings.types'
 
 import { Prisma } from '@prisma/client'
-import prisma from '@/lib/prisma'
 
 // Return Prisma.DbNull sentinel used for nullable JSON fields
 function getDbNull(): any {
