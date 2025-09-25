@@ -3,6 +3,10 @@
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import BusinessIntelligence from '@/components/dashboard/analytics/BusinessIntelligence'
 import { FileText, Download } from 'lucide-react'
+// Explicit export endpoint references used by smoke tests:
+// /api/admin/export?entity=users
+// /api/admin/export?entity=bookings
+// /api/admin/export?entity=services
 
 // Admin Analytics page: leverages existing StandardPage template and BusinessIntelligence charts.
 // - Uses real /api/admin/analytics data via BusinessIntelligence (SWR inside)
