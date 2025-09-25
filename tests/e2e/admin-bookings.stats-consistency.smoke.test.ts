@@ -12,6 +12,18 @@ const db: any = { bookings: [] as any[], services: [{ id: 's1', name: 'Tax Filin
 vi.mock('@/lib/prisma', () => ({
   default: {
     booking: {
+      findFirst: vi.fn(async ({ where = {} }: any) => {
+        // return first matching booking or null
+        let items = db.bookings.slice()
+        if (where.status) {
+          if (Array.isArray(where.status.in)) items = items.filter((b: any) => where.status.in.includes(b.status))
+          else items = items.filter((b: any) => b.status === where.status)
+        }
+        if (where.scheduledAt?.gte) items = items.filter((b: any) => new Date(b.scheduledAt) >= new Date(where.scheduledAt.gte))
+        if (where.scheduledAt?.lte) items = items.filter((b: any) => new Date(b.scheduledAt) <= new Date(where.scheduledAt.lte))
+        if (items.length === 0) return null
+        return items[0]
+      }),
       findMany: vi.fn(async ({ where = {}, select, include }: any) => {
         let items = db.bookings.slice()
         if (where.status) {

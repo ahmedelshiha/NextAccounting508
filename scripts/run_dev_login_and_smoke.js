@@ -1,5 +1,6 @@
 (async function(){
   try{
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { spawnSync } = require('child_process')
     const fetch = globalThis.fetch || (async (...args) => {
       const nodeFetch = await import('node-fetch')

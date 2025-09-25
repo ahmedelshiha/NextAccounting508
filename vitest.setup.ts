@@ -1,4 +1,14 @@
 import { vi } from 'vitest'
+import * as React from 'react'
+import fs from 'fs'
+
+// Expose React globally for tests that perform SSR renders and rely on React being available
+;(globalThis as any).React = React
+
+// Expose fs helpers globally for tests that call readFileSync/writeFileSync without importing
+;(globalThis as any).readFileSync = fs.readFileSync
+;(globalThis as any).writeFileSync = fs.writeFileSync
+;(globalThis as any).existsSync = fs.existsSync
 
 // Default mocks to avoid Next.js headers() runtime issues in tests
 const defaultSession = { user: { id: 'test-user', role: 'ADMIN', email: 'test@example.com', name: 'Test User' } }

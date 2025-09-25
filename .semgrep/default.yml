@@ -1,0 +1,35 @@
+rules:
+  - id: eval-usage
+    patterns:
+      - pattern: "eval($X)"
+    message: "Avoid using eval() — it can lead to remote code execution."
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: new-function-usage
+    patterns:
+      - pattern: "new Function($ARGS)"
+    message: "Avoid dynamic Function constructor — it can lead to remote code execution."
+    severity: ERROR
+    languages: [javascript, typescript]
+
+  - id: dangerously-set-inner-html
+    patterns:
+      - pattern: "dangerouslySetInnerHTML: $X"
+    message: "Avoid dangerouslySetInnerHTML unless content is sanitized."
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: process-env-secret
+    patterns:
+      - pattern: "process.env[$KEY]"
+    message: "Ensure secrets from process.env are not logged or leaked and are validated before use."
+    severity: WARNING
+    languages: [javascript, typescript]
+
+  - id: require-dynamic
+    patterns:
+      - pattern: "require($X)"
+    message: "Avoid dynamic require() where possible; prefer ES imports or add justified exceptions."
+    severity: WARNING
+    languages: [javascript, typescript]

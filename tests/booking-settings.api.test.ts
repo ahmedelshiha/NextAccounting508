@@ -12,7 +12,7 @@ const prismaMock = {
     create: async ({ data }: any) => { const row = { id: genId(), createdAt: new Date(), updatedAt: new Date(), updatedBy: null, ...data }
       db.settings.push(row); return row },
     update: async ({ where, data }: any) => { const s = db.settings.find((x) => (where.id ? x.id === where.id : x.tenantId === (where.tenantId ?? null)))
-      if (!s) throw new Error('not found'); Object.assign(s, data); s.updatedAt = new Date(); return s },
+      if (!s) throw new Error('not found'); const dataCopy = { ...data }; delete dataCopy.id; Object.assign(s, dataCopy); s.updatedAt = new Date(); return s },
     delete: async ({ where }: any) => { const i = db.settings.findIndex((x) => x.id === where.id); if (i>=0) db.settings.splice(i,1); return { id: where.id } },
   },
   bookingStepConfig: {
@@ -102,6 +102,9 @@ describe('admin/booking-settings API', () => {
     const resImport: any = await impMod.POST(new Request(`${base}/api/admin/booking-settings/import`, { method: 'POST', body: JSON.stringify(importBody) }))
     expect(resImport.status).toBe(200)
     const out = await resImport.json()
+    // Debug output for CI: show import response
+    // eslint-disable-next-line no-console
+    console.log('IMPORT OUT:', JSON.stringify(out, null, 2))
     expect(out?.settings?.id).toBeDefined()
   })
 

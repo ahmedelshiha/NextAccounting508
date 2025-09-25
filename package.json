@@ -11,6 +11,9 @@
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
+    "test": "vitest --run",
+    "prebuild": "pnpm test",
+    "check:rbac": "node scripts/check_admin_rbac.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
@@ -19,6 +22,9 @@
     "db:reset": "prisma migrate reset",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
     "test:tenant": "vitest run tests/tenant-filter.test.ts",
+    "test:integration": "vitest --run --reporter dot --threads false tests/integration",
+    "test:e2e": "playwright test",
+    "e2e:ci": "sh e2e/run-e2e.sh",
     "vercel:build": "pnpm db:generate && pnpm lint && pnpm typecheck && pnpm build"
   },
   "dependencies": {

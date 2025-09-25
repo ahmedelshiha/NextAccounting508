@@ -7,6 +7,7 @@ It will call /api/admin/service-requests and /api/admin/users with two different
 Note: AUTH_TOKEN should be a valid admin bearer token or session cookie header replacement.
 */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = globalThis.fetch || require('node-fetch')
 
 const TARGET_URL = process.env.TARGET_URL
