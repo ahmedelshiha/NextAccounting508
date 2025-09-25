@@ -1,3 +1,5 @@
+'use client'
+
 import React, { createContext, useContext, useState, useMemo } from 'react'
 import type { TaskFilters } from '@/lib/tasks/types'
 import { applyFilters } from '@/lib/tasks/utils'
