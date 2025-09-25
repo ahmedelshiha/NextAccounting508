@@ -25,7 +25,6 @@ export interface KPIStatsProps {
 export default function ProfessionalKPIGrid({ stats }: KPIStatsProps) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'today' | 'week' | 'month'>('month')
   const [expandedKPI, setExpandedKPI] = useState<string | null>(null)
-  const router = useRouter()
 
   const kpis = [
     {
