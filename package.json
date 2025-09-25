@@ -13,6 +13,7 @@
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
     "test": "vitest --run",
     "prebuild": "pnpm test",
+    "check:rbac": "node scripts/check_admin_rbac.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
