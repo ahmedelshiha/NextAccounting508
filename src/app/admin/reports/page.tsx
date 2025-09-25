@@ -2,6 +2,10 @@
 
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import { Download } from 'lucide-react'
+// Explicit export endpoint references used by smoke tests:
+// /api/admin/export?entity=users
+// /api/admin/export?entity=bookings
+// /api/admin/export?entity=services
 
 // Admin Reports page: focuses on data export and summaries wiring.
 // - Uses StandardPage template to align with QuickBooks-style layout

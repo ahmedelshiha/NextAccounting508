@@ -3,7 +3,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { DollarSign, Calendar, Users, Target, TrendingUp, TrendingDown, Minimize2, Maximize2, AlertTriangle, ExternalLink } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -116,7 +115,7 @@ export default function ProfessionalKPIGrid({ stats }: KPIStatsProps) {
               className={`transition-all duration-200 hover:shadow-lg cursor-pointer group relative ${
                 hasAlerts ? `ring-2 ring-red-200 ${kpi.borderColor}` : 'hover:border-gray-300'
               } ${isExpanded ? 'lg:col-span-2' : ''}`}
-              onClick={() => router.push(kpi.drillDown)}
+              onClick={() => { if (typeof window !== 'undefined') { window.location.href = kpi.drillDown } }}
             >
               {hasAlerts && (
                 <div className="absolute -top-2 -right-2 z-10">

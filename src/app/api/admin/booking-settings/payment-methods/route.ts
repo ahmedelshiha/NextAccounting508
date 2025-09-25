@@ -15,10 +15,10 @@ export async function PUT(req: NextRequest) {
   const body = await req.json().catch(() => null)
   if (!body || !Array.isArray(body.paymentMethods)) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-  const settings = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined }, select: { id: true } })
-  if (!settings) return NextResponse.json({ error: 'Booking settings not found' }, { status: 404 })
+  let settings = await service.getBookingSettings(tenantId)
+  if (!settings) settings = await service.createDefaultSettings(tenantId)
 
-  const updated = await service.updatePaymentMethods(settings.id, body.paymentMethods)
+  const updated = await service.updatePaymentMethods((settings as any).id, body.paymentMethods)
   try { await logAudit({ action: 'booking-settings:payment-methods:update', actorId: session.user.id, details: { tenantId, methods: updated.length } }) } catch {}
   return NextResponse.json({ paymentMethods: updated })
 }
