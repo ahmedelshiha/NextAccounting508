@@ -1,5 +1,6 @@
 const { execSync } = require('child_process')
 const path = require('path')
+const { execSync } = require('child_process')
 
 module.exports = {
   onPostBuild: async ({ utils, constants }) => {
@@ -15,8 +16,7 @@ module.exports = {
 
     try {
       utils.status.show({ summary: 'Running E2E tests (ephemeral) via e2e/run-e2e.sh' })
-      // Ensure script is executable
-      execSync(`sh ${scriptPath}`, { stdio: 'inherit', cwd: repoRoot, env: process.env })
+      execSync(`bash ${scriptPath}`, { stdio: 'inherit', cwd: repoRoot, env: process.env })
       utils.status.show({ summary: 'E2E tests completed successfully' })
     } catch (err) {
       utils.build.failBuild('E2E tests failed', { error: err })
