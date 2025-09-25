@@ -37,7 +37,7 @@ export function AdminProviders({ children, session }: AdminProvidersProps) {
         errorRetryCount: 3,
         onError: (err) => {
           // Keep logging minimal and non-intrusive in production; Sentry captures details elsewhere
-          // eslint-disable-next-line no-console
+           
           console.error('SWR error:', err)
         }
       }}>

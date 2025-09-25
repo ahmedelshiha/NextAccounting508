@@ -51,7 +51,7 @@ export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   useEffect(() => {
     if (!revalidateOnEvents) return
     return subscribeByTypes(events, () => { void mutate() })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [JSON.stringify(events), revalidateOnEvents, path])
 
   return { data, error, isLoading, isValidating, refresh: () => mutate(), mutate: (v?: any) => mutate(v, { revalidate: true }), key: path, globalMutate }
