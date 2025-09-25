@@ -35,13 +35,20 @@ export async function GET(request: NextRequest) {
       where.category = category
     }
 
-    const services = await prisma.service.findMany({
+    // Add a timeout guard to avoid hanging requests when DB is cold or unreachable
+    const timeoutMs = Number(process.env.SERVICES_QUERY_TIMEOUT_MS ?? 2500)
+    const findPromise = prisma.service.findMany({
       where,
       orderBy: [
         { featured: 'desc' },
         { createdAt: 'desc' }
       ]
     })
+
+    const services = await Promise.race<Awaited<ReturnType<typeof prisma.service.findMany>>>([
+      findPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Service query timeout')), Math.max(250, timeoutMs))) as Promise<never>,
+    ]).catch(() => null as any)
 
     if (!services || services.length === 0) {
       const fallback = [

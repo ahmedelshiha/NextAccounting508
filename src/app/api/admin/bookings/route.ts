@@ -99,12 +99,17 @@ export async function GET(request: NextRequest) {
     const page = takeVal > 0 ? Math.floor(skipVal / takeVal) + 1 : 1
     const totalPages = takeVal > 0 ? Math.max(1, Math.ceil(total / takeVal)) : 1
 
+    const etag = '"' + require('crypto').createHash('sha1').update(JSON.stringify({ t: total, ids: bookings.map(b=>b.id), up: bookings.map(b=>b.updatedAt || b.createdAt) })).digest('hex') + '"'
+    const ifNoneMatch = request.headers.get('if-none-match')
+    if (ifNoneMatch && ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304, headers: { ETag: etag } })
+    }
     return NextResponse.json({
       bookings,
       total,
       page,
       totalPages
-    }, { headers: { 'X-Total-Count': String(total) } })
+    }, { headers: { 'X-Total-Count': String(total), ETag: etag, 'Cache-Control': 'private, max-age=60' } })
   } catch (error) {
     console.error('Error fetching admin bookings:', error)
     return NextResponse.json(

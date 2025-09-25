@@ -17,6 +17,10 @@ export default function AnalyticsPagePreview() {
     { month: 'May', revenue: 45230, target: 38000 },
   ]
 
+  const enabled = process.env.NEXT_PUBLIC_ENABLE_ADMIN_PREVIEWS === 'true' || process.env.NODE_ENV !== 'production'
+  if (!enabled) {
+    return <div className="p-6 text-sm text-gray-600">Previews are disabled in production.</div>
+  }
   return (
     <AnalyticsPage
       title="Analytics Template Preview"
