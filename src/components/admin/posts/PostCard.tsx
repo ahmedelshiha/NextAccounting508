@@ -57,9 +57,10 @@ function StatusBadge({ status }: { status: PostStatus }) {
 
 export default function PostCard({ post, onEdit, onDelete, onPreview, onView }: PostCardProps) {
   const priority = priorityStyles[post.priority]
+  const titleId = `post-title-${post.id}`
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 relative">
+    <Card role="listitem" aria-labelledby={titleId} className="group hover:shadow-lg transition-all duration-200 relative">
       {post.priority === 'urgent' && (
         <div className="absolute -top-2 -right-2 z-10">
           <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse" />
@@ -92,7 +93,7 @@ export default function PostCard({ post, onEdit, onDelete, onPreview, onView }: 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg line-clamp-2 mb-1">{post.title}</CardTitle>
+            <CardTitle id={titleId} className="text-lg line-clamp-2 mb-1">{post.title}</CardTitle>
             <CardDescription className="text-xs text-gray-500 flex items-center">
               <Globe className="h-3 w-3 mr-1" />/{post.slug}
             </CardDescription>
@@ -163,17 +164,17 @@ export default function PostCard({ post, onEdit, onDelete, onPreview, onView }: 
               <Edit className="h-3 w-3 mr-1" />
               Edit
             </Button>
-            <Button size="sm" variant="outline" onClick={() => onDelete(post)} className="text-red-600 hover:text-red-700 text-xs">
+            <Button aria-label="Delete post" title="Delete post" size="sm" variant="outline" onClick={() => onDelete(post)} className="text-red-600 hover:text-red-700 text-xs">
               <AlertCircle className="h-3 w-3" />
             </Button>
           </div>
 
           <div className="flex items-center space-x-2">
-            <button className="text-xs px-2 py-1 text-gray-600 hover:text-purple-600 border border-gray-200 rounded hover:border-purple-200 transition-colors" onClick={() => onPreview(post)}>
+            <button aria-label="Preview post" className="text-xs px-2 py-1 text-gray-600 hover:text-purple-600 border border-gray-200 rounded hover:border-purple-200 transition-colors" onClick={() => onPreview(post)}>
               <Eye className="h-3 w-3 mr-1 inline" />
               Preview
             </button>
-            <button className="text-xs px-2 py-1 text-gray-600 hover:text-blue-600 border border-gray-200 rounded hover:border-blue-200 transition-colors" onClick={() => onView(post)}>
+            <button aria-label="View live post" className="text-xs px-2 py-1 text-gray-600 hover:text-blue-600 border border-gray-200 rounded hover:border-blue-200 transition-colors" onClick={() => onView(post)}>
               <ExternalLink className="h-3 w-3 mr-1 inline" />
               View
             </button>

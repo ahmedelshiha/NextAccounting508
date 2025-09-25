@@ -4,6 +4,7 @@ import useSWR from 'swr'
 
 export type BookingsQuery = {
   page?: number
+  offset?: number
   limit?: number
   q?: string
   status?: string | 'ALL'
@@ -15,6 +16,8 @@ export type BookingsQuery = {
   teamMemberId?: string
   type?: 'appointments' | 'requests' | 'all'
   scope?: 'admin' | 'portal'
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 export type BookingsResponse<T = any> = {
@@ -32,6 +35,7 @@ const fetcher = async (url: string) => {
 
 export function useBookings(params: BookingsQuery = {}) {
   const page = params.page ?? 1
+  const offset = params.offset
   const limit = params.limit ?? 10
   const q = params.q ?? ''
   const status = params.status ?? 'ALL'
@@ -43,10 +47,19 @@ export function useBookings(params: BookingsQuery = {}) {
   const teamMemberId = params.teamMemberId
   const type = params.type ?? 'all'
   const scope = params.scope ?? 'admin'
+  const sortBy = params.sortBy
+  const sortOrder = params.sortOrder
 
   const query = new URLSearchParams()
-  query.set('page', String(page))
   query.set('limit', String(limit))
+  if (typeof offset === 'number') {
+    query.set('offset', String(Math.max(0, Math.floor(offset))))
+  } else {
+    const computed = Math.max(0, (page - 1) * limit)
+    query.set('offset', String(computed))
+  }
+  // Keep page for backward compatibility with any legacy handlers
+  query.set('page', String(page))
   if (q) query.set('q', q)
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
@@ -58,6 +71,8 @@ export function useBookings(params: BookingsQuery = {}) {
 
   const base = scope === 'portal' ? '/api/portal/service-requests' : '/api/admin/service-requests'
   if (type && type !== 'all') query.set('type', type)
+  if (sortBy) query.set('sortBy', sortBy)
+  if (sortOrder) query.set('sortOrder', sortOrder)
 
   const key = `${base}?${query.toString()}`
   const { data, isLoading, error, mutate } = useSWR<BookingsResponse>(key, fetcher)

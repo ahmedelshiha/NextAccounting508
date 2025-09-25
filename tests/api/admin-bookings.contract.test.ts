@@ -12,7 +12,19 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn(async ({ where = {}, skip = 0, take = 10, orderBy = { scheduledAt: 'desc' } }: any) => {
         let items = db.bookings.slice()
         if (where.status) items = items.filter((b: any) => b.status === where.status)
-        items.sort((a: any, b: any) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+        const [field, dir] = (() => {
+          const key = orderBy && typeof orderBy === 'object' ? Object.keys(orderBy)[0] : 'scheduledAt'
+          const direction = (orderBy as any)?.[key] === 'asc' ? 'asc' : 'desc'
+          return [key, direction] as const
+        })()
+        items.sort((a: any, b: any) => {
+          const av = a[field] ?? a.scheduledAt
+          const bv = b[field] ?? b.scheduledAt
+          const cmp = field === 'status'
+            ? String(av).localeCompare(String(bv))
+            : new Date(av).getTime() - new Date(bv).getTime()
+          return dir === 'asc' ? cmp : -cmp
+        })
         return items.slice(skip, skip + take)
       }),
       count: vi.fn(async ({ where = {} }: any) => {
@@ -45,5 +57,15 @@ describe('API contract — /api/admin/bookings GET', () => {
     const j2 = await res2.json()
     expect(j2.bookings.length).toBe(1)
     expect(j2.page).toBe(2)
+  })
+
+  it('supports sortBy and sortOrder', async () => {
+    const mod: any = await import('@/app/api/admin/bookings/route')
+    const resAsc: any = await mod.GET(new Request('https://x?limit=2&offset=0&sortBy=scheduledAt&sortOrder=asc'))
+    const a = await resAsc.json()
+    expect(a.bookings[0].id).toBe('b1')
+    const resDesc: any = await mod.GET(new Request('https://x?limit=2&offset=0&sortBy=scheduledAt&sortOrder=desc'))
+    const d = await resDesc.json()
+    expect(d.bookings[0].id).toBe('b2')
   })
 })

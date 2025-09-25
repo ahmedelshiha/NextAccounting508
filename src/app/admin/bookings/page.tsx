@@ -109,7 +109,33 @@ export default function EnhancedBookingManagement() {
   async function refresh() {
     setLoading(true)
     try {
-      const response = await apiFetch('/api/admin/bookings')
+      const params = new URLSearchParams()
+      params.set('limit', '50')
+      params.set('offset', '0')
+      if (searchTerm) params.set('search', searchTerm)
+      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter)
+      // Map date filter to start/end ISO strings
+      if (dateFilter && dateFilter !== 'all') {
+        const now = new Date()
+        let start = new Date(now)
+        if (dateFilter === 'today') {
+          start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+        } else if (dateFilter === 'week') {
+          start = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000)
+          start.setHours(0,0,0,0)
+        } else if (dateFilter === 'month') {
+          start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+        }
+        params.set('startDate', start.toISOString())
+        params.set('endDate', now.toISOString())
+      }
+      const sortField = ((): string => {
+        if (sortBy === 'status') return 'status'
+        return 'scheduledAt'
+      })()
+      params.set('sortBy', sortField)
+      params.set('sortOrder', sortOrder)
+      const response = await apiFetch(`/api/admin/bookings?${params.toString()}`)
       if (!response.ok) {
         const { toastFromResponse } = await import('@/lib/toast-api')
         await toastFromResponse(response, { failure: 'Failed to load bookings' })

@@ -441,20 +441,20 @@ export default function AdminPostsPage() {
       loading={loading}
     >
       {successMessage && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+        <div role="status" aria-live="polite" className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
           <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
           <span className="text-green-800">{successMessage}</span>
-          <button onClick={() => setSuccessMessage(null)} className="ml-auto text-green-600 hover:text-green-800">
+          <button aria-label="Dismiss success message" onClick={() => setSuccessMessage(null)} className="ml-auto text-green-600 hover:text-green-800">
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
       {errorMessage && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+        <div role="alert" aria-live="assertive" className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
           <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
           <span className="text-red-800">{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="ml-auto text-red-600 hover:text-red-800">
+          <button aria-label="Dismiss error message" onClick={() => setErrorMessage(null)} className="ml-auto text-red-600 hover:text-red-800">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -468,7 +468,7 @@ export default function AdminPostsPage() {
         totalViews={stats.totalViews}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div role="list" aria-label="Posts" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredAndSortedPosts.map(post => (
           <PostCard
             key={post.id}

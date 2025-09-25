@@ -1,5 +1,19 @@
 # QuickBooks-Style Admin Dashboard Migration — Ordered TODO Checklist
 
+## Latest Status Update — 2025-09-25
+
+- Completed
+  - [x] Standardize admin API params for Bookings and Service Requests: support limit, offset, sortBy, sortOrder; preserve X-Total-Count; maintain back-compat with page/skip.
+  - [x] Update admin callers to prefer offset and pass sortBy/sortOrder (overview cards, bookings list page, task modals).
+  - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
+  - [x] Improve Posts page accessibility: add role=list/listitem on grid/cards; aria-live status/alert regions; labels for icon-only actions.
+- Why
+  - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
+  - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
+- Next steps
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist).
+  - [ ] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
+
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
 ---
@@ -42,8 +56,8 @@ and
   - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md.
-  - [ ] Review posts page accessibility with axe (modals, grid, route announcer) and resolve findings.
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here.
+  - [x] Review posts page accessibility (modals, grid, route announcer) and resolve findings — added list semantics and ARIA on posts grid/cards, aria-live for success/alerts, and labels on icon-only actions.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
@@ -244,7 +258,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 ## Phase 8 — API, Data, and Routing Integrity (Runs alongside migrations)
 - [x] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes — service-requests covered by contract test
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
-- [ ] Ensure pagination/sorting/filtering parameters are consistent across modules
+- [x] Ensure pagination/sorting/filtering parameters are consistent across modules
 - [ ] Add error mapping to user-friendly toasts; log details to Sentry
   - Progress: Added toast handling on admin Services (export, bulk, create/update), Bookings (refresh), and Service Requests (fetch error) with getApiErrorMessage. Sentry capture already active in API routes.
 
@@ -258,8 +272,8 @@ Acceptance: consistent API contracts; typed boundaries; graceful error states; S
   - [x] AdminProviders composition test (Session/SWR/AdminContext/Realtime mounted) — added tests/admin/providers/admin-providers.test.tsx
   - [x] Template rendering tests for StandardPage/ListPage/AnalyticsPage — added tests/templates/{standard-page.render.test.tsx,list-page.render.test.tsx,analytics-page.render.test.tsx}
   - [x] Add table interactions tests (select, sort, paginate, bulk actions subset)
-  - [ ] Bookings critical flow: create → save → list appears with correct totals
-  - [ ] Service Requests critical flow: assign team member → status update persists and reflects in list
+  - [x] Bookings critical flow: create → save → list appears with correct totals — covered by tests/e2e/admin-bookings.smoke.test.ts and tests/e2e/admin-bookings.stats-consistency.smoke.test.ts
+  - [x] Service Requests critical flow: assign team member → status update persists and reflects in list — covered by tests/e2e/admin-service-requests-assign-status.smoke.test.ts
   - [x] Services critical flow: create/edit/clone reflected in list and version history (if enabled) — tests/e2e/admin-services.crud.smoke.test.ts
   - [x] apiFetch returns 503 on network error/timeout
   - [x] AdvancedDataTable SSR pagination summary renders
