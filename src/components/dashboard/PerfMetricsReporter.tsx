@@ -86,8 +86,8 @@ export default function PerfMetricsReporter() {
       // Fallback to first-input-delay
       try {
         observer = new PerformanceObserver((list) => {
-          const fi = list.getEntries()[0]
-          if (fi) inpValue.current = Math.round(fi.processingStart - fi.startTime)
+          const fi: any = list.getEntries()[0]
+          if (fi) inpValue.current = Math.round((fi.processingStart ?? fi.duration ?? 0) - (fi.startTime ?? 0))
         })
         observer.observe({ type: 'first-input', buffered: true } as any)
       } catch {}
