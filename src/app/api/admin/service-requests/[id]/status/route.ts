@@ -81,5 +81,5 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   } catch {}
 
   try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: id, details: { status: safeUpdated.status } }) } catch {}
-  return respond.ok(safeUpdated)
+  return NextResponse.json(safeUpdated, { status: 200 })
 }
