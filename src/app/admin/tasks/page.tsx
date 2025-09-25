@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useMemo, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
