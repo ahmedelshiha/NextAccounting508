@@ -34,7 +34,7 @@ export default function UserPermissionsInspector() {
       <form onSubmit={onLookup} className="p-4 border-b border-gray-200 flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Enter user id or 'me'" className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={"Enter user id or &quot;me&quot;"} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
         </div>
         <button type="submit" disabled={loading || !query} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">{loading ? 'Loading…' : 'Inspect'}</button>
       </form>
@@ -64,7 +64,7 @@ export default function UserPermissionsInspector() {
       )}
 
       {!data && !error && !loading && (
-        <div className="p-4 text-sm text-gray-600">Enter a user ID or use "me" to inspect the current session's permissions.</div>
+        <div className="p-4 text-sm text-gray-600">Enter a user ID or use &quot;me&quot; to inspect the current session&apos;s permissions.</div>
       )}
     </div>
   )

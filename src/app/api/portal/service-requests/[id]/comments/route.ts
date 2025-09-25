@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
     return respond.ok(comments)
   } catch (e: any) {
-    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:[id]:comments:GET' }) } catch {}
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:service-requests:[id]:comments:GET' } }) } catch {}
     if (String(e?.code || '').startsWith('P20')) {
       try {
         const { getRequest, getComments } = await import('@/lib/dev-fallbacks')
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
     return respond.created(created)
   } catch (e: any) {
-    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:[id]:comments:POST' }) } catch {}
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:service-requests:[id]:comments:POST' } }) } catch {}
     if (String(e?.code || '').startsWith('P20')) {
       try {
         const { addComment, getRequest } = await import('@/lib/dev-fallbacks')

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { toastFromResponse, toastError, toastSuccess } from '@/lib/toast-api'
 
 interface DbItem { id: string; key?: string | null; url?: string | null; name?: string | null; size?: number | null; contentType?: string | null; avStatus?: string | null; uploadedAt?: string | null; serviceRequestId?: string | null }
 interface ProviderItem { key: string; size?: number; createdAt?: string }
@@ -51,7 +52,7 @@ export default function QuarantineClient() {
       if (dbSort) qs.set('dbSort', dbSort)
       if (providerSort) qs.set('providerSort', providerSort)
       const res = await fetch(`/api/admin/uploads/quarantine${qs.toString() ? `?${qs}` : ''}`)
-      if (!res.ok) throw new Error('Failed')
+      if (!res.ok) { await toastFromResponse(res, { failure: 'Failed to load quarantine' }); setDbItems([]); setProviderItems([]); setDbMeta(null); setProviderMeta(null); return }
       const json = await res.json()
       const data = json?.data || {}
       const meta = json?.meta || {}
@@ -61,7 +62,7 @@ export default function QuarantineClient() {
       setProviderMeta(meta.provider || null)
     } catch (e) {
       setDbItems([]); setProviderItems([]); setDbMeta(null); setProviderMeta(null)
-      toast.error('Failed to load quarantine')
+      toastError(e, 'Failed to load quarantine')
     } finally {
       setLoading(false)
     }
@@ -75,9 +76,8 @@ export default function QuarantineClient() {
     if (!confirm(`Are you sure you want to ${action} ${key}?`)) return
     try {
       const res = await fetch('/api/admin/uploads/quarantine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, key }) })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) { toast.error(json.error || 'Action failed'); return }
-      toast.success('Action succeeded')
+      if (!res.ok) { await toastFromResponse(res, { failure: 'Action failed' }); return }
+      toastSuccess('Action succeeded')
       fetchItems()
     } catch { toast.error('Action failed') }
   }
@@ -204,15 +204,15 @@ export default function QuarantineClient() {
               <Button onClick={async () => {
                 if (!confirm(`Release ${keysSelected.length} item(s)?`)) return
                 const res = await fetch('/api/admin/uploads/quarantine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release', keys: keysSelected }) })
-                if (!res.ok) { const j = await res.json().catch(() => ({})); toast.error(j.error || 'Bulk release failed'); return }
-                toast.success('Bulk release initiated')
+                if (!res.ok) { await toastFromResponse(res, { failure: 'Bulk release failed' }); return }
+                toastSuccess('Bulk release initiated')
                 fetchItems()
               }}>Bulk Release ({keysSelected.length})</Button>
               <Button variant="destructive" onClick={async () => {
                 if (!confirm(`Delete ${keysSelected.length} item(s)?`)) return
                 const res = await fetch('/api/admin/uploads/quarantine', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', keys: keysSelected }) })
-                if (!res.ok) { const j = await res.json().catch(() => ({})); toast.error(j.error || 'Bulk delete failed'); return }
-                toast.success('Bulk delete completed')
+                if (!res.ok) { await toastFromResponse(res, { failure: 'Bulk delete failed' }); return }
+                toastSuccess('Bulk delete completed')
                 fetchItems()
               }}>Bulk Delete ({keysSelected.length})</Button>
             </>
