@@ -1,5 +1,7 @@
 'use client'
 
+'use client'
+
 import { useState } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
