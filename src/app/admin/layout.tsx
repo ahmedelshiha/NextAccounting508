@@ -29,10 +29,13 @@ export default async function AdminLayout({ children }: Props) {
 
   // Wrap all admin routes with providers and the unified dashboard shell
   return (
-    <AdminProviders session={session}>
-      <DashboardLayout>
-        <div className="min-h-screen">{children}</div>
-      </DashboardLayout>
-    </AdminProviders>
+    <>
+      <AdminProviders session={session}>
+        <DashboardLayout>
+          <div className="min-h-screen">{children}</div>
+        </DashboardLayout>
+      </AdminProviders>
+      <AdminProvidersHydrator session={session} />
+    </>
   )
 }
