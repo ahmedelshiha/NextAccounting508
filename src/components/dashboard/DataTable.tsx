@@ -1,5 +1,6 @@
-import type { Column, RowAction } from '@/types/dashboard'
 'use client'
+
+import type { Column, RowAction } from '@/types/dashboard'
 
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
