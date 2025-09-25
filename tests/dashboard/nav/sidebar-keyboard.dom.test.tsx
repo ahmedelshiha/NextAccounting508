@@ -27,6 +27,8 @@ describe('Sidebar a11y and keyboard support', () => {
       // toggle button present
       const btn = container.querySelector('button[aria-label="Toggle sidebar"]') as HTMLButtonElement
       expect(btn).toBeTruthy()
+      // exposes aria-pressed to indicate collapsed state
+      expect(btn.getAttribute('aria-pressed')).toBe('false')
       btn.click()
       // triggered setter in mocked context
       const ctxMod: any = require('@/components/admin/providers/AdminContext')
