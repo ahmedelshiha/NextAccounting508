@@ -16,7 +16,7 @@ vi.mock('@/components/admin/providers/AdminContext', async () => {
 import Sidebar from '@/components/dashboard/Sidebar'
 
 describe('Sidebar a11y and keyboard support', () => {
-  it('exposes navigation landmark and supports toggle via accessible button', () => {
+  it('exposes navigation landmark and supports toggle via accessible button', async () => {
     const { container, getByText, unmount } = renderDOM(<Sidebar />)
     try {
       const nav = container.querySelector('nav[role="navigation"][aria-label="Admin navigation"]')
@@ -31,7 +31,7 @@ describe('Sidebar a11y and keyboard support', () => {
       expect(btn.getAttribute('aria-pressed')).toBe('false')
       btn.click()
       // triggered setter in mocked context
-      const ctxMod: any = require('@/components/admin/providers/AdminContext')
+      const ctxMod: any = await import('@/components/admin/providers/AdminContext')
       expect(ctxMod.useAdminContext().sidebarCollapsed).toBe(true)
     } finally {
       unmount()
