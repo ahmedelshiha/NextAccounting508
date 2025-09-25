@@ -4,6 +4,11 @@ import { useMemo, useState } from "react"
 import DataTable from "@/components/dashboard/DataTable"
 import type { Column, RowAction } from "@/types/dashboard"
 
+/**
+ * Props for AdvancedDataTable. When `total` is provided, the component assumes
+ * server-side pagination (rows already paged by the caller). Otherwise, it
+ * performs client-side pagination based on `pageSize`.
+ */
 interface AdvancedDataTableProps<T extends { id?: string | number }> {
   columns: Column<T>[]
   rows: T[]
@@ -46,6 +51,8 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
   const [uncontrolledPage, setUncontrolledPage] = useState(1)
   const page = controlledPage ?? uncontrolledPage
   const pageCount = useMemo(() => Math.max(1, Math.ceil((total ?? rows.length) / pageSize)), [total, rows.length, pageSize])
+
+  // If `total` is provided we assume rows are already sliced server-side; otherwise do client-side slicing
   const pagedRows = useMemo(() => {
     if (total != null) return rows // server paginated
     const start = (page - 1) * pageSize

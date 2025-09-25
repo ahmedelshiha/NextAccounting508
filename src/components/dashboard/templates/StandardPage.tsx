@@ -7,24 +7,47 @@ import FilterBar from "@/components/dashboard/FilterBar"
 import type { ActionItem, FilterConfig, TabItem } from "@/types/dashboard"
 import { ReactNode } from "react"
 
+/**
+ * Standard admin workspace container used across pages.
+ * Renders a header (title/subtitle/actions), optional primary/secondary tabs,
+ * optional search + filters, followed by the page content area.
+ */
 interface StandardPageProps {
+  /** Main page title displayed in the header */
   title: string
+  /** Optional subtitle shown under the title */
   subtitle?: string
+  /** Primary call-to-action button shown on the right side of the header */
   primaryAction?: ActionItem
+  /** Secondary actions rendered as quiet buttons next to the primary action */
   secondaryActions?: ActionItem[]
+  /** Optional primary tabs (top) used to switch between high-level modes */
   primaryTabs?: TabItem[]
+  /** Active key for the primary tabs */
   activePrimaryTab?: string
+  /** Change handler for primary tabs */
   onPrimaryTabChange?: (key: string) => void
+  /** Optional secondary tabs (below primary) for sub-navigation */
   secondaryTabs?: TabItem[]
+  /** Active key for the secondary tabs */
   activeSecondaryTab?: string
+  /** Change handler for secondary tabs */
   onSecondaryTabChange?: (key: string) => void
+  /** Filter configuration for the FilterBar */
   filters?: FilterConfig[]
+  /** Active filters (key/label/value) to display as filter chips */
   activeFilters?: Array<{ key: string; label: string; value: string }>
+  /** Called when a filter value is changed */
   onFilterChange?: (key: string, value: string) => void
+  /** Called when the search input is submitted */
   onSearch?: (value: string) => void
+  /** Optional placeholder for the search input */
   searchPlaceholder?: string
+  /** When true, shows a loading panel */
   loading?: boolean
+  /** Optional error text shown as a red notice above the content */
   error?: string | null
+  /** Page content */
   children: ReactNode
 }
 

@@ -6,6 +6,10 @@ import AdvancedDataTable from "@/components/dashboard/tables/AdvancedDataTable"
 import type { ActionItem, Column, FilterConfig, RowAction, TabItem } from "@/types/dashboard"
 import { ReactNode, useMemo, useState } from "react"
 
+/**
+ * Props for ListPage, a composition of StandardPage and a table component.
+ * Supports both the basic DataTable and AdvancedDataTable (sticky header + pagination).
+ */
 interface ListPageProps<T extends { id?: string | number }> {
   title: string
   subtitle?: string
@@ -21,7 +25,9 @@ interface ListPageProps<T extends { id?: string | number }> {
   onFilterChange?: (key: string, value: string) => void
   onSearch?: (value: string) => void
   searchPlaceholder?: string
+  /** Column definitions for rendering rows */
   columns: Column<T>[]
+  /** Row data for the table */
   rows: T[]
   loading?: boolean
   sortBy?: string
@@ -33,15 +39,20 @@ interface ListPageProps<T extends { id?: string | number }> {
   renderBulkActions?: (selectedIds: Array<string | number>) => ReactNode
   /** Use AdvancedDataTable (adds sticky header + pagination UI) */
   useAdvancedTable?: boolean
+  /** Current page (1-based). If omitted, internal pagination state is used. */
   page?: number
+  /** Page size for pagination (AdvancedDataTable only). Defaults to 20. */
   pageSize?: number
+  /** Total rows when using server-side pagination. If omitted, client-side pagination is used. */
   total?: number
+  /** Page change handler (AdvancedDataTable only) */
   onPageChange?: (page: number) => void
+  /** Message shown when there are no rows */
   emptyMessage?: string
 }
 
 /**
- * ListPage composes StandardPage with DataTable to create a reusable list view.
+ * ListPage composes StandardPage with a table to create reusable list views.
  * It supports selection, sorting, filters, search and custom bulk actions.
  */
 export default function ListPage<T extends { id?: string | number }>(props: ListPageProps<T>) {

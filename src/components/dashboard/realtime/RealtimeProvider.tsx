@@ -1,5 +1,12 @@
 "use client"
 
+/**
+ * RealtimeProvider establishes a Server-Sent Events (SSE) connection to
+ * /api/admin/realtime and exposes a lightweight pub/sub API. Consumers may
+ * subscribe to specific event types (or "all") and will be notified when
+ * matching AdminRealtimeEvent messages arrive. The provider also posts
+ * connection telemetry to /api/admin/perf-metrics for observability.
+ */
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
 export type AdminRealtimeEvent<T = any> = {
@@ -28,14 +35,18 @@ export function parseEventMessage(raw: string): AdminRealtimeEvent | null {
 }
 
 interface RealtimeContextValue {
+  /** True when the SSE connection is open */
   connected: boolean
+  /** The last event delivered by the SSE stream (null before first message) */
   lastEvent: AdminRealtimeEvent | null
+  /** Subscribe to one or more event types; returns an unsubscribe function */
   subscribeByTypes: (types: string[], handler: EventHandler) => () => void
 }
 
 export const RealtimeCtx = createContext<RealtimeContextValue | null>(null)
 
 interface RealtimeProviderProps {
+  /** Event types to request from the server (default: ["all"]) */
   events?: string[]
   children: ReactNode
 }

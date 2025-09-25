@@ -8,6 +8,7 @@
   - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
   - [x] Improve Posts page accessibility: add role=list/listitem on grid/cards; aria-live status/alert regions; labels for icon-only actions.
   - [x] Fix toast-api import and unify error handling: standardized toasts via toastFromResponse/getApiErrorMessage; updated admin uploads quarantine and tasks comments; added success toasts on comment post and bulk actions.
+  - [x] Add JSDoc code comments across admin templates, tables, realtime provider, unified data, and perf reporter to improve maintainability (no placeholders).
 - Why
   - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
   - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
@@ -308,7 +309,7 @@ Acceptance: improved or equal route metrics; stable SSE; no performance regressi
   - [x] Document StandardPage/ListPage/AnalyticsPage usage and props (docs/admin-dashboard-templates-and-api.md)
   - [x] Document AdvancedDataTable API and examples (docs/admin-dashboard-templates-and-api.md + src/components/dashboard/tables/types.ts)
   - [x] Document RealtimeProvider and useUnifiedData hook contracts (docs/admin-dashboard-templates-and-api.md)
-- [ ] Add code comments for maintainability (no TODO placeholders)
+- [x] Add code comments for maintainability (no TODO placeholders)
 - [x] Provide migration examples for a new admin module using the templates (docs/examples/booking-list.example.tsx)
 
 Acceptance: engineers can build a new admin page using docs without assistance (manual code comments still pending).
