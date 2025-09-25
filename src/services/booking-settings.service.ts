@@ -118,6 +118,12 @@ export class BookingSettingsService {
       throw new Error(`Settings validation failed: ${msg}`)
     }
 
+    let target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+    if (!target) {
+      await this.createDefaultSettings(tenantId)
+      target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+    }
+
     const data: Record<string, unknown> = {
       ...(updates.generalSettings ?? {}),
       ...(updates.paymentSettings ?? {}),
@@ -137,7 +143,8 @@ export class BookingSettingsService {
     if ('holidaySchedule' in data) (data as any).holidaySchedule = toNullableJson((data as any).holidaySchedule)
     if ('reminderHours' in data) (data as any).reminderHours = toNullableJson((data as any).reminderHours)
 
-    await prisma.bookingSettings.update({ where: { tenantId: tenantId ?? undefined }, data })
+    if (!target) throw new Error('Booking settings not found')
+    await prisma.bookingSettings.update({ where: { id: (target as any).id }, data })
 
     const updated = (await this.getBookingSettings(tenantId)) as BookingSettings
     // Refresh cache with updated value
