@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import ListPage from '@/components/dashboard/templates/ListPage'
