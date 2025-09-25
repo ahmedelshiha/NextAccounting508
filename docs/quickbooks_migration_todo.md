@@ -7,7 +7,8 @@
 - Why
   - Align pagination/sorting across Services/Bookings/Service Requests to simplify table integrations, exports, and testing; reduce client conditionals.
 - Next steps
-  - [ ] Verify admin table callers pass sortBy/sortOrder consistently and prefer offset when paginating; adjust any remaining page-only flows. Add/expand contract tests as needed.
+  - [x] Verify admin table callers pass sortBy/sortOrder consistently and prefer offset when paginating — updated admin overview, bookings page, and task modals to use offset=0 and sortBy=scheduledAt where appropriate.
+  - [ ] Add/expand contract tests for limit+offset+sortBy+sortOrder on bookings and service-requests.
 
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
