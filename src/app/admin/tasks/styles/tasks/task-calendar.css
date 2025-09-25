@@ -1,3 +1,0 @@
-.calendar-day { min-height: 100px; border-radius: 6px; padding: 6px }
-.calendar-day.outside { background: var(--calendar-outside-bg); color: var(--calendar-outside-fg) }
-.calendar-event { background: var(--calendar-event-bg); color: var(--calendar-event-fg); padding: 4px 6px; border-radius: 4px; display: block; margin-bottom: 4px }

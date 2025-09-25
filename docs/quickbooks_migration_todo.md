@@ -323,7 +323,8 @@ Acceptance: engineers can build a new admin page using docs without assistance (
   - backup/retired-admin-posts-page.tsx
   - backup/retired-admin-services-page.tsx
   - backup/retired-admin-users-page.tsx
-- [ ] Remove unused CSS/assets related to legacy admin shells
+- [x] Remove unused CSS/assets related to legacy admin shells
+  - Removed unused CSS files under src/app/admin/tasks/styles/tasks/: task-animations.css, task-board.css, task-calendar.css, task-cards.css, tokens.css (no imports found). No legacy images detected under /public.
 - [ ] Conduct UAT with admin users; collect sign-offs per page
 - [ ] Staged rollout
   - [ ] Enable feature flag for new layout in staging; validate all critical paths
