@@ -79,5 +79,5 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   } catch {}
 
   try { await logAudit({ action: 'service-request:assign', actorId: (session.user as any).id ?? null, targetId: id, details: { teamMemberId: tm.id } }) } catch {}
-  return NextResponse.json(updated, { status: 200 })
+  return NextResponse.json({ success: true, data: updated, ...updated }, { status: 200 })
 }
