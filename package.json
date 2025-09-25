@@ -58,7 +58,9 @@
     "stripe": "^16.6.0",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "import-in-the-middle": "^1.7.4",
+    "require-in-the-middle": "^7.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
