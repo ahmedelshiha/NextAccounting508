@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DollarSign, Calendar, Users, Target, TrendingUp, TrendingDown, Minimize2, Maximize2, AlertTriangle, ExternalLink } from 'lucide-react'

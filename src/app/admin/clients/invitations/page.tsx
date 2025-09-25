@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import { Button } from '@/components/ui/button'

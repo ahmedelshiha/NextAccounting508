@@ -1,5 +1,7 @@
 'use client'
 
+'use client'
+
 import { useState } from 'react'
 import { ChevronDown, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -85,4 +87,3 @@ export function LanguageSwitcher({ variant = 'default', className = '' }: Langua
     </div>
   )
 }
-

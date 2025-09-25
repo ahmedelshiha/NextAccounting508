@@ -11,7 +11,6 @@ import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { planRecurringBookings } from '@/lib/booking/recurring'
-import { NextResponse } from 'next/server'
 
 const CreateBase = z.object({
   clientId: z.string().min(1),

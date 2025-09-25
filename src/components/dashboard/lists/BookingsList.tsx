@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import { useMemo, useState } from 'react'
 import { useBookings, type BookingsQuery } from '@/hooks/useBookings'
 import FilterBar from '@/components/dashboard/FilterBar'

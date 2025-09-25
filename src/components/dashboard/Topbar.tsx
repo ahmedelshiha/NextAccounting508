@@ -1,5 +1,7 @@
 'use client'
 
+'use client'
+
 import { useState } from 'react'
 import { Search, Bell, Settings, User, ChevronDown, HelpCircle } from 'lucide-react'
 

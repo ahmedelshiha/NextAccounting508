@@ -1,3 +1,5 @@
+'use client'
+
 import { apiFetch } from '@/lib/api'
 import { useState, useCallback, useEffect } from 'react'
 
