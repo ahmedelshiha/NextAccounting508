@@ -5,6 +5,7 @@ Usage:
 Exits 0 if all expected columns exist; non-zero otherwise.
 */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { Client } = require('pg')
 
 const expected = [
