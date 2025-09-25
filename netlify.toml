@@ -8,7 +8,7 @@
   PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT = "300000"
 
 [context.deploy-preview]
-  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm lint && pnpm build"
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm test && pnpm lint && pnpm build"
 
 [context.branch-deploy]
   command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm lint && pnpm build"
