@@ -33,6 +33,10 @@ export default function ListPagePreview() {
     { key: 'open', label: 'Open' },
   ]
 
+  const enabled = process.env.NEXT_PUBLIC_ENABLE_ADMIN_PREVIEWS === 'true' || process.env.NODE_ENV !== 'production'
+  if (!enabled) {
+    return <div className="p-6 text-sm text-gray-600">Previews are disabled in production.</div>
+  }
   return (
     <ListPage<Row>
       title="List Template Preview"
