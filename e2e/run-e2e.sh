@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Ephemeral E2E runner for Netlify/Vercel
-# Uses pnpm dlx to run Playwright without modifying package.json/lockfile.
+# Uses pnpm dlx to run Playwright CLI without modifying package.json/lockfile.
 # Usage: ./e2e/run-e2e.sh [BASE_URL]
 # If BASE_URL not provided, script will build and start the app locally and test http://localhost:3000
 
@@ -13,7 +13,7 @@ corepack enable
 
 # Install Playwright browsers in an ephemeral context
 echo "Installing Playwright browsers"
-pnpm dlx @playwright/test@latest playwright install --with-deps
+pnpm dlx playwright@latest install --with-deps
 
 start_local_server() {
   echo "Building and starting app for local testing..."
@@ -46,7 +46,7 @@ else
 fi
 
 echo "Running Playwright tests against $TARGET_URL"
-E2E_BASE_URL="$TARGET_URL" pnpm dlx @playwright/test@latest playwright test --config=e2e/playwright.config.ts --reporter=list
+E2E_BASE_URL="$TARGET_URL" pnpm dlx playwright@latest test --config=e2e/playwright.config.ts --reporter=list
 
 EXIT_CODE=$?
 if [ $EXIT_CODE -ne 0 ]; then
