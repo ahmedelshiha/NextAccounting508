@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState, useCallback } from 'react'
 
 export type RealtimeEvent = { type: string; data: any; timestamp?: string }
