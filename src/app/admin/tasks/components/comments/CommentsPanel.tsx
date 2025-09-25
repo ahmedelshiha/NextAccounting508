@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { toastFromResponse, toastError, toastSuccess } from '@/lib/toast-api'
 
 function formatDate(d: string) {
   try { return new Date(d).toLocaleString() } catch (e) { return d }
@@ -19,10 +20,10 @@ export default function CommentsPanel({ taskId }: { taskId: string }) {
     setLoading(true)
     try {
       const r = await fetch(`/api/admin/tasks/${encodeURIComponent(taskId)}/comments`)
-      if (!r.ok) throw new Error('Failed')
+      if (!r.ok) { await toastFromResponse(r, { failure: 'Failed to load comments' }); setComments([]); return }
       const data = await r.json()
       setComments(Array.isArray(data) ? data : [])
-    } catch (e) { console.error(e) }
+    } catch (e) { toastError(e, 'Failed to load comments') }
     finally { setLoading(false) }
   }
 
@@ -54,18 +55,13 @@ export default function CommentsPanel({ taskId }: { taskId: string }) {
     setAttachments([])
     try {
       const r = await fetch(`/api/admin/tasks/${encodeURIComponent(taskId)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!r.ok) {
-        let detail = ''
-        try { const json = await r.json(); detail = json?.error || json?.message || JSON.stringify(json) } catch { detail = `${r.status} ${r.statusText}` }
-        throw new Error(detail || 'Failed to post comment')
-      }
+      if (!r.ok) { await toastFromResponse(r, { failure: 'Failed to post comment' }); setComments(prev => prev.filter(c => c.id !== temp.id)); return }
       const saved = await r.json()
       setComments(prev => prev.map(c => c.id === temp.id ? saved : c))
+      toastSuccess('Comment posted')
     } catch (e) {
-      console.error(e)
       setComments(prev => prev.filter(c => c.id !== temp.id))
-      const msg = e instanceof Error ? e.message : 'Failed to post comment'
-      alert(msg)
+      toastError(e, 'Failed to post comment')
     }
   }
 
