@@ -7,6 +7,8 @@
  * matching AdminRealtimeEvent messages arrive. The provider also posts
  * connection telemetry to /api/admin/perf-metrics for observability.
  */
+'use client'
+
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
 export type AdminRealtimeEvent<T = any> = {
