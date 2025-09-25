@@ -18,9 +18,9 @@ Instructions: For each task, update the "Update" block with progress notes and t
 - [ ] 1.4 Re-run CI in branch and confirm green build
 
 Update:
-- ✅ What was completed: Converted require('crypto') -> import { createHash } from 'crypto' in src/app/api/admin/bookings/route.ts and saved audit docs.
-- ✅ Why it was done: ESLint no-require-imports rule caused Netlify build to fail; needed ES import to satisfy lint in build.
-- ✅ Next steps: Run full lint to find other require() occurrences (e.g. src/lib/prisma.ts); decide per-file whether to convert to import or add documented exception.
+- ✅ What was completed: Converted require('crypto') -> import { createHash } from 'crypto' in src/app/api/admin/bookings/route.ts; added an eslint-override comment to src/lib/prisma.ts to allow a justified lazy require for the Prisma client.
+- ✅ Why it was done: Fixed the ESLint no-require-imports error that caused Netlify builds to fail while preserving intentional lazy loading in prisma.ts to avoid initializing the DB at module load.
+- ✅ Next steps: Run full lint and typecheck across the repository; if additional require() occurrences are found, either refactor to ES imports where safe or add documented exceptions. After fixes, re-run CI to confirm green build.
 
 ---
 
