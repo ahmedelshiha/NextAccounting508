@@ -11,6 +11,8 @@
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
+    "test": "vitest --run",
+    "prebuild": "pnpm test",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
