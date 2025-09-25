@@ -6,7 +6,7 @@
   - [x] Fixed Turbopack directive order: moved 'use client' to top in src/components/dashboard/DataTable.tsx to unblock Netlify builds.
   - [x] Resolved TS2300 in perf metrics schema: removed duplicate `import { z } from 'zod'` in src/schemas/admin/perf-metrics.ts; restored typecheck and vercel:build.
   - [x] Deduplicated 'use client' directives across files (contact, admin root, service-requests [id]/new, bookings [id]/new/list, navigation, testimonials, services, language-switcher, portal widgets, booking wizard and steps) to satisfy Turbopack and ESLint.
-  - [x] Silenced Turbopack Sentry/OpenTelemetry warnings by adding import-in-the-middle and require-in-the-middle as runtime deps in package.json.
+  - [x] Considered silencing Turbopack Sentry/OpenTelemetry warnings; reverted adding import/require-in-the-middle to avoid CI frozen-lockfile failures. Keeping warnings (non-blocking) for now.
   - [x] Standardize admin API params for Bookings and Service Requests: support limit, offset, sortBy, sortOrder; preserve X-Total-Count; maintain back-compat with page/skip.
   - [x] Update admin callers to prefer offset and pass sortBy/sortOrder (overview cards, bookings list page, task modals).
   - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
