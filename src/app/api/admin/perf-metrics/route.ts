@@ -1,9 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { withSpan, captureError } from '@/lib/observability'
-import { PerfMetricsPostSchema, PerfMetricsGetResponseSchema } from '@/schemas/admin/perf-metrics'
 
 // In-memory buffer for posted samples (best-effort; not persisted).
 const samples: Array<{ ts: number; path: string; metrics: Record<string, number | null> }> = []
@@ -24,6 +19,16 @@ const THRESHOLDS = {
 
 export async function GET(_request: NextRequest) {
   try {
+    const [{ getServerSession }, { authOptions }] = await Promise.all([
+      import('next-auth/next'),
+      import('@/lib/auth'),
+    ])
+    const [{ hasPermission, PERMISSIONS }] = await Promise.all([
+      import('@/lib/permissions'),
+    ])
+    const { withSpan, captureError } = await import('@/lib/observability')
+    const { PerfMetricsGetResponseSchema } = await import('@/schemas/admin/perf-metrics')
+
     const session = await getServerSession(authOptions)
     const role = (session?.user as any)?.role as string | undefined
     if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
@@ -78,6 +83,7 @@ export async function GET(_request: NextRequest) {
     const parsed = PerfMetricsGetResponseSchema.parse(data)
     return NextResponse.json(parsed)
   } catch (error) {
+    const { captureError } = await import('@/lib/observability')
     captureError(error, { tags: { route: 'admin.perf-metrics' } })
     console.error('Perf metrics API error:', error)
     return NextResponse.json({ error: 'Failed to load metrics' }, { status: 500 })
@@ -88,6 +94,7 @@ export async function POST(request: NextRequest) {
   try {
     // Accept anonymous admin-side client posts; sanitize input
     const body = await request.json().catch(() => null)
+    const { PerfMetricsPostSchema } = await import('@/schemas/admin/perf-metrics')
     const parsed = PerfMetricsPostSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ ok: false, error: 'Invalid payload' }, { status: 400 })
