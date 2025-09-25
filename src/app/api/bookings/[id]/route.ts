@@ -213,11 +213,12 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
     // Tenant and ownership checks
     const tenantId = getTenantFromRequest(request as any)
+    const bookingTenantId = (booking as any).service?.tenantId ?? (booking as any).tenantId ?? null
     if (
       isMultiTenancyEnabled() &&
       tenantId &&
-      booking.service?.tenantId &&
-      booking.service.tenantId !== tenantId
+      bookingTenantId &&
+      bookingTenantId !== tenantId
     ) {
       return NextResponse.json(
         { error: 'Booking not found' },
