@@ -473,7 +473,7 @@ export async function POST(request: Request) {
     try { await logAudit({ action: 'service-request:create', actorId: session.user.id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
     return respond.created(created)
   } catch (e: any) {
-    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'portal:service-requests:POST:create' }) } catch {}
+    try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:service-requests:POST:create' } }) } catch {}
     if (String(e?.code || '').startsWith('P20')) {
       // Fallback: store in-memory for dev
       try {
