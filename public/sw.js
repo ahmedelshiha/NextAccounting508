@@ -207,7 +207,10 @@ async function processQueue() {
 }
 
 self.addEventListener('sync', (event) => {
-  if ((event as any).tag === 'service-requests-sync') {
-    event.waitUntil(processQueue())
-  }
+  try {
+    // @ts-ignore unsupported typing in plain JS
+    if (event && event.tag === 'service-requests-sync') {
+      event.waitUntil(processQueue())
+    }
+  } catch {}
 })
