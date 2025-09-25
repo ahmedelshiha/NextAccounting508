@@ -1,17 +1,19 @@
 import { z } from 'zod'
 
+import { z } from 'zod'
+
 // Metrics payload sent from client (admin dashboard)
 export const PerfMetricsPostSchema = z.object({
   ts: z.number().int().positive().optional(),
   path: z.string().min(1),
-  metrics: z.record(z.number().nullable()),
+  metrics: z.record(z.string(), z.number().nullable()),
 })
 
 // Recent sample as stored in memory
 export const PerfMetricsSampleSchema = z.object({
   ts: z.number().int().positive(),
   path: z.string(),
-  metrics: z.record(z.number().nullable()),
+  metrics: z.record(z.string(), z.number().nullable()),
 })
 
 // Thresholds used by the API in GET response
@@ -30,7 +32,7 @@ export const PerfThresholdsSchema = z.object({
 const TrendSchema = z.object({
   current: z.number(),
   previous: z.number(),
-  trend: z.enum(['up', 'down', 'flat']).or(z.string()),
+  trend: z.union([z.enum(['up', 'down', 'flat']), z.string()]),
 })
 
 export const PerfMetricsGetResponseSchema = z.object({
@@ -39,7 +41,7 @@ export const PerfMetricsGetResponseSchema = z.object({
   uptime: TrendSchema,
   errorRate: TrendSchema,
   thresholds: PerfThresholdsSchema,
-  status: z.enum(['ok', 'alert']).or(z.string()),
+  status: z.union([z.enum(['ok', 'alert']), z.string()]),
   alerts: z.array(
     z.object({
       metric: z.string(),
