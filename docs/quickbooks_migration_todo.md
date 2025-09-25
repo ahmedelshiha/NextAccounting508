@@ -304,14 +304,14 @@ Acceptance: improved or equal route metrics; stable SSE; no performance regressi
 ---
 
 ## Phase 11 — Documentation and Developer Experience
-- [ ] Update docs explaining templates and composition patterns
-  - [ ] Document StandardPage/ListPage/AnalyticsPage usage and props
-  - [ ] Document AdvancedDataTable API and examples
-  - [ ] Document RealtimeProvider and useUnifiedData hook contracts
+- [x] Update docs explaining templates and composition patterns
+  - [x] Document StandardPage/ListPage/AnalyticsPage usage and props (docs/admin-dashboard-templates-and-api.md)
+  - [x] Document AdvancedDataTable API and examples (docs/admin-dashboard-templates-and-api.md + src/components/dashboard/tables/types.ts)
+  - [x] Document RealtimeProvider and useUnifiedData hook contracts (docs/admin-dashboard-templates-and-api.md)
 - [ ] Add code comments for maintainability (no TODO placeholders)
-- [ ] Provide migration examples for a new admin module using the templates
+- [x] Provide migration examples for a new admin module using the templates (docs/examples/booking-list.example.tsx)
 
-Acceptance: engineers can build a new admin page using docs without assistance.
+Acceptance: engineers can build a new admin page using docs without assistance (manual code comments still pending).
 
 ---
 
