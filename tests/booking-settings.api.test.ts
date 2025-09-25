@@ -102,6 +102,9 @@ describe('admin/booking-settings API', () => {
     const resImport: any = await impMod.POST(new Request(`${base}/api/admin/booking-settings/import`, { method: 'POST', body: JSON.stringify(importBody) }))
     expect(resImport.status).toBe(200)
     const out = await resImport.json()
+    // Debug output for CI: show import response
+    // eslint-disable-next-line no-console
+    console.log('IMPORT OUT:', JSON.stringify(out, null, 2))
     expect(out?.settings?.id).toBeDefined()
   })
 
