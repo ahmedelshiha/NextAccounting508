@@ -151,7 +151,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
         }
         return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
       } catch (e) {
-        try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', provider: 'netlify' }) } catch {}
+        try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'uploads' }, extra: { provider: 'netlify' } }) } catch {}
         console.error('Netlify Blobs upload failed', e)
         return NextResponse.json({ error: 'Upload failed', details: 'Provider error' }, { status: 502 })
       }
