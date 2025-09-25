@@ -13,7 +13,7 @@
   - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
   - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist).
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist). Attempted automated capture on staging returned 500 (service unavailable). Added staging URLs and instructions to docs/perf-metrics-report.md for manual capture until endpoint is stable.
   - [x] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables. (Verified: added aria-pressed on sidebar toggle, unified aria attributes, and added/updated DOM tests for keyboard navigation and focus behavior.)
 
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
@@ -58,7 +58,7 @@ and
   - Ensure measurable performance comparisons and transparent observability via client-reported metrics.
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
-  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here.
+  - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md. Note: capture in staging/prod where public URLs are available; local preview screenshots are not feasible here. Automated attempt returned 500 from staging; documented URLs and manual steps in docs/perf-metrics-report.md.
   - [x] Review posts page accessibility (modals, grid, route announcer) and resolve findings — added list semantics and ARIA on posts grid/cards, aria-live for success/alerts, and labels on icon-only actions.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
