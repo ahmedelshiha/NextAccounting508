@@ -64,7 +64,7 @@ export default function UserPermissionsInspector() {
       )}
 
       {!data && !error && !loading && (
-        <div className="p-4 text-sm text-gray-600">Enter a user ID or use "me" to inspect the current session's permissions.</div>
+        <div className="p-4 text-sm text-gray-600">Enter a user ID or use &quot;me&quot; to inspect the current session&apos;s permissions.</div>
       )}
     </div>
   )
