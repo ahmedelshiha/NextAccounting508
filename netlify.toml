@@ -11,7 +11,7 @@
   command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm test && pnpm lint && pnpm build"
 
 [context.branch-deploy]
-  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm lint && pnpm build"
+  command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm test && pnpm lint && pnpm build"
 
 [dev]
   command = "pnpm dev"
