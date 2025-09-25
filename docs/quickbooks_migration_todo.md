@@ -7,6 +7,7 @@
   - [x] Update admin callers to prefer offset and pass sortBy/sortOrder (overview cards, bookings list page, task modals).
   - [x] Add contract tests covering limit+offset+sortBy+sortOrder for Bookings and Service Requests; mocks respect orderBy.
   - [x] Improve Posts page accessibility: add role=list/listitem on grid/cards; aria-live status/alert regions; labels for icon-only actions.
+  - [x] Fix toast-api import and unify error handling: standardized toasts via toastFromResponse/getApiErrorMessage; updated admin uploads quarantine and tasks comments; added success toasts on comment post and bulk actions.
 - Why
   - Unify pagination/sorting across modules to simplify tables/exports and reduce client conditionals; improve testability and consistency.
   - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
@@ -259,7 +260,7 @@ Acceptance: all P3 pages load under new layout, preserve feature parity, and pas
 - [x] Verify all /api/admin/** endpoints used by new hooks exist and return expected shapes — service-requests covered by contract test
 - [x] Add Zod schemas for request/response validation at boundaries — implemented for /api/admin/perf-metrics (POST/GET)
 - [x] Ensure pagination/sorting/filtering parameters are consistent across modules
-- [ ] Add error mapping to user-friendly toasts; log details to Sentry
+- [x] Add error mapping to user-friendly toasts; log details to Sentry
   - Progress: Added toast handling on admin Services (export, bulk, create/update), Bookings (refresh), and Service Requests (fetch error) with getApiErrorMessage. Sentry capture already active in API routes.
 
 Acceptance: consistent API contracts; typed boundaries; graceful error states; Sentry captures failures.
