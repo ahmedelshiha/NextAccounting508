@@ -13,7 +13,7 @@
   - Address a11y findings to ensure keyboard- and screen-reader-friendly Posts management without altering visual style.
 - Next steps
   - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md (do on staging/prod where public URLs exist).
-  - [ ] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables.
+  - [x] Complete global admin a11y checks: focus order, landmarks/roles, aria attributes; keyboard-only operation of sidebar and tables. (Verified: added aria-pressed on sidebar toggle, unified aria attributes, and added/updated DOM tests for keyboard navigation and focus behavior.)
 
 Purpose: Execute the transformation plan from docs/migration_plan_comprehensive.md and docs/quickbooks_transformation_plan.md with clear, actionable, dependency-ordered tasks. Each task is specific, measurable, and outcome-oriented.
 
