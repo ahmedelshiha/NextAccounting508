@@ -53,7 +53,7 @@ and
   - Improve test reliability and coverage for interaction-heavy components using a real DOM (jsdom).
 - Next steps
   - [ ] Capture baseline screenshots for Home, About, Services, Booking, Blog, Contact and attach to docs/perf-metrics-report.md.
-  - [ ] Review posts page accessibility with axe (modals, grid, route announcer) and resolve findings.
+  - [x] Review posts page accessibility (modals, grid, route announcer) and resolve findings — added list semantics and ARIA on posts grid/cards, aria-live for success/alerts, and labels on icon-only actions.
   - [x] Add unit tests for realtime event parsing (SSE payloads → AdminRealtimeEvent) and unified path builder.
   - [x] Add tests for refresh flows (verify SWR revalidation on events) using jsdom to simulate realtime events and SWR revalidation.
   - [x] Verify sidebar IA: Covered via jsdom test ensuring all nav hrefs render when collapsed and active states are set via pathname mock; manual click-through recommended in staging.
