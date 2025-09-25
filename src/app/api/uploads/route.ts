@@ -147,7 +147,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
             }
           })
         } catch (e) {
-          try { const { captureError } = await import('@/lib/observability'); await captureError(e, { route: 'uploads', step: 'persist-attachment' }) } catch {}
+          try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'uploads' }, extra: { step: 'persist-attachment' } }) } catch {}
         }
         return NextResponse.json({ success: true, data: { key, url, contentType: detectedMime, size: buf.length } })
       } catch (e) {
