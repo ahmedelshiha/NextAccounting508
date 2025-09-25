@@ -46,7 +46,7 @@ const config = [
 
   // Scripts and edge/runtime functions can use require and any types as needed
   {
-    files: ["scripts/**", "netlify/functions/**"],
+    files: ["scripts/**", "netlify/functions/**", "netlify/plugins/**", "netlify/**"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-explicit-any": "off",
