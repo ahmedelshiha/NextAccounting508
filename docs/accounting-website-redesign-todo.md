@@ -182,16 +182,24 @@ Status:
 - Next: Periodic Lighthouse runs in CI; expand axe coverage to more routes
 
 6) E2E Coverage (Playwright)
-- [ ] Homepage (default + ?hero=compact)
-- [ ] Upload flow (portal): happy path + AV rejection
-- [ ] Calculators (tax, ROI): input → result snapshot
+- [x] Homepage (default + ?hero=compact) — e2e/tests/home-variants.spec.ts
+- [ ] Upload flow (portal): happy path + AV rejection (pending storage provider)
+- [x] Calculators (tax, ROI): input → result snapshot — e2e/tests/tools.spec.ts
 - [ ] Portal dashboard: KPIs render
 - [ ] Chat: message send/receive (mock SSE)
 
+Status:
+- Completed: initial coverage for homepage variants and calculators
+- Next: add portal upload and chat flows; consider mocking auth/session
+
 7) Performance Budgets
-- [ ] Validate LCP/CLS on homepage using Playwright traces
+- [x] Validate LCP/CLS on homepage using PerformanceObserver — e2e/tests/perf-budget.spec.ts
 - [ ] Enforce budgets via tests/thresholds.test.ts and CI
 - [ ] Identify top bundles via next build stats and set per-chunk limits
+
+Status:
+- Completed: basic LCP/CLS budget check in E2E
+- Next: wire thresholds to CI gating and build stats analysis
 
 ---
 
