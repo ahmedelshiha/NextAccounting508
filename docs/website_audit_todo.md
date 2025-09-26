@@ -4,147 +4,141 @@ Purpose: Ordered, dependency-aware, actionable tasks to implement the Website Au
 
 ---
 
-## Legend
-- [ ] = pending
-- [x] = completed
-- Acceptance criteria are shown in parentheses after each task.
+## Quick audit summary (automated code scan)
+Findings from scanning repository source files (high-impact items listed first):
+
+- Hero headline sizing: src/components/home/hero-section.tsx uses `text-4xl sm:text-5xl lg:text-6xl` (should be reduced). (File: src/components/home/hero-section.tsx)
+
+- Section padding (excessive vertical spacing): Many top-level pages and components use `py-16` or `py-12 sm:py-16`. Notable files:
+  - src/app/about/page.tsx
+  - src/app/contact/page.tsx
+  - src/app/services/page.tsx
+  - src/app/blog/page.tsx
+  - src/app/booking/page.tsx
+  - src/components/home/blog-section.tsx
+  - src/components/home/services-section.tsx
+  - src/components/home/hero-section.tsx
+  (Task: standardize to `py-8 sm:py-12` or `py-10 sm:py-12` depending on section importance.)
+
+- Service card icon sizes: src/components/home/services-section.tsx (and some template/docs) use `w-16 h-16` for icon containers; recommended `w-12 h-12`. (File: src/components/home/services-section.tsx)
+
+- Contact Form: No production component found under src/components/forms/ContactForm or src/components/contact/contact-form (docs reference a ContactForm but codebase lacks it). (Task: implement contact form component.)
+
+- Trust & FAQ sections: Present in the audit guide (docs/website_audit_guide.md) as recommended components but not implemented in source code. (Task: implement TrustSection and FAQSection components and add to homepage.)
+
+- Accessibility (positive): Root skip link exists in src/app/layout.tsx and tests cover many a11y behaviors (aria-current, aria-live, labelled regions). Many components already use aria attributes and role semantics.
+
+- Loading indicators: Many components use `animate-spin` spinners. Audit should standardize accessible loading patterns (use `role="status" aria-live="polite"` or `aria-busy` where appropriate) and ensure spinners are decorative (aria-hidden) when announcement not required.
+
+- Image optimization: Some pages use large hero-like images (docs mention next/image usage) — search/replace opportunities to convert any heavy images to next/image with sizes and priority.
+
+- Instrumentation: Analytics & schema markup are proposed in docs but not fully wired across site.
 
 ---
 
-## 0. Repository & Environment Setup (Prerequisites)
-
-- [ ] Create a feature branch: `ai/website-audit-<date>` (Outcome: branch created and pushed to remote; PR draft ready)  
-- [ ] Run full test suite: `pnpm test` (Outcome: all existing tests pass locally; capture failing tests)  
-- [ ] Install and verify dependencies: `pnpm install` then `pnpm db:generate` (Outcome: no missing deps, prisma generated)  
-- [ ] Verify Dev server runs: `pnpm dev` and open local preview (Outcome: dev server starts without errors)
-- [ ] Add CI check step (optional): Ensure `pnpm test` is run on PRs (Outcome: pipeline configured or noted)
+## Notes / Blockers
+- Design assets referenced in docs (certification logos, client logos) may live in `/public/certifications` or be missing. If missing, request assets before final QA.
+- Connecting analytics (GA4, FB Pixel) or external MCPs (Neon, Netlify, Sentry) requires credentials — ask user whether to connect or provide keys.
 
 ---
 
-## A. Design & Tokens (Prerequisite for UI work)
+## Updated Task List (ordered by dependency, broken into small steps)
+Each task is specific, actionable, measurable, and outcome-oriented.
 
-- [ ] Add/confirm typography scale and color tokens in CSS/Tailwind config (file: `src/app/globals.css` or tailwind config) (Acceptance: tokens added and referenced by class names in next tasks)  
-- [ ] Create a short design spec doc for spacing/typography (file: `docs/design_tokens.md`) (Acceptance: lists section paddings, card paddings, headline sizes used across pages)
-
----
-
-## Phase 1 — Critical Fixes (Prerequisite: A)
-Order: 1) hero sizing, 2) service cards, 3) mobile touch targets, 4) quick tests
-
-- [ ] Replace oversized hero headline sizes and padding in hero component (files to edit: `src/app/about/page.tsx` or `src/components/home/hero-section.tsx` if present)  
-  - Actionable steps: change `text-6xl` → `text-5xl` and mobile to `text-3xl`; change section padding `py-16` → `py-8 lg:py-12`.  
-  - Acceptance: hero displays within 2 viewport heights on mobile; visual check on iPhone 12 and desktop 1440px.
-
-- [ ] Compact Services section card dimensions and spacing (files: `src/components/home/services-section.tsx` or `src/components/services/ServicesList.tsx`)  
-  - Actionable steps: reduce icon container from `w-16 h-16` → `w-12 h-12`, card padding `p-6` → `p-4` where appropriate, grid gaps `gap-12` → `gap-5`.  
-  - Acceptance: four-card grid fits in view and card CTAs visible without overflow; visual regression tests pass.
-
-- [ ] Ensure mobile touch-targets meet 44px minimum (global buttons and CTAs) (files: `src/components/ui/button.tsx`, global styles)  
-  - Actionable steps: update button base class to include `min-h-[44px]` and verify on mobile breakpoints.  
-  - Acceptance: all primary CTAs measure >=44px on mobile using browser devtools.
-
-- [ ] Run manual smoke tests for Phase 1 changes and fix visual regressions (Acceptance: no layout breakage; record screenshots for iPhone 12, iPad, desktop 1440px)
+### 0. Repo & environment (Prerequisites)
+- [ ] Create feature branch `ai/website-audit-<YYYYMMDD>` (Outcome: branch exists locally and pushed to origin)  
+- [ ] Run tests: `pnpm test` (Outcome: baseline test results captured in PR description)  
+- [ ] Confirm dev server runs: `pnpm dev` (Outcome: site loads locally without build errors)
 
 ---
 
-## Phase 2 — Essential Features (Depends on Phase 1)
-
-- [ ] Implement Contact Form component (file: `src/components/contact/contact-form.tsx`)  
-  - Actionable steps: add client-side validation, loading state, accessible labels, and submission mock; include acceptance success state panel.  
-  - Acceptance: form submits (mock) and shows success UI; accessible labels present; Lighthouse accessibility score for contact region >= 90.
-
-- [ ] Add Trust & Security section (file: `src/components/home/trust-section.tsx`)  
-  - Actionable steps: include 4 trust indicators, certification logos, and a security notice block; use existing icons and tokens.  
-  - Acceptance: section present on homepage, text and contrast meet WCAG AA.
-
-- [ ] Implement FAQ section with expand/collapse and proper aria attributes (file: `src/components/home/faq-section.tsx`)  
-  - Actionable steps: keyboard operable accordion pattern; ensure aria-expanded toggles correctly.  
-  - Acceptance: keyboard navigation works; screen reader reads questions/answers appropriately.
-
-- [ ] Add conversion-optimized CTA sections (file: `src/components/home/conversion-ctas.tsx` or inline on pages)  
-  - Actionable steps: primary CTA above the fold and secondary CTAs after services; trackable events on click.  
-  - Acceptance: CTAs visible on desktop & mobile; clicking triggers `trackConversion` with correct event name.
+### 1. Typography & Spacing tokens (Prerequisite for UI edits)
+- [ ] Create design tokens file or confirm existing tokens in Tailwind config (file: tailwind.config.mjs or src/app/globals.css). (Acceptance: tokens for hero, headings, body, and spacing exist and are referenced by new classes.)
+- [ ] Add a short spec `docs/design_tokens.md` listing: hero sizes, section paddings, card paddings, button min-heights. (Acceptance: spec saved and referenced by PR)
 
 ---
 
-## Phase 3 — Advanced Features & Instrumentation (Depends on Phase 2)
+### 2. Phase 1 — Visual critical fixes (Prerequisite: 1)
+Break each visual change into per-file edits so changes are small, reviewable, and reversible.
 
-- [ ] Add Schema Markup for business (file: `src/components/seo/schema-markup.tsx`)  
-  - Actionable steps: implement JSON-LD with business details from audit guide; include Offers and aggregateRating.  
-  - Acceptance: Structured data passes Google Rich Results test for AccountingService.
+- Hero headline reduction (edit file):
+  - [ ] Edit `src/components/home/hero-section.tsx` — change H1 class from `text-4xl sm:text-5xl lg:text-6xl` to `text-3xl sm:text-4xl lg:text-5xl`. (Acceptance: hero fits within two mobile viewports and no horizontal overflow; screenshot captured for mobile and desktop.)
 
-- [ ] Implement image optimizations for hero and key assets (files where images exist, e.g., `src/app/...`)  
-  - Actionable steps: use `next/image` with sizes/priority/quality; replace heavy images with webp.  
-  - Acceptance: Largest contentful paint reduced on Lighthouse by measurable amount (>50ms improvement target).
+- Standardize section padding (multiple files):
+  For each file below, change `py-16` / `py-12 sm:py-16` → `py-8 sm:py-12` or `py-10 sm:py-12` as noted:
+  - [ ] `src/app/about/page.tsx` → `py-8 sm:py-12` (Acceptance: about page vertical height reduced by ~30%)
+  - [ ] `src/app/contact/page.tsx` → `py-8 sm:py-12` (Acceptance: contact top fold visible on mobile)
+  - [ ] `src/app/services/page.tsx` → `py-10 sm:py-12` (Acceptance: services header spacing balanced)
+  - [ ] `src/app/blog/page.tsx` → `py-8 sm:py-12` (Acceptance: blog index shows posts earlier on page)
+  - [ ] `src/app/booking/page.tsx` → `py-8 sm:py-12` (Acceptance: booking hero plus form visible above fold on 375px mobile if possible)
+  - [ ] `src/components/home/blog-section.tsx` → `py-8 sm:py-12` (Acceptance: blog section vertically tighter)
+  - [ ] `src/components/home/services-section.tsx` → `py-10 sm:py-12` (Acceptance: services grid looks compact)
+  - [ ] `src/components/home/hero-section.tsx` → `py-8 lg:py-12` (Acceptance: hero used scaled padding per design tokens)
 
-- [ ] Setup conversion tracking hooks (file: `src/lib/analytics.ts`) and wire to primary CTAs (e.g., Book Consultation)  
-  - Actionable steps: add GA4 + FB pixel stubs, create `TrackableButton` wrapper.  
-  - Acceptance: clicking primary CTA triggers `gtag` and `fbq` events in dev console (when stubs loaded).
+  (For each file, include a short screenshot in PR showing top-of-page before/after.)
 
-- [ ] Add performance monitoring script (file: `src/lib/performance.ts`) and wire to `app/layout.tsx`  
-  - Actionable steps: implement `reportWebVitals` and page-load-time event.  
-  - Acceptance: Web Vitals events are pushed to analytics stubs in dev.
+- Service card icon & padding edits:
+  - [ ] Edit `src/components/home/services-section.tsx` (and `src/components/home/services-card` if exists) — change `w-16 h-16` → `w-12 h-12`, `p-6` → `p-4` for compact cards, and reduce grid gap from `gap-12` → `gap-5`. (Acceptance: 4-card grid fits without excessive vertical whitespace; CTAs visible without scrolling on typical viewports.)
 
----
+- Button touch-targets global fix:
+  - [ ] Edit `src/components/ui/button.tsx` (and any button base classes) — ensure primary button has `min-h-[44px]` and adequate vertical padding on mobile (Acceptance: measured >=44px on iPhone 12 emulation).
 
-## Phase 4 — Accessibility, QA & Release (Depends on Phases 1–3)
-
-- [ ] Full accessibility audit and fixes (Outcome: WCAG AA across critical pages)  
-  - Actionable steps: run axe/lighthouse, fix missing ARIA, focus styles, color contrast, alt text.  
-  - Acceptance: Axe reports <= 3 violations, all documented and fixed.
-
-- [ ] Cross-device visual QA & screenshots (Outcome: documented evidence for iPhone, Android, iPad, Desktop)  
-  - Actionable steps: capture screenshots for each device on homepage, services, booking and contact pages.  
-  - Acceptance: No critical layout regressions; screenshots attached to PR.
-
-- [ ] SEO validation (Outcome: metadata and schema verified)  
-  - Actionable steps: verify metadata in `app/layout.tsx`, run Google structured data testing, confirm robots indexing settings.  
-  - Acceptance: metadata appears in page source and structured data passes tests.
-
-- [ ] Performance verification (Outcome: Lighthouse mobile score >= 90 or measurable improvement compared to baseline)  
-  - Actionable steps: run Lighthouse, fix top 3 opportunities, re-run.  
-  - Acceptance: document before/after scores in PR description.
-
-- [ ] Create release PR with checklist, screenshots, and testing notes (Outcome: PR created and ready for review)  
-  - Actionable steps: open draft PR to `ai/website-audit-<date>` branch with description and checklist.
+- Smoke tests after Phase 1 edits:
+  - [ ] Run visual/manual smoke tests (desktop 1440px, mobile 375px): capture screenshots and verify no layout break. (Acceptance: screenshots attached to PR and no regressions found.)
 
 ---
 
-## Ops & Integrations (When helpful — connect via MCP popover)
+### 3. Phase 2 — Essential features (Depends on Phase 1)
+Split work into small components and unit-testable units.
 
-- [ ] Connect recommended MCP integrations where required (Steps: open MCP popover and connect):  
-  - Neon — for Postgres database and backend storage  
-  - Netlify — for deployment & hosting  
-  - Zapier — for automations (lead mailing)  
-  - Figma — use Builder.io Figma plugin for design imports (open plugin via MCP)  
-  - Supabase — alternative DB + auth  
-  - Builder CMS — content management & models  
-  - Linear — project/issue tracking  
-  - Notion — documentation & knowledge base  
-  - Sentry — error monitoring  
-  - Context7 — up-to-date docs for used libs  
-  - Semgrep — security scanning  
-  - Prisma Postgres — ORM + Postgres management  
+- Contact form (implement):
+  - [ ] Create `src/components/forms/ContactForm.tsx` with client-side validation, accessible labels, focus management, loading state, and success state. (Acceptance: form returns a mocked success response and shows success UI.)
+  - [ ] Add unit tests for validation behavior (tests/forms/contact-form.test.tsx). (Acceptance: tests pass locally.)
+  - [ ] Add a CMS/snippet hook (Builder.io registration) if required by content team. (Acceptance: component registered per docs/next integration guide.)
 
-  (Acceptance: relevant MCP(s) are connected and credentials/secrets securely stored in platform settings.)
+- Trust & Security section (implement):
+  - [ ] Create `src/components/home/TrustSection.tsx` with four trust indicators, certification placeholders, and a security notice. (Acceptance: added to homepage; contrast meets WCAG AA.)
 
----
+- FAQ accordion (implement):
+  - [ ] Create `src/components/home/FAQSection.tsx` with keyboard operable accordion, `aria-expanded`, and `aria-controls`. (Acceptance: keyboard operable and screen reader friendly; unit tests validate state toggling.)
 
-## Test & Rollback Plan (Prerequisite to release)
-
-- [ ] Run integration tests: `pnpm test:integration` (Acceptance: tests pass or failures are documented with fixes planned)  
-- [ ] Run e2e tests: `pnpm test:e2e` (Acceptance: critical flows (booking, contact) pass)  
-- [ ] Prepare rollback instructions in PR description (Outcome: documented steps to revert changes if required)
+- Conversion CTAs (implement and instrument):
+  - [ ] Add `src/components/home/ConversionCTAs.tsx` and wire primary CTA to `trackConversion('book_consultation')`. (Acceptance: clicking CTA calls `trackConversion` stub in dev).
 
 ---
 
-## Appendix — Quick Wins (30-minute tasks)
-- [ ] Update hero H1 classes: change `text-4xl sm:text-5xl lg:text-6xl` → `text-3xl sm:text-4xl lg:text-5xl` (Acceptance: hero headline visually reduced)  
-- [ ] Reduce section padding `py-12 sm:py-16` → `py-8 sm:py-12` (Acceptance: sections consume less vertical space)  
-- [ ] Reduce service icon container `w-16 h-16` → `w-12 h-12` (Acceptance: services grid becomes more compact)
+### 4. Phase 3 — Performance, SEO & Instrumentation (Depends on Phase 2)
+Small measurable improvements and verification steps.
+
+- Image optimization:
+  - [ ] Convert key hero and above-the-fold images to `next/image` with sizes, quality, and priority settings (files: any page with hero images; start with `src/components/home/hero-section.tsx`). (Acceptance: Lighthouse LCP improves or remains stable; images served as webp where possible.)
+
+- Schema & metadata:
+  - [ ] Add `src/components/seo/SchemaMarkup.tsx` and wire structured data on layout or homepage. (Acceptance: passes Google structured data testing.)
+  - [ ] Verify `app/layout.tsx` metadata matches docs/website_audit_guide.md and update if needed. (Acceptance: metadata present in page source.)
+
+- Analytics & web vitals:
+  - [ ] Implement `src/lib/analytics.ts` (GA4/FB pixel stubs) and `src/lib/performance.ts` reportWebVitals hook. (Acceptance: stubbed events appear in dev console when triggered.)
 
 ---
 
-If any task references an asset, design, or credential not available, pause and request that asset/credential before proceeding. To start work, tell me which phase to begin and whether you want me to:  
-- create the feature branch and open a draft PR,  
-- or only generate PR-ready changes for review locally.
+### 5. Phase 4 — Accessibility QA, testing, and release (Depends on Phases 1–3)
+- [ ] Run automated a11y scan (axe/lighthouse) on critical pages (Home, About, Services, Booking, Contact). Record results. (Acceptance: <= 3 non-critical violations or documented fixes.)
+- [ ] Standardize loading indicators: ensure meaningful ones have `role="status" aria-live="polite"`, and decorative spinners are `aria-hidden="true"`. (Files: src/components/ui/loading.tsx and pages that show full-page loaders.) (Acceptance: axe/lighthouse shows correct patterns.)
+- [ ] Cross-device screenshot QA and performance baseline: capture before/after metrics and attach to PR. (Acceptance: PR includes screenshots and Lighthouse reports.)
+- [ ] Create release PR with checklist, screenshots, tests, and rollback instructions. (Acceptance: draft PR created for review.)
+
+---
+
+## Tasks for maintainers / questions for you
+- Provide certification and client logos to add to TrustSection (if unavailable, we will add placeholders in `/public/certifications`).
+- Do you want analytics keys (GA4/FB Pixel) connected now? If yes, provide access or request that I add stubs and instructions. Connecting MCPs requires manual action: [Open MCP popover](#open-mcp-popover).
+- Do you prefer `py-8 sm:py-12` globally for all sections, or to keep `py-10` for medium importance sections (services/cards)? Please confirm.
+
+---
+
+If you want, I can now:  
+- Create the feature branch and implement Phase 1 (visual fixes) with small commits per file, or  
+- Generate PR-ready edits for review only.  
+
+Which do you want me to start with? (I recommend: create the branch + implement Phase 1.)
