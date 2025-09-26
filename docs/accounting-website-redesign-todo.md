@@ -131,9 +131,9 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 - [x] Unit tests for parser utilities (if any) under tests/expenses
 
 Status:
-- Completed: Receipt scanner UI, ingest API, portal link, analytics events
+- Completed: Receipt scanner UI, ingest API, portal link, analytics events, unit tests for extract helper
 - Why: Enables clients to quickly capture expenses; prepares for future OCR and storage integration without blocking on provider setup
-- Next: Add unit tests for extract helper; later wire to uploads provider + DB persistence
+- Next: Wire to uploads provider + DB persistence
 
 2) Automated Billing Sequences UI
 - [x] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
@@ -143,9 +143,9 @@ Status:
 - [x] Snapshot tests for UI building blocks under tests/invoicing
 
 Status:
-- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events
+- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events, snapshot tests
 - Why: Enables ops to configure recurring invoices; mock API supports preview without backend dependency
-- Next: Add snapshot tests; later integrate with real payments/invoicing services
+- Next: Integrate with real payments/invoicing services
 
 3) Compliance Dashboard
 - [x] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
