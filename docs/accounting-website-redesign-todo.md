@@ -2,7 +2,7 @@
 
 Audited: routes, components, and APIs under src/app, src/components, src/lib. Checked homepage, uploads, portal, admin, payments, newsletter, and security utilities.
 
-## ��� Completed
+## ✅ Completed
 - [x] Resolve install failure and generate Prisma client
   - What: Ran `pnpm install --no-frozen-lockfile` and `pnpm db:generate`; dev server on :3000
   - Why: Unblocked development; Prisma client ready
@@ -104,11 +104,11 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Integrated FinancialDashboard, MessageCenter, DeadlineTracker into portal; exposed calculators/tools at /resources/tools
 - [x] API stubs for new UIs
   - What: Implemented src/app/api/tools/tax/route.ts and src/app/api/tools/roi/route.ts with Zod validation and computed responses
-- [ ] Accessibility pass
+- [x] Accessibility pass
   - What: aria labels; focus order; contrast checks; Lighthouse a11y ≥ 95
 
 ## QA & Performance
-- [ ] E2E coverage
+- [x] E2E coverage
   - What: Playwright flows: homepage (incl. variant), upload, calculators, portal dashboard, chat
 - [ ] Perf budget
   - What: Bundle budgets; LCP < 2.5s, CLS < 0.1 on homepage median
