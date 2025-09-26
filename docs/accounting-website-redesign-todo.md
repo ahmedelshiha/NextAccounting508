@@ -58,8 +58,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: TrustSection + testimonials-section.tsx present
 
 ## Phase 3 — Client Portal Foundations (Weeks 5–8)
-- [ ] Secure document upload UI
-  - What: components/portal/secure-document-upload.tsx; post to /api/uploads; show categories & statuses
+- [x] Secure document upload UI
+  - What: Added src/components/portal/secure-document-upload.tsx and integrated into portal page; posts multipart/form-data to /api/uploads with category-as-folder, progress, and per-file status
+  - Why: Enable clients to submit documents securely with AV scanning and clear feedback
+  - Next: Add attachments listing API and UI to show persisted history across sessions
 - [ ] Financial dashboard
   - What: components/portal/financial-dashboard.tsx; KPI + chart
 - [ ] Message center
