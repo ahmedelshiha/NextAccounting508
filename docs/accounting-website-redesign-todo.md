@@ -47,7 +47,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - Why: Smaller DOM footprint with same brand look; newsletter/social preserved
 
 ## Phase 2 — Homepage Redesign (Weeks 3–4)
-- [ ] Compact hero variant
+- [x] Compact hero variant
+  - What: Implemented src/components/home/compact-hero.tsx and feature flag in app/page.tsx using searchParams (?hero=compact) and cookie (hero=compact)
+  - Why: Provide a faster LCP alternative for experimentation while preserving brand look and feel
+  - Next: Run A/B via query param initially; consider server-assigned flag and analytics segmentation
   - What: components/home/compact-hero.tsx; feature-flag switch in app/page.tsx
 - [x] Core services section
   - What: Already implemented (services-section.tsx)
