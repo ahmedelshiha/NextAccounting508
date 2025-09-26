@@ -50,7 +50,12 @@ Completed items are small, focused, and reversible. Changes were made in separat
   - Why: Reduce excessive vertical spacing and improve content density on mobile.
   - Files changed: `src/app/about/page.tsx`, `src/app/contact/page.tsx`, `src/app/services/page.tsx`, `src/app/blog/page.tsx`, `src/app/booking/page.tsx`.
 
-Notes: All edits were conservative (no refactors of API or behavior) and focused on visuals, spacing, and accessibility improvements.
+- [x] Extracted and implemented reusable ContactForm component and replaced inline form on Contact page.
+  - What: Created `src/components/forms/ContactForm.tsx` using react-hook-form + zod for validation, accessible labels, loading state, and toast notifications. Updated `src/app/contact/page.tsx` to import and use `<ContactForm />`.
+  - Why: Component reusability, easier testing, consistent behavior across pages, and improved accessibility (aria-live, focus management).
+  - Files changed: `src/components/forms/ContactForm.tsx`, `src/app/contact/page.tsx`.
+
+Notes: All edits were conservative (no refactors of API or behavior) and focused on visuals, spacing, accessibility, and componentization of the contact form.
 
 ---
 
