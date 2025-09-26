@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Phone, Mail, Clock, MessageSquare, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { ContactForm } from '@/components/forms/ContactForm'
+import { FAQSection } from '@/components/home/FAQSection'
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
