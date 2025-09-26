@@ -65,13 +65,14 @@ const nextConfig = {
     return config
   },
   
+  // External packages for server components
+  serverExternalPackages: ['@sentry/nextjs'],
+  
   // Experimental features for better performance
   experimental: {
     // Removed optimizeCss - requires additional critters dependency
     // optimizeCss: true,
-    swcMinify: true,
-    // Enable React 18 Suspense features
-    serverComponentsExternalPackages: ['@sentry/nextjs'],
+    // swcMinify is now enabled by default in Next.js 13+
   },
   async headers() {
     const csp = [
