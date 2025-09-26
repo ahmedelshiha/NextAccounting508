@@ -7,6 +7,9 @@
   },
   "scripts": {
     "dev": "next dev -p 3001 -H 0.0.0.0",
+    "dev:fresh": "rm -rf node_modules pnpm-lock.yaml && pnpm install --no-frozen-lockfile && pnpm db:generate && pnpm dev",
+    "postinstall": "prisma generate",
+    "setup": "pnpm install --no-frozen-lockfile && pnpm db:generate",
     "build": "prisma generate && next build --turbopack",
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next start",
