@@ -24,6 +24,7 @@ export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
   billing_sequence_updated: 'billing_sequence_updated',
   compliance_viewed: 'compliance_viewed',
   alert_dismissed: 'alert_dismissed',
+  security_center_viewed: 'security_center_viewed',
 }
 
 export const trackConversion = (eventName: string, data?: Record<string, any>) => {
