@@ -221,6 +221,11 @@ export default function PortalPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Documents</h2>
           <SecureDocumentUpload />
+          <div className="mt-4">
+            <Button asChild aria-label="Scan receipt">
+              <Link href="/portal/expenses/scan">Scan a Receipt</Link>
+            </Button>
+          </div>
         </div>
 
         {/* Upcoming Appointments */}
