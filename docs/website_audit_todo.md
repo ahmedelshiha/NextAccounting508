@@ -129,7 +129,7 @@ Small measurable improvements and verification steps.
   - [ ] Convert key hero and above-the-fold images to `next/image` with sizes, quality, and priority settings (files: any page with hero images; start with `src/components/home/hero-section.tsx`). (Acceptance: Lighthouse LCP improves or remains stable; images served as webp where possible.)
 
 - Schema & metadata:
-  - [ ] Add `src/components/seo/SchemaMarkup.tsx` and wire structured data on layout or homepage. (Acceptance: passes Google structured data testing.)
+  - [x] Add `src/components/seo/SchemaMarkup.tsx` and wire structured data on layout or homepage. (Acceptance: structured data injected via <SchemaMarkup /> in app/layout.tsx.)
   - [ ] Verify `app/layout.tsx` metadata matches docs/website_audit_guide.md and update if needed. (Acceptance: metadata present in page source.)
 
 - Analytics & web vitals:
