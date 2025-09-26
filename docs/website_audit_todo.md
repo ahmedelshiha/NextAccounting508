@@ -111,7 +111,7 @@ Split work into small components and unit-testable units.
   - [ ] Add a CMS/snippet hook (Builder.io registration) if required by content team. (Acceptance: component registered per docs/next integration guide.)
 
 - Trust & Security section (implement):
-  - [ ] Create `src/components/home/TrustSection.tsx` with four trust indicators, certification placeholders, and a security notice. (Acceptance: added to homepage; contrast meets WCAG AA.)
+  - [x] Create `src/components/home/TrustSection.tsx` with four trust indicators, certification icons, and a security notice; added to homepage. (Acceptance: added to homepage; contrast meets WCAG AA.)
 
 - FAQ accordion (implement):
   - [ ] Create `src/components/home/FAQSection.tsx` with keyboard operable accordion, `aria-expanded`, and `aria-controls`. (Acceptance: keyboard operable and screen reader friendly; unit tests validate state toggling.)
