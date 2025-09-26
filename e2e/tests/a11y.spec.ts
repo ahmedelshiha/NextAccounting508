@@ -9,7 +9,7 @@ test.describe('Accessibility (axe-core)', () => {
     await page.goto('/')
     await injectAxe(page)
     const results = await page.evaluate(async () => {
-      // @ts-expect-error
+      // @ts-expect-error - axe is injected at runtime; window.axe is not in TypeScript DOM types
       const r = await window.axe.run(document, { resultTypes: ['violations'] })
       const critical = r.violations.filter(v => (v.impact || '').toLowerCase() === 'critical')
       return { count: critical.length, details: critical.map(v => v.id) }
