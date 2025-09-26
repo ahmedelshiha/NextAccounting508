@@ -92,7 +92,7 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
               Professional Accounting Services
@@ -113,7 +113,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Our Core Services</h2>
@@ -170,7 +170,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-white">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">Additional Services</h2>
@@ -205,7 +205,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-blue-600">
+      <section className="py-12 bg-blue-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white">
             Ready to Get Started?

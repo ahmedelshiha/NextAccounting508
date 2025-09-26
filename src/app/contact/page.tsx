@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MapPin, Phone, Mail, Clock, MessageSquare, Send } from 'lucide-react'
 import { toast } from 'sonner'
+import { ContactForm } from '@/components/forms/ContactForm'
+import { FAQSection } from '@/components/home/FAQSection'
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -105,7 +107,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
               Contact Us
@@ -118,115 +120,11 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MessageSquare className="h-6 w-6 text-blue-600" />
-                  <span>Send us a Message</span>
-                </CardTitle>
-                <p className="text-gray-600">
-                  Fill out the form below and we will get back to you within 24 hours.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
-                        placeholder="Your full name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="your@email.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="(555) 123-4567"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="company">Company Name</Label>
-                      <Input
-                        id="company"
-                        type="text"
-                        value={formData.company}
-                        onChange={(e) => handleInputChange('company', e.target.value)}
-                        placeholder="Your company name"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="subject">Service Interest</Label>
-                    <Select onValueChange={(value) => handleInputChange('subject', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a service you're interested in" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service} value={service}>
-                            {service}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message">Message *</Label>
-                    <Textarea
-                      id="message"
-                      required
-                      rows={5}
-                      value={formData.message}
-                      onChange={(e) => handleInputChange('message', e.target.value)}
-                      placeholder="Tell us about your accounting needs and how we can help..."
-                    />
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    disabled={isSubmitting}
-                    className="w-full md:w-auto"
-                  >
-                    {isSubmitting ? (
-                      'Sending...'
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            {/* Reusable ContactForm component extracted from page for reuse and testability */}
+            <ContactForm />
           </div>
 
           <div className="space-y-6">
@@ -302,45 +200,18 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <section className="py-16 bg-white">
+      <section>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Quick answers to common questions
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">How quickly can you respond?</h3>
-              <p className="text-gray-600 text-sm">
-                We typically respond to all inquiries within 24 hours during business days, 
-                and often much sooner for urgent matters.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">Do you offer free consultations?</h3>
-              <p className="text-gray-600 text-sm">
-                Yes! We offer a complimentary 30-minute consultation to discuss your 
-                needs and how we can help your business.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">What areas do you serve?</h3>
-              <p className="text-gray-600 text-sm">
-                We serve clients locally and nationwide, with both in-person and 
-                remote service options available.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">How do you ensure data security?</h3>
-              <p className="text-gray-600 text-sm">
-                We use bank-level encryption and secure cloud platforms to protect 
-                all client data and maintain strict confidentiality.
-              </p>
-            </div>
-          </div>
+          <FAQSection
+            items={[
+              { question: 'How quickly can you respond?', answer: 'We typically respond to all inquiries within 24 hours during business days, and often much sooner for urgent matters.' },
+              { question: 'Do you offer free consultations?', answer: 'Yes! We offer a complimentary 30-minute consultation to discuss your needs and how we can help your business.' },
+              { question: 'What areas do you serve?', answer: 'We serve clients locally and nationwide, with both in-person and remote service options available.' },
+              { question: 'How do you ensure data security?', answer: 'We use bank-level encryption and secure cloud platforms to protect all client data and maintain strict confidentiality.' }
+            ]}
+            heading="Frequently Asked Questions"
+            description="Quick answers to common questions"
+          />
         </div>
       </section>
     </div>

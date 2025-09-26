@@ -79,14 +79,14 @@ export function ServicesSection() {
 
   if (loading) {
     return (
-      <section className="py-12 sm:py-16 bg-white" aria-busy="true">
+      <section className="py-10 sm:py-12 bg-white" aria-busy="true">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10" role="status" aria-live="polite">
             <span className="sr-only">Loading services…</span>
             <div className="h-8 bg-gray-200 animate-pulse rounded w-64 mx-auto mb-4"></div>
             <div className="h-6 bg-gray-200 animate-pulse rounded w-96 mx-auto"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[...Array(4)].map((_unused, i) => (
               <div key={i} className="bg-gray-100 animate-pulse rounded-lg h-64"></div>
             ))}
@@ -97,7 +97,7 @@ export function ServicesSection() {
   }
 
   return (
-    <section className="py-12 sm:py-16 bg-white">
+    <section className="py-10 sm:py-12 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10">
@@ -111,7 +111,7 @@ export function ServicesSection() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           {services.slice(0, 4).map((service) => {
             const IconComponent = serviceIcons[service.name as keyof typeof serviceIcons] || Calculator
 
@@ -121,8 +121,8 @@ export function ServicesSection() {
                 className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 shadow-lg"
               >
                 <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
-                    <IconComponent className="h-8 w-8 text-blue-600 group-hover:text-white transition-colors" />
+                  <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-600 transition-colors">
+                    <IconComponent className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors" />
                   </div>
                   <CardTitle className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {service.name}

@@ -3,6 +3,7 @@ import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
 import { BlogSection } from '@/components/home/blog-section'
+import { TrustSection } from '@/components/home/TrustSection'
 
 export const revalidate = 60
 
@@ -11,6 +12,7 @@ export default function HomePage() {
     <main>
       <HomeHeroSection />
       <ServicesSection />
+      <TrustSection />
       <TestimonialsSection />
       <Suspense fallback={null}>
         <BlogSection />

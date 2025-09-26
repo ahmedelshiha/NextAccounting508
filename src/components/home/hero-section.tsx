@@ -20,12 +20,12 @@ const stats = [
 
 export function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-12 sm:py-16">
+    <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 lg:py-12">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
       
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Content */}
           <div className="max-w-2xl">
             {/* Badge */}
@@ -35,13 +35,13 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
               Stress-free accounting for{' '}
               <span className="text-blue-600">growing businesses</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+            <p className="text-lg text-gray-600 mb-5 leading-relaxed">
               Focus on what you do best while we handle your books, taxes, and 
               financial strategy. Professional accounting services tailored to 
               your business needs.
@@ -58,7 +58,7 @@ export function HeroSection() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <Button size="lg" asChild className="group">
                 <Link href="/booking">
                   Book Free Consultation
