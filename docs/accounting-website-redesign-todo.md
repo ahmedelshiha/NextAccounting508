@@ -124,11 +124,16 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 ## Next Actions — Ordered Backlog (with Checkboxes)
 
 1) Expense Tracking (Stub UI)
-- [ ] Create src/components/expenses/receipt-scanner.tsx with file input, preview, editable extracted fields, and save stub
-- [ ] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
-- [ ] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
-- [ ] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
+- [x] Create src/components/expenses/receipt-scanner.tsx with file input, preview, editable extracted fields, and save stub
+- [x] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
+- [x] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
+- [x] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
 - [ ] Unit tests for parser utilities (if any) under tests/expenses
+
+Status:
+- Completed: Receipt scanner UI, ingest API, portal link, analytics events
+- Why: Enables clients to quickly capture expenses; prepares for future OCR and storage integration without blocking on provider setup
+- Next: Add unit tests for extract helper; later wire to uploads provider + DB persistence
 
 2) Automated Billing Sequences UI
 - [ ] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
