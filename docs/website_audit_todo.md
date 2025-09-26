@@ -101,7 +101,7 @@ Break each visual change into per-file edits so changes are small, reviewable, a
 Split work into small components and unit-testable units.
 
 - Contact form (implement):
-  - [ ] Create `src/components/forms/ContactForm.tsx` with client-side validation, accessible labels, focus management, loading state, and success state. (Acceptance: form returns a mocked success response and shows success UI.)
+  - [x] Create `src/components/forms/ContactForm.tsx` with client-side validation, accessible labels, focus management, loading state, and success state. (Acceptance: form submits to /api/contact, shows toast and accessible status; component extracted and used on Contact page.)
   - [ ] Add unit tests for validation behavior (tests/forms/contact-form.test.tsx). (Acceptance: tests pass locally.)
   - [ ] Add a CMS/snippet hook (Builder.io registration) if required by content team. (Acceptance: component registered per docs/next integration guide.)
 
