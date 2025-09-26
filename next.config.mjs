@@ -11,6 +11,67 @@ const nextConfig = {
   // Allow Builder preview domain to access dev resources like /_next/* during development
   allowedDevOrigins: ["*.projects.builder.codes", "*.fly.dev"],
   turbopack: {},
+  
+  // Webpack optimization for better bundle splitting
+  webpack: (config, { isServer, buildId }) => {
+    if (!isServer) {
+      // Optimize chunk splitting for admin components
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        chunks: 'all',
+        cacheGroups: {
+          ...config.optimization.splitChunks.cacheGroups,
+          // Separate admin components into their own chunk
+          adminComponents: {
+            name: 'admin-components',
+            test: /[\\/]src[\\/]components[\\/]admin[\\/]/,
+            chunks: 'all',
+            priority: 10,
+            enforce: true,
+          },
+          // Admin hooks and utilities  
+          adminUtils: {
+            name: 'admin-utils',
+            test: /[\\/]src[\\/](hooks|stores|types)[\\/]admin[\\/]/,
+            chunks: 'all',
+            priority: 9,
+            enforce: true,
+          },
+          // UI components shared across the app
+          uiComponents: {
+            name: 'ui-components',
+            test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
+            chunks: 'all',
+            priority: 8,
+          },
+          // Zustand and other state management libraries
+          stateManagement: {
+            name: 'state-management',
+            test: /[\\/]node_modules[\\/](zustand|react-query|swr)[\\/]/,
+            chunks: 'all',
+            priority: 7,
+          },
+          // Icon libraries
+          icons: {
+            name: 'icons',
+            test: /[\\/]node_modules[\\/](lucide-react|heroicons)[\\/]/,
+            chunks: 'all',
+            priority: 6,
+          },
+        },
+      }
+    }
+    
+    return config
+  },
+  
+  // Experimental features for better performance
+  experimental: {
+    optimizeCss: true,
+    swcMinify: true,
+    // Enable React 18 Suspense features
+    serverComponentsExternalPackages: ['@sentry/nextjs'],
+  },
   async headers() {
     const csp = [
       "default-src 'self'",

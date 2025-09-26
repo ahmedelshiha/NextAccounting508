@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout'
+import AdminDashboardLayoutLazy from '@/components/admin/layout/AdminDashboardLayoutLazy'
 import { AdminProviders } from '@/components/admin/providers/AdminProviders'
 import AdminProvidersHydrator from '@/components/admin/providers/AdminProvidersHydrator.client'
 
@@ -32,9 +32,9 @@ export default async function AdminLayout({ children }: Props) {
     <>
       <AdminProviders session={session}>
         <AdminProvidersHydrator session={session}>
-          <AdminDashboardLayout session={session}>
+          <AdminDashboardLayoutLazy session={session}>
             {children}
-          </AdminDashboardLayout>
+          </AdminDashboardLayoutLazy>
         </AdminProvidersHydrator>
       </AdminProviders>
     </>
