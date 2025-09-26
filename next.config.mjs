@@ -67,7 +67,8 @@ const nextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
+    // Removed optimizeCss - requires additional critters dependency
+    // optimizeCss: true,
     swcMinify: true,
     // Enable React 18 Suspense features
     serverComponentsExternalPackages: ['@sentry/nextjs'],
