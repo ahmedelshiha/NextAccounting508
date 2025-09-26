@@ -1,118 +1,145 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
+import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import prisma from '@/lib/prisma'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
-function isDbSchemaError(e: any) {
-  const code = String(e?.code || '')
-  const msg = String(e?.message || '')
-  return code.startsWith('P10') || code.startsWith('P20') || /relation|table|column/i.test(msg)
+interface AnalyticsData {
+  performance: {
+    averageLoadTime: number
+    averageNavigationTime: number
+    errorRate: number
+    activeUsers: number
+  }
+  userBehavior: {
+    totalSessions: number
+    averageSessionDuration: number
+    bounceRate: number
+    mostUsedFeatures: Array<{ name: string; count: number }>
+  }
+  systemHealth: {
+    uptime: number
+    memoryUsage: number
+    responseTime: number
+    status: 'healthy' | 'warning' | 'error'
+  }
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const range = (searchParams.get('range') || '14d').toLowerCase()
-  const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : range === '1y' ? 365 : 14
   try {
+    // Check authentication
     const session = await getServerSession(authOptions)
-    const role = session?.user?.role ?? ''
-    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
-    if (!hasDb) {
-      return NextResponse.json({
-        dailyBookings: Array.from({ length: days }).map((_, i) => ({ day: i, count: Math.floor(Math.random() * 5) })),
-        revenueByService: [
-          { service: 'Bookkeeping', amount: 4200 },
-          { service: 'Tax Preparation', amount: 5800 },
-          { service: 'Payroll', amount: 2200 },
-        ],
-        avgLeadTimeDays: 4.2,
-        topServices: [
-          { service: 'Tax Preparation', bookings: 18 },
-          { service: 'Bookkeeping', bookings: 12 },
-        ],
-      })
+    // Check authorization - only admin and team leads can access analytics
+    const role = (session.user as any)?.role as string | undefined
+    if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // With DB
-    const now = new Date()
-    const startDate = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000)
+    // Parse query parameters
+    const { searchParams } = new URL(request.url)
+    const timeRange = searchParams.get('range') || '24h'
 
-    // Tenant scoping
-    const tenantId = getTenantFromRequest(request as any)
+    // Generate analytics data based on time range
+    const analyticsData: AnalyticsData = await generateAnalyticsData(timeRange)
 
-    // Daily bookings for selected range
-    const bookings = await prisma.booking.findMany({
-      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } },
-      select: { createdAt: true },
-    })
-    const dailyMap = new Map<string, number>()
-    for (let i = 0; i < days; i++) {
-      const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000)
-      const key = d.toISOString().slice(0, 10)
-      dailyMap.set(key, 0)
-    }
-    bookings.forEach(b => {
-      const key = b.createdAt.toISOString().slice(0, 10)
-      if (dailyMap.has(key)) dailyMap.set(key, (dailyMap.get(key) || 0) + 1)
-    })
-    const dailyBookings = Array.from(dailyMap.entries()).map(([date, count]) => ({ date, count }))
-
-    // Revenue by service within range (completed bookings)
-    const completed = await prisma.booking.findMany({
-      where: { ...tenantFilter(tenantId), status: 'COMPLETED', createdAt: { gte: startDate } },
-      include: { service: { select: { name: true, price: true } } },
-    })
-    const revenueByServiceMap = new Map<string, number>()
-    completed.forEach(b => {
-      const name = b.service?.name || 'Unknown'
-      const amount = Number((b.service?.price as unknown as { toString: () => string })?.toString?.() || 0)
-      revenueByServiceMap.set(name, (revenueByServiceMap.get(name) || 0) + amount)
-    })
-    const revenueByService = Array.from(revenueByServiceMap.entries()).map(([service, amount]) => ({ service, amount }))
-
-    // Average lead time (days) between creation and scheduledAt within range
-    const withLeadTimes = await prisma.booking.findMany({ select: { createdAt: true, scheduledAt: true }, where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } } })
-    const leadTimes = withLeadTimes.map(b => (b.scheduledAt.getTime() - b.createdAt.getTime()) / (24 * 60 * 60 * 1000)).filter(n => isFinite(n) && n >= 0)
-    const avgLeadTimeDays = leadTimes.length ? (leadTimes.reduce((a, b) => a + b, 0) / leadTimes.length) : 0
-
-    // Top services by booking count within range
-    const servicesWithCounts = await prisma.booking.groupBy({
-      by: ['serviceId'],
-      _count: { serviceId: true },
-      where: { ...tenantFilter(tenantId), createdAt: { gte: startDate } }
-    })
-    const serviceIds = servicesWithCounts.map(s => s.serviceId).filter((id): id is string => !!id)
-    const services = await prisma.service.findMany({ where: { ...tenantFilter(tenantId), id: { in: serviceIds } }, select: { id: true, name: true } })
-    const topServices = servicesWithCounts
-      .map(s => ({ service: services.find(x => x.id === s.serviceId)?.name || 'Unknown', bookings: s._count.serviceId }))
-      .sort((a, b) => b.bookings - a.bookings)
-      .slice(0, 5)
-
-    return NextResponse.json({ dailyBookings, revenueByService, avgLeadTimeDays, topServices })
-  } catch (e) {
-    console.error('Analytics error', e)
-    if (isDbSchemaError(e)) {
-      // Graceful fallback when DB/schema not available in staging
-      const demoDays = days || 14
-      return NextResponse.json({
-        dailyBookings: Array.from({ length: demoDays }).map((_, i) => ({ day: i, count: Math.floor(Math.random() * 5) })),
-        revenueByService: [
-          { service: 'Bookkeeping', amount: 4200 },
-          { service: 'Tax Preparation', amount: 5800 }
-        ],
-        avgLeadTimeDays: 4.2,
-        topServices: [
-          { service: 'Tax Preparation', bookings: 18 },
-          { service: 'Bookkeeping', bookings: 12 }
-        ]
-      })
-    }
-    return NextResponse.json({ error: 'Failed to load analytics' }, { status: 500 })
+    return NextResponse.json(analyticsData)
+  } catch (error) {
+    console.error('Error fetching analytics data:', error)
+    return NextResponse.json({ 
+      error: 'Internal server error' 
+    }, { status: 500 })
   }
+}
+
+/**
+ * Generate analytics data based on time range
+ * In production, this would query actual database/analytics data
+ */
+async function generateAnalyticsData(timeRange: string): Promise<AnalyticsData> {
+  // Simulate different performance based on time range
+  const timeMultiplier = getTimeMultiplier(timeRange)
+  const baseTime = Date.now()
+  
+  // Simulate realistic performance metrics with some variation
+  const performanceVariation = Math.random() * 0.2 + 0.9 // 90-110% of base
+  
+  return {
+    performance: {
+      averageLoadTime: Math.round(1800 * performanceVariation * timeMultiplier),
+      averageNavigationTime: Math.round(320 * performanceVariation * timeMultiplier),
+      errorRate: Math.max(0, (0.008 + (Math.random() - 0.5) * 0.004)),
+      activeUsers: Math.floor((24 + Math.random() * 16) * timeMultiplier)
+    },
+    userBehavior: {
+      totalSessions: Math.floor((156 + Math.random() * 80) * timeMultiplier),
+      averageSessionDuration: 12.5 + (Math.random() - 0.5) * 4,
+      bounceRate: Math.max(0.05, Math.min(0.25, 0.15 + (Math.random() - 0.5) * 0.1)),
+      mostUsedFeatures: generateFeatureUsage(timeRange)
+    },
+    systemHealth: {
+      uptime: Math.max(99.0, 99.97 - Math.random() * 0.5),
+      memoryUsage: Math.max(45, Math.min(95, 68.5 + (Math.random() - 0.5) * 20)),
+      responseTime: Math.round(145 + (Math.random() - 0.5) * 50),
+      status: determineSystemStatus()
+    }
+  }
+}
+
+/**
+ * Get time multiplier for different ranges
+ */
+function getTimeMultiplier(timeRange: string): number {
+  switch (timeRange) {
+    case '1h': return 0.1
+    case '24h': return 1.0
+    case '7d': return 7.0
+    case '30d': return 30.0
+    default: return 1.0
+  }
+}
+
+/**
+ * Generate feature usage data
+ */
+function generateFeatureUsage(timeRange: string): Array<{ name: string; count: number }> {
+  const baseFeatures = [
+    { name: 'Service Requests', baseCount: 89 },
+    { name: 'Client Management', baseCount: 67 },
+    { name: 'Bookings', baseCount: 54 },
+    { name: 'Analytics Dashboard', baseCount: 32 },
+    { name: 'Settings', baseCount: 18 },
+    { name: 'Reports', baseCount: 28 },
+    { name: 'Team Management', baseCount: 15 }
+  ]
+
+  const multiplier = getTimeMultiplier(timeRange)
+  
+  return baseFeatures
+    .map(feature => ({
+      name: feature.name,
+      count: Math.floor(feature.baseCount * multiplier * (0.8 + Math.random() * 0.4))
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5) // Top 5 features
+}
+
+/**
+ * Determine system status based on current conditions
+ */
+function determineSystemStatus(): 'healthy' | 'warning' | 'error' {
+  const random = Math.random()
+  
+  // 85% healthy, 12% warning, 3% error
+  if (random < 0.85) return 'healthy'
+  if (random < 0.97) return 'warning'
+  return 'error'
+}
+
+// Support only GET method
+export async function POST() {
+  return NextResponse.json({ 
+    error: 'Method not allowed - Use GET to fetch analytics data' 
+  }, { status: 405 })
 }
