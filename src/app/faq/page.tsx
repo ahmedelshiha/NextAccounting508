@@ -71,21 +71,8 @@ export default function FAQPage() {
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="md:col-span-2">
-            <div className="space-y-4">
-              {faqs.map((faq) => (
-                <details
-                  key={faq.question}
-                  className="bg-white p-6 rounded-lg shadow-sm"
-                >
-                  <summary className="cursor-pointer list-none text-lg font-medium text-gray-900">
-                    {faq.question}
-                  </summary>
-                  <div className="mt-3 text-gray-700">
-                    {faq.answer}
-                  </div>
-                </details>
-              ))}
-            </div>
+            {/* Reusable FAQSection component */}
+            <FAQSection items={faqs} heading="Frequently Asked Questions" description="Answers to common questions about our services, pricing, and processes. If you can't find what you're looking for, please get in touch." />
           </div>
 
           <aside className="hidden md:block">
