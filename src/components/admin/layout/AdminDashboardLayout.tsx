@@ -8,7 +8,7 @@
 
 'use client'
 
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
@@ -42,9 +42,17 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 }) => {
   const pathname = usePathname()
   
-  // Get responsive state and layout management
+  // Add client-side hydration check to prevent SSR issues
+  const [isClient, setIsClient] = useState(false)
+  
+  // Get responsive state and layout management - ALWAYS call hooks at the top level
   const responsive = useResponsive()
   const { sidebar, navigation, ui } = useAdminLayout()
+  
+  // Set client-side flag after hydration
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Sync responsive state with store
   useEffect(() => {
@@ -107,6 +115,38 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
   // Determine sidebar behavior
   const sidebarBehavior = responsive.isMobile ? 'overlay' : 'fixed'
+
+  // Show loading skeleton during SSR/hydration
+  if (!isClient) {
+    return (
+      <div className="h-screen bg-gray-50 flex">
+        {/* Sidebar Skeleton */}
+        <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0">
+          <div className="animate-pulse">
+            <div className="p-4 border-b border-gray-200">
+              <div className="h-8 bg-gray-300 rounded"></div>
+            </div>
+            <div className="p-4 space-y-2">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-8 bg-gray-300 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Content Skeleton */}
+        <div className="flex-1">
+          <div className="h-16 bg-white border-b border-gray-200"></div>
+          <div className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-300 rounded w-1/4"></div>
+              <div className="h-32 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={`h-screen bg-gray-50 overflow-hidden ${className}`}>

@@ -74,10 +74,10 @@ export const useResponsive = (
     ...customConfig,
   }), [customConfig])
 
-  // Track window size
+  // Track window size - initialize with safe server-side defaults
   const [windowSize, setWindowSize] = useState({
-    width: 0,
-    height: 0,
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
   })
 
   // Update window size
@@ -92,6 +92,9 @@ export const useResponsive = (
 
   // Set up resize listener
   useEffect(() => {
+    // Skip if running on server
+    if (typeof window === 'undefined') return
+
     // Initial size
     updateSize()
 
