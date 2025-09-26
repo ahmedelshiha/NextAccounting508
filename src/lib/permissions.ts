@@ -98,3 +98,14 @@ export function getRolePermissions(userRole: string | undefined | null): Permiss
   if (!userRole) return []
   return ROLE_PERMISSIONS[userRole] ?? []
 }
+
+/**
+ * Check if a user role is included in a list of allowed roles
+ * @param userRole The current user's role
+ * @param allowedRoles Array of roles that should have access
+ * @returns true if the user's role is in the allowed roles list
+ */
+export function hasRole(userRole: string | undefined | null, allowedRoles: readonly string[]): boolean {
+  if (!userRole || !allowedRoles) return false
+  return allowedRoles.includes(userRole)
+}

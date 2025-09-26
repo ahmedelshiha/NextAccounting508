@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { SessionProvider } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import type { Session } from 'next-auth'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
@@ -190,26 +191,26 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
     }
   }, [])
 
-  const [showPortalChat, setShowPortalChat] = React.useState(false)
-
-  React.useEffect(() => {
-    try {
-      const path = typeof window !== 'undefined' ? window.location.pathname : ''
-      setShowPortalChat(path.startsWith('/portal'))
-    } catch {
-      setShowPortalChat(false)
-    }
-  }, [])
+  // Use Next.js usePathname hook for proper SSR support
+  const pathname = usePathname()
+  const showPortalChat = pathname?.startsWith('/portal') || false
+  const isAdminRoute = pathname?.startsWith('/admin') || false
 
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <AccessibleRouteAnnouncer />
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        {/* 
+          CRITICAL NAVIGATION CONFLICT RESOLUTION:
+          Only show main site navigation on NON-admin routes
+          Admin routes will have their own dedicated layout with sidebar navigation
+        */}
+        {!isAdminRoute && <Navigation />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
-        <OptimizedFooter />
+        {/* Only show footer on non-admin routes */}
+        {!isAdminRoute && <OptimizedFooter />}
       </div>
       {/* Capture performance metrics on public pages as well */}
       <PerfMetricsReporter />
