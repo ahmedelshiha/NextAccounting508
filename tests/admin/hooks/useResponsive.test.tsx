@@ -266,7 +266,7 @@ describe('useMediaQuery', () => {
   })
 
   it('updates when media query changes', () => {
-    const listeners: Function[] = []
+    const listeners: Array<(event: { matches: boolean }) => void> = []
     const mockMediaQueryList = {
       matches: false,
       addEventListener: vi.fn((event, listener) => {
