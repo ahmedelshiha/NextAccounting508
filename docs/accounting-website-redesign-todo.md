@@ -66,8 +66,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Implemented src/components/portal/financial-dashboard.tsx; KPIs (upcoming count, upcoming value, last 30 days) and monthly booked value chart; integrated into portal page using existing bookings data
   - Why: Give clients a clear snapshot of upcoming commitments and recent activity
   - Next: Extend with invoices/payments once API available for client-level billing
-- [ ] Message center
-  - What: components/communication/message-center.tsx; wire to /api/portal/chat
+- [x] Message center
+  - What: Implemented src/components/communication/message-center.tsx; wired to /api/portal/chat with SSE updates; integrated into portal page
+  - Why: Provide clients an in-portal communication hub with real-time delivery and offline queue fallback
+  - Next: Add admin view parity and typing indicators
 - [ ] Tax deadline tracker
   - What: components/tax/deadline-tracker.tsx; reminders CTA
 
