@@ -4,6 +4,8 @@ import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
 import { BlogSection } from '@/components/home/blog-section'
 import { TrustSection } from '@/components/home/TrustSection'
+import { QuickWinsSection } from '@/components/home/quick-wins'
+import { FinalCTASection } from '@/components/home/final-cta'
 
 export const revalidate = 60
 
@@ -14,6 +16,8 @@ export default function HomePage() {
       <ServicesSection />
       <TrustSection />
       <TestimonialsSection />
+      <QuickWinsSection />
+      <FinalCTASection />
       <Suspense fallback={null}>
         <BlogSection />
       </Suspense>
