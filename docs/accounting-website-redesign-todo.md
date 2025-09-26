@@ -47,7 +47,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - Why: Smaller DOM footprint with same brand look; newsletter/social preserved
 
 ## Phase 2 — Homepage Redesign (Weeks 3–4)
-- [ ] Compact hero variant
+- [x] Compact hero variant
+  - What: Implemented src/components/home/compact-hero.tsx and feature flag in app/page.tsx using searchParams (?hero=compact) and cookie (hero=compact)
+  - Why: Provide a faster LCP alternative for experimentation while preserving brand look and feel
+  - Next: Run A/B via query param initially; consider server-assigned flag and analytics segmentation
   - What: components/home/compact-hero.tsx; feature-flag switch in app/page.tsx
 - [x] Core services section
   - What: Already implemented (services-section.tsx)
@@ -55,14 +58,22 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: TrustSection + testimonials-section.tsx present
 
 ## Phase 3 — Client Portal Foundations (Weeks 5–8)
-- [ ] Secure document upload UI
-  - What: components/portal/secure-document-upload.tsx; post to /api/uploads; show categories & statuses
-- [ ] Financial dashboard
-  - What: components/portal/financial-dashboard.tsx; KPI + chart
-- [ ] Message center
-  - What: components/communication/message-center.tsx; wire to /api/portal/chat
-- [ ] Tax deadline tracker
-  - What: components/tax/deadline-tracker.tsx; reminders CTA
+- [x] Secure document upload UI
+  - What: Added src/components/portal/secure-document-upload.tsx and integrated into portal page; posts multipart/form-data to /api/uploads with category-as-folder, progress, and per-file status
+  - Why: Enable clients to submit documents securely with AV scanning and clear feedback
+  - Next: Add attachments listing API and UI to show persisted history across sessions
+- [x] Financial dashboard
+  - What: Implemented src/components/portal/financial-dashboard.tsx; KPIs (upcoming count, upcoming value, last 30 days) and monthly booked value chart; integrated into portal page using existing bookings data
+  - Why: Give clients a clear snapshot of upcoming commitments and recent activity
+  - Next: Extend with invoices/payments once API available for client-level billing
+- [x] Message center
+  - What: Implemented src/components/communication/message-center.tsx; wired to /api/portal/chat with SSE updates; integrated into portal page
+  - Why: Provide clients an in-portal communication hub with real-time delivery and offline queue fallback
+  - Next: Add admin view parity and typing indicators
+- [x] Tax deadline tracker
+  - What: Implemented src/components/tax/deadline-tracker.tsx; shows next federal deadlines with dates; CTAs to enable reminders and view calendar; integrated into portal page
+  - Why: Keep clients ahead of critical filing/payment dates
+  - Next: Localize per country/state and personalize based on entity type
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
 - [ ] Expense tracking with receipt OCR (stub UI)
@@ -73,26 +84,26 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: components/compliance/compliance-dashboard.tsx
 - [ ] Security Center dashboard
   - What: components/security/security-center.tsx (health, fraud, access log)
-- [ ] Tools: Tax & ROI calculators
-  - What: components/tools/{tax-calculator,roi-calculator}.tsx
+- [x] Tools: Tax & ROI calculators
+  - What: Implemented components/tools/tax-calculator.tsx and components/tools/roi-calculator.tsx; wired into /resources/tools
 
 ## Conversion Optimization
-- [ ] Conversion-optimized landing variant
-  - What: components/landing/conversion-optimized.tsx; route /landing/variant-a via flag
-- [ ] A/B testing hook
-  - What: hooks/useABTest.ts; deterministic assignment; emit `ab_test_assigned`
+- [x] Conversion-optimized landing variant
+  - What: Added src/app/landing/variant-a/page.tsx with optimized hero + pricing; tracks events
+- [x] A/B testing hook
+  - What: Implemented src/hooks/useABTest.ts with deterministic cookie-based assignment and ?ab override; emits `ab_test_assigned`
 
 ## Analytics & Experimentation
-- [ ] Event tracking utilities expansion
-  - What: Type-safe event catalog; SSR-safe no-ops; GA/FB adapters
-- [ ] Analytics ingestion API tests
-  - What: Add vitest for validation, rate-limit, and audit logging paths
+- [x] Event tracking utilities expansion
+  - What: Expanded src/lib/analytics.ts with typed event catalog and SSR-safe adapters (GA/FB + server ingestion)
+- [x] Analytics ingestion API tests
+  - What: Added tests/analytics.track.route.test.ts covering valid payload, invalid payload, payload too large (413), and rate limit (429) via mocks
 
 ## Wiring & Integration
-- [ ] Route integration for remaining features
-  - What: Import new portal components into /portal pages; expose calculators/tools route
-- [ ] API stubs for new UIs
-  - What: Minimal endpoints for calculators, billing sequences, security center summary
+- [x] Route integration for remaining features
+  - What: Integrated FinancialDashboard, MessageCenter, DeadlineTracker into portal; exposed calculators/tools at /resources/tools
+- [x] API stubs for new UIs
+  - What: Implemented src/app/api/tools/tax/route.ts and src/app/api/tools/roi/route.ts with Zod validation and computed responses
 - [ ] Accessibility pass
   - What: aria labels; focus order; contrast checks; Lighthouse a11y ≥ 95
 
