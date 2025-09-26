@@ -16,6 +16,7 @@ import { getApiErrorMessage } from '@/lib/api-error'
 import { useTranslations } from '@/lib/i18n'
 import { SecureDocumentUpload } from '@/components/portal/secure-document-upload'
 import { FinancialDashboard } from '@/components/portal/financial-dashboard'
+import { MessageCenter } from '@/components/communication/message-center'
 
 interface Booking {
   id: string
@@ -201,6 +202,12 @@ export default function PortalPage() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Financial Overview</h2>
           <FinancialDashboard bookings={bookings as any} />
+        </div>
+
+        {/* Messages */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Messages</h2>
+          <MessageCenter />
         </div>
 
         {/* Documents */}
