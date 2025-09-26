@@ -62,8 +62,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Added src/components/portal/secure-document-upload.tsx and integrated into portal page; posts multipart/form-data to /api/uploads with category-as-folder, progress, and per-file status
   - Why: Enable clients to submit documents securely with AV scanning and clear feedback
   - Next: Add attachments listing API and UI to show persisted history across sessions
-- [ ] Financial dashboard
-  - What: components/portal/financial-dashboard.tsx; KPI + chart
+- [x] Financial dashboard
+  - What: Implemented src/components/portal/financial-dashboard.tsx; KPIs (upcoming count, upcoming value, last 30 days) and monthly booked value chart; integrated into portal page using existing bookings data
+  - Why: Give clients a clear snapshot of upcoming commitments and recent activity
+  - Next: Extend with invoices/payments once API available for client-level billing
 - [ ] Message center
   - What: components/communication/message-center.tsx; wire to /api/portal/chat
 - [ ] Tax deadline tracker
