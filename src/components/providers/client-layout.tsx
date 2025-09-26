@@ -5,7 +5,7 @@ import { SessionProvider } from 'next-auth/react'
 import type { Session } from 'next-auth'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/ui/navigation'
-import { Footer } from '@/components/ui/footer'
+import { OptimizedFooter } from '@/components/ui/optimized-footer'
 import dynamic from 'next/dynamic'
 const LiveChatWidget = dynamic(() => import('@/components/portal/LiveChatWidget'), { ssr: false })
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
@@ -209,7 +209,7 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
-        <Footer />
+        <OptimizedFooter />
       </div>
       {/* Capture performance metrics on public pages as well */}
       <PerfMetricsReporter />
