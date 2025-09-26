@@ -3,8 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AdminDashboardLayoutLazy from '@/components/admin/layout/AdminDashboardLayoutLazy'
-import { AdminProviders } from '@/components/admin/providers/AdminProviders'
-import AdminProvidersHydrator from '@/components/admin/providers/AdminProvidersHydrator.client'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
@@ -27,16 +25,10 @@ export default async function AdminLayout({ children }: Props) {
     redirect('/portal')
   }
 
-  // Wrap all admin routes with providers and the new AdminDashboardLayout
+  // Use simplified admin layout to avoid hydration conflicts
   return (
-    <>
-      <AdminProviders session={session}>
-        <AdminProvidersHydrator session={session}>
-          <AdminDashboardLayoutLazy session={session}>
-            {children}
-          </AdminDashboardLayoutLazy>
-        </AdminProvidersHydrator>
-      </AdminProviders>
-    </>
+    <AdminDashboardLayoutLazy session={session}>
+      {children}
+    </AdminDashboardLayoutLazy>
   )
 }

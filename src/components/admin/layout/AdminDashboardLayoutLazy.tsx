@@ -106,7 +106,17 @@ class AdminLayoutErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Admin Layout failed to load:', error, errorInfo)
+    console.error('Admin Layout failed to load:', error)
+    
+    // Send error to monitoring if available
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as any).gtag
+      gtag('event', 'admin_layout_error', {
+        event_category: 'error',
+        event_label: error.message,
+        value: 1,
+      })
+    }
   }
 
   render() {

@@ -79,12 +79,14 @@ export const usePerformanceMonitoring = (componentName?: string) => {
           })
         }
 
-        // Custom performance endpoint
-        fetch('/api/analytics/performance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(metric),
-        }).catch(err => console.warn('Failed to send performance metric:', err))
+        // Custom performance endpoint (optional - only if endpoint exists)
+        if (process.env.NEXT_PUBLIC_PERFORMANCE_ENDPOINT === 'true') {
+          fetch('/api/admin/perf-metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(metric),
+          }).catch(err => console.debug('Performance endpoint not available:', err))
+        }
       } catch (error) {
         console.warn('Performance tracking error:', error)
       }
