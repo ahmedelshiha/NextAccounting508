@@ -159,10 +159,15 @@ Status:
 - Next: Hook into real filings/verification sources and persistence
 
 4) Security Center Dashboard
-- [ ] Create src/components/security/security-center.tsx (health checks, fraud signals, access log)
-- [ ] Admin route: src/app/admin/security/page.tsx
-- [ ] Server API stubs: src/app/api/security/health/route.ts, src/app/api/security/events/route.ts
-- [ ] Events: security_center_viewed
+- [x] Create src/components/security/security-center.tsx (health checks, fraud signals, access log)
+- [x] Admin route: src/app/admin/security/page.tsx
+- [x] Server API stubs: src/app/api/security/health/route.ts, src/app/api/security/events/route.ts
+- [x] Events: security_center_viewed
+
+Status:
+- Completed: Security Center UI and API stubs
+- Why: Centralizes operational visibility for security posture and incidents
+- Next: Wire to real health checks and event streams; add filters and export
 
 5) Accessibility Pass (Target ≥ 95 Lighthouse)
 - [ ] Audit interactive components in src/components/ui/* for aria-labels, roles, focus order
