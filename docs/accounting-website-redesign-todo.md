@@ -2,7 +2,7 @@
 
 Audited: routes, components, and APIs under src/app, src/components, src/lib. Checked homepage, uploads, portal, admin, payments, newsletter, and security utilities.
 
-## ✅ Completed
+## ��� Completed
 - [x] Resolve install failure and generate Prisma client
   - What: Ran `pnpm install --no-frozen-lockfile` and `pnpm db:generate`; dev server on :3000
   - Why: Unblocked development; Prisma client ready
@@ -194,12 +194,12 @@ Status:
 
 7) Performance Budgets
 - [x] Validate LCP/CLS on homepage using PerformanceObserver — e2e/tests/perf-budget.spec.ts
-- [ ] Enforce budgets via tests/thresholds.test.ts and CI
+- [x] Enforce budgets via tests/thresholds.test.ts and CI (Netlify E2E gating enabled)
 - [ ] Identify top bundles via next build stats and set per-chunk limits
 
 Status:
 - Completed: basic LCP/CLS budget check in E2E
-- Next: wire thresholds to CI gating and build stats analysis
+- Next: add build stats analysis for bundle budgets
 
 ---
 
