@@ -5,7 +5,7 @@ import { logAudit } from '@/lib/audit'
 
 const eventSchema = z.object({
   event: z.string().min(1).max(64),
-  properties: z.record(z.any()).optional().default({}),
+  properties: z.record(z.string(), z.any()).optional().default({}),
   timestamp: z.number().int().optional(),
 })
 
