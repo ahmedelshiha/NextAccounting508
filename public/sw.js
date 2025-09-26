@@ -202,14 +202,13 @@ async function processQueue() {
       }
     }
   } finally {
-    try { db && db.close && db.close() } catch {}
+    try { if (db && typeof db.close === 'function') { db.close() } } catch {}
   }
 }
 
 self.addEventListener('sync', (event) => {
   try {
-    // @ts-ignore unsupported typing in plain JS
-    if (event && event.tag === 'service-requests-sync') {
+    if (event && typeof event === 'object' && 'tag' in event && event.tag === 'service-requests-sync') {
       event.waitUntil(processQueue())
     }
   } catch {}
