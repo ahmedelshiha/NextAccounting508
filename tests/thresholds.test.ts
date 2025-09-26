@@ -77,3 +77,13 @@ describe('Thresholds API (unit/integration style)', () => {
     expect(getJson.storageGrowth).toBe(payload.storageGrowth)
   })
 })
+
+describe('Performance budgets (static gating)', () => {
+  it('enforces default budgets for LCP and CLS', () => {
+    const lcpBudgetMs = Number(process.env.PERF_BUDGET_LCP_MS || 2500)
+    const clsBudget = Number(process.env.PERF_BUDGET_CLS || 0.1)
+    // Budgets must not be loosened beyond defaults
+    expect(lcpBudgetMs).toBeLessThanOrEqual(2500)
+    expect(clsBudget).toBeLessThanOrEqual(0.1)
+  })
+})

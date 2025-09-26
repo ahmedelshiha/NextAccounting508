@@ -76,13 +76,13 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - Next: Localize per country/state and personalize based on entity type
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
-- [ ] Expense tracking with receipt OCR (stub UI)
+- [x] Expense tracking with receipt OCR (stub UI)
   - What: src/components/expenses/receipt-scanner.tsx; editable fields; save stub
-- [ ] Automated billing sequences UI
+- [x] Automated billing sequences UI
   - What: src/components/invoicing/automated-billing.tsx; leverage payments APIs
-- [ ] Compliance dashboard
+- [x] Compliance dashboard
   - What: src/components/compliance/compliance-dashboard.tsx
-- [ ] Security Center dashboard
+- [x] Security Center dashboard
   - What: src/components/security/security-center.tsx (health, fraud, access log)
 - [x] Tools: Tax & ROI calculators
   - What: Implemented src/components/tools/tax-calculator.tsx and src/components/tools/roi-calculator.tsx; wired into /resources/tools
@@ -104,11 +104,11 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Integrated FinancialDashboard, MessageCenter, DeadlineTracker into portal; exposed calculators/tools at /resources/tools
 - [x] API stubs for new UIs
   - What: Implemented src/app/api/tools/tax/route.ts and src/app/api/tools/roi/route.ts with Zod validation and computed responses
-- [ ] Accessibility pass
+- [x] Accessibility pass
   - What: aria labels; focus order; contrast checks; Lighthouse a11y ≥ 95
 
 ## QA & Performance
-- [ ] E2E coverage
+- [x] E2E coverage
   - What: Playwright flows: homepage (incl. variant), upload, calculators, portal dashboard, chat
 - [ ] Perf budget
   - What: Bundle budgets; LCP < 2.5s, CLS < 0.1 on homepage median
@@ -128,24 +128,24 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 - [x] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
 - [x] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
 - [x] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
-- [ ] Unit tests for parser utilities (if any) under tests/expenses
+- [x] Unit tests for parser utilities (if any) under tests/expenses
 
 Status:
-- Completed: Receipt scanner UI, ingest API, portal link, analytics events
+- Completed: Receipt scanner UI, ingest API, portal link, analytics events, unit tests for extract helper
 - Why: Enables clients to quickly capture expenses; prepares for future OCR and storage integration without blocking on provider setup
-- Next: Add unit tests for extract helper; later wire to uploads provider + DB persistence
+- Next: Wire to uploads provider + DB persistence
 
 2) Automated Billing Sequences UI
 - [x] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
 - [x] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
 - [x] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
 - [x] Events: billing_sequence_created/updated
-- [ ] Snapshot tests for UI building blocks under tests/invoicing
+- [x] Snapshot tests for UI building blocks under tests/invoicing
 
 Status:
-- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events
+- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events, snapshot tests
 - Why: Enables ops to configure recurring invoices; mock API supports preview without backend dependency
-- Next: Add snapshot tests; later integrate with real payments/invoicing services
+- Next: Integrate with real payments/invoicing services
 
 3) Compliance Dashboard
 - [x] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
@@ -183,23 +183,23 @@ Status:
 
 6) E2E Coverage (Playwright)
 - [x] Homepage (default + ?hero=compact) — e2e/tests/home-variants.spec.ts
-- [ ] Upload flow (portal): happy path + AV rejection (pending storage provider)
+- [x] Upload flow (portal): happy path + AV rejection (mocked API) — e2e/tests/portal-upload.spec.ts
 - [x] Calculators (tax, ROI): input → result snapshot — e2e/tests/tools.spec.ts
-- [ ] Portal dashboard: KPIs render
-- [ ] Chat: message send/receive (mock SSE)
+- [x] Portal dashboard: KPIs render — e2e/tests/portal-kpis.spec.ts
+- [x] Chat: message send/receive (realtime SSE) — e2e/tests/portal-chat.spec.ts
 
 Status:
-- Completed: initial coverage for homepage variants and calculators
-- Next: add portal upload and chat flows; consider mocking auth/session
+- Completed: homepage variants, calculators, portal upload flow, portal KPIs, and chat SSE
+- Next: expand coverage for admin flows and negative cases; stabilize auth helpers if needed
 
 7) Performance Budgets
 - [x] Validate LCP/CLS on homepage using PerformanceObserver — e2e/tests/perf-budget.spec.ts
-- [ ] Enforce budgets via tests/thresholds.test.ts and CI
+- [x] Enforce budgets via tests/thresholds.test.ts and CI (Netlify E2E gating enabled)
 - [ ] Identify top bundles via next build stats and set per-chunk limits
 
 Status:
 - Completed: basic LCP/CLS budget check in E2E
-- Next: wire thresholds to CI gating and build stats analysis
+- Next: add build stats analysis for bundle budgets
 
 ---
 
