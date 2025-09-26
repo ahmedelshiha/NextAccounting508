@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { FAQSection } from '@/components/home/FAQSection'
 
 const faqs = [
   {
