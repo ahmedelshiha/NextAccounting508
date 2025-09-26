@@ -31,6 +31,7 @@ export default async function RootLayout({
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" href="/next.svg" />
         <meta name="theme-color" content="#0ea5e9" />
       </head>
       <body className={inter.className}>
