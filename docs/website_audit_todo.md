@@ -118,7 +118,7 @@ Split work into small components and unit-testable units.
 - [x] Add unit tests for FAQSection keyboard navigation and aria behavior (tests/home/faq-section.a11y.dom.test.tsx). (Acceptance: tests validate ArrowUp/Down/Home/End and toggle via Enter/Space.)
 
 - Conversion CTAs (implement and instrument):
-  - [ ] Add `src/components/home/ConversionCTAs.tsx` and wire primary CTA to `trackConversion('book_consultation')`. (Acceptance: clicking CTA calls `trackConversion` stub in dev).
+  - [x] Add `src/components/home/ConversionCTAs.tsx` and wire primary CTA to `trackConversion('book_consultation')`. (Acceptance: clicking CTA calls `trackConversion` stub in dev).
 
 ---
 
