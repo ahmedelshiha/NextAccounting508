@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 
 interface PerformanceMetric {
@@ -58,7 +58,7 @@ export const usePerformanceMonitoring = (componentName?: string) => {
     if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
       // Example: Google Analytics, DataDog, New Relic, etc.
       try {
-        // @ts-ignore - gtag might not be available
+        // @ts-expect-error - gtag might not be available
         if (typeof gtag !== 'undefined') {
           gtag('event', 'admin_performance', {
             event_category: 'performance',
