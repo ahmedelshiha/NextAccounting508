@@ -36,6 +36,15 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 - [x] Frontend trackEvent utility
   - What: Extended src/lib/analytics.ts with `trackEvent(event, properties)` posting to /api/analytics/track
   - Why: Consistent client event pipeline (GA/FB/Custom)
+- [x] Quick Wins section implemented and wired
+  - What: src/components/home/quick-wins.tsx; inserted into app/page.tsx; CTA events tracked
+  - Why: Drives immediate value and engagement
+- [x] Final CTA section implemented
+  - What: src/components/home/final-cta.tsx; inserted into app/page.tsx; tracks consultation requests
+  - Why: Improves conversion with strong risk-reversal CTA
+- [x] Optimized footer added and integrated
+  - What: src/components/ui/optimized-footer.tsx; swapped in client layout
+  - Why: Smaller DOM footprint with same brand look; newsletter/social preserved
 
 ## Phase 2 — Homepage Redesign (Weeks 3–4)
 - [ ] Compact hero variant
@@ -44,12 +53,6 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Already implemented (services-section.tsx)
 - [x] Trust/testimonials
   - What: TrustSection + testimonials-section.tsx present
-- [ ] Quick Wins section
-  - What: components/home/quick-wins.tsx; CTA events wired to `trackEvent`
-- [ ] Final CTA section
-  - What: components/home/final-cta.tsx with risk-reversal CTA
-- [ ] Optimized footer
-  - What: components/ui/optimized-footer.tsx; replace Footer usage in layout/client layout
 
 ## Phase 3 — Client Portal Foundations (Weeks 5–8)
 - [ ] Secure document upload UI
@@ -86,8 +89,8 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Add vitest for validation, rate-limit, and audit logging paths
 
 ## Wiring & Integration
-- [ ] Route integration
-  - What: Import new homepage sections in app/page.tsx; replace footer in src/app/layout.tsx
+- [ ] Route integration for remaining features
+  - What: Import new portal components into /portal pages; expose calculators/tools route
 - [ ] API stubs for new UIs
   - What: Minimal endpoints for calculators, billing sequences, security center summary
 - [ ] Accessibility pass
