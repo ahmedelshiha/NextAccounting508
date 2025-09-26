@@ -47,6 +47,32 @@ export default async function RootLayout({
             {children}
           </ClientLayout>
         </TranslationProvider>
+
+        {/* Structured data for SEO */}
+        <SchemaMarkup />
+
+        {/* Performance monitoring: report page load time to analytics (gtag stub) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+            (function(){
+              try {
+                window.addEventListener('load', function() {
+                  setTimeout(function() {
+                    try {
+                      var navigation = performance.getEntriesByType('navigation')[0];
+                      if (navigation && typeof gtag !== 'undefined') {
+                        var loadTime = navigation.loadEventEnd - navigation.fetchStart || 0;
+                        gtag('event', 'page_load_time', { event_category: 'Performance', value: Math.round(loadTime) });
+                      }
+                    } catch(e){}
+                  }, 0);
+                });
+              } catch(e){}
+            })();
+          `,
+          }}
+        />
       </body>
     </html>
   )
