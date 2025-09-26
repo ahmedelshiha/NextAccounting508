@@ -24,7 +24,7 @@ import {
   Bell,
   User
 } from 'lucide-react'
-import { hasPermission } from '@/lib/permissions'
+import { hasRole } from '@/lib/permissions'
 import { useAdminLayout } from '@/stores/adminLayoutStore'
 import type { AdminSidebarProps } from '@/types/admin/layout'
 
@@ -110,7 +110,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   // Filter items by permissions
   const visibleItems = navigationItems.filter(
-    item => !item.permissions || hasPermission(role, item.permissions)
+    item => !item.permissions || hasRole(role, item.permissions)
   )
 
   // Calculate sidebar classes

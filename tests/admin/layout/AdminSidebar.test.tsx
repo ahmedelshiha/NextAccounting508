@@ -8,7 +8,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
-import { hasPermission } from '@/lib/permissions'
+import { hasRole } from '@/lib/permissions'
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
@@ -26,13 +26,13 @@ vi.mock('@/stores/adminLayoutStore', () => ({
 }))
 
 vi.mock('@/lib/permissions', () => ({
-  hasPermission: vi.fn(),
+  hasRole: vi.fn(),
 }))
 
 describe('AdminSidebar', () => {
   const mockUsePathname = usePathname as any
   const mockUseSession = useSession as any
-  const mockHasPermission = hasPermission as any
+  const mockHasRole = hasRole as any
 
   const defaultProps = {
     collapsed: false,
@@ -55,7 +55,7 @@ describe('AdminSidebar', () => {
         }
       }
     })
-    mockHasPermission.mockReturnValue(true)
+    mockHasRole.mockReturnValue(true)
   })
 
   it('renders sidebar with brand section', () => {
@@ -108,9 +108,9 @@ describe('AdminSidebar', () => {
   })
 
   it('filters navigation items by permissions', () => {
-    // Mock hasPermission to deny settings access
-    mockHasPermission.mockImplementation((role, permissions) => {
-      if (permissions && permissions.includes('ADMIN')) {
+    // Mock hasRole to deny settings access
+    mockHasRole.mockImplementation((role, allowedRoles) => {
+      if (allowedRoles && allowedRoles.includes('ADMIN')) {
         return role === 'ADMIN'
       }
       return true
