@@ -148,10 +148,15 @@ Status:
 - Next: Add snapshot tests; later integrate with real payments/invoicing services
 
 3) Compliance Dashboard
-- [ ] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
-- [ ] Add admin route surface in src/app/admin/analytics/page.tsx or dedicated admin/compliance/page.tsx
-- [ ] Server API stub: src/app/api/compliance/overview/route.ts with sample data
-- [ ] Events: compliance_viewed, alert_dismissed
+- [x] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
+- [x] Add admin route surface in src/app/admin/analytics/page.tsx or dedicated admin/compliance/page.tsx
+- [x] Server API stub: src/app/api/compliance/overview/route.ts with sample data
+- [x] Events: compliance_viewed, alert_dismissed
+
+Status:
+- Completed: Compliance dashboard UI and API stub with sample data
+- Why: Provides visibility into critical compliance tasks and notifications
+- Next: Hook into real filings/verification sources and persistence
 
 4) Security Center Dashboard
 - [ ] Create src/components/security/security-center.tsx (health checks, fraud signals, access log)
