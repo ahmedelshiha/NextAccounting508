@@ -13,13 +13,25 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 
 function createClient(url: string) {
   // Lazily require to avoid loading @prisma/client when DB is not configured
-   
   // This file intentionally uses require() because importing @prisma/client at module
   // initialization can attempt to connect to the DB in environments where the DB
   // is not configured (build/test). Keep lazy require to avoid that behavior.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  const client = new PrismaClient(
+    url
+      ? {
+          datasources: { db: { url } },
+          log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+        }
+      : { log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'] }
+  ) as PrismaClientType
+  try {
+    process.on('beforeExit', async () => {
+      try { await (client as any).$disconnect?.() } catch {}
+    })
+  } catch {}
+  return client
 }
 
 // Export a proxy that lazily creates Prisma client on first use
