@@ -79,7 +79,7 @@ Each task is specific, actionable, measurable, and outcome-oriented.
 Break each visual change into per-file edits so changes are small, reviewable, and reversible.
 
 - Hero headline reduction (completed):
-  - [x] `src/components/home/hero-section.tsx` — H1 class reduced and padding adjusted. (Acceptance: hero fits within two mobile viewports and no horizontal overflow; screenshot captured for mobile and desktop.)
+  - [x] `src/components/home/hero-section.tsx` ��� H1 class reduced and padding adjusted. (Acceptance: hero fits within two mobile viewports and no horizontal overflow; screenshot captured for mobile and desktop.)
 
 - Standardize section padding (core pages — partially completed):
   - [x] `src/app/about/page.tsx` → `py-8 sm:py-12` (Acceptance: about page vertical height reduced by ~30%)
@@ -114,7 +114,7 @@ Split work into small components and unit-testable units.
   - [x] Create `src/components/home/TrustSection.tsx` with four trust indicators, certification icons, and a security notice; added to homepage. (Acceptance: added to homepage; contrast meets WCAG AA.)
 
 - FAQ accordion (implement):
-  - [ ] Create `src/components/home/FAQSection.tsx` with keyboard operable accordion, `aria-expanded`, and `aria-controls`. (Acceptance: keyboard operable and screen reader friendly; unit tests validate state toggling.)
+  - [x] Create `src/components/home/FAQSection.tsx` with keyboard operable accordion, `aria-expanded`, and `aria-controls`. (Acceptance: keyboard operable and screen reader friendly; extracted and used on FAQ and Contact pages.)
 
 - Conversion CTAs (implement and instrument):
   - [ ] Add `src/components/home/ConversionCTAs.tsx` and wire primary CTA to `trackConversion('book_consultation')`. (Acceptance: clicking CTA calls `trackConversion` stub in dev).
