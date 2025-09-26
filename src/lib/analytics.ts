@@ -21,6 +21,8 @@ export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
   receipt_saved: 'receipt_saved',
   billing_sequence_created: 'billing_sequence_created',
   billing_sequence_updated: 'billing_sequence_updated',
+  compliance_viewed: 'compliance_viewed',
+  alert_dismissed: 'alert_dismissed',
 }
 
 export const trackConversion = (eventName: string, data?: Record<string, any>) => {
