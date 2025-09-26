@@ -1,25 +1,46 @@
 import type { PrismaClient as PrismaClientType } from '@prisma/client'
 
 declare global {
-   
-  var __prisma__: PrismaClientType | undefined;
+  // Reuse a single Prisma instance in dev to avoid connection exhaustion
+  // and track whether shutdown hooks are registered
+  // eslint-disable-next-line no-var
+  var __prisma__: PrismaClientType | undefined
+  // eslint-disable-next-line no-var
+  var __prismaHooks__: boolean | undefined
 }
 
-let dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || "";
+let dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL || ''
 
-if (dbUrl && dbUrl.startsWith("neon://")) {
-  dbUrl = dbUrl.replace("neon://", "postgresql://");
+if (dbUrl && dbUrl.startsWith('neon://')) {
+  dbUrl = dbUrl.replace('neon://', 'postgresql://')
 }
 
 function createClient(url: string) {
-  // Lazily require to avoid loading @prisma/client when DB is not configured
-   
-  // This file intentionally uses require() because importing @prisma/client at module
-  // initialization can attempt to connect to the DB in environments where the DB
-  // is not configured (build/test). Keep lazy require to avoid that behavior.
+  // Lazily require to avoid loading @prisma/client in environments without DB
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType }
+
+  const options: Record<string, any> = {}
+  if (url) {
+    options.datasources = { db: { url } }
+  }
+  options.log = process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
+
+  const client = new PrismaClient(options)
+
+  if (!global.__prismaHooks__) {
+    global.__prismaHooks__ = true
+    const disconnect = async () => {
+      try {
+        await client.$disconnect()
+      } catch {}
+    }
+    process.on('beforeExit', disconnect)
+    process.on('SIGINT', async () => { await disconnect(); process.exit(0) })
+    process.on('SIGTERM', async () => { await disconnect(); process.exit(0) })
+  }
+
+  return client
 }
 
 // Export a proxy that lazily creates Prisma client on first use
@@ -39,10 +60,15 @@ const prisma: PrismaClientType = (() => {
       }
       const anyClient = client as any
       return anyClient[prop as any]
-    }
+    },
   }
 
   return new Proxy({}, handler) as unknown as PrismaClientType
-})();
+})()
 
-export default prisma;
+export default prisma
+
+// Optional: expose minimal config for tooling/CLIs if needed
+export const config = {
+  datasourceUrl: dbUrl || undefined,
+}
