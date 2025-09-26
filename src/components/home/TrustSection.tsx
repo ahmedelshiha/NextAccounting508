@@ -41,7 +41,7 @@ export function TrustSection() {
             Why Businesses Trust Us
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Your financial data deserves the highest level of security and professional care. Here's why hundreds of businesses choose us.
+            Your financial data deserves the highest level of security and professional care. Here&apos;s why hundreds of businesses choose us.
           </p>
         </div>
 
