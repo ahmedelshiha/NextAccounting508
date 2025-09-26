@@ -13,7 +13,7 @@ corepack enable
 
 # Install Playwright browsers in an ephemeral context
 echo "Installing Playwright browsers"
-pnpm dlx playwright@latest install --with-deps
+pnpm dlx playwright@latest install chromium
 
 start_local_server() {
   echo "Building and starting app for local testing..."
