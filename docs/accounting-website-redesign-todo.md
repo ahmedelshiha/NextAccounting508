@@ -77,15 +77,15 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
 - [ ] Expense tracking with receipt OCR (stub UI)
-  - What: components/expenses/receipt-scanner.tsx; editable fields; save stub
+  - What: src/components/expenses/receipt-scanner.tsx; editable fields; save stub
 - [ ] Automated billing sequences UI
-  - What: components/invoicing/automated-billing.tsx; leverage payments APIs
+  - What: src/components/invoicing/automated-billing.tsx; leverage payments APIs
 - [ ] Compliance dashboard
-  - What: components/compliance/compliance-dashboard.tsx
+  - What: src/components/compliance/compliance-dashboard.tsx
 - [ ] Security Center dashboard
-  - What: components/security/security-center.tsx (health, fraud, access log)
+  - What: src/components/security/security-center.tsx (health, fraud, access log)
 - [x] Tools: Tax & ROI calculators
-  - What: Implemented components/tools/tax-calculator.tsx and components/tools/roi-calculator.tsx; wired into /resources/tools
+  - What: Implemented src/components/tools/tax-calculator.tsx and src/components/tools/roi-calculator.tsx; wired into /resources/tools
 
 ## Conversion Optimization
 - [x] Conversion-optimized landing variant
@@ -118,3 +118,59 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 ## Notes
 - Preserve existing styles/variables; add styles via Tailwind classes consistent with current design.
 - No placeholders; all stubs return explicit sample payloads with validation and limits.
+
+---
+
+## Next Actions — Ordered Backlog (with Checkboxes)
+
+1) Expense Tracking (Stub UI)
+- [ ] Create src/components/expenses/receipt-scanner.tsx with file input, preview, editable extracted fields, and save stub
+- [ ] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
+- [ ] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
+- [ ] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
+- [ ] Unit tests for parser utilities (if any) under tests/expenses
+
+2) Automated Billing Sequences UI
+- [ ] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
+- [ ] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
+- [ ] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
+- [ ] Events: billing_sequence_created/updated
+- [ ] Snapshot tests for UI building blocks under tests/invoicing
+
+3) Compliance Dashboard
+- [ ] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
+- [ ] Add admin route surface in src/app/admin/analytics/page.tsx or dedicated admin/compliance/page.tsx
+- [ ] Server API stub: src/app/api/compliance/overview/route.ts with sample data
+- [ ] Events: compliance_viewed, alert_dismissed
+
+4) Security Center Dashboard
+- [ ] Create src/components/security/security-center.tsx (health checks, fraud signals, access log)
+- [ ] Admin route: src/app/admin/security/page.tsx
+- [ ] Server API stubs: src/app/api/security/health/route.ts, src/app/api/security/events/route.ts
+- [ ] Events: security_center_viewed
+
+5) Accessibility Pass (Target ≥ 95 Lighthouse)
+- [ ] Audit interactive components in src/components/ui/* for aria-labels, roles, focus order
+- [ ] Ensure color contrast on key pages: src/app/page.tsx, src/app/portal/page.tsx, src/app/admin/page.tsx
+- [ ] Add skip-to-content link in src/app/layout.tsx
+- [ ] Validate headings hierarchy and form labels in forms/* and booking/*
+- [ ] Add tests using @playwright/axe for a11y smoke
+
+6) E2E Coverage (Playwright)
+- [ ] Homepage (default + ?hero=compact)
+- [ ] Upload flow (portal): happy path + AV rejection
+- [ ] Calculators (tax, ROI): input → result snapshot
+- [ ] Portal dashboard: KPIs render
+- [ ] Chat: message send/receive (mock SSE)
+
+7) Performance Budgets
+- [ ] Validate LCP/CLS on homepage using Playwright traces
+- [ ] Enforce budgets via tests/thresholds.test.ts and CI
+- [ ] Identify top bundles via next build stats and set per-chunk limits
+
+---
+
+## Status Updates Format (to be maintained)
+- What was completed
+- Why it was done
+- Next steps (if any)
