@@ -133,7 +133,7 @@ Small measurable improvements and verification steps.
   - [ ] Verify `app/layout.tsx` metadata matches docs/website_audit_guide.md and update if needed. (Acceptance: metadata present in page source.)
 
 - Analytics & web vitals:
-  - [ ] Implement `src/lib/analytics.ts` (GA4/FB pixel stubs) and `src/lib/performance.ts` reportWebVitals hook. (Acceptance: stubbed events appear in dev console when triggered.)
+  - [x] Implement `src/lib/analytics.ts` (GA4/FB pixel stubs) and `src/lib/performance.ts` reportWebVitals hook; added inline perf reporting in layout. (Acceptance: perf script reports page_load_time via gtag when available.)
 
 ---
 
