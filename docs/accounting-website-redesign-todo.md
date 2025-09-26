@@ -136,11 +136,16 @@ Status:
 - Next: Add unit tests for extract helper; later wire to uploads provider + DB persistence
 
 2) Automated Billing Sequences UI
-- [ ] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
-- [ ] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
-- [ ] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
-- [ ] Events: billing_sequence_created/updated
+- [x] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
+- [x] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
+- [x] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
+- [x] Events: billing_sequence_created/updated
 - [ ] Snapshot tests for UI building blocks under tests/invoicing
+
+Status:
+- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events
+- Why: Enables ops to configure recurring invoices; mock API supports preview without backend dependency
+- Next: Add snapshot tests; later integrate with real payments/invoicing services
 
 3) Compliance Dashboard
 - [ ] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
