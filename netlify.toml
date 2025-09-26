@@ -9,12 +9,17 @@
   SENTRY_SKIP_OPEN_TELEMETRY_INSTRUMENTATION = "1"
   PNPM_FLAGS = "--no-frozen-lockfile"
   NPM_FLAGS = "--no-frozen-lockfile"
+  RUN_E2E = "false"
 
 [context.deploy-preview]
   command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm lint && pnpm typecheck && pnpm build"
+  [context.deploy-preview.environment]
+  RUN_E2E = "false"
 
 [context.branch-deploy]
   command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in branch-deploy' && pnpm lint && pnpm typecheck && pnpm build"
+  [context.branch-deploy.environment]
+  RUN_E2E = "false"
 
 [dev]
   command = "pnpm dev"
@@ -22,6 +27,3 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[[plugins]]
-  package = "./netlify/plugins/run-e2e"
