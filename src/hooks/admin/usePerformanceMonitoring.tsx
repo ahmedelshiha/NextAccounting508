@@ -27,6 +27,13 @@ interface NavigationTiming {
   isInitialLoad: boolean
 }
 
+// PerformanceEventTiming interface for FID tracking
+interface PerformanceEventTiming extends PerformanceEntry {
+  processingStart: number
+  processingEnd: number
+  cancelable: boolean
+}
+
 /**
  * Performance monitoring hook for admin dashboard
  * Tracks component render times, navigation performance, and user interactions
@@ -58,8 +65,9 @@ export const usePerformanceMonitoring = (componentName?: string) => {
     if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
       // Example: Google Analytics, DataDog, New Relic, etc.
       try {
-        // @ts-expect-error - gtag might not be available
-        if (typeof gtag !== 'undefined') {
+        // Google Analytics tracking if available
+        if (typeof window !== 'undefined' && 'gtag' in window) {
+          const gtag = (window as any).gtag
           gtag('event', 'admin_performance', {
             event_category: 'performance',
             event_label: metric.name,
@@ -223,13 +231,15 @@ export const usePerformanceMonitoring = (componentName?: string) => {
     // Track First Input Delay (FID)
     const fidObserver = new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
+        // Cast to PerformanceEventTiming for processingStart property
+        const eventTiming = entry as PerformanceEventTiming
         sendMetric({
           name: 'admin_fid',
-          value: entry.processingStart - entry.startTime,
+          value: eventTiming.processingStart - eventTiming.startTime,
           timestamp: Date.now(),
           pathname,
           metadata: {
-            eventType: (entry as any).name,
+            eventType: eventTiming.name,
           }
         })
       }
