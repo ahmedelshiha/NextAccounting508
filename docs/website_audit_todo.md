@@ -84,7 +84,7 @@ Break each visual change into per-file edits so changes are small, reviewable, a
 - Standardize section padding (core pages — partially completed):
   - [x] `src/app/about/page.tsx` → `py-8 sm:py-12` (Acceptance: about page vertical height reduced by ~30%)
   - [x] `src/app/contact/page.tsx` → `py-8 sm:py-12` (Acceptance: contact top fold visible on mobile)
-  - [x] `src/app/services/page.tsx` → `py-8 sm:py-12` (Acceptance: services header spacing balanced)
+  - [x] `src/app/services/page.tsx` ��� `py-8 sm:py-12` (Acceptance: services header spacing balanced)
   - [x] `src/app/blog/page.tsx` → `py-8 sm:py-12` (Acceptance: blog index shows posts earlier on page)
   - [x] `src/app/booking/page.tsx` → `py-8 sm:py-12` (Acceptance: booking hero plus form visible above fold on 375px mobile if possible)
   - [ ] `src/components/home/blog-section.tsx` → `py-8 sm:py-12` (Acceptance: blog section vertically tighter)
@@ -139,7 +139,8 @@ Small measurable improvements and verification steps.
 
 ### 5. Phase 4 — Accessibility QA, testing, and release (Depends on Phases 1–3)
 - [ ] Run automated a11y scan (axe/lighthouse) on critical pages (Home, About, Services, Booking, Contact). Record results. (Acceptance: <= 3 non-critical violations or documented fixes.)
-- [ ] Standardize loading indicators: ensure meaningful ones have `role="status" aria-live="polite"`, and decorative spinners are `aria-hidden="true"`. (Files: src/components/ui/loading.tsx and pages that show full-page loaders.) (Acceptance: axe/lighthouse shows correct patterns.)
+- [x] Standardize loading indicators: meaningful spinners expose role="status" and aria-labels (see `src/components/ui/loading.tsx`), decorative spinners kept aria-hidden where appropriate. (Acceptance: LoadingSpinner uses role="status" and includes sr-only text.)
+- [~] Initial automated page fetch audit: skip link, main landmark, labeled form inputs, and img alt attributes verified in sampled pages; recommend full axe/lighthouse CI scans. (Acceptance: run axe/lighthouse in CI and attach reports.)
 - [ ] Cross-device screenshot QA and performance baseline: capture before/after metrics and attach to PR. (Acceptance: PR includes screenshots and Lighthouse reports.)
 - [ ] Create release PR with checklist, screenshots, tests, and rollback instructions. (Acceptance: draft PR created for review.)
 
