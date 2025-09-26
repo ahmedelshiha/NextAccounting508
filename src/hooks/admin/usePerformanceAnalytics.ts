@@ -32,6 +32,105 @@ interface PerformanceAnalyticsState {
   lastUpdate: number
 }
 
+// Generate sample real-time metrics for development (moved outside component)
+const generateSampleMetrics = (): RealtimeMetric[] => {
+  const baseMetrics = [
+    {
+      id: 'load_time',
+      name: 'Load Time',
+      baseValue: 1.8,
+      unit: 's',
+      variance: 0.5
+    },
+    {
+      id: 'active_users',
+      name: 'Active Users',
+      baseValue: 25,
+      unit: '',
+      variance: 8
+    },
+    {
+      id: 'response_time',
+      name: 'Response Time',
+      baseValue: 150,
+      unit: 'ms',
+      variance: 50
+    },
+    {
+      id: 'error_rate',
+      name: 'Error Rate',
+      baseValue: 0.5,
+      unit: '%',
+      variance: 0.3
+    }
+  ]
+
+  return baseMetrics.map(metric => {
+    const variance = (Math.random() - 0.5) * metric.variance
+    const value = Math.max(0, metric.baseValue + variance)
+    
+    let status: 'good' | 'warning' | 'error' = 'good'
+    if (metric.id === 'load_time' && value > 3) status = 'warning'
+    if (metric.id === 'load_time' && value > 5) status = 'error'
+    if (metric.id === 'response_time' && value > 300) status = 'warning'
+    if (metric.id === 'response_time' && value > 1000) status = 'error'
+    if (metric.id === 'error_rate' && value > 1) status = 'warning'
+    if (metric.id === 'error_rate' && value > 2) status = 'error'
+
+    return {
+      id: metric.id,
+      name: metric.name,
+      value,
+      unit: metric.unit,
+      status,
+      lastUpdated: Date.now()
+    }
+  })
+}
+
+// Generate sample historical data (moved outside component)
+const generateHistoricalData = (): HistoricalDataPoint[] => {
+  const data: HistoricalDataPoint[] = []
+  const now = Date.now()
+  const hoursBack = 24
+
+  for (let i = hoursBack; i >= 0; i--) {
+    const timestamp = now - (i * 60 * 60 * 1000)
+    
+    // Generate sample data points for different metrics
+    const metrics = ['load_time', 'response_time', 'active_users', 'error_rate']
+    
+    metrics.forEach((metric: string) => {
+      let value: number
+      
+      switch (metric) {
+        case 'load_time':
+          value = 1.5 + Math.random() * 1.0 // 1.5-2.5s
+          break
+        case 'response_time':
+          value = 120 + Math.random() * 80 // 120-200ms
+          break
+        case 'active_users':
+          value = Math.floor(15 + Math.random() * 20) // 15-35 users
+          break
+        case 'error_rate':
+          value = Math.random() * 0.5 // 0-0.5%
+          break
+        default:
+          value = 0
+      }
+
+      data.push({
+        timestamp,
+        value,
+        metric
+      })
+    })
+  }
+
+  return data
+}
+
 export const usePerformanceAnalytics = () => {
   const [state, setState] = useState<PerformanceAnalyticsState>({
     realtimeMetrics: [],
@@ -41,104 +140,7 @@ export const usePerformanceAnalytics = () => {
   })
 
   const subscriptions = useRef<Set<string>>(new Set())
-  const updateInterval = useRef<NodeJS.Timeout>()
-
-  // Generate sample real-time metrics for development
-  const generateSampleMetrics = useCallback((): RealtimeMetric[] => {
-    const baseMetrics = [
-      {
-        id: 'load_time',
-        name: 'Load Time',
-        baseValue: 1.8,
-        unit: 's',
-        variance: 0.5
-      },
-      {
-        id: 'active_users',
-        name: 'Active Users',
-        baseValue: 25,
-        unit: '',
-        variance: 8
-      },
-      {
-        id: 'response_time',
-        name: 'Response Time',
-        baseValue: 150,
-        unit: 'ms',
-        variance: 50
-      },
-      {
-        id: 'error_rate',
-        name: 'Error Rate',
-        baseValue: 0.5,
-        unit: '%',
-        variance: 0.3
-      }
-    ]
-
-    return baseMetrics.map(metric => {
-      const variance = (Math.random() - 0.5) * metric.variance
-      const value = Math.max(0, metric.baseValue + variance)
-      
-      let status: 'good' | 'warning' | 'error' = 'good'
-      if (metric.id === 'load_time' && value > 3) status = 'warning'
-      if (metric.id === 'load_time' && value > 5) status = 'error'
-      if (metric.id === 'response_time' && value > 300) status = 'warning'
-      if (metric.id === 'response_time' && value > 1000) status = 'error'
-      if (metric.id === 'error_rate' && value > 1) status = 'warning'
-      if (metric.id === 'error_rate' && value > 2) status = 'error'
-
-      return {
-        id: metric.id,
-        name: metric.name,
-        value,
-        unit: metric.unit,
-        status,
-        lastUpdated: Date.now()
-      }
-    })
-  }, [])
-
-  // Generate sample historical data
-  const generateHistoricalData = useCallback((): HistoricalDataPoint[] => {
-    const data: HistoricalDataPoint[] = []
-    const now = Date.now()
-    const hoursBack = 24
-
-    for (let i = hoursBack; i >= 0; i--) {
-      const timestamp = now - (i * 60 * 60 * 1000)
-      
-      // Generate sample data points for different metrics
-      ['load_time', 'response_time', 'active_users', 'error_rate'].forEach(metric => {
-        let value: number
-        
-        switch (metric) {
-          case 'load_time':
-            value = 1.5 + Math.random() * 1.0 // 1.5-2.5s
-            break
-          case 'response_time':
-            value = 120 + Math.random() * 80 // 120-200ms
-            break
-          case 'active_users':
-            value = Math.floor(15 + Math.random() * 20) // 15-35 users
-            break
-          case 'error_rate':
-            value = Math.random() * 0.5 // 0-0.5%
-            break
-          default:
-            value = 0
-        }
-
-        data.push({
-          timestamp,
-          value,
-          metric
-        })
-      })
-    }
-
-    return data
-  }, [])
+  const updateInterval = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Subscribe to specific metric types
   const subscribe = useCallback((metricType: string) => {
@@ -162,7 +164,7 @@ export const usePerformanceAnalytics = () => {
         }))
       }, 5000) // Update every 5 seconds
     }
-  }, [generateSampleMetrics, generateHistoricalData])
+  }, [])
 
   // Unsubscribe from metric types
   const unsubscribe = useCallback((metricType: string) => {
