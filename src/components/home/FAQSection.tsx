@@ -71,7 +71,7 @@ export function FAQSection({ items, heading = 'Frequently Asked Questions', desc
                 <h3>
                   <button
                     id={headerId}
-                    ref={(el) => (headersRef.current[index] = el)}
+                    ref={(el: HTMLButtonElement | null) => { headersRef.current[index] = el }}
                     aria-controls={contentId}
                     aria-expanded={isOpen}
                     onClick={() => toggleIndex(index)}
