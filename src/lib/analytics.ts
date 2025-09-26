@@ -1,3 +1,18 @@
+export type AnalyticsEvent =
+  | 'ab_test_assigned'
+  | 'calculator_used'
+  | 'plan_selected'
+  | 'consultation_requested'
+  | 'upload_completed'
+
+export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
+  ab_test_assigned: 'ab_test_assigned',
+  calculator_used: 'calculator_used',
+  plan_selected: 'plan_selected',
+  consultation_requested: 'consultation_requested',
+  upload_completed: 'upload_completed',
+}
+
 export const trackConversion = (eventName: string, data?: Record<string, any>) => {
   // Google Analytics 4
   if (typeof (globalThis as any).gtag !== 'undefined') {
@@ -15,7 +30,7 @@ export const trackConversion = (eventName: string, data?: Record<string, any>) =
   }
 }
 
-export function trackEvent(eventName: string, properties: Record<string, any> = {}) {
+export function trackEvent(eventName: AnalyticsEvent | string, properties: Record<string, any> = {}) {
   if (typeof window !== 'undefined') {
     try {
       ;(window as any).gtag?.('event', eventName, properties)
