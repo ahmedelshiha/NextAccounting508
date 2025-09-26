@@ -31,11 +31,12 @@ export default async function AdminLayout({ children }: Props) {
   return (
     <>
       <AdminProviders session={session}>
-        <DashboardLayout>
-          <div className="min-h-screen">{children}</div>
-        </DashboardLayout>
+        <AdminProvidersHydrator session={session}>
+          <DashboardLayout>
+            <div className="min-h-screen">{children}</div>
+          </DashboardLayout>
+        </AdminProvidersHydrator>
       </AdminProviders>
-      <AdminProvidersHydrator session={session} />
     </>
   )
 }
