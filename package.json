@@ -65,8 +65,10 @@
     "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.5",
-    "xml-js": "^1.6.11"
-  },
+    "xml-js": "^1.6.11",
+    "import-in-the-middle": "*",
+    "require-in-the-middle": "*"
+    },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@netlify/plugin-nextjs": "5.13.3",
