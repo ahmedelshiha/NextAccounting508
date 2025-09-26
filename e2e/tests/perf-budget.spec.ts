@@ -10,31 +10,31 @@ test('homepage LCP and CLS within budget', async ({ page }) => {
 
     try {
       const poLCP = new PerformanceObserver((entryList) => {
-        // @ts-ignore
+        // @ts-expect-error
         lcpEntries.push(...entryList.getEntries())
       })
-      // @ts-ignore
+      // @ts-expect-error
       poLCP.observe({ type: 'largest-contentful-paint', buffered: true })
     } catch {}
 
     try {
       const poCLS = new PerformanceObserver((entryList) => {
-        // @ts-ignore
+        // @ts-expect-error
         for (const entry of entryList.getEntries()) {
-          // @ts-ignore
+          // @ts-expect-error
           if (!entry.hadRecentInput) cls += entry.value || 0
-          // @ts-ignore
+          // @ts-expect-error
           clsEntries.push(entry)
         }
       })
-      // @ts-ignore
+      // @ts-expect-error
       poCLS.observe({ type: 'layout-shift', buffered: true })
     } catch {}
 
     return new Promise<{ lcp: number; cls: number }>((resolve) => {
       window.addEventListener('load', () => {
         setTimeout(() => {
-          // @ts-ignore
+          // @ts-expect-error
           const lcp = lcpEntries.length ? lcpEntries[lcpEntries.length - 1].startTime : 0
           resolve({ lcp, cls })
         }, 0)
