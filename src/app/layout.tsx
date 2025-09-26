@@ -4,6 +4,7 @@ import { ClientLayout } from '@/components/providers/client-layout'
 import { Inter } from 'next/font/google'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 
 const inter = Inter({ subsets: ['latin'] })
 
