@@ -84,24 +84,24 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: components/compliance/compliance-dashboard.tsx
 - [ ] Security Center dashboard
   - What: components/security/security-center.tsx (health, fraud, access log)
-- [ ] Tools: Tax & ROI calculators
-  - What: components/tools/{tax-calculator,roi-calculator}.tsx
+- [x] Tools: Tax & ROI calculators
+  - What: Implemented components/tools/tax-calculator.tsx and components/tools/roi-calculator.tsx; wired into /resources/tools
 
 ## Conversion Optimization
-- [ ] Conversion-optimized landing variant
-  - What: components/landing/conversion-optimized.tsx; route /landing/variant-a via flag
-- [ ] A/B testing hook
-  - What: hooks/useABTest.ts; deterministic assignment; emit `ab_test_assigned`
+- [x] Conversion-optimized landing variant
+  - What: Added src/app/landing/variant-a/page.tsx with optimized hero + pricing; tracks events
+- [x] A/B testing hook
+  - What: Implemented src/hooks/useABTest.ts with deterministic cookie-based assignment and ?ab override; emits `ab_test_assigned`
 
 ## Analytics & Experimentation
-- [ ] Event tracking utilities expansion
-  - What: Type-safe event catalog; SSR-safe no-ops; GA/FB adapters
+- [x] Event tracking utilities expansion
+  - What: Expanded src/lib/analytics.ts with typed event catalog and SSR-safe adapters (GA/FB + server ingestion)
 - [ ] Analytics ingestion API tests
   - What: Add vitest for validation, rate-limit, and audit logging paths
 
 ## Wiring & Integration
-- [ ] Route integration for remaining features
-  - What: Import new portal components into /portal pages; expose calculators/tools route
+- [x] Route integration for remaining features
+  - What: Integrated FinancialDashboard, MessageCenter, DeadlineTracker into portal; exposed calculators/tools at /resources/tools
 - [ ] API stubs for new UIs
   - What: Minimal endpoints for calculators, billing sequences, security center summary
 - [ ] Accessibility pass
