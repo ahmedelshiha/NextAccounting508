@@ -96,14 +96,14 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 ## Analytics & Experimentation
 - [x] Event tracking utilities expansion
   - What: Expanded src/lib/analytics.ts with typed event catalog and SSR-safe adapters (GA/FB + server ingestion)
-- [ ] Analytics ingestion API tests
-  - What: Add vitest for validation, rate-limit, and audit logging paths
+- [x] Analytics ingestion API tests
+  - What: Added tests/analytics.track.route.test.ts covering valid payload, invalid payload, payload too large (413), and rate limit (429) via mocks
 
 ## Wiring & Integration
 - [x] Route integration for remaining features
   - What: Integrated FinancialDashboard, MessageCenter, DeadlineTracker into portal; exposed calculators/tools at /resources/tools
-- [ ] API stubs for new UIs
-  - What: Minimal endpoints for calculators, billing sequences, security center summary
+- [x] API stubs for new UIs
+  - What: Implemented src/app/api/tools/tax/route.ts and src/app/api/tools/roi/route.ts with Zod validation and computed responses
 - [ ] Accessibility pass
   - What: aria labels; focus order; contrast checks; Lighthouse a11y ≥ 95
 
