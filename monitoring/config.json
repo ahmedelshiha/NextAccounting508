@@ -1,0 +1,26 @@
+{
+  "performance": {
+    "firstLoadTime": 3000,
+    "navigationTime": 500,
+    "sidebarToggle": 100,
+    "errorRate": 0.01,
+    "memoryUsage": 100
+  },
+  "analytics": {
+    "enabled": false,
+    "trackingEvents": [
+      "admin_performance",
+      "admin_navigation",
+      "admin_interaction",
+      "admin_error",
+      "admin_session_start",
+      "admin_session_end"
+    ]
+  },
+  "healthChecks": [
+    "/api/admin/health",
+    "/admin",
+    "/admin/analytics",
+    "/admin/settings"
+  ]
+}
