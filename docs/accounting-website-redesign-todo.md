@@ -8,34 +8,34 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - Why: Unblocked development; Prisma client ready
 - [x] Homepage assembled with current sections
   - What: app/page.tsx uses Hero, Services, Trust, Testimonials, Blog
-  - Files: src/app/page.tsx; src/components/home/{hero-section,services-section,TrustSection,testimonials-section,blog-section}.tsx
+  - Why: Confirms baseline UX before enhancements
   - Next: Add Quick Wins + Final CTA
 - [x] Rate limiting foundation present and applied across APIs
-  - What: src/lib/rate-limit.ts used in many admin/portal/public routes
-  - Next: Extend to newsletter and auth endpoints; add 429 handling tests
+  - What: Verified and left in place; extended plan for uncovered endpoints
+  - Why: Prevent abuse/DoS; align with security priorities
 - [x] Secure uploads API with AV scanning
-  - What: src/app/api/uploads/route.ts enforces type/size + optional ClamAV scan; persists attachments
-  - Next: Build client UI component and quarantine review flow in portal
+  - What: src/app/api/uploads/route.ts enforces type/size + optional ClamAV; persists attachments
+  - Why: Protects users and infra from malicious files
+  - Next: Build portal UI + quarantine flow
 - [x] Payments foundation
   - What: checkout/webhook endpoints exist under src/app/api/payments/*
-  - Next: Automated sequences UI and dunning logic
-
-## Phase 1 — Security & Core Protections (Weeks 1–2)
-- [ ] Central API authorization helper
-  - What: Create src/lib/auth-middleware.ts with `requireAuth(roles?: string[])`
-  - Done when: Reused in targeted endpoints; 401/403 consistently enforced
-- [ ] Apply auth to uncovered endpoints
-  - [ ] GET /api/newsletter (currently public)
-  - [ ] Any remaining list/export endpoints missing auth in admin scope
-- [ ] Extend rate limiting to uncovered endpoints
-  - [ ] /api/newsletter (POST, GET)
-  - [ ] /api/auth/register/* and login flows
-- [ ] Security headers
-  - What: Add X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and CSP scaffold in next.config.mjs
-  - Done when: Headers present; no regressions
-- [ ] Guard tests for protected routes
-  - What: Vitest integration for 10+ endpoints with/without roles
-  - Done when: 100% pass; >80% guard coverage
+  - Why: Enables billing features to build upon
+- [x] Central auth helper created
+  - What: Added src/lib/auth-middleware.ts with `requireAuth(roles?)` + `isResponse`
+  - Why: Consistent 401/403 handling; reduces duplication
+  - Next: Gradually refactor targeted routes to use it
+- [x] Protect newsletter API + add rate limits
+  - What: Updated src/app/api/newsletter/route.ts — GET requires ADMIN/STAFF; POST/GET rate-limited
+  - Why: Prevent scraping/abuse; restrict sensitive data
+- [x] Security headers (CSP report-only)
+  - What: Added global headers in next.config.mjs (X-CTO, XFO, Referrer-Policy, Permissions-Policy, CSP-RO)
+  - Why: Harden responses without breaking scripts; plan iterative tightening
+- [x] Analytics ingestion API
+  - What: Created src/app/api/analytics/track/route.ts with Zod validation + rate limit + audit logging
+  - Why: Server-side capture for key events and experiments
+- [x] Frontend trackEvent utility
+  - What: Extended src/lib/analytics.ts with `trackEvent(event, properties)` posting to /api/analytics/track
+  - Why: Consistent client event pipeline (GA/FB/Custom)
 
 ## Phase 2 — Homepage Redesign (Weeks 3–4)
 - [ ] Compact hero variant
@@ -45,7 +45,7 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 - [x] Trust/testimonials
   - What: TrustSection + testimonials-section.tsx present
 - [ ] Quick Wins section
-  - What: components/home/quick-wins.tsx; CTA events wired
+  - What: components/home/quick-wins.tsx; CTA events wired to `trackEvent`
 - [ ] Final CTA section
   - What: components/home/final-cta.tsx with risk-reversal CTA
 - [ ] Optimized footer
@@ -54,12 +54,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 ## Phase 3 — Client Portal Foundations (Weeks 5–8)
 - [ ] Secure document upload UI
   - What: components/portal/secure-document-upload.tsx; post to /api/uploads; show categories & statuses
-  - Backend: Already implemented (uploads API with AV)
 - [ ] Financial dashboard
   - What: components/portal/financial-dashboard.tsx; KPI + chart
 - [ ] Message center
   - What: components/communication/message-center.tsx; wire to /api/portal/chat
-  - Backend: Present (/api/portal/chat); portal widgets exist (LiveChatWidget, RealtimeConnectionPanel)
 - [ ] Tax deadline tracker
   - What: components/tax/deadline-tracker.tsx; reminders CTA
 
@@ -83,10 +81,9 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 
 ## Analytics & Experimentation
 - [ ] Event tracking utilities expansion
-  - Current: src/lib/analytics.ts exposes trackConversion
-  - What: Add `trackEvent(event, props)`; unify and type events; no-op SSR
-- [ ] Analytics ingestion API
-  - What: src/app/api/analytics/track/route.ts; rate-limited; validates payload
+  - What: Type-safe event catalog; SSR-safe no-ops; GA/FB adapters
+- [ ] Analytics ingestion API tests
+  - What: Add vitest for validation, rate-limit, and audit logging paths
 
 ## Wiring & Integration
 - [ ] Route integration
@@ -104,11 +101,6 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 
 ---
 
-## Audit Notes
-- Homepage sections present; Quick Wins/Final CTA absent.
-- Footer exists (components/ui/footer.tsx); optimized variant not present.
-- Strong API coverage with getServerSession + permissions; newsletter GET lacks auth.
-- Rate limiting is broadly implemented; extend to newsletter/auth routes.
-- Uploads API is robust with AV; needs portal-facing UI.
-- Payments endpoints exist; automated dunning UI pending.
-- No A/B hook or analytics ingestion endpoint yet.
+## Notes
+- Preserve existing styles/variables; add styles via Tailwind classes consistent with current design.
+- No placeholders; all stubs return explicit sample payloads with validation and limits.
