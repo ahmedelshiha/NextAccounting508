@@ -183,14 +183,14 @@ Status:
 
 6) E2E Coverage (Playwright)
 - [x] Homepage (default + ?hero=compact) — e2e/tests/home-variants.spec.ts
-- [ ] Upload flow (portal): happy path + AV rejection (pending storage provider)
+- [x] Upload flow (portal): happy path + AV rejection (mocked API) — e2e/tests/portal-upload.spec.ts
 - [x] Calculators (tax, ROI): input → result snapshot — e2e/tests/tools.spec.ts
-- [ ] Portal dashboard: KPIs render
-- [ ] Chat: message send/receive (mock SSE)
+- [x] Portal dashboard: KPIs render — e2e/tests/portal-kpis.spec.ts
+- [x] Chat: message send/receive (realtime SSE) — e2e/tests/portal-chat.spec.ts
 
 Status:
-- Completed: initial coverage for homepage variants and calculators
-- Next: add portal upload and chat flows; consider mocking auth/session
+- Completed: homepage variants, calculators, portal upload flow, portal KPIs, and chat SSE
+- Next: expand coverage for admin flows and negative cases; stabilize auth helpers if needed
 
 7) Performance Budgets
 - [x] Validate LCP/CLS on homepage using PerformanceObserver — e2e/tests/perf-budget.spec.ts
