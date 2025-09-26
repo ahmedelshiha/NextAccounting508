@@ -39,7 +39,6 @@ const nextConfig = {
     domains: ['localhost', 'mydomain.com'],
     formats: ['image/webp'],
   },
-  telemetry: false,
   async headers() {
     return [
       {
