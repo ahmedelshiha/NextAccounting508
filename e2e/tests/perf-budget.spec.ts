@@ -10,31 +10,31 @@ test('homepage LCP and CLS within budget', async ({ page }) => {
 
     try {
       const poLCP = new PerformanceObserver((entryList) => {
-        // @ts-ignore
+        // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
         lcpEntries.push(...entryList.getEntries())
       })
-      // @ts-ignore
+      // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
       poLCP.observe({ type: 'largest-contentful-paint', buffered: true })
     } catch {}
 
     try {
       const poCLS = new PerformanceObserver((entryList) => {
-        // @ts-ignore
+        // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
         for (const entry of entryList.getEntries()) {
-          // @ts-ignore
+          // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
           if (!entry.hadRecentInput) cls += entry.value || 0
-          // @ts-ignore
+          // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
           clsEntries.push(entry)
         }
       })
-      // @ts-ignore
+      // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
       poCLS.observe({ type: 'layout-shift', buffered: true })
     } catch {}
 
     return new Promise<{ lcp: number; cls: number }>((resolve) => {
       window.addEventListener('load', () => {
         setTimeout(() => {
-          // @ts-ignore
+          // @ts-expect-error - Web Performance API types are incomplete in lib.dom for LCP/CLS entries
           const lcp = lcpEntries.length ? lcpEntries[lcpEntries.length - 1].startTime : 0
           resolve({ lcp, cls })
         }, 0)
