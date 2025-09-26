@@ -14,6 +14,7 @@ import { formatCurrencyFromDecimal } from '@/lib/decimal-utils'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { useTranslations } from '@/lib/i18n'
+import { SecureDocumentUpload } from '@/components/portal/secure-document-upload'
 
 interface Booking {
   id: string
@@ -193,6 +194,12 @@ export default function PortalPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Documents */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Documents</h2>
+          <SecureDocumentUpload />
         </div>
 
         {/* Upcoming Appointments */}
