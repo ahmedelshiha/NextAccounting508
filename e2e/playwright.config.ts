@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const isNetlify = Boolean(process.env.NETLIFY)
+
 export default defineConfig({
   testDir: './tests',
   timeout: 60_000,
@@ -11,8 +13,13 @@ export default defineConfig({
     actionTimeout: 10_000,
     trace: 'on-first-retry'
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } }
-  ]
+  // On Netlify, limit to Chromium to avoid system deps required by WebKit
+  projects: isNetlify
+    ? [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'] } }
+      ]
+    : [
+        { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+        { name: 'webkit', use: { ...devices['Desktop Safari'] } }
+      ]
 })

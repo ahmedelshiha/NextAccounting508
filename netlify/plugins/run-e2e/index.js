@@ -1,6 +1,5 @@
 const { execSync } = require('child_process')
 const path = require('path')
-const { execSync } = require('child_process')
 
 module.exports = {
   onPostBuild: async ({ utils, constants }) => {

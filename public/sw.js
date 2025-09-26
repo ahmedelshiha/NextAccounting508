@@ -1,5 +1,4 @@
 const CACHE_NAME = 'booking-system-v3'
-const CACHE_NAME = 'booking-system-v3'
 const PRECACHE_URLS = [
   '/',
   '/manifest.webmanifest',
@@ -198,21 +197,19 @@ async function processQueue() {
         } else {
           await markForRetry(db, item, res ? res.status : 0)
         }
-      } catch (e) {
+      } catch {
         await markForRetry(db, item, 0)
       }
     }
   } finally {
-    try { db.close() } catch {}
+    try { if (db && typeof db.close === 'function') { db.close() } } catch {}
   }
 }
 
-self.addEventListener('message', (event) => {
-  try { if (event.data && event.data.type === 'process-queue') { event.waitUntil(processQueue()) } } catch {}
-})
-
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'service-requests-sync') {
-    event.waitUntil(processQueue())
-  }
+  try {
+    if (event && typeof event === 'object' && 'tag' in event && event.tag === 'service-requests-sync') {
+      event.waitUntil(processQueue())
+    }
+  } catch {}
 })
