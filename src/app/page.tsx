@@ -12,6 +12,7 @@ export default function HomePage() {
     <main>
       <HomeHeroSection />
       <ServicesSection />
+      <TrustSection />
       <TestimonialsSection />
       <Suspense fallback={null}>
         <BlogSection />
