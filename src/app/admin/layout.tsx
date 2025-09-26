@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout'
 import { AdminProviders } from '@/components/admin/providers/AdminProviders'
 import AdminProvidersHydrator from '@/components/admin/providers/AdminProvidersHydrator.client'
 
@@ -27,14 +27,14 @@ export default async function AdminLayout({ children }: Props) {
     redirect('/portal')
   }
 
-  // Wrap all admin routes with providers and the unified dashboard shell
+  // Wrap all admin routes with providers and the new AdminDashboardLayout
   return (
     <>
       <AdminProviders session={session}>
         <AdminProvidersHydrator session={session}>
-          <DashboardLayout>
-            <div className="min-h-screen">{children}</div>
-          </DashboardLayout>
+          <AdminDashboardLayout session={session}>
+            {children}
+          </AdminDashboardLayout>
         </AdminProvidersHydrator>
       </AdminProviders>
     </>

@@ -201,15 +201,33 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
     }
   }, [])
 
+  // Determine if we're on an admin route to conditionally show navigation
+  const [isAdminRoute, setIsAdminRoute] = React.useState(false)
+
+  React.useEffect(() => {
+    try {
+      const path = typeof window !== 'undefined' ? window.location.pathname : ''
+      setIsAdminRoute(path.startsWith('/admin'))
+    } catch {
+      setIsAdminRoute(false)
+    }
+  }, [])
+
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <AccessibleRouteAnnouncer />
       <div className="min-h-screen flex flex-col">
-        <Navigation />
+        {/* 
+          CRITICAL NAVIGATION CONFLICT RESOLUTION:
+          Only show main site navigation on NON-admin routes
+          Admin routes will have their own dedicated layout with sidebar navigation
+        */}
+        {!isAdminRoute && <Navigation />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
-        <OptimizedFooter />
+        {/* Only show footer on non-admin routes */}
+        {!isAdminRoute && <OptimizedFooter />}
       </div>
       {/* Capture performance metrics on public pages as well */}
       <PerfMetricsReporter />
