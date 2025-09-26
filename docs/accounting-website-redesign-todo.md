@@ -70,8 +70,10 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - What: Implemented src/components/communication/message-center.tsx; wired to /api/portal/chat with SSE updates; integrated into portal page
   - Why: Provide clients an in-portal communication hub with real-time delivery and offline queue fallback
   - Next: Add admin view parity and typing indicators
-- [ ] Tax deadline tracker
-  - What: components/tax/deadline-tracker.tsx; reminders CTA
+- [x] Tax deadline tracker
+  - What: Implemented src/components/tax/deadline-tracker.tsx; shows next federal deadlines with dates; CTAs to enable reminders and view calendar; integrated into portal page
+  - Why: Keep clients ahead of critical filing/payment dates
+  - Next: Localize per country/state and personalize based on entity type
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
 - [ ] Expense tracking with receipt OCR (stub UI)
