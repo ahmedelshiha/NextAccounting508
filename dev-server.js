@@ -20,9 +20,10 @@ class DevServerManager {
       this.kill()
     }
 
+    const nodeOptions = [process.env.NODE_OPTIONS, '--max-old-space-size=4096'].filter(Boolean).join(' ')
     const env = {
       ...process.env,
-      NODE_OPTIONS: '--max-old-space-size=4096',
+      NODE_OPTIONS: nodeOptions,
       NEXT_TELEMETRY_DISABLED: '1',
     }
 
