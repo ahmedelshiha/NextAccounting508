@@ -199,45 +199,18 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <section className="py-16 bg-white">
+      <section>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Quick answers to common questions
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">How quickly can you respond?</h3>
-              <p className="text-gray-600 text-sm">
-                We typically respond to all inquiries within 24 hours during business days, 
-                and often much sooner for urgent matters.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">Do you offer free consultations?</h3>
-              <p className="text-gray-600 text-sm">
-                Yes! We offer a complimentary 30-minute consultation to discuss your 
-                needs and how we can help your business.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">What areas do you serve?</h3>
-              <p className="text-gray-600 text-sm">
-                We serve clients locally and nationwide, with both in-person and 
-                remote service options available.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-medium text-gray-900 mb-2">How do you ensure data security?</h3>
-              <p className="text-gray-600 text-sm">
-                We use bank-level encryption and secure cloud platforms to protect 
-                all client data and maintain strict confidentiality.
-              </p>
-            </div>
-          </div>
+          <FAQSection
+            items={[
+              { question: 'How quickly can you respond?', answer: 'We typically respond to all inquiries within 24 hours during business days, and often much sooner for urgent matters.' },
+              { question: 'Do you offer free consultations?', answer: 'Yes! We offer a complimentary 30-minute consultation to discuss your needs and how we can help your business.' },
+              { question: 'What areas do you serve?', answer: 'We serve clients locally and nationwide, with both in-person and remote service options available.' },
+              { question: 'How do you ensure data security?', answer: 'We use bank-level encryption and secure cloud platforms to protect all client data and maintain strict confidentiality.' }
+            ]}
+            heading="Frequently Asked Questions"
+            description="Quick answers to common questions"
+          />
         </div>
       </section>
     </div>
