@@ -8,6 +8,8 @@ export type AnalyticsEvent =
   | 'receipt_saved'
   | 'billing_sequence_created'
   | 'billing_sequence_updated'
+  | 'compliance_viewed'
+  | 'alert_dismissed'
 
 export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
   ab_test_assigned: 'ab_test_assigned',
