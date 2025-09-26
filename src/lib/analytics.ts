@@ -15,4 +15,19 @@ export const trackConversion = (eventName: string, data?: Record<string, any>) =
   }
 }
 
+export function trackEvent(eventName: string, properties: Record<string, any> = {}) {
+  if (typeof window !== 'undefined') {
+    try {
+      ;(window as any).gtag?.('event', eventName, properties)
+      ;(window as any).fbq?.('track', eventName, properties)
+      fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({ event: eventName, properties, timestamp: Date.now() }),
+      }).catch(() => {})
+    } catch {}
+  }
+}
+
 export default trackConversion
