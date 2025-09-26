@@ -63,7 +63,10 @@ export default function AdminInvoicesPage() {
     <ListPage<InvoiceItem>
       title="Invoices"
       subtitle="Track invoices and statuses; use Reports for exports"
-      secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }]}
+      secondaryActions={[
+        { label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } },
+        { label: 'Automated Billing', onClick: () => { window.location.href = '/admin/invoices/sequences' } },
+      ]}
       filters={filters}
       onFilterChange={onFilterChange}
       columns={columns}

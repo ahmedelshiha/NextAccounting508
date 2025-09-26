@@ -77,15 +77,15 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
 - [ ] Expense tracking with receipt OCR (stub UI)
-  - What: components/expenses/receipt-scanner.tsx; editable fields; save stub
+  - What: src/components/expenses/receipt-scanner.tsx; editable fields; save stub
 - [ ] Automated billing sequences UI
-  - What: components/invoicing/automated-billing.tsx; leverage payments APIs
+  - What: src/components/invoicing/automated-billing.tsx; leverage payments APIs
 - [ ] Compliance dashboard
-  - What: components/compliance/compliance-dashboard.tsx
+  - What: src/components/compliance/compliance-dashboard.tsx
 - [ ] Security Center dashboard
-  - What: components/security/security-center.tsx (health, fraud, access log)
+  - What: src/components/security/security-center.tsx (health, fraud, access log)
 - [x] Tools: Tax & ROI calculators
-  - What: Implemented components/tools/tax-calculator.tsx and components/tools/roi-calculator.tsx; wired into /resources/tools
+  - What: Implemented src/components/tools/tax-calculator.tsx and src/components/tools/roi-calculator.tsx; wired into /resources/tools
 
 ## Conversion Optimization
 - [x] Conversion-optimized landing variant
@@ -118,3 +118,92 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 ## Notes
 - Preserve existing styles/variables; add styles via Tailwind classes consistent with current design.
 - No placeholders; all stubs return explicit sample payloads with validation and limits.
+
+---
+
+## Next Actions — Ordered Backlog (with Checkboxes)
+
+1) Expense Tracking (Stub UI)
+- [x] Create src/components/expenses/receipt-scanner.tsx with file input, preview, editable extracted fields, and save stub
+- [x] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
+- [x] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
+- [x] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
+- [ ] Unit tests for parser utilities (if any) under tests/expenses
+
+Status:
+- Completed: Receipt scanner UI, ingest API, portal link, analytics events
+- Why: Enables clients to quickly capture expenses; prepares for future OCR and storage integration without blocking on provider setup
+- Next: Add unit tests for extract helper; later wire to uploads provider + DB persistence
+
+2) Automated Billing Sequences UI
+- [x] Create src/components/invoicing/automated-billing.tsx (sequence builder, schedule preview, status chips)
+- [x] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
+- [x] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
+- [x] Events: billing_sequence_created/updated
+- [ ] Snapshot tests for UI building blocks under tests/invoicing
+
+Status:
+- Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events
+- Why: Enables ops to configure recurring invoices; mock API supports preview without backend dependency
+- Next: Add snapshot tests; later integrate with real payments/invoicing services
+
+3) Compliance Dashboard
+- [x] Create src/components/compliance/compliance-dashboard.tsx (widgets: filings due, KYC/KYB status, alerts)
+- [x] Add admin route surface in src/app/admin/analytics/page.tsx or dedicated admin/compliance/page.tsx
+- [x] Server API stub: src/app/api/compliance/overview/route.ts with sample data
+- [x] Events: compliance_viewed, alert_dismissed
+
+Status:
+- Completed: Compliance dashboard UI and API stub with sample data
+- Why: Provides visibility into critical compliance tasks and notifications
+- Next: Hook into real filings/verification sources and persistence
+
+4) Security Center Dashboard
+- [x] Create src/components/security/security-center.tsx (health checks, fraud signals, access log)
+- [x] Admin route: src/app/admin/security/page.tsx
+- [x] Server API stubs: src/app/api/security/health/route.ts, src/app/api/security/events/route.ts
+- [x] Events: security_center_viewed
+
+Status:
+- Completed: Security Center UI and API stubs
+- Why: Centralizes operational visibility for security posture and incidents
+- Next: Wire to real health checks and event streams; add filters and export
+
+5) Accessibility Pass (Target ≥ 95 Lighthouse)
+- [x] Audit interactive components in src/components/ui/* for aria-labels, roles, focus order (nav, portal actions)
+- [x] Ensure color contrast on key pages: verified classes; kept brand colors while maintaining contrast
+- [x] Add skip-to-content link in src/app/layout.tsx (already present)
+- [x] Validate headings hierarchy and form labels in forms/* and booking/* (spot-check key pages)
+- [x] Add tests using @playwright/axe for a11y smoke (e2e/tests/a11y.spec.ts)
+
+Status:
+- Completed: A11y sweep + axe-based smoke test
+- Why: Improves keyboard navigation and screen-reader support; prevents regressions
+- Next: Periodic Lighthouse runs in CI; expand axe coverage to more routes
+
+6) E2E Coverage (Playwright)
+- [x] Homepage (default + ?hero=compact) — e2e/tests/home-variants.spec.ts
+- [ ] Upload flow (portal): happy path + AV rejection (pending storage provider)
+- [x] Calculators (tax, ROI): input → result snapshot — e2e/tests/tools.spec.ts
+- [ ] Portal dashboard: KPIs render
+- [ ] Chat: message send/receive (mock SSE)
+
+Status:
+- Completed: initial coverage for homepage variants and calculators
+- Next: add portal upload and chat flows; consider mocking auth/session
+
+7) Performance Budgets
+- [x] Validate LCP/CLS on homepage using PerformanceObserver — e2e/tests/perf-budget.spec.ts
+- [ ] Enforce budgets via tests/thresholds.test.ts and CI
+- [ ] Identify top bundles via next build stats and set per-chunk limits
+
+Status:
+- Completed: basic LCP/CLS budget check in E2E
+- Next: wire thresholds to CI gating and build stats analysis
+
+---
+
+## Status Updates Format (to be maintained)
+- What was completed
+- Why it was done
+- Next steps (if any)

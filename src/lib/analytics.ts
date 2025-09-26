@@ -4,6 +4,13 @@ export type AnalyticsEvent =
   | 'plan_selected'
   | 'consultation_requested'
   | 'upload_completed'
+  | 'receipt_opened'
+  | 'receipt_saved'
+  | 'billing_sequence_created'
+  | 'billing_sequence_updated'
+  | 'compliance_viewed'
+  | 'alert_dismissed'
+  | 'security_center_viewed'
 
 export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
   ab_test_assigned: 'ab_test_assigned',
@@ -11,6 +18,13 @@ export const EVENTS: Record<AnalyticsEvent, AnalyticsEvent> = {
   plan_selected: 'plan_selected',
   consultation_requested: 'consultation_requested',
   upload_completed: 'upload_completed',
+  receipt_opened: 'receipt_opened',
+  receipt_saved: 'receipt_saved',
+  billing_sequence_created: 'billing_sequence_created',
+  billing_sequence_updated: 'billing_sequence_updated',
+  compliance_viewed: 'compliance_viewed',
+  alert_dismissed: 'alert_dismissed',
+  security_center_viewed: 'security_center_viewed',
 }
 
 export const trackConversion = (eventName: string, data?: Record<string, any>) => {
