@@ -76,13 +76,13 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
   - Next: Localize per country/state and personalize based on entity type
 
 ## Phase 4 — Advanced Features (Weeks 9–12)
-- [ ] Expense tracking with receipt OCR (stub UI)
+- [x] Expense tracking with receipt OCR (stub UI)
   - What: src/components/expenses/receipt-scanner.tsx; editable fields; save stub
-- [ ] Automated billing sequences UI
+- [x] Automated billing sequences UI
   - What: src/components/invoicing/automated-billing.tsx; leverage payments APIs
-- [ ] Compliance dashboard
+- [x] Compliance dashboard
   - What: src/components/compliance/compliance-dashboard.tsx
-- [ ] Security Center dashboard
+- [x] Security Center dashboard
   - What: src/components/security/security-center.tsx (health, fraud, access log)
 - [x] Tools: Tax & ROI calculators
   - What: Implemented src/components/tools/tax-calculator.tsx and src/components/tools/roi-calculator.tsx; wired into /resources/tools
@@ -128,7 +128,7 @@ Audited: routes, components, and APIs under src/app, src/components, src/lib. Ch
 - [x] Add route integration into src/app/portal/page.tsx (card linking to receipt scanner)
 - [x] Add server stub endpoint src/app/api/expenses/ingest/route.ts (validates payload, returns stored-id)
 - [x] Track events: receipt_opened, receipt_saved (src/lib/analytics.ts)
-- [ ] Unit tests for parser utilities (if any) under tests/expenses
+- [x] Unit tests for parser utilities (if any) under tests/expenses
 
 Status:
 - Completed: Receipt scanner UI, ingest API, portal link, analytics events
@@ -140,7 +140,7 @@ Status:
 - [x] Surface component in src/app/admin/invoices/page.tsx (tabs or section)
 - [x] Wire to existing payments APIs (mock until finalized); create src/app/api/invoicing/sequences/route.ts stub
 - [x] Events: billing_sequence_created/updated
-- [ ] Snapshot tests for UI building blocks under tests/invoicing
+- [x] Snapshot tests for UI building blocks under tests/invoicing
 
 Status:
 - Completed: Automated billing sequence UI, admin route (/admin/invoices/sequences), API stub, events
