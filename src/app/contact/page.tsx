@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MapPin, Phone, Mail, Clock, MessageSquare, Send } from 'lucide-react'
 import { toast } from 'sonner'
+import { ContactForm } from '@/components/forms/ContactForm'
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
