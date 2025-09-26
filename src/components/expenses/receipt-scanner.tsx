@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/select"
 import { trackEvent } from "@/lib/analytics"
 import { toast } from "sonner"
 
-interface ExtractedFields {
+export interface ExtractedFields {
   merchant: string
   date: string // ISO yyyy-mm-dd
   total: number
@@ -20,7 +20,7 @@ interface ExtractedFields {
   notes?: string
 }
 
-function simulateExtract(file: File): ExtractedFields {
+export function simulateExtract(file: File): ExtractedFields {
   const name = file.name || "receipt"
   const match = name.match(/(\d+[.,]?\d{0,2})/)
   const numberFromName = match ? Number(String(match[1]).replace(",", ".")) : 0
