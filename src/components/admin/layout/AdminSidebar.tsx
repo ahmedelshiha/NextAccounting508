@@ -129,7 +129,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       className={sidebarClasses}
       role="navigation"
       aria-label="Admin sidebar"
-      aria-expanded={isMobile ? isOpen : !collapsed}
     >
       {/* Brand Section */}
       <div className="p-4 border-b border-gray-200">
