@@ -6,6 +6,7 @@
   NODE_VERSION = "20"
   SECRETS_SCAN_OMIT_KEYS = "UPLOADS_PROVIDER,REALTIME_TRANSPORT"
   PRISMA_MIGRATION_ENGINE_ADVISORY_LOCK_TIMEOUT = "300000"
+  SENTRY_SKIP_OPEN_TELEMETRY_INSTRUMENTATION = "1"
 
 [context.deploy-preview]
   command = "pnpm db:generate && echo 'Skipping Prisma migrate/seed in deploy-preview' && pnpm lint && pnpm typecheck && pnpm build"
