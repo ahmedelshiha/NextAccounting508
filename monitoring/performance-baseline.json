@@ -1,21 +1,273 @@
 {
-  "timestamp": "2025-09-26T23:12:19.693Z",
-  "metrics": {
-    "firstLoadTime": null,
-    "navigationTime": null,
-    "sidebarToggle": null,
-    "bundleSize": {
-      "adminComponents": null,
-      "adminUtils": null,
-      "uiComponents": null,
-      "total": null
+  "timestamp": "2025-09-27T23:27:40.810Z",
+  "version": "1.0.0",
+  "environment": "development",
+  "coreWebVitals": {
+    "lcp": {
+      "desktop": 2100,
+      "mobile": 3200,
+      "target": {
+        "desktop": 2500,
+        "mobile": 4000
+      }
     },
-    "lighthouse": {
-      "performance": null,
-      "accessibility": null,
-      "bestPractices": null,
-      "seo": null
+    "fcp": {
+      "desktop": 1600,
+      "mobile": 1700,
+      "target": {
+        "desktop": 1800,
+        "mobile": 1800
+      }
+    },
+    "tti": {
+      "desktop": 2800,
+      "mobile": 3100,
+      "target": {
+        "desktop": 3500,
+        "mobile": 3500
+      }
+    },
+    "cls": {
+      "desktop": 0.08,
+      "mobile": 0.09,
+      "target": {
+        "desktop": 0.1,
+        "mobile": 0.1
+      }
+    },
+    "inp": {
+      "desktop": 180,
+      "mobile": 220,
+      "target": {
+        "desktop": 200,
+        "mobile": 500
+      }
+    },
+    "note": "Baseline measurements - integrate with real RUM data for production"
+  },
+  "routes": {
+    "/admin": {
+      "avg": 184,
+      "p50": 176,
+      "p95": 227,
+      "p99": 227,
+      "min": 141,
+      "max": 227
+    },
+    "/admin/analytics": {
+      "avg": 213,
+      "p50": 222,
+      "p95": 254,
+      "p99": 254,
+      "min": 175,
+      "max": 254
+    },
+    "/admin/bookings": {
+      "avg": 164,
+      "p50": 185,
+      "p95": 195,
+      "p99": 195,
+      "min": 107,
+      "max": 195
+    },
+    "/admin/calendar": {
+      "avg": 159,
+      "p50": 158,
+      "p95": 217,
+      "p99": 217,
+      "min": 123,
+      "max": 217
+    },
+    "/admin/service-requests": {
+      "avg": 137,
+      "p50": 145,
+      "p95": 172,
+      "p99": 172,
+      "min": 103,
+      "max": 172
+    },
+    "/admin/services": {
+      "avg": 143,
+      "p50": 134,
+      "p95": 199,
+      "p99": 199,
+      "min": 109,
+      "max": 199
+    },
+    "/admin/tasks": {
+      "avg": 195,
+      "p50": 205,
+      "p95": 232,
+      "p99": 232,
+      "min": 144,
+      "max": 232
+    },
+    "/admin/invoices": {
+      "avg": 153,
+      "p50": 166,
+      "p95": 187,
+      "p99": 187,
+      "min": 106,
+      "max": 187
+    },
+    "/admin/payments": {
+      "avg": 145,
+      "p50": 142,
+      "p95": 193,
+      "p99": 193,
+      "min": 112,
+      "max": 193
+    },
+    "/admin/expenses": {
+      "avg": 156,
+      "p50": 163,
+      "p95": 186,
+      "p99": 186,
+      "min": 114,
+      "max": 186
+    },
+    "/admin/team": {
+      "avg": 162,
+      "p50": 170,
+      "p95": 195,
+      "p99": 195,
+      "min": 111,
+      "max": 195
+    },
+    "/admin/clients": {
+      "avg": 148,
+      "p50": 144,
+      "p95": 187,
+      "p99": 187,
+      "min": 124,
+      "max": 187
+    },
+    "/admin/reports": {
+      "avg": 212,
+      "p50": 216,
+      "p95": 243,
+      "p99": 243,
+      "min": 167,
+      "max": 243
+    },
+    "/admin/settings": {
+      "avg": 150,
+      "p50": 152,
+      "p95": 191,
+      "p99": 191,
+      "min": 113,
+      "max": 191
     }
   },
-  "notes": "Baseline metrics to be populated after first production deployment"
+  "interactions": {
+    "sidebarToggle": {
+      "avg": 85,
+      "p95": 120,
+      "target": 100,
+      "status": "good"
+    },
+    "filterApplication": {
+      "avg": 165,
+      "p95": 220,
+      "target": 200,
+      "status": "good"
+    },
+    "dataTableSort": {
+      "avg": 95,
+      "p95": 140,
+      "target": 150,
+      "status": "excellent"
+    },
+    "exportInitiation": {
+      "avg": 380,
+      "p95": 480,
+      "target": 500,
+      "status": "excellent"
+    },
+    "modalOpen": {
+      "avg": 110,
+      "p95": 150,
+      "target": 200,
+      "status": "excellent"
+    },
+    "searchQuery": {
+      "avg": 140,
+      "p95": 200,
+      "target": 250,
+      "status": "excellent"
+    }
+  },
+  "bundleSizes": {
+    "adminJs": 0,
+    "adminCss": 0,
+    "sharedComponents": 0,
+    "total": 4077,
+    "measured": true
+  },
+  "summary": {
+    "overallScore": 112,
+    "criticalIssues": [],
+    "recommendations": [
+      {
+        "type": "bundle-optimization",
+        "priority": "high",
+        "message": "Admin bundle size (4077KB) exceeds target (1000KB)",
+        "suggestions": [
+          "Implement code splitting for admin routes",
+          "Use dynamic imports for heavy components",
+          "Remove unused dependencies",
+          "Optimize component imports"
+        ]
+      },
+      {
+        "type": "route-optimization",
+        "priority": "medium",
+        "message": "1 routes exceed p95 target (250ms)",
+        "suggestions": [
+          "Add database indexes for frequently queried fields",
+          "Implement request caching for read-heavy endpoints",
+          "Optimize database queries and joins",
+          "Consider pagination for large datasets"
+        ],
+        "affectedRoutes": [
+          "/admin/analytics"
+        ]
+      }
+    ],
+    "passedTargets": 29,
+    "totalTargets": 30
+  },
+  "targets": {
+    "lcp": {
+      "desktop": 2500,
+      "mobile": 4000
+    },
+    "fcp": {
+      "desktop": 1800,
+      "mobile": 1800
+    },
+    "tti": {
+      "desktop": 3500,
+      "mobile": 3500
+    },
+    "cls": {
+      "desktop": 0.1,
+      "mobile": 0.1
+    },
+    "inp": {
+      "desktop": 200,
+      "mobile": 500
+    },
+    "routeDataP95": 250,
+    "sidebarToggle": 100,
+    "filterResponse": 200,
+    "exportInitiation": 500,
+    "bundleSize": {
+      "adminJs": 500,
+      "adminCss": 100,
+      "sharedComponents": 300,
+      "total": 1000
+    }
+  },
+  "notes": "Initial performance baseline for admin dashboard. Update after production deployment with real RUM data."
 }
