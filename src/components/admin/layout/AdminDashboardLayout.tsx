@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
 import AdminFooter from './AdminFooter'
+import AdminErrorBoundary from './AdminErrorBoundary'
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useAdminLayout } from '@/stores/adminLayoutStore'
 import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
@@ -150,21 +151,22 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   }
 
   return (
-    <div className={`h-screen bg-gray-50 overflow-hidden ${className}`}>
-      {/* Accessibility: Skip link for keyboard users */}
-      <a
-        href="#admin-main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 focus:z-[60] rounded"
-        onClick={(e) => {
-          e.preventDefault()
-          const el = document.getElementById('admin-main-content')
-          if (el) {
-            el.focus({ preventScroll: false })
-          }
-        }}
-      >
-        Skip to main content
-      </a>
+    <AdminErrorBoundary>
+      <div className={`h-screen bg-gray-50 overflow-hidden ${className}`}>
+        {/* Accessibility: Skip link for keyboard users */}
+        <a
+          href="#admin-main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 focus:z-[60] rounded"
+          onClick={(e) => {
+            e.preventDefault()
+            const el = document.getElementById('admin-main-content')
+            if (el) {
+              el.focus({ preventScroll: false })
+            }
+          }}
+        >
+          Skip to main content
+        </a>
 
       {/* Admin Sidebar - Fixed positioning with responsive behavior */}
       <AdminSidebar
@@ -263,6 +265,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         </div>
       )}
     </div>
+    </AdminErrorBoundary>
   )
 }
 

@@ -74,11 +74,15 @@ export const useResponsive = (
     ...customConfig,
   }), [customConfig])
 
-  // Track window size - initialize with safe server-side defaults
+  // Track window size - initialize with server-safe defaults
+  // Always use the same initial values for SSR/CSR consistency
   const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
+    width: 1024, // Fixed default to prevent hydration mismatch
+    height: 768, // Fixed default to prevent hydration mismatch
   })
+  
+  // Track if we're on client to prevent SSR issues
+  const [isClient, setIsClient] = useState(false)
 
   // Update window size
   const updateSize = useCallback(() => {
@@ -90,13 +94,20 @@ export const useResponsive = (
     })
   }, [])
 
+  // Client-side hydration effect
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   // Set up resize listener
   useEffect(() => {
     // Skip if running on server
     if (typeof window === 'undefined') return
 
-    // Initial size
-    updateSize()
+    // Initial size - only set after client-side hydration
+    if (isClient) {
+      updateSize()
+    }
 
     // Debounced resize handler to improve performance
     let timeoutId: NodeJS.Timeout
@@ -111,7 +122,7 @@ export const useResponsive = (
       window.removeEventListener('resize', debouncedResize)
       clearTimeout(timeoutId)
     }
-  }, [updateSize])
+  }, [updateSize, isClient])
 
   // Calculate responsive states
   const responsiveState = useMemo(() => {
