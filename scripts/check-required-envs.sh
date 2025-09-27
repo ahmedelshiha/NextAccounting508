@@ -1,25 +1,60 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# Environment Variable Validation Script
+# Purpose: Validate presence of required environment variables at build start
+# This prevents deployment failures due to missing configuration
+
 set -e
 
-REQUIRED=(
-  "DATABASE_URL"
-  "NETLIFY_DATABASE_URL"
-  "UPLOADS_PROVIDER"
+echo "🔍 Checking required environment variables..."
+
+# Define required environment variables
+REQUIRED_VARS=(
   "NEXTAUTH_SECRET"
   "NEXTAUTH_URL"
+  "DATABASE_URL"
+  "SENTRY_DSN"
+  "UPSTASH_REDIS_REST_URL"
+  "UPSTASH_REDIS_REST_TOKEN"
+  "CRON_SECRET"
+  "FROM_EMAIL"
 )
 
-MISSING=()
-for v in "${REQUIRED[@]}"; do
-  if [ -z "${!v:-}" ]; then
-    MISSING+=("$v")
+# Define conditionally required variables based on environment
+if [[ "$NODE_ENV" == "production" ]]; then
+  REQUIRED_VARS+=(
+    "STRIPE_SECRET_KEY"
+    "STRIPE_PUBLISHABLE_KEY"
+    "STRIPE_WEBHOOK_SECRET"
+    "SENDGRID_API_KEY"
+  )
+fi
+
+# Check for missing variables
+MISSING_VARS=()
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [[ -z "${!var}" ]]; then
+    MISSING_VARS+=("$var")
   fi
 done
 
-if [ ${#MISSING[@]} -gt 0 ]; then
-  echo "Missing required environment variables: ${MISSING[*]}"
-  echo "Set them in your CI or host (Netlify/GitHub) before running migrations or deploys."
+# Report results
+if [[ ${#MISSING_VARS[@]} -eq 0 ]]; then
+  echo "✅ All required environment variables are set"
+  echo "📋 Validated variables:"
+  for var in "${REQUIRED_VARS[@]}"; do
+    echo "  ✓ $var"
+  done
+else
+  echo "❌ Missing required environment variables:"
+  for var in "${MISSING_VARS[@]}"; do
+    echo "  ✗ $var"
+  done
+  echo ""
+  echo "💡 Please set the missing variables in your environment or .env.local file"
+  echo "📚 See docs/deployment-guide.md for configuration details"
   exit 1
 fi
 
-echo "All required envs present."
+echo "🎉 Environment validation passed"
