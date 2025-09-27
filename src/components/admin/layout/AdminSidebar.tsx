@@ -8,7 +8,7 @@
 
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -57,6 +57,43 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const { navigation } = useAdminLayout()
 
   // Navigation structure - this will be moved to config later
+  // Dynamic badge counts - these should be fetched from APIs
+  const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    // Fetch dynamic badge counts
+    const fetchBadgeCounts = async () => {
+      try {
+        const [bookingsRes, serviceRequestsRes] = await Promise.allSettled([
+          fetch('/api/admin/bookings/pending-count'),
+          fetch('/api/admin/service-requests/pending-count')
+        ])
+
+        const counts: Record<string, number> = {}
+
+        if (bookingsRes.status === 'fulfilled' && bookingsRes.value.ok) {
+          const data = await bookingsRes.value.json()
+          counts.bookings = data.count || 0
+        }
+
+        if (serviceRequestsRes.status === 'fulfilled' && serviceRequestsRes.value.ok) {
+          const data = await serviceRequestsRes.value.json()
+          counts['service-requests'] = data.count || 0
+        }
+
+        setBadgeCounts(counts)
+      } catch (error) {
+        console.warn('Failed to fetch badge counts:', error)
+      }
+    }
+
+    fetchBadgeCounts()
+    
+    // Refresh badge counts every 5 minutes
+    const interval = setInterval(fetchBadgeCounts, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   const navigationItems = [
     {
       id: 'dashboard',
@@ -70,7 +107,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'Bookings',
       href: '/admin/bookings',
       icon: Calendar,
-      badge: 12, // Will be dynamic
+      badge: badgeCounts.bookings,
     },
     {
       id: 'clients',
@@ -83,7 +120,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'Service Requests',
       href: '/admin/service-requests',
       icon: FileText,
-      badge: 3,
+      badge: badgeCounts['service-requests'],
     },
     {
       id: 'analytics',
@@ -134,12 +171,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center">
           <div className="w-8 h-8 bg-blue-600 rounded-lg grid place-items-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">AF</span>
+            <span className="text-white font-bold text-sm">NA</span>
           </div>
           {(!collapsed || isMobile) && (
             <div className="ml-3 min-w-0">
-              <h1 className="text-lg font-semibold text-gray-900 truncate">Admin</h1>
-              <p className="text-xs text-gray-500 truncate">Accounting Dashboard</p>
+              <h1 className="text-lg font-semibold text-gray-900 truncate">NextAccounting</h1>
+              <p className="text-xs text-gray-500 truncate">Admin Dashboard</p>
             </div>
           )}
           {!isMobile && (

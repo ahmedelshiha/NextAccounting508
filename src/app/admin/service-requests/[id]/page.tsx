@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Loader2, Trash2, Pencil, Plus, Paperclip } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2, Trash2, Pencil, Plus, Paperclip } from 'lucide-react'
 import { usePermissions } from '@/lib/use-permissions'
 import { PERMISSIONS } from '@/lib/permissions'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -163,9 +163,57 @@ export default function AdminServiceRequestDetailPage() {
     } finally { setConfirmDelete(false) }
   }
 
-  const statusBadge = (s: Item['status']) => (
-    <Badge className={{ COMPLETED: 'bg-green-100 text-green-800 border-green-200', CANCELLED: 'bg-red-100 text-red-800 border-red-200', IN_PROGRESS: 'bg-blue-100 text-blue-800 border-blue-200', ASSIGNED: 'bg-purple-100 text-purple-800 border-purple-200', APPROVED: 'bg-emerald-100 text-emerald-800 border-emerald-200', IN_REVIEW: 'bg-amber-100 text-amber-800 border-amber-200', SUBMITTED: 'bg-sky-100 text-sky-800 border-sky-200', DRAFT: 'bg-gray-100 text-gray-800 border-gray-200' }[s] || ''}>{s.replace('_',' ')}</Badge>
-  )
+  const convertToBooking = async () => {
+    if (!perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return
+    
+    try {
+      const res = await apiFetch(`/api/admin/service-requests/${params.id}/convert-to-booking`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Conversion failed')
+      }
+      
+      const data = await res.json()
+      
+      // Show success message and redirect to the new booking
+      if (typeof window !== 'undefined') {
+        const message = `Service request successfully converted to booking #${data.booking.id.slice(-8).toUpperCase()}`
+        // You could show a toast here if available
+        console.log(message)
+        
+        // Redirect to the new booking
+        router.push(`/admin/bookings/${data.bookingId}`)
+      }
+    } catch (error) {
+      console.error('Error converting to booking:', error)
+      // You could show an error toast here if available
+    }
+  }
+
+  const statusBadge = (s: Item['status']) => {
+    const statusConfig = {
+      DRAFT: { color: 'bg-gray-100 text-gray-800 border-gray-300', icon: '📝' },
+      SUBMITTED: { color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '📤' },
+      IN_REVIEW: { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: '👁️' },
+      APPROVED: { color: 'bg-green-100 text-green-800 border-green-300', icon: '✅' },
+      ASSIGNED: { color: 'bg-purple-100 text-purple-800 border-purple-300', icon: '👤' },
+      IN_PROGRESS: { color: 'bg-blue-100 text-blue-800 border-blue-300', icon: '⚡' },
+      COMPLETED: { color: 'bg-green-100 text-green-800 border-green-300', icon: '✅' },
+      CANCELLED: { color: 'bg-red-100 text-red-800 border-red-300', icon: '❌' }
+    }
+    const config = statusConfig[s as keyof typeof statusConfig] || statusConfig.DRAFT
+    return (
+      <Badge className={`${config.color} border flex items-center gap-1`}>
+        <span>{config.icon}</span>
+        {s.replace('_', ' ')}
+      </Badge>
+    )
+  }
 
   if (loading) return (<div className="min-h-screen bg-gray-50 py-8"><div className="max-w-5xl mx-auto px-4"><div className="text-gray-400">Loading…</div></div></div>)
   if (!item) return (<div className="min-h-screen bg-gray-50 py-8"><div className="max-w-5xl mx-auto px-4"><div className="text-gray-500">Not found</div></div></div>)
@@ -183,6 +231,14 @@ export default function AdminServiceRequestDetailPage() {
                 <CardDescription>Service request details</CardDescription>
               </div>
               <div className="flex items-center gap-2">
+                {/* Show conversion button for convertible service requests */}
+                {perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE) && 
+                 ['APPROVED', 'ASSIGNED', 'IN_PROGRESS'].includes(item.status) && 
+                 !(item as any).isBooking && (
+                  <Button onClick={convertToBooking} className="flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" /> Convert to Booking
+                  </Button>
+                )}
                 {perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE) && (
                   <Button variant="outline" onClick={() => router.push(`/admin/service-requests/${params.id}/edit`)} className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Edit</Button>
                 )}
