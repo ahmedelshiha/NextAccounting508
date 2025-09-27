@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
-import { withCache, invalidateCache } from '@/lib/api-cache'
+import { withCache, handleCacheInvalidation } from '@/lib/api-cache'
 
 // Type for cached bookings response
 type BookingsResponse = {
@@ -255,7 +255,7 @@ export async function POST(request: NextRequest) {
     await logAudit({ action: 'booking.create', actorId: session.user.id, targetId: booking.id, details: { serviceId, scheduledAt } })
 
     // Invalidate related caches
-    await invalidateCache('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED')
 
     return NextResponse.json({
       message: 'Booking created successfully',
@@ -340,7 +340,7 @@ export async function PATCH(request: NextRequest) {
     await logAudit({ action: `booking.bulk.${action}`, actorId: session.user.id, details: { count: result.count, bookingIds } })
 
     // Invalidate related caches
-    await invalidateCache('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED')
 
     return NextResponse.json({
       message: `Successfully updated ${result.count} bookings`,
@@ -389,7 +389,7 @@ export async function DELETE(request: NextRequest) {
     await logAudit({ action: 'booking.bulk.delete', actorId: session.user.id, details: { count: result.count, bookingIds } })
 
     // Invalidate related caches
-    await invalidateCache('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED')
 
     return NextResponse.json({
       message: `Successfully deleted ${result.count} bookings`,

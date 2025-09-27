@@ -10,7 +10,7 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
 import { createHash } from 'crypto';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
-import { withCache, invalidateCache } from '@/lib/api-cache';
+import { withCache, handleCacheInvalidation } from '@/lib/api-cache';
 
 const svc = new ServicesService();
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     await logAudit({ action: 'SERVICE_CREATED', actorId: session.user.id, targetId: service.id, details: { slug: service.slug } });
 
     // Invalidate related caches
-    await invalidateCache('SERVICE_CHANGED')
+    await handleCacheInvalidation('SERVICE_CHANGED')
 
     return NextResponse.json({ service }, { status: 201 });
   } catch (e: any) {

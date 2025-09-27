@@ -302,33 +302,37 @@ export async function getCacheStats(): Promise<{
  */
 export const CACHE_INVALIDATION_EVENTS = {
   // Booking changes invalidate booking lists and analytics
-  'booking-created': ['bookings-list', 'analytics-dashboard', 'calendar-data'],
-  'booking-updated': ['bookings-list', 'analytics-dashboard', 'calendar-data'],
-  'booking-deleted': ['bookings-list', 'analytics-dashboard', 'calendar-data'],
+  'BOOKING_CHANGED': ['admin-bookings', 'analytics-dashboard', 'admin-calendar'],
+  'booking-created': ['admin-bookings', 'analytics-dashboard', 'admin-calendar'],
+  'booking-updated': ['admin-bookings', 'analytics-dashboard', 'admin-calendar'],
+  'booking-deleted': ['admin-bookings', 'analytics-dashboard', 'admin-calendar'],
   
   // Service changes invalidate service lists and related analytics
-  'service-created': ['services-list', 'analytics-dashboard'],
-  'service-updated': ['services-list', 'analytics-dashboard'],
-  'service-deleted': ['services-list', 'analytics-dashboard'],
-  
-  // Service request changes invalidate SR lists and analytics  
-  'service-request-created': ['service-requests-list', 'analytics-dashboard', 'calendar-data'],
-  'service-request-updated': ['service-requests-list', 'analytics-dashboard', 'calendar-data'],
-  'service-request-completed': ['service-requests-list', 'analytics-dashboard'],
+  'SERVICE_CHANGED': ['admin-services', 'analytics-dashboard'],
+  'service-created': ['admin-services', 'analytics-dashboard'],
+  'service-updated': ['admin-services', 'analytics-dashboard'],
+  'service-deleted': ['admin-services', 'analytics-dashboard'],
   
   // Task changes invalidate task lists and analytics
-  'task-created': ['tasks-list', 'calendar-data'],
-  'task-updated': ['tasks-list', 'calendar-data'],
-  'task-completed': ['tasks-list', 'analytics-dashboard', 'calendar-data'],
+  'TASK_CHANGED': ['admin-calendar', 'analytics-dashboard'],
+  'task-created': ['admin-calendar', 'analytics-dashboard'],
+  'task-updated': ['admin-calendar', 'analytics-dashboard'],
+  'task-completed': ['admin-calendar', 'analytics-dashboard'],
   
-  // Team changes invalidate team and related data
-  'team-member-added': ['team-members', 'analytics-dashboard'],
-  'team-member-updated': ['team-members'],
-  'team-member-removed': ['team-members', 'analytics-dashboard'],
+  // Availability changes
+  'AVAILABILITY_CHANGED': ['admin-calendar'],
   
-  // Settings changes invalidate settings cache
-  'settings-updated': ['settings', 'currencies', 'booking-settings']
+  // Analytics changes
+  'ANALYTICS_CHANGED': ['analytics-dashboard'],
+  
+  // User changes
+  'USER_CHANGED': ['analytics-dashboard'],
+  
+  // Global cache clear
+  'CACHE_CLEAR_ALL': ['*']
 } as const
+
+export type InvalidationEvent = keyof typeof CACHE_INVALIDATION_EVENTS
 
 /**
  * Handle cache invalidation based on events
@@ -339,7 +343,8 @@ export async function handleCacheInvalidation(
 ): Promise<void> {
   const patterns = CACHE_INVALIDATION_EVENTS[event]
   if (patterns && patterns.length > 0) {
-    await invalidateCache(patterns)
+    // Convert readonly array to mutable array
+    await invalidateCache([...patterns])
     
     // Also invalidate tenant-specific cache if applicable
     if (tenantId) {
