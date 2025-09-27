@@ -5,18 +5,21 @@ import { URL } from 'url'
 // Start a minimal server similar to http-server.test.ts but focused for these tests
 import { vi as vitestVi } from 'vitest'
 
-vi.mock('@/lib/prisma', () => ({
-  serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-  service: { findUnique: vi.fn() },
-  booking: { findUnique: vi.fn(), update: vi.fn() },
-}))
+vi.mock('@/lib/prisma', () => {
+  const mock = {
+    serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    service: { findUnique: vi.fn() },
+    booking: { findUnique: vi.fn(), update: vi.fn() },
+  }
+  return { default: mock, ...mock }
+})
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
 let server: http.Server
 let baseUrl: string
 
-beforeAll((done) => {
+beforeAll(async () => {
   server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://localhost`)
@@ -79,16 +82,16 @@ beforeAll((done) => {
     }
   })
 
-  server.listen(0, () => {
-    // @ts-ignore
-    const addr = server.address()
-    const port = typeof addr === 'object' && addr ? addr.port : addr
-    baseUrl = `http://localhost:${port}`
-    done()
+  await new Promise<void>((resolve) => {
+    server.listen(0, () => resolve())
   })
+  // @ts-ignore
+  const addr = server.address()
+  const port = typeof addr === 'object' && addr ? addr.port : addr
+  baseUrl = `http://localhost:${port}`
 })
 
-afterAll((done) => { server.close(() => done()) })
+afterAll(async () => { await new Promise<void>((resolve) => server.close(() => resolve())) })
 
 describe('Offline queue flush and large CSV export (HTTP-level)', () => {
   it('process queued POSTs (offline flush) should post queued items to server and receive success', async () => {

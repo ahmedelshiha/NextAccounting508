@@ -4,12 +4,15 @@ import { URL } from 'url'
 import { vi } from 'vitest'
 
 // Mock prisma for integration tests; individual tests can override mockResolvedValueOnce
-vi.mock('@/lib/prisma', () => ({
-  serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-  serviceRequestComment: { findMany: vi.fn(), create: vi.fn() },
-  service: { findUnique: vi.fn() },
-  booking: { findUnique: vi.fn(), update: vi.fn() },
-}))
+vi.mock('@/lib/prisma', () => {
+  const mock = {
+    serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    serviceRequestComment: { findMany: vi.fn(), create: vi.fn() },
+    service: { findUnique: vi.fn() },
+    booking: { findUnique: vi.fn(), update: vi.fn() },
+  }
+  return { default: mock, ...mock }
+})
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
@@ -63,7 +66,7 @@ const routes: any[] = [
 let server: http.Server
 let baseUrl: string
 
-beforeAll((done) => {
+beforeAll(async () => {
   server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://localhost`)
@@ -123,16 +126,16 @@ beforeAll((done) => {
     }
   })
 
-  server.listen(0, () => {
-    // @ts-ignore
-    const addr = server.address()
-    const port = typeof addr === 'object' && addr ? addr.port : addr
-    baseUrl = `http://localhost:${port}`
-    done()
+  await new Promise<void>((resolve) => {
+    server.listen(0, () => resolve())
   })
+  // @ts-ignore
+  const addr = server.address()
+  const port = typeof addr === 'object' && addr ? addr.port : addr
+  baseUrl = `http://localhost:${port}`
 })
 
-afterAll((done) => { server.close(() => done()) })
+afterAll(async () => { await new Promise<void>((resolve) => server.close(() => resolve())) })
 
 describe('HTTP-level integration tests for method-not-allowed and OPTIONS', () => {
   it('PUT to /api/portal/chat returns 405 and Allow header includes GET,POST,OPTIONS', async () => {

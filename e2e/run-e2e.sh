@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Ephemeral E2E runner for Netlify/Vercel
@@ -13,7 +14,7 @@ corepack enable
 
 # Install Playwright browsers in an ephemeral context
 echo "Installing Playwright browsers"
-pnpm dlx @playwright/test@latest playwright install chromium
+pnpm dlx playwright@latest install chromium
 
 start_local_server() {
   echo "Building and starting app for local testing..."
@@ -46,7 +47,7 @@ else
 fi
 
 echo "Running Playwright tests against $TARGET_URL"
-E2E_BASE_URL="$TARGET_URL" pnpm dlx @playwright/test@latest playwright test --config=e2e/playwright.config.ts --reporter=list
+E2E_BASE_URL="$TARGET_URL" pnpm dlx playwright@latest test --config=e2e/playwright.config.ts --reporter=list
 
 EXIT_CODE=$?
 if [ $EXIT_CODE -ne 0 ]; then

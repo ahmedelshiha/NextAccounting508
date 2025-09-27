@@ -27,7 +27,17 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  // Guard getServerSession with a short timeout to avoid blocking rendering when auth DB is slow
+  let session = null as any
+  try {
+    session = await Promise.race([
+      getServerSession(authOptions),
+      new Promise(resolve => setTimeout(() => resolve(null), 500)),
+    ])
+  } catch {
+    session = null
+  }
+
   return (
     <html lang="en">
       <head>

@@ -212,8 +212,8 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
         {/* Only show footer on non-admin routes */}
         {!isAdminRoute && <OptimizedFooter />}
       </div>
-      {/* Capture performance metrics on public pages as well */}
-      <PerfMetricsReporter />
+      {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
+      {isAdminRoute ? <PerfMetricsReporter /> : null}
       {showPortalChat ? <LiveChatWidget /> : null}
       <Toaster />
     </SessionProvider>
