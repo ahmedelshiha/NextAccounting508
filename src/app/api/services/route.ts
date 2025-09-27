@@ -23,7 +23,22 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const tenantId = getTenantFromRequest(request as any)
 
-    const { default: prisma } = await import('@/lib/prisma')
+    // Guard the import and DB call to avoid long blocking if Prisma/DB is cold or unreachable
+    let prisma: any = null
+    try {
+      const importPromise = import('@/lib/prisma')
+      const imported = await Promise.race([importPromise, new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma import timeout')), Math.max(250, timeoutMs)))])
+      prisma = (imported as any).default
+    } catch (e) {
+      console.error('Prisma import failed or timed out, falling back to static services list:', e)
+      const fallback = [
+        { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
+        { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
+        { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
+        { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true },
+      ]
+      return NextResponse.json(fallback)
+    }
 
     const where: Prisma.ServiceWhereInput = { active: true, ...(tenantFilter(tenantId) as any) }
 
