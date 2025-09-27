@@ -493,7 +493,6 @@ export default function BookingManagementPage() {
       columns={columns}
       rows={filteredBookings}
       loading={loading}
-      error={error}
       stats={{
         title: 'Booking Overview',
         items: [

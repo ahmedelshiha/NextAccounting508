@@ -367,7 +367,6 @@ export default function ClientsPage() {
       columns={columns}
       rows={filteredClients}
       loading={loading}
-      error={error}
       stats={{
         title: 'Client Overview',
         items: [
