@@ -70,7 +70,7 @@ export default async function AdminLayout({ children }: Props) {
         
         <nav>
           <div style={{ marginBottom: '0.5rem' }}>
-            <a href="/admin" style={{
+            <Link href="/admin" style={{
               display: 'block',
               padding: '0.75rem 1rem',
               backgroundColor: '#dbeafe',
@@ -80,10 +80,10 @@ export default async function AdminLayout({ children }: Props) {
               marginBottom: '0.25rem'
             }}>
               📊 Dashboard
-            </a>
+            </Link>
           </div>
           <div style={{ marginBottom: '0.5rem' }}>
-            <a href="/admin/bookings" style={{
+            <Link href="/admin/bookings" style={{
               display: 'block',
               padding: '0.75rem 1rem',
               color: '#4b5563',
@@ -92,10 +92,10 @@ export default async function AdminLayout({ children }: Props) {
               marginBottom: '0.25rem'
             }}>
               📅 Bookings
-            </a>
+            </Link>
           </div>
           <div style={{ marginBottom: '0.5rem' }}>
-            <a href="/admin/clients" style={{
+            <Link href="/admin/clients" style={{
               display: 'block',
               padding: '0.75rem 1rem',
               color: '#4b5563',
@@ -104,7 +104,7 @@ export default async function AdminLayout({ children }: Props) {
               marginBottom: '0.25rem'
             }}>
               👥 Clients
-            </a>
+            </Link>
           </div>
         </nav>
       </aside>
