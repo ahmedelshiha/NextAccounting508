@@ -11,8 +11,9 @@ import { cookies } from 'next/headers'
 
 export const revalidate = 60
 
-export default async function HomePage({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
-  const heroParam = typeof searchParams?.hero === 'string' ? String(searchParams?.hero) : Array.isArray(searchParams?.hero) ? searchParams?.hero?.[0] : undefined
+export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const sp = await searchParams
+  const heroParam = typeof sp?.hero === 'string' ? String(sp.hero) : Array.isArray(sp?.hero) ? sp?.hero?.[0] : undefined
   const cookieStore = await cookies()
   const heroCookie = cookieStore.get('hero')?.value
   const useCompact = (heroParam ?? heroCookie) === 'compact'
