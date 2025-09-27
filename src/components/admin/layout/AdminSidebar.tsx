@@ -25,7 +25,7 @@ import {
   User
 } from 'lucide-react'
 import { hasRole } from '@/lib/permissions'
-import { useAdminLayout } from '@/stores/adminLayoutStore'
+import { useAdminLayoutHydrationSafe } from '@/stores/adminLayoutStoreHydrationSafe'
 import type { AdminSidebarProps } from '@/types/admin/layout'
 
 /**
@@ -54,7 +54,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const pathname = usePathname()
   const { data: session } = useSession()
   const role = (session?.user as any)?.role as string | undefined
-  const { navigation } = useAdminLayout()
+  const { navigation } = useAdminLayoutHydrationSafe()
 
   // Navigation structure - this will be moved to config later
   // Dynamic badge counts - these should be fetched from APIs

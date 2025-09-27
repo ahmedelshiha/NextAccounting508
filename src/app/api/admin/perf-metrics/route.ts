@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-interface PerformanceMetric {
-  name: string
-  value: number
-  timestamp: number
-  pathname: string
-  metadata?: Record<string, any>
+interface PerformanceMetricPayload {
+  ts: number           // timestamp 
+  path: string         // pathname
+  userAgent: string
+  type: string         // metric type (sample, final)
+  metrics?: Record<string, any>
+  [key: string]: any
 }
 
 export async function POST(request: NextRequest) {
@@ -19,22 +20,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the performance metric data
-    const metric: PerformanceMetric = await request.json()
+    const payload: PerformanceMetricPayload = await request.json()
 
-    // Basic validation
-    if (!metric.name || typeof metric.value !== 'number' || !metric.pathname) {
-      return NextResponse.json({ error: 'Invalid metric data' }, { status: 400 })
+    // Basic validation - accommodate actual payload structure
+    if (!payload.ts || !payload.path || !payload.type) {
+      return NextResponse.json({ 
+        error: 'Invalid metric data - missing required fields (ts, path, type)' 
+      }, { status: 400 })
     }
 
     // In development, just log the metrics
     if (process.env.NODE_ENV === 'development') {
       console.log('📊 Admin Performance Metric:', {
-        name: metric.name,
-        value: `${metric.value.toFixed(2)}ms`,
-        pathname: metric.pathname,
+        type: payload.type,
+        path: payload.path,
+        metrics: payload.metrics,
         user: session.user.email,
-        timestamp: new Date(metric.timestamp).toISOString(),
-        metadata: metric.metadata
+        timestamp: new Date(payload.ts).toISOString(),
+        userAgent: payload.userAgent
       })
     }
 
