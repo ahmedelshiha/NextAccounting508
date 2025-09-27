@@ -66,7 +66,7 @@ const routes: any[] = [
 let server: http.Server
 let baseUrl: string
 
-beforeAll((done) => {
+beforeAll(async () => {
   server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://localhost`)
@@ -126,16 +126,16 @@ beforeAll((done) => {
     }
   })
 
-  server.listen(0, () => {
-    // @ts-ignore
-    const addr = server.address()
-    const port = typeof addr === 'object' && addr ? addr.port : addr
-    baseUrl = `http://localhost:${port}`
-    done()
+  await new Promise<void>((resolve) => {
+    server.listen(0, () => resolve())
   })
+  // @ts-ignore
+  const addr = server.address()
+  const port = typeof addr === 'object' && addr ? addr.port : addr
+  baseUrl = `http://localhost:${port}`
 })
 
-afterAll((done) => { server.close(() => done()) })
+afterAll(async () => { await new Promise<void>((resolve) => server.close(() => resolve())) })
 
 describe('HTTP-level integration tests for method-not-allowed and OPTIONS', () => {
   it('PUT to /api/portal/chat returns 405 and Allow header includes GET,POST,OPTIONS', async () => {
