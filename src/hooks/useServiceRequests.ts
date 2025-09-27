@@ -6,12 +6,14 @@ export type ServiceRequestsQuery = {
   offset?: number
   limit?: number
   q?: string
-  status?: string | 'ALL'
-  priority?: string | 'ALL'
-  bookingType?: 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION' | 'ALL'
+  status?: 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'ALL'
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'ALL'
+  assignedTo?: string
+  clientId?: string
+  serviceId?: string
   dateFrom?: string
   dateTo?: string
-  type?: 'ALL' | 'REQUESTS' | 'APPOINTMENTS'
+  scope?: 'admin' | 'portal'
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }
@@ -36,10 +38,12 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   const q = params.q ?? ''
   const status = params.status ?? 'ALL'
   const priority = params.priority ?? 'ALL'
-  const bookingType = params.bookingType ?? 'ALL'
+  const assignedTo = params.assignedTo
+  const clientId = params.clientId
+  const serviceId = params.serviceId
   const dateFrom = params.dateFrom
   const dateTo = params.dateTo
-  const type = params.type ?? 'ALL'
+  const scope = params.scope ?? 'admin'
   const sortBy = params.sortBy
   const sortOrder = params.sortOrder
 
@@ -51,19 +55,20 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
     const computed = Math.max(0, (page - 1) * limit)
     query.set('offset', String(computed))
   }
-  // Keep page for backward compatibility with any legacy handlers
   query.set('page', String(page))
   if (q) query.set('q', q)
   if (status !== 'ALL') query.set('status', status)
   if (priority !== 'ALL') query.set('priority', priority)
-  if (bookingType !== 'ALL') query.set('bookingType', bookingType)
+  if (assignedTo) query.set('assignedTo', assignedTo)
+  if (clientId) query.set('clientId', clientId)
+  if (serviceId) query.set('serviceId', serviceId)
   if (dateFrom) query.set('dateFrom', dateFrom)
   if (dateTo) query.set('dateTo', dateTo)
-  if (type !== 'ALL') query.set('type', type === 'APPOINTMENTS' ? 'appointments' : 'requests')
   if (sortBy) query.set('sortBy', sortBy)
   if (sortOrder) query.set('sortOrder', sortOrder)
 
-  const key = `/api/admin/service-requests?${query.toString()}`
+  const base = scope === 'portal' ? '/api/portal/service-requests' : '/api/admin/service-requests'
+  const key = `${base}?${query.toString()}`
   const { data, isLoading, error, mutate } = useSWR<ServiceRequestsResponse>(key, fetcher)
 
   return {
