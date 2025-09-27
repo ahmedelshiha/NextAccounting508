@@ -12,6 +12,7 @@ import React, { useEffect, useCallback, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
+import AdminFooter from './AdminFooter'
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useAdminLayout } from '@/stores/adminLayoutStore'
 import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
@@ -184,7 +185,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       )}
 
       {/* Main Content Area */}
-      <div className={`min-h-full transition-all duration-300 ${getContentClasses()}`}>
+      <div className={`min-h-full flex flex-col transition-all duration-300 ${getContentClasses()}`}>
         {/* Admin Header */}
         <AdminHeader
           onToggleSidebar={handleSidebarToggle}
@@ -197,7 +198,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         <main
           id="admin-main-content"
           tabIndex={-1}
-          className="overflow-y-auto px-6 py-4 h-[calc(100vh-4rem)] focus:outline-none"
+          className="flex-1 overflow-y-auto px-6 py-4 focus:outline-none"
           role="main"
           aria-label="Admin dashboard content"
         >
@@ -245,6 +246,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
             {children}
           </div>
         </main>
+
+        {/* Admin Footer */}
+        <AdminFooter
+          sidebarCollapsed={sidebar.collapsed}
+          isMobile={responsive.isMobile}
+        />
       </div>
 
       {/* Debug Info (Development Only) */}
