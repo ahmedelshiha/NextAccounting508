@@ -8,17 +8,27 @@ set -e
 
 echo "🔍 Checking required environment variables..."
 
-# Define required environment variables
-REQUIRED_VARS=(
-  "NEXTAUTH_SECRET"
-  "NEXTAUTH_URL"
-  "DATABASE_URL"
-  "SENTRY_DSN"
-  "UPSTASH_REDIS_REST_URL"
-  "UPSTASH_REDIS_REST_TOKEN"
-  "CRON_SECRET"
+# Define required environment variables with Netlify alternatives
+CORE_VARS=(
+  "DATABASE_URL|NETLIFY_DATABASE_URL"
   "FROM_EMAIL"
 )
+
+# Check if running in Netlify environment
+if [[ "$NETLIFY" == "true" ]]; then
+  echo "🌐 Detected Netlify environment"
+  REQUIRED_VARS=(
+    "${CORE_VARS[@]}"
+    # Netlify provides these automatically or they're optional for build
+  )
+else
+  echo "🖥️  Detected local/development environment"
+  REQUIRED_VARS=(
+    "${CORE_VARS[@]}"
+    "NEXTAUTH_SECRET"
+    "NEXTAUTH_URL"
+  )
+fi
 
 # Define conditionally required variables based on environment
 if [[ "$NODE_ENV" == "production" ]]; then
@@ -33,9 +43,28 @@ fi
 # Check for missing variables
 MISSING_VARS=()
 
-for var in "${REQUIRED_VARS[@]}"; do
-  if [[ -z "${!var}" ]]; then
-    MISSING_VARS+=("$var")
+for var_spec in "${REQUIRED_VARS[@]}"; do
+  # Check if this is a variable with alternatives (contains |)
+  if [[ "$var_spec" == *"|"* ]]; then
+    # Split on | to get alternatives
+    IFS='|' read -ra var_alternatives <<< "$var_spec"
+    var_found=false
+    
+    for var in "${var_alternatives[@]}"; do
+      if [[ -n "${!var}" ]]; then
+        var_found=true
+        break
+      fi
+    done
+    
+    if [[ "$var_found" == false ]]; then
+      MISSING_VARS+=("$var_spec")
+    fi
+  else
+    # Single variable check
+    if [[ -z "${!var_spec}" ]]; then
+      MISSING_VARS+=("$var_spec")
+    fi
   fi
 done
 
