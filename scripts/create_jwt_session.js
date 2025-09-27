@@ -1,6 +1,6 @@
 (async function(){
   try{
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const { PrismaClient } = require('@prisma/client')
     const { encode } = require('next-auth/jwt')
     const prisma = new PrismaClient()

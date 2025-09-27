@@ -103,7 +103,7 @@ describe('admin/booking-settings API', () => {
     expect(resImport.status).toBe(200)
     const out = await resImport.json()
     // Debug output for CI: show import response
-    // eslint-disable-next-line no-console
+     
     console.log('IMPORT OUT:', JSON.stringify(out, null, 2))
     expect(out?.settings?.id).toBeDefined()
   })

@@ -56,31 +56,39 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     setIsClient(true)
   }, [])
 
-  // Sync responsive state with store
+  // HYDRATION-SAFE: Track if we're client-side and hydration is complete
+  const [isHydrated, setIsHydrated] = useState(false)
+  
   useEffect(() => {
-    const { isMobile, isTablet, isDesktop, breakpoint, layoutVariant } = responsive
-    
-    // Update store with current responsive state
-    sidebar.setCollapsed(isMobile || isTablet ? true : sidebar.collapsed)
-    
-    // Store doesn't have setResponsiveState method in the hook, so we'll handle this differently
-    // In a real implementation, we'd sync this properly
-  }, [responsive.breakpoint, responsive.isMobile, responsive.isTablet, sidebar])
+    // Only set hydrated flag after client-side mount is complete
+    setIsHydrated(true)
+  }, [])
 
-  // Set active navigation item based on current path
+  // HYDRATION-SAFE: Sync responsive state with store ONLY after hydration
   useEffect(() => {
+    if (!isHydrated) return // Prevent hydration mismatch
+    
+    const { isMobile, isTablet } = responsive
+    // Update store with current responsive state (only after hydration)
+    sidebar.setCollapsed(isMobile || isTablet ? true : sidebar.collapsed)
+  }, [isHydrated, responsive.breakpoint, responsive.isMobile, responsive.isTablet, sidebar])
+
+  // HYDRATION-SAFE: Set active navigation item ONLY after hydration
+  useEffect(() => {
+    if (!isHydrated) return // Prevent hydration mismatch
+    
     // Simple active item detection - can be enhanced with more sophisticated matching
     const pathSegments = pathname.split('/').filter(Boolean)
     const activeItem = pathSegments.length > 1 ? pathSegments[1] : 'dashboard'
     navigation.setActiveItem(activeItem)
-  }, [pathname, navigation])
+  }, [isHydrated, pathname, navigation])
 
-  // Initialize collapsed state
+  // HYDRATION-SAFE: Initialize collapsed state ONLY after hydration
   useEffect(() => {
-    if (initialSidebarCollapsed !== undefined) {
-      sidebar.setCollapsed(initialSidebarCollapsed)
-    }
-  }, [initialSidebarCollapsed, sidebar])
+    if (!isHydrated || initialSidebarCollapsed === undefined) return // Prevent hydration mismatch
+    
+    sidebar.setCollapsed(initialSidebarCollapsed)
+  }, [isHydrated, initialSidebarCollapsed, sidebar])
 
   // Handle sidebar toggle
   const handleSidebarToggle = useCallback(() => {
