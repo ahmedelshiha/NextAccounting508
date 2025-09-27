@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react'
 
-export default function SimpleAdminDashboard() {
+/**
+ * NUCLEAR OPTION: Minimal Admin Dashboard
+ * 
+ * This component completely bypasses all complex layout components,
+ * Zustand stores, React contexts, and any potential hydration issues.
+ * 
+ * Used for isolating hydration problems in the admin layout system.
+ */
+export default function NuclearAdminDashboard() {
   const [isClient, setIsClient] = useState(false)
   const [currentTime, setCurrentTime] = useState('')
 
