@@ -360,8 +360,7 @@ export default function ClientsPage() {
         { label: 'Export CSV', onClick: exportClients, icon: Download },
         { label: 'Refresh', onClick: loadClients, icon: RefreshCw }
       ]}
-      searchValue={searchTerm}
-      onSearchChange={setSearchTerm}
+      onSearch={setSearchTerm}
       searchPlaceholder="Search clients..."
       filters={filterConfigs}
       onFilterChange={handleFilterChange}

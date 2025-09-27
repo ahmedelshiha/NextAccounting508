@@ -486,8 +486,7 @@ export default function BookingManagementPage() {
         { label: 'Export CSV', onClick: exportBookings, icon: Download },
         { label: 'Refresh', onClick: loadBookings, icon: RefreshCw }
       ]}
-      searchValue={searchTerm}
-      onSearchChange={setSearchTerm}
+      onSearch={setSearchTerm}
       searchPlaceholder="Search bookings, clients, services..."
       filters={filterConfigs}
       onFilterChange={handleFilterChange}
