@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-
 interface PerformanceMetricPayload {
   ts: number           // timestamp 
   path: string         // pathname
@@ -13,13 +10,7 @@ interface PerformanceMetricPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Parse the performance metric data
+    // Parse the performance metric data (accept anonymous submissions to avoid expensive auth checks)
     const payload: PerformanceMetricPayload = await request.json()
 
     // Basic validation - accommodate actual payload structure
@@ -35,7 +26,6 @@ export async function POST(request: NextRequest) {
         type: payload.type,
         path: payload.path,
         metrics: payload.metrics,
-        user: session.user.email,
         timestamp: new Date(payload.ts).toISOString(),
         userAgent: payload.userAgent
       })
