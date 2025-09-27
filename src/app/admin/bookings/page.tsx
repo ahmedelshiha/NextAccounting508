@@ -493,61 +493,6 @@ export default function BookingManagementPage() {
       columns={columns}
       rows={filteredBookings}
       loading={loading}
-      stats={{
-        title: 'Booking Overview',
-        items: [
-          {
-            label: 'Total Bookings',
-            value: stats.total.toString(),
-            icon: Calendar,
-            color: 'text-blue-600'
-          },
-          {
-            label: 'Pending',
-            value: stats.pending.toString(),
-            icon: Clock,
-            color: 'text-yellow-600'
-          },
-          {
-            label: 'Confirmed',
-            value: stats.confirmed.toString(),
-            icon: CheckCircle,
-            color: 'text-green-600'
-          },
-          {
-            label: 'Today\'s Bookings',
-            value: stats.todayBookings.toString(),
-            icon: Calendar,
-            color: 'text-purple-600'
-          },
-          {
-            label: 'Week Revenue',
-            value: `$${stats.weekRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            color: 'text-green-600'
-          },
-          {
-            label: 'Completion Rate',
-            value: `${stats.completionRate.toFixed(1)}%`,
-            icon: stats.growth >= 0 ? TrendingUp : TrendingDown,
-            color: stats.growth >= 0 ? 'text-green-600' : 'text-red-600',
-            change: `${stats.growth >= 0 ? '+' : ''}${stats.growth.toFixed(1)}%`
-          }
-        ]
-      }}
-      pagination={{
-        currentPage,
-        onPageChange: setCurrentPage,
-        totalItems: stats.total,
-        pageSize
-      }}
-      bulkActions={selectedBookings.length > 0 ? [
-        { label: 'Confirm Selected', onClick: () => handleBulkStatusUpdate('CONFIRMED') },
-        { label: 'Complete Selected', onClick: () => handleBulkStatusUpdate('COMPLETED') },
-        { label: 'Cancel Selected', onClick: () => handleBulkStatusUpdate('CANCELLED') }
-      ] : undefined}
-      selectedItems={selectedBookings}
-      onSelectionChange={setSelectedBookings}
     />
   )
 }

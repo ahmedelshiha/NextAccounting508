@@ -367,54 +367,6 @@ export default function ClientsPage() {
       columns={columns}
       rows={filteredClients}
       loading={loading}
-      stats={{
-        title: 'Client Overview',
-        items: [
-          {
-            label: 'Total Clients',
-            value: stats.total.toString(),
-            icon: Users,
-            color: 'text-blue-600'
-          },
-          {
-            label: 'Active Clients',
-            value: stats.active.toString(),
-            icon: UserCheck,
-            color: 'text-green-600'
-          },
-          {
-            label: 'New This Month',
-            value: stats.newThisMonth.toString(),
-            icon: stats.growth >= 0 ? TrendingUp : TrendingDown,
-            color: stats.growth >= 0 ? 'text-green-600' : 'text-red-600',
-            change: `${stats.growth >= 0 ? '+' : ''}${stats.growth.toFixed(1)}%`
-          },
-          {
-            label: 'Total Revenue',
-            value: `$${stats.totalRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            color: 'text-green-600'
-          },
-          {
-            label: 'Avg Revenue/Client',
-            value: `$${stats.averageRevenue.toLocaleString()}`,
-            icon: DollarSign,
-            color: 'text-purple-600'
-          },
-          {
-            label: 'Satisfaction',
-            value: `${stats.satisfaction.toFixed(1)}/5.0`,
-            icon: UserCheck,
-            color: 'text-yellow-600'
-          }
-        ]
-      }}
-      pagination={{
-        currentPage,
-        onPageChange: setCurrentPage,
-        totalItems: stats.total,
-        pageSize
-      }}
     />
   )
 }
