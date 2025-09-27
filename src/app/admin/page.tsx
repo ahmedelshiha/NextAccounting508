@@ -1,123 +1,312 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-
 /**
- * NUCLEAR OPTION: Minimal Admin Dashboard
+ * NUCLEAR ADMIN DASHBOARD - COMPLETELY STATIC
  * 
- * This component completely bypasses all complex layout components,
- * Zustand stores, React contexts, and any potential hydration issues.
+ * This component is 100% server-rendered with NO client-side JavaScript,
+ * React hooks, state management, or any potential hydration sources.
  * 
- * Used for isolating hydration problems in the admin layout system.
+ * Uses only static HTML/CSS to eliminate ALL hydration possibilities.
  */
 export default function NuclearAdminDashboard() {
-  const [isClient, setIsClient] = useState(false)
-  const [currentTime, setCurrentTime] = useState('')
-
-  useEffect(() => {
-    setIsClient(true)
-    setCurrentTime(new Date().toLocaleString())
-  }, [])
-
-  if (!isClient) {
-    return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-300 rounded w-1/2 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="h-32 bg-gray-300 rounded"></div>
-            <div className="h-32 bg-gray-300 rounded"></div>
-            <div className="h-32 bg-gray-300 rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const currentTime = new Date().toLocaleString()
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Simple Admin Dashboard Test
-        </h1>
-        <p className="text-gray-600">
-          Minimal admin dashboard for testing - Current time: {currentTime}
+    <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+      {/* SUCCESS MESSAGE */}
+      <div style={{
+        marginBottom: '2rem',
+        padding: '1.5rem',
+        backgroundColor: '#dcfce7',
+        border: '1px solid #bbf7d0',
+        borderRadius: '0.5rem'
+      }}>
+        <h3 style={{
+          margin: '0 0 1rem 0',
+          fontSize: '1.25rem',
+          fontWeight: 'bold',
+          color: '#166534'
+        }}>
+          🎉 NUCLEAR SUCCESS!
+        </h3>
+        <p style={{
+          margin: 0,
+          color: '#15803d',
+          fontSize: '0.875rem'
+        }}>
+          This completely static admin dashboard renders without ANY React hooks, 
+          client-side JavaScript, or hydration. If you see this without errors, 
+          the hydration issue was in the complex layout components.
         </p>
-        <div className="mt-4 p-4 bg-green-100 border border-green-200 rounded-lg">
-          <p className="text-green-800">
-            ✅ If you can see this page, the admin layout and SSR suppression is working correctly!
-          </p>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
+      {/* DASHBOARD HEADER */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{
+          margin: '0 0 0.5rem 0',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#111827'
+        }}>
+          Nuclear Admin Dashboard
+        </h1>
+        <p style={{
+          margin: 0,
+          color: '#6b7280'
+        }}>
+          100% Static Server-Rendered • Generated: {currentTime}
+        </p>
+      </div>
+
+      {/* STATS GRID */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))',
+        gap: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Bookings</h3>
-              <p className="text-3xl font-bold text-blue-600">127</p>
-              <p className="text-sm text-gray-600">Total bookings</p>
+              <h3 style={{
+                margin: '0 0 0.5rem 0',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: '#111827'
+              }}>
+                Bookings
+              </h3>
+              <p style={{
+                margin: '0 0 0.25rem 0',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#2563eb'
+              }}>
+                127
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: '0.875rem',
+                color: '#6b7280'
+              }}>
+                Total bookings
+              </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: '#dbeafe',
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}>
               📅
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
+        <div style={{
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Clients</h3>
-              <p className="text-3xl font-bold text-green-600">245</p>
-              <p className="text-sm text-gray-600">Active clients</p>
+              <h3 style={{
+                margin: '0 0 0.5rem 0',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: '#111827'
+              }}>
+                Clients
+              </h3>
+              <p style={{
+                margin: '0 0 0.25rem 0',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#16a34a'
+              }}>
+                245
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: '0.875rem',
+                color: '#6b7280'
+              }}>
+                Active clients
+              </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: '#dcfce7',
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}>
               👥
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow border">
-          <div className="flex items-center justify-between">
+        <div style={{
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Revenue</h3>
-              <p className="text-3xl font-bold text-purple-600">$24,500</p>
-              <p className="text-sm text-gray-600">This month</p>
+              <h3 style={{
+                margin: '0 0 0.5rem 0',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: '#111827'
+              }}>
+                Revenue
+              </h3>
+              <p style={{
+                margin: '0 0 0.25rem 0',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#9333ea'
+              }}>
+                $24,500
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: '0.875rem',
+                color: '#6b7280'
+              }}>
+                This month
+              </p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: '#f3e8ff',
+              borderRadius: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}>
               💰
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow border">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      {/* SYSTEM STATUS */}
+      <div style={{
+        backgroundColor: 'white',
+        padding: '1.5rem',
+        borderRadius: '0.5rem',
+        boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+        border: '1px solid #e5e7eb',
+        marginBottom: '2rem'
+      }}>
+        <h2 style={{
+          margin: '0 0 1rem 0',
+          fontSize: '1.25rem',
+          fontWeight: '600',
+          color: '#111827'
+        }}>
           System Status
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-            <span className="text-green-800 font-medium">Database</span>
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))',
+          gap: '1rem'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem',
+            backgroundColor: '#f0fdf4',
+            borderRadius: '0.5rem',
+            border: '1px solid #bbf7d0'
+          }}>
+            <span style={{ color: '#166534', fontWeight: '500' }}>Database</span>
+            <span style={{
+              padding: '0.25rem 0.75rem',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              borderRadius: '9999px',
+              fontSize: '0.875rem'
+            }}>
               ✅ Healthy
             </span>
           </div>
-          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-            <span className="text-green-800 font-medium">API Services</span>
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem',
+            backgroundColor: '#f0fdf4',
+            borderRadius: '0.5rem',
+            border: '1px solid #bbf7d0'
+          }}>
+            <span style={{ color: '#166534', fontWeight: '500' }}>API Services</span>
+            <span style={{
+              padding: '0.25rem 0.75rem',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              borderRadius: '9999px',
+              fontSize: '0.875rem'
+            }}>
               ✅ Healthy
             </span>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h3 className="font-semibold text-yellow-800 mb-2">Testing Mode</h3>
-        <p className="text-yellow-700 text-sm">
-          This is a simplified admin dashboard for testing. If you can see this without any errors,
-          then the admin layout structure (NoSSR, ClientOnlyAdminLayout, AdminErrorBoundary) is working correctly.
-          The &quot;Something went wrong&quot; error was likely caused by the complex dashboard components.
+      {/* DIAGNOSTIC INFO */}
+      <div style={{
+        backgroundColor: '#fffbeb',
+        border: '1px solid #fcd34d',
+        borderRadius: '0.5rem',
+        padding: '1.5rem'
+      }}>
+        <h3 style={{
+          margin: '0 0 1rem 0',
+          fontWeight: '600',
+          color: '#92400e'
+        }}>
+          Nuclear Diagnostic Information
+        </h3>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
+          gap: '0.75rem',
+          fontSize: '0.875rem'
+        }}>
+          <div><strong>Rendering:</strong> 100% Server-Side</div>
+          <div><strong>Client JS:</strong> None</div>
+          <div><strong>React Hooks:</strong> None</div>
+          <div><strong>State Management:</strong> None</div>
+          <div><strong>Dynamic Imports:</strong> None</div>
+          <div><strong>Hydration Risk:</strong> Zero</div>
+        </div>
+        <p style={{
+          margin: '1rem 0 0 0',
+          fontSize: '0.875rem',
+          color: '#92400e'
+        }}>
+          If this page works without errors, the React Error #185 was caused by 
+          client-side components, hooks, or state management in the previous layout system.
         </p>
       </div>
     </div>
