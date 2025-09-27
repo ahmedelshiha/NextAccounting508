@@ -4,12 +4,15 @@ import { URL } from 'url'
 import { vi } from 'vitest'
 
 // Mock prisma for integration tests; individual tests can override mockResolvedValueOnce
-vi.mock('@/lib/prisma', () => ({
-  serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-  serviceRequestComment: { findMany: vi.fn(), create: vi.fn() },
-  service: { findUnique: vi.fn() },
-  booking: { findUnique: vi.fn(), update: vi.fn() },
-}))
+vi.mock('@/lib/prisma', () => {
+  const mock = {
+    serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    serviceRequestComment: { findMany: vi.fn(), create: vi.fn() },
+    service: { findUnique: vi.fn() },
+    booking: { findUnique: vi.fn(), update: vi.fn() },
+  }
+  return { default: mock, ...mock }
+})
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
