@@ -36,7 +36,7 @@ function PerformanceWrapper({ children }: { children: ReactNode }) {
 export default function AdminProviders({ children }: AdminProvidersProps) {
   return (
     <ErrorBoundary
-      fallback={
+      fallback={({ error, resetError }) => (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
             <div className="flex items-center">
@@ -54,20 +54,21 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
                     Something went wrong while loading the admin dashboard.
                     Please refresh the page or contact support if the issue persists.
                   </p>
+                  <p className="mt-1 text-xs text-red-600">{error.message}</p>
                 </div>
                 <div className="mt-4">
                   <button
-                    onClick={() => window.location.reload()}
+                    onClick={resetError}
                     className="bg-red-100 text-red-800 px-3 py-2 rounded-md text-sm font-medium hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    Refresh Page
+                    Try Again
                   </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      }
+      )}
     >
       <RealtimeProvider>
         <PerformanceWrapper>

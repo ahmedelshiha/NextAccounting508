@@ -51,7 +51,7 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('month')
-  const { hasPermission } = usePermissions()
+  const { has } = usePermissions()
   
   // Fetch dashboard analytics with real-time updates
   const { data: analytics, error: analyticsError, isLoading: analyticsLoading } = useUnifiedData<{
@@ -184,9 +184,11 @@ export default function AdminDashboard() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
           <IntelligentActivityFeed 
-            maxItems={10}
-            showFilters={false}
-            autoRefresh={true}
+            data={{
+              recentBookings: bookingStats?.recentBookings || [],
+              urgentTasks: bookingStats?.urgentTasks || [],
+              upcomingDeadlines: bookingStats?.upcomingDeadlines || []
+            }}
           />
         </div>
 

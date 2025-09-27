@@ -15,7 +15,7 @@ import { SessionProvider } from 'next-auth/react'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
-import { useAdminLayoutStore } from '@/stores/adminLayoutStoreSSRSafe'
+import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
 
 interface ClientOnlyAdminLayoutProps {
   children: React.ReactNode
@@ -24,7 +24,7 @@ interface ClientOnlyAdminLayoutProps {
 
 export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyAdminLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { sidebarCollapsed, setSidebarCollapsed } = useAdminLayoutStore()
+  const { sidebarCollapsed, setSidebarCollapsed } = useAdminLayoutStoreSSRSafe()
   
   // Close mobile menu on route change (handled by useEffect listening to pathname changes)
   useEffect(() => {
