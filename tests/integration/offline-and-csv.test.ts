@@ -5,11 +5,14 @@ import { URL } from 'url'
 // Start a minimal server similar to http-server.test.ts but focused for these tests
 import { vi as vitestVi } from 'vitest'
 
-vi.mock('@/lib/prisma', () => ({
-  serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-  service: { findUnique: vi.fn() },
-  booking: { findUnique: vi.fn(), update: vi.fn() },
-}))
+vi.mock('@/lib/prisma', () => {
+  const mock = {
+    serviceRequest: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    service: { findUnique: vi.fn() },
+    booking: { findUnique: vi.fn(), update: vi.fn() },
+  }
+  return { default: mock, ...mock }
+})
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
