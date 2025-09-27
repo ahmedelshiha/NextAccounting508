@@ -178,10 +178,8 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
       {/* Admin Sidebar - Fixed positioning with responsive behavior */}
       <AdminSidebar
-        collapsed={sidebar.collapsed}
-        isOpen={sidebar.open}
+        isCollapsed={sidebar.collapsed}
         isMobile={responsive.isMobile}
-        onToggle={handleSidebarToggle}
         onClose={handleMobileSidebarClose}
       />
 
@@ -198,10 +196,8 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
       <div className={`min-h-full flex flex-col transition-all duration-300 ${getContentClasses()}`}>
         {/* Admin Header */}
         <AdminHeader
-          onToggleSidebar={handleSidebarToggle}
-          sidebarCollapsed={sidebar.collapsed}
-          isMobile={responsive.isMobile}
-          user={session?.user}
+          onMenuToggle={handleSidebarToggle}
+          isMobileMenuOpen={sidebar.open}
         />
 
         {/* Scrollable Content */}

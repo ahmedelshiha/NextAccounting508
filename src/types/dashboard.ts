@@ -31,10 +31,24 @@ export interface TabItem {
 
 // Filters
 export interface FilterOption { value: string; label: string }
-export interface FilterConfig { key: string; label: string; options: FilterOption[]; value?: string }
+export interface FilterConfig { 
+  key: string; 
+  label: string; 
+  type?: string;
+  options?: FilterOption[]; 
+  value?: string;
+  defaultValue?: string;
+}
 
 // Header action items
-export interface ActionItem { label: string; icon?: IconType | React.ReactNode; onClick: () => void; disabled?: boolean }
+export interface ActionItem { 
+  label: string; 
+  icon?: IconType | React.ReactNode; 
+  onClick?: () => void; 
+  href?: string;
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  disabled?: boolean 
+}
 
 // Tables
 export type Align = 'left' | 'center' | 'right'

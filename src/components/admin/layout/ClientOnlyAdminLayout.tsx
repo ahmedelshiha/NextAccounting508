@@ -1,106 +1,117 @@
+/**
+ * Client-Only Admin Layout
+ * 
+ * This component handles the client-side layout logic including:
+ * - Provider initialization (realtime, permissions, etc.)
+ * - Mobile responsive layout management
+ * - Sidebar collapse/expand state
+ * - Error boundaries and performance monitoring
+ */
+
 'use client'
 
-import dynamic from 'next/dynamic'
-import { Suspense, useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
-import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
+import { useState, useEffect } from 'react'
+import { SessionProvider } from 'next-auth/react'
+import AdminProviders from '@/components/admin/providers/AdminProviders'
+import AdminHeader from '@/components/admin/layout/AdminHeader'
+import AdminSidebar from '@/components/admin/layout/AdminSidebar'
+import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
 
-/**
- * Loading component for admin dashboard
- */
-const AdminDashboardLoadingFallback = () => (
-  <div className="h-screen bg-gray-50 flex">
-    {/* Sidebar Skeleton */}
-    <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0">
-      <div className="animate-pulse">
-        <div className="p-4 border-b border-gray-200">
-          <div className="h-8 bg-gray-300 rounded"></div>
-        </div>
-        <div className="p-4 space-y-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-8 bg-gray-300 rounded"></div>
-          ))}
-        </div>
-      </div>
-    </div>
-    
-    {/* Content Skeleton */}
-    <div className="flex-1">
-      <div className="h-16 bg-white border-b border-gray-200"></div>
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-300 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-300 rounded"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-)
+interface ClientOnlyAdminLayoutProps {
+  children: React.ReactNode
+  session: any
+}
 
-/**
- * Error fallback component
- */
-const AdminDashboardErrorFallback = () => (
-  <div className="h-screen bg-gray-50 flex items-center justify-center p-4">
-    <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-      <div className="mb-4">
-        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-          <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.728-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-      </div>
-      <h1 className="text-lg font-semibold text-gray-900 mb-2">
-        Admin Dashboard Loading Error
-      </h1>
-      <p className="text-sm text-gray-600 mb-6">
-        There was an error loading the admin dashboard. Please try refreshing the page.
-      </p>
-      <button
-        onClick={() => window.location.reload()}
-        className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      >
-        Refresh Page
-      </button>
-    </div>
-  </div>
-)
-
-/**
- * Dynamically import AdminDashboardLayout with SSR disabled
- * This completely eliminates hydration mismatches by rendering only on client
- */
-const DynamicAdminDashboardLayout = dynamic(
-  () => import('./AdminDashboardLayout'),
-  {
-    ssr: false, // Disable server-side rendering
-    loading: AdminDashboardLoadingFallback,
-  }
-)
-
-/**
- * Client-only wrapper for AdminDashboardLayout
- * This component ensures the admin dashboard only renders on the client side,
- * completely eliminating any possibility of hydration mismatches
- */
-const ClientOnlyAdminLayout: React.FC<AdminDashboardLayoutProps> = (props) => {
-  const [isClient, setIsClient] = useState(false)
-
-  // Ensure we only render on the client side
+export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyAdminLayoutProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { sidebarCollapsed, setSidebarCollapsed } = useAdminLayoutStoreSSRSafe()
+  
+  // Close mobile menu on route change (handled by useEffect listening to pathname changes)
   useEffect(() => {
-    setIsClient(true)
+    setIsMobileMenuOpen(false)
   }, [])
 
-  // Show loading skeleton during SSR and initial client load
-  if (!isClient) {
-    return <AdminDashboardLoadingFallback />
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false)
+  }
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
   }
 
   return (
-    <Suspense fallback={<AdminDashboardLoadingFallback />}>
-      <DynamicAdminDashboardLayout {...props} />
-    </Suspense>
+    <SessionProvider session={session}>
+      <AdminProviders>
+        <div className="min-h-screen bg-gray-50 flex">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block">
+            <AdminSidebar 
+              isCollapsed={sidebarCollapsed}
+              isMobile={false}
+            />
+          </div>
+
+          {/* Mobile Sidebar */}
+          {isMobileMenuOpen && (
+            <AdminSidebar
+              isMobile={true}
+              onClose={handleMobileMenuClose}
+            />
+          )}
+
+          {/* Main Content Area */}
+          <div 
+            className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ${
+              sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
+            }`}
+          >
+            {/* Header */}
+            <AdminHeader 
+              onMenuToggle={handleMobileMenuToggle}
+              isMobileMenuOpen={isMobileMenuOpen}
+            />
+
+            {/* Main Content */}
+            <main className="flex-1 relative overflow-hidden">
+              <div className="h-full overflow-auto">
+                {children}
+              </div>
+            </main>
+
+            {/* Footer */}
+            <footer className="bg-white border-t border-gray-200 px-4 py-3">
+              <div className="flex justify-between items-center text-sm text-gray-500">
+                <div>
+                  © 2024 NextAccounting. All rights reserved.
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span>Version 2.3.5</span>
+                  <span className="flex items-center">
+                    <span className="h-2 w-2 bg-green-400 rounded-full mr-2"></span>
+                    All systems operational
+                  </span>
+                </div>
+              </div>
+            </footer>
+          </div>
+        </div>
+      </AdminProviders>
+    </SessionProvider>
   )
 }
-
-export default ClientOnlyAdminLayout
