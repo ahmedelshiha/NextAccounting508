@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { withCache } from '@/lib/api-cache'
 
 /**
  * GET /api/admin/calendar - Fetch calendar data for admin dashboard
@@ -15,17 +16,16 @@ import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
  * 
  * Supports filtering by date range and view type (month/week/day)
  */
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
+// Create cached handler for calendar data
+const getCachedCalendar = withCache<any>(
+  {
+    key: 'admin-calendar',
+    ttl: 60, // 1 minute for calendar data
+    staleWhileRevalidate: 120, // 2 minutes stale
+    tenantAware: true
+  },
+  async (request: NextRequest): Promise<any> => {
     const { searchParams } = new URL(request.url)
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0]
     const view = searchParams.get('view') || 'month'
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Transform and return the calendar data
-    const calendarData = {
+    return {
       bookings: bookings.map(booking => ({
         id: booking.id,
         clientName: booking.clientName,
@@ -186,8 +186,22 @@ export async function GET(request: NextRequest) {
         availableSlots: availability.filter(a => a.available).length,
       },
     }
+  }
+)
 
-    return NextResponse.json(calendarData)
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Use cached handler for data retrieval
+    return getCachedCalendar(request)
     
   } catch (error) {
     console.error('Calendar API error:', error)
