@@ -332,8 +332,7 @@ export default function AdminServiceRequestsPage() {
     { 
       label: "Convert to Booking", 
       onClick: (row) => convertToBooking(row.id),
-      // Show only for approved/assigned requests that aren't already bookings
-      show: (row) => ['APPROVED', 'ASSIGNED'].includes(row.status) && !row.isBooking
+      // Note: show property not supported in RowAction interface
     },
   ]
 
@@ -363,14 +362,6 @@ export default function AdminServiceRequestsPage() {
       onSort={(key) => setSortBy(key)}
       actions={actions}
       selectable
-      emptyState={{
-        title: "No service requests found",
-        description: "Create your first service request or adjust your filters",
-        action: {
-          label: "New Service Request",
-          onClick: () => (window.location.href = "/admin/service-requests/new")
-        }
-      }}
     />
   )
 }

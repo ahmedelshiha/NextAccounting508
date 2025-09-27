@@ -85,7 +85,7 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null)
   const pageSize = 25
 
-  const { canCreate, canEdit, canDelete } = usePermissions()
+  const { role, canManageUsers } = usePermissions()
 
   const loadClients = useCallback(async () => {
     try {
@@ -107,12 +107,14 @@ export default function ClientsPage() {
         apiFetch('/api/admin/stats/clients')
       ])
 
-      if (clientsRes.status === 'fulfilled' && clientsRes.value.success) {
-        setClients(clientsRes.value.data?.users || [])
+      if (clientsRes.status === 'fulfilled' && clientsRes.value.ok) {
+        const clientData = await clientsRes.value.json()
+        setClients(clientData?.users || [])
       }
 
-      if (statsRes.status === 'fulfilled' && statsRes.value.success) {
-        setStats(statsRes.value.data || EMPTY_STATS)
+      if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
+        const statsData = await statsRes.value.json()
+        setStats(statsData?.data || EMPTY_STATS)
       }
     } catch (err) {
       console.error('Error loading clients:', err)
@@ -303,7 +305,7 @@ export default function ClientsPage() {
               <Eye className="w-4 h-4" />
             </Link>
           </Button>
-          {canEdit && (
+          {canManageUsers && (
             <Button
               variant="ghost"
               size="sm"
@@ -353,7 +355,7 @@ export default function ClientsPage() {
     <ListPage
       title="Client Management"
       subtitle="Manage your client relationships and data"
-      primaryAction={canCreate ? { label: 'Add Client', onClick: () => window.location.href = '/admin/clients/new', icon: Plus } : undefined}
+      primaryAction={canManageUsers ? { label: 'Add Client', onClick: () => window.location.href = '/admin/clients/new', icon: Plus } : undefined}
       secondaryActions={[
         { label: 'Export CSV', onClick: exportClients, icon: Download },
         { label: 'Refresh', onClick: loadClients, icon: RefreshCw }

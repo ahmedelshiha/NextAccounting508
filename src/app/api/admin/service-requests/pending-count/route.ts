@@ -27,13 +27,12 @@ export async function GET() {
       )
     }
 
-    // Count pending service requests
+    // Count pending service requests (using valid enum values)
     const count = await prisma.serviceRequest.count({
       where: {
         OR: [
-          { status: 'PENDING' },
           { status: 'SUBMITTED' },
-          { status: 'UNDER_REVIEW' }
+          { status: 'APPROVED' }
         ]
       }
     })
