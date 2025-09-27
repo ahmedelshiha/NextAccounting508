@@ -14,6 +14,7 @@ import { ReactNode } from 'react'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
 import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
+import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
 
 interface AdminProvidersProps {
   children: ReactNode
@@ -72,7 +73,9 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
     >
       <RealtimeProvider>
         <PerformanceWrapper>
-          {children}
+          <UXMonitor>
+            {children}
+          </UXMonitor>
         </PerformanceWrapper>
       </RealtimeProvider>
     </ErrorBoundary>
