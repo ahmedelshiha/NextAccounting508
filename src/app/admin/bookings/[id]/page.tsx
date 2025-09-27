@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Calendar,
@@ -542,7 +542,7 @@ export default function BookingDetailPage() {
                     Back to Bookings
                   </Link>
                 </Button>
-                <Separator orientation="vertical" className="h-6" />
+                <div className="h-6 w-px bg-gray-300"></div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                     Booking #{booking.id.slice(-8).toUpperCase()}
@@ -701,7 +701,7 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
 
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
 
                     {/* Schedule Information */}
                     <div>
@@ -786,7 +786,7 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
 
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
 
                     {/* Assignment & Priority */}
                     <div>
@@ -853,7 +853,7 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
 
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
 
                     {/* Notes */}
                     <div>
@@ -964,7 +964,7 @@ export default function BookingDetailPage() {
                       </div>
                     </div>
 
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
 
                     {/* Comments List */}
                     <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -1088,7 +1088,7 @@ export default function BookingDetailPage() {
                       </div>
                     )}
 
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
 
                     {/* Tasks List */}
                     <div className="space-y-3">
@@ -1211,7 +1211,7 @@ export default function BookingDetailPage() {
 
                 {booking.client && (
                   <>
-                    <Separator />
+                    <div className="border-t border-gray-200"></div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-600">Total Bookings</p>

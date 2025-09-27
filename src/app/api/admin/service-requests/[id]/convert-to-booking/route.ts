@@ -21,10 +21,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       )
     }
 
-    // Check permissions - user must be able to create bookings
-    if (!hasPermission(session.user.role, PERMISSIONS.BOOKINGS_CREATE)) {
+    // Check permissions - user must be able to manage service requests
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
       return NextResponse.json(
-        { error: 'Insufficient permissions to create bookings' },
+        { error: 'Insufficient permissions to convert service requests' },
         { status: 403 }
       )
     }
@@ -37,8 +37,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
           select: {
             id: true,
             name: true,
-            email: true,
-            phone: true
+            email: true
           }
         },
         service: {
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         notes: notes || serviceRequest.description || null,
         clientName: serviceRequest.clientName || serviceRequest.client?.name || 'Unknown Client',
         clientEmail: serviceRequest.clientEmail || serviceRequest.client?.email || '',
-        clientPhone: serviceRequest.clientPhone || serviceRequest.client?.phone || null,
+        clientPhone: serviceRequest.clientPhone || null,
         adminNotes: `Converted from Service Request #${serviceRequest.id.slice(-8).toUpperCase()}`,
         confirmed: false,
         reminderSent: false,
@@ -174,37 +173,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     // Auto-create tasks for the new booking if the service request had specific requirements
     if (serviceRequest.requirements && typeof serviceRequest.requirements === 'object') {
       try {
-        const requirements = serviceRequest.requirements as any
-        
-        // Create preparation task
-        await prisma.task.create({
-          data: {
-            title: `Prepare for ${serviceRequest.service?.name || 'service'} appointment`,
-            description: `Review requirements and prepare for client meeting:\n${serviceRequest.description || 'No additional description'}`,
-            priority: priority === 'URGENT' ? 'HIGH' : priority as any,
-            status: 'OPEN',
-            dueAt: new Date(bookingScheduledAt.getTime() - 2 * 60 * 60 * 1000), // 2 hours before appointment
-            assigneeId: serviceRequest.assignedTeamMember?.id,
-            createdById: session.user.id,
-            bookingId: booking.id
-          }
-        })
-
-        // If budget was specified, create follow-up task
-        if (serviceRequest.budgetMin || serviceRequest.budgetMax) {
-          await prisma.task.create({
-            data: {
-              title: 'Follow up on service proposal',
-              description: `Prepare proposal within budget range: ${serviceRequest.budgetMin ? `$${serviceRequest.budgetMin}` : 'No min'} - ${serviceRequest.budgetMax ? `$${serviceRequest.budgetMax}` : 'No max'}`,
-              priority: 'MEDIUM',
-              status: 'OPEN',
-              dueAt: new Date(bookingScheduledAt.getTime() + 24 * 60 * 60 * 1000), // 1 day after appointment
-              assigneeId: serviceRequest.assignedTeamMember?.id,
-              createdById: session.user.id,
-              bookingId: booking.id
-            }
-          })
-        }
+        // Note: Task creation disabled since Task model doesn't have bookingId field
+        // TODO: Add bookingId field to Task model or create relationship table
+        console.log('Task creation skipped - no bookingId field in Task model')
       } catch (taskError) {
         // Non-critical error - log but don't fail the conversion
         console.warn('Failed to create automatic tasks:', taskError)

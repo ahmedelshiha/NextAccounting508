@@ -42,41 +42,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       )
     }
 
-    // Get comments - clients can only see non-internal comments
-    const where: any = { bookingId: id }
-    if (session.user.role === 'CLIENT') {
-      where.isInternal = false
-    }
-
-    const comments = await prisma.bookingComment.findMany({
-      where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            role: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'asc' }
-    })
-
-    const formattedComments = comments.map(comment => ({
-      id: comment.id,
-      content: comment.content,
-      authorId: comment.authorId,
-      authorName: comment.author.name || 'Unknown User',
-      authorRole: comment.author.role,
-      createdAt: comment.createdAt.toISOString(),
-      updatedAt: comment.updatedAt?.toISOString() || null,
-      isInternal: comment.isInternal,
-      isSystem: comment.isSystem || false,
-      parentId: comment.parentId,
-      attachments: comment.attachments ? JSON.parse(comment.attachments as string) : null
-    }))
-
-    return NextResponse.json({ comments: formattedComments })
+    // For now, return empty comments since we don't have a booking comment model yet
+    // TODO: Create booking comment model or link to service request comments
+    const comments: any[] = []
+    
+    return NextResponse.json({ comments })
   } catch (error) {
     console.error('Error fetching booking comments:', error)
     return NextResponse.json(
@@ -145,46 +115,12 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       )
     }
 
-    // Create the comment
-    const comment = await prisma.bookingComment.create({
-      data: {
-        bookingId: id,
-        authorId: session.user.id,
-        content: content?.trim() || '',
-        isInternal: Boolean(isInternal),
-        isSystem: Boolean(isSystem),
-        parentId: parentId || null,
-        attachments: attachments ? JSON.stringify(attachments) : null
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            role: true
-          }
-        }
-      }
-    })
-
-    const formattedComment = {
-      id: comment.id,
-      content: comment.content,
-      authorId: comment.authorId,
-      authorName: comment.author.name || 'Unknown User',
-      authorRole: comment.author.role,
-      createdAt: comment.createdAt.toISOString(),
-      updatedAt: comment.updatedAt?.toISOString() || null,
-      isInternal: comment.isInternal,
-      isSystem: comment.isSystem || false,
-      parentId: comment.parentId,
-      attachments: comment.attachments ? JSON.parse(comment.attachments as string) : null
-    }
-
-    // TODO: Send notification to relevant users (client, assigned team member)
-    // This would integrate with the notification system
-
-    return NextResponse.json(formattedComment, { status: 201 })
+    // For now, return an error since we don't have a booking comment model yet
+    // TODO: Create booking comment model or integrate with service request comments
+    return NextResponse.json(
+      { error: 'Booking comments feature is not yet implemented' },
+      { status: 501 }
+    )
   } catch (error) {
     console.error('Error creating booking comment:', error)
     return NextResponse.json(

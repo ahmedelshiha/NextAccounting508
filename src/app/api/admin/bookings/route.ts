@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             email: true,
-            phone: true,
-            tier: true,
+            // phone: true, // TODO: Add phone field to user schema if needed
+            // tier: true, // TODO: Add tier field to user schema if needed
             _count: { select: { bookings: true } }
           }
         },
