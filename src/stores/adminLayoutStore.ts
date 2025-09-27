@@ -108,9 +108,7 @@ const initialState: AdminLayoutState = {
  */
 export const useAdminLayoutStore = create<AdminLayoutStore>()(
   subscribeWithSelector(
-    // Only use persist on client-side to avoid hydration issues
-    typeof window !== 'undefined' 
-      ? persist(
+    persist(
       (set, get) => ({
         // Initial state
         ...initialState,
