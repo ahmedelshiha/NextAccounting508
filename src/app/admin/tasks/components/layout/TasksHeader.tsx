@@ -1,6 +1,7 @@
 import React from 'react'
 import { Plus, Settings, Download, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface TasksHeaderProps {
   totalTasks: number
@@ -47,7 +48,7 @@ export const TasksHeader: React.FC<TasksHeaderProps> = ({ totalTasks, overdueTas
         )}
         {showBack && (
           <Button asChild variant="outline" size="sm">
-            <a href="/admin">Back to Dashboard</a>
+            <Link href="/admin">Back to Dashboard</Link>
           </Button>
         )}
       </div>

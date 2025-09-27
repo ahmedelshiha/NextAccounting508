@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -717,7 +718,7 @@ export default function BookingWizard(props: BookingWizardProps) {
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             Need help with booking?{' '}
-            <a href="/contact" className="text-blue-600 hover:underline">Contact us directly</a>
+            <Link href="/contact" className="text-blue-600 hover:underline">Contact us directly</Link>
             {' '} or call{' '}
             <a href="tel:+15551234567" className="text-blue-600 hover:underline">(555) 123-4567</a>
           </p>
