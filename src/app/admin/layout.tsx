@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import AdminDashboardLayoutLazy from '@/components/admin/layout/AdminDashboardLayoutLazy'
+import ClientOnlyAdminLayout from '@/components/admin/layout/ClientOnlyAdminLayout'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
@@ -25,10 +25,10 @@ export default async function AdminLayout({ children }: Props) {
     redirect('/portal')
   }
 
-  // Use simplified admin layout to avoid hydration conflicts
+  // Use client-only admin layout to completely eliminate hydration conflicts
   return (
-    <AdminDashboardLayoutLazy session={session}>
+    <ClientOnlyAdminLayout session={session}>
       {children}
-    </AdminDashboardLayoutLazy>
+    </ClientOnlyAdminLayout>
   )
 }
