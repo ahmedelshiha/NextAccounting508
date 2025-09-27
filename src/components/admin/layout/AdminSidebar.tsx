@@ -25,7 +25,7 @@ import {
   User
 } from 'lucide-react'
 import { hasRole } from '@/lib/permissions'
-import { useAdminLayout } from '@/stores/adminLayoutStore'
+import { useAdminLayout } from '@/stores/adminLayoutStoreSSRSafe'
 import type { AdminSidebarProps } from '@/types/admin/layout'
 
 /**
