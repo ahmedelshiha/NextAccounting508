@@ -24,10 +24,16 @@ interface AdminProvidersProps {
  * Performance monitoring wrapper component that tracks admin dashboard metrics
  */
 function PerformanceWrapper({ children }: { children: ReactNode }) {
-  // Initialize performance monitoring for admin dashboard
-  usePerformanceMonitoring('AdminDashboard')
-  
-  return <>{children}</>
+  try {
+    // Initialize performance monitoring for admin dashboard
+    usePerformanceMonitoring('AdminDashboard')
+    
+    return <>{children}</>
+  } catch (error) {
+    console.error('Performance monitoring error:', error)
+    // Return children without performance monitoring if there's an error
+    return <>{children}</>
+  }
 }
 
 /**

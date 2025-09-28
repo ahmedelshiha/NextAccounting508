@@ -8,14 +8,32 @@ import type { ActionItem, IconType } from '@/types/dashboard'
 const renderIcon = (icon?: IconType | React.ReactNode) => {
   if (!icon) return null
   
-  // If it's a function (IconType), render it as a component
-  if (typeof icon === 'function') {
-    const Icon = icon as IconType
-    return <Icon className="w-4 h-4" />
+  try {
+    // If it's a function (IconType), render it as a component
+    if (typeof icon === 'function') {
+      const Icon = icon as IconType
+      // Validate that it's a proper React component
+      if (Icon && typeof Icon === 'function') {
+        return <Icon className="w-4 h-4" />
+      }
+    }
+    
+    // If it's a valid React element, render it
+    if (React.isValidElement(icon)) {
+      return icon
+    }
+    
+    // If it's a string or number, don't render it as an icon
+    if (typeof icon === 'string' || typeof icon === 'number') {
+      return null
+    }
+    
+    // Otherwise, try to render as ReactNode (with caution)
+    return icon
+  } catch (error) {
+    console.warn('Invalid icon provided to PageHeader:', error)
+    return null
   }
-  
-  // Otherwise, render as ReactNode
-  return icon
 }
 
 // Helper to render action button

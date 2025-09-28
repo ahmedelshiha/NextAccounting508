@@ -62,7 +62,8 @@ interface UXAnalytics {
 
 export default function UXMonitor({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { trackInteraction, trackError, performanceScore } = usePerformanceMonitoring('UXMonitor')
+  // Remove duplicate performance monitoring to avoid conflicts
+  // Performance monitoring is already handled by PerformanceWrapper
   
   const [metrics, setMetrics] = useState<UXMetrics>({
     pageViews: 0,

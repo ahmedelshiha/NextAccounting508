@@ -99,7 +99,7 @@ export default function AdminDashboard() {
     }
   }
 
-  // Primary actions for the dashboard
+  // Primary actions for the dashboard (with validation)
   const primaryAction: ActionItem = {
     label: 'Quick Actions',
     icon: Calendar,
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       onClick: () => window.location.reload(),
       variant: 'ghost'
     }
-  ]
+  ].filter(action => action.label && (action.onClick || action.href)) // Validate actions
 
   // Filter configurations
   const filters: FilterConfig[] = [
