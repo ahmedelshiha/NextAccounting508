@@ -25,7 +25,7 @@ Legend: [x] implemented/verified, [ ] required
   - [x] RBAC: allow ADMIN/TEAM_LEAD, redirect others
   - Actions
     - [x] Replace static page with AnalyticsPage using ProfessionalKPIGrid and charts
-    - [ ] Fetch metrics server-side; hydrate charts client-side; add export hooks
+    - [x] Fetch metrics server-side; hydrate charts client-side; add export hooks
     - [ ] Subscribe to ['updates','service-request-updated','task-updated'] for revalidation
     - Verify: KPIs render <400ms, events update UI ≤2s, RBAC redirects correct
 
