@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       onClick: () => window.location.reload(),
       variant: 'ghost' as const
     }
-  ].filter(action => action.label && (action.onClick || action.href)) // Validate actions
+  ].filter((action: ActionItem) => action.label && (action.onClick || action.href)) // Validate actions
 
   // Filter configurations
   const filters: FilterConfig[] = [
