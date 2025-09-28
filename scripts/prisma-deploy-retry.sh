@@ -23,8 +23,10 @@ SLEEP_BASE=${SLEEP_BASE:-2}
 
 # Attempt to clear failed state for known problematic migration so it can be reapplied
 # Safe to run even if not failed; errors are ignored.
-echo "[prisma-deploy-retry] Pre-clearing failed state (if any) for migration 20250926_add_service_settings_views_and_service_views"
+echo "[prisma-deploy-retry] Pre-clearing failed state (if any) for migrations"
+# Resolve known problematic migrations idempotently if previously marked as failed
 (pnpm prisma migrate resolve --rolled-back 20250926_add_service_settings_views_and_service_views) || true
+(pnpm prisma migrate resolve --rolled-back add_performance_indexes) || true
 
 attempt=1
 until [ $attempt -gt "$MAX_ATTEMPTS" ]; do
@@ -37,8 +39,9 @@ until [ $attempt -gt "$MAX_ATTEMPTS" ]; do
   else
     echo "[prisma-deploy-retry] Migration attempt #$attempt failed"
 
-    # Try to resolve failed migration before next attempt (idempotent)
+    # Try to resolve failed migrations before next attempt (idempotent)
     (pnpm prisma migrate resolve --rolled-back 20250926_add_service_settings_views_and_service_views) || true
+    (pnpm prisma migrate resolve --rolled-back add_performance_indexes) || true
 
     # If last attempt, break and return failure
     if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
