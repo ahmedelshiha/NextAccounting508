@@ -48,7 +48,7 @@ Legend: [x] implemented/verified, [ ] required
 
 - /admin/clients/invitations
   - [x] Uses StandardPage
-  - [ ] RBAC gate (USERS_MANAGE); add PermissionGate if missing
+  - [x] RBAC gate (USERS_MANAGE); add PermissionGate if missing
   - Verify: Non-admin sees fallback
 
 - /admin/clients/new
