@@ -30,14 +30,21 @@ else
   )
 fi
 
-# Define conditionally required variables based on environment
-if [[ "$NODE_ENV" == "production" ]]; then
+# Define conditionally required variables based on environment and context
+# Only require payment/runtime variables for actual runtime deployment, not builds
+if [[ "$NODE_ENV" == "production" && "$CI" != "true" && "$VERCEL" != "1" && "$NETLIFY" != "true" ]]; then
+  echo "🚀 Production runtime detected - validating payment integration"
   REQUIRED_VARS+=(
     "STRIPE_SECRET_KEY"
     "STRIPE_PUBLISHABLE_KEY"
     "STRIPE_WEBHOOK_SECRET"
     "SENDGRID_API_KEY"
   )
+elif [[ -n "$SKIP_ENV_VALIDATION" ]]; then
+  echo "⚠️  Environment validation skipped via SKIP_ENV_VALIDATION"
+  exit 0
+else
+  echo "🔨 Build/CI environment detected - validating core variables only"
 fi
 
 # Check for missing variables
