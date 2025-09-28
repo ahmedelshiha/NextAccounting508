@@ -24,33 +24,33 @@ const renderIcon = (icon?: IconType | React.ReactNode) => {
       return icon
     }
     
-    // Enhanced validation: detect React component objects (common error #31 cause)
-    if (icon && typeof icon === 'object' && '$typeof' in icon) {
-      console.error('PageHeader: React component object passed as icon instead of component reference', {
+    // Enhanced validation: detect React element objects (common error #31 cause)
+    if (icon && typeof icon === 'object' && '$$typeof' in (icon as any)) {
+      console.error('PageHeader: React element object passed as icon instead of component reference', {
         iconType: typeof icon,
-        iconKeys: Object.keys(icon),
-        hasRender: 'render' in icon,
-        hasDisplayName: 'displayName' in icon,
-        icon: icon
+        iconKeys: Object.keys(icon as any),
+        hasRender: 'render' in (icon as any),
+        hasDisplayName: 'displayName' in (icon as any),
+        icon
       })
       return null
     }
-    
+
     // If it's a string or number, don't render it as an icon
     if (typeof icon === 'string' || typeof icon === 'number') {
       console.warn('PageHeader: String/number passed as icon, expected component or element:', icon)
       return null
     }
-    
-    // Log unexpected icon types for debugging
+
+    // Log unexpected icon types for debugging and do NOT render invalid objects
     console.warn('PageHeader: Unexpected icon type:', {
       iconType: typeof icon,
-      iconConstructor: icon?.constructor?.name,
-      icon: icon
+      iconConstructor: (icon as any)?.constructor?.name,
+      icon
     })
-    
-    // Otherwise, try to render as ReactNode (with caution)
-    return icon
+
+    // Fallback: do not render unrecognized icon types to avoid React error #31
+    return null
   } catch (error) {
     console.error('PageHeader: Error rendering icon:', {
       error: error instanceof Error ? error.message : String(error),
