@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   // Fetch booking stats for KPIs
   const { data: bookingStats, isLoading: bookingStatsLoading } = useUnifiedData({
     key: 'bookings/stats',
-    events: ['booking-updated', 'booking-created'],
+    events: ['booking_update', 'task_completed', 'system_alert', 'heartbeat'],
     revalidateOnEvents: true,
   })
 
