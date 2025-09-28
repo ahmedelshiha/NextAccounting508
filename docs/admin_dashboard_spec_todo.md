@@ -43,7 +43,7 @@ Legend: [x] implemented/verified, [ ] required
 - /admin/clients/profiles
   - [x] Uses ListPage with SWR
   - [x] Verify pagination/sort use AdvancedDataTable contract; enforce ≤50 rows/page
-  - [ ] Ensure export respects active filters
+  - [x] Ensure export respects active filters
   - Verify: URL sync for filters; CSV matches rows
 
 - /admin/clients/invitations
