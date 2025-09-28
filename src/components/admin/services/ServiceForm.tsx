@@ -149,7 +149,10 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2"><Plus className="w-5 h-5" />Service Features</span>
-            <Button type="button" variant="outline" size="sm" onClick={addFeature} className="gap-1"><Plus className="w-4 h-4" />Add Feature</Button>
+            <Button type="button" variant="outline" size="sm" onClick={addFeature} className="gap-1">
+              <Plus className="w-4 h-4" />
+              Add Feature
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -158,7 +161,9 @@ export function ServiceForm({ initialData, onSubmit, onCancel, loading = false, 
               {watchedFeatures.map((_, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <Input value={watchedFeatures[i] || ''} onChange={(e) => updateFeature(i, e.target.value)} placeholder="Enter feature description" className="flex-1" />
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeFeature(i)} className="text-red-600 hover:text-red-700"><X className="w-4 h-4" /></Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeFeature(i)} className="text-red-600 hover:text-red-700">
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>

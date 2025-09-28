@@ -221,7 +221,10 @@ export default function AdminServiceRequestDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-5xl mx-auto px-4 space-y-6">
-        <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</Button>
+        <Button variant="outline" onClick={() => router.back()} className="flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
 
         <Card>
           <CardHeader>
@@ -240,10 +243,16 @@ export default function AdminServiceRequestDetailPage() {
                   </Button>
                 )}
                 {perms.has(PERMISSIONS.SERVICE_REQUESTS_UPDATE) && (
-                  <Button variant="outline" onClick={() => router.push(`/admin/service-requests/${params.id}/edit`)} className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Edit</Button>
+                  <Button variant="outline" onClick={() => router.push(`/admin/service-requests/${params.id}/edit`)} className="flex items-center gap-2">
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </Button>
                 )}
                 {perms.has(PERMISSIONS.SERVICE_REQUESTS_DELETE) && (
-                  <Button variant="destructive" onClick={() => setConfirmDelete(true)} className="flex items-center gap-2"><Trash2 className="h-4 w-4" /> Delete</Button>
+                  <Button variant="destructive" onClick={() => setConfirmDelete(true)} className="flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
                 )}
               </div>
             </div>

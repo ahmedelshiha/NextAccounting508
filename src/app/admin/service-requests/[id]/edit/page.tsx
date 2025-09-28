@@ -71,7 +71,10 @@ export default function AdminEditServiceRequestPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-3xl mx-auto px-4">
-        <Button variant="outline" onClick={() => router.back()} className="mb-4 flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Back</Button>
+        <Button variant="outline" onClick={() => router.back()} className="mb-4 flex items-center gap-2">
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle>Edit Service Request</CardTitle>

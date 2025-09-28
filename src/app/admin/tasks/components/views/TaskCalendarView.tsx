@@ -73,8 +73,12 @@ export const TaskCalendarView: React.FC<TaskCalendarViewProps> = ({ tasks, loadi
           <div className="flex items-center gap-4">
             <CardTitle className="text-lg">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</CardTitle>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={() => navigateMonth('prev')}><ChevronLeft className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="sm" onClick={() => navigateMonth('next')}><ChevronRight className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm" onClick={() => navigateMonth('prev')}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigateMonth('next')}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
