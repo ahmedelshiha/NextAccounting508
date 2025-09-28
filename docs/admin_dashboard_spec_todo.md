@@ -251,3 +251,13 @@ Legend: [x] implemented/verified, [ ] required
 
 ## Hotfix – 2025-09-28 (Build failure: next/dynamic in Server Component)
 - [x] Removed next/dynamic with ssr:false in src/app/admin/page.tsx; statically imported AdminOverview; build passes.
+
+## Hotfix – 2025-09-29 (CSP/CORS and cross-origin API base)
+- [x] Updated next.config.mjs CSP connect-src to include https://*.vercel.app and https://*.vercel.com (Report-Only) to match preview domains.
+- [x] Hardened client apiFetch to ignore NEXT_PUBLIC_API_BASE when cross-origin; enforces same-origin calls across deploys to avoid CORS/CSP violations; preserves retry/safe fallback.
+- [x] Added @playwright/test to devDependencies to fix Netlify E2E plugin resolution.
+
+## Progress Update – 2025-09-29
+- [x] Security policies: CSP connect-src aligned for Netlify/Vercel previews; CORS issues mitigated by same-origin fetch strategy.
+- [ ] Verify admin pages with direct fetch() still use relative paths; add guards if any server component can throw on failed fetch.
+- [ ] Next: Template adoption on /admin/analytics; calendar interactions; filtered export on clients/profiles.
