@@ -437,3 +437,13 @@ Legend: [x] implemented/verified, [ ] required
   - Add initial server-side data fetch to hydrate KPIs (bookings/stats, services/stats, stats/users)
   - Confirm RealtimeProvider emits counts for overview KPIs
   - Extend tests to cover /admin RBAC redirects
+
+## Hotfix – 2025-09-28 (Build failure: next/dynamic in Server Component)
+- [x] What was completed
+  - Removed `next/dynamic` with `{ ssr: false }` from `src/app/admin/page.tsx` and directly imported the client component `src/components/admin/dashboard/AdminOverview.tsx`.
+- [x] Why it was done
+  - Next.js App Router forbids using `ssr: false` with `next/dynamic` inside Server Components, causing Turbopack build failure.
+- [x] Implementation Summary
+  - Updated `src/app/admin/page.tsx`: deleted dynamic import, added static import at top; preserved RBAC and server-side KPI hydration.
+- [x] Next steps
+  - None; verify build passes (`pnpm build`) and proceed with remaining dashboard tasks.
