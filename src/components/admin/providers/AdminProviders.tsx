@@ -13,6 +13,7 @@
 import { ReactNode } from 'react'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
+import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
 
@@ -24,10 +25,16 @@ interface AdminProvidersProps {
  * Performance monitoring wrapper component that tracks admin dashboard metrics
  */
 function PerformanceWrapper({ children }: { children: ReactNode }) {
-  // Initialize performance monitoring for admin dashboard
-  usePerformanceMonitoring('AdminDashboard')
-  
-  return <>{children}</>
+  try {
+    // Initialize performance monitoring for admin dashboard
+    usePerformanceMonitoring('AdminDashboard')
+    
+    return <>{children}</>
+  } catch (error) {
+    console.error('Performance monitoring error:', error)
+    // Return children without performance monitoring if there's an error
+    return <>{children}</>
+  }
 }
 
 /**
@@ -71,13 +78,15 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
         </div>
       )}
     >
-      <RealtimeProvider>
-        <PerformanceWrapper>
-          <UXMonitor>
-            {children}
-          </UXMonitor>
-        </PerformanceWrapper>
-      </RealtimeProvider>
+      <ReactError31Boundary>
+        <RealtimeProvider>
+          <PerformanceWrapper>
+            <UXMonitor>
+              {children}
+            </UXMonitor>
+          </PerformanceWrapper>
+        </RealtimeProvider>
+      </ReactError31Boundary>
     </ErrorBoundary>
   )
 }

@@ -92,8 +92,14 @@ export default function IntelligentActivityFeed({ data, thresholds, history, sav
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
                     <div className="flex items-center gap-4 text-xs text-gray-500"><span>Assigned: {booking.assignedTo}</span><span>Duration: {booking.duration}min</span>{booking.isRecurring && <Badge variant="outline" className="text-xs">Recurring</Badge>}</div>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-xs"><Phone className="h-3 w-3 mr-1" />Call</Button>
-                      <Button variant="ghost" size="sm" className="text-xs"><Mail className="h-3 w-3 mr-1" />Email</Button>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <Phone className="h-3 w-3 mr-1" />
+                        Call
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        <Mail className="h-3 w-3 mr-1" />
+                        Email
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -124,7 +130,17 @@ export default function IntelligentActivityFeed({ data, thresholds, history, sav
 
                     <div className="grid grid-cols-2 gap-4 text-xs text-gray-600 mb-3"><div>Due: {new Date(task.dueDate).toLocaleDateString()}</div><div>Est: {task.estimatedHours}h</div><div>Category: {task.category}</div><div>Assignee: {task.assignee}</div></div>
 
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-200"><Badge variant="outline" className="text-xs">{(task.status || '').replace('_', ' ')}</Badge><div className="flex gap-2"><Button variant="ghost" size="sm" className="text-xs">Update</Button><Button variant="ghost" size="sm" className="text-xs">Details</Button></div></div>
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <Badge variant="outline" className="text-xs">{(task.status || '').replace('_', ' ')}</Badge>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Update
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Details
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )
               })}

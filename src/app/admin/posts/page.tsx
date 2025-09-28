@@ -429,10 +429,10 @@ export default function AdminPostsPage() {
     <StandardPage
       title="Posts"
       subtitle="Professional blog post management for your accounting firm"
-      primaryAction={{ label: 'Create Post', onClick: () => setShowCreateModal(true), icon: <Plus className="h-4 w-4" /> }}
+      primaryAction={{ label: 'Create Post', onClick: () => setShowCreateModal(true), icon: Plus }}
       secondaryActions={[
-        { label: 'Refresh', icon: <RefreshCw className="h-4 w-4" />, onClick: () => loadPosts(), disabled: loading },
-        { label: 'Export', icon: <Download className="h-4 w-4" />, onClick: () => { /* implement server export when ready */ } }
+        { label: 'Refresh', icon: RefreshCw, onClick: () => loadPosts(), disabled: loading },
+        { label: 'Export', icon: Download, onClick: () => { /* implement server export when ready */ } }
       ]}
       filters={filters}
       onFilterChange={onFilterChange}

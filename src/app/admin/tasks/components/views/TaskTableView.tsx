@@ -106,7 +106,9 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ tasks, loading = f
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="sm" onClick={() => onTaskEdit?.(task)} className="text-xs">Edit</Button>
-                      <Button variant="ghost" size="sm" onClick={() => {}} className="text-xs"><MoreVertical className="h-3 w-3" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => {}} className="text-xs">
+                        <MoreVertical className="h-3 w-3" />
+                      </Button>
                     </div>
                   </td>
                 </tr>

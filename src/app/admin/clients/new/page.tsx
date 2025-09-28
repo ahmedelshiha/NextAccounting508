@@ -659,11 +659,26 @@ export default function ProfessionalAddClientPage() {
             )}
 
             <div className="flex items-center justify-between">
-              <Button variant="outline" onClick={goBack} disabled={currentStep === 1}><ArrowLeft className="h-4 w-4 mr-1" />Back</Button>
+              <Button variant="outline" onClick={goBack} disabled={currentStep === 1}>
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Back
+              </Button>
               {currentStep < steps.length ? (
-                <Button onClick={goNext} disabled={emailChecking}><ArrowRight className="h-4 w-4 mr-1" />Next</Button>
+                <Button onClick={goNext} disabled={emailChecking}>
+                  <ArrowRight className="h-4 w-4 mr-1" />
+                  Next
+                </Button>
               ) : (
-                <Button onClick={handleSubmit} disabled={loading || emailChecking}>{loading ? (<span className="inline-flex items-center gap-2"><RefreshCw className="h-4 w-4 animate-spin" />Creating...</span>) : 'Create Client'}</Button>
+                <Button onClick={handleSubmit} disabled={loading || emailChecking}>
+                  {loading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Creating...
+                    </span>
+                  ) : (
+                    'Create Client'
+                  )}
+                </Button>
               )}
             </div>
           </div>

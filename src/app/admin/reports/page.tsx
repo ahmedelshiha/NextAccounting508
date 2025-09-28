@@ -21,9 +21,9 @@ export default function AdminReportsPage() {
       title="Reports"
       subtitle="Export data and review summarized analytics"
       secondaryActions={[
-        { label: 'Export Users', icon: <Download className="h-4 w-4" />, onClick: () => download('users') },
-        { label: 'Export Bookings', icon: <Download className="h-4 w-4" />, onClick: () => download('bookings') },
-        { label: 'Export Services', icon: <Download className="h-4 w-4" />, onClick: () => download('services') },
+        { label: 'Export Users', icon: Download, onClick: () => download('users') },
+        { label: 'Export Bookings', icon: Download, onClick: () => download('bookings') },
+        { label: 'Export Services', icon: Download, onClick: () => download('services') },
       ]}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
