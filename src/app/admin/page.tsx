@@ -68,23 +68,29 @@ export default function AdminDashboard() {
     revalidateOnEvents: true,
   })
 
-  // Fallback stats while loading or if no data
+  // Fallback stats while loading or if no data (map to bookings/stats response shape)
+  const bs = (bookingStats as any)?.data || (bookingStats as any) || {}
+  const currentRevenue = Number(bs.weekRevenue) || 0
+  const totalBookings = Number(bs.total) || 0
+  const todayBookings = Number(bs.todayBookings) || 0
+  const pendingBookings = Number(bs.pending) || 0
+
   const stats: DashboardStats = analytics?.stats || {
     revenue: {
-      current: bookingStats?.totalRevenue || 0,
+      current: currentRevenue,
       target: 50000,
-      targetProgress: ((bookingStats?.totalRevenue || 0) / 50000) * 100,
-      trend: 12.5
+      targetProgress: (currentRevenue / 50000) * 100,
+      trend: Number(bs.growth) || 0
     },
     bookings: {
-      total: bookingStats?.totalBookings || 0,
-      today: bookingStats?.todayBookings || 0,
-      pending: bookingStats?.pendingBookings || 0,
-      conversion: bookingStats?.conversionRate || 0
+      total: totalBookings,
+      today: todayBookings,
+      pending: pendingBookings,
+      conversion: Number(bs.completionRate) || 0
     },
     clients: {
-      active: bookingStats?.uniqueClients || 0,
-      new: bookingStats?.newClientsThisMonth || 0,
+      active: 0,
+      new: 0,
       retention: 87.5,
       satisfaction: 4.2
     },
