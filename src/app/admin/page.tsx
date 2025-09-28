@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   }>({
     key: 'analytics',
     params: { range: timeframe },
-    events: ['updates', 'booking-updated', 'service-request-updated'],
+    events: ['booking_update', 'task_completed', 'system_alert', 'heartbeat', 'ready'],
     revalidateOnEvents: true,
   })
 
