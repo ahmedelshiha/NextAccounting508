@@ -170,7 +170,7 @@ Legend: [x] implemented/verified, [ ] required
   - Use components/dashboard/realtime/RealtimeProvider.tsx, components/admin/providers/AdminProviders.tsx, stores/adminLayoutStore*.ts
   - Acceptance: Realtime connection state available via context; permission and tenant state available globally
   - Verify: Unit tests confirming context values and fallback behavior when disconnected.
-- [ ] Implement navigation information architecture (IA)
+- [x] Implement navigation information architecture (IA)
   - Sidebar sections and links exactly as in the spec’s “Navigation Architecture” with route targets under src/app/admin/**
   - Acceptance: Keyboard-nav friendly, active-route highlighting, collapsible groups, badges for counts (e.g., pending)
   - Verify: tests/dashboard/nav/sidebar-ia.test.tsx and tests/dashboard/nav/sidebar-keyboard.dom.test.tsx pass; manual tab/arrow navigation.
