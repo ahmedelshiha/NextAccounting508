@@ -270,6 +270,27 @@ export default function AdminDashboard() {
     },
   }
 
+  const revenueTrendData = useMemo(() => {
+    const timeSeries = servicesPayload.analytics?.revenueTimeSeries
+    if (Array.isArray(timeSeries) && timeSeries.length > 0) {
+      const monthLabels = timeSeries[0]?.monthly?.map((entry) => entry.month) || []
+      if (monthLabels.length > 0) {
+        return monthLabels.map((month, index) => {
+          const revenue = timeSeries.reduce((sum, series) => sum + safeNumber(series.monthly?.[index]?.revenue), 0)
+          return {
+            month,
+            revenue,
+            target: index === monthLabels.length - 1 ? revenueMetrics.target : undefined,
+          }
+        })
+      }
+    }
+    return analytics?.revenue_trend
+  }, [servicesPayload, analytics, revenueMetrics.target])
+
+  const combinedError = analyticsError || bookingStatsError || serviceRequestsError || tasksError || servicesError || usersError
+  const errorMessage = combinedError ? 'Failed to load dashboard metrics' : null
+
   // Primary actions for the dashboard (with validation)
   const primaryAction: ActionItem = {
     label: 'Quick Actions',
