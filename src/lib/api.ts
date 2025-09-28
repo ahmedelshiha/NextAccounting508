@@ -111,9 +111,15 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
   if (typeof window !== 'undefined' && typeof path === 'string' && path.startsWith('/') && typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_BASE) {
     try {
       const base = process.env.NEXT_PUBLIC_API_BASE!.replace(/\/$/, '')
-      return withRetries(`${base}${path}`)
+      // Only use a public API base on the browser when it's same-origin to avoid CORS/CSP issues across deployments
+      const baseOrigin = new URL(base, window.location.origin).origin
+      if (baseOrigin === window.location.origin) {
+        return withRetries(`${base}${path}`)
+      }
+      // Different origin — prefer same-origin relative fetch
+      return withRetries(path)
     } catch (e) {
-      // fallback to default behavior
+      // Fallback to default behavior
       return withRetries(path)
     }
   }

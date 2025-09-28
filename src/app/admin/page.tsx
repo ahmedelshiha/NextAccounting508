@@ -17,18 +17,28 @@ export default async function AdminOverviewPage() {
   if (role === 'CLIENT') redirect('/portal')
   if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) redirect('/admin/analytics')
 
-  // Hydrate initial KPI data server-side for faster first paint
-  const [bookingsRes, servicesRes, usersRes] = await Promise.all([
-    fetch('/api/admin/bookings/stats', { cache: 'no-store' }),
-    fetch('/api/admin/services/stats?range=90d', { cache: 'no-store' }),
-    fetch('/api/admin/stats/users?range=90d', { cache: 'no-store' })
-  ])
+  // Hydrate initial KPI data server-side for faster first paint (do not throw on failures)
+  let bookingsJson: any = null
+  let servicesJson: any = null
+  let usersJson: any = null
+  try {
+    const [bookingsRes, servicesRes, usersRes] = await Promise.all([
+      fetch('/api/admin/bookings/stats', { cache: 'no-store' }).catch(() => new Response(null, { status: 503 })),
+      fetch('/api/admin/services/stats?range=90d', { cache: 'no-store' }).catch(() => new Response(null, { status: 503 })),
+      fetch('/api/admin/stats/users?range=90d', { cache: 'no-store' }).catch(() => new Response(null, { status: 503 }))
+    ])
 
-  const [bookingsJson, servicesJson, usersJson] = await Promise.all([
-    bookingsRes.ok ? bookingsRes.json() : null,
-    servicesRes.ok ? servicesRes.json() : null,
-    usersRes.ok ? usersRes.json() : null
-  ])
+    const [b, s, u] = await Promise.all([
+      bookingsRes.ok ? bookingsRes.json().catch(() => null) : null,
+      servicesRes.ok ? servicesRes.json().catch(() => null) : null,
+      usersRes.ok ? usersRes.json().catch(() => null) : null
+    ])
+    bookingsJson = b
+    servicesJson = s
+    usersJson = u
+  } catch {
+    // swallow to keep server render resilient
+  }
 
   return (
     <AdminOverview
