@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { withCache } from '@/lib/api-cache'
 
 interface AnalyticsData {
   performance: {
@@ -23,6 +24,24 @@ interface AnalyticsData {
   }
 }
 
+// Create cached handler for analytics data
+const getCachedAnalytics = withCache<AnalyticsData>(
+  {
+    key: 'analytics-dashboard',
+    ttl: 180, // 3 minutes
+    staleWhileRevalidate: 360, // 6 minutes stale
+    tenantAware: true
+  },
+  async (request: NextRequest): Promise<AnalyticsData> => {
+    // Parse query parameters
+    const { searchParams } = new URL(request.url)
+    const timeRange = searchParams.get('range') || '24h'
+
+    // Generate analytics data based on time range
+    return generateAnalyticsData(timeRange)
+  }
+)
+
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
@@ -37,14 +56,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Parse query parameters
-    const { searchParams } = new URL(request.url)
-    const timeRange = searchParams.get('range') || '24h'
-
-    // Generate analytics data based on time range
-    const analyticsData: AnalyticsData = await generateAnalyticsData(timeRange)
-
-    return NextResponse.json(analyticsData)
+    // Use cached handler for data retrieval
+    return getCachedAnalytics(request)
   } catch (error) {
     console.error('Error fetching analytics data:', error)
     return NextResponse.json({ 

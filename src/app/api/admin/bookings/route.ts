@@ -7,19 +7,25 @@ import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
+import { withCache, handleCacheInvalidation } from '@/lib/api-cache'
 
-// GET /api/admin/bookings - Get all bookings for admin
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+// Type for cached bookings response
+type BookingsResponse = {
+  bookings: any[]
+  total: number
+  page: number
+  totalPages: number
+}
 
+// Create cached handler for bookings data
+const getCachedBookings = withCache<BookingsResponse>(
+  {
+    key: 'admin-bookings',
+    ttl: 120, // 2 minutes
+    staleWhileRevalidate: 240, // 4 minutes stale
+    tenantAware: true
+  },
+  async (request: NextRequest): Promise<BookingsResponse> => {
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get('limit')
     const skipParam = searchParams.get('skip')
@@ -104,17 +110,29 @@ export async function GET(request: NextRequest) {
     const page = takeVal > 0 ? Math.floor(skipVal / takeVal) + 1 : 1
     const totalPages = takeVal > 0 ? Math.max(1, Math.ceil(total / takeVal)) : 1
 
-    const etag = '"' + createHash('sha1').update(JSON.stringify({ t: total, ids: bookings.map(b=>b.id), up: bookings.map(b=>b.updatedAt || b.createdAt) })).digest('hex') + '"'
-    const ifNoneMatch = request.headers.get('if-none-match')
-    if (ifNoneMatch && ifNoneMatch === etag) {
-      return new NextResponse(null, { status: 304, headers: { ETag: etag } })
-    }
-    return NextResponse.json({
+    return {
       bookings,
       total,
       page,
       totalPages
-    }, { headers: { 'X-Total-Count': String(total), ETag: etag, 'Cache-Control': 'private, max-age=60' } })
+    }
+  }
+)
+
+// GET /api/admin/bookings - Get all bookings for admin
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Use cached handler for data retrieval
+    return getCachedBookings(request)
   } catch (error) {
     console.error('Error fetching admin bookings:', error)
     return NextResponse.json(
@@ -236,6 +254,9 @@ export async function POST(request: NextRequest) {
 
     await logAudit({ action: 'booking.create', actorId: session.user.id, targetId: booking.id, details: { serviceId, scheduledAt } })
 
+    // Invalidate related caches
+    await handleCacheInvalidation('BOOKING_CHANGED')
+
     return NextResponse.json({
       message: 'Booking created successfully',
       booking
@@ -318,6 +339,9 @@ export async function PATCH(request: NextRequest) {
 
     await logAudit({ action: `booking.bulk.${action}`, actorId: session.user.id, details: { count: result.count, bookingIds } })
 
+    // Invalidate related caches
+    await handleCacheInvalidation('BOOKING_CHANGED')
+
     return NextResponse.json({
       message: `Successfully updated ${result.count} bookings`,
       updated: result.count
@@ -363,6 +387,9 @@ export async function DELETE(request: NextRequest) {
     })
 
     await logAudit({ action: 'booking.bulk.delete', actorId: session.user.id, details: { count: result.count, bookingIds } })
+
+    // Invalidate related caches
+    await handleCacheInvalidation('BOOKING_CHANGED')
 
     return NextResponse.json({
       message: `Successfully deleted ${result.count} bookings`,

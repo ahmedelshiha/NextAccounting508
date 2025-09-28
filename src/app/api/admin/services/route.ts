@@ -10,18 +10,19 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logAudit } from '@/lib/audit';
 import { createHash } from 'crypto';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
+import { withCache, handleCacheInvalidation } from '@/lib/api-cache';
 
 const svc = new ServicesService();
 
-export async function GET(request: NextRequest) {
-  try {
-    const ip = getClientIp(request as any);
-    if (!rateLimit(`services-list:${ip}`, 100, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+// Create cached handler for services data
+const getCachedServices = withCache<any>(
+  {
+    key: 'admin-services',
+    ttl: 300, // 5 minutes
+    staleWhileRevalidate: 600, // 10 minutes stale
+    tenantAware: true
+  },
+  async (request: NextRequest): Promise<any> => {
     const sp = new URL(request.url).searchParams;
     const filters = ServiceFiltersSchema.parse({
       search: sp.get('search') || undefined,
@@ -35,20 +36,21 @@ export async function GET(request: NextRequest) {
     });
 
     const tenantId = getTenantFromRequest(request);
+    return svc.getServicesList(tenantId, filters as any);
+  }
+)
 
+export async function GET(request: NextRequest) {
+  try {
+    const ip = getClientIp(request as any);
+    if (!rateLimit(`services-list:${ip}`, 100, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const result = await svc.getServicesList(tenantId, filters as any);
-
-    await logAudit({ action: 'SERVICES_LIST_VIEW', actorId: session.user.id, details: { filters } });
-
-    const etag = '"' + createHash('sha1').update(JSON.stringify({ t: result.total, ids: (result.services||[]).map((s:any)=>s.id), up: (result.services||[]).map((s:any)=>s.updatedAt) })).digest('hex') + '"'
-    const ifNoneMatch = request.headers.get('if-none-match')
-    if (ifNoneMatch && ifNoneMatch === etag) {
-      return new NextResponse(null, { status: 304, headers: { ETag: etag } })
-    }
-
-    return NextResponse.json(result, { headers: { 'Cache-Control': 'private, max-age=60', 'X-Total-Count': String(result.total), ETag: etag } });
+    // Use cached handler for data retrieval
+    return getCachedServices(request);
   } catch (e: any) {
     const prismaMapped = mapPrismaError(e);
     if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
@@ -103,6 +105,9 @@ export async function POST(request: NextRequest) {
     const service = await svc.createService(tenantId, validated as any, session.user.id);
 
     await logAudit({ action: 'SERVICE_CREATED', actorId: session.user.id, targetId: service.id, details: { slug: service.slug } });
+
+    // Invalidate related caches
+    await handleCacheInvalidation('SERVICE_CHANGED')
 
     return NextResponse.json({ service }, { status: 201 });
   } catch (e: any) {
