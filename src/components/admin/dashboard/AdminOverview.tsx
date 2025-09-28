@@ -120,7 +120,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
   } = useUnifiedData<AnalyticsResponse>({
     key: 'analytics',
     params: { range: analyticsRange },
-    events: ['service-request-updated', 'task-updated', 'booking_update', 'system_alert', 'heartbeat', 'ready'],
+    events: ['service-request-updated', 'task-updated', 'availability-updated', 'booking-updated', 'booking-created', 'booking-deleted', 'system_alert', 'heartbeat', 'ready'],
     revalidateOnEvents: true,
   })
 
@@ -130,7 +130,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
     isLoading: bookingStatsLoading,
   } = useUnifiedData<{ success?: boolean; data?: BookingStatsPayload }>({
     key: 'bookings/stats',
-    events: ['booking_update', 'service-request-updated', 'task-updated', 'heartbeat'],
+    events: ['booking-updated', 'booking-created', 'booking-deleted', 'service-request-updated', 'task-updated', 'availability-updated', 'heartbeat'],
     revalidateOnEvents: true,
     initialData: initial?.bookingsStats as any,
   })
@@ -141,7 +141,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
     isLoading: serviceRequestsLoading,
   } = useUnifiedData<{ success?: boolean; data?: ServiceRequestAnalyticsPayload }>({
     key: 'service-requests/analytics',
-    events: ['service-request-updated', 'task-updated', 'booking_update'],
+    events: ['service-request-updated', 'task-updated', 'availability-updated', 'booking-updated', 'booking-created', 'booking-deleted'],
     revalidateOnEvents: true,
   })
 
@@ -162,7 +162,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
   } = useUnifiedData<ServicesStatsPayload>({
     key: 'services/stats',
     params: { range: servicesRange },
-    events: ['booking_update', 'service-request-updated', 'task-updated'],
+    events: ['booking-updated', 'booking-created', 'booking-deleted', 'service-request-updated', 'task-updated', 'availability-updated'],
     revalidateOnEvents: true,
     initialData: initial?.servicesStats,
   })
@@ -174,7 +174,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
   } = useUnifiedData<UsersStatsPayload>({
     key: 'stats/users',
     params: { range: usersRange },
-    events: ['service-request-updated', 'booking_update', 'task-updated'],
+    events: ['service-request-updated', 'task-updated', 'availability-updated', 'booking-updated', 'booking-created', 'booking-deleted'],
     revalidateOnEvents: true,
     initialData: initial?.usersStats,
   })
@@ -182,7 +182,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
   const { data: recentBookingsResp } = useUnifiedData<{ bookings: any[]; total: number }>({
     key: 'bookings',
     params: { limit: 10, sortBy: 'scheduledAt', sortOrder: 'desc' },
-    events: ['booking_update'],
+    events: ['booking-updated', 'booking-created', 'booking-deleted'],
   })
 
   const { data: highPriorityTasks } = useUnifiedData<any[]>({
@@ -201,7 +201,7 @@ export default function AdminOverview({ initial }: { initial?: AdminOverviewInit
   const { data: weekBookingsResp } = useUnifiedData<{ total: number }>({
     key: 'bookings',
     params: { startDate: weekStart.toISOString(), endDate: weekEnd.toISOString() },
-    events: ['booking_update'],
+    events: ['booking-updated', 'booking-created', 'booking-deleted'],
     parse: (raw: any) => ({ total: Number(raw?.total || 0) })
   })
 
