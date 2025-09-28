@@ -294,6 +294,8 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           {hasChildren ? (
             <button
               onClick={() => toggleSection(item.href.split('/').pop() || '')}
+              aria-expanded={isExpanded}
+              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
               className={`
                 w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
                 ${isActive 
@@ -323,6 +325,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           ) : (
             <Link
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               onClick={isMobile ? onClose : undefined}
               className={`
                 flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
@@ -349,7 +352,12 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
         </div>
         
         {hasChildren && isExpanded && !isCollapsed && (
-          <ul className="mt-1 space-y-1">
+          <ul
+            id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+            className="mt-1 space-y-1"
+            role="group"
+            aria-label={`${item.name} submenu`}
+          >
             {item.children!.map(child => renderNavigationItem(child, depth + 1))}
           </ul>
         )}
@@ -393,7 +401,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto">
+          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
               const sectionItems = section.items.filter(item => hasAccess(item.permission))
               if (sectionItems.length === 0) return null
