@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 import { apiFetch } from '@/lib/api'
 
 interface SentInvite { email: string; status: 'sent' | 'error'; message?: string }
