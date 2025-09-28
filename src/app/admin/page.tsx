@@ -104,7 +104,7 @@ export default function AdminDashboard() {
     label: 'Quick Actions',
     icon: Calendar,
     href: '/admin/bookings/new',
-    variant: 'default'
+    variant: 'default' as const
   }
 
   const secondaryActions: ActionItem[] = [
@@ -112,13 +112,13 @@ export default function AdminDashboard() {
       label: 'Export Report',
       icon: Download,
       onClick: () => handleExport(),
-      variant: 'outline'
+      variant: 'outline' as const
     },
     {
       label: 'Refresh Data',
       icon: RefreshCw,
       onClick: () => window.location.reload(),
-      variant: 'ghost'
+      variant: 'ghost' as const
     }
   ].filter(action => action.label && (action.onClick || action.href)) // Validate actions
 
