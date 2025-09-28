@@ -14,7 +14,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
