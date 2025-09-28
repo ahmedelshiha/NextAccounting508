@@ -354,7 +354,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const isLoading = analyticsLoading || bookingStatsLoading
+  const isLoading = analyticsLoading || bookingStatsLoading || serviceRequestsLoading || tasksLoading || servicesStatsLoading || usersLoading
 
   // Map activity feed datasets
   const activityData = {
