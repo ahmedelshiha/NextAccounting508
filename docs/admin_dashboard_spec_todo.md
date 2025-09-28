@@ -22,7 +22,7 @@ Legend: [x] implemented/verified, [ ] required
   - [x] Uses AnalyticsPage template with providers
   - [ ] KPIs wired: bookings, service-requests, revenue, utilization (APIs: /api/admin/bookings/stats, /api/admin/service-requests/analytics, /api/admin/stats/users, /api/admin/services/stats)
   - [ ] Realtime updates via RealtimeProvider for counts
-  - [ ] RBAC: allow ADMIN/TEAM_LEAD, redirect others
+  - [x] RBAC: allow ADMIN/TEAM_LEAD, redirect others
   - Actions
     - [x] Replace static page with AnalyticsPage using ProfessionalKPIGrid and charts
     - [ ] Fetch metrics server-side; hydrate charts client-side; add export hooks
