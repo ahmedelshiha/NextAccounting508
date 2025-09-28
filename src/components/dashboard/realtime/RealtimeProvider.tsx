@@ -70,7 +70,6 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
   }
 
   useEffect(() => {
-    // Establish SSE connection in browser only
     if (typeof window === "undefined") return
 
     const start = Date.now()
@@ -84,8 +83,14 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
       } catch {}
     }
 
-    const es = new EventSource(`/api/admin/realtime?events=${encodeURIComponent(events.join(","))}`)
+    const es = new EventSource(`/api/admin/updates`)
     esRef.current = es
+
+    const handleNamed = (type: string) => (e: MessageEvent) => {
+      let data: any = null
+      try { data = JSON.parse(e.data) } catch { data = e.data }
+      deliver({ type, data, timestamp: new Date().toISOString() })
+    }
 
     es.onopen = () => {
       setConnected(true)
@@ -96,10 +101,12 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
       retries += 1
       post({ path: 'admin-realtime', connected: false, retries })
     }
-    es.onmessage = (e) => {
-      const evt = parseEventMessage(e.data)
-      if (evt) deliver(evt)
-    }
+    es.onmessage = handleNamed('message')
+    es.addEventListener('ready', handleNamed('ready'))
+    es.addEventListener('heartbeat', handleNamed('heartbeat'))
+    es.addEventListener('booking_update', handleNamed('booking_update'))
+    es.addEventListener('task_completed', handleNamed('task_completed'))
+    es.addEventListener('system_alert', handleNamed('system_alert'))
 
     return () => {
       try { es.close() } catch {}
