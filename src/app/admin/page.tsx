@@ -18,7 +18,6 @@ import { useState } from 'react'
 import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
-import { usePermissions } from '@/lib/use-permissions'
 import { Download, RefreshCw, Calendar, Users } from 'lucide-react'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
 
@@ -51,8 +50,6 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('month')
-  const { has } = usePermissions()
-  
   // Fetch dashboard analytics with real-time updates
   const { data: analytics, error: analyticsError, isLoading: analyticsLoading } = useUnifiedData<{
     stats: DashboardStats
