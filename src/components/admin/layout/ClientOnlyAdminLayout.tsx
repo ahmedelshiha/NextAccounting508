@@ -15,6 +15,7 @@ import { SessionProvider } from 'next-auth/react'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
+import AdminFooter from '@/components/admin/layout/AdminFooter'
 import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
 
 interface ClientOnlyAdminLayoutProps {
@@ -59,6 +60,12 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
     <SessionProvider session={session}>
       <AdminProviders>
         <div className="min-h-screen bg-gray-50 flex">
+          <a
+            href="#admin-main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 focus:z-[60] rounded"
+          >
+            Skip to main content
+          </a>
           {/* Desktop Sidebar */}
           <div className="hidden lg:block">
             <AdminSidebar 
@@ -88,27 +95,14 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
             />
 
             {/* Main Content */}
-            <main className="flex-1 relative overflow-hidden">
+            <main id="admin-main-content" tabIndex={-1} className="flex-1 relative overflow-hidden" role="main" aria-label="Admin dashboard content">
               <div className="h-full overflow-auto">
                 {children}
               </div>
             </main>
 
             {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 px-4 py-3">
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <div>
-                  © 2024 NextAccounting. All rights reserved.
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span>Version 2.3.5</span>
-                  <span className="flex items-center">
-                    <span className="h-2 w-2 bg-green-400 rounded-full mr-2"></span>
-                    All systems operational
-                  </span>
-                </div>
-              </div>
-            </footer>
+            <AdminFooter sidebarCollapsed={sidebarCollapsed} />
           </div>
         </div>
       </AdminProviders>
