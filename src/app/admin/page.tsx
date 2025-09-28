@@ -415,9 +415,9 @@ export default function AdminDashboard() {
       onFilterChange={handleFilterChange}
       searchPlaceholder="Search dashboard data..."
       loading={isLoading}
-      error={analyticsError ? 'Failed to load dashboard analytics' : null}
+      error={errorMessage}
       stats={stats}
-      revenueTrend={analytics?.revenue_trend}
+      revenueTrend={revenueTrendData}
     >
       {/* Additional dashboard sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
