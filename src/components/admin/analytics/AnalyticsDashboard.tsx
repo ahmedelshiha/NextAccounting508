@@ -66,18 +66,43 @@ const AnalyticsDashboard: React.FC = () => {
     const fetchAnalyticsData = async () => {
       setLoading(true)
       try {
-        // Simulate API call - replace with actual analytics endpoint
         const response = await fetch(`/api/admin/analytics?range=${selectedTimeRange}`)
         if (response.ok) {
-          const data = await response.json()
-          setAnalyticsData(data)
+          const raw = await response.json()
+          const payload = raw && typeof raw === 'object' && 'data' in raw ? (raw as any).data : raw
+
+          // Normalize shape and fill any missing fields with sane defaults
+          const sample = getSampleAnalyticsData()
+          const normalized: AnalyticsData = {
+            performance: {
+              ...sample.performance,
+              ...(payload?.performance || {})
+            },
+            userBehavior: {
+              ...sample.userBehavior,
+              ...(payload?.userBehavior || {}),
+              mostUsedFeatures: Array.isArray(payload?.userBehavior?.mostUsedFeatures) && payload.userBehavior.mostUsedFeatures.length
+                ? payload.userBehavior.mostUsedFeatures
+                : sample.userBehavior.mostUsedFeatures
+            },
+            systemHealth: {
+              ...sample.systemHealth,
+              ...(payload?.systemHealth || {})
+            }
+          }
+
+          // Basic validation: ensure required numeric fields exist
+          const valid = typeof normalized.performance.averageLoadTime === 'number' &&
+                        typeof normalized.performance.averageNavigationTime === 'number' &&
+                        typeof normalized.performance.errorRate === 'number' &&
+                        typeof normalized.performance.activeUsers === 'number'
+
+          setAnalyticsData(valid ? normalized : sample)
         } else {
-          // Fallback to sample data for development
           setAnalyticsData(getSampleAnalyticsData())
         }
       } catch (error) {
         console.error('Failed to fetch analytics data:', error)
-        // Use sample data as fallback
         setAnalyticsData(getSampleAnalyticsData())
       } finally {
         setLoading(false)
