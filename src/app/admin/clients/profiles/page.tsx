@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
+import { Download } from 'lucide-react'
 
 interface ClientRow {
   id: string | number
