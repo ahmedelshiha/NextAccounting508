@@ -19,6 +19,7 @@ import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { Download, RefreshCw, Calendar, Users } from 'lucide-react'
+import { startOfWeek } from 'date-fns'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
 
 interface DashboardStats {
@@ -66,6 +67,37 @@ export default function AdminDashboard() {
     key: 'bookings/stats',
     events: ['booking_update', 'task_completed', 'system_alert', 'heartbeat'],
     revalidateOnEvents: true,
+  })
+
+  // Recent bookings for Activity feed
+  const { data: recentBookingsResp } = useUnifiedData<{ bookings: any[]; total: number }>({
+    key: 'bookings',
+    params: { limit: 10, sortBy: 'scheduledAt', sortOrder: 'desc' },
+    events: ['booking_update'],
+  })
+
+  // Urgent tasks and upcoming deadlines
+  const { data: highPriorityTasks } = useUnifiedData<any[]>({
+    key: 'tasks',
+    params: { priority: 'HIGH', status: 'OPEN', orderBy: 'dueAt', order: 'asc', limit: 10 },
+    events: ['task_completed'],
+  })
+  const { data: dueSoonTasks } = useUnifiedData<any[]>({
+    key: 'tasks',
+    params: { orderBy: 'dueAt', order: 'asc', limit: 10 },
+    events: ['task_completed'],
+  })
+
+  // Users stats for active sessions approximation
+  const { data: usersStats } = useUnifiedData<{ activeUsers?: number }>({ key: 'stats/users' })
+
+  // This week bookings count
+  const weekStartISO = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString()
+  const { data: weekBookingsResp } = useUnifiedData<{ total: number }>({
+    key: 'bookings',
+    params: { startDate: weekStartISO, limit: 1 },
+    events: ['booking_update'],
+    parse: (raw: any) => ({ total: Number(raw?.total || 0) })
   })
 
   // Fallback stats while loading or if no data (map to bookings/stats response shape)
@@ -167,6 +199,48 @@ export default function AdminDashboard() {
 
   const isLoading = analyticsLoading || bookingStatsLoading
 
+  // Map activity feed datasets
+  const activityData = {
+    recentBookings: (recentBookingsResp?.bookings || []).map((b: any) => ({
+      id: b.id,
+      clientName: b.clientName || b.client?.name,
+      service: b.service?.name,
+      scheduledAt: b.scheduledAt,
+      duration: b.duration || b.service?.duration || 0,
+      revenue: b.service?.price || 0,
+      priority: 'normal',
+      status: String(b.status || '').toLowerCase(),
+      location: 'office',
+      assignedTo: b.assignedTeamMember?.name || null,
+      notes: b.notes || ''
+    })),
+    urgentTasks: (highPriorityTasks || []).map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      priority: (String(t.priority || 'HIGH').toLowerCase()),
+      description: t.description || '',
+      completionPercentage: Number(t.completionPercentage || 0),
+      dueDate: t.dueAt || new Date().toISOString(),
+      estimatedHours: t.estimatedHours || 0,
+      category: t.category || 'General',
+      assignee: t.assignee?.name || 'Unassigned',
+      status: t.status || 'OPEN'
+    })),
+    upcomingDeadlines: (dueSoonTasks || [])
+      .filter((t: any) => !!t.dueAt)
+      .slice(0, 10)
+      .map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        dueDate: t.dueAt,
+        importance: 'default',
+        clientName: t.clientName || '—',
+        assignedTo: t.assignee?.name || 'Unassigned',
+        progress: Number(t.completionPercentage || 0)
+      }))
+  }
+
   return (
     <AnalyticsPage
       title="Dashboard Overview"
@@ -186,12 +260,8 @@ export default function AdminDashboard() {
         {/* Activity Feed */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-          <IntelligentActivityFeed 
-            data={{
-              recentBookings: bookingStats?.recentBookings || [],
-              urgentTasks: bookingStats?.urgentTasks || [],
-              upcomingDeadlines: bookingStats?.upcomingDeadlines || []
-            }}
+          <IntelligentActivityFeed
+            data={activityData}
           />
         </div>
 
@@ -205,7 +275,7 @@ export default function AdminDashboard() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Active Sessions</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {bookingStats?.activeSessions || 24}
+                    {usersStats?.activeUsers || 0}
                   </p>
                 </div>
               </div>
@@ -216,7 +286,7 @@ export default function AdminDashboard() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">This Week</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {bookingStats?.weekBookings || 18}
+                    {weekBookingsResp?.total || 0}
                   </p>
                 </div>
               </div>
