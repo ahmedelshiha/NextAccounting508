@@ -2,15 +2,12 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import AdminOverview from '@/components/admin/dashboard/AdminOverview'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard Overview',
   description: 'Professional admin overview with live KPIs and analytics',
 }
-
-// Dynamically import client component to avoid SSR issues
-const AdminOverview = dynamic(() => import('@/components/admin/dashboard/AdminOverview'), { ssr: false })
 
 export default async function AdminOverviewPage() {
   const session = await getServerSession(authOptions)
