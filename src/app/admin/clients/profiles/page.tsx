@@ -116,6 +116,15 @@ export default function ClientsProfilesAdminPage() {
     { label: 'Open', onClick: (row) => { window.location.href = `/admin/users?search=${encodeURIComponent(String(row.email || ''))}` } },
   ]
 
+  const exportClients = () => {
+    const params = new URLSearchParams()
+    params.set('entity', 'users')
+    params.set('role', 'CLIENT')
+    if (search) params.set('q', search)
+    if (filters.tier && filters.tier !== 'all') params.set('tier', String(filters.tier))
+    window.location.href = `/api/admin/export?${params.toString()}`
+  }
+
   return (
     <ListPage<ClientRow>
       title="Client Profiles"
@@ -139,6 +148,7 @@ export default function ClientsProfilesAdminPage() {
       total={total}
       onPageChange={setPage}
       emptyMessage={search ? 'No clients match your search' : 'No clients found'}
+      secondaryActions={[{ label: 'Export Clients', icon: Download, onClick: exportClients }]}
     />
   )
 }
