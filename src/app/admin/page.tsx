@@ -2,12 +2,12 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import AdminOverview from '@/components/admin/dashboard/AdminOverview'
+
 export const metadata: Metadata = {
   title: 'Admin Dashboard Overview',
   description: 'Professional admin overview with live KPIs and analytics',
 }
-
-import AdminOverview from '@/components/admin/dashboard/AdminOverview'
 
 export default async function AdminOverviewPage() {
   const session = await getServerSession(authOptions)
