@@ -110,47 +110,90 @@ const safeNumber = (value: unknown, fallback = 0) => {
 
 export default function AdminDashboard() {
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('month')
-  // Fetch dashboard analytics with real-time updates
-  const { data: analytics, error: analyticsError, isLoading: analyticsLoading } = useUnifiedData<{
-    stats: DashboardStats
-    revenue_trend: Array<{ month: string; revenue: number; target?: number }>
-  }>({
+  const analyticsRange = timeframe === 'today' ? '24h' : timeframe === 'week' ? '7d' : '30d'
+  const servicesRange = timeframe === 'today' ? '7d' : timeframe === 'week' ? '30d' : '90d'
+  const usersRange = timeframe === 'today' ? '7d' : timeframe === 'week' ? '30d' : '90d'
+
+  const {
+    data: analytics,
+    error: analyticsError,
+    isLoading: analyticsLoading,
+  } = useUnifiedData<AnalyticsResponse>({
     key: 'analytics',
-    params: { range: timeframe },
-    events: ['booking_update', 'task_completed', 'system_alert', 'heartbeat', 'ready'],
+    params: { range: analyticsRange },
+    events: ['service-request-updated', 'task-updated', 'booking_update', 'system_alert', 'heartbeat', 'ready'],
     revalidateOnEvents: true,
   })
 
-  // Fetch booking stats for KPIs
-  const { data: bookingStats, isLoading: bookingStatsLoading } = useUnifiedData({
+  const {
+    data: bookingStats,
+    error: bookingStatsError,
+    isLoading: bookingStatsLoading,
+  } = useUnifiedData<{ success?: boolean; data?: BookingStatsPayload }>({
     key: 'bookings/stats',
-    events: ['booking_update', 'task_completed', 'system_alert', 'heartbeat'],
+    events: ['booking_update', 'service-request-updated', 'task-updated', 'heartbeat'],
     revalidateOnEvents: true,
   })
 
-  // Recent bookings for Activity feed
+  const {
+    data: serviceRequestsAnalytics,
+    error: serviceRequestsError,
+    isLoading: serviceRequestsLoading,
+  } = useUnifiedData<{ success?: boolean; data?: ServiceRequestAnalyticsPayload }>({
+    key: 'service-requests/analytics',
+    events: ['service-request-updated', 'task-updated', 'booking_update'],
+    revalidateOnEvents: true,
+  })
+
+  const {
+    data: tasksAnalyticsData,
+    error: tasksError,
+    isLoading: tasksLoading,
+  } = useUnifiedData<TaskAnalyticsPayload>({
+    key: 'tasks/analytics',
+    events: ['task-updated', 'service-request-updated'],
+    revalidateOnEvents: true,
+  })
+
+  const {
+    data: servicesStatsData,
+    error: servicesError,
+    isLoading: servicesStatsLoading,
+  } = useUnifiedData<ServicesStatsPayload>({
+    key: 'services/stats',
+    params: { range: servicesRange },
+    events: ['booking_update', 'service-request-updated', 'task-updated'],
+    revalidateOnEvents: true,
+  })
+
+  const {
+    data: usersOverview,
+    error: usersError,
+    isLoading: usersLoading,
+  } = useUnifiedData<UsersStatsPayload>({
+    key: 'stats/users',
+    params: { range: usersRange },
+    events: ['service-request-updated', 'booking_update', 'task-updated'],
+    revalidateOnEvents: true,
+  })
+
   const { data: recentBookingsResp } = useUnifiedData<{ bookings: any[]; total: number }>({
     key: 'bookings',
     params: { limit: 10, sortBy: 'scheduledAt', sortOrder: 'desc' },
     events: ['booking_update'],
   })
 
-  // Urgent tasks and upcoming deadlines
   const { data: highPriorityTasks } = useUnifiedData<any[]>({
     key: 'tasks',
     params: { priority: 'HIGH', status: 'OPEN', orderBy: 'dueAt', order: 'asc', limit: 10 },
-    events: ['task_completed'],
+    events: ['task-updated'],
   })
   const { data: dueSoonTasks } = useUnifiedData<any[]>({
     key: 'tasks',
     params: { orderBy: 'dueAt', order: 'asc', limit: 10 },
-    events: ['task_completed'],
+    events: ['task-updated'],
   })
 
-  // Users stats for active sessions approximation
-  const { data: usersStats } = useUnifiedData<{ activeUsers?: number }>({ key: 'stats/users' })
-
-  // This week bookings count
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 })
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 0 })
   const { data: weekBookingsResp } = useUnifiedData<{ total: number }>({
@@ -160,38 +203,71 @@ export default function AdminDashboard() {
     parse: (raw: any) => ({ total: Number(raw?.total || 0) })
   })
 
-  // Fallback stats while loading or if no data (map to bookings/stats response shape)
-  const bs = (bookingStats as any)?.data || (bookingStats as any) || {}
-  const currentRevenue = Number(bs.weekRevenue) || 0
-  const totalBookings = Number(bs.total) || 0
-  const todayBookings = Number(bs.todayBookings) || 0
-  const pendingBookings = Number(bs.pending) || 0
+  const bookingsPayload: BookingStatsPayload = ((bookingStats as any)?.data || bookingStats || {}) as BookingStatsPayload
+  const serviceRequestPayload: ServiceRequestAnalyticsPayload = ((serviceRequestsAnalytics as any)?.data || serviceRequestsAnalytics || {}) as ServiceRequestAnalyticsPayload
+  const tasksPayload: TaskAnalyticsPayload = (tasksAnalyticsData || {}) as TaskAnalyticsPayload
+  const servicesPayload: ServicesStatsPayload = (servicesStatsData || {}) as ServicesStatsPayload
+  const usersPayload: UsersStatsPayload = (usersOverview || {}) as UsersStatsPayload
 
-  const stats: DashboardStats = analytics?.stats || {
+  const revenueMetrics = useMemo(() => {
+    const weekRevenue = safeNumber(bookingsPayload.weekRevenue)
+    const averageBookingValue = safeNumber(bookingsPayload.averageBookingValue)
+    const todayRevenue = safeNumber(bookingsPayload.todayBookings) * averageBookingValue
+    const totalRevenue = safeNumber(servicesPayload.totalRevenue, weekRevenue)
+    const current = timeframe === 'today' ? todayRevenue : timeframe === 'week' ? weekRevenue : totalRevenue
+    const fallbackTarget = timeframe === 'month' ? totalRevenue * 1.1 : (current || weekRevenue) * 1.15
+    const target = Math.max(fallbackTarget, current * 1.1, 5000)
+    const progress = target > 0 ? clamp((current / target) * 100) : 0
+    const trend = safeNumber(bookingsPayload.growth)
+    return { current, target, progress, trend }
+  }, [bookingsPayload, servicesPayload, timeframe])
+
+  const totalBookings = safeNumber(bookingsPayload.total)
+  const todayBookings = safeNumber(bookingsPayload.todayBookings)
+  const pendingBookings = safeNumber(bookingsPayload.pending)
+  const conversionRate = clamp(safeNumber(bookingsPayload.completionRate), 0, 100)
+
+  const statusCounts = new Map<string, number>()
+  ;(tasksPayload.byStatus || []).forEach((item) => {
+    const key = String(item?.status ?? '').toUpperCase()
+    statusCounts.set(key, (statusCounts.get(key) || 0) + safeNumber(item?._count?._all))
+  })
+  const overdueTasks = ['OVERDUE', 'PAST_DUE', 'LATE'].reduce((acc, key) => acc + (statusCounts.get(key) || 0), 0)
+  const dueTodayCount = safeNumber((tasksPayload.dailyTotals || []).slice(-1)[0])
+  const totalTasks = safeNumber(tasksPayload.total)
+  const completedTasks = safeNumber(tasksPayload.completed)
+  const productivity = totalTasks > 0 ? clamp((completedTasks / totalTasks) * 100) : 0
+
+  const activeClients = safeNumber(usersPayload.clients)
+  const newClients = safeNumber(usersPayload.newThisMonth)
+  const retentionRate = activeClients > 0 ? clamp(((activeClients - newClients) / Math.max(activeClients, 1)) * 100) : 100
+  const satisfactionScore = clamp(safeNumber(serviceRequestPayload.completionRate) / 20, 0, 5)
+
+  const stats: DashboardStats = {
     revenue: {
-      current: currentRevenue,
-      target: 50000,
-      targetProgress: (currentRevenue / 50000) * 100,
-      trend: Number(bs.growth) || 0
+      current: revenueMetrics.current,
+      target: revenueMetrics.target,
+      targetProgress: clamp(revenueMetrics.progress),
+      trend: revenueMetrics.trend,
     },
     bookings: {
       total: totalBookings,
       today: todayBookings,
       pending: pendingBookings,
-      conversion: Number(bs.completionRate) || 0
+      conversion: conversionRate,
     },
     clients: {
-      active: 0,
-      new: 0,
-      retention: 87.5,
-      satisfaction: 4.2
+      active: activeClients,
+      new: newClients,
+      retention: retentionRate,
+      satisfaction: satisfactionScore,
     },
     tasks: {
-      productivity: 88.3,
-      completed: 142,
-      overdue: 3,
-      dueToday: 8
-    }
+      productivity,
+      completed: completedTasks,
+      overdue: overdueTasks,
+      dueToday: dueTodayCount,
+    },
   }
 
   // Primary actions for the dashboard (with validation)
