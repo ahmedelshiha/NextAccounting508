@@ -11,6 +11,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { SWRConfig } from 'swr'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
 import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
@@ -42,6 +43,12 @@ function PerformanceWrapper({ children }: { children: ReactNode }) {
  * for the admin dashboard functionality.
  */
 export default function AdminProviders({ children }: AdminProvidersProps) {
+  const fetcher = async (url: string) => {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Request failed')
+    return res.json()
+  }
+
   return (
     <ErrorBoundary
       fallback={({ error, resetError }) => (
@@ -79,13 +86,15 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
       )}
     >
       <ReactError31Boundary>
-        <RealtimeProvider>
-          <PerformanceWrapper>
-            <UXMonitor>
-              {children}
-            </UXMonitor>
-          </PerformanceWrapper>
-        </RealtimeProvider>
+        <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
+          <RealtimeProvider>
+            <PerformanceWrapper>
+              <UXMonitor>
+                {children}
+              </UXMonitor>
+            </PerformanceWrapper>
+          </RealtimeProvider>
+        </SWRConfig>
       </ReactError31Boundary>
     </ErrorBoundary>
   )
