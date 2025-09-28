@@ -7,7 +7,6 @@
  * matching AdminRealtimeEvent messages arrive. The provider also posts
  * connection telemetry to /api/admin/perf-metrics for observability.
  */
-'use client'
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 
@@ -83,12 +82,22 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
       } catch {}
     }
 
-    const es = new EventSource(`/api/admin/updates`)
+    const requested = Array.from(new Set((events && events.length ? events : ['all']).filter(Boolean)))
+    const queryTypes = requested.includes('all') ? ['all'] : requested
+    const query = queryTypes.length ? `?events=${encodeURIComponent(queryTypes.join(','))}` : ''
+    const es = new EventSource(`/api/admin/realtime${query}`)
     esRef.current = es
 
     const handleNamed = (type: string) => (e: MessageEvent) => {
-      let data: any = null
-      try { data = JSON.parse(e.data) } catch { data = e.data }
+      const parsed = typeof e.data === 'string' ? parseEventMessage(e.data) : null
+      if (parsed) {
+        deliver(parsed)
+        return
+      }
+      let data: any = e.data
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data) } catch {}
+      }
       deliver({ type, data, timestamp: new Date().toISOString() })
     }
 
@@ -101,12 +110,17 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
       retries += 1
       post({ path: 'admin-realtime', connected: false, retries })
     }
+
+    const baselineEvents = new Set<string>(['message', 'ready', 'heartbeat', 'booking_update', 'task_completed', 'system_alert'])
+    for (const evt of queryTypes) {
+      if (evt && evt !== 'all') baselineEvents.add(evt)
+    }
+
     es.onmessage = handleNamed('message')
-    es.addEventListener('ready', handleNamed('ready'))
-    es.addEventListener('heartbeat', handleNamed('heartbeat'))
-    es.addEventListener('booking_update', handleNamed('booking_update'))
-    es.addEventListener('task_completed', handleNamed('task_completed'))
-    es.addEventListener('system_alert', handleNamed('system_alert'))
+    for (const evt of baselineEvents) {
+      if (evt === 'message') continue
+      es.addEventListener(evt, handleNamed(evt))
+    }
 
     return () => {
       try { es.close() } catch {}
