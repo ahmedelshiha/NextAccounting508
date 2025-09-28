@@ -439,7 +439,7 @@ export default function AdminDashboard() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-500">Active Sessions</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {usersStats?.activeUsers || 0}
+                    {usersPayload.activeUsers || 0}
                   </p>
                 </div>
               </div>
