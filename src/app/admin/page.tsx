@@ -49,6 +49,65 @@ interface DashboardStats {
   }
 }
 
+type BookingStatsPayload = {
+  total?: number
+  pending?: number
+  todayBookings?: number
+  weekRevenue?: number
+  completionRate?: number
+  growth?: number
+  averageBookingValue?: number
+}
+
+type ServiceRequestAnalyticsPayload = {
+  total?: number
+  newThisWeek?: number
+  completedThisMonth?: number
+  pipelineValue?: number
+  statusDistribution?: Record<string, number>
+  priorityDistribution?: Record<string, number>
+  completionRate?: number
+}
+
+type TaskAnalyticsPayload = {
+  total?: number
+  completed?: number
+  byStatus?: Array<{ status: string | null; _count?: { _all?: number } }>
+  dailyTotals?: number[]
+  dailyCompleted?: number[]
+}
+
+type ServicesStatsPayload = {
+  totalRevenue?: number
+  analytics?: {
+    revenueTimeSeries?: Array<{ service: string; monthly: Array<{ month: string; revenue: number }> }>
+  }
+}
+
+type UsersStatsPayload = {
+  total?: number
+  clients?: number
+  staff?: number
+  admins?: number
+  newThisMonth?: number
+  activeUsers?: number
+  growth?: number
+}
+
+type AnalyticsResponse = {
+  revenue_trend?: Array<{ month: string; revenue: number; target?: number }>
+}
+
+const clamp = (value: number, min = 0, max = 100) => {
+  if (!Number.isFinite(value)) return min
+  return Math.min(Math.max(value, min), max)
+}
+
+const safeNumber = (value: unknown, fallback = 0) => {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? numeric : fallback
+}
+
 export default function AdminDashboard() {
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('month')
   // Fetch dashboard analytics with real-time updates
