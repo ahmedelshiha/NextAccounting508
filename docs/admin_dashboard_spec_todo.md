@@ -48,7 +48,7 @@ Legend: [x] implemented/verified, [ ] required
 
 - /admin/clients/invitations
   - [x] Uses StandardPage
-  - [ ] RBAC gate (USERS_MANAGE); add PermissionGate if missing
+  - [x] RBAC gate (USERS_MANAGE); add PermissionGate if missing
   - Verify: Non-admin sees fallback
 
 - /admin/clients/new
@@ -170,7 +170,7 @@ Legend: [x] implemented/verified, [ ] required
   - Use components/dashboard/realtime/RealtimeProvider.tsx, components/admin/providers/AdminProviders.tsx, stores/adminLayoutStore*.ts
   - Acceptance: Realtime connection state available via context; permission and tenant state available globally
   - Verify: Unit tests confirming context values and fallback behavior when disconnected.
-- [ ] Implement navigation information architecture (IA)
+- [x] Implement navigation information architecture (IA)
   - Sidebar sections and links exactly as in the spec’s “Navigation Architecture” with route targets under src/app/admin/**
   - Acceptance: Keyboard-nav friendly, active-route highlighting, collapsible groups, badges for counts (e.g., pending)
   - Verify: tests/dashboard/nav/sidebar-ia.test.tsx and tests/dashboard/nav/sidebar-keyboard.dom.test.tsx pass; manual tab/arrow navigation.
@@ -404,3 +404,20 @@ Legend: [x] implemented/verified, [ ] required
   - Navigation IA: keyboard nav tests and active-route highlighting (tests/dashboard/nav/*)
   - Performance: record baseline metrics in monitoring/performance-baseline.json and track LCP/FCP/TTI
   - RBAC: verify module-level gates on clients/invitations and reports pages; add missing PermissionGate where needed
+
+## Final Documentation Update – 2025-09-28 (RBAC & Navigation IA Completion)
+- [x] What was completed
+  - Added module-level RBAC gates:
+    - /admin/clients/invitations now gated with PermissionGate(PERMISSIONS.USERS_MANAGE) with friendly fallback
+    - /admin/reports now gated with PermissionGate(PERMISSIONS.ANALYTICS_VIEW) with friendly fallback
+  - Navigation IA verified and finalized with active-route highlighting and keyboard accessibility
+  - Performance baseline confirmed in monitoring/performance-baseline.json (LCP/FCP/TTI within targets)
+- [x] Why it was done
+  - Enforce least-privilege access on sensitive admin modules and satisfy spec’s accessibility requirements
+- [x] Implementation Summary
+  - Updated: src/app/admin/clients/invitations/page.tsx; src/app/admin/reports/page.tsx
+  - Tests: tests/dashboard/nav/sidebar-active.dom.test.tsx and sidebar-keyboard.dom.test.tsx validate IA and a11y
+- [ ] Next steps
+  - Wire KPI data sources on /admin overview and add realtime subscriptions
+  - Complete calendar interactions (drag-to-reschedule, availability toggle)
+  - Expand RBAC checks across remaining modules per spec

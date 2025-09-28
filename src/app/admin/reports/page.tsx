@@ -1,6 +1,8 @@
 "use client"
 
 import StandardPage from '@/components/dashboard/templates/StandardPage'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 import { Download } from 'lucide-react'
 // Explicit export endpoint references used by smoke tests:
 // /api/admin/export?entity=users
@@ -17,15 +19,16 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <StandardPage
-      title="Reports"
-      subtitle="Export data and review summarized analytics"
-      secondaryActions={[
-        { label: 'Export Users', icon: Download, onClick: () => download('users') },
-        { label: 'Export Bookings', icon: Download, onClick: () => download('bookings') },
-        { label: 'Export Services', icon: Download, onClick: () => download('services') },
-      ]}
-    >
+    <PermissionGate permission={PERMISSIONS.ANALYTICS_VIEW} fallback={<StandardPage title="Reports" subtitle="Export data and review summarized analytics"><div className="text-sm text-gray-600">You do not have permission to view this page.</div></StandardPage>}>
+      <StandardPage
+        title="Reports"
+        subtitle="Export data and review summarized analytics"
+        secondaryActions={[
+          { label: 'Export Users', icon: Download, onClick: () => download('users') },
+          { label: 'Export Bookings', icon: Download, onClick: () => download('bookings') },
+          { label: 'Export Services', icon: Download, onClick: () => download('services') },
+        ]}
+      >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <section className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">Available Exports</h2>
@@ -43,5 +46,6 @@ export default function AdminReportsPage() {
         </section>
       </div>
     </StandardPage>
+    </PermissionGate>
   )
 }

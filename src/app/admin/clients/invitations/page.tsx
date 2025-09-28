@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 import { apiFetch } from '@/lib/api'
 
 interface SentInvite { email: string; status: 'sent' | 'error'; message?: string }
@@ -46,12 +48,13 @@ export default function ClientInvitationsAdminPage() {
   }
 
   return (
-    <StandardPage
-      title="Client Invitations"
-      subtitle="Invite clients to access their portal"
-      primaryAction={{ label: 'New Client', onClick: () => (window.location.href = '/admin/clients/new') }}
-      error={error}
-    >
+    <PermissionGate permission={PERMISSIONS.USERS_MANAGE} fallback={<StandardPage title="Client Invitations" subtitle="Invite clients to access their portal" error={error}><div className="text-sm text-gray-600">You do not have permission to view this page.</div></StandardPage>}>
+      <StandardPage
+        title="Client Invitations"
+        subtitle="Invite clients to access their portal"
+        primaryAction={{ label: 'New Client', onClick: () => (window.location.href = '/admin/clients/new') }}
+        error={error}
+      >
       <Card className="border-0 shadow-sm bg-white/80 backdrop-blur-sm mb-6">
         <CardContent className="p-4">
           <div className="flex items-center gap-2">
@@ -89,5 +92,6 @@ export default function ClientInvitationsAdminPage() {
         </div>
       )}
     </StandardPage>
+    </PermissionGate>
   )
 }

@@ -19,7 +19,7 @@ import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { Download, RefreshCw, Calendar, Users } from 'lucide-react'
-import { startOfWeek } from 'date-fns'
+import { startOfWeek, endOfWeek } from 'date-fns'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
 
 interface DashboardStats {
@@ -92,10 +92,11 @@ export default function AdminDashboard() {
   const { data: usersStats } = useUnifiedData<{ activeUsers?: number }>({ key: 'stats/users' })
 
   // This week bookings count
-  const weekStartISO = startOfWeek(new Date(), { weekStartsOn: 0 }).toISOString()
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 })
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 0 })
   const { data: weekBookingsResp } = useUnifiedData<{ total: number }>({
     key: 'bookings',
-    params: { startDate: weekStartISO, limit: 1 },
+    params: { startDate: weekStart.toISOString(), endDate: weekEnd.toISOString() },
     events: ['booking_update'],
     parse: (raw: any) => ({ total: Number(raw?.total || 0) })
   })
@@ -214,31 +215,38 @@ export default function AdminDashboard() {
       assignedTo: b.assignedTeamMember?.name || null,
       notes: b.notes || ''
     })),
-    urgentTasks: (highPriorityTasks || []).map((t: any) => ({
-      id: t.id,
-      title: t.title,
-      priority: (String(t.priority || 'HIGH').toLowerCase()),
-      description: t.description || '',
-      completionPercentage: Number(t.completionPercentage || 0),
-      dueDate: t.dueAt || new Date().toISOString(),
-      estimatedHours: t.estimatedHours || 0,
-      category: t.category || 'General',
-      assignee: t.assignee?.name || 'Unassigned',
-      status: t.status || 'OPEN'
-    })),
-    upcomingDeadlines: (dueSoonTasks || [])
-      .filter((t: any) => !!t.dueAt)
-      .slice(0, 10)
+    urgentTasks: (highPriorityTasks || [])
+      .filter((t: any) => String(t.status || '').toUpperCase() !== 'DONE')
       .map((t: any) => ({
         id: t.id,
         title: t.title,
+        priority: String(t.priority || 'HIGH').toLowerCase(),
         description: t.description || '',
-        dueDate: t.dueAt,
-        importance: 'default',
-        clientName: t.clientName || '—',
-        assignedTo: t.assignee?.name || 'Unassigned',
-        progress: Number(t.completionPercentage || 0)
-      }))
+        completionPercentage: Number(t.completionPercentage || 0),
+        dueDate: t.dueAt || new Date().toISOString(),
+        estimatedHours: t.estimatedHours || 0,
+        category: t.category || 'General',
+        assignee: t.assignee?.name || 'Unassigned',
+        status: t.status || 'OPEN'
+      })),
+    upcomingDeadlines: (dueSoonTasks || [])
+      .filter((t: any) => !!t.dueAt)
+      .slice(0, 10)
+      .map((t: any) => {
+        const due = new Date(t.dueAt)
+        const daysUntilDue = Math.ceil((due.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        const importance = daysUntilDue <= 3 ? 'critical' : 'default'
+        return {
+          id: t.id,
+          title: t.title,
+          description: t.description || '',
+          dueDate: t.dueAt,
+          importance,
+          clientName: t.clientName || '—',
+          assignedTo: t.assignee?.name || 'Unassigned',
+          progress: Number(t.completionPercentage || 0)
+        }
+      })
   }
 
   return (
