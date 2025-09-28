@@ -26,7 +26,7 @@ Legend: [x] implemented/verified, [ ] required
   - Actions
     - [x] Replace static page with AnalyticsPage using ProfessionalKPIGrid and charts
     - [x] Fetch metrics server-side; hydrate charts client-side; add export hooks
-    - [ ] Subscribe to ['updates','service-request-updated','task-updated'] for revalidation
+    - [x] Subscribe to ['service-request-updated','task-updated', 'availability-updated', 'booking-updated/created/deleted'] for revalidation
     - Verify: KPIs render <400ms, events update UI ≤2s, RBAC redirects correct
 
 - /admin/analytics
