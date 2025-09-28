@@ -101,7 +101,13 @@ const safeNumber = (value: unknown, fallback = 0) => {
   return Number.isFinite(numeric) ? numeric : fallback
 }
 
-export default function AdminOverview() {
+type AdminOverviewInitial = {
+  bookingsStats?: { success?: boolean; data?: BookingStatsPayload } | BookingStatsPayload
+  servicesStats?: ServicesStatsPayload
+  usersStats?: UsersStatsPayload
+}
+
+export default function AdminOverview({ initial }: { initial?: AdminOverviewInitial }) {
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('month')
   const analyticsRange = timeframe === 'today' ? '24h' : timeframe === 'week' ? '7d' : '30d'
   const servicesRange = timeframe === 'today' ? '7d' : timeframe === 'week' ? '30d' : '90d'
@@ -126,6 +132,7 @@ export default function AdminOverview() {
     key: 'bookings/stats',
     events: ['booking_update', 'service-request-updated', 'task-updated', 'heartbeat'],
     revalidateOnEvents: true,
+    initialData: initial?.bookingsStats as any,
   })
 
   const {
@@ -157,6 +164,7 @@ export default function AdminOverview() {
     params: { range: servicesRange },
     events: ['booking_update', 'service-request-updated', 'task-updated'],
     revalidateOnEvents: true,
+    initialData: initial?.servicesStats,
   })
 
   const {
@@ -168,6 +176,7 @@ export default function AdminOverview() {
     params: { range: usersRange },
     events: ['service-request-updated', 'booking_update', 'task-updated'],
     revalidateOnEvents: true,
+    initialData: initial?.usersStats,
   })
 
   const { data: recentBookingsResp } = useUnifiedData<{ bookings: any[]; total: number }>({
