@@ -318,8 +318,8 @@ function TasksInner() {
     <StandardPage
       title="Task Management"
       subtitle="Organize, track, and manage your team's work efficiently"
-      primaryAction={{ label: 'New Task', icon: <Plus className="h-4 w-4" />, onClick: handleNewTask }}
-      secondaryActions={[{ label: 'Analytics', icon: <Activity className="h-4 w-4" />, onClick: () => setShowAnalytics(true) }]}
+      primaryAction={{ label: 'New Task', icon: Plus, onClick: handleNewTask }}
+      secondaryActions={[{ label: 'Analytics', icon: Activity, onClick: () => setShowAnalytics(true) }]}
       error={error || null}
     >
       {/* Quick Stats */}

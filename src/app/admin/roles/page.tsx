@@ -15,7 +15,7 @@ export default function AdminRolesPage() {
       <StandardPage
         title="Roles"
         subtitle="System roles and their associated permissions"
-        secondaryActions={[{ label: 'Manage Users', icon: <Users className="h-4 w-4" />, onClick: () => { window.location.href = '/admin/users' } }]}
+        secondaryActions={[{ label: 'Manage Users', icon: Users, onClick: () => { window.location.href = '/admin/users' } }]}
       >
         <RolePermissionsViewer />
       </StandardPage>

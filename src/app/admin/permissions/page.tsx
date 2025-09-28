@@ -16,7 +16,7 @@ export default function AdminPermissionsPage() {
       <StandardPage
         title="Permissions"
         subtitle="View role mappings and inspect effective permissions"
-        secondaryActions={[{ label: 'Manage Users', icon: <Users className="h-4 w-4" />, onClick: () => { window.location.href = '/admin/users' } }]}
+        secondaryActions={[{ label: 'Manage Users', icon: Users, onClick: () => { window.location.href = '/admin/users' } }]}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RolePermissionsViewer />
