@@ -3,7 +3,7 @@
 Scope: Implement the QuickBooks-inspired professional admin dashboard defined in docs/admin_dashboard_spec.md, aligning with existing code under src/app/admin/** and components/**. Each task is specific, measurable, and outcome-oriented, with verification steps.
 
 ## 0) Discovery, Alignment, and Technical Baseline
-- [x] Read and annotate docs/admin_dashboard_spec.md to extract all modules, UI patterns, and contracts
+- [ ] Read and annotate docs/admin_dashboard_spec.md to extract all modules, UI patterns, and contracts
   - Acceptance: A shared outline (this file) reflects all sections of the spec; no gaps.
   - Verify: Cross-check each spec section appears as tasks below.
 - [ ] Inventory current admin code and templates for reuse
@@ -30,18 +30,18 @@ Legend: [x] implemented/verified, [ ] required
     - Verify: KPIs render <400ms, events update UI ≤2s, RBAC redirects correct
 
 - /admin/analytics
-  - [x] Page exists with RBAC checks; renders AnalyticsDashboard
+  - [ ] Page exists with RBAC checks; renders AnalyticsDashboard
   - [ ] Adopt AnalyticsPage template for consistent layout and actions
   - [ ] Add export scheduling and CSV hooks where applicable
   - Verify: Access only ADMIN/TEAM_LEAD; visual parity maintained
 
 - /admin/reports
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Ensure exports hit /api/admin/export with filter propagation and progress toasts
   - Verify: Exports complete and download link works; audit entries logged
 
 - /admin/clients/profiles
-  - [x] Uses ListPage with SWR
+  - [ ] Uses ListPage with SWR
   - [ ] Verify pagination/sort use AdvancedDataTable contract; enforce ���50 rows/page
   - [ ] Ensure export respects active filters
   - Verify: URL sync for filters; CSV matches rows
@@ -52,12 +52,12 @@ Legend: [x] implemented/verified, [ ] required
   - Verify: Non-admin sees fallback
 
 - /admin/clients/new
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Validate form with zod; show field-level errors; success toasts; audit log
   - Verify: Invalid payload rejected; audit record present
 
 - /admin/bookings
-  - [x] Uses ListPage; uses usePermissions
+  - [ ] Uses ListPage; uses usePermissions
   - [ ] Ensure server pagination + sort delegated to /api/admin/bookings
   - [ ] Add bulk actions (export, status) if missing
   - Verify: Pending count matches /api/admin/bookings/pending-count
@@ -69,75 +69,75 @@ Legend: [x] implemented/verified, [ ] required
   - Verify: Drag-reschedule issues PATCH and revalidates; mobile responsive
 
 - /admin/service-requests
-  - [x] Uses ListPage; realtime via useRealtime in ClientPage
+  - [ ] Uses ListPage; realtime via useRealtime in ClientPage
   - [ ] Ensure bulk approve/reject/convert wired to /api/admin/service-requests/bulk
   - [ ] Export to CSV via /api/admin/service-requests/export (streams)
   - Verify: SSE updates table; bulk results toast
 
 - /admin/services and /admin/services/list
-  - [x] Use ListPage
+  - [ ] Use ListPage
   - [ ] Wire slug-check (/api/admin/services/slug-check/[slug]) and versions/settings panels
   - [ ] Analytics tab uses /api/admin/services/stats
   - Verify: Clone/version actions work; stats render
 
 - /admin/availability
-  - [x] Uses StandardPage with AvailabilitySlotsManager
+  - [ ] Uses StandardPage with AvailabilitySlotsManager
   - [ ] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
   - Verify: Slots persist; tenant isolation enforced
 
 - /admin/invoices
-  - [x] Uses ListPage
+  - [ ] Uses ListPage
   - [ ] Ensure payments linkage (view invoice → payments) and export hooks
   - Verify: Currency formatting uses settings; totals accurate
 
 - /admin/payments
-  - [x] Uses ListPage
+  - [ ] Uses ListPage
   - [ ] Add filters (method/status/date) and export
   - Verify: Filters reflect URL; CSV correct
 
 - /admin/expenses
-  - [x] Uses ListPage
+  - [ ] Uses ListPage
   - [ ] Add categories and attachment preview; export
   - Verify: AV status badge on attachments
 
 - /admin/tasks
-  - [x] Uses StandardPage; rich views available under components/**
+  - [ ] Uses StandardPage; rich views available under components/**
   - [ ] Ensure Board/List/Table/Calendar/Gantt routes/toggles present; use existing components
   - [ ] Notifications settings wired to /api/admin/tasks/notifications
   - Verify: Drag across columns; analytics from /api/admin/tasks/analytics
 
 - /admin/reminders
-  - [x] Uses StandardPage; server RBAC check
+  - [ ] Uses StandardPage; server RBAC check
   - [ ] Run reminders via /api/admin/reminders/run with result toast and audit entry
   - Verify: Unauthorized path returns fallback; success logs exist
 
 - /admin/audits
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Data from /api/admin/activity and /api/admin/health-history; filters and export CSV
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
 - /admin/posts
-  - [x] Uses StandardPage with apiFetch
+  - [ ] Uses StandardPage with apiFetch
   - [ ] Enforce RBAC; adopt ListPage for table UX; hook into /api/admin/stats/posts for KPIs
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Export CSV button hits /api/admin/export?entity=newsletter; add import validation if needed
   - Verify: Export contains subscriber fields; errors surfaced
 
 - /admin/team
-  - [x] Uses StandardPage with TeamManagement
+  - [ ] Uses StandardPage with TeamManagement
   - [ ] Wire workload/skills/availability to respective APIs under /api/admin/team-management/*
   - Verify: Charts render; updates persist
 
 - /admin/permissions and /admin/roles
-  - [x] Use StandardPage + PermissionGate
+  - [ ] Use StandardPage + PermissionGate
   - [ ] Ensure role edits persist and reflect immediately in UI
   - Verify: hasPermission checks change post-save without reload
 
 - /admin/settings
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Add sidebar nav; split general/company/contact/timezone sections; optimistic saves
   - Verify: zod schema; rollback on error
 
@@ -147,17 +147,17 @@ Legend: [x] implemented/verified, [ ] required
   - Verify: Validate route; audit entries on change
 
 - /admin/settings/currencies
-  - [x] Uses StandardPage with CurrencyManager
+  - [ ] Uses StandardPage with CurrencyManager
   - [ ] Verify overrides/export/refresh endpoints; default currency persisted
   - Verify: Rates refresh; override precedence documented
 
 - /admin/integrations
-  - [x] Uses StandardPage
+  - [ ] Uses StandardPage
   - [ ] Add cards for status checks; link to docs; RBAC gate if needed
   - Verify: Health badges reflect /api/admin/system/health
 
 - /admin/uploads/quarantine
-  - [x] Uses StandardPage with QuarantineClient
+  - [ ] Uses StandardPage with QuarantineClient
   - [ ] Actions release/delete call /api/admin/uploads/quarantine; reflect AV status; audit changes
   - Verify: Infected files blocked until release
 
