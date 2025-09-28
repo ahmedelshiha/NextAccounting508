@@ -20,5 +20,26 @@ export default async function AdminOverviewPage() {
   if (role === 'CLIENT') redirect('/portal')
   if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) redirect('/admin/analytics')
 
-  return <AdminOverview />
+  // Hydrate initial KPI data server-side for faster first paint
+  const [bookingsRes, servicesRes, usersRes] = await Promise.all([
+    fetch('/api/admin/bookings/stats', { cache: 'no-store' }),
+    fetch('/api/admin/services/stats?range=90d', { cache: 'no-store' }),
+    fetch('/api/admin/stats/users?range=90d', { cache: 'no-store' })
+  ])
+
+  const [bookingsJson, servicesJson, usersJson] = await Promise.all([
+    bookingsRes.ok ? bookingsRes.json() : null,
+    servicesRes.ok ? servicesRes.json() : null,
+    usersRes.ok ? usersRes.json() : null
+  ])
+
+  return (
+    <AdminOverview
+      initial={{
+        bookingsStats: bookingsJson ?? undefined,
+        servicesStats: servicesJson ?? undefined,
+        usersStats: usersJson ?? undefined,
+      }}
+    />
+  )
 }
