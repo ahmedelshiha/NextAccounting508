@@ -13,6 +13,7 @@
 import { ReactNode } from 'react'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
+import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
 
@@ -77,13 +78,15 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
         </div>
       )}
     >
-      <RealtimeProvider>
-        <PerformanceWrapper>
-          <UXMonitor>
-            {children}
-          </UXMonitor>
-        </PerformanceWrapper>
-      </RealtimeProvider>
+      <ReactError31Boundary>
+        <RealtimeProvider>
+          <PerformanceWrapper>
+            <UXMonitor>
+              {children}
+            </UXMonitor>
+          </PerformanceWrapper>
+        </RealtimeProvider>
+      </ReactError31Boundary>
     </ErrorBoundary>
   )
 }

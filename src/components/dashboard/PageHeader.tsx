@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import type { ActionItem, IconType } from '@/types/dashboard'
+import { validateActionItem, devValidateProps } from '@/utils/actionItemValidator'
 
 // Helper to render icon (handles both IconType and ReactNode)
 const renderIcon = (icon?: IconType | React.ReactNode) => {
@@ -23,15 +24,39 @@ const renderIcon = (icon?: IconType | React.ReactNode) => {
       return icon
     }
     
-    // If it's a string or number, don't render it as an icon
-    if (typeof icon === 'string' || typeof icon === 'number') {
+    // Enhanced validation: detect React component objects (common error #31 cause)
+    if (icon && typeof icon === 'object' && '$typeof' in icon) {
+      console.error('PageHeader: React component object passed as icon instead of component reference', {
+        iconType: typeof icon,
+        iconKeys: Object.keys(icon),
+        hasRender: 'render' in icon,
+        hasDisplayName: 'displayName' in icon,
+        icon: icon
+      })
       return null
     }
+    
+    // If it's a string or number, don't render it as an icon
+    if (typeof icon === 'string' || typeof icon === 'number') {
+      console.warn('PageHeader: String/number passed as icon, expected component or element:', icon)
+      return null
+    }
+    
+    // Log unexpected icon types for debugging
+    console.warn('PageHeader: Unexpected icon type:', {
+      iconType: typeof icon,
+      iconConstructor: icon?.constructor?.name,
+      icon: icon
+    })
     
     // Otherwise, try to render as ReactNode (with caution)
     return icon
   } catch (error) {
-    console.warn('Invalid icon provided to PageHeader:', error)
+    console.error('PageHeader: Error rendering icon:', {
+      error: error instanceof Error ? error.message : String(error),
+      iconType: typeof icon,
+      icon: icon
+    })
     return null
   }
 }
@@ -68,6 +93,25 @@ const renderActionButton = (action: ActionItem, isPrimary: boolean = false) => {
 }
 
 export default function PageHeader({ title, subtitle, primaryAction, secondaryActions = [] }: { title: string; subtitle?: string; primaryAction?: ActionItem; secondaryActions?: ActionItem[] }) {
+  // Development-only validation
+  React.useEffect(() => {
+    devValidateProps({ primaryAction, secondaryActions }, 'PageHeader')
+    
+    if (primaryAction) {
+      const validation = validateActionItem(primaryAction, 'PageHeader.primaryAction')
+      if (!validation.isValid) {
+        console.error('🚨 PageHeader: Invalid primaryAction:', validation.errors)
+      }
+    }
+    
+    secondaryActions.forEach((action, index) => {
+      const validation = validateActionItem(action, `PageHeader.secondaryActions[${index}]`)
+      if (!validation.isValid) {
+        console.error(`🚨 PageHeader: Invalid secondaryAction[${index}]:`, validation.errors)
+      }
+    })
+  }, [primaryAction, secondaryActions])
+
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-6 mb-6 -mx-6 -mt-4">
       <div className="flex items-center justify-between">
