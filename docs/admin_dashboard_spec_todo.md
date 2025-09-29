@@ -27,9 +27,9 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
   - [x] Prisma: add InvoiceStatus enum; add Invoice and InvoiceItem models
   - [x] API: implement /api/admin/invoices {GET, POST, DELETE} with RBAC (TEAM_VIEW/TEAM_MANAGE)
   - [x] API: implement POST /api/admin/invoices/[id]/pay to mark invoice PAID and set paidAt
-  - [ ] UI: wire Admin Invoices ListPage to API; render status/amount; add filters (status, date range)
-  - [ ] Export: add CSV export for invoices at /api/admin/export?entity=invoices
-- [ ] Link invoice row actions to Payments view with preserved filters (status, range)
+  - [x] UI: wire Admin Invoices ListPage to API; render status/amount; add filters (status, date range)
+  - [x] Export: add CSV export for invoices at /api/admin/export?entity=invoices
+- [x] Link invoice row actions to Payments view with preserved filters (status, range)
 - [x] Payments: status/method/date filters with URL sync and CSV export
 - [ ] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
 
@@ -57,7 +57,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 10) Testing & Rollout
 - [ ] Unit tests for schemas, permissions, and utilities (vitest)
-- [ ] Integration tests for key API routes (no threads)
+- [x] Integration tests for key API routes (no threads)
 - [ ] E2E happy paths for admin flows (Playwright)
 - [ ] Feature-flag rollout plan documented in this file
 
@@ -72,11 +72,11 @@ P0 – Critical
 - [x] Define realtime event contracts (event names, payloads) and document
 
 P1 – High
-- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
-- [ ] Dashboard Overview: implement KPI row, charts row, and activity row with SSE refresh
+- [x] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [x] Dashboard Overview: implement KPI row, charts row, and activity row with SSE refresh
 
 P2 – Medium
-- [ ] Invoices: propose Prisma model, endpoints, and wire ListPage (blocked until schema approved)
+- [x] Invoices: Prisma model, endpoints, UI wiring completed; CSV export added
 - [ ] Link invoice row actions to payments view with preserved filters
 - [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
 - [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
@@ -91,7 +91,10 @@ P2 – Medium
 - Completed: Financial Module — Invoice models and admin APIs
   - Why: New implementation to unblock end-to-end invoicing and satisfy dependency (2) Data Models & APIs; enables test flows to create/pay/delete invoices
   - What: Added Prisma models (Invoice, InvoiceItem, InvoiceStatus); created /api/admin/invoices (GET/POST/DELETE) and /api/admin/invoices/[id]/pay with audit logging and RBAC
-  - Next: Wire Admin Invoices UI to API, add CSV export for invoices, link invoice actions to Payments view, and add integration tests
+- Completed: Invoices UI, exports, and linking
+  - Why: Provide end-to-end admin workflows for billing and reports
+  - What: Wired Admin Invoices page to API with status/date filters and server pagination; added CSV export at /api/admin/export?entity=invoices; linked row actions to Payments with preserved filters; added integration tests for invoices API and export
+  - Next: Monitor usage; extend invoice analytics if needed
 - Completed: Work Orders data model and CRUD APIs
   - Why: New module required by spec to manage operational work execution separate from tasks/bookings
   - What: Added WorkOrder model and WorkOrderStatus enum to Prisma; implemented /api/admin/work-orders (list/create) and /api/admin/work-orders/[id] (get/update/delete)
@@ -108,9 +111,9 @@ P2 – Medium
 
 ---
 
-### Completed: Prisma schema fixes for WorkOrder relations
+### Completed: Prisma schema fixes for WorkOrder relations and Invoice back-relations
 - Why: Resolve Prisma P1012 errors (ambiguous relations and missing opposite fields) blocking build
-- What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders)
+- What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders); added missing inverse relations for Invoice on User (invoices) and Booking (invoices) to resolve Prisma P1012
 - Status: Ready for prisma generate and deployment
 
 ## Next Steps
@@ -118,3 +121,4 @@ P2 – Medium
 - [ ] Build Work Orders list UI using components/dashboard/templates/ListPage
 - [ ] Add /api/admin/work-orders/analytics for trends and KPIs
 - [ ] Extend audit logging for create/update/delete actions
+- [ ] Expenses: implement ListPage with filters, AV badge preview, CSV export

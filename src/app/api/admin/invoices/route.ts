@@ -4,6 +4,13 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
+import { parseListQuery } from '@/schemas/list-query'
+
+function parseDate(value: string | null): Date | undefined {
+  if (!value) return undefined
+  const d = new Date(value)
+  return Number.isFinite(d.getTime()) ? d : undefined
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,27 +23,45 @@ export async function GET(request: NextRequest) {
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const search = searchParams.get('search')
+    const { page, limit, skip, sortBy, sortOrder, q } = parseListQuery(searchParams, {
+      allowedSortBy: ['createdAt', 'updatedAt', 'paidAt', 'totalCents', 'status'],
+      defaultSortBy: 'createdAt',
+      maxLimit: 100,
+    })
+
+    const statusParam = searchParams.get('status')
+    const createdFrom = parseDate(searchParams.get('createdFrom'))
+    const createdTo = parseDate(searchParams.get('createdTo'))
+
     const where: any = {}
-    if (status && status !== 'all') where.status = status as any
-    if (search) {
+    if (statusParam && statusParam !== 'all') where.status = statusParam
+    if (q) {
       where.OR = [
-        { number: { contains: search, mode: 'insensitive' } },
-        { client: { name: { contains: search, mode: 'insensitive' } } },
-        { client: { email: { contains: search, mode: 'insensitive' } } }
+        { number: { contains: q, mode: 'insensitive' } },
+        { client: { name: { contains: q, mode: 'insensitive' } } },
+        { client: { email: { contains: q, mode: 'insensitive' } } },
       ]
+    }
+    if (createdFrom || createdTo) {
+      where.createdAt = {}
+      if (createdFrom) where.createdAt.gte = createdFrom
+      if (createdTo) where.createdAt.lte = createdTo
     }
 
     const invoices = await prisma.invoice.findMany({
       where,
-      include: { client: { select: { id: true, name: true, email: true } }, booking: { select: { id: true, scheduledAt: true } }, items: true },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
+      include: {
+        client: { select: { id: true, name: true, email: true } },
+        booking: { select: { id: true, scheduledAt: true } },
+        items: true,
+      },
+      orderBy: { [sortBy]: sortOrder } as any,
+      skip,
+      take: limit,
     })
     const total = await prisma.invoice.count({ where })
 
-    return NextResponse.json({ invoices, total })
+    return NextResponse.json({ invoices, total, page, limit })
   } catch (error) {
     console.error('Error fetching invoices:', error)
     return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
@@ -94,7 +119,7 @@ export async function POST(request: NextRequest) {
       include: { items: true }
     })
 
-    await logAudit({ action: 'invoice.create', actorId: session.user.id, targetId: invoice.id, details: { bookingId, totalCents } })
+    await logAudit({ action: 'invoice.create', actorId: (session.user as any).id, targetId: invoice.id, details: { bookingId, totalCents } })
 
     return NextResponse.json({ message: 'Invoice created', invoice }, { status: 201 })
   } catch (error) {
@@ -120,7 +145,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const result = await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } })
-    await logAudit({ action: 'invoice.bulk.delete', actorId: session.user.id, details: { count: result.count } })
+    await logAudit({ action: 'invoice.bulk.delete', actorId: (session.user as any).id, details: { count: result.count } })
     return NextResponse.json({ message: `Deleted ${result.count} invoices`, deleted: result.count })
   } catch (error) {
     console.error('Error deleting invoices:', error)
