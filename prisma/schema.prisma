@@ -53,6 +53,7 @@ model User {
   workOrdersAsClient WorkOrder[] @relation("WorkOrderClient")
   assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
   invoices Invoice[]
+  expenses Expense[]
 
   @@index([email])
   @@index([role])
@@ -676,6 +677,7 @@ model Attachment {
 
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  expenses       Expense[]
 
   @@index([serviceRequestId])
   @@index([tenantId])
