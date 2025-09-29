@@ -157,6 +157,11 @@ Tests & Static Checks
 - ✅ Why: Provide CI coverage for validation and permission helpers; reduce regressions.
 - ✅ Next steps: run `pnpm test` and fix any failing tests surfaced by CI.
 
+Typecheck Fixes & Accessibility
+- ✅ What: Added required 'stats' prop to AnalyticsPage usage in Admin Reports; improved translation loading indicator with role="status", aria-live, and sr-only text.
+- ✅ Why: Unblock build by resolving TypeScript error and enhance accessibility without altering visual styles.
+- ✅ Next steps: Re-run `pnpm typecheck` and `pnpm build` in CI; report any remaining errors for remediation.
+
 ---
 
 ## Short-Risk & Rollout Notes
