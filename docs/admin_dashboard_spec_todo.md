@@ -5,7 +5,6 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 ## Reorganized, Dependency-Ordered Execution Plan
 
 1) Platform Foundations
-- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [x] Finalize RBAC permission matrix and enforce on all admin pages
 - [x] Implement tenant switcher and verify tenant-scoped data on key routes
 - [x] Unify list/table contracts with AdvancedDataTable across modules
