@@ -139,3 +139,16 @@ P2 – Medium
     - [ ] Implement migrations and regenerate Prisma Client
     - [ ] Replace runtime guards with typed prisma.expense usage
     - [ ] Deliver Expenses ListPage with filters and CSV export
+
+## 2025-10-03 Runtime & Build Fixes
+- Completed: Fixed homepage runtime error ("Unexpected end of JSON input")
+  - Why: Client fetch error wrapper returned non-JSON text, causing JSON.parse failures in consumers.
+  - What: Updated src/components/providers/client-layout.tsx to always return a valid JSON body and set Content-Type: application/json for error Responses.
+  - Next: None.
+- Completed: ESLint build failure on Admin Users page
+  - Why: Duplicate useSession with a forbidden require() import in a client component.
+  - What: Removed the require() usage; now consistently using ES import useSession from next-auth/react in src/app/admin/users/page.tsx.
+  - Next: None.
+- Completed: Local NextAuth warning mitigation for development
+  - What: Set NEXTAUTH_URL and NEXTAUTH_SECRET for the dev server to eliminate warnings and stabilize auth in dev.
+  - Next: Ensure these are configured in deployment environments.
