@@ -98,8 +98,9 @@ Documentation notes:
   - Verify: Currency formatting uses settings; totals accurate
 
 - /admin/payments
-  - [ ] Uses ListPage
-  - [ ] Add filters (method/status/date) and export
+  - [x] Uses ListPage
+  - [ ] Add filters (method/status/date)
+  - [x] Export CSV button hits /api/admin/export?entity=payments
   - Verify: Filters reflect URL; CSV correct
 
 - /admin/expenses
@@ -129,8 +130,8 @@ Documentation notes:
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
-  - [ ] Uses StandardPage
-  - [ ] Export CSV button hits /api/admin/export?entity=newsletter; add import validation if needed
+  - [x] Uses StandardPage
+  - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
 
 - /admin/team
@@ -323,6 +324,9 @@ Documentation notes:
   - src/app/admin/availability/page.tsx (duplicate import removed)
   - src/app/admin/clients/new/page.tsx (Zod literal options corrected)
   - src/app/api/auth/register/register/route.ts (import authOptions from '@/lib/auth')
+  - src/app/api/admin/export/route.ts (added exports for newsletter, posts, and payments)
+  - src/app/admin/posts/page.tsx (wired Export CSV action)
+  - src/app/admin/payments/page.tsx (added Export CSV action)
 
 
 
