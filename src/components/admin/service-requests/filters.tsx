@@ -6,9 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Filter } from 'lucide-react'
 
+type ServiceRequestStatus = 'DRAFT' | 'SUBMITTED' | 'IN_REVIEW' | 'APPROVED' | 'ASSIGNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'ALL'
+type ServiceRequestPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'ALL'
+
 export type RequestFilters = {
-  status: string | 'ALL'
-  priority: string | 'ALL'
+  status: ServiceRequestStatus
+  priority: ServiceRequestPriority
   bookingType: 'ALL' | 'STANDARD' | 'RECURRING' | 'EMERGENCY' | 'CONSULTATION'
   paymentStatus?: 'ALL' | 'UNPAID' | 'INTENT' | 'PAID' | 'FAILED' | 'REFUNDED'
   q: string

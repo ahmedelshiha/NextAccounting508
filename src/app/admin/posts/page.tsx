@@ -432,7 +432,7 @@ export default function AdminPostsPage() {
       primaryAction={{ label: 'Create Post', onClick: () => setShowCreateModal(true), icon: Plus }}
       secondaryActions={[
         { label: 'Refresh', icon: RefreshCw, onClick: () => loadPosts(), disabled: loading },
-        { label: 'Export', icon: Download, onClick: () => { /* implement server export when ready */ } }
+        { label: 'Export CSV', icon: Download, onClick: () => { window.location.href = '/api/admin/export?entity=posts' } }
       ]}
       filters={filters}
       onFilterChange={onFilterChange}

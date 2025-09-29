@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 
@@ -14,8 +15,33 @@ interface PaymentItem {
 }
 
 export default function AdminPaymentsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [status, setStatus] = useState<string>('all')
   const [method, setMethod] = useState<string>('all')
+  const [range, setRange] = useState<string>('last_30')
+
+  // Initialize from URL
+  useEffect(() => {
+    if (!searchParams) return
+    const get = (k: string) => searchParams.get(k) || ''
+    const s = get('status'); if (s) setStatus(s)
+    const m = get('method'); if (m) setMethod(m)
+    const r = get('range'); if (r) setRange(r)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Keep URL in sync
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (status && status !== 'all') params.set('status', status)
+    if (method && method !== 'all') params.set('method', method)
+    if (range && range !== 'last_30') params.set('range', range)
+    const qs = params.toString()
+    const href = qs ? `/admin/payments?${qs}` : '/admin/payments'
+    router.replace(href)
+  }, [status, method, range, router])
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
@@ -33,11 +59,18 @@ export default function AdminPaymentsPage() {
       { value: 'check', label: 'Check' },
       { value: 'other', label: 'Other' },
     ]},
+    { key: 'range', label: 'Date Range', value: range, options: [
+      { value: 'last_7', label: 'Last 7 days' },
+      { value: 'last_30', label: 'Last 30 days' },
+      { value: 'quarter', label: 'This quarter' },
+      { value: 'year', label: 'This year' },
+    ]},
   ]
 
   const onFilterChange = (key: string, value: string) => {
     if (key === 'status') setStatus(value)
     if (key === 'method') setMethod(value)
+    if (key === 'range') setRange(value)
   }
 
   const columns: Column<PaymentItem>[] = useMemo(() => ([
@@ -65,7 +98,7 @@ export default function AdminPaymentsPage() {
     <ListPage<PaymentItem>
       title="Payments"
       subtitle="Monitor payment activity; use Reports for exports"
-      secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }]}
+      secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }, { label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=payments' } }]}
       filters={filters}
       onFilterChange={onFilterChange}
       columns={columns}

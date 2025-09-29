@@ -15,7 +15,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
   - Acceptance: Baseline report stored in monitoring/performance-baseline.json updated with current values
   - Verify: Run vitest and lightweight profiling; document results.
 
-## 0A) Route-by-Route Audit (Current State → Actions)
+## 0A) Route-by-Route Audit (Current State ��� Actions)
 Legend: [x] implemented/verified, [ ] required
 
 Documentation notes:
@@ -93,13 +93,16 @@ Documentation notes:
   - Verify: Slots persist; tenant isolation enforced
 
 - /admin/invoices
-  - [ ] Uses ListPage
+  - [x] Uses ListPage (UI scaffold only)
   - [ ] Ensure payments linkage (view invoice → payments) and export hooks
+  - [ ] Implement invoices data source (blocked: no Invoice model in Prisma schema)
   - Verify: Currency formatting uses settings; totals accurate
 
 - /admin/payments
-  - [ ] Uses ListPage
-  - [ ] Add filters (method/status/date) and export
+  - [x] Uses ListPage
+  - [ ] Add filters (method/status/date)
+  - [x] Export CSV button hits /api/admin/export?entity=payments
+  - [x] URL-sync for status/method/date range filters
   - Verify: Filters reflect URL; CSV correct
 
 - /admin/expenses
@@ -129,8 +132,8 @@ Documentation notes:
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
-  - [ ] Uses StandardPage
-  - [ ] Export CSV button hits /api/admin/export?entity=newsletter; add import validation if needed
+  - [x] Uses StandardPage
+  - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
 
 - /admin/team
@@ -323,6 +326,9 @@ Documentation notes:
   - src/app/admin/availability/page.tsx (duplicate import removed)
   - src/app/admin/clients/new/page.tsx (Zod literal options corrected)
   - src/app/api/auth/register/register/route.ts (import authOptions from '@/lib/auth')
+  - src/app/api/admin/export/route.ts (added exports for newsletter, posts, and payments)
+  - src/app/admin/posts/page.tsx (wired Export CSV action)
+  - src/app/admin/payments/page.tsx (added Export CSV action)
 
 
 
@@ -358,4 +364,11 @@ Documentation notes:
   - Type: Bugfix
   - Files changed: src/app/admin/service-requests/page.tsx ('use client' directive added)
   - Next steps: Continue implementing realtime SSE and bulk endpoints per spec under /api/admin/service-requests/*.
+
+## Hotfix – 2025-09-30 (Service Requests filters typing)
+- [x] Fixed TS2322 in ClientPage by aligning RequestFilters types with useServiceRequests unions
+  - Why: filters.status and filters.priority were typed as string causing mismatch when passed to useServiceRequests expecting strict unions. Narrowed types to ServiceRequestStatus/ServiceRequestPriority.
+  - Type: Bugfix (typing)
+  - Files changed: src/components/admin/service-requests/filters.tsx
+  - Next steps: Run typecheck and vercel:build; verify URL-initialized filters still narrow correctly and CSV export works.
 
