@@ -173,6 +173,8 @@ const getCachedCalendar = withCache<any>(
           name: slot.teamMember?.name || 'Unknown',
         },
         available: slot.available,
+        serviceId: slot.serviceId,
+        teamMemberId: slot.teamMemberId ?? null,
       })),
       dateRange: {
         start: startDate.toISOString(),

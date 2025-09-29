@@ -18,6 +18,11 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 ## 0A) Route-by-Route Audit (Current State → Actions)
 Legend: [x] implemented/verified, [ ] required
 
+Documentation notes:
+- /admin/analytics: Refactor (enhancement) to reuse existing AnalyticsPage template and AdminAnalyticsPageClient for CSV export.
+- /admin/calendar: Enhancement to existing calendar page; reused hooks and APIs, added interactions without altering styles.
+- /admin/clients/profiles: Enhancement to existing page; added URL-sync and preserved AdvancedDataTable contract.
+
 - /admin (overview)
   - [x] Uses AnalyticsPage template with providers
   - [x] KPIs wired: bookings, service-requests, revenue, utilization (APIs: /api/admin/bookings/stats, /api/admin/service-requests/analytics, /api/admin/stats/users, /api/admin/services/stats)
@@ -31,8 +36,8 @@ Legend: [x] implemented/verified, [ ] required
 
 - /admin/analytics
   - [x] Page exists with RBAC checks; renders AnalyticsDashboard
-  - [ ] Adopt AnalyticsPage template for consistent layout and actions
-  - [ ] Add export scheduling and CSV hooks where applicable
+  - [x] Adopt AnalyticsPage template for consistent layout and actions
+  - [x] Add CSV export hooks; scheduling deferred to reports module
   - Verify: Access only ADMIN/TEAM_LEAD; visual parity maintained
 
 - /admin/reports
@@ -44,7 +49,7 @@ Legend: [x] implemented/verified, [ ] required
   - [x] Uses ListPage with SWR
   - [x] Verify pagination/sort use AdvancedDataTable contract; enforce ≤50 rows/page
   - [x] Ensure export respects active filters
-  - Verify: URL sync for filters; CSV matches rows
+  - [x] Verify: URL sync for filters; CSV matches rows
 
 - /admin/clients/invitations
   - [x] Uses StandardPage
@@ -64,8 +69,8 @@ Legend: [x] implemented/verified, [ ] required
 
 - /admin/calendar (redirect)
   - [x] Replace redirect with calendar workspace using day/week/month views
-  - [ ] Data: bookings + availability via /api/admin/availability-slots and /api/admin/bookings
-  - [ ] Interactions: click-to-create, drag-to-reschedule (PATCH booking), availability toggle
+  - [x] Data: aggregated via /api/admin/calendar (bookings, tasks, availability), with serviceId exposed for availability updates
+  - [x] Interactions: click-to-create, drag-to-reschedule (PATCH booking), availability toggle
   - Verify: Drag-reschedule issues PATCH and revalidates; mobile responsive
 
 - /admin/service-requests
@@ -260,4 +265,6 @@ Legend: [x] implemented/verified, [ ] required
 ## Progress Update – 2025-09-29
 - [x] Security policies: CSP connect-src aligned for Netlify/Vercel previews; CORS issues mitigated by same-origin fetch strategy.
 - [ ] Verify admin pages with direct fetch() still use relative paths; add guards if any server component can throw on failed fetch.
-- [ ] Next: Template adoption on /admin/analytics; calendar interactions; filtered export on clients/profiles.
+- [x] /admin/analytics adopted AnalyticsPage and added CSV export action via AdminAnalyticsPageClient.
+- [x] /admin/calendar: implemented click-to-create, drag-to-reschedule (PATCH /api/admin/bookings), and availability toggle (PUT /api/admin/availability-slots); API updated to include serviceId/teamMemberId.
+- [x] /admin/clients/profiles: URL sync for q/tier/sort/page; export respects active filters.
