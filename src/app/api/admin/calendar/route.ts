@@ -117,13 +117,14 @@ const getCachedCalendar = withCache<any>(
       tasks = []
     }
 
-    // Fetch availability slots for the period
+    // Fetch availability slots for the period (tenanted via related Service)
     const availability = await prisma.availabilitySlot.findMany({
       where: {
         date: {
           gte: startDate,
           lte: endDate,
         },
+        ...(tenantId ? { service: { tenantId } } : {}),
       },
       include: {
         teamMember: {
