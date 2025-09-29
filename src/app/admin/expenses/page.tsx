@@ -3,6 +3,8 @@
 import React, { useMemo, useState } from 'react'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface ExpenseItem {
   id: string
@@ -65,18 +67,20 @@ export default function AdminExpensesPage() {
   ]
 
   return (
-    <ListPage<ExpenseItem>
-      title="Expenses"
-      subtitle="Track company expenses; use Reports for exports"
-      secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }]}
-      filters={filters}
-      onFilterChange={onFilterChange}
-      columns={columns}
-      rows={rows}
-      useAdvancedTable
-      emptyMessage="No expenses found"
-      actions={actions}
-      selectable={false}
-    />
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Expenses.</div>}>
+      <ListPage<ExpenseItem>
+        title="Expenses"
+        subtitle="Track company expenses; use Reports for exports"
+        secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }]}
+        filters={filters}
+        onFilterChange={onFilterChange}
+        columns={columns}
+        rows={rows}
+        useAdvancedTable
+        emptyMessage="No expenses found"
+        actions={actions}
+        selectable={false}
+      />
+    </PermissionGate>
   )
 }

@@ -1,10 +1,11 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '@/lib/api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import StandardPage from '@/components/dashboard/templates/StandardPage'
+import ListPage from '@/components/dashboard/templates/ListPage'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
+import type { Column, RowAction } from '@/types/dashboard'
 
 interface Subscription { id: string; email: string; name?: string | null; subscribed: boolean; createdAt: string }
 
@@ -13,11 +14,14 @@ export default function AdminNewsletterPage() {
   const [loading, setLoading] = useState(true)
 
   async function load() {
+    setLoading(true)
     try {
       const res = await apiFetch('/api/newsletter')
       if (res.ok) {
         const data = await res.json()
         setSubs(data.subscriptions || [])
+      } else {
+        setSubs([])
       }
     } finally { setLoading(false) }
   }
@@ -33,44 +37,33 @@ export default function AdminNewsletterPage() {
     if (res.ok) load()
   }
 
+  const columns: Column<Subscription>[] = useMemo(() => ([
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'name', label: 'Name', sortable: true, render: (v) => v ? String(v) : '' },
+    { key: 'subscribed', label: 'Status', sortable: true, render: (v: boolean) => (
+      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${v ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>{v ? 'Active' : 'Inactive'}</span>
+    ) },
+    { key: 'createdAt', label: 'Subscribed At', sortable: true, render: (v: string) => new Date(v).toLocaleString() },
+  ]), [])
+
+  const actions: RowAction<Subscription>[] = [
+    { label: 'Unsubscribe', onClick: (row) => { if (row.subscribed) void unsubscribe(row.email) }, disabled: (row) => !row.subscribed }
+  ]
+
   return (
-    <StandardPage title="Newsletter" subtitle="Manage newsletter subscribers" secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscribers</CardTitle>
-          <CardDescription>All newsletter signups</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[...Array(6)].map((_, i) => (<div key={i} className="bg-gray-200 rounded-lg h-16" />))}
-            </div>
-          ) : subs.length ? (
-            <div className="divide-y divide-gray-100">
-              {subs.map(s => (
-                <div key={s.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-medium text-gray-900">{s.email}</div>
-                    {s.name && <div className="text-sm text-gray-600">{s.name}</div>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {s.subscribed ? (
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                    ) : (
-                      <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
-                    )}
-                    {s.subscribed && (
-                      <Button size="sm" variant="outline" onClick={() => unsubscribe(s.email)}>Unsubscribe</Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-gray-500">No subscribers yet.</div>
-          )}
-        </CardContent>
-      </Card>
-    </StandardPage>
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Newsletter.</div>}>
+      <ListPage<Subscription>
+        title="Newsletter"
+        subtitle="Manage newsletter subscribers"
+        secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}
+        columns={columns}
+        rows={subs}
+        loading={loading}
+        useAdvancedTable
+        emptyMessage="No subscribers yet."
+        actions={actions}
+        selectable={false}
+      />
+    </PermissionGate>
   )
 }

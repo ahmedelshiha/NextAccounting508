@@ -8,8 +8,8 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
 - [ ] Implement tenant switcher and verify tenant-scoped data on key routes
-- [ ] Unify list/table contracts with AdvancedDataTable across modules
-- [ ] Define realtime event contracts (event names, payloads) and document
+- [x] Unify list/table contracts with AdvancedDataTable across modules
+- [x] Define realtime event contracts (event names, payloads) and document
 
 2) Data Models & APIs
 - [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
@@ -61,8 +61,8 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 P0 – Critical
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
-- [ ] Unify list/table contracts with AdvancedDataTable across modules
-- [ ] Define realtime event contracts (event names, payloads) and document
+- [x] Unify list/table contracts with AdvancedDataTable across modules
+- [x] Define realtime event contracts (event names, payloads) and document
 
 P1 – High
 - [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
@@ -173,6 +173,7 @@ Documentation notes:
 
 - /admin/invoices
   - [x] Uses ListPage (UI scaffold only)
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [ ] Ensure payments linkage (view invoice → payments) and export hooks
   - [ ] Implement invoices data source (blocked: no Invoice model in Prisma schema)
   - Verify: Currency formatting uses settings; totals accurate
@@ -201,7 +202,8 @@ Documentation notes:
   - Verify: Unauthorized path returns fallback; success logs exist
 
 - /admin/audits
-  - [x] Uses StandardPage
+  - [x] Uses ListPage + AdvancedDataTable (server-side pagination)
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Data from /api/admin/activity; filters and export CSV via /api/admin/export?entity=audits
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
@@ -212,9 +214,15 @@ Documentation notes:
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
-  - [x] Uses StandardPage
+  - [x] Uses ListPage + AdvancedDataTable
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
+
+- /admin/compliance
+  - [x] Uses StandardPage-equivalent layout
+  - [x] RBAC gate (ANALYTICS_VIEW)
+  - Verify: Health cards and compliance alerts visible only to authorized roles
 
 - /admin/team
   - [ ] Uses StandardPage with TeamManagement
@@ -466,4 +474,23 @@ Documentation notes:
   - Type: Enhancement/bugfix (no UX change)
   - Files changed: src/app/admin/posts/page.tsx
   - Next steps: Optional – adopt ListPage and hook into /api/admin/stats/posts for KPI tiles
+
+## Hotfix – 2025-09-30 (RBAC gating on missing admin pages)
+- [x] Enforced RBAC on /admin/expenses, /admin/integrations, /admin/team, /admin/settings, /admin/security
+  - Why: Ensure only authorized roles can access these pages according to the existing permission model; aligns with P0 RBAC enforcement.
+  - Type: Enhancement (RBAC enforcement)
+  - Files changed:
+    - src/app/admin/expenses/page.tsx
+    - src/app/admin/integrations/page.tsx
+    - src/app/admin/team/page.tsx
+    - src/app/admin/settings/page.tsx
+    - src/app/admin/security/page.tsx
+  - Next steps: Finalize permission matrix for Financial and System modules; add DOM/unit tests asserting PermissionGate fallbacks and server RBAC for API routes.
+
+## Hotfix – 2025-09-30 (Realtime event contracts centralization)
+- [x] Added src/lib/realtime-events.ts exporting AdminRealtimeEventType and payload contracts for core events
+  - Why: Establishes a single source of truth for event names and payload shapes; reduces drift across pages and APIs.
+  - Type: Documentation-as-code / typing
+  - Files added: src/lib/realtime-events.ts
+  - Next steps: Incrementally adopt types in RealtimeProvider consumers and API broadcasters; add unit tests for parseEventMessage using contracts.
 
