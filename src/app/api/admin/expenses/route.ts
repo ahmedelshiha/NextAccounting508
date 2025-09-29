@@ -1,11 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
+import { z } from 'zod'
+import type { Prisma } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { parseListQuery } from '@/schemas/list-query'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
+const EXPENSE_STATUSES = ['PENDING', 'APPROVED', 'REIMBURSED', 'REJECTED'] as const
+
+const expenseCreateSchema = z.object({
+  vendor: z.string().trim().min(1, 'vendor is required'),
+  category: z.string().trim().min(1).max(120).optional(),
+  status: z
+    .string()
+    .trim()
+    .transform((value) => value.toUpperCase())
+    .refine((value) => EXPENSE_STATUSES.includes(value as typeof EXPENSE_STATUSES[number]), 'invalid status')
+    .optional(),
+  amountCents: z.number().finite().nonnegative(),
+  currency: z
+    .string()
+    .trim()
+    .min(3)
+    .max(10)
+    .transform((value) => value.toUpperCase())
+    .optional(),
+  date: z.union([z.string(), z.date()]),
+  attachmentId: z.string().trim().min(1).optional().nullable(),
+})
+
+const expenseDeleteSchema = z.object({
+  expenseIds: z.array(z.string().trim().min(1)).min(1)
+})
 
 function parseDate(value: string | null): Date | undefined {
   if (!value) return undefined
