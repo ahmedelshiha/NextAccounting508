@@ -28,9 +28,7 @@ const getCachedBookings = withCache<BookingsResponse>(
   },
   async (request: NextRequest): Promise<BookingsResponse> => {
     const { searchParams } = new URL(request.url)
-    const limit = searchParams.get('limit')
-    const skipParam = searchParams.get('skip')
-    const offsetParam = searchParams.get('offset')
+    const common = parseListQuery(searchParams, { allowedSortBy: ['scheduledAt','createdAt','status'], defaultSortBy: 'scheduledAt', maxLimit: 100 })
     const status = searchParams.get('status')
     const search = searchParams.get('search')
     const startDate = searchParams.get('startDate')
