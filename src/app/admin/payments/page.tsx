@@ -16,6 +16,7 @@ interface PaymentItem {
 export default function AdminPaymentsPage() {
   const [status, setStatus] = useState<string>('all')
   const [method, setMethod] = useState<string>('all')
+  const [range, setRange] = useState<string>('last_30')
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
@@ -33,11 +34,18 @@ export default function AdminPaymentsPage() {
       { value: 'check', label: 'Check' },
       { value: 'other', label: 'Other' },
     ]},
+    { key: 'range', label: 'Date Range', value: range, options: [
+      { value: 'last_7', label: 'Last 7 days' },
+      { value: 'last_30', label: 'Last 30 days' },
+      { value: 'quarter', label: 'This quarter' },
+      { value: 'year', label: 'This year' },
+    ]},
   ]
 
   const onFilterChange = (key: string, value: string) => {
     if (key === 'status') setStatus(value)
     if (key === 'method') setMethod(value)
+    if (key === 'range') setRange(value)
   }
 
   const columns: Column<PaymentItem>[] = useMemo(() => ([
