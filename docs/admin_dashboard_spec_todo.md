@@ -405,6 +405,13 @@ Documentation notes:
 - TypeScript typecheck is deferred to the final project step. For now, skip typecheck during local/CI iterations to unblock implementation.
 
 ## Status Update – 2025-09-30
+- ✅ What was completed (build fix)
+  - Resolved Next.js build error on /admin/team by moving metadata to a server layout (route segment) and marking PermissionGate as a client component
+- ✅ Why it was done
+  - Next.js disallows exporting metadata from a client file; placing metadata in src/app/admin/team/layout.tsx keeps it server-only. PermissionGate uses useSession and must be a client component.
+- ✅ Next steps
+  - Re-run build; verify metadata renders and page loads with RBAC gate intact
+
 - ✅ What was completed
   - RBAC enforcement finalized: added route-based checks in middleware and page-level gates for Services (SERVICES_VIEW) and Payments (ANALYTICS_VIEW)
   - Tenant switcher implemented and tenant propagation wired: UI in AdminHeader, cookie/localStorage persistence, middleware forwards x-tenant-id, apiFetch attaches header on client
