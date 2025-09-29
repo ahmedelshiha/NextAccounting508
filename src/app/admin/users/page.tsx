@@ -233,6 +233,14 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ role: newRole })
       })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
+      try {
+        const mod = await import('next-auth/react')
+        const { data: current, update } = mod.useSession()
+        const me = (current?.user as any)?.id
+        if (me && me === userId && typeof update === 'function') {
+          await update({ user: { ...(current.user as any), role: newRole } })
+        }
+      } catch {}
     } catch (e) {
       console.error('Role update failed', e)
       setUsers(prev => prev.map(u => (u.id === userId ? (original as UserItem) : u)))
