@@ -79,7 +79,7 @@ const Step2Schema = z.object({
 })
 
 const Step7Schema = z.object({
-  gdprConsent: z.literal(true, { errorMap: () => ({ message: 'GDPR consent is required' }) }),
+  gdprConsent: z.literal(true, { message: 'GDPR consent is required' }),
 })
 
 async function fetchServices(): Promise<Service[]> {
