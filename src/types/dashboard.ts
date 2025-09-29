@@ -64,4 +64,5 @@ export interface RowAction<T> {
   label: string
   onClick: (row: T) => void
   variant?: 'default' | 'destructive'
+  disabled?: boolean | ((row: T) => boolean)
 }
