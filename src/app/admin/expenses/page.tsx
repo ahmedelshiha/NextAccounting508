@@ -123,17 +123,20 @@ export default function AdminExpensesPage() {
 
   const { from, to } = computeDateRange(range)
   const apiUrl = useMemo(() => {
-    const u = new URL('/api/admin/expenses', window.location.origin)
+    if (typeof window === 'undefined') return '/api/admin/expenses'
+    const currentOrigin = window.location.origin
+    const u = new URL('/api/admin/expenses', currentOrigin)
     if (status && status !== 'all') u.searchParams.set('status', status.toUpperCase())
     if (category && category !== 'all') u.searchParams.set('category', category)
     if (from) u.searchParams.set('dateFrom', from)
     if (to) u.searchParams.set('dateTo', to)
+    if (search) u.searchParams.set('q', search)
     u.searchParams.set('page', String(page))
     u.searchParams.set('limit', String(pageSize))
     u.searchParams.set('sortBy', 'date')
     u.searchParams.set('sortOrder', 'desc')
-    return u.pathname + '?' + u.searchParams.toString()
-  }, [status, category, from, to, page])
+    return `${u.pathname}?${u.searchParams.toString()}`
+  }, [status, category, from, to, search, page])
 
   const { data, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher)
 
