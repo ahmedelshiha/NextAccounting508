@@ -53,6 +53,7 @@ model User {
   workOrdersAsClient WorkOrder[] @relation("WorkOrderClient")
   assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
   invoices Invoice[]
+  expenses Expense[]
 
   @@index([email])
   @@index([role])
@@ -676,6 +677,7 @@ model Attachment {
 
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  expenses       Expense[]
 
   @@index([serviceRequestId])
   @@index([tenantId])
@@ -926,7 +928,31 @@ model InvoiceItem {
   @@map("invoice_items")
 }
 
-// ... rest of schema unchanged (omitted for brevity) 
+model Expense {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  vendor       String
+  category     String?
+  status       String    @default("PENDING")
+  amountCents  Int
+  currency     String    @default("USD")
+  date         DateTime
+  attachmentId String?
+  userId       String?
+
+  attachment   Attachment? @relation(fields: [attachmentId], references: [id], onDelete: SetNull)
+  user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([date])
+  @@index([status])
+  @@map("expenses")
+}
+
+// ... rest of schema unchanged (omitted for brevity)
 
 model ChatMessage {
   id        String   @id @default(cuid())

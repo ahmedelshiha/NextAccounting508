@@ -117,6 +117,7 @@ export async function GET(request: NextRequest) {
         if (dateFrom) where.date.gte = dateFrom
         if (dateTo) where.date.lte = dateTo
       }
+
       const expenses = await prisma.expense.findMany({ where, include: { attachment: { select: { url: true, avStatus: true } } }, orderBy: { date: 'desc' } })
       rows = expenses.map(e => ({ id: e.id, vendor: e.vendor, category: e.category, status: e.status, amount: (e.amountCents/100).toFixed(2), currency: e.currency, date: e.date.toISOString().slice(0,10), avStatus: e.attachment?.avStatus || '', attachmentUrl: e.attachment?.url || '' }))
     } else {
