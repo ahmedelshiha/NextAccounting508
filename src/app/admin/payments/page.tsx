@@ -16,6 +16,7 @@ interface PaymentItem {
 
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { downloadExport } from '@/lib/admin-export'
 
 export default function AdminPaymentsPage() {
   const router = useRouter()
