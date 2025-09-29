@@ -7,6 +7,7 @@ import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
 import { Download } from 'lucide-react'
+import { downloadExport } from '@/lib/admin-export'
 
 interface ClientRow {
   id: string | number
