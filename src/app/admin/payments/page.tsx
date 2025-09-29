@@ -15,9 +15,33 @@ interface PaymentItem {
 }
 
 export default function AdminPaymentsPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [status, setStatus] = useState<string>('all')
   const [method, setMethod] = useState<string>('all')
   const [range, setRange] = useState<string>('last_30')
+
+  // Initialize from URL
+  useEffect(() => {
+    if (!searchParams) return
+    const get = (k: string) => searchParams.get(k) || ''
+    const s = get('status'); if (s) setStatus(s)
+    const m = get('method'); if (m) setMethod(m)
+    const r = get('range'); if (r) setRange(r)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Keep URL in sync
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (status && status !== 'all') params.set('status', status)
+    if (method && method !== 'all') params.set('method', method)
+    if (range && range !== 'last_30') params.set('range', range)
+    const qs = params.toString()
+    const href = qs ? `/admin/payments?${qs}` : '/admin/payments'
+    router.replace(href)
+  }, [status, method, range, router])
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
