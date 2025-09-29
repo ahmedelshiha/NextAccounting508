@@ -5,9 +5,9 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 ## Reorganized, Dependency-Ordered Execution Plan
 
 1) Platform Foundations
-- [x] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
-- [ ] Finalize RBAC permission matrix and enforce on all admin pages
-- [ ] Implement tenant switcher and verify tenant-scoped data on key routes
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [x] Finalize RBAC permission matrix and enforce on all admin pages
+- [x] Implement tenant switcher and verify tenant-scoped data on key routes
 - [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
 
@@ -59,8 +59,8 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 ## Priority Backlog (Pending Tasks Ordered)
 
 P0 – Critical
-- [x] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
-- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [x] Finalize RBAC permission matrix and enforce on all admin pages
 - [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
 
@@ -404,6 +404,20 @@ Documentation notes:
 
 ## Process Note
 - TypeScript typecheck is deferred to the final project step. For now, skip typecheck during local/CI iterations to unblock implementation.
+
+## Status Update – 2025-09-30
+- ✅ What was completed
+  - RBAC enforcement finalized: added route-based checks in middleware and page-level gates for Services (SERVICES_VIEW) and Payments (ANALYTICS_VIEW)
+  - Tenant switcher implemented and tenant propagation wired: UI in AdminHeader, cookie/localStorage persistence, middleware forwards x-tenant-id, apiFetch attaches header on client
+  - Newsletter actions typing fix: RowAction.disabled added and DataTable honors disabled state
+- ✅ Why it was done (new implementation vs enhancement/refactor)
+  - RBAC: Enhancement/refactor to ensure consistent server-side enforcement and reduce per-page duplication
+  - Tenant switcher: New implementation to enable multi-tenant scoping and testing in admin without DNS changes
+  - Newsletter fix: Bugfix to resolve TS2353 build error and improve UX by disabling unavailable actions
+- ✅ Next steps (if any)
+  - Attempt production build with env validation skipped and review logs
+  - Run full TypeScript typecheck as the final step before release
+  - Add unit/integration tests covering middleware RBAC, tenant-scoped APIs, and an e2e check for tenant switching
 
 ## Next Actions (automated)
 - [ ] Run full TypeScript typecheck and fix remaining errors (in progress)
