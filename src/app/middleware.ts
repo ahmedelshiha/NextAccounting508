@@ -27,6 +27,30 @@ export async function middleware(req: any) {
     if (!isStaffRole(role)) {
       return NextServer.NextResponse.redirect(new URL('/portal', req.url))
     }
+
+    // Route-based RBAC enforcement
+    try {
+      const { hasPermission, PERMISSIONS } = await import('@/lib/permissions')
+      const routePerm: Array<{ prefix: string; perm: keyof typeof PERMISSIONS }> = [
+        { prefix: '/admin/services', perm: 'SERVICES_VIEW' },
+        { prefix: '/admin/payments', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/audits', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/newsletter', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/reports', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/security', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/team', perm: 'TEAM_VIEW' },
+        { prefix: '/admin/roles', perm: 'USERS_MANAGE' },
+        { prefix: '/admin/permissions', perm: 'USERS_MANAGE' },
+        { prefix: '/admin/settings/booking', perm: 'BOOKING_SETTINGS_VIEW' },
+      ]
+      const match = routePerm.find(r => pathname.startsWith(r.prefix))
+      if (match) {
+        const key = PERMISSIONS[match.perm]
+        if (!hasPermission(role || undefined, key)) {
+          return NextServer.NextResponse.redirect(new URL('/admin', req.url))
+        }
+      }
+    } catch {}
   }
 
   if (isPortalPage && !isAuth) {
