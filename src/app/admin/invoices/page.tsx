@@ -186,10 +186,10 @@ export default function AdminInvoicesPage() {
   }, [status, from, to])
 
   return (
-    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className=\"p-6\">You do not have access to Invoices.</div>}>
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Invoices.</div>}>
       <ListPage<InvoiceRow>
-        title=\"Invoices\"
-        subtitle=\"Track invoices and statuses; use Reports for exports\"
+        title="Invoices"
+        subtitle="Track invoices and statuses; use Reports for exports"
         secondaryActions={[
           { label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } },
           { label: 'Export CSV', onClick: () => { window.location.href = exportHref } },
@@ -201,7 +201,7 @@ export default function AdminInvoicesPage() {
         columns={columns}
         rows={rows}
         useAdvancedTable
-        emptyMessage=\"No invoices found\"
+        emptyMessage="No invoices found"
         actions={actions}
         selectable={false}
         loading={isLoading}
