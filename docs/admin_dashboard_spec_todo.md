@@ -75,10 +75,11 @@ Documentation notes:
   - Verify: Drag-reschedule issues PATCH and revalidates; mobile responsive
 
 - /admin/service-requests
-  - [ ] Uses ListPage; realtime via useRealtime in ClientPage
-  - [ ] Ensure bulk approve/reject/convert wired to /api/admin/service-requests/bulk
-  - [ ] Export to CSV via /api/admin/service-requests/export (streams)
+  - [x] Uses ClientPage with realtime via useRealtime; table and calendar views
+  - [x] Bulk approve/reject/delete wired to /api/admin/service-requests/bulk via ServiceRequestsBulkActions
+  - [x] Export to CSV via /api/admin/service-requests/export (streaming CSV)
   - Verify: SSE updates table; bulk results toast
+  - Notes: Adopted ClientPage pattern (instead of generic ListPage) to leverage existing table/calendar components and realtime hook.
 
 - /admin/services and /admin/services/list
   - [ ] Use ListPage
