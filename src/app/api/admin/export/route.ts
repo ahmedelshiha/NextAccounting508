@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
-import { NextRequest, NextResponse } from 'next/server'
 import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
