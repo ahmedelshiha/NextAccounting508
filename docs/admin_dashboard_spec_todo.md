@@ -77,7 +77,7 @@ P1 – High
 
 P2 – Medium
 - [x] Invoices: Prisma model, endpoints, UI wiring completed; CSV export added
-- [ ] Link invoice row actions to payments view with preserved filters
+- [x] Link invoice row actions to payments view with preserved filters
 - [x] Expenses: ListPage, category/status filters, attachment preview; AV status badge; CSV export
 - [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
 - [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
@@ -168,3 +168,11 @@ P2 – Medium
   - Why: Fix improper dynamic import invocation and missing 'use client' causing hook errors.
   - What: Marked src/components/admin/team-management.tsx and src/components/admin/service-requests/team-workload-chart.tsx as client; updated src/app/admin/team/page.tsx to render <TeamWorkloadChart /> directly.
   - Next: Hook workload/skills/availability actions to APIs for edits (follow-up tasks).
+
+## 2025-09-29 Updates
+- Completed: Invoice row actions link to Payments with preserved filters
+  - Why: Maintain workflow continuity from billing to payment reconciliation
+  - What: Implemented status/date mapping and deep-linking in src/app/admin/invoices/page.tsx; added base Payments action preserving range/status
+  - Next: Consider linking to a specific payment when invoice paymentId is available
+- Pending: Typecheck/build verification
+  - Note: Unable to run pnpm typecheck in this environment; please run in CI/Netlify and report any issues
