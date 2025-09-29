@@ -54,7 +54,7 @@ export default function ServicesAdminPage() {
   const [editing, setEditing] = useState<ServiceRow | null>(null)
   const [showModal, setShowModal] = useState(false)
 
-  const query = buildQuery({ q: search || undefined, status: filters.status, category: filters.category, limit: String(pageSize), offset: String((page-1)*pageSize), sortBy, sortOrder })
+  const query = buildQuery({ search: search || undefined, status: filters.status && filters.status !== 'all' ? filters.status : undefined, category: filters.category, limit: String(pageSize), offset: String((page-1)*pageSize), sortBy, sortOrder })
   const { data, isLoading, mutate } = useSWR<{ services: ServiceRow[]; total: number; analytics: any }>(`/api/admin/services${query}`, fetcher)
   const items = data?.services ?? []
   const total = data?.total ?? items.length
@@ -72,10 +72,10 @@ export default function ServicesAdminPage() {
 
   const filterConfigs: FilterConfig[] = useMemo(() => ([
     { key: 'status', label: 'Status', options: [
-      { value: 'ACTIVE', label: 'Active' },
-      { value: 'INACTIVE', label: 'Inactive' },
-      { value: 'DRAFT', label: 'Draft' },
-    ], value: filters.status },
+      { value: 'all', label: 'All' },
+      { value: 'active', label: 'Active' },
+      { value: 'inactive', label: 'Inactive' },
+    ], value: (filters.status as any) ?? 'all' },
     { key: 'category', label: 'Category', options: (() => {
       const set = new Set<string>()
       items.forEach((s) => { const c = (s.category || '').trim(); if (c) set.add(c) })
@@ -92,8 +92,8 @@ export default function ServicesAdminPage() {
   const exportCsv = async () => {
     try {
       const qs = new URLSearchParams()
-      if (search) qs.set('q', search)
-      if (filters.status) qs.set('status', filters.status)
+      if (search) qs.set('search', search)
+      if (filters.status && filters.status !== 'all') qs.set('status', filters.status)
       if (filters.category) qs.set('category', filters.category)
       const res = await apiFetch(`/api/admin/services/export?${qs.toString()}`)
       if (!res.ok) {
