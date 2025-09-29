@@ -102,7 +102,7 @@ export default function AdminPaymentsPage() {
       <ListPage<PaymentItem>
         title="Payments"
         subtitle="Monitor payment activity; use Reports for exports"
-        secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }, { label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=payments' } }]}
+        secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }, { label: 'Export CSV', onClick: () => { downloadExport({ entity: 'payments', format: 'csv', status, method, range }) } }]}
         filters={filters}
         onFilterChange={onFilterChange}
         columns={columns}
