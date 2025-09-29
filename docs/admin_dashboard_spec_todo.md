@@ -410,6 +410,7 @@ Documentation notes:
 - [ ] Run `pnpm vercel:build` and confirm CI passes (pending)
   - Why: Full build verifies SSR behavior, Prisma generation, and production compile-time checks.
   - How: Run `pnpm vercel:build` after typecheck success; review logs and fix failures.
+  - Status: Attempted locally with `pnpm build:skip-env`; build tool aborted due to environment timeout. Next: trigger CI build by pushing changes or run locally with extended timeout and share logs.
 
 - [ ] Add/adjust unit tests for fixed validation logic and registration flow
   - Why: Prevent regressions and ensure schema/endpoint behavior remains stable.
