@@ -8,6 +8,7 @@ import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { withCache, handleCacheInvalidation } from '@/lib/api-cache'
+import { parseListQuery } from '@/schemas/list-query'
 
 // Type for cached bookings response
 type BookingsResponse = {
