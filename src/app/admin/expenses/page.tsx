@@ -72,7 +72,7 @@ export default function AdminExpensesPage() {
     const r = get('range'); if (r) setRange(r)
     const p = Number(get('page')); if (Number.isFinite(p) && p > 0) setPage(p)
     const q = get('q'); if (q) setSearch(q)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Keep URL in sync

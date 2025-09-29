@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     let clientId: string | undefined
     let totalCents = 0
-    let resolvedCurrency: string = currency || 'USD'
+    const resolvedCurrency: string = currency || 'USD'
 
     if (bookingId) {
       const booking = await prisma.booking.findUnique({ where: { id: bookingId }, include: { service: { select: { price: true } }, client: { select: { id: true } } } })
