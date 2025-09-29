@@ -236,8 +236,8 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error(`Failed (${res.status})`)
       try {
         const me = (session?.user as any)?.id
-        if (me && me === userId && typeof update === 'function') {
-          await update({ user: { ...(session.user as any), role: newRole } })
+        if (me && me === userId && typeof update === 'function' && session?.user) {
+          await update({ user: { ...(session.user as any), role: newRole } } as any)
         }
       } catch {}
     } catch (e) {
