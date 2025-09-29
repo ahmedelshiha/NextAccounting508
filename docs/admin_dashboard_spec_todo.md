@@ -96,6 +96,11 @@ P2 – Medium
 
 ---
 
+### Completed: Prisma schema fixes for WorkOrder relations
+- Why: Resolve Prisma P1012 errors (ambiguous relations and missing opposite fields) blocking build
+- What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders)
+- Status: Ready for prisma generate and deployment
+
 ## Next Steps
 - [ ] Run prisma generate and database migration; deploy to preview environment
 - [ ] Build Work Orders list UI using components/dashboard/templates/ListPage
