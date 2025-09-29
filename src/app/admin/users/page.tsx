@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -99,6 +100,7 @@ const UserRowSkeleton = () => (
 
 export default function AdminUsersPage() {
   const perms = usePermissions()
+  const { data: session, update } = useSession()
   const { data: session, update } = require('next-auth/react').useSession() as any
 
   // Data state
@@ -234,11 +236,9 @@ export default function AdminUsersPage() {
       })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
       try {
-        const mod = await import('next-auth/react')
-        const { data: current, update } = mod.useSession()
-        const me = (current?.user as any)?.id
+        const me = (session?.user as any)?.id
         if (me && me === userId && typeof update === 'function') {
-          await update({ user: { ...(current.user as any), role: newRole } })
+          await update({ user: { ...(session.user as any), role: newRole } })
         }
       } catch {}
     } catch (e) {
