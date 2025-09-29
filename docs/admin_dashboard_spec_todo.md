@@ -2,6 +2,60 @@
 
 Scope: Implement the QuickBooks-inspired professional admin dashboard defined in docs/admin_dashboard_spec.md, aligning with existing code under src/app/admin/** and components/**. Each task is specific, measurable, and outcome-oriented, with verification steps.
 
+## Reorganized, Dependency-Ordered Execution Plan
+
+1) Platform Foundations
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [ ] Implement tenant switcher and verify tenant-scoped data on key routes
+- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [ ] Define realtime event contracts (event names, payloads) and document
+
+2) Data Models & APIs
+- [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
+- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+
+3) Dashboard Overview (depends on 2)
+- [ ] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
+- [ ] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
+- [ ] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+
+4) Financial Module (depends on 2)
+- [ ] Invoices: propose Prisma model, create endpoints, and wire ListPage (blocked until schema approved)
+- [ ] Link invoice row actions to payments view with preserved filters
+- [x] Payments: status/method/date filters with URL sync and CSV export
+- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+
+5) Team Management & Permissions (depends on 1)
+- [ ] Team page using TeamManagement component; wire workload/skills/availability APIs
+- [ ] Roles/Permissions: persist edits and reflect changes without reload; verify hasPermission changes live
+
+6) Settings Hub (depends on 1)
+- [ ] Admin Settings shell with sidebar nav (general/company/contact/timezone)
+- [ ] Forms use zod; optimistic saves with rollback on error; acceptance: 0 console errors
+- [ ] Booking Settings: wire steps, business-hours, payment-methods CRUD endpoints with audit logging
+
+7) Content & Communications (independent)
+- [x] Posts: RBAC enforced; page marked 'use client'
+- [ ] Posts: adopt ListPage UX and hook into /api/admin/stats/posts for KPIs
+- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+
+8) Analytics & Reports (depends on 2)
+- [ ] Adopt AnalyticsPage on relevant routes; unify export flows to /api/admin/export with filter propagation
+- [ ] Report scheduling stubs and progress toasts
+
+9) Observability & Security (continuous)
+- [ ] Update monitoring/performance-baseline.json; LCP <=2.5s desktop, TTI <=3.5s admin pages
+- [ ] Expand audit trail coverage; Sentry error sampling verified in prod
+
+10) Testing & Rollout
+- [ ] Unit tests for schemas, permissions, and utilities (vitest)
+- [ ] Integration tests for key API routes (no threads)
+- [ ] E2E happy paths for admin flows (Playwright)
+- [ ] Feature-flag rollout plan documented in this file
+
+---
+
 ## 0) Discovery, Alignment, and Technical Baseline
 - [ ] Read and annotate docs/admin_dashboard_spec.md to extract all modules, UI patterns, and contracts
   - Acceptance: A shared outline (this file) reflects all sections of the spec; no gaps.
