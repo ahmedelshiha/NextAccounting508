@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+'use client'
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
