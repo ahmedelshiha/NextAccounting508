@@ -118,6 +118,7 @@ export default function AdminExpensesPage() {
     if (key === 'status') setStatus(value)
     if (key === 'category') setCategory(value)
     if (key === 'range') setRange(value)
+    setPage(1)
   }
 
   const { from, to } = computeDateRange(range)
