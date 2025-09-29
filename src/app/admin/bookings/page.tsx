@@ -31,6 +31,7 @@ import {
 import { usePermissions } from '@/lib/use-permissions'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column } from '@/types/dashboard'
+import { toastFromResponse, toastError, toastSuccess } from '@/lib/toast-api'
 
 interface Booking {
   id: string
@@ -117,7 +118,7 @@ export default function BookingManagementPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
-  const [selectedBookings, setSelectedBookings] = useState<string[]>([])
+  const [total, setTotal] = useState(0)
   const pageSize = 25
 
   const { canManageBookings, role } = usePermissions()
@@ -145,6 +146,7 @@ export default function BookingManagementPage() {
       if (bookingsRes.status === 'fulfilled' && bookingsRes.value.ok) {
         const data = await bookingsRes.value.json()
         setBookings(data.bookings || [])
+        setTotal(typeof data.total === 'number' ? data.total : 0)
       }
 
       if (statsRes.status === 'fulfilled' && statsRes.value.ok) {
@@ -185,7 +187,7 @@ export default function BookingManagementPage() {
     return dates
   }
 
-  // Filter bookings client-side for immediate feedback
+  // Filter bookings client-side for immediate feedback (secondary to server filters)
   const filteredBookings = useMemo(() => {
     let filtered = [...bookings]
 
@@ -245,24 +247,35 @@ export default function BookingManagementPage() {
     URL.revokeObjectURL(url)
   }
 
-  const handleBulkStatusUpdate = async (status: string) => {
-    if (selectedBookings.length === 0) return
-
+  const bulkUpdateStatus = async (ids: string[], action: 'confirm' | 'cancel' | 'complete') => {
+    if (ids.length === 0) return
     try {
-      const promises = selectedBookings.map(bookingId =>
-        apiFetch(`/api/admin/bookings/${bookingId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status }),
-          headers: { 'Content-Type': 'application/json' }
-        })
-      )
-
-      await Promise.all(promises)
-      setSelectedBookings([])
-      loadBookings()
+      const res = await apiFetch('/api/admin/bookings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingIds: ids, action })
+      })
+      await toastFromResponse(res, { success: 'Bookings updated' })
+      await loadBookings()
     } catch (error) {
       console.error('Error updating booking status:', error)
-      setError('Failed to update booking status')
+      toastError(error, 'Failed to update booking status')
+    }
+  }
+
+  const bulkDelete = async (ids: string[]) => {
+    if (ids.length === 0) return
+    try {
+      const res = await apiFetch('/api/admin/bookings', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingIds: ids })
+      })
+      await toastFromResponse(res, { success: 'Bookings deleted' })
+      await loadBookings()
+    } catch (error) {
+      console.error('Error deleting bookings:', error)
+      toastError(error, 'Failed to delete bookings')
     }
   }
 
@@ -493,6 +506,26 @@ export default function BookingManagementPage() {
       columns={columns}
       rows={filteredBookings}
       loading={loading}
+      sortBy={String(sortBy)}
+      sortOrder={sortOrder}
+      onSort={(key) => {
+        if (key === String(sortBy)) setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+        else { setSortBy(key as keyof Booking); setSortOrder('asc') }
+        setCurrentPage(1)
+      }}
+      useAdvancedTable
+      page={currentPage}
+      pageSize={pageSize}
+      total={total}
+      onPageChange={setCurrentPage}
+      renderBulkActions={(ids) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus(ids as string[], 'confirm')}>Confirm</Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus(ids as string[], 'cancel')}>Cancel</Button>
+          <Button size="sm" variant="outline" onClick={() => bulkUpdateStatus(ids as string[], 'complete')}>Complete</Button>
+          <Button size="sm" variant="destructive" onClick={() => bulkDelete(ids as string[])}>Delete</Button>
+        </div>
+      )}
     />
   )
 }

@@ -1,5 +1,6 @@
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import AvailabilitySlotsManager from '@/components/admin/AvailabilitySlotsManager'
+import StandardPage from '@/components/dashboard/templates/StandardPage'
 
 /**
  * Admin Availability Page

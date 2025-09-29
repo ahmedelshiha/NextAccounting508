@@ -129,6 +129,7 @@ export default function ListPage<T extends { id?: string | number }>(props: List
           total={total}
           onPageChange={onPageChange}
           emptyMessage={emptyMessage}
+          onSelectionChange={setSelectedIds}
         />
       ) : (
         <DataTable<T>

@@ -57,14 +57,15 @@ Documentation notes:
   - Verify: Non-admin sees fallback
 
 - /admin/clients/new
-  - [ ] Uses StandardPage
-  - [ ] Validate form with zod; show field-level errors; success toasts; audit log
+  - [x] Uses StandardPage
+  - [x] Validate form with zod; show field-level errors; success toasts; audit log
   - Verify: Invalid payload rejected; audit record present
+  - Notes: Implemented Zod step schemas on client, added sonner toasts; API now logs audit with actorId when available.
 
 - /admin/bookings
-  - [ ] Uses ListPage; uses usePermissions
-  - [ ] Ensure server pagination + sort delegated to /api/admin/bookings
-  - [ ] Add bulk actions (export, status) if missing
+  - [x] Uses ListPage; uses usePermissions
+  - [x] Ensure server pagination + sort delegated to /api/admin/bookings
+  - [x] Add bulk actions (export, status) if missing
   - Verify: Pending count matches /api/admin/bookings/pending-count
 
 - /admin/calendar (redirect)
@@ -86,8 +87,8 @@ Documentation notes:
   - Verify: Clone/version actions work; stats render
 
 - /admin/availability
-  - [ ] Uses StandardPage with AvailabilitySlotsManager
-  - [ ] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
+  - [x] Uses StandardPage with AvailabilitySlotsManager
+  - [x] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
   - Verify: Slots persist; tenant isolation enforced
 
 - /admin/invoices
@@ -261,6 +262,12 @@ Documentation notes:
 - [x] Updated next.config.mjs CSP connect-src to include https://*.vercel.app and https://*.vercel.com (Report-Only) to match preview domains.
 - [x] Hardened client apiFetch to ignore NEXT_PUBLIC_API_BASE when cross-origin; enforces same-origin calls across deploys to avoid CORS/CSP violations; preserves retry/safe fallback.
 - [x] Added @playwright/test to devDependencies to fix Netlify E2E plugin resolution.
+
+## Hotfix – 2025-09-29 (RBAC permission typing)
+- [x] Fixed TS2345 by using PERMISSIONS.TEAM_MANAGE in src/app/admin/calendar/page.tsx and importing PERMISSIONS.
+
+## Hotfix – 2025-09-29 (Availability page import)
+- [x] Added missing StandardPage import to src/app/admin/availability/page.tsx.
 
 ## Progress Update – 2025-09-29
 - [x] Security policies: CSP connect-src aligned for Netlify/Vercel previews; CORS issues mitigated by same-origin fetch strategy.
