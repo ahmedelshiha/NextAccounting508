@@ -164,3 +164,7 @@ P2 – Medium
   - Why: Ensure the "Try again" button works and improve accessibility.
   - What: Added 'use client', aria roles, optional digest details, and a Home link in src/app/global-error.tsx.
   - Next: None.
+- Completed: Team page wiring and client components
+  - Why: Fix improper dynamic import invocation and missing 'use client' causing hook errors.
+  - What: Marked src/components/admin/team-management.tsx and src/components/admin/service-requests/team-workload-chart.tsx as client; updated src/app/admin/team/page.tsx to render <TeamWorkloadChart /> directly.
+  - Next: Hook workload/skills/availability actions to APIs for edits (follow-up tasks).
