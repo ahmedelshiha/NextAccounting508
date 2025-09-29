@@ -60,17 +60,19 @@ const getCachedCalendar = withCache<any>(
     }
 
     const tenantId = getTenantFromRequest(request as any)
-    const tenantWhere = tenantFilter(tenantId)
+
+    // Build where clauses respecting actual schema (Booking/AvailabilitySlot are tenanted via Service)
+    const bookingWhere: any = {
+      scheduledAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      ...(tenantId ? { service: { tenantId } } : {}),
+    }
 
     // Fetch bookings for the period
     const bookings = await prisma.booking.findMany({
-      where: {
-        ...tenantWhere,
-        scheduledAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
+      where: bookingWhere,
       include: {
         service: {
           select: {
@@ -88,12 +90,11 @@ const getCachedCalendar = withCache<any>(
       },
     })
 
-    // Fetch tasks with due dates in the period
+    // Fetch tasks with due dates in the period (Task has no tenant field)
     let tasks: any[] = []
     try {
       tasks = await prisma.task.findMany({
         where: {
-          ...tenantWhere,
           dueAt: {
             gte: startDate,
             lte: endDate,
