@@ -6,25 +6,10 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { z } from 'zod'
 import type { Prisma, RequestPriority, WorkOrderStatus } from '@prisma/client'
+import { parseListQuery } from '@/schemas/list-query'
 
 export const runtime = 'nodejs'
 
-const ListQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/).optional(),
-  limit: z.string().regex(/^\d+$/).optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'dueAt', 'priority', 'status']).optional(),
-  sortOrder: z.enum(['asc', 'desc']).optional(),
-  q: z.string().optional(),
-  status: z.union([z.literal('ALL'), z.nativeEnum(({} as any as { WorkOrderStatus: typeof WorkOrderStatus }).WorkOrderStatus || ({} as any))]).optional(),
-  priority: z.union([z.literal('ALL'), z.nativeEnum(({} as any as { RequestPriority: typeof RequestPriority }).RequestPriority || ({} as any))]).optional(),
-  assigneeId: z.string().optional(),
-  clientId: z.string().optional(),
-  serviceId: z.string().optional(),
-  createdFrom: z.string().optional(),
-  createdTo: z.string().optional(),
-  dueFrom: z.string().optional(),
-  dueTo: z.string().optional(),
-})
 
 const CreateSchema = z.object({
   title: z.string().min(1),
@@ -55,17 +40,14 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url)
-  const parsed = ListQuerySchema.safeParse(Object.fromEntries(searchParams.entries()))
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid query params', details: parsed.error.issues }, { status: 400 })
-  }
+  const common = parseListQuery(searchParams, { allowedSortBy: ['createdAt','updatedAt','dueAt','priority','status'], defaultSortBy: 'createdAt', maxLimit: 100 })
 
   const tenantId = getTenantFromRequest(request as any)
-  const take = parsed.data.limit ? Math.min(parseInt(parsed.data.limit, 10) || 20, 100) : 20
-  const page = Math.max(1, parsed.data.page ? parseInt(parsed.data.page, 10) || 1 : 1)
-  const skip = (page - 1) * take
-  const sortBy = parsed.data.sortBy || 'createdAt'
-  const sortOrder = parsed.data.sortOrder || 'desc'
+  const take = common.limit
+  const page = common.page
+  const skip = common.skip
+  const sortBy = common.sortBy as keyof Prisma.WorkOrderOrderByWithRelationInput
+  const sortOrder = common.sortOrder
 
   const where: Prisma.WorkOrderWhereInput = {
     ...(isMultiTenancyEnabled() && tenantId ? (tenantFilter(tenantId) as any) : {}),
@@ -75,7 +57,7 @@ export async function GET(request: NextRequest) {
     where.assigneeId = session.user.id
   }
 
-  const q = parsed.data.q?.trim()
+  const q = common.q
   if (q) {
     where.OR = [
       { title: { contains: q, mode: 'insensitive' } },
@@ -84,26 +66,35 @@ export async function GET(request: NextRequest) {
     ]
   }
 
-  if (parsed.data.status && parsed.data.status !== 'ALL') {
-    where.status = parsed.data.status as unknown as WorkOrderStatus
+  const status = searchParams.get('status')
+  if (status && status !== 'ALL') {
+    where.status = status as unknown as WorkOrderStatus
   }
-  if (parsed.data.priority && parsed.data.priority !== 'ALL') {
-    where.priority = parsed.data.priority as unknown as RequestPriority
+  const priority = searchParams.get('priority')
+  if (priority && priority !== 'ALL') {
+    where.priority = priority as unknown as RequestPriority
   }
-  if (parsed.data.assigneeId) where.assigneeId = parsed.data.assigneeId
-  if (parsed.data.clientId) where.clientId = parsed.data.clientId
-  if (parsed.data.serviceId) where.serviceId = parsed.data.serviceId
+  const assigneeId = searchParams.get('assigneeId')
+  if (assigneeId) where.assigneeId = assigneeId
+  const clientId = searchParams.get('clientId')
+  if (clientId) where.clientId = clientId
+  const serviceId = searchParams.get('serviceId')
+  if (serviceId) where.serviceId = serviceId
 
-  if (parsed.data.createdFrom || parsed.data.createdTo) {
+  const createdFrom = searchParams.get('createdFrom')
+  const createdTo = searchParams.get('createdTo')
+  if (createdFrom || createdTo) {
     where.createdAt = {
-      gte: parsed.data.createdFrom ? new Date(parsed.data.createdFrom) : undefined,
-      lte: parsed.data.createdTo ? new Date(parsed.data.createdTo) : undefined,
+      gte: createdFrom ? new Date(createdFrom) : undefined,
+      lte: createdTo ? new Date(createdTo) : undefined,
     }
   }
-  if (parsed.data.dueFrom || parsed.data.dueTo) {
+  const dueFrom = searchParams.get('dueFrom')
+  const dueTo = searchParams.get('dueTo')
+  if (dueFrom || dueTo) {
     where.dueAt = {
-      gte: parsed.data.dueFrom ? new Date(parsed.data.dueFrom) : undefined,
-      lte: parsed.data.dueTo ? new Date(parsed.data.dueTo) : undefined,
+      gte: dueFrom ? new Date(dueFrom) : undefined,
+      lte: dueTo ? new Date(dueTo) : undefined,
     }
   }
 

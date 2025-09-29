@@ -1,0 +1,129 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
+import prisma from '@/lib/prisma'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { logAudit } from '@/lib/audit'
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_VIEW)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
+    if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const search = searchParams.get('search')
+    const where: any = {}
+    if (status && status !== 'all') where.status = status as any
+    if (search) {
+      where.OR = [
+        { number: { contains: search, mode: 'insensitive' } },
+        { client: { name: { contains: search, mode: 'insensitive' } } },
+        { client: { email: { contains: search, mode: 'insensitive' } } }
+      ]
+    }
+
+    const invoices = await prisma.invoice.findMany({
+      where,
+      include: { client: { select: { id: true, name: true, email: true } }, booking: { select: { id: true, scheduledAt: true } }, items: true },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    })
+    const total = await prisma.invoice.count({ where })
+
+    return NextResponse.json({ invoices, total })
+  } catch (error) {
+    console.error('Error fetching invoices:', error)
+    return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
+    if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+
+    const body = await request.json().catch(() => null)
+    const { bookingId, items, currency } = body || {}
+    if (!bookingId && !Array.isArray(items)) {
+      return NextResponse.json({ error: 'bookingId or items are required' }, { status: 400 })
+    }
+
+    let clientId: string | undefined
+    let totalCents = 0
+    let resolvedCurrency: string = currency || 'USD'
+
+    if (bookingId) {
+      const booking = await prisma.booking.findUnique({ where: { id: bookingId }, include: { service: { select: { price: true } }, client: { select: { id: true } } } })
+      if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      clientId = booking.client?.id
+      const svcPrice = booking.service?.price ? Number(booking.service.price) : 0
+      if (svcPrice > 0) totalCents = Math.round(svcPrice * 100)
+    }
+
+    const itemRows: { description: string; quantity: number; unitPriceCents: number; totalCents: number }[] = []
+    if (Array.isArray(items)) {
+      for (const it of items) {
+        const qty = Math.max(1, Number(it.quantity || 1))
+        const unit = Math.max(0, Math.round(Number(it.unitPriceCents || 0)))
+        const rowTotal = qty * unit
+        itemRows.push({ description: String(it.description || 'Item'), quantity: qty, unitPriceCents: unit, totalCents: rowTotal })
+        totalCents += rowTotal
+      }
+    }
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        bookingId: bookingId || null,
+        clientId: clientId || null,
+        currency: resolvedCurrency,
+        totalCents,
+        status: 'UNPAID' as any,
+        items: itemRows.length ? { create: itemRows } : undefined,
+      },
+      include: { items: true }
+    })
+
+    await logAudit({ action: 'invoice.create', actorId: session.user.id, targetId: invoice.id, details: { bookingId, totalCents } })
+
+    return NextResponse.json({ message: 'Invoice created', invoice }, { status: 201 })
+  } catch (error) {
+    console.error('Error creating invoice:', error)
+    return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
+    if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
+
+    const body = await request.json().catch(() => null)
+    const { invoiceIds } = body || {}
+    if (!Array.isArray(invoiceIds) || invoiceIds.length === 0) {
+      return NextResponse.json({ error: 'invoiceIds array required' }, { status: 400 })
+    }
+
+    const result = await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } })
+    await logAudit({ action: 'invoice.bulk.delete', actorId: session.user.id, details: { count: result.count } })
+    return NextResponse.json({ message: `Deleted ${result.count} invoices`, deleted: result.count })
+  } catch (error) {
+    console.error('Error deleting invoices:', error)
+    return NextResponse.json({ error: 'Failed to delete invoices' }, { status: 500 })
+  }
+}

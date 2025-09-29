@@ -8,6 +8,7 @@ import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { withCache, handleCacheInvalidation } from '@/lib/api-cache'
+import { parseListQuery } from '@/schemas/list-query'
 
 // Type for cached bookings response
 type BookingsResponse = {
@@ -27,9 +28,7 @@ const getCachedBookings = withCache<BookingsResponse>(
   },
   async (request: NextRequest): Promise<BookingsResponse> => {
     const { searchParams } = new URL(request.url)
-    const limit = searchParams.get('limit')
-    const skipParam = searchParams.get('skip')
-    const offsetParam = searchParams.get('offset')
+    const common = parseListQuery(searchParams, { allowedSortBy: ['scheduledAt','createdAt','status'], defaultSortBy: 'scheduledAt', maxLimit: 100 })
     const status = searchParams.get('status')
     const search = searchParams.get('search')
     const startDate = searchParams.get('startDate')
@@ -61,17 +60,11 @@ const getCachedBookings = withCache<BookingsResponse>(
       }
     }
 
-    // Get bookings with pagination and sorting (consistent with Services module)
-    // Derive pagination: prefer offset if provided for consistency with other modules
-    const take = limit ? parseInt(limit) : undefined
-    const skip = typeof offsetParam === 'string' ? parseInt(offsetParam) : (skipParam ? parseInt(skipParam) : undefined)
-
-    // Sorting: allow a safe subset of columns
-    const sortByParam = (searchParams.get('sortBy') || 'scheduledAt').toString()
-    const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toString().toLowerCase()
-    const allowedSortFields = new Set(['scheduledAt', 'createdAt', 'status'])
-    const sortBy = allowedSortFields.has(sortByParam) ? sortByParam : 'scheduledAt'
-    const sortOrder: 'asc' | 'desc' = sortOrderParam === 'asc' ? 'asc' : 'desc'
+    // Get bookings with pagination and sorting (standardized)
+    const take = common.limit
+    const skip = common.skip
+    const sortBy = common.sortBy
+    const sortOrder: 'asc' | 'desc' = common.sortOrder
 
     const bookings = await prisma.booking.findMany({
       where,

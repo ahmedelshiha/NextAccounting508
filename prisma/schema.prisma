@@ -50,6 +50,8 @@ model User {
   userPermissions    UserPermission[] @relation("UserPermissions")
   attachments Attachment[]
   bookingPreferences BookingPreferences?
+  workOrdersAsClient WorkOrder[] @relation("WorkOrderClient")
+  assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
 
   @@index([email])
   @@index([role])
@@ -204,6 +206,7 @@ model Service {
   serviceRequests ServiceRequest[]
   availabilitySlots AvailabilitySlot[]
   serviceViews ServiceView[]
+  workOrders WorkOrder[]
 
   @@index([tenantId])
   @@unique([tenantId, slug])
@@ -258,6 +261,7 @@ model Booking {
   // Relations
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  workOrders WorkOrder[]
 
   // Helpful indexes for queries
   @@index([scheduledAt])
@@ -491,6 +495,7 @@ model ServiceRequest {
   attachmentsRel        Attachment[]
   linkedBookings        Booking[]
   scheduledReminders    ScheduledReminder[]
+  workOrders            WorkOrder[]
 
   // Payment reflection fields
   paymentStatus        PaymentStatus?
@@ -685,7 +690,7 @@ model WorkOrder {
   code            String?          @unique
 
   clientId        String?
-  client          User?            @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  client          User?            @relation("WorkOrderClient", fields: [clientId], references: [id], onDelete: SetNull)
 
   serviceId       String?
   service         Service?         @relation(fields: [serviceId], references: [id], onDelete: SetNull)
@@ -697,7 +702,7 @@ model WorkOrder {
   booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   assigneeId      String?
-  assignee        User?            @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  assignee        User?            @relation("WorkOrderAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
 
   dueAt           DateTime?
   startedAt       DateTime?
@@ -870,6 +875,53 @@ model NotificationTemplate {
 
   @@index([bookingSettingsId, templateType])
   @@map("notification_templates")
+}
+
+// Financial models
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  UNPAID
+  PAID
+  VOID
+}
+
+model Invoice {
+  id          String         @id @default(cuid())
+  tenantId    String?
+  bookingId   String?
+  clientId    String?
+  number      String?        @unique
+  status      InvoiceStatus  @default(UNPAID)
+  currency    String         @default("USD")
+  totalCents  Int            @default(0)
+  paidAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  booking     Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  client      User?          @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  items       InvoiceItem[]
+
+  @@index([tenantId])
+  @@index([bookingId])
+  @@index([clientId])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  description     String
+  quantity        Int      @default(1)
+  unitPriceCents  Int      @default(0)
+  totalCents      Int      @default(0)
+
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
 }
 
 // ... rest of schema unchanged (omitted for brevity) 

@@ -12,18 +12,26 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 2) Data Models & APIs
 - [x] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
-- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [x] Standardize pagination/filter/query params across admin APIs; add schema validation
+  - Introduced shared parser src/schemas/list-query.ts (zod validation, page/limit/offset, sortBy/sortOrder, q)
+  - Refactored /api/admin/work-orders, /api/admin/service-requests, /api/admin/bookings to use shared parser (bookings response shape preserved)
 
 3) Dashboard Overview (depends on 2)
-- [ ] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
-- [ ] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
-- [ ] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+- [x] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
+- [x] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
+- [x] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+  - Implemented in components/admin/dashboard/AdminOverview.tsx with AnalyticsPage template and realtime refresh via useUnifiedData
 
 4) Financial Module (depends on 2)
-- [ ] Invoices: propose Prisma model, create endpoints, and wire ListPage (blocked until schema approved)
-- [ ] Link invoice row actions to payments view with preserved filters
+- [x] Invoices: data model and admin APIs
+  - [x] Prisma: add InvoiceStatus enum; add Invoice and InvoiceItem models
+  - [x] API: implement /api/admin/invoices {GET, POST, DELETE} with RBAC (TEAM_VIEW/TEAM_MANAGE)
+  - [x] API: implement POST /api/admin/invoices/[id]/pay to mark invoice PAID and set paidAt
+  - [ ] UI: wire Admin Invoices ListPage to API; render status/amount; add filters (status, date range)
+  - [ ] Export: add CSV export for invoices at /api/admin/export?entity=invoices
+- [ ] Link invoice row actions to Payments view with preserved filters (status, range)
 - [x] Payments: status/method/date filters with URL sync and CSV export
-- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+- [ ] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
 
 5) Team Management & Permissions (depends on 1)
 - [ ] Team page using TeamManagement component; wire workload/skills/availability APIs
@@ -80,6 +88,10 @@ P2 – Medium
 ---
 
 ## ✅ Phase 2 Progress — 2025-10-01
+- Completed: Financial Module — Invoice models and admin APIs
+  - Why: New implementation to unblock end-to-end invoicing and satisfy dependency (2) Data Models & APIs; enables test flows to create/pay/delete invoices
+  - What: Added Prisma models (Invoice, InvoiceItem, InvoiceStatus); created /api/admin/invoices (GET/POST/DELETE) and /api/admin/invoices/[id]/pay with audit logging and RBAC
+  - Next: Wire Admin Invoices UI to API, add CSV export for invoices, link invoice actions to Payments view, and add integration tests
 - Completed: Work Orders data model and CRUD APIs
   - Why: New module required by spec to manage operational work execution separate from tasks/bookings
   - What: Added WorkOrder model and WorkOrderStatus enum to Prisma; implemented /api/admin/work-orders (list/create) and /api/admin/work-orders/[id] (get/update/delete)
@@ -95,6 +107,11 @@ P2 – Medium
   - Plan: Gradually adopt ListQuerySchema pattern (page, limit, sortBy, sortOrder, q, status/priority, date ranges) and zod validation across existing admin APIs
 
 ---
+
+### Completed: Prisma schema fixes for WorkOrder relations
+- Why: Resolve Prisma P1012 errors (ambiguous relations and missing opposite fields) blocking build
+- What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders)
+- Status: Ready for prisma generate and deployment
 
 ## Next Steps
 - [ ] Run prisma generate and database migration; deploy to preview environment
