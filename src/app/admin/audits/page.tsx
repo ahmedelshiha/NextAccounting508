@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface AuditLog { id: string; service: string; status: string; message: string | null; checkedAt: string }
 
@@ -62,8 +64,9 @@ export default function AdminAuditsPage() {
   const canNext = page < pageCount
 
   return (
-    <StandardPage title="Audit Logs" subtitle="View recent admin activity and system audits" secondaryActions={[{ label: 'Export CSV', onClick: exportCsv }]}>
-      <Card className="mb-6">
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Audit Logs.</div>}>
+      <StandardPage title="Audit Logs" subtitle="View recent admin activity and system audits" secondaryActions={[{ label: 'Export CSV', onClick: exportCsv }]}>
+        <Card className="mb-6">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
           <CardDescription>Search audit entries</CardDescription>
@@ -139,6 +142,7 @@ export default function AdminAuditsPage() {
           )}
         </CardContent>
       </Card>
-    </StandardPage>
+      </StandardPage>
+    </PermissionGate>
   )
 }
