@@ -199,8 +199,13 @@ export default function AdminExpensesPage() {
     return `/api/admin/export?${params.toString()}`
   }, [status, category, from, to, search])
 
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value)
+    setPage(1)
+  }, [])
+
   const actions: RowAction<ExpenseRow>[] = [
-    { label: 'View Receipt', onClick: (row) => { if (row.attachmentUrl) window.open(row.attachmentUrl, '_blank') } },
+    { label: 'View Receipt', onClick: (row) => { if (row.attachmentUrl) window.open(row.attachmentUrl, '_blank', 'noopener,noreferrer') } },
   ]
 
   return (
