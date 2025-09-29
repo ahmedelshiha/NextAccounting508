@@ -530,3 +530,9 @@ Documentation notes:
   - Files added: src/lib/realtime-events.ts
   - Next steps: Incrementally adopt types in RealtimeProvider consumers and API broadcasters; add unit tests for parseEventMessage using contracts.
 
+## Hotfix – 2025-10-01 (TypeScript implicit any in middleware cookie parsing)
+- [x] Fixed TS error by adding string types to cookie parsing callbacks and typing middleware request as NextRequest; removed unused imports
+  - Why: Build failed with "Parameter 's' implicitly has an 'any' type" at src/app/middleware.ts: cookie parsing chain
+  - Type: Bugfix (typing)
+  - Files changed: src/app/middleware.ts
+  - Next steps: Re-run typecheck and production build to confirm green
