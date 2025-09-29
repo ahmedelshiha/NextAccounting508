@@ -50,6 +50,8 @@ model User {
   userPermissions    UserPermission[] @relation("UserPermissions")
   attachments Attachment[]
   bookingPreferences BookingPreferences?
+  workOrdersAsClient WorkOrder[] @relation("WorkOrderClient")
+  assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
 
   @@index([email])
   @@index([role])
@@ -685,7 +687,7 @@ model WorkOrder {
   code            String?          @unique
 
   clientId        String?
-  client          User?            @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  client          User?            @relation("WorkOrderClient", fields: [clientId], references: [id], onDelete: SetNull)
 
   serviceId       String?
   service         Service?         @relation(fields: [serviceId], references: [id], onDelete: SetNull)
@@ -697,7 +699,7 @@ model WorkOrder {
   booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   assigneeId      String?
-  assignee        User?            @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  assignee        User?            @relation("WorkOrderAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
 
   dueAt           DateTime?
   startedAt       DateTime?
