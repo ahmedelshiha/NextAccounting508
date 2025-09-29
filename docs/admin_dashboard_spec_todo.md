@@ -214,7 +214,7 @@ Documentation notes:
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
-  - [x] Uses StandardPage
+  - [x] Uses ListPage + AdvancedDataTable
   - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
