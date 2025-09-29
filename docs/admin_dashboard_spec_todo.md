@@ -13,7 +13,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 2) Data Models & APIs
 - [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
-- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [x] Standardize pagination/filter/query params across admin APIs; add schema validation
 
 3) Dashboard Overview (depends on 2)
 - [ ] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
@@ -60,7 +60,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 P0 – Critical
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
-- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [x] Finalize RBAC permission matrix and enforce on all admin pages
 - [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
 
@@ -265,8 +265,8 @@ Documentation notes:
 - [x] Implement navigation information architecture (IA)
 
 ## 2) RBAC and Multi-Tenant Foundations
-- [ ] Define permission matrix per module/action
-- [ ] Tenant switcher and tenant-scoped data
+- [x] Define permission matrix per module/action
+- [x] Tenant switcher and tenant-scoped data
 
 ## 3) Data Contracts and API Readiness
 - [ ] Unify list/table contracts with AdvancedDataTable
@@ -389,6 +389,22 @@ Documentation notes:
   - Type: Bugfix / refactor (use canonical export)
   - Files changed: src/app/api/auth/register/register/route.ts
   - Next steps: Run TypeScript typecheck and exercise the registration route to confirm getServerSession(authOptions) returns as expected under server tests.
+
+## Implementation – 2025-09-30 (RBAC enforcement + Tenant switcher)
+- [x] Route-based RBAC in middleware for key admin routes (services, payments, audits, newsletter, reports, security, team, roles, permissions, booking settings)
+  - Why: Ensure consistent server-side enforcement without duplicating checks on every page
+  - Change: src/app/middleware.ts now imports permissions map and redirects unauthorized roles to /admin
+- [x] Page-level gates where missing
+  - Files: src/app/admin/services/page.tsx (PERMISSIONS.SERVICES_VIEW), src/app/admin/payments/page.tsx (PERMISSIONS.ANALYTICS_VIEW)
+- [x] Tenant Switcher UI in Admin header
+  - Files: src/components/admin/layout/TenantSwitcher.tsx, integrated into AdminHeader
+  - Behavior: Stores selection in cookie "tenant" and localStorage; reloads page
+- [x] Tenant propagation
+  - Middleware prefers cookie tenant and forwards x-tenant-id
+  - apiFetch attaches x-tenant-id from cookie/localStorage on client
+- Verify:
+  - Switch tenant, reload; services and exports show tenant-scoped data
+  - Unauthorized roles hitting mapped routes are redirected to /admin
 
 ## Hotfix – 2025-09-30 (Newsletter RowAction typing and disabled handling)
 - [x] Added optional `disabled` to RowAction<T> and taught DataTable to honor it
