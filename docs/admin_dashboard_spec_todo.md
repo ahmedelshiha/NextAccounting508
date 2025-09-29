@@ -340,3 +340,21 @@ Documentation notes:
     - Removed links to unimplemented pages (/admin/logs, /admin/docs, /admin/api-docs, /admin/support) to avoid broken navigation.
   - Next steps: If those features are implemented later, re-introduce them conservatively and ensure tests cover the routes.
 
+
+## Hotfix – 2025-09-30 (Cron Telemetry navigation IA)
+- [x] Move Cron Telemetry from top navigation dropdown to Admin Sidebar > System
+  - Why: Improves information architecture; system tools belong under Admin sidebar.
+  - Type: Enhancement / IA adjustment
+  - Files changed:
+    - src/components/ui/navigation.tsx (removed Cron Telemetry entries; cleaned import)
+    - src/components/admin/layout/AdminSidebar.tsx (added Cron Telemetry under System with Clock icon)
+  - Tests: Updated tests/navigation.links.test.ts to assert presence in AdminSidebar instead of top nav
+  - Next steps: Verify visual in admin layout; ensure RBAC consistent with other system items.
+
+## Hotfix – 2025-09-30 (Service Requests page build)
+- [x] Mark /admin/service-requests/page.tsx as client component
+  - Why: Page uses useState/useEffect; Next.js App Router requires 'use client'.
+  - Type: Bugfix
+  - Files changed: src/app/admin/service-requests/page.tsx ('use client' directive added)
+  - Next steps: Continue implementing realtime SSE and bulk endpoints per spec under /api/admin/service-requests/*.
+
