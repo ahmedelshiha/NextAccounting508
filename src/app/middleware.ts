@@ -37,12 +37,19 @@ export async function middleware(req: any) {
   const requestHeaders = new Headers(req.headers)
   try {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
-      const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
-      const host = String(hostname).split(':')[0]
-      const parts = host.split('.')
-      let sub = parts.length >= 3 ? parts[0] : ''
-      if (sub === 'www' && parts.length >= 4) sub = parts[1]
-      if (sub) requestHeaders.set('x-tenant-id', sub)
+      // Prefer explicit cookie if present
+      const cookieHeader = req.headers.get('cookie') || ''
+      const cookieTenant = cookieHeader.split(';').map(s => s.trim()).find(s => s.startsWith('tenant='))?.split('=')[1]
+      if (cookieTenant) {
+        requestHeaders.set('x-tenant-id', cookieTenant)
+      } else {
+        const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
+        const host = String(hostname).split(':')[0]
+        const parts = host.split('.')
+        let sub = parts.length >= 3 ? parts[0] : ''
+        if (sub === 'www' && parts.length >= 4) sub = parts[1]
+        if (sub) requestHeaders.set('x-tenant-id', sub)
+      }
     }
   } catch {}
 
