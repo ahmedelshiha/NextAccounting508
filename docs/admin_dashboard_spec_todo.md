@@ -78,7 +78,7 @@ P1 – High
 P2 – Medium
 - [x] Invoices: Prisma model, endpoints, UI wiring completed; CSV export added
 - [ ] Link invoice row actions to payments view with preserved filters
-- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+- [x] Expenses: ListPage, category/status filters, attachment preview; AV status badge; CSV export
 - [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
 - [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
 - [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
