@@ -6,6 +6,7 @@ import AnalyticsDashboard from '@/components/admin/analytics/AnalyticsDashboard'
 import { Download, Clock } from 'lucide-react'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
 import { usePerformanceAnalytics } from '@/hooks/admin/usePerformanceAnalytics'
+import { downloadExport } from '@/lib/admin-export'
 
 export default function AdminAnalyticsPageClient() {
   const {
