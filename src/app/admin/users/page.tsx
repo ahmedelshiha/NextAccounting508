@@ -99,6 +99,7 @@ const UserRowSkeleton = () => (
 
 export default function AdminUsersPage() {
   const perms = usePermissions()
+  const { data: session, update } = require('next-auth/react').useSession() as any
 
   // Data state
   const [stats, setStats] = useState<UserStats | null>(null)
