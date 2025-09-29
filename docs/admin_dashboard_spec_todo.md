@@ -373,3 +373,18 @@ Documentation notes:
   - Files changed: src/components/admin/service-requests/filters.tsx
   - Next steps: Run typecheck and vercel:build; verify URL-initialized filters still narrow correctly and CSV export works.
 
+## Progress Update – 2025-09-30 (Admin tasks)
+- [x] /admin/payments: Added status/method/date filters with URL sync and CSV export hooks
+  - Why: Complete filtering UX per spec; reuse existing ListPage; maintain styles
+  - Type: Enhancement (wired existing template features)
+  - Files changed: src/app/admin/payments/page.tsx
+- [x] /admin/tasks: Enabled Board/List/Table/Calendar/Gantt views and wired notifications settings to API
+  - Why: Leverage existing rich components; expose Export & Templates panel storing notifications via /api/admin/tasks/notifications
+  - Type: Enhancement (reuse, no new UI styles)
+  - Files changed: src/app/admin/tasks/page.tsx, src/app/admin/tasks/components/export/ExportPanel.tsx
+- [x] /admin/posts: Enforced RBAC and fixed client directive
+  - Why: Page uses hooks; needed 'use client'. Added PermissionGate to restrict access
+  - Type: Enhancement/bugfix (no UX change)
+  - Files changed: src/app/admin/posts/page.tsx
+  - Next steps: Optional – adopt ListPage and hook into /api/admin/stats/posts for KPI tiles
+
