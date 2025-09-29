@@ -104,6 +104,21 @@ export async function GET(request: NextRequest) {
         createdAt: inv.createdAt.toISOString(),
         paidAt: inv.paidAt ? inv.paidAt.toISOString() : '',
       }))
+    } else if (entity === 'expenses') {
+      const status = searchParams.get('status')
+      const category = searchParams.get('category')
+      const dateFrom = parseDate(searchParams.get('dateFrom'))
+      const dateTo = parseDate(searchParams.get('dateTo'))
+      const where: any = { ...tenantFilter(tenantId) }
+      if (status && status !== 'all') where.status = status
+      if (category && category !== 'all') where.category = category
+      if (dateFrom || dateTo) {
+        where.date = {}
+        if (dateFrom) where.date.gte = dateFrom
+        if (dateTo) where.date.lte = dateTo
+      }
+      const expenses = await prisma.expense.findMany({ where, include: { attachment: { select: { url: true, avStatus: true } } }, orderBy: { date: 'desc' } })
+      rows = expenses.map(e => ({ id: e.id, vendor: e.vendor, category: e.category, status: e.status, amount: (e.amountCents/100).toFixed(2), currency: e.currency, date: e.date.toISOString().slice(0,10), avStatus: e.attachment?.avStatus || '', attachmentUrl: e.attachment?.url || '' }))
     } else {
       return new NextResponse('Unknown entity', { status: 400 })
     }
