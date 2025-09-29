@@ -84,35 +84,28 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url)
   const type = (searchParams.get('type') || '').toLowerCase()
+  const allowed = type === 'appointments' ? ['scheduledAt','createdAt','priority','status'] : ['createdAt','priority','status','scheduledAt']
+  const defaults = type === 'appointments' ? 'scheduledAt' : 'createdAt'
+  const common = parseListQuery(searchParams, { allowedSortBy: allowed, defaultSortBy: defaults, maxLimit: 100 })
+
   const filters: Filters = {
-    page: Math.max(1, parseInt(searchParams.get('page') || '1', 10)),
-    limit: Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10))),
+    page: common.page,
+    limit: common.limit,
     status: searchParams.get('status'),
     priority: searchParams.get('priority'),
     assignedTo: searchParams.get('assignedTo'),
     clientId: searchParams.get('clientId'),
     serviceId: searchParams.get('serviceId'),
-    q: searchParams.get('q'),
+    q: common.q || null,
     dateFrom: searchParams.get('dateFrom'),
     dateTo: searchParams.get('dateTo'),
     bookingType: searchParams.get('bookingType'),
     paymentStatus: (searchParams.get('paymentStatus') as any) || null,
   }
 
-  // Pagination: prefer offset when provided to align with Services API
-  const offsetParam = searchParams.get('offset')
-  const offsetNum = offsetParam != null ? Number(offsetParam) : NaN
-  const skip = Number.isFinite(offsetNum) && offsetNum >= 0
-    ? Math.floor(offsetNum)
-    : (filters.page - 1) * filters.limit
-
-  // Sorting: allow a safe subset of columns; default varies by type
-  const sortByParam = (searchParams.get('sortBy') || (type === 'appointments' ? 'scheduledAt' : 'createdAt')).toString()
-  const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toString().toLowerCase() === 'asc' ? 'asc' : 'desc'
-  const allowedForAppointments = new Set(['scheduledAt','createdAt','priority','status'])
-  const allowedForRequests = new Set(['createdAt','priority','status','scheduledAt'])
-  const allowed = type === 'appointments' ? allowedForAppointments : allowedForRequests
-  const sortBy = allowed.has(sortByParam) ? sortByParam : (type === 'appointments' ? 'scheduledAt' : 'createdAt')
+  const skip = common.skip
+  const sortBy = common.sortBy
+  const sortOrderParam = common.sortOrder
   const sortByLegacy = (['createdAt','priority','status','deadline'].includes(sortBy) ? sortBy : 'createdAt')
 
   const tenantId = getTenantFromRequest(request as any)
