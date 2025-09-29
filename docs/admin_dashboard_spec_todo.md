@@ -219,6 +219,11 @@ Documentation notes:
   - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
 
+- /admin/compliance
+  - [x] Uses StandardPage-equivalent layout
+  - [x] RBAC gate (ANALYTICS_VIEW)
+  - Verify: Health cards and compliance alerts visible only to authorized roles
+
 - /admin/team
   - [ ] Uses StandardPage with TeamManagement
   - [ ] Wire workload/skills/availability to respective APIs under /api/admin/team-management/*
