@@ -3,6 +3,8 @@
 import React, { useMemo, useState } from 'react'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface InvoiceItem {
   id: string
@@ -60,21 +62,23 @@ export default function AdminInvoicesPage() {
   ]
 
   return (
-    <ListPage<InvoiceItem>
-      title="Invoices"
-      subtitle="Track invoices and statuses; use Reports for exports"
-      secondaryActions={[
-        { label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } },
-        { label: 'Automated Billing', onClick: () => { window.location.href = '/admin/invoices/sequences' } },
-      ]}
-      filters={filters}
-      onFilterChange={onFilterChange}
-      columns={columns}
-      rows={rows}
-      useAdvancedTable
-      emptyMessage="No invoices found"
-      actions={actions}
-      selectable={false}
-    />
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Invoices.</div>}>
+      <ListPage<InvoiceItem>
+        title="Invoices"
+        subtitle="Track invoices and statuses; use Reports for exports"
+        secondaryActions={[
+          { label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } },
+          { label: 'Automated Billing', onClick: () => { window.location.href = '/admin/invoices/sequences' } },
+        ]}
+        filters={filters}
+        onFilterChange={onFilterChange}
+        columns={columns}
+        rows={rows}
+        useAdvancedTable
+        emptyMessage="No invoices found"
+        actions={actions}
+        selectable={false}
+      />
+    </PermissionGate>
   )
 }
