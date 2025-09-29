@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+'use client'
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
@@ -15,6 +17,7 @@ interface ExpenseRow {
   vendor: string
   status: 'pending' | 'approved' | 'reimbursed' | 'rejected'
   amount: number
+  formattedAmount: string
   avStatus?: string
   attachmentUrl?: string
 }
@@ -32,7 +35,11 @@ type ApiExpense = {
 
 type ApiResponse = { expenses: ApiExpense[]; total: number; page?: number; limit?: number }
 
-const fetcher = (url: string) => fetch(url).then(r => { if (!r.ok) throw new Error('Failed to load expenses'); return r.json() as Promise<ApiResponse> })
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' })
+  if (!response.ok) throw new Error('Failed to load expenses')
+  return response.json() as Promise<ApiResponse>
+}
 
 function computeDateRange(range: string): { from?: string; to?: string } {
   const now = new Date()
@@ -52,6 +59,7 @@ export default function AdminExpensesPage() {
   const [status, setStatus] = useState<string>('all')
   const [category, setCategory] = useState<string>('all')
   const [range, setRange] = useState<string>('last_30')
+  const [search, setSearch] = useState<string>('')
   const [page, setPage] = useState<number>(1)
   const pageSize = 20
 
@@ -63,6 +71,7 @@ export default function AdminExpensesPage() {
     const c = get('category'); if (c) setCategory(c)
     const r = get('range'); if (r) setRange(r)
     const p = Number(get('page')); if (Number.isFinite(p) && p > 0) setPage(p)
+    const q = get('q'); if (q) setSearch(q)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -73,10 +82,11 @@ export default function AdminExpensesPage() {
     if (category && category !== 'all') params.set('category', category)
     if (range && range !== 'last_30') params.set('range', range)
     if (page && page !== 1) params.set('page', String(page))
+    if (search) params.set('q', search)
     const qs = params.toString()
     const href = qs ? `/admin/expenses?${qs}` : '/admin/expenses'
     router.replace(href)
-  }, [status, category, range, page, router])
+  }, [status, category, range, page, search, router])
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
@@ -108,21 +118,25 @@ export default function AdminExpensesPage() {
     if (key === 'status') setStatus(value)
     if (key === 'category') setCategory(value)
     if (key === 'range') setRange(value)
+    setPage(1)
   }
 
   const { from, to } = computeDateRange(range)
   const apiUrl = useMemo(() => {
-    const u = new URL('/api/admin/expenses', window.location.origin)
+    if (typeof window === 'undefined') return '/api/admin/expenses'
+    const currentOrigin = window.location.origin
+    const u = new URL('/api/admin/expenses', currentOrigin)
     if (status && status !== 'all') u.searchParams.set('status', status.toUpperCase())
     if (category && category !== 'all') u.searchParams.set('category', category)
     if (from) u.searchParams.set('dateFrom', from)
     if (to) u.searchParams.set('dateTo', to)
+    if (search) u.searchParams.set('q', search)
     u.searchParams.set('page', String(page))
     u.searchParams.set('limit', String(pageSize))
     u.searchParams.set('sortBy', 'date')
     u.searchParams.set('sortOrder', 'desc')
-    return u.pathname + '?' + u.searchParams.toString()
-  }, [status, category, from, to, page])
+    return `${u.pathname}?${u.searchParams.toString()}`
+  }, [status, category, from, to, search, page])
 
   const { data, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher)
 
@@ -151,21 +165,27 @@ export default function AdminExpensesPage() {
         'bg-gray-100 text-gray-800'
       }`}>{String(v).toUpperCase()}</span>
     ) },
-    { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (v: number) => `$${v.toFixed(2)}` },
+    { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (_value, row) => row.formattedAmount },
   ]), [])
 
   const rows: ExpenseRow[] = useMemo(() => {
     const list = data?.expenses || []
-    return list.map(e => ({
-      id: e.id,
-      date: e.date,
-      category: e.category,
-      vendor: e.vendor,
-      status: e.status.toLowerCase() as ExpenseRow['status'],
-      amount: (e.amountCents || 0)/100,
-      avStatus: e.attachment?.avStatus || undefined,
-      attachmentUrl: e.attachment?.url || undefined,
-    }))
+    return list.map(e => {
+      const amount = (e.amountCents || 0) / 100
+      const formattedAmount = new Intl.NumberFormat(undefined, { style: 'currency', currency: e.currency || 'USD' }).format(amount)
+      const avStatus = (e.attachment?.avStatus || '').toLowerCase()
+      return {
+        id: e.id,
+        date: e.date,
+        category: e.category,
+        vendor: e.vendor,
+        status: e.status.toLowerCase() as ExpenseRow['status'],
+        amount,
+        formattedAmount,
+        avStatus: avStatus || undefined,
+        attachmentUrl: e.attachment?.url || undefined,
+      }
+    })
   }, [data])
 
   const exportHref = useMemo(() => {
@@ -175,11 +195,17 @@ export default function AdminExpensesPage() {
     if (category && category !== 'all') params.set('category', category)
     if (from) params.set('dateFrom', from)
     if (to) params.set('dateTo', to)
+    if (search) params.set('q', search)
     return `/api/admin/export?${params.toString()}`
-  }, [status, category, from, to])
+  }, [status, category, from, to, search])
+
+  const handleSearch = useCallback((value: string) => {
+    setSearch(value)
+    setPage(1)
+  }, [])
 
   const actions: RowAction<ExpenseRow>[] = [
-    { label: 'View Receipt', onClick: (row) => { if (row.attachmentUrl) window.open(row.attachmentUrl, '_blank') } },
+    { label: 'View Receipt', onClick: (row) => { if (row.attachmentUrl) window.open(row.attachmentUrl, '_blank', 'noopener,noreferrer') } },
   ]
 
   return (
@@ -194,6 +220,8 @@ export default function AdminExpensesPage() {
         ]}
         filters={filters}
         onFilterChange={onFilterChange}
+        onSearch={handleSearch}
+        searchPlaceholder="Search vendor or memo"
         columns={columns}
         rows={rows}
         useAdvancedTable

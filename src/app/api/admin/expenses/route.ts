@@ -1,11 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
+import { z } from 'zod'
+import type { Prisma } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { parseListQuery } from '@/schemas/list-query'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
+const EXPENSE_STATUSES = ['PENDING', 'APPROVED', 'REIMBURSED', 'REJECTED'] as const
+
+const expenseCreateSchema = z.object({
+  vendor: z.string().trim().min(1, 'vendor is required'),
+  category: z.string().trim().min(1).max(120).optional(),
+  status: z
+    .string()
+    .trim()
+    .transform((value) => value.toUpperCase())
+    .refine((value) => EXPENSE_STATUSES.includes(value as typeof EXPENSE_STATUSES[number]), 'invalid status')
+    .optional(),
+  amountCents: z.number().finite().nonnegative(),
+  currency: z
+    .string()
+    .trim()
+    .min(3)
+    .max(10)
+    .transform((value) => value.toUpperCase())
+    .optional(),
+  date: z.union([z.string(), z.date()]),
+  attachmentId: z.string().trim().min(1).optional().nullable(),
+})
+
+const expenseDeleteSchema = z.object({
+  expenseIds: z.array(z.string().trim().min(1)).min(1)
+})
 
 function parseDate(value: string | null): Date | undefined {
   if (!value) return undefined
@@ -34,22 +63,49 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const dateFrom = parseDate(searchParams.get('dateFrom'))
     const dateTo = parseDate(searchParams.get('dateTo'))
-    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const tenantId = getTenantFromRequest(request)
 
-    const where: any = { ...tenantFilter(tenantId) }
-    if (status && status !== 'all') where.status = status
-    if (category && category !== 'all') where.category = category
-    if (q) where.vendor = { contains: q, mode: 'insensitive' }
-    if (dateFrom || dateTo) {
-      where.date = {}
-      if (dateFrom) where.date.gte = dateFrom
-      if (dateTo) where.date.lte = dateTo
+    const where: Prisma.ExpenseWhereInput = {
+      ...(tenantFilter(tenantId) as Prisma.ExpenseWhereInput),
     }
+
+    if (status && status !== 'all') {
+      where.status = status
+    }
+
+    if (category && category !== 'all') {
+      where.category = category
+    }
+
+    if (dateFrom || dateTo) {
+      where.date = {
+        ...(dateFrom ? { gte: dateFrom } : {}),
+        ...(dateTo ? { lte: dateTo } : {}),
+      }
+    }
+
+    const query = (q || '').trim()
+    if (query) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { vendor: { contains: query, mode: 'insensitive' } },
+            { category: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+      ]
+    }
+
+    const orderBy: Prisma.ExpenseOrderByWithRelationInput = { [sortBy]: sortOrder } as Prisma.ExpenseOrderByWithRelationInput
 
     const expenses = await prisma.expense.findMany({
       where,
-      include: { attachment: { select: { id: true, url: true, avStatus: true } }, user: { select: { id: true, name: true, email: true } } },
-      orderBy: { [sortBy]: sortOrder } as any,
+      include: {
+        attachment: { select: { id: true, url: true, avStatus: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy,
       skip,
       take: limit,
     })
@@ -73,21 +129,34 @@ export async function POST(request: NextRequest) {
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const body = await request.json().catch(() => null)
-    const { vendor, category, status, amountCents, currency, date, attachmentId } = body || {}
-    if (!vendor || !date || typeof amountCents !== 'number') {
-      return NextResponse.json({ error: 'vendor, date, amountCents are required' }, { status: 400 })
+    const parsed = expenseCreateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const tenantId = getTenantFromRequest(request)
+    const { vendor, category, status, amountCents, currency, date, attachmentId } = parsed.data
+
+    const expenseDate = date instanceof Date ? date : new Date(date)
+    if (!Number.isFinite(expenseDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
     }
 
     const expense = await prisma.expense.create({
       data: {
         vendor,
         category: category || 'general',
-        status: status || 'PENDING',
+        status: (status as typeof EXPENSE_STATUSES[number]) || 'PENDING',
         amountCents: Math.max(0, Math.round(amountCents)),
-        currency: currency || 'USD',
-        date: new Date(date),
-        attachmentId: attachmentId || null,
+        currency: (currency || 'USD').toUpperCase(),
+        date: expenseDate,
+        attachmentId: attachmentId ?? null,
         userId: (session.user as any).id,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+      },
+      include: {
+        attachment: { select: { id: true, url: true, avStatus: true } },
+        user: { select: { id: true, name: true, email: true } },
       },
     })
 
@@ -109,12 +178,21 @@ export async function DELETE(request: NextRequest) {
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const body = await request.json().catch(() => null)
-    const { expenseIds } = body || {}
-    if (!Array.isArray(expenseIds) || expenseIds.length === 0) {
-      return NextResponse.json({ error: 'expenseIds array required' }, { status: 400 })
+    const parsed = expenseDeleteSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const result = await prisma.expense.deleteMany({ where: { id: { in: expenseIds } } })
+    const tenantId = getTenantFromRequest(request)
+    const where: Prisma.ExpenseWhereInput = {
+      id: { in: parsed.data.expenseIds },
+    }
+
+    if (isMultiTenancyEnabled() && tenantId) {
+      Object.assign(where, tenantFilter(tenantId) as Prisma.ExpenseWhereInput)
+    }
+
+    const result = await prisma.expense.deleteMany({ where })
     return NextResponse.json({ message: `Deleted ${result.count} expenses`, deleted: result.count })
   } catch (error) {
     console.error('Error deleting expenses:', error)
