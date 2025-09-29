@@ -206,6 +206,7 @@ model Service {
   serviceRequests ServiceRequest[]
   availabilitySlots AvailabilitySlot[]
   serviceViews ServiceView[]
+  workOrders WorkOrder[]
 
   @@index([tenantId])
   @@unique([tenantId, slug])
@@ -260,6 +261,7 @@ model Booking {
   // Relations
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  workOrders WorkOrder[]
 
   // Helpful indexes for queries
   @@index([scheduledAt])
@@ -493,6 +495,7 @@ model ServiceRequest {
   attachmentsRel        Attachment[]
   linkedBookings        Booking[]
   scheduledReminders    ScheduledReminder[]
+  workOrders            WorkOrder[]
 
   // Payment reflection fields
   paymentStatus        PaymentStatus?
