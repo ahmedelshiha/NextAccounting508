@@ -129,21 +129,34 @@ export async function POST(request: NextRequest) {
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const body = await request.json().catch(() => null)
-    const { vendor, category, status, amountCents, currency, date, attachmentId } = body || {}
-    if (!vendor || !date || typeof amountCents !== 'number') {
-      return NextResponse.json({ error: 'vendor, date, amountCents are required' }, { status: 400 })
+    const parsed = expenseCreateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const tenantId = getTenantFromRequest(request)
+    const { vendor, category, status, amountCents, currency, date, attachmentId } = parsed.data
+
+    const expenseDate = date instanceof Date ? date : new Date(date)
+    if (!Number.isFinite(expenseDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
     }
 
     const expense = await prisma.expense.create({
       data: {
         vendor,
         category: category || 'general',
-        status: status || 'PENDING',
+        status: (status as typeof EXPENSE_STATUSES[number]) || 'PENDING',
         amountCents: Math.max(0, Math.round(amountCents)),
-        currency: currency || 'USD',
-        date: new Date(date),
-        attachmentId: attachmentId || null,
+        currency: (currency || 'USD').toUpperCase(),
+        date: expenseDate,
+        attachmentId: attachmentId ?? null,
         userId: (session.user as any).id,
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+      },
+      include: {
+        attachment: { select: { id: true, url: true, avStatus: true } },
+        user: { select: { id: true, name: true, email: true } },
       },
     })
 
