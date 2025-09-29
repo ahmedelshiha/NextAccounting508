@@ -195,8 +195,9 @@ export default function AdminExpensesPage() {
     if (category && category !== 'all') params.set('category', category)
     if (from) params.set('dateFrom', from)
     if (to) params.set('dateTo', to)
+    if (search) params.set('q', search)
     return `/api/admin/export?${params.toString()}`
-  }, [status, category, from, to])
+  }, [status, category, from, to, search])
 
   const actions: RowAction<ExpenseRow>[] = [
     { label: 'View Receipt', onClick: (row) => { if (row.attachmentUrl) window.open(row.attachmentUrl, '_blank') } },
