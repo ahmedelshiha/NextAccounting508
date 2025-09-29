@@ -29,6 +29,7 @@ import {
   Eye,
 } from 'lucide-react'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
+import { fetchExportBlob } from '@/lib/admin-export'
 
 interface CalendarEvent {
   id: string
@@ -298,18 +299,15 @@ export default function AdminCalendar() {
 
   const handleExport = async () => {
     try {
-      const response = await fetch(`/api/admin/export?entity=calendar&format=csv&date=${currentDate.toISOString()}&view=${view}`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `calendar-${view}-${currentDate.toISOString().split('T')[0]}.csv`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      }
+      const blob = await fetchExportBlob({ entity: 'calendar', format: 'csv', date: currentDate.toISOString(), view })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `calendar-${view}-${currentDate.toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
     } catch (error) {
       console.error('Export failed:', error)
     }

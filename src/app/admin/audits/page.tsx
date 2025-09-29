@@ -5,6 +5,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig } from '@/types/dashboard'
+import { downloadExport } from '@/lib/admin-export'
 
 interface AuditLog { id: string; service: string; status: string; message: string | null; checkedAt: string }
 
@@ -76,10 +77,7 @@ export default function AdminAuditsPage() {
       <ListPage<AuditRow>
         title="Audit Logs"
         subtitle="View recent admin activity and system audits"
-        secondaryActions={[{ label: 'Export CSV', onClick: () => {
-          const params = new URLSearchParams({ entity: 'audits', type, status, q, limit: '10000', format: 'csv' })
-          window.location.href = `/api/admin/export?${params.toString()}`
-        } }]}
+        secondaryActions={[{ label: 'Export CSV', onClick: () => downloadExport({ entity: 'audits', type, status, q, limit: '10000', format: 'csv' }) }]}
         filters={filters}
         onFilterChange={onFilterChange}
         onSearch={(value) => { setQ(value); setPage(1); setTimeout(load, 0) }}

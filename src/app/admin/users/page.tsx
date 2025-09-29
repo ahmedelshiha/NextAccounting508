@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
+import { fetchExportBlob } from '@/lib/admin-export'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -204,9 +205,7 @@ export default function AdminUsersPage() {
   const exportUsers = useCallback(async () => {
     setExporting(true)
     try {
-      const res = await apiFetch('/api/admin/export?entity=users&format=csv')
-      if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const blob = await fetchExportBlob({ entity: 'users', format: 'csv' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

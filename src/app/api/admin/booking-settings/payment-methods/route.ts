@@ -13,12 +13,19 @@ export async function PUT(req: NextRequest) {
   if (!session?.user || !hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_EDIT)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const tenantId = getTenantFromRequest(req as any)
   const body = await req.json().catch(() => null)
-  if (!body || !Array.isArray(body.paymentMethods)) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  if (!body) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-  let settings = await service.getBookingSettings(tenantId)
-  if (!settings) settings = await service.createDefaultSettings(tenantId)
+  try {
+    const { BookingSettingsPaymentMethodsPayload } = await import('@/schemas/booking-settings.schemas')
+    const parsed = BookingSettingsPaymentMethodsPayload.parse(body)
 
-  const updated = await service.updatePaymentMethods((settings as any).id, body.paymentMethods)
-  try { await logAudit({ action: 'booking-settings:payment-methods:update', actorId: session.user.id, details: { tenantId, methods: updated.length } }) } catch {}
-  return NextResponse.json({ paymentMethods: updated })
+    let settings = await service.getBookingSettings(tenantId)
+    if (!settings) settings = await service.createDefaultSettings(tenantId)
+
+    const updated = await service.updatePaymentMethods((settings as any).id, parsed.paymentMethods)
+    try { await logAudit({ action: 'booking-settings:payment-methods:update', actorId: session.user.id, details: { tenantId, methods: updated.length } }) } catch {}
+    return NextResponse.json({ paymentMethods: updated })
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Invalid payload', details: err?.errors ?? String(err) }, { status: 400 })
+  }
 }

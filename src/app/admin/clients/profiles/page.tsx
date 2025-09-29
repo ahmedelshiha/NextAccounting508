@@ -7,6 +7,7 @@ import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
 import { Download } from 'lucide-react'
+import { downloadExport } from '@/lib/admin-export'
 
 interface ClientRow {
   id: string | number
@@ -148,12 +149,7 @@ export default function ClientsProfilesAdminPage() {
   ]
 
   const exportClients = () => {
-    const params = new URLSearchParams()
-    params.set('entity', 'users')
-    params.set('role', 'CLIENT')
-    if (search) params.set('q', search)
-    if (filters.tier && filters.tier !== 'all') params.set('tier', String(filters.tier))
-    window.location.href = `/api/admin/export?${params.toString()}`
+    downloadExport({ entity: 'users', role: 'CLIENT', q: search || undefined, tier: filters.tier && filters.tier !== 'all' ? String(filters.tier) : undefined })
   }
 
   return (

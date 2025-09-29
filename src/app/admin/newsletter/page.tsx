@@ -6,6 +6,7 @@ import ListPage from '@/components/dashboard/templates/ListPage'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import type { Column, RowAction } from '@/types/dashboard'
+import { downloadExport } from '@/lib/admin-export'
 
 interface Subscription { id: string; email: string; name?: string | null; subscribed: boolean; createdAt: string }
 
@@ -55,7 +56,7 @@ export default function AdminNewsletterPage() {
       <ListPage<Subscription>
         title="Newsletter"
         subtitle="Manage newsletter subscribers"
-        secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}
+        secondaryActions={[{ label: 'Export CSV', onClick: () => downloadExport({ entity: 'newsletter', format: 'csv' }) }]}
         columns={columns}
         rows={subs}
         loading={loading}
