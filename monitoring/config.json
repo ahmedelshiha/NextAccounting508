@@ -7,7 +7,7 @@
     "memoryUsage": 100
   },
   "analytics": {
-    "enabled": false,
+    "enabled": true,
     "trackingEvents": [
       "admin_performance",
       "admin_navigation",

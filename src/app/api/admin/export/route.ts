@@ -5,6 +5,9 @@ import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
+import { NextRequest, NextResponse } from 'next/server'
+import { logAudit } from '@/lib/audit'
+
 export const runtime = 'nodejs'
 
 function toCsv(rows: Record<string, unknown>[]) {
@@ -125,6 +128,7 @@ export async function GET(request: NextRequest) {
     }
 
     const csv = toCsv(rows)
+    try { await logAudit({ action: `admin:export:${entity}`, actorId: (session?.user as any)?.id ?? null, targetId: tenantId ?? null, details: Object.fromEntries(searchParams.entries()) }) } catch {}
     return new NextResponse(csv, {
       status: 200,
       headers: {

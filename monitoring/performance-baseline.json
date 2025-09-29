@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-09-27T23:27:40.810Z",
+  "timestamp": "2025-09-29T00:00:00.000Z",
   "version": "1.0.0",
   "environment": "development",
   "coreWebVitals": {
@@ -45,6 +45,7 @@
     },
     "note": "Baseline measurements - integrate with real RUM data for production"
   },
+  "focusPages": ["/admin", "/admin/tasks", "/admin/invoices"],
   "routes": {
     "/admin": {
       "avg": 184,

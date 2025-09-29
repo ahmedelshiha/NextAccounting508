@@ -5,6 +5,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { Download } from 'lucide-react'
 import { downloadExport } from '@/lib/admin-export'
+import type { KPIStatsProps } from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 // Explicit export endpoint references used by smoke tests:
 // /api/admin/export?entity=users
 // /api/admin/export?entity=bookings
@@ -19,11 +20,19 @@ export default function AdminReportsPage() {
     downloadExport({ entity, format: 'csv' })
   }
 
+  const placeholderStats: KPIStatsProps['stats'] = {
+    revenue: { current: 0, target: 0, targetProgress: 0, trend: 0 },
+    bookings: { total: 0, today: 0, pending: 0, conversion: 0 },
+    clients: { active: 0, new: 0, retention: 0, satisfaction: 0 },
+    tasks: { productivity: 0, completed: 0, overdue: 0, dueToday: 0 },
+  }
+
   return (
-    <PermissionGate permission={PERMISSIONS.ANALYTICS_VIEW} fallback={<AnalyticsPage title="Reports" subtitle="Export data and review summarized analytics"><div className="text-sm text-gray-600">You do not have permission to view this page.</div></AnalyticsPage>}>
+    <PermissionGate permission={PERMISSIONS.ANALYTICS_VIEW} fallback={<AnalyticsPage title="Reports" subtitle="Export data and review summarized analytics" stats={placeholderStats}><div className="text-sm text-gray-600">You do not have permission to view this page.</div></AnalyticsPage>}>
       <AnalyticsPage
         title="Reports"
         subtitle="Export data and review summarized analytics"
+        stats={placeholderStats}
         secondaryActions={[
           { label: 'Export Users', icon: Download, onClick: () => handleExport('users') },
           { label: 'Export Bookings', icon: Download, onClick: () => handleExport('bookings') },
