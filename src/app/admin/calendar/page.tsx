@@ -13,6 +13,7 @@ import { useState, useMemo, useRef } from 'react'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { usePermissions } from '@/lib/use-permissions'
+import { PERMISSIONS } from '@/lib/permissions'
 import {
   Calendar as CalendarIcon,
   Download,
@@ -408,7 +409,7 @@ export default function AdminCalendar() {
             onDayDrop={onDayCellDrop}
             onEmptyCellClick={clickCreateAt}
             onEventDragStart={onEventDragStart}
-            onAvailabilityToggle={(slot) => has('TEAM_MANAGE') && toggleAvailability(slot)}
+            onAvailabilityToggle={(slot) => has(PERMISSIONS.TEAM_MANAGE) && toggleAvailability(slot)}
           />
         ) : view === 'week' ? (
           <WeekView
@@ -418,7 +419,7 @@ export default function AdminCalendar() {
             onDayDrop={onDayCellDrop}
             onEmptyCellClick={clickCreateAt}
             onEventDragStart={onEventDragStart}
-            onAvailabilityToggle={(slot) => has('TEAM_MANAGE') && toggleAvailability(slot)}
+            onAvailabilityToggle={(slot) => has(PERMISSIONS.TEAM_MANAGE) && toggleAvailability(slot)}
           />
         ) : (
           <DayView
@@ -426,7 +427,7 @@ export default function AdminCalendar() {
             currentDate={currentDate}
             onEmptyCellClick={clickCreateAt}
             onEventDragStart={onEventDragStart}
-            onAvailabilityToggle={(slot) => has('TEAM_MANAGE') && toggleAvailability(slot)}
+            onAvailabilityToggle={(slot) => has(PERMISSIONS.TEAM_MANAGE) && toggleAvailability(slot)}
           />
         )}
       </div>
