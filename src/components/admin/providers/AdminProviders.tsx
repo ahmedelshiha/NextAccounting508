@@ -102,6 +102,11 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
   )
 }
 
+function RoleSyncMount() {
+  try { useRoleSync() } catch {}
+  return null
+}
+
 /**
  * Admin Providers for Server Components
  * 
