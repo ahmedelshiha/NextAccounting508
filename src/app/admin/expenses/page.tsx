@@ -170,16 +170,22 @@ export default function AdminExpensesPage() {
 
   const rows: ExpenseRow[] = useMemo(() => {
     const list = data?.expenses || []
-    return list.map(e => ({
-      id: e.id,
-      date: e.date,
-      category: e.category,
-      vendor: e.vendor,
-      status: e.status.toLowerCase() as ExpenseRow['status'],
-      amount: (e.amountCents || 0)/100,
-      avStatus: e.attachment?.avStatus || undefined,
-      attachmentUrl: e.attachment?.url || undefined,
-    }))
+    return list.map(e => {
+      const amount = (e.amountCents || 0) / 100
+      const formattedAmount = new Intl.NumberFormat(undefined, { style: 'currency', currency: e.currency || 'USD' }).format(amount)
+      const avStatus = (e.attachment?.avStatus || '').toLowerCase()
+      return {
+        id: e.id,
+        date: e.date,
+        category: e.category,
+        vendor: e.vendor,
+        status: e.status.toLowerCase() as ExpenseRow['status'],
+        amount,
+        formattedAmount,
+        avStatus: avStatus || undefined,
+        attachmentUrl: e.attachment?.url || undefined,
+      }
+    })
   }, [data])
 
   const exportHref = useMemo(() => {
