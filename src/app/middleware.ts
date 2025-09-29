@@ -5,7 +5,7 @@ function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
 }
 
-export async function middleware(req: any) {
+export async function middleware(req: NextServer.NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const isAuth = !!token
   const { pathname } = req.nextUrl
