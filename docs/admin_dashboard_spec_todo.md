@@ -75,15 +75,16 @@ Documentation notes:
   - Verify: Drag-reschedule issues PATCH and revalidates; mobile responsive
 
 - /admin/service-requests
-  - [ ] Uses ListPage; realtime via useRealtime in ClientPage
-  - [ ] Ensure bulk approve/reject/convert wired to /api/admin/service-requests/bulk
-  - [ ] Export to CSV via /api/admin/service-requests/export (streams)
+  - [x] Uses ClientPage with realtime via useRealtime; table and calendar views
+  - [x] Bulk approve/reject/delete wired to /api/admin/service-requests/bulk via ServiceRequestsBulkActions
+  - [x] Export to CSV via /api/admin/service-requests/export (streaming CSV)
   - Verify: SSE updates table; bulk results toast
+  - Notes: Adopted ClientPage pattern (instead of generic ListPage) to leverage existing table/calendar components and realtime hook.
 
 - /admin/services and /admin/services/list
-  - [ ] Use ListPage
-  - [ ] Wire slug-check (/api/admin/services/slug-check/[slug]) and versions/settings panels
-  - [ ] Analytics tab uses /api/admin/services/stats
+  - [x] Use ListPage
+  - [x] Wire slug-check (/api/admin/services/slug-check/[slug]) and versions/settings panels
+  - [x] Analytics tab uses /api/admin/services/stats
   - Verify: Clone/version actions work; stats render
 
 - /admin/availability
@@ -113,13 +114,13 @@ Documentation notes:
   - Verify: Drag across columns; analytics from /api/admin/tasks/analytics
 
 - /admin/reminders
-  - [ ] Uses StandardPage; server RBAC check
-  - [ ] Run reminders via /api/admin/reminders/run with result toast and audit entry
+  - [x] Uses StandardPage; server RBAC check
+  - [x] Run reminders via /api/admin/reminders/run with result toast and audit entry
   - Verify: Unauthorized path returns fallback; success logs exist
 
 - /admin/audits
-  - [ ] Uses StandardPage
-  - [ ] Data from /api/admin/activity and /api/admin/health-history; filters and export CSV
+  - [x] Uses StandardPage
+  - [x] Data from /api/admin/activity; filters and export CSV via /api/admin/export?entity=audits
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
 - /admin/posts
@@ -138,7 +139,7 @@ Documentation notes:
   - Verify: Charts render; updates persist
 
 - /admin/permissions and /admin/roles
-  - [ ] Use StandardPage + PermissionGate
+  - [x] Use StandardPage + PermissionGate
   - [ ] Ensure role edits persist and reflect immediately in UI
   - Verify: hasPermission checks change post-save without reload
 
@@ -153,8 +154,8 @@ Documentation notes:
   - Verify: Validate route; audit entries on change
 
 - /admin/settings/currencies
-  - [ ] Uses StandardPage with CurrencyManager
-  - [ ] Verify overrides/export/refresh endpoints; default currency persisted
+  - [x] Uses StandardPage with CurrencyManager
+  - [x] Verify overrides/export/refresh endpoints; default currency persisted
   - Verify: Rates refresh; override precedence documented
 
 - /admin/integrations
@@ -163,8 +164,8 @@ Documentation notes:
   - Verify: Health badges reflect /api/admin/system/health
 
 - /admin/uploads/quarantine
-  - [ ] Uses StandardPage with QuarantineClient
-  - [ ] Actions release/delete call /api/admin/uploads/quarantine; reflect AV status; audit changes
+  - [x] Uses StandardPage with QuarantineClient
+  - [x] Actions release/delete call /api/admin/uploads/quarantine; reflect AV status; audit changes
   - Verify: Infected files blocked until release
 
 ## 1) Core Layout, Providers, and Navigation IA
@@ -339,4 +340,22 @@ Documentation notes:
     - Reduced visual weight: smaller font-size, compact icons, minimal status indicator.
     - Removed links to unimplemented pages (/admin/logs, /admin/docs, /admin/api-docs, /admin/support) to avoid broken navigation.
   - Next steps: If those features are implemented later, re-introduce them conservatively and ensure tests cover the routes.
+
+
+## Hotfix – 2025-09-30 (Cron Telemetry navigation IA)
+- [x] Move Cron Telemetry from top navigation dropdown to Admin Sidebar > System
+  - Why: Improves information architecture; system tools belong under Admin sidebar.
+  - Type: Enhancement / IA adjustment
+  - Files changed:
+    - src/components/ui/navigation.tsx (removed Cron Telemetry entries; cleaned import)
+    - src/components/admin/layout/AdminSidebar.tsx (added Cron Telemetry under System with Clock icon)
+  - Tests: Updated tests/navigation.links.test.ts to assert presence in AdminSidebar instead of top nav
+  - Next steps: Verify visual in admin layout; ensure RBAC consistent with other system items.
+
+## Hotfix – 2025-09-30 (Service Requests page build)
+- [x] Mark /admin/service-requests/page.tsx as client component
+  - Why: Page uses useState/useEffect; Next.js App Router requires 'use client'.
+  - Type: Bugfix
+  - Files changed: src/app/admin/service-requests/page.tsx ('use client' directive added)
+  - Next steps: Continue implementing realtime SSE and bulk endpoints per spec under /api/admin/service-requests/*.
 

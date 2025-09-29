@@ -253,6 +253,11 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           ]
         },
         {
+          name: 'Cron Telemetry',
+          href: '/admin/cron-telemetry',
+          icon: Clock,
+        },
+        {
           name: 'Integrations',
           href: '/admin/integrations',
           icon: Zap,

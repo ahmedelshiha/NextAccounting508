@@ -2,9 +2,9 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
 describe('Navigation links', () => {
-  it('includes cron telemetry link in navigation source', async () => {
-    const navPath = resolve(__dirname, '../src/components/ui/navigation.tsx')
-    const content = readFileSync(navPath, 'utf8')
+  it('includes cron telemetry link in admin sidebar', async () => {
+    const sidebarPath = resolve(__dirname, '../src/components/admin/layout/AdminSidebar.tsx')
+    const content = readFileSync(sidebarPath, 'utf8')
     expect(content.includes('href="/admin/cron-telemetry"')).toBe(true)
     expect(content.includes('Cron Telemetry')).toBe(true)
   })
