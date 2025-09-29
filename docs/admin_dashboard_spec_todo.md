@@ -160,3 +160,7 @@ P2 – Medium
   - Why: Route used NextResponse without import; ensure consistent response shape.
   - What: Added import { NextResponse } from 'next/server' and kept existing lazy DB checks.
   - Next: None.
+- Completed: Global Error Boundary hardened and made client-side
+  - Why: Ensure the "Try again" button works and improve accessibility.
+  - What: Added 'use client', aria roles, optional digest details, and a Home link in src/app/global-error.tsx.
+  - Next: None.
