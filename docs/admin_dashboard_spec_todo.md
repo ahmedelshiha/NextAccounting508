@@ -2,6 +2,85 @@
 
 Scope: Implement the QuickBooks-inspired professional admin dashboard defined in docs/admin_dashboard_spec.md, aligning with existing code under src/app/admin/** and components/**. Each task is specific, measurable, and outcome-oriented, with verification steps.
 
+## Reorganized, Dependency-Ordered Execution Plan
+
+1) Platform Foundations
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [ ] Implement tenant switcher and verify tenant-scoped data on key routes
+- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [ ] Define realtime event contracts (event names, payloads) and document
+
+2) Data Models & APIs
+- [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
+- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+
+3) Dashboard Overview (depends on 2)
+- [ ] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
+- [ ] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
+- [ ] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+
+4) Financial Module (depends on 2)
+- [ ] Invoices: propose Prisma model, create endpoints, and wire ListPage (blocked until schema approved)
+- [ ] Link invoice row actions to payments view with preserved filters
+- [x] Payments: status/method/date filters with URL sync and CSV export
+- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+
+5) Team Management & Permissions (depends on 1)
+- [ ] Team page using TeamManagement component; wire workload/skills/availability APIs
+- [ ] Roles/Permissions: persist edits and reflect changes without reload; verify hasPermission changes live
+
+6) Settings Hub (depends on 1)
+- [ ] Admin Settings shell with sidebar nav (general/company/contact/timezone)
+- [ ] Forms use zod; optimistic saves with rollback on error; acceptance: 0 console errors
+- [ ] Booking Settings: wire steps, business-hours, payment-methods CRUD endpoints with audit logging
+
+7) Content & Communications (independent)
+- [x] Posts: RBAC enforced; page marked 'use client'
+- [ ] Posts: adopt ListPage UX and hook into /api/admin/stats/posts for KPIs
+- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+
+8) Analytics & Reports (depends on 2)
+- [ ] Adopt AnalyticsPage on relevant routes; unify export flows to /api/admin/export with filter propagation
+- [ ] Report scheduling stubs and progress toasts
+
+9) Observability & Security (continuous)
+- [ ] Update monitoring/performance-baseline.json; LCP <=2.5s desktop, TTI <=3.5s admin pages
+- [ ] Expand audit trail coverage; Sentry error sampling verified in prod
+
+10) Testing & Rollout
+- [ ] Unit tests for schemas, permissions, and utilities (vitest)
+- [ ] Integration tests for key API routes (no threads)
+- [ ] E2E happy paths for admin flows (Playwright)
+- [ ] Feature-flag rollout plan documented in this file
+
+---
+
+## Priority Backlog (Pending Tasks Ordered)
+
+P0 – Critical
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [ ] Define realtime event contracts (event names, payloads) and document
+
+P1 – High
+- [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
+- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [ ] Dashboard Overview: implement KPI row, charts row, and activity row with SSE refresh
+- [ ] Settings Hub: sidebar nav; zod forms; optimistic saves with rollback; Booking Settings CRUD endpoints with audit logging
+- [ ] Analytics & Reports: adopt AnalyticsPage across routes; unify export flows to /api/admin/export with filter propagation
+
+P2 – Medium
+- [ ] Invoices: propose Prisma model, endpoints, and wire ListPage (blocked until schema approved)
+- [ ] Link invoice row actions to payments view with preserved filters
+- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+- [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
+- [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
+- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+- [ ] Observability: update monitoring/performance-baseline.json to targets; expand audit trail; verify Sentry sampling
+- [ ] Testing & Rollout: unit, integration, E2E; feature-flag rollout plan
+
 ## 0) Discovery, Alignment, and Technical Baseline
 - [ ] Read and annotate docs/admin_dashboard_spec.md to extract all modules, UI patterns, and contracts
   - Acceptance: A shared outline (this file) reflects all sections of the spec; no gaps.
@@ -100,7 +179,7 @@ Documentation notes:
 
 - /admin/payments
   - [x] Uses ListPage
-  - [ ] Add filters (method/status/date)
+  - [x] Add filters (method/status/date)
   - [x] Export CSV button hits /api/admin/export?entity=payments
   - [x] URL-sync for status/method/date range filters
   - Verify: Filters reflect URL; CSV correct
@@ -111,9 +190,9 @@ Documentation notes:
   - Verify: AV status badge on attachments
 
 - /admin/tasks
-  - [ ] Uses StandardPage; rich views available under components/**
-  - [ ] Ensure Board/List/Table/Calendar/Gantt routes/toggles present; use existing components
-  - [ ] Notifications settings wired to /api/admin/tasks/notifications
+  - [x] Uses StandardPage; rich views enabled (Board/List/Table/Calendar/Gantt)
+  - [x] Ensure Board/List/Table/Calendar/Gantt routes/toggles present; use existing components
+  - [x] Notifications settings wired to /api/admin/tasks/notifications
   - Verify: Drag across columns; analytics from /api/admin/tasks/analytics
 
 - /admin/reminders
@@ -127,8 +206,9 @@ Documentation notes:
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
 - /admin/posts
-  - [ ] Uses StandardPage with apiFetch
-  - [ ] Enforce RBAC; adopt ListPage for table UX; hook into /api/admin/stats/posts for KPIs
+  - [x] Uses StandardPage with apiFetch
+  - [x] Enforce RBAC
+  - [ ] Adopt ListPage for table UX; hook into /api/admin/stats/posts for KPIs
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
@@ -371,4 +451,19 @@ Documentation notes:
   - Type: Bugfix (typing)
   - Files changed: src/components/admin/service-requests/filters.tsx
   - Next steps: Run typecheck and vercel:build; verify URL-initialized filters still narrow correctly and CSV export works.
+
+## Progress Update – 2025-09-30 (Admin tasks)
+- [x] /admin/payments: Added status/method/date filters with URL sync and CSV export hooks
+  - Why: Complete filtering UX per spec; reuse existing ListPage; maintain styles
+  - Type: Enhancement (wired existing template features)
+  - Files changed: src/app/admin/payments/page.tsx
+- [x] /admin/tasks: Enabled Board/List/Table/Calendar/Gantt views and wired notifications settings to API
+  - Why: Leverage existing rich components; expose Export & Templates panel storing notifications via /api/admin/tasks/notifications
+  - Type: Enhancement (reuse, no new UI styles)
+  - Files changed: src/app/admin/tasks/page.tsx, src/app/admin/tasks/components/export/ExportPanel.tsx
+- [x] /admin/posts: Enforced RBAC and fixed client directive
+  - Why: Page uses hooks; needed 'use client'. Added PermissionGate to restrict access
+  - Type: Enhancement/bugfix (no UX change)
+  - Files changed: src/app/admin/posts/page.tsx
+  - Next steps: Optional – adopt ListPage and hook into /api/admin/stats/posts for KPI tiles
 
