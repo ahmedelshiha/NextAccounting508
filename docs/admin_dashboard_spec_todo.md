@@ -102,6 +102,7 @@ Documentation notes:
   - [x] Uses ListPage
   - [ ] Add filters (method/status/date)
   - [x] Export CSV button hits /api/admin/export?entity=payments
+  - [x] URL-sync for status/method/date range filters
   - Verify: Filters reflect URL; CSV correct
 
 - /admin/expenses
