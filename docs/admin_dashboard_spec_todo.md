@@ -58,8 +58,9 @@ Documentation notes:
 
 - /admin/clients/new
   - [x] Uses StandardPage
-  - [ ] Validate form with zod; show field-level errors; success toasts; audit log
+  - [x] Validate form with zod; show field-level errors; success toasts; audit log
   - Verify: Invalid payload rejected; audit record present
+  - Notes: Implemented Zod step schemas on client, added sonner toasts; API now logs audit with actorId when available.
 
 - /admin/bookings
   - [ ] Uses ListPage; uses usePermissions
