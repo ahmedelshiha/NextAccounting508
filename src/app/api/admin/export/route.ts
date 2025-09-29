@@ -62,6 +62,15 @@ export async function GET(request: NextRequest) {
     } else if (entity === 'audits') {
       const logs = await prisma.healthLog.findMany({ where: { ...tenantFilter(tenantId), service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
       rows = logs.map(l => ({ id: l.id, checkedAt: l.checkedAt.toISOString(), service: l.service, status: l.status, message: l.message ?? '' }))
+    } else if (entity === 'newsletter') {
+      const subs = await prisma.newsletter.findMany({ orderBy: { createdAt: 'desc' } })
+      rows = subs.map(s => ({ id: s.id, email: s.email, name: s.name ?? '', subscribed: s.subscribed ? 'true' : 'false', createdAt: s.createdAt.toISOString() }))
+    } else if (entity === 'posts') {
+      const posts = await prisma.post.findMany({ orderBy: { updatedAt: 'desc' } })
+      rows = posts.map(p => ({ id: p.id, title: p.title, slug: p.slug, status: p.status, category: p.category ?? '', published: p.published ? 'true' : 'false', featured: p.featured ? 'true' : 'false', views: p.views ?? 0, publishedAt: p.publishedAt ? p.publishedAt.toISOString() : '', updatedAt: p.updatedAt.toISOString() }))
+    } else if (entity === 'payments') {
+      const reqs = await prisma.serviceRequest.findMany({ where: { ...tenantFilter(tenantId), NOT: { paymentStatus: null } }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true } } }, orderBy: { paymentUpdatedAt: 'desc' } })
+      rows = reqs.map(r => ({ id: r.id, clientName: r.clientName || r.client?.name || '', clientEmail: r.clientEmail || r.client?.email || '', service: r.service?.name || '', paymentStatus: r.paymentStatus ?? '', paymentProvider: r.paymentProvider ?? '', paymentAmount: typeof r.paymentAmountCents === 'number' ? (r.paymentAmountCents / 100).toFixed(2) : '', paymentCurrency: r.paymentCurrency ?? '', paymentUpdatedAt: r.paymentUpdatedAt ? r.paymentUpdatedAt.toISOString() : '' }))
     } else {
       return new NextResponse('Unknown entity', { status: 400 })
     }
