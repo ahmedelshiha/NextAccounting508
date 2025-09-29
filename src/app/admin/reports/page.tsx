@@ -1,9 +1,10 @@
 "use client"
 
-import StandardPage from '@/components/dashboard/templates/StandardPage'
+import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { Download } from 'lucide-react'
+import { downloadExport } from '@/lib/admin-export'
 // Explicit export endpoint references used by smoke tests:
 // /api/admin/export?entity=users
 // /api/admin/export?entity=bookings
