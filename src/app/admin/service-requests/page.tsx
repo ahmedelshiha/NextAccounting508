@@ -6,6 +6,7 @@ import type { Column, FilterConfig, RowAction } from "@/types/dashboard"
 import { useServiceRequests, type ServiceRequestsQuery } from "@/hooks/useServiceRequests"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import ServiceRequestsBulkActions from '@/components/admin/service-requests/bulk-actions'
 import { 
   AlertTriangle, 
   Clock, 
