@@ -1,5 +1,3 @@
-"use client"
-
 import { useMemo, useState, useEffect } from "react"
 import ListPage from "@/components/dashboard/templates/ListPage"
 import type { Column, FilterConfig, RowAction } from "@/types/dashboard"
@@ -349,7 +347,31 @@ export default function AdminServiceRequestsPage() {
       }}
       secondaryActions={[
         { label: "Refresh", onClick: () => refresh() },
-        { label: "Export", onClick: () => console.log('Export functionality to be implemented') }
+        { label: "Export", onClick: async () => {
+          try {
+            const qs = new URLSearchParams()
+            if (q) qs.set('q', q)
+            if (params.status) qs.set('status', String(params.status))
+            if (params.priority) qs.set('priority', String(params.priority))
+            if (params.assignedTo) qs.set('assignedTo', String(params.assignedTo))
+            const res = await fetch(`/api/admin/service-requests/export?${qs.toString()}`)
+            if (!res.ok) { const { toastFromResponse } = await import('@/lib/toast-api'); await toastFromResponse(res, { failure: 'Export failed' }); return }
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `service-requests-${new Date().toISOString().slice(0,10)}.csv`
+            document.body.appendChild(a)
+            a.click()
+            URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+            const { toastSuccess } = await import('@/lib/toast-api')
+            toastSuccess('Export ready')
+          } catch (e) {
+            const { toastError } = await import('@/lib/toast-api')
+            toastError(e, 'Export failed')
+          }
+        } }
       ]}
       filters={filterConfigs}
       onFilterChange={onFilterChange}
@@ -363,6 +385,7 @@ export default function AdminServiceRequestsPage() {
       onSort={(key) => setSortBy(key)}
       actions={actions}
       selectable
+      renderBulkActions={(ids) => <ServiceRequestsBulkActions selectedIds={(ids as any) as string[]} onDone={() => refresh()} />}
     />
   )
 }
