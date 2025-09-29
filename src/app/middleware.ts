@@ -63,7 +63,7 @@ export async function middleware(req: any) {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
       // Prefer explicit cookie if present
       const cookieHeader = req.headers.get('cookie') || ''
-      const cookieTenant = cookieHeader.split(';').map(s => s.trim()).find(s => s.startsWith('tenant='))?.split('=')[1]
+      const cookieTenant = cookieHeader.split(';').map((s: string) => s.trim()).find((s: string) => s.startsWith('tenant='))?.split('=')[1]
       if (cookieTenant) {
         requestHeaders.set('x-tenant-id', cookieTenant)
       } else {
