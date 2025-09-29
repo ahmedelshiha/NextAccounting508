@@ -51,6 +51,13 @@ function computeDateRange(range: string): { from?: string; to?: string } {
   return { from: start ? fmt(start) : undefined, to: fmt(end) }
 }
 
+function mapInvoiceStatusToPaymentStatus(s: string): string | undefined {
+  if (s === 'paid') return 'completed'
+  if (s === 'void') return 'refunded'
+  if (s === 'unpaid' || s === 'sent' || s === 'draft') return 'pending'
+  return undefined
+}
+
 export default function AdminInvoicesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -146,8 +153,27 @@ export default function AdminInvoicesPage() {
 
   const total = data?.total ?? 0
 
+  const paymentsHrefBase = useMemo(() => {
+    const params = new URLSearchParams()
+    if (range && range !== 'last_30') params.set('range', range)
+    const mapped = mapInvoiceStatusToPaymentStatus(status)
+    if (mapped && status !== 'all') params.set('status', mapped)
+    const qs = params.toString()
+    return qs ? `/admin/payments?${qs}` : '/admin/payments'
+  }, [status, range])
+
   const actions: RowAction<InvoiceRow>[] = [
-    { label: 'View', onClick: (row) => { window.alert(`Open invoice ${row.id}`) } },
+    {
+      label: 'Payments (filtered)',
+      onClick: (row) => {
+        const params = new URLSearchParams()
+        if (range && range !== 'last_30') params.set('range', range)
+        const mapped = mapInvoiceStatusToPaymentStatus(row.status)
+        if (mapped) params.set('status', mapped)
+        const qs = params.toString()
+        window.location.href = qs ? `/admin/payments?${qs}` : '/admin/payments'
+      }
+    },
   ]
 
   const exportHref = useMemo(() => {
@@ -160,13 +186,14 @@ export default function AdminInvoicesPage() {
   }, [status, from, to])
 
   return (
-    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Invoices.</div>}>
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className=\"p-6\">You do not have access to Invoices.</div>}>
       <ListPage<InvoiceRow>
-        title="Invoices"
-        subtitle="Track invoices and statuses; use Reports for exports"
+        title=\"Invoices\"
+        subtitle=\"Track invoices and statuses; use Reports for exports\"
         secondaryActions={[
           { label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } },
           { label: 'Export CSV', onClick: () => { window.location.href = exportHref } },
+          { label: 'Open Payments', onClick: () => { window.location.href = paymentsHrefBase } },
           { label: 'Automated Billing', onClick: () => { window.location.href = '/admin/invoices/sequences' } },
         ]}
         filters={filters}
@@ -174,7 +201,7 @@ export default function AdminInvoicesPage() {
         columns={columns}
         rows={rows}
         useAdvancedTable
-        emptyMessage="No invoices found"
+        emptyMessage=\"No invoices found\"
         actions={actions}
         selectable={false}
         loading={isLoading}
