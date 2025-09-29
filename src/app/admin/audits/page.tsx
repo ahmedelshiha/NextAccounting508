@@ -5,6 +5,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig } from '@/types/dashboard'
+import { downloadExport } from '@/lib/admin-export'
 
 interface AuditLog { id: string; service: string; status: string; message: string | null; checkedAt: string }
 
