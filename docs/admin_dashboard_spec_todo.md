@@ -173,6 +173,7 @@ Documentation notes:
 
 - /admin/invoices
   - [x] Uses ListPage (UI scaffold only)
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [ ] Ensure payments linkage (view invoice → payments) and export hooks
   - [ ] Implement invoices data source (blocked: no Invoice model in Prisma schema)
   - Verify: Currency formatting uses settings; totals accurate
