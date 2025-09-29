@@ -52,6 +52,7 @@ model User {
   bookingPreferences BookingPreferences?
   workOrdersAsClient WorkOrder[] @relation("WorkOrderClient")
   assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
+  invoices Invoice[]
 
   @@index([email])
   @@index([role])
@@ -262,6 +263,7 @@ model Booking {
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   workOrders WorkOrder[]
+  invoices Invoice[]
 
   // Helpful indexes for queries
   @@index([scheduledAt])
