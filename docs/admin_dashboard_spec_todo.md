@@ -202,6 +202,7 @@ Documentation notes:
 
 - /admin/audits
   - [x] Uses StandardPage
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Data from /api/admin/activity; filters and export CSV via /api/admin/export?entity=audits
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
