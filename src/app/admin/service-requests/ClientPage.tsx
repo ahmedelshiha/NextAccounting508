@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useBookings } from '@/hooks/useBookings'
+import { useServiceRequests } from '@/hooks/useServiceRequests'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, List, CalendarDays, BarChart3, Download } from 'lucide-react'
@@ -79,17 +79,17 @@ export default function AdminServiceRequestsClient() {
     return params.toString()
   }, [filters, page, limit, typeTab, viewMode])
 
-  const { items, pagination, isLoading, refresh } = useBookings({
+  const { items, pagination, isLoading, refresh } = useServiceRequests({
     scope: 'admin',
     page,
     limit,
     q: filters.q,
     status: filters.status,
     priority: filters.priority,
-    bookingType: filters.bookingType,
-    paymentStatus: filters.paymentStatus,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
+    sortBy: undefined,
+    sortOrder: undefined,
     type: typeTab === 'ALL' ? 'all' : typeTab === 'APPOINTMENTS' ? 'appointments' : 'requests',
   })
 
