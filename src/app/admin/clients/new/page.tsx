@@ -68,20 +68,6 @@ interface ValidationError { field: string; message: string }
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const validatePhone = (phone: string) => /^[\+]?([0-9]|\s|\-|\(|\)){5,}$/i.test(phone || '')
 
-const Step1Schema = z.object({
-  name: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Enter a valid email'),
-  phone: z.string().optional().refine((v) => !v || validatePhone(v), 'Invalid phone number'),
-  taxId: z.string().optional().refine((v) => !v || v.length >= 5, 'Tax ID looks invalid'),
-})
-
-const Step2Schema = z.object({
-  country: z.string().min(1, 'Country is required'),
-})
-
-const Step7Schema = z.object({
-  gdprConsent: z.literal(true, { message: 'GDPR consent is required' }),
-})
 
 async function fetchServices(): Promise<Service[]> {
   try {
