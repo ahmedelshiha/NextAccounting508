@@ -495,6 +495,8 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | TeamMember['status']>('all')
   const [departmentFilter, setDepartmentFilter] = useState<'all' | TeamMember['department']>('all')
+  const [skillFilter, setSkillFilter] = useState<string>('all')
+  const [availableSkills, setAvailableSkills] = useState<string[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [viewingMember, setViewingMember] = useState<TeamMember | null>(null)
@@ -502,9 +504,30 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
   useEffect(() => {
     const loadMembers = async () => {
       try {
+        // Load core team members
         const res = await fetch('/api/admin/team-members', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
         const members = Array.isArray(data.teamMembers) ? data.teamMembers : []
+
+        // Load availability metrics (availabilityPercentage per member)
+        let availabilityById: Record<string, number> = {}
+        try {
+          const availRes = await fetch('/api/admin/team-management/availability', { cache: 'no-store' })
+          const availJson = await availRes.json().catch(() => ({} as any))
+          const list = Array.isArray(availJson?.data) ? availJson.data : []
+          for (const it of list) {
+            availabilityById[String(it.id || it.memberId || it.userId || '')] = Number(it.availabilityPercentage || 0)
+          }
+        } catch {}
+
+        // Load unique skills to power filter
+        try {
+          const skillsRes = await fetch('/api/admin/team-management/skills', { cache: 'no-store' })
+          const skillsJson = await skillsRes.json().catch(() => ({} as any))
+          const skills = Array.isArray(skillsJson?.data?.skills) ? skillsJson.data.skills : []
+          setAvailableSkills(skills)
+        } catch {}
+
         setTeamMembers(members.map((m: any) => ({
           id: String(m.id ?? m.userId ?? m.email ?? m.name ?? Math.random().toString(36).slice(2)),
           userId: m.userId ?? null,
@@ -528,8 +551,9 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
             averageRating: Number.isFinite(m.stats.averageRating) ? m.stats.averageRating : 0,
             totalRatings: Number.isFinite(m.stats.totalRatings) ? m.stats.totalRatings : 0,
             revenueGenerated: Number.isFinite(m.stats.revenueGenerated) ? m.stats.revenueGenerated : 0,
-            utilizationRate: Number.isFinite(m.stats.utilizationRate) ? m.stats.utilizationRate : 0
-          } : defaultStats,
+            // Prefer availability-derived utilization when present
+            utilizationRate: Number.isFinite(availabilityById[String(m.id)]) ? Math.max(0, Math.min(100, 100 - availabilityById[String(m.id)])) : (Number.isFinite(m.stats.utilizationRate) ? m.stats.utilizationRate : 0)
+          } : (Number.isFinite(availabilityById[String(m.id)]) ? { ...defaultStats, utilizationRate: Math.max(0, Math.min(100, 100 - availabilityById[String(m.id)])) } : defaultStats),
           canManageBookings: Boolean(m.canManageBookings),
           canViewAllClients: Boolean(m.canViewAllClients),
           notificationSettings: m.notificationSettings && typeof m.notificationSettings === 'object' ? {
@@ -553,7 +577,8 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
     const matchesSearch = (m.name || '').toLowerCase().includes(term) || (m.email || '').toLowerCase().includes(term) || (m.title || '').toLowerCase().includes(term)
     const matchesStatus = statusFilter === 'all' || m.status === statusFilter
     const matchesDepartment = departmentFilter === 'all' || m.department === departmentFilter
-    return matchesSearch && matchesStatus && matchesDepartment
+    const matchesSkill = skillFilter === 'all' || (m.specialties || []).includes(skillFilter)
+    return matchesSearch && matchesStatus && matchesDepartment && matchesSkill
   })
 
   const handleSave = async (data: Partial<TeamMember>) => {
@@ -652,6 +677,10 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
           <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value as 'all' | TeamMember['department'])} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="all">All Departments</option>
             {departmentOptions.map((d) => (<option key={d.value} value={d.value}>{d.label}</option>))}
+          </select>
+          <select value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="all">All Skills</option>
+            {availableSkills.map((s) => (<option key={s} value={s}>{s}</option>))}
           </select>
         </div>
       </div>

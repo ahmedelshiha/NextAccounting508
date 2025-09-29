@@ -32,7 +32,7 @@ export default function AdminPaymentsPage() {
     const s = get('status'); if (s) setStatus(s)
     const m = get('method'); if (m) setMethod(m)
     const r = get('range'); if (r) setRange(r)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [])
 
   // Keep URL in sync

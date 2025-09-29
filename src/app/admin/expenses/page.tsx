@@ -9,6 +9,8 @@ import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 interface ExpenseRow {
   id: string
@@ -72,7 +74,7 @@ export default function AdminExpensesPage() {
     const r = get('range'); if (r) setRange(r)
     const p = Number(get('page')); if (Number.isFinite(p) && p > 0) setPage(p)
     const q = get('q'); if (q) setSearch(q)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Keep URL in sync
@@ -140,8 +142,11 @@ export default function AdminExpensesPage() {
 
   const { data, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher)
 
+  const isImage = (url?: string) => !!url && /\.(png|jpe?g|gif|webp|svg)$/i.test(url)
+  const isPdf = (url?: string) => !!url && /\.(pdf)$/i.test(url)
+
   const columns: Column<ExpenseRow>[] = useMemo(() => ([
-    { key: 'date', label: 'Date', sortable: true },
+    { key: 'date', label: 'Date', sortable: true, render: (v: string) => new Date(v).toISOString().slice(0,10) },
     { key: 'vendor', label: 'Vendor', sortable: true, render: (_v, row) => (
       <div className="flex items-center gap-2">
         {row.avStatus ? (
@@ -156,6 +161,45 @@ export default function AdminExpensesPage() {
       </div>
     ) },
     { key: 'category', label: 'Category', sortable: true },
+    { key: 'receipt', label: 'Receipt', sortable: false, render: (_v, row) => (
+      row.attachmentUrl ? (
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">Preview</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {row.avStatus ? (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    row.avStatus === 'clean' ? 'bg-green-100 text-green-800' :
+                    row.avStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    row.avStatus === 'infected' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>{row.avStatus}</span>
+                ) : null}
+                <span>Receipt Preview</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="min-h-[300px] flex items-center justify-center">
+              {isImage(row.attachmentUrl) ? (
+                // Image preview
+                <img src={row.attachmentUrl} alt="Receipt preview" className="max-h-[70vh] max-w-full rounded" />
+              ) : isPdf(row.attachmentUrl) ? (
+                // PDF preview
+                <iframe src={row.attachmentUrl} title="Receipt PDF" className="w-full h-[70vh] rounded border" />
+              ) : (
+                <div className="text-sm text-gray-700">
+                  Preview not available. <a href={row.attachmentUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">Open in new tab</a>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <span className="text-gray-400">—</span>
+      )
+    ) },
     { key: 'status', label: 'Status', sortable: true, render: (v) => (
       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
         v === 'approved' ? 'bg-green-100 text-green-800' :

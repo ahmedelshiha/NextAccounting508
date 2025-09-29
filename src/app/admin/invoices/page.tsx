@@ -74,7 +74,7 @@ export default function AdminInvoicesPage() {
     const s = get('status'); if (s) setStatus(s)
     const r = get('range'); if (r) setRange(r)
     const p = Number(get('page')); if (Number.isFinite(p) && p > 0) setPage(p)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Keep URL in sync

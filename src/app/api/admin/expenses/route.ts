@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
@@ -86,8 +85,13 @@ export async function GET(request: NextRequest) {
 
     const query = (q || '').trim()
     if (query) {
+      const existingAnd: Prisma.ExpenseWhereInput[] = Array.isArray((where as any).AND)
+        ? ((where as any).AND as Prisma.ExpenseWhereInput[])
+        : (where as any).AND
+        ? [((where as any).AND as Prisma.ExpenseWhereInput)]
+        : []
       where.AND = [
-        ...(where.AND || []),
+        ...existingAnd,
         {
           OR: [
             { vendor: { contains: query, mode: 'insensitive' } },

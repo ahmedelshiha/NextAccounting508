@@ -78,7 +78,7 @@ P1 – High
 P2 – Medium
 - [x] Invoices: Prisma model, endpoints, UI wiring completed; CSV export added
 - [ ] Link invoice row actions to payments view with preserved filters
-- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+- [x] Expenses: ListPage, category/status filters, attachment preview; AV status badge; CSV export
 - [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
 - [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
 - [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
@@ -121,7 +121,14 @@ P2 – Medium
   - Fields: vendor, category, status, amountCents, currency, date, attachmentId, userId, tenantId, createdAt, updatedAt
   - Back-relations: User.expenses, Attachment.expenses; table mapped to "expenses"
 - Completed: Replaced runtime guards with typed prisma.expense usage in admin Expenses API and Export route
+- Completed: Expenses ListPage with category/status filters, AV badge, and CSV export
+  - Why: Deliver the Financial Module Expenses requirements with consistent ListPage UX
+  - What: Implemented admin UI at src/app/admin/expenses/page.tsx using ListPage and AdvancedDataTable; filters sync to URL; CSV export via /api/admin/export?entity=expenses; inline Dialog preview for receipts with AV status badge
+  - Next: Add bulk delete and create expense modal; hook into attachment upload flow
 - Pending: Database migration required to apply schema (needs NETLIFY_DATABASE_URL). After providing the URL, we will run `pnpm db:migrate` (or `prisma migrate deploy`).
+- Completed: Fixed type errors blocking build in /api/admin/expenses (removed duplicate Next imports; normalized `where.AND` to an array).
+  - Why: Unblocked `pnpm typecheck` and `pnpm vercel:build` by resolving TS2300 and TS2488.
+  - Next: Run typecheck/build; proceed with Expenses ListPage wiring and CSV export.
 
 ## 2025-10-01 Build Fixes
 - Completed: Guard missing Expense model in API routes to resolve TypeScript errors

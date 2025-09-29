@@ -62,7 +62,7 @@ export default function ClientsProfilesAdminPage() {
     if (sb) setSortBy(sb)
     if (so) setSortOrder(so)
     if (!isNaN(p) && p > 0) setPage(p)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Keep URL in sync with UI state

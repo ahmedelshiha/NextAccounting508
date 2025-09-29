@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -99,6 +100,8 @@ const UserRowSkeleton = () => (
 
 export default function AdminUsersPage() {
   const perms = usePermissions()
+  const { data: session, update } = useSession()
+  const { data: session, update } = require('next-auth/react').useSession() as any
 
   // Data state
   const [stats, setStats] = useState<UserStats | null>(null)
@@ -232,6 +235,12 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ role: newRole })
       })
       if (!res.ok) throw new Error(`Failed (${res.status})`)
+      try {
+        const me = (session?.user as any)?.id
+        if (me && me === userId && typeof update === 'function') {
+          await update({ user: { ...(session.user as any), role: newRole } })
+        }
+      } catch {}
     } catch (e) {
       console.error('Role update failed', e)
       setUsers(prev => prev.map(u => (u.id === userId ? (original as UserItem) : u)))
