@@ -27,6 +27,30 @@ export async function middleware(req: any) {
     if (!isStaffRole(role)) {
       return NextServer.NextResponse.redirect(new URL('/portal', req.url))
     }
+
+    // Route-based RBAC enforcement
+    try {
+      const { hasPermission, PERMISSIONS } = await import('@/lib/permissions')
+      const routePerm: Array<{ prefix: string; perm: keyof typeof PERMISSIONS }> = [
+        { prefix: '/admin/services', perm: 'SERVICES_VIEW' },
+        { prefix: '/admin/payments', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/audits', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/newsletter', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/reports', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/security', perm: 'ANALYTICS_VIEW' },
+        { prefix: '/admin/team', perm: 'TEAM_VIEW' },
+        { prefix: '/admin/roles', perm: 'USERS_MANAGE' },
+        { prefix: '/admin/permissions', perm: 'USERS_MANAGE' },
+        { prefix: '/admin/settings/booking', perm: 'BOOKING_SETTINGS_VIEW' },
+      ]
+      const match = routePerm.find(r => pathname.startsWith(r.prefix))
+      if (match) {
+        const key = PERMISSIONS[match.perm]
+        if (!hasPermission(role || undefined, key)) {
+          return NextServer.NextResponse.redirect(new URL('/admin', req.url))
+        }
+      }
+    } catch {}
   }
 
   if (isPortalPage && !isAuth) {
@@ -37,12 +61,19 @@ export async function middleware(req: any) {
   const requestHeaders = new Headers(req.headers)
   try {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
-      const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
-      const host = String(hostname).split(':')[0]
-      const parts = host.split('.')
-      let sub = parts.length >= 3 ? parts[0] : ''
-      if (sub === 'www' && parts.length >= 4) sub = parts[1]
-      if (sub) requestHeaders.set('x-tenant-id', sub)
+      // Prefer explicit cookie if present
+      const cookieHeader = req.headers.get('cookie') || ''
+      const cookieTenant = cookieHeader.split(';').map(s => s.trim()).find(s => s.startsWith('tenant='))?.split('=')[1]
+      if (cookieTenant) {
+        requestHeaders.set('x-tenant-id', cookieTenant)
+      } else {
+        const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
+        const host = String(hostname).split(':')[0]
+        const parts = host.split('.')
+        let sub = parts.length >= 3 ? parts[0] : ''
+        if (sub === 'www' && parts.length >= 4) sub = parts[1]
+        if (sub) requestHeaders.set('x-tenant-id', sub)
+      }
     }
   } catch {}
 

@@ -14,6 +14,9 @@ interface PaymentItem {
   amount: number
 }
 
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
+
 export default function AdminPaymentsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -95,18 +98,20 @@ export default function AdminPaymentsPage() {
   ]
 
   return (
-    <ListPage<PaymentItem>
-      title="Payments"
-      subtitle="Monitor payment activity; use Reports for exports"
-      secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }, { label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=payments' } }]}
-      filters={filters}
-      onFilterChange={onFilterChange}
-      columns={columns}
-      rows={rows}
-      useAdvancedTable
-      emptyMessage="No payments found"
-      actions={actions}
-      selectable={false}
-    />
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Payments.</div>}>
+      <ListPage<PaymentItem>
+        title="Payments"
+        subtitle="Monitor payment activity; use Reports for exports"
+        secondaryActions={[{ label: 'Open Reports', onClick: () => { window.location.href = '/admin/reports' } }, { label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=payments' } }]}
+        filters={filters}
+        onFilterChange={onFilterChange}
+        columns={columns}
+        rows={rows}
+        useAdvancedTable
+        emptyMessage="No payments found"
+        actions={actions}
+        selectable={false}
+      />
+    </PermissionGate>
   )
 }

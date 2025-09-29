@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
+import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -141,8 +142,9 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
             </form>
           </div>
 
-          {/* Right section - Notifications + User menu */}
+          {/* Right section - Tenant + Notifications + User menu */}
           <div className="flex items-center space-x-4">
+            <TenantSwitcher />
             {/* Notifications */}
             <Button
               variant="ghost"

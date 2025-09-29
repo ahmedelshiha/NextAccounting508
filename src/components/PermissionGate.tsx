@@ -1,5 +1,7 @@
 'use client'
 
+'use client'
+
 import React from 'react'
 import { useSession } from 'next-auth/react'
 import { hasPermission, type Permission } from '@/lib/permissions'

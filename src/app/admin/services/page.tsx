@@ -10,6 +10,8 @@ import { apiFetch } from '@/lib/api'
 import { Modal } from '@/components/ui/Modal'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface ServiceRow {
   id: string | number
@@ -144,8 +146,9 @@ export default function ServicesAdminPage() {
   const [activeTab, setActiveTab] = useState<string>('list')
 
   return (
-    <div className="px-6 py-4">
-      {activeTab === 'analytics' ? (
+    <PermissionGate permission={[PERMISSIONS.SERVICES_VIEW]} fallback={<div className="p-6">You do not have access to Services.</div>}>
+      <div className="px-6 py-4">
+        {activeTab === 'analytics' ? (
         <div>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Services Analytics</h2>
@@ -191,9 +194,9 @@ export default function ServicesAdminPage() {
             </div>
           )}
         />
-      )}
+        )}
 
-      {showModal && (
+        {showModal && (
         <Modal open={showModal} onClose={() => { setShowModal(false); setEditing(null) }} title={editing ? `Edit: ${editing.name ?? ''}` : 'Create Service'}>
           <ServiceForm
             initialData={editing as any}
@@ -223,7 +226,8 @@ export default function ServicesAdminPage() {
             })()}
           />
         </Modal>
-      )}
-    </div>
+        )}
+      </div>
+    </PermissionGate>
   )
 }

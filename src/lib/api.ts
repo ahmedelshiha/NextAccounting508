@@ -18,6 +18,18 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
   const doFetch = async (info: RequestInfo | string) : Promise<Response> => {
     const controller = new AbortController()
     const signal = options && (options as any).signal ? (options as any).signal : controller.signal
+
+    // Merge and augment headers with tenant when available
+    const hdrs = new Headers((defaultOpts.headers as any) || {})
+    try {
+      if (!hdrs.has('x-tenant-id') && typeof window !== 'undefined') {
+        const cookieTenant = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith('tenant='))?.split('=')[1]
+        const lsTenant = (window.localStorage && window.localStorage.getItem('adminTenant')) || ''
+        const tenant = cookieTenant || lsTenant
+        if (tenant) hdrs.set('x-tenant-id', tenant)
+      }
+    } catch {}
+
     let timeout: ReturnType<typeof setTimeout> | null = null
     if (timeoutMs && !(options && (options as any).signal)) {
       // Provide a reason when aborting so error messages include context (avoids "signal is aborted without reason").
@@ -37,7 +49,7 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
       }, timeoutMs)
     }
     try {
-      return await fetch(info as RequestInfo, { ...defaultOpts, signal })
+      return await fetch(info as RequestInfo, { ...defaultOpts, headers: hdrs, signal })
     } finally {
       if (timeout) clearTimeout(timeout)
     }
