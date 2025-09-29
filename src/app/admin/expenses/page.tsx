@@ -35,7 +35,11 @@ type ApiExpense = {
 
 type ApiResponse = { expenses: ApiExpense[]; total: number; page?: number; limit?: number }
 
-const fetcher = (url: string) => fetch(url).then(r => { if (!r.ok) throw new Error('Failed to load expenses'); return r.json() as Promise<ApiResponse> })
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' })
+  if (!response.ok) throw new Error('Failed to load expenses')
+  return response.json() as Promise<ApiResponse>
+}
 
 function computeDateRange(range: string): { from?: string; to?: string } {
   const now = new Date()
