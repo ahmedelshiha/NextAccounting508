@@ -57,7 +57,7 @@ Documentation notes:
   - Verify: Non-admin sees fallback
 
 - /admin/clients/new
-  - [ ] Uses StandardPage
+  - [x] Uses StandardPage
   - [ ] Validate form with zod; show field-level errors; success toasts; audit log
   - Verify: Invalid payload rejected; audit record present
 
@@ -86,7 +86,7 @@ Documentation notes:
   - Verify: Clone/version actions work; stats render
 
 - /admin/availability
-  - [ ] Uses StandardPage with AvailabilitySlotsManager
+  - [x] Uses StandardPage with AvailabilitySlotsManager
   - [ ] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
   - Verify: Slots persist; tenant isolation enforced
 
@@ -261,6 +261,12 @@ Documentation notes:
 - [x] Updated next.config.mjs CSP connect-src to include https://*.vercel.app and https://*.vercel.com (Report-Only) to match preview domains.
 - [x] Hardened client apiFetch to ignore NEXT_PUBLIC_API_BASE when cross-origin; enforces same-origin calls across deploys to avoid CORS/CSP violations; preserves retry/safe fallback.
 - [x] Added @playwright/test to devDependencies to fix Netlify E2E plugin resolution.
+
+## Hotfix – 2025-09-29 (RBAC permission typing)
+- [x] Fixed TS2345 by using PERMISSIONS.TEAM_MANAGE in src/app/admin/calendar/page.tsx and importing PERMISSIONS.
+
+## Hotfix – 2025-09-29 (Availability page import)
+- [x] Added missing StandardPage import to src/app/admin/availability/page.tsx.
 
 ## Progress Update – 2025-09-29
 - [x] Security policies: CSP connect-src aligned for Netlify/Vercel previews; CORS issues mitigated by same-origin fetch strategy.
