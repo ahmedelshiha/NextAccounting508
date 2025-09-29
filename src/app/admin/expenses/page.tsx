@@ -82,6 +82,7 @@ export default function AdminExpensesPage() {
     if (category && category !== 'all') params.set('category', category)
     if (range && range !== 'last_30') params.set('range', range)
     if (page && page !== 1) params.set('page', String(page))
+    if (search) params.set('q', search)
     const qs = params.toString()
     const href = qs ? `/admin/expenses?${qs}` : '/admin/expenses'
     router.replace(href)
