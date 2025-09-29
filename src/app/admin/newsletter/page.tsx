@@ -55,7 +55,7 @@ export default function AdminNewsletterPage() {
       <ListPage<Subscription>
         title="Newsletter"
         subtitle="Manage newsletter subscribers"
-        secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}
+        secondaryActions={[{ label: 'Export CSV', onClick: () => downloadExport({ entity: 'newsletter', format: 'csv' }) }]}
         columns={columns}
         rows={subs}
         loading={loading}
