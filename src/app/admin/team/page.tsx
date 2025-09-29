@@ -3,6 +3,7 @@ import StandardPage from '@/components/dashboard/templates/StandardPage'
 import TeamManagement from '@/components/admin/team-management'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import TeamWorkloadChart from '@/components/admin/service-requests/team-workload-chart'
 
 export default function AdminTeamPage() {
   return (
@@ -10,7 +11,7 @@ export default function AdminTeamPage() {
       <StandardPage title="Team Management" subtitle="Manage staff members, availability, and assignments">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-3">
-            {(await import('@/components/admin/service-requests/team-workload-chart')).default()}
+            <TeamWorkloadChart />
           </div>
         </div>
         <TeamManagement hideHeader />
