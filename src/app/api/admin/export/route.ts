@@ -19,6 +19,12 @@ function toCsv(rows: Record<string, unknown>[]) {
   return lines.join('\n')
 }
 
+function parseDate(value: string | null): Date | undefined {
+  if (!value) return undefined
+  const d = new Date(value)
+  return Number.isFinite(d.getTime()) ? d : undefined
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -71,6 +77,33 @@ export async function GET(request: NextRequest) {
     } else if (entity === 'payments') {
       const reqs = await prisma.serviceRequest.findMany({ where: { ...tenantFilter(tenantId), NOT: { paymentStatus: null } }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true } } }, orderBy: { paymentUpdatedAt: 'desc' } })
       rows = reqs.map(r => ({ id: r.id, clientName: r.clientName || r.client?.name || '', clientEmail: r.clientEmail || r.client?.email || '', service: r.service?.name || '', paymentStatus: r.paymentStatus ?? '', paymentProvider: r.paymentProvider ?? '', paymentAmount: typeof r.paymentAmountCents === 'number' ? (r.paymentAmountCents / 100).toFixed(2) : '', paymentCurrency: r.paymentCurrency ?? '', paymentUpdatedAt: r.paymentUpdatedAt ? r.paymentUpdatedAt.toISOString() : '' }))
+    } else if (entity === 'invoices') {
+      const status = searchParams.get('status')
+      const createdFrom = parseDate(searchParams.get('createdFrom'))
+      const createdTo = parseDate(searchParams.get('createdTo'))
+      const where: any = { ...tenantFilter(tenantId) }
+      if (status && status !== 'all') where.status = status
+      if (createdFrom || createdTo) {
+        where.createdAt = {}
+        if (createdFrom) where.createdAt.gte = createdFrom
+        if (createdTo) where.createdAt.lte = createdTo
+      }
+      const invoices = await prisma.invoice.findMany({
+        where,
+        include: { client: { select: { name: true, email: true } } },
+        orderBy: { createdAt: 'desc' },
+      })
+      rows = invoices.map(inv => ({
+        id: inv.id,
+        number: inv.number ?? '',
+        clientName: inv.client?.name || '',
+        clientEmail: inv.client?.email || '',
+        status: inv.status,
+        currency: inv.currency,
+        total: (inv.totalCents / 100).toFixed(2),
+        createdAt: inv.createdAt.toISOString(),
+        paidAt: inv.paidAt ? inv.paidAt.toISOString() : '',
+      }))
     } else {
       return new NextResponse('Unknown entity', { status: 400 })
     }
