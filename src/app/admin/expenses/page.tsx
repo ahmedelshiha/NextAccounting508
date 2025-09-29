@@ -17,6 +17,7 @@ interface ExpenseRow {
   vendor: string
   status: 'pending' | 'approved' | 'reimbursed' | 'rejected'
   amount: number
+  formattedAmount: string
   avStatus?: string
   attachmentUrl?: string
 }
