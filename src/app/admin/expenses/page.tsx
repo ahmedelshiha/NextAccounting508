@@ -165,7 +165,7 @@ export default function AdminExpensesPage() {
         'bg-gray-100 text-gray-800'
       }`}>{String(v).toUpperCase()}</span>
     ) },
-    { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (v: number) => `$${v.toFixed(2)}` },
+    { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (_value, row) => row.formattedAmount },
   ]), [])
 
   const rows: ExpenseRow[] = useMemo(() => {
