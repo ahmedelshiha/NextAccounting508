@@ -90,6 +90,7 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
         <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
           <RealtimeProvider>
             <PerformanceWrapper>
+              <RoleSyncMount />
               <UXMonitor>
                 {children}
               </UXMonitor>
