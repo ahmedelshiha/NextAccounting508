@@ -15,7 +15,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
   - Acceptance: Baseline report stored in monitoring/performance-baseline.json updated with current values
   - Verify: Run vitest and lightweight profiling; document results.
 
-## 0A) Route-by-Route Audit (Current State → Actions)
+## 0A) Route-by-Route Audit (Current State ��� Actions)
 Legend: [x] implemented/verified, [ ] required
 
 Documentation notes:
@@ -93,8 +93,9 @@ Documentation notes:
   - Verify: Slots persist; tenant isolation enforced
 
 - /admin/invoices
-  - [ ] Uses ListPage
+  - [x] Uses ListPage (UI scaffold only)
   - [ ] Ensure payments linkage (view invoice → payments) and export hooks
+  - [ ] Implement invoices data source (blocked: no Invoice model in Prisma schema)
   - Verify: Currency formatting uses settings; totals accurate
 
 - /admin/payments
