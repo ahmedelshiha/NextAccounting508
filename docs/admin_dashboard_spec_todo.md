@@ -214,6 +214,7 @@ Documentation notes:
 
 - /admin/newsletter
   - [x] Uses StandardPage
+  - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Export CSV button hits /api/admin/export?entity=newsletter; server now supports 'newsletter'
   - Verify: Export contains subscriber fields; errors surfaced
 
