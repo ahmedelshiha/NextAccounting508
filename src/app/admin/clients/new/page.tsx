@@ -21,6 +21,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
+import { z } from 'zod'
+import { toast } from 'sonner'
 
 interface ClientFormData {
   name: string
@@ -64,6 +66,21 @@ interface ValidationError { field: string; message: string }
 
 const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const validatePhone = (phone: string) => /^[\+]?([0-9]|\s|\-|\(|\)){5,}$/i.test(phone || '')
+
+const Step1Schema = z.object({
+  name: z.string().min(1, 'Full name is required'),
+  email: z.string().email('Enter a valid email'),
+  phone: z.string().optional().refine((v) => !v || validatePhone(v), 'Invalid phone number'),
+  taxId: z.string().optional().refine((v) => !v || v.length >= 5, 'Tax ID looks invalid'),
+})
+
+const Step2Schema = z.object({
+  country: z.string().min(1, 'Country is required'),
+})
+
+const Step7Schema = z.object({
+  gdprConsent: z.literal(true, { errorMap: () => ({ message: 'GDPR consent is required' }) }),
+})
 
 async function fetchServices(): Promise<Service[]> {
   try {
@@ -182,16 +199,15 @@ export default function ProfessionalAddClientPage() {
   const validateStep = (step = currentStep) => {
     const errs: ValidationError[] = []
     if (step === 1) {
-      if (!formData.name.trim()) errs.push({ field: 'name', message: 'Full name is required' })
-      if (!formData.email.trim()) errs.push({ field: 'email', message: 'Email is required' })
-      else if (!validateEmail(formData.email)) errs.push({ field: 'email', message: 'Enter a valid email' })
-      else if (emailExists) errs.push({ field: 'email', message: 'Email already exists' })
-      if (formData.phone && !validatePhone(formData.phone)) errs.push({ field: 'phone', message: 'Invalid phone number' })
-      if (formData.taxId && formData.taxId.length < 5) errs.push({ field: 'taxId', message: 'Tax ID looks invalid' })
+      const parsed = Step1Schema.safeParse({ name: formData.name, email: formData.email, phone: formData.phone, taxId: formData.taxId })
+      if (!parsed.success) parsed.error.issues.forEach((i) => errs.push({ field: String(i.path[0]), message: i.message }))
+      if (!errs.find((e) => e.field === 'email') && emailExists) errs.push({ field: 'email', message: 'Email already exists' })
     } else if (step === 2) {
-      if (!formData.country) errs.push({ field: 'country', message: 'Country is required' })
+      const parsed = Step2Schema.safeParse({ country: formData.country })
+      if (!parsed.success) parsed.error.issues.forEach((i) => errs.push({ field: String(i.path[0]), message: i.message }))
     } else if (step === 7) {
-      if (!formData.gdprConsent) errs.push({ field: 'gdprConsent', message: 'GDPR consent is required' })
+      const parsed = Step7Schema.safeParse({ gdprConsent: formData.gdprConsent })
+      if (!parsed.success) parsed.error.issues.forEach((i) => errs.push({ field: String(i.path[0]), message: i.message }))
     }
     setValidationErrors(errs)
     return errs.length === 0
@@ -220,10 +236,12 @@ export default function ProfessionalAddClientPage() {
       }
       setTempPassword(password)
       setSuccess('Client account created successfully!')
-      setTimeout(() => { window.location.href = '/admin/users' }, 3000)
+      toast.success('Client created and audit logged')
+      setTimeout(() => { window.location.href = '/admin/users' }, 1500)
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Failed to create client account'
       setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
