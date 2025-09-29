@@ -1,7 +1,11 @@
 "use client"
 
+'use client'
+
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -426,7 +430,8 @@ export default function AdminPostsPage() {
   }
 
   return (
-    <StandardPage
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6 text-gray-700">You do not have access to Posts.</div>}>
+      <StandardPage
       title="Posts"
       subtitle="Professional blog post management for your accounting firm"
       primaryAction={{ label: 'Create Post', onClick: () => setShowCreateModal(true), icon: Plus }}
@@ -846,5 +851,6 @@ export default function AdminPostsPage() {
         </DialogContent>
       </Dialog>
     </StandardPage>
+    </PermissionGate>
   )
 }
