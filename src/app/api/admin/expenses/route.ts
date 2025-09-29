@@ -178,12 +178,21 @@ export async function DELETE(request: NextRequest) {
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const body = await request.json().catch(() => null)
-    const { expenseIds } = body || {}
-    if (!Array.isArray(expenseIds) || expenseIds.length === 0) {
-      return NextResponse.json({ error: 'expenseIds array required' }, { status: 400 })
+    const parsed = expenseDeleteSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const result = await prisma.expense.deleteMany({ where: { id: { in: expenseIds } } })
+    const tenantId = getTenantFromRequest(request)
+    const where: Prisma.ExpenseWhereInput = {
+      id: { in: parsed.data.expenseIds },
+    }
+
+    if (isMultiTenancyEnabled() && tenantId) {
+      Object.assign(where, tenantFilter(tenantId) as Prisma.ExpenseWhereInput)
+    }
+
+    const result = await prisma.expense.deleteMany({ where })
     return NextResponse.json({ message: `Deleted ${result.count} expenses`, deleted: result.count })
   } catch (error) {
     console.error('Error deleting expenses:', error)
