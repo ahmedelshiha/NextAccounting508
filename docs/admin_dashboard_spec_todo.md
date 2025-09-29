@@ -40,7 +40,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 6) Settings Hub (depends on 1)
 - [ ] Admin Settings shell with sidebar nav (general/company/contact/timezone)
 - [ ] Forms use zod; optimistic saves with rollback on error; acceptance: 0 console errors
-- [ ] Booking Settings: wire steps, business-hours, payment-methods CRUD endpoints with audit logging
+- [x] Booking Settings: wire steps, business-hours, payment-methods CRUD endpoints with audit logging and zod validation
 
 7) Content & Communications (independent)
 - [x] Posts: RBAC enforced; page marked 'use client'
