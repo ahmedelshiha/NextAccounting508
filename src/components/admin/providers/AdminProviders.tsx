@@ -17,6 +17,7 @@ import { ErrorBoundary } from '@/components/providers/error-boundary'
 import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
+import useRoleSync from '@/hooks/useRoleSync'
 
 interface AdminProvidersProps {
   children: ReactNode
@@ -89,6 +90,7 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
         <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
           <RealtimeProvider>
             <PerformanceWrapper>
+              <RoleSyncMount />
               <UXMonitor>
                 {children}
               </UXMonitor>
@@ -98,6 +100,11 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
       </ReactError31Boundary>
     </ErrorBoundary>
   )
+}
+
+function RoleSyncMount() {
+  try { useRoleSync() } catch {}
+  return null
 }
 
 /**

@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/audit'
 import { userUpdateSchema } from '@/lib/validation'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { realtimeService } from '@/lib/realtime-enhanced'
 
 export const runtime = 'nodejs'
 
@@ -62,6 +63,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         targetId: id,
         details: { to: parsed.data.role }
       })
+      try {
+        realtimeService.broadcastToUser(String(id), {
+          type: 'user-role-updated',
+          data: { userId: String(id), role: parsed.data.role },
+          timestamp: new Date().toISOString()
+        })
+      } catch {}
     } else {
       await logAudit({
         action: 'user.update',
