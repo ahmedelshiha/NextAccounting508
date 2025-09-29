@@ -6,6 +6,7 @@ import ListPage from '@/components/dashboard/templates/ListPage'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import type { Column, RowAction } from '@/types/dashboard'
+import { downloadExport } from '@/lib/admin-export'
 
 interface Subscription { id: string; email: string; name?: string | null; subscribed: boolean; createdAt: string }
 
