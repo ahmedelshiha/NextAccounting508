@@ -29,7 +29,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
   - [x] API: implement POST /api/admin/invoices/[id]/pay to mark invoice PAID and set paidAt
   - [x] UI: wire Admin Invoices ListPage to API; render status/amount; add filters (status, date range)
   - [x] Export: add CSV export for invoices at /api/admin/export?entity=invoices
-- [x] Link invoice row actions to Payments view with preserved filters (status, range)
+- [x] Link invoice row actions to Payments view with preserved filters
 - [x] Payments: status/method/date filters with URL sync and CSV export
 - [ ] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
 
@@ -116,9 +116,12 @@ P2 – Medium
 - What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders); added missing inverse relations for Invoice on User (invoices) and Booking (invoices) to resolve Prisma P1012
 - Status: Ready for prisma generate and deployment
 
-## Next Steps
-- [ ] Run prisma generate and database migration; deploy to preview environment
-- [ ] Build Work Orders list UI using components/dashboard/templates/ListPage
-- [ ] Add /api/admin/work-orders/analytics for trends and KPIs
-- [ ] Extend audit logging for create/update/delete actions
-- [ ] Expenses: implement ListPage with filters, AV badge preview, CSV export
+## 2025-10-01 Build Fixes
+- Completed: Guard missing Expense model in API routes to resolve TypeScript errors
+  - What: Updated src/app/api/admin/expenses/route.ts and src/app/api/admin/export/route.ts to use runtime-checked access (prisma as any) and return 501 when the Expense model is not present
+  - Why: Prisma schema currently has no Expense model; direct usage caused TS2339 during build and blocked deployment
+  - Next steps:
+    - [ ] Add Expense model to Prisma schema with required fields (vendor, category, status, amountCents, currency, date, attachmentId, userId, tenantId)
+    - [ ] Implement migrations and regenerate Prisma Client
+    - [ ] Replace runtime guards with typed prisma.expense usage
+    - [ ] Deliver Expenses ListPage with filters and CSV export
