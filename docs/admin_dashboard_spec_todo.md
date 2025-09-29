@@ -8,7 +8,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
 - [ ] Implement tenant switcher and verify tenant-scoped data on key routes
-- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
 
 2) Data Models & APIs
@@ -61,7 +61,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 P0 – Critical
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
-- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
 
 P1 – High
