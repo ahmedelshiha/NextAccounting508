@@ -59,6 +59,7 @@ export default function AdminExpensesPage() {
   const [status, setStatus] = useState<string>('all')
   const [category, setCategory] = useState<string>('all')
   const [range, setRange] = useState<string>('last_30')
+  const [search, setSearch] = useState<string>('')
   const [page, setPage] = useState<number>(1)
   const pageSize = 20
 
