@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo, useState, useEffect } from "react"
 import ListPage from "@/components/dashboard/templates/ListPage"
 import type { Column, FilterConfig, RowAction } from "@/types/dashboard"
