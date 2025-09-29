@@ -275,3 +275,54 @@ Documentation notes:
 - [x] /admin/analytics adopted AnalyticsPage and added CSV export action via AdminAnalyticsPageClient.
 - [x] /admin/calendar: implemented click-to-create, drag-to-reschedule (PATCH /api/admin/bookings), and availability toggle (PUT /api/admin/availability-slots); API updated to include serviceId/teamMemberId.
 - [x] /admin/clients/profiles: URL sync for q/tier/sort/page; export respects active filters.
+
+---
+
+## Autonomous Hotfixes — 2025-09-29 (Applied by automated developer agent)
+
+- [x] Fixed duplicate StandardPage import in src/app/admin/availability/page.tsx
+  - Why: Build error TS2300 (Duplicate identifier 'StandardPage') occurred because the file imported StandardPage twice. This was an existing code issue and required a simple cleanup (removal of repeated import).
+  - Type: Enhancement / cleanup of existing code
+  - Files changed: src/app/admin/availability/page.tsx
+  - Next steps: Run TypeScript typecheck and CI build to confirm no further references cause duplication.
+
+- [x] Fixed Zod Step7Schema gdprConsent literal misuse in src/app/admin/clients/new/page.tsx
+  - Why: TypeScript reported a Zod overload mismatch; z.literal was called with an options object using errorMap, which isn't valid for this z.literal overload. Replaced the options to use the correct message property to provide the error text.
+  - Type: Bugfix (validation schema)
+  - Files changed: src/app/admin/clients/new/page.tsx
+  - Next steps: Verify runtime validation behavior in the browser and run unit tests that reference this form validation.
+
+- [x] Fixed authOptions import in src/app/api/auth/register/register/route.ts
+  - Why: The register route imported authOptions from the auth nextauth route file, but that file does not export authOptions — causing TS2459. Using the canonical source of authOptions at '@/lib/auth' fixes the issue and aligns all server-side code to the same auth config.
+  - Type: Bugfix / refactor (use canonical export)
+  - Files changed: src/app/api/auth/register/register/route.ts
+  - Next steps: Run TypeScript typecheck and exercise the registration route to confirm getServerSession(authOptions) returns as expected under server tests.
+
+## Next Actions (automated)
+- [ ] Run full TypeScript typecheck and fix remaining errors (in progress)
+  - Why: Ensure compile-time errors are resolved across the repo.
+  - How: Run `pnpm -s exec tsc --noEmit -p tsconfig.build.json`, iterate on any reported issues.
+
+- [ ] Run `pnpm vercel:build` and confirm CI passes (pending)
+  - Why: Full build verifies SSR behavior, Prisma generation, and production compile-time checks.
+  - How: Run `pnpm vercel:build` after typecheck success; review logs and fix failures.
+
+- [ ] Add/adjust unit tests for fixed validation logic and registration flow
+  - Why: Prevent regressions and ensure schema/endpoint behavior remains stable.
+  - How: Add Vitest unit tests for Step7Schema and the register route.
+
+- [ ] Manual/automated QA: exercise Add Client form end-to-end and admin availability page
+  - Why: Confirm UI-level behavior, error messages, and redirects.
+  - How: Use the existing Playwright config and test suite. Add new e2e checks if necessary.
+
+---
+
+## Change Log (quick scan)
+- Files edited during this pass:
+  - src/app/admin/availability/page.tsx (duplicate import removed)
+  - src/app/admin/clients/new/page.tsx (Zod literal options corrected)
+  - src/app/api/auth/register/register/route.ts (import authOptions from '@/lib/auth')
+
+
+
+
