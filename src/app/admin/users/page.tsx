@@ -204,9 +204,7 @@ export default function AdminUsersPage() {
   const exportUsers = useCallback(async () => {
     setExporting(true)
     try {
-      const res = await apiFetch('/api/admin/export?entity=users&format=csv')
-      if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const blob = await fetchExportBlob({ entity: 'users', format: 'csv' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
