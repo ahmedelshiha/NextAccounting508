@@ -76,10 +76,7 @@ export default function AdminAuditsPage() {
       <ListPage<AuditRow>
         title="Audit Logs"
         subtitle="View recent admin activity and system audits"
-        secondaryActions={[{ label: 'Export CSV', onClick: () => {
-          const params = new URLSearchParams({ entity: 'audits', type, status, q, limit: '10000', format: 'csv' })
-          window.location.href = `/api/admin/export?${params.toString()}`
-        } }]}
+        secondaryActions={[{ label: 'Export CSV', onClick: () => downloadExport({ entity: 'audits', type, status, q, limit: '10000', format: 'csv' }) }]}
         filters={filters}
         onFilterChange={onFilterChange}
         onSearch={(value) => { setQ(value); setPage(1); setTimeout(load, 0) }}
