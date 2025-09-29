@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server'
 import * as NextServer from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
