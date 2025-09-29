@@ -100,7 +100,7 @@ Documentation notes:
 
 - /admin/payments
   - [x] Uses ListPage
-  - [ ] Add filters (method/status/date)
+  - [x] Add filters (method/status/date)
   - [x] Export CSV button hits /api/admin/export?entity=payments
   - [x] URL-sync for status/method/date range filters
   - Verify: Filters reflect URL; CSV correct
@@ -111,9 +111,9 @@ Documentation notes:
   - Verify: AV status badge on attachments
 
 - /admin/tasks
-  - [ ] Uses StandardPage; rich views available under components/**
-  - [ ] Ensure Board/List/Table/Calendar/Gantt routes/toggles present; use existing components
-  - [ ] Notifications settings wired to /api/admin/tasks/notifications
+  - [x] Uses StandardPage; rich views enabled (Board/List/Table/Calendar/Gantt)
+  - [x] Ensure Board/List/Table/Calendar/Gantt routes/toggles present; use existing components
+  - [x] Notifications settings wired to /api/admin/tasks/notifications
   - Verify: Drag across columns; analytics from /api/admin/tasks/analytics
 
 - /admin/reminders
@@ -127,8 +127,9 @@ Documentation notes:
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
 - /admin/posts
-  - [ ] Uses StandardPage with apiFetch
-  - [ ] Enforce RBAC; adopt ListPage for table UX; hook into /api/admin/stats/posts for KPIs
+  - [x] Uses StandardPage with apiFetch
+  - [x] Enforce RBAC
+  - [ ] Adopt ListPage for table UX; hook into /api/admin/stats/posts for KPIs
   - Verify: Draft/published filters; author aggregation visible
 
 - /admin/newsletter
