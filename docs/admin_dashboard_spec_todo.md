@@ -116,6 +116,13 @@ P2 – Medium
 - What: Named WorkOrder->User relations (client: "WorkOrderClient", assignee: "WorkOrderAssignee"); added back-relations on User, Service, ServiceRequest, and Booking (workOrders/workOrdersAsClient/assignedWorkOrders); added missing inverse relations for Invoice on User (invoices) and Booking (invoices) to resolve Prisma P1012
 - Status: Ready for prisma generate and deployment
 
+## 2025-10-02 Updates
+- Completed: Added Expense model to Prisma schema with relations to User and Attachment; regenerated Prisma Client
+  - Fields: vendor, category, status, amountCents, currency, date, attachmentId, userId, tenantId, createdAt, updatedAt
+  - Back-relations: User.expenses, Attachment.expenses; table mapped to "expenses"
+- Completed: Replaced runtime guards with typed prisma.expense usage in admin Expenses API and Export route
+- Pending: Database migration required to apply schema (needs NETLIFY_DATABASE_URL). After providing the URL, we will run `pnpm db:migrate` (or `prisma migrate deploy`).
+
 ## 2025-10-01 Build Fixes
 - Completed: Guard missing Expense model in API routes to resolve TypeScript errors
   - What: Updated src/app/api/admin/expenses/route.ts and src/app/api/admin/export/route.ts to use runtime-checked access (prisma as any) and return 501 when the Expense model is not present
