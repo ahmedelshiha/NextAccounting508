@@ -152,3 +152,11 @@ P2 – Medium
 - Completed: Local NextAuth warning mitigation for development
   - What: Set NEXTAUTH_URL and NEXTAUTH_SECRET for the dev server to eliminate warnings and stabilize auth in dev.
   - Next: Ensure these are configured in deployment environments.
+- Completed: Integrations page shows live System Health badges
+  - Why: Task "Integrations: status cards; health badges reflecting /api/admin/system/health" was pending.
+  - What: Added health summary cards on src/app/admin/integrations/page.tsx fetching /api/admin/system/health every 30s; badges for overall, DB, email, auth, and external APIs.
+  - Next: Extend external APIs as new integrations are added.
+- Completed: Fixed /api/admin/system/health route imports
+  - Why: Route used NextResponse without import; ensure consistent response shape.
+  - What: Added import { NextResponse } from 'next/server' and kept existing lazy DB checks.
+  - Next: None.
