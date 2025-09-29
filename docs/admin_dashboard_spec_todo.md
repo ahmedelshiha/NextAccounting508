@@ -12,12 +12,15 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 2) Data Models & APIs
 - [x] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
-- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [x] Standardize pagination/filter/query params across admin APIs; add schema validation
+  - Introduced shared parser src/schemas/list-query.ts (zod validation, page/limit/offset, sortBy/sortOrder, q)
+  - Refactored /api/admin/work-orders, /api/admin/service-requests, /api/admin/bookings to use shared parser (bookings response shape preserved)
 
 3) Dashboard Overview (depends on 2)
-- [ ] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
-- [ ] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
-- [ ] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+- [x] Implement KPI row (bookings, service-requests, revenue, utilization) using existing endpoints
+- [x] Add charts row (Work Order Trends line, Revenue by Service donut); server-fetch + client hydrate
+- [x] Add activity row (ActivityFeed, UpcomingTasks, RecentBookings) with SSE refresh
+  - Implemented in components/admin/dashboard/AdminOverview.tsx with AnalyticsPage template and realtime refresh via useUnifiedData
 
 4) Financial Module (depends on 2)
 - [ ] Invoices: propose Prisma model, create endpoints, and wire ListPage (blocked until schema approved)
