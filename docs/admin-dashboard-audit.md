@@ -617,3 +617,102 @@ Known Gaps To Address
 - Global search in AdminHeader is not implemented.
 - Some counts are sample values; replace with DB-backed counts in production.
 - Duplicate nav sources (AdminSidebar vs nav.config.ts). Unify to eliminate drift.
+
+---
+
+# Booking Settings Panel Audit
+
+Files
+- UI: src/components/admin/BookingSettingsPanel.tsx; Page wrapper: src/app/admin/settings/booking/page.tsx
+- Service: src/services/booking-settings.service.ts
+- API routes: src/app/api/admin/booking-settings/{route.ts, steps/route.ts, business-hours/route.ts, payment-methods/route.ts, export/route.ts, import/route.ts, reset/route.ts, validate/route.ts}
+- Schemas: src/schemas/booking-settings.schemas.ts
+- Types: src/types/booking-settings.types.ts
+
+UI Overview
+- Tabs: General, Payments, Booking Steps, Availability, Notifications, Customer Experience, Team Assignments, Dynamic Pricing.
+- Local state: settings (loaded via GET), pending (per-section patch buffer), errors, saving, saved flag.
+- Actions:
+  - Save (PUT /api/admin/booking-settings) with pending object shaped as {generalSettings, paymentSettings, stepSettings, availabilitySettings, notificationSettings, customerSettings, assignmentSettings, pricingSettings}.
+  - Reset (POST /api/admin/booking-settings/reset) → recreates defaults.
+  - Export (GET /api/admin/booking-settings/export) → downloads JSON.
+- Gaps:
+  - No Import UI despite import endpoint available.
+  - Warnings from validation are returned by PUT but not surfaced in the panel UI.
+  - No client-side schema validation; only server-side errors displayed.
+
+Validation & Rules
+- Main PUT validates via service.validateSettingsUpdate:
+  - Payment: if paymentRequired → at least one method enabled; if allowPartialPayment → depositPercentage in [10,100].
+  - Availability: minAdvanceBookingHours ≥ 0; advanceBookingDays > 730 → warning.
+  - Steps: service/dateTime/customerDetails cannot be disabled; enabling payment step without paymentRequired → warning.
+  - Notifications: reminderHours between 0 and 8760.
+  - Pricing: surcharges in [0,2] (0–200%).
+- Section endpoints enforce Zod schemas:
+  - steps: BookingSettingsStepsPayload { steps: BookingStepsArraySchema }
+  - business-hours: BookingSettingsBusinessHoursPayload { businessHours: BusinessHoursArraySchema }
+  - payment-methods: BookingSettingsPaymentMethodsPayload { paymentMethods: PaymentMethodsArraySchema }
+
+Service Layer
+- getBookingSettings: tenant-scoped fetch with cache (CacheService, 5 min TTL), includes related steps/businessHours/paymentMethods/notificationTemplates; backfills lists if missing.
+- createDefaultSettings: creates baseline BookingSettings + defaults (steps, business hours, payment methods, notification templates) in a transaction.
+- updateBookingSettings: merges section patches, handles JSON nulls via Prisma.DbNull, updates updatedAt; invalidates cache.
+- updateBookingSteps/businessHours/paymentMethods: replace/upsert patterns executed transactionally; invalidates cache.
+- exportSettings/importSettings/resetToDefaults: full bundle operations with audit logs.
+
+API & Permissions
+- GET /api/admin/booking-settings → BOOKING_SETTINGS_VIEW
+- PUT /api/admin/booking-settings → BOOKING_SETTINGS_EDIT
+- POST /api/admin/booking-settings/validate → BOOKING_SETTINGS_VIEW
+- PUT /api/admin/booking-settings/steps → BOOKING_SETTINGS_EDIT (Zod-validated)
+- PUT /business-hours → BOOKING_SETTINGS_EDIT (Zod-validated)
+- PUT /payment-methods → BOOKING_SETTINGS_EDIT (Zod-validated)
+- GET /export → BOOKING_SETTINGS_EXPORT
+- POST /import → BOOKING_SETTINGS_IMPORT
+- POST /reset → BOOKING_SETTINGS_RESET
+- All routes: getServerSession + tenant extraction via getTenantFromRequest; audit logging on update/export/import/reset.
+
+Data Model
+- BookingSettings entity with many scalar flags plus JSON fields (businessHours, blackoutDates, holidaySchedule, reminderHours) and relations:
+  - steps: BookingStepConfig[]
+  - businessHoursConfig: BusinessHoursConfig[]
+  - paymentMethods: PaymentMethodConfig[]
+  - notificationTemplates: NotificationTemplate[]
+- UpdateRequest types mirror section patches for safe partial updates.
+
+Multi-Tenancy & Caching
+- Tenant inferred via header/cookie/subdomain (middleware). Service caches per-tenant key booking-settings:{tenant|default}.
+- Cache invalidated on any write; rehydrated on read.
+
+Accessibility & UX Notes
+- Sidebar within panel uses semantic buttons; consider adding aria-current on active tab.
+- Save disabled when no pending changes; show success toast/state; surface warnings (non-blocking) inline.
+- Add Import dialog with file input (JSON), preview of selected sections, overwrite toggle (matches API contract).
+
+Security Considerations
+- Strong RBAC separation per endpoint; ensure UI hides actions the user cannot perform (e.g., hide Import/Reset if lacking perms).
+- Validate numbers to avoid extreme values that could impact performance (already guarded).
+
+Performance Considerations
+- Prefer granular section endpoints (steps/business-hours/payment-methods) for large payloads to reduce contention and payload size.
+- Keep reminderHours arrays bounded; avoid very large blackoutDates/holidaySchedule without pagination.
+
+Issues/Risks
+- Missing Import UI; admins cannot restore exported bundles from panel.
+- Warnings from validate/PUT not displayed; could cause confusion.
+- Client does not type BookingSettings strongly (any); increases runtime risk.
+
+Recommendations
+- Add Import button to BookingSettingsPanel:
+  - Opens modal to upload JSON, chooses sections, overwriteExisting, calls POST /import, then reloads.
+- Surface warnings: show non-blocking alert when PUT returns { warnings }.
+- Client-side validation: replicate key Zod rules or call /validate before PUT to show inline guidance.
+- Strong typing: type settings/pending with BookingSettings and BookingSettingsUpdateRequest.
+- Autosave (optional): detect changes and debounce PUT per section for better UX.
+- Add gateway configs UI (Stripe keys, etc.) with secure storage patterns.
+- Unit tests: add tests for validate endpoint and service update edge cases; integration test for import/export/reset flow.
+
+Test Coverage Suggestions
+- API: booking-settings main PUT (valid/invalid), steps/business-hours/payment-methods PUT (schema errors), export/import/reset, validate POST.
+- Service: validateSettingsUpdate edge cases; importSettings with each section; resetToDefaults idempotence.
+- UI: render all tabs, pending change dot indicator, save/reset/export flows, error/warning display.
