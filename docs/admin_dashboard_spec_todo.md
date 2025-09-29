@@ -122,6 +122,9 @@ P2 – Medium
   - Back-relations: User.expenses, Attachment.expenses; table mapped to "expenses"
 - Completed: Replaced runtime guards with typed prisma.expense usage in admin Expenses API and Export route
 - Pending: Database migration required to apply schema (needs NETLIFY_DATABASE_URL). After providing the URL, we will run `pnpm db:migrate` (or `prisma migrate deploy`).
+- Completed: Fixed type errors blocking build in /api/admin/expenses (removed duplicate Next imports; normalized `where.AND` to an array).
+  - Why: Unblocked `pnpm typecheck` and `pnpm vercel:build` by resolving TS2300 and TS2488.
+  - Next: Run typecheck/build; proceed with Expenses ListPage wiring and CSV export.
 
 ## 2025-10-01 Build Fixes
 - Completed: Guard missing Expense model in API routes to resolve TypeScript errors
