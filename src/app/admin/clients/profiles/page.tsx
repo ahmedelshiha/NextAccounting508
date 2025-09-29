@@ -40,12 +40,42 @@ function buildQuery(params: Record<string, string | undefined>) {
 }
 
 export default function ClientsProfilesAdminPage() {
+  const router = useRouter()
+  const qs = useSearchParams()
+
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<{ tier?: string } | Record<string, string>>({})
   const [sortBy, setSortBy] = useState<string | undefined>('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(1)
   const pageSize = 20
+
+  // Initialize from URL on first render
+  useEffect(() => {
+    const q = (qs.get('q') || '').trim()
+    const tier = qs.get('tier') || undefined
+    const sb = qs.get('sortBy') || undefined
+    const so = (qs.get('sortOrder') as 'asc' | 'desc') || 'desc'
+    const p = parseInt(qs.get('page') || '1', 10)
+    if (q) setSearch(q)
+    if (tier) setFilters((prev) => ({ ...prev, tier }))
+    if (sb) setSortBy(sb)
+    if (so) setSortOrder(so)
+    if (!isNaN(p) && p > 0) setPage(p)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Keep URL in sync with UI state
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (search) params.set('q', search)
+    if (filters.tier && filters.tier !== 'all') params.set('tier', String(filters.tier))
+    if (sortBy) params.set('sortBy', sortBy)
+    if (sortOrder) params.set('sortOrder', sortOrder)
+    if (page > 1) params.set('page', String(page))
+    const s = params.toString()
+    router.replace(s ? `?${s}` : '?', { scroll: false })
+  }, [search, filters, sortBy, sortOrder, page, router])
 
   const query = buildQuery({ q: search || undefined })
   const { data, isLoading } = useSWR<{ clients: ClientRow[]; total: number }>(`/api/admin/users${query}`, fetcher)
