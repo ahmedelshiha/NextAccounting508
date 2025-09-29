@@ -86,7 +86,7 @@ export default function AdminExpensesPage() {
     const qs = params.toString()
     const href = qs ? `/admin/expenses?${qs}` : '/admin/expenses'
     router.replace(href)
-  }, [status, category, range, page, router])
+  }, [status, category, range, page, search, router])
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
