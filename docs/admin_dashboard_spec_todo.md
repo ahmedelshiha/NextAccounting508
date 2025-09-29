@@ -63,9 +63,9 @@ Documentation notes:
   - Notes: Implemented Zod step schemas on client, added sonner toasts; API now logs audit with actorId when available.
 
 - /admin/bookings
-  - [ ] Uses ListPage; uses usePermissions
-  - [ ] Ensure server pagination + sort delegated to /api/admin/bookings
-  - [ ] Add bulk actions (export, status) if missing
+  - [x] Uses ListPage; uses usePermissions
+  - [x] Ensure server pagination + sort delegated to /api/admin/bookings
+  - [x] Add bulk actions (export, status) if missing
   - Verify: Pending count matches /api/admin/bookings/pending-count
 
 - /admin/calendar (redirect)
@@ -88,7 +88,7 @@ Documentation notes:
 
 - /admin/availability
   - [x] Uses StandardPage with AvailabilitySlotsManager
-  - [ ] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
+  - [x] Confirm create/update/delete call /api/admin/availability-slots with tenant guard
   - Verify: Slots persist; tenant isolation enforced
 
 - /admin/invoices
