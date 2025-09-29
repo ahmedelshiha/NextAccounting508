@@ -56,6 +56,31 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 
 ---
 
+## Priority Backlog (Pending Tasks Ordered)
+
+P0 – Critical
+- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [ ] Finalize RBAC permission matrix and enforce on all admin pages
+- [ ] Unify list/table contracts with AdvancedDataTable across modules
+- [ ] Define realtime event contracts (event names, payloads) and document
+
+P1 – High
+- [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
+- [ ] Standardize pagination/filter/query params across admin APIs; add schema validation
+- [ ] Dashboard Overview: implement KPI row, charts row, and activity row with SSE refresh
+- [ ] Settings Hub: sidebar nav; zod forms; optimistic saves with rollback; Booking Settings CRUD endpoints with audit logging
+- [ ] Analytics & Reports: adopt AnalyticsPage across routes; unify export flows to /api/admin/export with filter propagation
+
+P2 – Medium
+- [ ] Invoices: propose Prisma model, endpoints, and wire ListPage (blocked until schema approved)
+- [ ] Link invoice row actions to payments view with preserved filters
+- [ ] Expenses: ListPage, category filters, attachment preview; AV status badge; CSV export
+- [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
+- [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
+- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+- [ ] Observability: update monitoring/performance-baseline.json to targets; expand audit trail; verify Sentry sampling
+- [ ] Testing & Rollout: unit, integration, E2E; feature-flag rollout plan
+
 ## 0) Discovery, Alignment, and Technical Baseline
 - [ ] Read and annotate docs/admin_dashboard_spec.md to extract all modules, UI patterns, and contracts
   - Acceptance: A shared outline (this file) reflects all sections of the spec; no gaps.
