@@ -265,7 +265,7 @@ Documentation notes:
 - [ ] Realtime event contracts
 - [ ] Work Orders data model and endpoints (new module)
 
-## 4) Dashboard Overview Page (KPI ��� Charts → Activity)
+## 4) Dashboard Overview Page (KPI → Charts → Activity)
 - [ ] Implement DashboardOverview page with KPI cards row
 - [ ] Charts row: Work Order Trends (line), Revenue by Service (donut)
 - [ ] Activity row: ActivityFeed, UpcomingTasks, RecentBookings
@@ -478,4 +478,11 @@ Documentation notes:
     - src/app/admin/settings/page.tsx
     - src/app/admin/security/page.tsx
   - Next steps: Finalize permission matrix for Financial and System modules; add DOM/unit tests asserting PermissionGate fallbacks and server RBAC for API routes.
+
+## Hotfix – 2025-09-30 (Realtime event contracts centralization)
+- [x] Added src/lib/realtime-events.ts exporting AdminRealtimeEventType and payload contracts for core events
+  - Why: Establishes a single source of truth for event names and payload shapes; reduces drift across pages and APIs.
+  - Type: Documentation-as-code / typing
+  - Files added: src/lib/realtime-events.ts
+  - Next steps: Incrementally adopt types in RealtimeProvider consumers and API broadcasters; add unit tests for parseEventMessage using contracts.
 
