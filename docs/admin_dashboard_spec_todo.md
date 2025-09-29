@@ -34,8 +34,8 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 - [ ] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
 
 5) Team Management & Permissions (depends on 1)
-- [ ] Team page using TeamManagement component; wire workload/skills/availability APIs
-- [ ] Roles/Permissions: persist edits and reflect changes without reload; verify hasPermission changes live
+- [x] Team page using TeamManagement component; wire workload/skills/availability APIs
+- [x] Roles/Permissions: persist edits and reflect changes without reload; verify hasPermission changes live
 
 6) Settings Hub (depends on 1)
 - [ ] Admin Settings shell with sidebar nav (general/company/contact/timezone)
@@ -170,6 +170,11 @@ P2 – Medium
   - Next: Hook workload/skills/availability actions to APIs for edits (follow-up tasks).
 
 ## 2025-09-29 Updates
+- Completed: Team Management & Permissions
+  - Why: Enable managers to view capacity, manage specialties, and adjust roles with immediate effect
+  - What: Wired Team page to availability/skills/workload APIs; added realtime role sync via SSE; broadcasting user-role-updated on role changes; PermissionGate reflects updates without reload
+  - Files: src/app/admin/team/page.tsx, src/components/admin/team-management.tsx, src/components/admin/service-requests/team-workload-chart.tsx, src/app/api/admin/team-management/*, src/app/api/admin/users/[id]/route.ts, src/hooks/useRoleSync.ts, src/components/admin/providers/AdminProviders.tsx
+  - Next: Add inline specialties editor in TeamManagement when DB configured
 - Completed: Invoice row actions link to Payments with preserved filters
   - Why: Maintain workflow continuity from billing to payment reconciliation
   - What: Implemented status/date mapping and deep-linking in src/app/admin/invoices/page.tsx; added base Payments action preserving range/status
