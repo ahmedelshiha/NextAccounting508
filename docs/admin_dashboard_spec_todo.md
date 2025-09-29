@@ -31,7 +31,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
   - [x] Export: add CSV export for invoices at /api/admin/export?entity=invoices
 - [x] Link invoice row actions to Payments view with preserved filters
 - [x] Payments: status/method/date filters with URL sync and CSV export
-- [ ] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
+- [x] Expenses: ListPage with category/status filters, attachment preview with AV badge, and CSV export
 
 5) Team Management & Permissions (depends on 1)
 - [x] Team page using TeamManagement component; wire workload/skills/availability APIs
@@ -45,7 +45,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 7) Content & Communications (independent)
 - [x] Posts: RBAC enforced; page marked 'use client'
 - [ ] Posts: adopt ListPage UX and hook into /api/admin/stats/posts for KPIs
-- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+- [x] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
 
 8) Analytics & Reports (depends on 2)
 - [ ] Adopt AnalyticsPage on relevant routes; unify export flows to /api/admin/export with filter propagation
@@ -79,9 +79,9 @@ P2 – Medium
 - [x] Invoices: Prisma model, endpoints, UI wiring completed; CSV export added
 - [x] Link invoice row actions to payments view with preserved filters
 - [x] Expenses: ListPage, category/status filters, attachment preview; AV status badge; CSV export
-- [ ] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
+- [x] Team: TeamManagement with workload/skills/availability APIs; role edits reflect without reload
 - [ ] Posts: adopt ListPage and hook into /api/admin/stats/posts for KPIs
-- [ ] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
+- [x] Integrations: status cards; health badges reflecting /api/admin/system/health; links to docs
 - [ ] Observability: update monitoring/performance-baseline.json to targets; expand audit trail; verify Sentry sampling
 - [ ] Testing & Rollout: unit, integration, E2E; feature-flag rollout plan
 
