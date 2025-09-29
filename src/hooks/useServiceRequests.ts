@@ -16,6 +16,7 @@ export type ServiceRequestsQuery = {
   scope?: 'admin' | 'portal'
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  type?: 'all' | 'appointments' | 'requests'
 }
 
 export type ServiceRequestsResponse<T = any> = {
@@ -46,6 +47,7 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   const scope = params.scope ?? 'admin'
   const sortBy = params.sortBy
   const sortOrder = params.sortOrder
+  const type = (params as any).type
 
   const query = new URLSearchParams()
   query.set('limit', String(limit))
@@ -66,6 +68,9 @@ export function useServiceRequests(params: ServiceRequestsQuery = {}) {
   if (dateTo) query.set('dateTo', dateTo)
   if (sortBy) query.set('sortBy', sortBy)
   if (sortOrder) query.set('sortOrder', sortOrder)
+  if (type && ['all','appointments','requests'].includes(String(type))) {
+    if (type !== 'all') query.set('type', String(type))
+  }
 
   const base = scope === 'portal' ? '/api/portal/service-requests' : '/api/admin/service-requests'
   const key = `${base}?${query.toString()}`
