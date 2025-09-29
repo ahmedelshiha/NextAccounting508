@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { logAudit } from '@/lib/audit'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -50,10 +53,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    try {
+      const session = await getServerSession(authOptions)
+      await logAudit({ action: 'admin:client:create', actorId: session?.user?.id ?? null, targetId: user.id, details: { email: user.email, name: user.name } })
+    } catch {}
+
     return NextResponse.json(
-      { 
+      {
         message: 'User created successfully',
-        user 
+        user
       },
       { status: 201 }
     )
