@@ -390,6 +390,18 @@ Documentation notes:
   - Files changed: src/app/api/auth/register/register/route.ts
   - Next steps: Run TypeScript typecheck and exercise the registration route to confirm getServerSession(authOptions) returns as expected under server tests.
 
+## Hotfix – 2025-09-30 (Newsletter RowAction typing and disabled handling)
+- [x] Added optional `disabled` to RowAction<T> and taught DataTable to honor it
+  - Why: Build failed (TS2353) on /admin/newsletter because 'disabled' was not part of RowAction<Subscription>; UI relied on conditional disabling for Unsubscribe
+  - Type: Bugfix (typing + UI behavior)
+  - Files changed:
+    - src/types/dashboard.ts (RowAction<T> now supports `disabled?: boolean | ((row: T) => boolean)`)
+    - src/components/dashboard/DataTable.tsx (buttons render with disabled state and prevent clicks)
+  - Verify:
+    - Typecheck passes
+    - In Newsletter list, Unsubscribe is disabled for inactive rows and enabled for active rows
+    - No visual regressions to table actions
+
 ## Next Actions (automated)
 - [ ] Run full TypeScript typecheck and fix remaining errors (in progress)
   - Why: Ensure compile-time errors are resolved across the repo.
