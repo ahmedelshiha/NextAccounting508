@@ -95,9 +95,20 @@ export default function DataTable<T extends { id?: string | number }>({ columns,
                 {actions.length > 0 && (
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <div className="flex items-center justify-end gap-2">
-                      {actions.map((a, i) => (
-                        <button key={i} onClick={() => a.onClick(row)} className={`px-3 py-1 text-xs font-medium rounded-md ${a.variant === 'destructive' ? 'text-red-600 hover:bg-red-50' : 'text-gray-600 hover:bg-gray-100'}`}>{a.label}</button>
-                      ))}
+                      {actions.map((a, i) => {
+                        const isDisabled = typeof a.disabled === 'function' ? a.disabled(row) : !!a.disabled
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => { if (!isDisabled) a.onClick(row) }}
+                            disabled={isDisabled}
+                            aria-disabled={isDisabled}
+                            className={`px-3 py-1 text-xs font-medium rounded-md ${a.variant === 'destructive' ? 'text-red-600 hover:bg-red-50' : 'text-gray-600 hover:bg-gray-100'} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {a.label}
+                          </button>
+                        )
+                      })}
                     </div>
                   </td>
                 )}
