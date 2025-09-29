@@ -82,9 +82,9 @@ Documentation notes:
   - Notes: Adopted ClientPage pattern (instead of generic ListPage) to leverage existing table/calendar components and realtime hook.
 
 - /admin/services and /admin/services/list
-  - [ ] Use ListPage
-  - [ ] Wire slug-check (/api/admin/services/slug-check/[slug]) and versions/settings panels
-  - [ ] Analytics tab uses /api/admin/services/stats
+  - [x] Use ListPage
+  - [x] Wire slug-check (/api/admin/services/slug-check/[slug]) and versions/settings panels
+  - [x] Analytics tab uses /api/admin/services/stats
   - Verify: Clone/version actions work; stats render
 
 - /admin/availability
@@ -114,13 +114,13 @@ Documentation notes:
   - Verify: Drag across columns; analytics from /api/admin/tasks/analytics
 
 - /admin/reminders
-  - [ ] Uses StandardPage; server RBAC check
-  - [ ] Run reminders via /api/admin/reminders/run with result toast and audit entry
+  - [x] Uses StandardPage; server RBAC check
+  - [x] Run reminders via /api/admin/reminders/run with result toast and audit entry
   - Verify: Unauthorized path returns fallback; success logs exist
 
 - /admin/audits
-  - [ ] Uses StandardPage
-  - [ ] Data from /api/admin/activity and /api/admin/health-history; filters and export CSV
+  - [x] Uses StandardPage
+  - [x] Data from /api/admin/activity; filters and export CSV via /api/admin/export?entity=audits
   - Verify: Actor/module/date filters work; CSV includes visible rows only
 
 - /admin/posts
@@ -139,7 +139,7 @@ Documentation notes:
   - Verify: Charts render; updates persist
 
 - /admin/permissions and /admin/roles
-  - [ ] Use StandardPage + PermissionGate
+  - [x] Use StandardPage + PermissionGate
   - [ ] Ensure role edits persist and reflect immediately in UI
   - Verify: hasPermission checks change post-save without reload
 
@@ -154,8 +154,8 @@ Documentation notes:
   - Verify: Validate route; audit entries on change
 
 - /admin/settings/currencies
-  - [ ] Uses StandardPage with CurrencyManager
-  - [ ] Verify overrides/export/refresh endpoints; default currency persisted
+  - [x] Uses StandardPage with CurrencyManager
+  - [x] Verify overrides/export/refresh endpoints; default currency persisted
   - Verify: Rates refresh; override precedence documented
 
 - /admin/integrations
@@ -164,8 +164,8 @@ Documentation notes:
   - Verify: Health badges reflect /api/admin/system/health
 
 - /admin/uploads/quarantine
-  - [ ] Uses StandardPage with QuarantineClient
-  - [ ] Actions release/delete call /api/admin/uploads/quarantine; reflect AV status; audit changes
+  - [x] Uses StandardPage with QuarantineClient
+  - [x] Actions release/delete call /api/admin/uploads/quarantine; reflect AV status; audit changes
   - Verify: Infected files blocked until release
 
 ## 1) Core Layout, Providers, and Navigation IA
