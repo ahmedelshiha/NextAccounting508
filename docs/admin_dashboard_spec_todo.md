@@ -359,3 +359,10 @@ Documentation notes:
   - Files changed: src/app/admin/service-requests/page.tsx ('use client' directive added)
   - Next steps: Continue implementing realtime SSE and bulk endpoints per spec under /api/admin/service-requests/*.
 
+## Hotfix – 2025-09-30 (Service Requests filters typing)
+- [x] Fixed TS2322 in ClientPage by aligning RequestFilters types with useServiceRequests unions
+  - Why: filters.status and filters.priority were typed as string causing mismatch when passed to useServiceRequests expecting strict unions. Narrowed types to ServiceRequestStatus/ServiceRequestPriority.
+  - Type: Bugfix (typing)
+  - Files changed: src/components/admin/service-requests/filters.tsx
+  - Next steps: Run typecheck and vercel:build; verify URL-initialized filters still narrow correctly and CSV export works.
+
