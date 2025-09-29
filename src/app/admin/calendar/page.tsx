@@ -29,6 +29,7 @@ import {
   Eye,
 } from 'lucide-react'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
+import { fetchExportBlob } from '@/lib/admin-export'
 
 interface CalendarEvent {
   id: string
