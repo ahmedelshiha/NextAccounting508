@@ -148,12 +148,7 @@ export default function ClientsProfilesAdminPage() {
   ]
 
   const exportClients = () => {
-    const params = new URLSearchParams()
-    params.set('entity', 'users')
-    params.set('role', 'CLIENT')
-    if (search) params.set('q', search)
-    if (filters.tier && filters.tier !== 'all') params.set('tier', String(filters.tier))
-    window.location.href = `/api/admin/export?${params.toString()}`
+    downloadExport({ entity: 'users', role: 'CLIENT', q: search || undefined, tier: filters.tier && filters.tier !== 'all' ? String(filters.tier) : undefined })
   }
 
   return (
