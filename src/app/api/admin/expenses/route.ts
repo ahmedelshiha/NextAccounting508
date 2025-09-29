@@ -63,22 +63,49 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const dateFrom = parseDate(searchParams.get('dateFrom'))
     const dateTo = parseDate(searchParams.get('dateTo'))
-    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const tenantId = getTenantFromRequest(request)
 
-    const where: any = { ...tenantFilter(tenantId) }
-    if (status && status !== 'all') where.status = status
-    if (category && category !== 'all') where.category = category
-    if (q) where.vendor = { contains: q, mode: 'insensitive' }
-    if (dateFrom || dateTo) {
-      where.date = {}
-      if (dateFrom) where.date.gte = dateFrom
-      if (dateTo) where.date.lte = dateTo
+    const where: Prisma.ExpenseWhereInput = {
+      ...(tenantFilter(tenantId) as Prisma.ExpenseWhereInput),
     }
+
+    if (status && status !== 'all') {
+      where.status = status
+    }
+
+    if (category && category !== 'all') {
+      where.category = category
+    }
+
+    if (dateFrom || dateTo) {
+      where.date = {
+        ...(dateFrom ? { gte: dateFrom } : {}),
+        ...(dateTo ? { lte: dateTo } : {}),
+      }
+    }
+
+    const query = (q || '').trim()
+    if (query) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { vendor: { contains: query, mode: 'insensitive' } },
+            { category: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+      ]
+    }
+
+    const orderBy: Prisma.ExpenseOrderByWithRelationInput = { [sortBy]: sortOrder } as Prisma.ExpenseOrderByWithRelationInput
 
     const expenses = await prisma.expense.findMany({
       where,
-      include: { attachment: { select: { id: true, url: true, avStatus: true } }, user: { select: { id: true, name: true, email: true } } },
-      orderBy: { [sortBy]: sortOrder } as any,
+      include: {
+        attachment: { select: { id: true, url: true, avStatus: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy,
       skip,
       take: limit,
     })
