@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import { z } from 'zod'
+import { Step1Schema, Step2Schema, Step7Schema } from '@/schemas/clients'
 import { toast } from 'sonner'
 
 interface ClientFormData {
