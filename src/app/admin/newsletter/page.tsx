@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 interface Subscription { id: string; email: string; name?: string | null; subscribed: boolean; createdAt: string }
 
@@ -34,8 +36,9 @@ export default function AdminNewsletterPage() {
   }
 
   return (
-    <StandardPage title="Newsletter" subtitle="Manage newsletter subscribers" secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}>
-      <Card>
+    <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Newsletter.</div>}>
+      <StandardPage title="Newsletter" subtitle="Manage newsletter subscribers" secondaryActions={[{ label: 'Export CSV', onClick: () => { window.location.href = '/api/admin/export?entity=newsletter' } }]}>
+        <Card>
         <CardHeader>
           <CardTitle>Subscribers</CardTitle>
           <CardDescription>All newsletter signups</CardDescription>
@@ -70,7 +73,8 @@ export default function AdminNewsletterPage() {
             <div className="text-gray-500">No subscribers yet.</div>
           )}
         </CardContent>
-      </Card>
-    </StandardPage>
+        </Card>
+      </StandardPage>
+    </PermissionGate>
   )
 }
