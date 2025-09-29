@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import LogoutButton from '@/components/ui/LogoutButton'
-import { Menu, X, User, LogOut, Settings, Calendar, Bell, BarChart } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Calendar, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -156,12 +156,7 @@ export function Navigation() {
                             Settings
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin/cron-telemetry" className="flex items-center">
-                            <BarChart className="mr-2 h-4 w-4" />
-                            Cron Telemetry
-                          </Link>
-                        </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <LogoutButton className="flex items-center text-red-600 w-full text-left">
@@ -192,12 +187,7 @@ export function Navigation() {
                                 Admin Panel
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href="/admin/cron-telemetry" className="flex items-center">
-                                <BarChart className="mr-2 h-4 w-4" />
-                                Cron Telemetry
-                              </Link>
-                            </DropdownMenuItem>
+    
                           </>
                         )}
                         <DropdownMenuSeparator />
@@ -283,13 +273,7 @@ export function Navigation() {
                         >
                           Settings
                         </Link>
-                        <Link
-                          href="/admin/cron-telemetry"
-                          className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Cron Telemetry
-                        </Link>
+
                       </>
                     ) : (
                       <>
@@ -316,13 +300,7 @@ export function Navigation() {
                             >
                               Admin Panel
                             </Link>
-                            <Link
-                              href="/admin/cron-telemetry"
-                              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Cron Telemetry
-                            </Link>
+    
                           </>
                         )}
                       </>
