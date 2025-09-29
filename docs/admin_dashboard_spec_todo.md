@@ -59,7 +59,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 ## Priority Backlog (Pending Tasks Ordered)
 
 P0 – Critical
-- [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
+- [x] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
 - [x] Unify list/table contracts with AdvancedDataTable across modules
 - [x] Define realtime event contracts (event names, payloads) and document
