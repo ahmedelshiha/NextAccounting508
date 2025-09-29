@@ -60,17 +60,11 @@ const getCachedBookings = withCache<BookingsResponse>(
       }
     }
 
-    // Get bookings with pagination and sorting (consistent with Services module)
-    // Derive pagination: prefer offset if provided for consistency with other modules
-    const take = limit ? parseInt(limit) : undefined
-    const skip = typeof offsetParam === 'string' ? parseInt(offsetParam) : (skipParam ? parseInt(skipParam) : undefined)
-
-    // Sorting: allow a safe subset of columns
-    const sortByParam = (searchParams.get('sortBy') || 'scheduledAt').toString()
-    const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toString().toLowerCase()
-    const allowedSortFields = new Set(['scheduledAt', 'createdAt', 'status'])
-    const sortBy = allowedSortFields.has(sortByParam) ? sortByParam : 'scheduledAt'
-    const sortOrder: 'asc' | 'desc' = sortOrderParam === 'asc' ? 'asc' : 'desc'
+    // Get bookings with pagination and sorting (standardized)
+    const take = common.limit
+    const skip = common.skip
+    const sortBy = common.sortBy
+    const sortOrder: 'asc' | 'desc' = common.sortOrder
 
     const bookings = await prisma.booking.findMany({
       where,
