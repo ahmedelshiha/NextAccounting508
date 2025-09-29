@@ -12,6 +12,7 @@ import AnalyticsPage from '@/components/dashboard/templates/AnalyticsPage'
 import IntelligentActivityFeed from '@/components/dashboard/analytics/IntelligentActivityFeed'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { Download, RefreshCw, Calendar, Users } from 'lucide-react'
+import { fetchExportBlob } from '@/lib/admin-export'
 import { startOfWeek, endOfWeek } from 'date-fns'
 import type { ActionItem, FilterConfig } from '@/types/dashboard'
 
