@@ -9,7 +9,7 @@ Scope: Implement the QuickBooks-inspired professional admin dashboard defined in
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
 - [ ] Implement tenant switcher and verify tenant-scoped data on key routes
 - [ ] Unify list/table contracts with AdvancedDataTable across modules
-- [ ] Define realtime event contracts (event names, payloads) and document
+- [x] Define realtime event contracts (event names, payloads) and document
 
 2) Data Models & APIs
 - [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
@@ -62,7 +62,7 @@ P0 – Critical
 - [ ] Ensure typecheck and prod build green (pnpm typecheck, pnpm vercel:build)
 - [ ] Finalize RBAC permission matrix and enforce on all admin pages
 - [ ] Unify list/table contracts with AdvancedDataTable across modules
-- [ ] Define realtime event contracts (event names, payloads) and document
+- [x] Define realtime event contracts (event names, payloads) and document
 
 P1 – High
 - [ ] Design and migrate Work Orders data model in Prisma; generate CRUD APIs under /api/admin/work-orders
