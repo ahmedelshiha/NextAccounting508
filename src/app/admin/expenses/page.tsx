@@ -220,6 +220,8 @@ export default function AdminExpensesPage() {
         ]}
         filters={filters}
         onFilterChange={onFilterChange}
+        onSearch={handleSearch}
+        searchPlaceholder="Search vendor or memo"
         columns={columns}
         rows={rows}
         useAdvancedTable
