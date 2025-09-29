@@ -90,6 +90,7 @@ GUIDELINES:
   - Acceptance: malformed payloads produce 400; tests assert details
 - [ ] 7.3 Run typecheck and fix type errors
   - Action steps:
+    - Fixed missing required 'stats' prop in src/app/admin/reports/page.tsx for AnalyticsPage.
     - Run: `pnpm typecheck` (CI) and fix any failing TypeScript errors
   - Acceptance: `pnpm typecheck` exits 0
 - [ ] 7.4 Run integration and e2e tests
