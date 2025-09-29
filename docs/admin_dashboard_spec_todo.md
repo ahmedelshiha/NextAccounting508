@@ -202,7 +202,7 @@ Documentation notes:
   - Verify: Unauthorized path returns fallback; success logs exist
 
 - /admin/audits
-  - [x] Uses StandardPage
+  - [x] Uses ListPage + AdvancedDataTable (server-side pagination)
   - [x] RBAC gate (ANALYTICS_VIEW)
   - [x] Data from /api/admin/activity; filters and export CSV via /api/admin/export?entity=audits
   - Verify: Actor/module/date filters work; CSV includes visible rows only
