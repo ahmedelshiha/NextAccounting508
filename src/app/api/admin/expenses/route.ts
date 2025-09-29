@@ -6,6 +6,12 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { parseListQuery } from '@/schemas/list-query'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
+// Temporary guard: Expenses model not yet in Prisma schema. Use runtime checks to avoid build-time TS errors.
+const prismaAny = prisma as any
+function getExpenseModel() {
+  return prismaAny?.expense ?? null
+}
+
 function parseDate(value: string | null): Date | undefined {
   if (!value) return undefined
   const d = new Date(value)
@@ -45,14 +51,19 @@ export async function GET(request: NextRequest) {
       if (dateTo) where.date.lte = dateTo
     }
 
-    const expenses = await prisma.expense.findMany({
+    const Expense = getExpenseModel()
+    if (!Expense?.findMany) {
+      return NextResponse.json({ error: 'Expenses feature unavailable (missing database model)' }, { status: 501 })
+    }
+
+    const expenses = await Expense.findMany({
       where,
       include: { attachment: { select: { id: true, url: true, avStatus: true } }, user: { select: { id: true, name: true, email: true } } },
       orderBy: { [sortBy]: sortOrder } as any,
       skip,
       take: limit,
     })
-    const total = await prisma.expense.count({ where })
+    const total = await Expense.count({ where })
 
     return NextResponse.json({ expenses, total, page, limit })
   } catch (error) {
@@ -77,7 +88,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'vendor, date, amountCents are required' }, { status: 400 })
     }
 
-    const expense = await prisma.expense.create({
+    const Expense = getExpenseModel()
+    if (!Expense?.create) {
+      return NextResponse.json({ error: 'Expenses feature unavailable (missing database model)' }, { status: 501 })
+    }
+
+    const expense = await Expense.create({
       data: {
         vendor,
         category: category || 'general',
@@ -113,7 +129,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'expenseIds array required' }, { status: 400 })
     }
 
-    const result = await prisma.expense.deleteMany({ where: { id: { in: expenseIds } } })
+    const Expense = getExpenseModel()
+    if (!Expense?.deleteMany) {
+      return NextResponse.json({ error: 'Expenses feature unavailable (missing database model)' }, { status: 501 })
+    }
+
+    const result = await Expense.deleteMany({ where: { id: { in: expenseIds } } })
     return NextResponse.json({ message: `Deleted ${result.count} expenses`, deleted: result.count })
   } catch (error) {
     console.error('Error deleting expenses:', error)
