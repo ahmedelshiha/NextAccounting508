@@ -265,7 +265,7 @@ Documentation notes:
 - [ ] Realtime event contracts
 - [ ] Work Orders data model and endpoints (new module)
 
-## 4) Dashboard Overview Page (KPI → Charts → Activity)
+## 4) Dashboard Overview Page (KPI ��� Charts → Activity)
 - [ ] Implement DashboardOverview page with KPI cards row
 - [ ] Charts row: Work Order Trends (line), Revenue by Service (donut)
 - [ ] Activity row: ActivityFeed, UpcomingTasks, RecentBookings
@@ -466,4 +466,16 @@ Documentation notes:
   - Type: Enhancement/bugfix (no UX change)
   - Files changed: src/app/admin/posts/page.tsx
   - Next steps: Optional – adopt ListPage and hook into /api/admin/stats/posts for KPI tiles
+
+## Hotfix – 2025-09-30 (RBAC gating on missing admin pages)
+- [x] Enforced RBAC on /admin/expenses, /admin/integrations, /admin/team, /admin/settings, /admin/security
+  - Why: Ensure only authorized roles can access these pages according to the existing permission model; aligns with P0 RBAC enforcement.
+  - Type: Enhancement (RBAC enforcement)
+  - Files changed:
+    - src/app/admin/expenses/page.tsx
+    - src/app/admin/integrations/page.tsx
+    - src/app/admin/team/page.tsx
+    - src/app/admin/settings/page.tsx
+    - src/app/admin/security/page.tsx
+  - Next steps: Finalize permission matrix for Financial and System modules; add DOM/unit tests asserting PermissionGate fallbacks and server RBAC for API routes.
 
