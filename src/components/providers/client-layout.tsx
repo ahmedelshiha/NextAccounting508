@@ -143,7 +143,8 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
 
           // Return a safe 503 JSON response instead of throwing so callers (like next-auth) get a Response object
           try {
-            const body = typeof err === 'string' ? err : JSON.stringify({ error: String(err) })
+            const payload = typeof err === 'string' ? { error: err } : { error: String(err) }
+            const body = JSON.stringify(payload)
             return new Response(body, { status: 503, statusText: 'Service Unavailable', headers: { 'Content-Type': 'application/json' } })
           } catch {
             // Fallback: rethrow if Response construction fails
