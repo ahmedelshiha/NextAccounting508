@@ -121,6 +121,11 @@ export interface NotificationTemplate {
   variables?: string[] | null;
 }
 
+export interface BookingAutomation { autoConfirm: boolean; confirmIf: 'always' | 'known-client' | 'paid'; followUps: { hoursAfter: number; templateId: string }[]; cancellationPolicy: { hoursBefore: number; feePercent: number } }
+export interface BookingIntegrations { calendarSync: 'none' | 'google' | 'outlook' | 'ical'; conferencing: 'none' | 'zoom' | 'meet' }
+export interface BookingCapacity { pooledResources: boolean; concurrentLimit: number; waitlist: boolean }
+export interface BookingForms { fields: Array<{ key: string; label: string; type: 'text' | 'select' | 'number' | 'date'; required: boolean; options?: string[] }>; rules: Array<{ ifField: string; equals?: string; thenRequire: string[] }> }
+
 export interface BookingSettingsUpdateRequest {
   generalSettings?: Partial<Pick<BookingSettings,
     'bookingEnabled' | 'requireApproval' | 'allowCancellation' | 'allowRescheduling' |
@@ -156,6 +161,12 @@ export interface BookingSettingsUpdateRequest {
 
   integrationSettings?: Partial<Pick<BookingSettings,
     'calendarSync' | 'webhookUrl' | 'apiAccessEnabled'>>;
+
+  // Advanced JSON sections
+  automation?: BookingAutomation;
+  integrations?: BookingIntegrations;
+  capacity?: BookingCapacity;
+  forms?: BookingForms;
 }
 
 export interface SettingsValidationError { field: string; message: string; code: string }
