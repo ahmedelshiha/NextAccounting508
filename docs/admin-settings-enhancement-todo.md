@@ -461,7 +461,7 @@ Categories to implement (suggested order for dependencies):
   - Provides an end-to-end Task & Workflow settings surface following the established settings pattern so admins can configure task templates, statuses, automation, and board behaviors.
 
   ✅ Next steps:
-  - Add unit and integration tests for the new service and API.
+  - Unit & integration tests added for client, team, and task settings (vitest).
   - Include the task route in the settings registry and middleware permissions mapping.
   - Proceed to next category: 6.AR.1 (Analytics & Reporting).
 
