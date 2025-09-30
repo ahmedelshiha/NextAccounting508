@@ -403,7 +403,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     }
   `
 
-  const roving = require('@/hooks/useRovingTabIndex').default()
+  const roving = useRovingTabIndex()
   // attach to nav container via ref setter
 
   return (
