@@ -449,7 +449,21 @@ Categories to implement (suggested order for dependencies):
   - Continue with next category: 6.TW.1 (Task & Workflow).
 
 - Task & Workflow
-  - [ ] 6.TW.1 schemas + service + API + UI + tests
+  - [x] 6.TW.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Implemented `src/schemas/settings/task-workflow.ts` with Zod schemas for templates, statuses, automation rules, board configuration, and dependencies toggle.
+  - Implemented `src/services/task-settings.service.ts` with caching, get/upsert helpers, and audit logging.
+  - Implemented API route `src/app/api/admin/task-settings/route.ts` (GET, PUT) enforcing RBAC and tenant scoping.
+  - Implemented UI page `src/app/admin/settings/tasks/page.tsx` using existing form primitives and PermissionGate, covering templates, statuses, automation, board, and dependencies.
+
+  ✅ Why it was done:
+  - Provides an end-to-end Task & Workflow settings surface following the established settings pattern so admins can configure task templates, statuses, automation, and board behaviors.
+
+  ✅ Next steps:
+  - Add unit and integration tests for the new service and API.
+  - Include the task route in the settings registry and middleware permissions mapping.
+  - Proceed to next category: 6.AR.1 (Analytics & Reporting).
 
 - Analytics & Reporting
   - [ ] 6.AR.1 schemas + service + API + UI + tests
