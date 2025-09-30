@@ -1176,3 +1176,22 @@ model CommunicationSettings {
   @@index([tenantId])
   @@map("communication_settings")
 }
+
+// Security settings persisted per-tenant
+model SecuritySettings {
+  id        String   @id @default(cuid())
+  tenantId  String?  @unique
+
+  passwordPolicy  Json?
+  sessionSecurity Json?
+  twoFactor       Json?
+  network         Json?
+  dataProtection  Json?
+  compliance      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("security_settings")
+}
