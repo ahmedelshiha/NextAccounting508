@@ -2,7 +2,7 @@
 // Core types for the Settings registry and tabs
 
 import type { z } from 'zod'
-import type { ReactElement } from 'react'
+import type { ComponentType } from 'react'
 
 // A Permission in this codebase is represented by a string key (e.g. 'BOOKING_SETTINGS_EDIT').
 // Keep the alias broad to avoid coupling to a specific permissions implementation here.
@@ -39,7 +39,7 @@ export interface SettingsCategory {
   label: string
   route: string
   // Icon is a React component that receives className (lucide-react compatible)
-  icon?: (props: { className?: string }) => ReactElement
+  icon?: ComponentType<{ className?: string }>
   tabs?: SettingsTab<any>[]
   // Optional permission to control visibility in the registry-driven nav
   permission?: Permission
