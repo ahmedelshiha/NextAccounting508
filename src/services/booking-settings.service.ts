@@ -133,14 +133,26 @@ export class BookingSettingsService {
       ...(updates.assignmentSettings ?? {}),
       ...(updates.pricingSettings ?? {}),
       ...(updates.integrationSettings ?? {}),
+      // Advanced sections persisted as JSON columns
+      // They will be set below if provided in updates
       updatedAt: new Date(),
     }
+
+    // Persist advanced JSON sections explicitly
+    if (updates.automation) (data as any).automation = updates.automation
+    if (updates.integrations) (data as any).integrations = updates.integrations
+    if (updates.capacity) (data as any).capacity = updates.capacity
+    if (updates.forms) (data as any).forms = updates.forms
 
     const toNullableJson = (v: any) => (v === undefined ? undefined : (v === null ? getDbNull() : v))
     if ('businessHours' in data) (data as any).businessHours = toNullableJson((data as any).businessHours)
     if ('blackoutDates' in data) (data as any).blackoutDates = toNullableJson((data as any).blackoutDates)
     if ('holidaySchedule' in data) (data as any).holidaySchedule = toNullableJson((data as any).holidaySchedule)
     if ('reminderHours' in data) (data as any).reminderHours = toNullableJson((data as any).reminderHours)
+    if ('automation' in data) (data as any).automation = toNullableJson((data as any).automation)
+    if ('integrations' in data) (data as any).integrations = toNullableJson((data as any).integrations)
+    if ('capacity' in data) (data as any).capacity = toNullableJson((data as any).capacity)
+    if ('forms' in data) (data as any).forms = toNullableJson((data as any).forms)
 
     if (!target) throw new Error('Booking settings not found')
     await prisma.bookingSettings.update({ where: { id: (target as any).id }, data })
