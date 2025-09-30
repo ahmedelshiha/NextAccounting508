@@ -35,7 +35,7 @@ export const TaskWorkflowSettingsSchema = z.object({
   templates: z.array(TaskTemplateSchema).max(200).default([]),
   statuses: z.array(TaskStatusSchema).max(50).default([]),
   automation: z.array(TaskAutomationRuleSchema).max(200).default([]),
-  board: TaskBoardSchema.default({}),
+  board: TaskBoardSchema.default({ swimlanes: [], showCompletedInBoard: false }),
   dependenciesEnabled: z.boolean().default(true),
 })
 

@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import { z } from 'zod'
-
 export const BookingStepSchema = z.object({
   stepName: z.string().optional(),
   stepOrder: z.number().int().positive().optional(),

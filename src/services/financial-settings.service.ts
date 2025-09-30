@@ -13,14 +13,16 @@ export class FinancialSettingsService {
     const key = this.cacheKey(tenantId)
     const cached = await this.cache.get<any>(key)
     if (cached) return cached
-    const row = await prisma.financialSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null as any)
+    const prismaAny = prisma as any
+    const row = await prismaAny.financialSettings?.findFirst({ where: tenantFilter(tenantId) }).catch(() => null as any)
     const value = row ?? await this.createDefault(tenantId)
     await this.cache.set(key, value, 60)
     return value
   }
 
   async update(tenantId: string | null, payload: FinancialSettingsPayload, actorId?: string | null) {
-    const existing = await prisma.financialSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null as any)
+    const prismaAny = prisma as any
+    const existing = await prismaAny.financialSettings?.findFirst({ where: tenantFilter(tenantId) }).catch(() => null as any)
     const data: any = {
       tenantId: tenantId ?? undefined,
       invoicing: { ...(existing?.invoicing ?? {}), ...(payload.invoicing ?? {}) },
@@ -30,8 +32,8 @@ export class FinancialSettingsService {
       reconciliation: { ...(existing?.reconciliation ?? {}), ...(payload.reconciliation ?? {}) },
     }
     const saved = existing
-      ? await prisma.financialSettings.update({ where: { id: existing.id }, data })
-      : await prisma.financialSettings.create({ data })
+      ? await prismaAny.financialSettings?.update({ where: { id: existing.id }, data })
+      : await prismaAny.financialSettings?.create({ data })
 
     await this.cache.delete(this.cacheKey(tenantId))
     try { await logAudit({ action: 'financial-settings:update', actorId: actorId ?? null, details: { tenantId, sections: Object.keys(payload) } }) } catch {}
@@ -48,7 +50,8 @@ export class FinancialSettingsService {
       reconciliation: { autoMatchThresholdCents: 200, lockPeriodDays: 0, requireTwoPersonApproval: false },
     } as any
     try {
-      const created = await prisma.financialSettings.create({ data: defaults })
+      const prismaAny = prisma as any
+      const created = await prismaAny.financialSettings?.create({ data: defaults })
       return created
     } catch {
       // If table missing in local env, return in-memory defaults to avoid hard failure

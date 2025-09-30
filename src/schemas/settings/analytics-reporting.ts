@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const DashboardSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
-  widgets: z.array(z.object({ id: z.string().optional(), type: z.string(), config: z.record(z.any()) })).default([]),
+  widgets: z.array(z.object({ id: z.string().optional(), type: z.string(), config: z.record(z.string(), z.any()) })).default([]),
 })
 
 export const MetricSchema = z.object({

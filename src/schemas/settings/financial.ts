@@ -20,7 +20,7 @@ export const FinancialPaymentsSchema = z.object({
 export const FinancialTaxesSchema = z.object({
   taxInclusive: z.boolean().default(false),
   defaultRate: z.number().min(0).max(1).default(0),
-  regionOverrides: z.record(z.number().min(0).max(1)).default({}),
+  regionOverrides: z.record(z.string(), z.number().min(0).max(1)).default({}),
 })
 
 export const FinancialCurrenciesSchema = z.object({
