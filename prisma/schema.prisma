@@ -795,6 +795,13 @@ model BookingSettings {
   calendarSync               Boolean  @default(false)
   webhookUrl                 String?
   apiAccessEnabled           Boolean  @default(false)
+
+  // Advanced sections stored as JSON
+  automation                 Json?
+  integrations               Json?
+  capacity                  Json?
+  forms                     Json?
+
   // Meta
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
