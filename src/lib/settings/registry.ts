@@ -77,6 +77,7 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/communication',
     icon: MessageSquare,
     tabs: [],
+    permission: PERMISSIONS.COMMUNICATION_SETTINGS_VIEW,
   },
   {
     key: 'securityCompliance',

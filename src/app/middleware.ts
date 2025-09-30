@@ -52,6 +52,7 @@ export async function middleware(req: NextServer.NextRequest) {
         { prefix: '/admin/settings/team', perm: 'TEAM_SETTINGS_VIEW' },
         { prefix: '/admin/settings/tasks', perm: 'TASK_WORKFLOW_SETTINGS_VIEW' },
         { prefix: '/admin/settings/analytics', perm: 'ANALYTICS_REPORTING_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/communication', perm: 'COMMUNICATION_SETTINGS_VIEW' },
       ]
       const match = routePerm.find(r => pathname.startsWith(r.prefix))
       if (match) {
