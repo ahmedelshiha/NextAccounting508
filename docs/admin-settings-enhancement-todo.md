@@ -215,13 +215,15 @@ Goal: Implement Organization Settings (General, Contact, Localization, Branding,
 - [x] 4.4 Implement UI tabs under `src/components/admin/settings/groups/Organization/GeneralTab.tsx`, ContactTab.tsx, LocalizationTab.tsx, BrandingTab.tsx, LegalTab.tsx using FormField primitives and SettingsShell. (Outcome: UI pages render data and save)
 
   ✅ What was completed:
-  - Implemented `GeneralTab.tsx` at `src/components/admin/settings/groups/Organization/GeneralTab.tsx` that loads `/api/admin/org-settings` on mount, populates fields, and allows saving via PUT.
+  - Implemented `GeneralTab.tsx`, `ContactTab.tsx`, `LocalizationTab.tsx`, `BrandingTab.tsx`, and `LegalTab.tsx` under `src/components/admin/settings/groups/Organization/`.
+  - Each tab reads from `/api/admin/org-settings` on mount and persists its respective section via PUT to the same endpoint. UI uses shared form primitives for consistent styling.
 
   ✅ Why it was done:
-  - New implementation. Serves as the first concrete settings tab demonstrating end-to-end flow.
+  - New implementation. Completes the Organization Settings end-to-end, providing admins control over General, Contact, Localization, Branding, and Legal sections.
 
   ✅ Next steps:
-  - Implement Contact, Localization, Branding, and Legal tabs following the same pattern (4.4 remaining sub-tasks).
+  - Add UI tests for Contact/Localization/Branding/Legal tabs (recommended).
+  - Ensure Prisma migration is applied in CI/deploy (add migration step to release PR).
 
 - [x] 4.5 Add `src/app/admin/settings/company/page.tsx` that uses SettingsShell and dynamically loads the tabs with SSR-safe dynamic imports. (Outcome: page route exists)
 
