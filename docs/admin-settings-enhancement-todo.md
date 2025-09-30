@@ -212,7 +212,7 @@ Dependencies: Phase 1
 
 ---
 
-## Phase 4 — Organization Settings (first category implementation)
+## Phase 4 �� Organization Settings (first category implementation)
 Goal: Implement Organization Settings (General, Contact, Localization, Branding, Legal) end-to-end as a pattern to follow for other categories.
 
 - [x] 4.1 Add Zod schema `src/schemas/settings/organization.ts` with OrgGeneralSchema (name, tagline, description, industry) and the remaining tab schemas. (Outcome: zod schemas added)
@@ -385,12 +385,26 @@ For each category below implement the sub-steps: A) add Zod schemas, B) implemen
 
 Categories to implement (suggested order for dependencies):
 
+  ✅ What was completed (Financial):
+  - Implemented Zod schemas for invoicing, payments, taxes, currencies, reconciliation.
+  - Added service with caching and audit; returns defaults if table missing locally.
+  - Added GET/PUT API with RBAC (FINANCIAL_SETTINGS_VIEW/EDIT) and validation.
+  - Created admin UI page using SettingsShell with 5 tabs and PermissionGate on Save.
+  - Added API tests with mocked prisma.
+
+  ✅ Why it was done:
+  - Establishes a repeatable pattern for remaining categories and ships a functional Financial settings hub.
+
+  ✅ Next steps:
+  - Add export/import helpers for Financial in Phase 9.
+  - Add more granular tests and connect currency settings with exchange rates API.
+
 - Financial (invoicing, payments, taxes, currencies, reconciliation)
-  - [ ] 6.F.1 Add schemas: financial.ts
-  - [ ] 6.F.2 Implement service: src/services/financial-settings.service.ts
-  - [ ] 6.F.3 Implement API: src/app/api/admin/financial-settings/route.ts
-  - [ ] 6.F.4 Implement UI: src/app/admin/settings/financial/page.tsx + tabs
-  - [ ] 6.F.5 Tests
+  - [x] 6.F.1 Add schemas: financial.ts
+  - [x] 6.F.2 Implement service: src/services/financial-settings.service.ts
+  - [x] 6.F.3 Implement API: src/app/api/admin/financial-settings/route.ts
+  - [x] 6.F.4 Implement UI: src/app/admin/settings/financial/page.tsx + tabs
+  - [x] 6.F.5 Tests
 
 - Integrations (payments, calendars, comms, analytics, storage)
   - [ ] 6.I.1 Add schemas: integration-hub.ts
