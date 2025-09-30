@@ -57,7 +57,19 @@ Dependencies: none (foundational)
 ## Phase 2 — Admin Sidebar & Navigation Integration
 Goal: Replace hardcoded Settings links with registry-driven navigation and RBAC filtering.
 
-- [ ] 2.1 Update `src/components/admin/settings/SettingsNavigation.tsx` to import `SETTINGS_REGISTRY` and render categories filtered by `hasPermission(session.role, permission)` where applicable. (Outcome: SettingsNavigation renders dynamic links)
+- [x] 2.1 Update `src/components/admin/settings/SettingsNavigation.tsx` to import `SETTINGS_REGISTRY` and render categories filtered by `hasPermission(session.role, permission)` where applicable. (Outcome: SettingsNavigation renders dynamic links)
+
+  ✅ What was completed:
+  - Refactored `src/components/admin/settings/SettingsNavigation.tsx` to consume `SETTINGS_REGISTRY` from `src/lib/settings/registry.ts` and render category links dynamically.
+  - Integrated `usePermissions()` to conditionally hide categories when a registry entry specifies a `permission` field (registry entries are currently permission-optional).
+  - Preserved original styling, active state handling, and Quick Links section.
+
+  ✅ Why it was done:
+  - Enhancement: centralizes settings navigation and enables RBAC-driven visibility without duplicating link definitions. This avoids drift between sidebar and settings pages and simplifies adding new categories.
+
+  ✅ Next steps:
+  - 2.2 Refactor `src/components/admin/layout/AdminSidebar.tsx` to also consume `SETTINGS_REGISTRY` (next task).
+  - 1.3 Add unit test for registry shape to ensure route+label exist and to prevent regressions.
 - [ ] 2.2 Refactor `src/components/admin/layout/AdminSidebar.tsx` to render Settings section from the registry instead of hardcoded children. Keep existing styling and breakpoints. (Outcome: AdminSidebar uses registry)
 - [ ] 2.3 Add localStorage persistence for expanded/collapsed state and a small unit test for the persistence helper (utils/localStorage.ts). (Outcome: sidebar preserves collapse across reloads)
 - [ ] 2.4 Accessibility: ensure collapsed items include aria-label and tooltip; add keyboard arrow navigation (implement focus management hook `useRovingTabIndex`). (Outcome: keyboard navigation + a11y checks passing)
