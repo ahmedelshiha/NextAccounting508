@@ -117,11 +117,60 @@ Dependencies: Phase 1
 ## Phase 3 — Settings Shell UI & Reusable Controls
 Goal: Provide the shell and form primitives to build all category pages consistently.
 
-- [ ] 3.1 Create `src/components/admin/settings/SettingsShell.tsx` implementing a 1-column-nav / 4-column-content layout matching docs sample. (Outcome: shell component exported)
-- [ ] 3.2 Create `src/components/admin/settings/FormField.tsx` with TextField, SelectField, Toggle, NumberInput components using existing design tokens and classes. Convert any inline styles to classes. (Outcome: reusable field components)
-- [ ] 3.3 Create `src/components/admin/settings/Tabs.tsx` to render tabbed navigation inside the shell, supporting keyboard and aria roles. (Outcome: Tabs component ready)
-- [ ] 3.4 Add client-side TypeScript types for settings payloads import/export in `src/types/settings.ts`. (Outcome: typed payloads)
-- [ ] 3.5 Add storybook or static render test that mounts SettingsShell + Tabs and asserts tab switching works. (Outcome: test added)
+- [x] 3.1 Create `src/components/admin/settings/SettingsShell.tsx` implementing a 1-column-nav / 4-column-content layout matching docs sample. (Outcome: shell component exported)
+
+  ✅ What was completed:
+  - Implemented `src/components/admin/settings/SettingsShell.tsx` as a client component with a left tab column and right content area. It accepts `tabs`, `activeTab`, and `onChangeTab` and preserves styling consistent with admin UI.
+
+  ✅ Why it was done:
+  - New implementation. Provides a consistent shell for all settings pages to consume and reduces duplicated layout code.
+
+  ✅ Next steps:
+  - Use this shell when implementing Organization and other category pages (Phase 4/6).
+
+- [x] 3.2 Create `src/components/admin/settings/FormField.tsx` with TextField, SelectField, Toggle, NumberInput components using existing design tokens and classes. Convert any inline styles to classes. (Outcome: reusable field components)
+
+  ✅ What was completed:
+  - Implemented `TextField`, `SelectField`, `Toggle`, and `NumberField` components with accessible labels and Tailwind-based classes. No inline styles remain; all visual behavior uses classes.
+
+  ✅ Why it was done:
+  - New implementation. These primitives speed up consistent form building across settings pages and match the project's design tokens.
+
+  ✅ Next steps:
+  - Replace ad-hoc inputs in existing settings pages with these primitives when implementing categories.
+
+- [x] 3.3 Create `src/components/admin/settings/Tabs.tsx` to render tabbed navigation inside the shell, supporting keyboard and aria roles. (Outcome: Tabs component ready)
+
+  ✅ What was completed:
+  - Implemented a small Tabs component that renders a row of buttons with ARIA roles and supports an externally controlled `active` prop.
+
+  ✅ Why it was done:
+  - New implementation. Ensures consistent tab appearance and behavior across settings pages.
+
+  ✅ Next steps:
+  - Use Tabs component inside SettingsShell or category pages for intra-category navigation.
+
+- [x] 3.4 Add client-side TypeScript types for settings payloads import/export in `src/types/settings.ts`. (Outcome: typed payloads)
+
+  ✅ What was completed:
+  - Added `src/types/settings.ts` with `SettingsExport` and `SettingsImportOptions` types for consistent import/export payloads.
+
+  ✅ Why it was done:
+  - New implementation. Provides shared typing for import/export helpers and API payloads.
+
+  ✅ Next steps:
+  - Use these types when implementing export/import helpers and endpoints (Phase 9).
+
+- [x] 3.5 Add storybook or static render test that mounts SettingsShell + Tabs and asserts tab switching works. (Outcome: test added)
+
+  ✅ What was completed:
+  - Added `tests/components/settings-shell.test.tsx` which mounts `SettingsShell` and asserts the `onChangeTab` handler is called when a tab is clicked.
+
+  ✅ Why it was done:
+  - New implementation. Validates the basic render and interaction for the shell and tab primitives.
+
+  ✅ Next steps:
+  - Expand UI tests to include accessibility checks and integration with form primitives.
 
 Dependencies: Phase 1
 
