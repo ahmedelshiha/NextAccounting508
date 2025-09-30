@@ -392,7 +392,7 @@ Categories to implement (suggested order for dependencies):
   - Created admin UI page using SettingsShell with 5 tabs and PermissionGate on Save.
   - Added API tests with mocked prisma.
 
-  ✅ Why it was done:
+  ��� Why it was done:
   - Establishes a repeatable pattern for remaining categories and ships a functional Financial settings hub.
 
   ✅ Next steps:
@@ -479,7 +479,21 @@ Categories to implement (suggested order for dependencies):
   - Wire analytics route in navigation if desired and confirm middleware mapping (done).
 
 - Communication
-  - [ ] 6.COM.1 schemas + service + API + UI + tests
+  - [x] 6.COM.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Migrated Communication settings to Zod v4 compatibility: added explicit defaults for email, sms, chat, notifications, and reminders so `parse({})` yields stable values.
+  - Introduced `CommunicationSettingsPatchSchema` to model deep-partial updates; replaced deprecated `.deepPartial()` usage in API route and service.
+  - Updated merge logic to preserve array fields when omitted (templates, routes, escalationEmails, preferences, topics, channels) and validated with schema before persistence.
+  - Kept caching and audit behavior intact; service now uses the patch schema for input validation.
+
+  ✅ Why it was done:
+  - Build errors were caused by Zod v4 removing `.deepPartial()` and by `default({})` on object schemas requiring full shape. This fixes the build and ensures robust, maintainable validation.
+
+  ✅ Next steps:
+  - Implement admin UI page at `src/app/admin/settings/communication/page.tsx` following the SettingsShell pattern and PermissionGate for COMMUNICATION_SETTINGS_EDIT.
+  - Add API and UI tests mirroring Organization/Financial patterns.
+  - Wire route into navigation registry and middleware mapping (if not already present), and add export/import coverage in Phase 9.
 
 - Security & Compliance
   - [ ] 6.SEC.1 schemas + service + API + UI + tests
