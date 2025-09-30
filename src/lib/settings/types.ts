@@ -39,7 +39,7 @@ export interface SettingsCategory {
   label: string
   route: string
   // Icon is a React component that receives className (lucide-react compatible)
-  icon?: ComponentType<{ className?: string }>
+  icon?: ComponentType<any>
   tabs?: SettingsTab<any>[]
   // Optional permission to control visibility in the registry-driven nav
   permission?: Permission
