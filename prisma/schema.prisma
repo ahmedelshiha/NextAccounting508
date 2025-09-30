@@ -1157,3 +1157,22 @@ model IntegrationSettings {
   @@index([tenantId])
   @@map("integration_settings")
 }
+
+// Communication settings stored per tenant
+model CommunicationSettings {
+  id        String   @id @default(cuid())
+  tenantId  String?  @unique
+
+  email          Json?
+  sms            Json?
+  chat           Json?
+  notifications  Json?
+  newsletters    Json?
+  reminders      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("communication_settings")
+}

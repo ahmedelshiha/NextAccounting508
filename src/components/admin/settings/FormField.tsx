@@ -1,35 +1,56 @@
 'use client'
 import React from 'react'
 
-export function TextField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }){
+export function TextField({ label, value, onChange, placeholder, disabled = false }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input value={value} onChange={(e)=>onChange(e.target.value)} placeholder={placeholder}
-        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2" />
+      <input
+        value={value}
+        onChange={(e)=>onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+      />
     </div>
   )
 }
 
-export function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }){
+export function SelectField({ label, value, onChange, options, disabled = false }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <select value={value} onChange={(e)=>onChange(e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2">
+      <select
+        value={value}
+        onChange={(e)=>onChange(e.target.value)}
+        disabled={disabled}
+        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+      >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
   )
 }
 
-export function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }){
+export function Toggle({ label, value, onChange, disabled = false }: { label: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean }){
+  const handleClick = () => {
+    if (disabled) return
+    onChange(!value)
+  }
+
   return (
     <div className="mb-4 flex items-center justify-between">
       <div>
         <label className="block text-sm font-medium text-gray-700">{label}</label>
       </div>
       <div>
-        <button type="button" onClick={() => onChange(!value)} className={`w-10 h-6 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-gray-200'}`} aria-pressed={value}>
+        <button
+          type="button"
+          onClick={handleClick}
+          aria-pressed={value}
+          aria-disabled={disabled}
+          className={`w-10 h-6 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-gray-200'} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        >
           <span className={`block w-4 h-4 bg-white rounded-full transform transition-transform ${value ? 'translate-x-4' : 'translate-x-0'}`} />
         </button>
       </div>
@@ -37,11 +58,19 @@ export function Toggle({ label, value, onChange }: { label: string; value: boole
   )
 }
 
-export function NumberField({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }){
+export function NumberField({ label, value, onChange, min, max, disabled = false }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input type="number" value={String(value)} onChange={(e)=>onChange(Number(e.target.value))} min={min} max={max} className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2" />
+      <input
+        type="number"
+        value={String(value)}
+        onChange={(e)=>onChange(Number(e.target.value))}
+        min={min}
+        max={max}
+        disabled={disabled}
+        className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+      />
     </div>
   )
 }
