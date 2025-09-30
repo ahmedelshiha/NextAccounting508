@@ -217,11 +217,23 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           name: 'Settings',
           href: '/admin/settings',
           icon: Settings,
-          children: [
-            { name: 'General', href: '/admin/settings', icon: Settings },
-            { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
-            { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
-          ]
+          children: (function(){
+            try {
+              // Import registry at runtime to avoid circular module issues
+              // (module-scoped import would be ok here, but keep try/catch safe)
+              // eslint-disable-next-line @typescript-eslint/no-var-requires
+              const registry = require('@/lib/settings/registry').default as any[]
+              // Map registry entries to sidebar children
+              return registry.map((c: any) => ({ name: c.label, href: c.route, icon: c.icon || Settings, permission: c.permission }))
+            } catch (e) {
+              // Fallback to static list if registry cannot be loaded
+              return [
+                { name: 'General', href: '/admin/settings', icon: Settings },
+                { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
+                { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
+              ]
+            }
+          })()
         },
         {
           name: 'Users & Permissions',
