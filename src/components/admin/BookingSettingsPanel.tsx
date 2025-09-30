@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from 'react'
 import { Settings as SettingsIcon, CreditCard, Clock, Calendar, Bell, Users, Shield, Zap, Download, RefreshCw, Save, AlertTriangle, CheckCircle, Plug, Gauge, ListChecks, Upload } from 'lucide-react'
 import PermissionGate from '@/components/PermissionGate'
