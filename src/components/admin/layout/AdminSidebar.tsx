@@ -18,7 +18,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -70,7 +70,25 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ isCollapsed = false, isMobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [expandedSections, setExpandedSections] = useState<string[]>(['dashboard', 'business'])
+  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
+    try {
+      const fromLs = typeof window !== 'undefined' ? window.localStorage.getItem('admin:sidebar:expanded') : null
+      if (fromLs) {
+        const parsed = JSON.parse(fromLs) as string[]
+        if (Array.isArray(parsed)) return parsed
+      }
+    } catch (e) {
+      // ignore and fallback
+    }
+    return ['dashboard', 'business']
+  })
+
+  // Persist expandedSections to localStorage
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:expanded', JSON.stringify(expandedSections))
+    } catch (e) {}
+  }, [expandedSections])
   
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
@@ -217,11 +235,23 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           name: 'Settings',
           href: '/admin/settings',
           icon: Settings,
-          children: [
-            { name: 'General', href: '/admin/settings', icon: Settings },
-            { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
-            { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
-          ]
+          children: (function(){
+            try {
+              // Import registry at runtime to avoid circular module issues
+              // (module-scoped import would be ok here, but keep try/catch safe)
+              // eslint-disable-next-line @typescript-eslint/no-var-requires
+              const registry = require('@/lib/settings/registry').default as any[]
+              // Map registry entries to sidebar children
+              return registry.map((c: any) => ({ name: c.label, href: c.route, icon: c.icon || Settings, permission: c.permission }))
+            } catch (e) {
+              // Fallback to static list if registry cannot be loaded
+              return [
+                { name: 'General', href: '/admin/settings', icon: Settings },
+                { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
+                { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
+              ]
+            }
+          })()
         },
         {
           name: 'Users & Permissions',
@@ -301,10 +331,12 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
               onClick={() => toggleSection(item.href.split('/').pop() || '')}
               aria-expanded={isExpanded}
               aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+              data-roving
+              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
               className={`
                 w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive 
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' 
+                ${isActive
+                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 }
                 ${depth > 0 ? 'ml-4' : ''}
@@ -332,10 +364,12 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               onClick={isMobile ? onClose : undefined}
+              data-roving
+              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
               className={`
                 flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive 
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' 
+                ${isActive
+                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 }
                 ${depth > 0 ? 'ml-4' : ''}
@@ -379,16 +413,19 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     }
   `
 
+  const roving = require('@/hooks/useRovingTabIndex').default()
+  // attach to nav container via ref setter
+
   return (
     <>
       {/* Mobile backdrop */}
       {isMobile && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <div className={sidebarClasses}>
         <div className="flex flex-col h-full">
@@ -418,7 +455,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
                       {section.section}
                     </h3>
                   )}
-                  <ul className="space-y-1">
+                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}
                   </ul>
                 </div>
