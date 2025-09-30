@@ -90,7 +90,7 @@ export default function FinancialSettingsPage() {
         {active==='currencies' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Field label="Base" value={pending.currencies?.base ?? settings?.currencies?.base ?? 'USD'} onChange={(v)=>onChange('currencies','base', v)} />
-            <Field label="Enabled (comma)" value={(pending.currencies?.enabled ?? settings?.currencies?.enabled ?? ['USD']).join(', ')} onChange={(v)=>onChange('currencies','enabled', v.split(',').map(x=>x.trim()).filter(Boolean))} />
+            <Field label="Enabled (comma)" value={(pending.currencies?.enabled ?? settings?.currencies?.enabled ?? ['USD']).join(', ')} onChange={(v)=>onChange('currencies','enabled', String(v).split(',').map((x: string)=>x.trim()).filter(Boolean))} />
           </div>
         )}
 
