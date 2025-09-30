@@ -1,7 +1,5 @@
-"use client"
-
 import React, { useEffect, useState } from 'react'
-import { Settings as SettingsIcon, CreditCard, Clock, Calendar, Bell, Users, Shield, Zap, Download, RefreshCw, Save, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Settings as SettingsIcon, CreditCard, Clock, Calendar, Bell, Users, Shield, Zap, Download, RefreshCw, Save, AlertTriangle, CheckCircle, Plug, Gauge, ListChecks, Upload } from 'lucide-react'
 
 /**
  * BookingSettingsPanel provides a tabbed admin UI to configure booking settings.
@@ -10,13 +8,20 @@ import { Settings as SettingsIcon, CreditCard, Clock, Calendar, Bell, Users, Shi
  * - Validates and persists via PUT /api/admin/booking-settings
  */
 export default function BookingSettingsPanel() {
-  const [active, setActive] = useState<'general'|'payments'|'steps'|'availability'|'notifications'|'customers'|'assignments'|'pricing'>('general')
+  const [active, setActive] = useState<'general'|'payments'|'steps'|'availability'|'notifications'|'customers'|'assignments'|'pricing'|'automation'|'integrations'|'capacity'|'forms'>('general')
   const [settings, setSettings] = useState<any>(null)
   const [pending, setPending] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<{ message: string }[]>([])
+  const [warnings, setWarnings] = useState<{ message: string; suggestion?: string }[]>([])
   const [saved, setSaved] = useState(false)
+
+  // Import modal state
+  const [showImport, setShowImport] = useState(false)
+  const [importData, setImportData] = useState<any>(null)
+  const [importSections, setImportSections] = useState<{settings:boolean;steps:boolean;businessHours:boolean;paymentMethods:boolean;notifications:boolean}>({ settings: true, steps: true, businessHours: true, paymentMethods: true, notifications: true })
+  const [overwriteExisting, setOverwriteExisting] = useState(true)
 
   useEffect(() => { load() }, [])
 
@@ -36,6 +41,7 @@ export default function BookingSettingsPanel() {
   async function onSave() {
     setSaving(true)
     setErrors([])
+    setWarnings([])
     try {
       const res = await fetch('/api/admin/booking-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending) })
       const data = await res.json()
@@ -44,6 +50,7 @@ export default function BookingSettingsPanel() {
         return
       }
       setSettings(data.settings)
+      setWarnings(Array.isArray(data.warnings) ? data.warnings : [])
       setPending({})
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
@@ -74,6 +81,33 @@ export default function BookingSettingsPanel() {
     URL.revokeObjectURL(url)
   }
 
+  function onOpenImport() {
+    setImportData(null)
+    setImportSections({ settings: true, steps: true, businessHours: true, paymentMethods: true, notifications: true })
+    setOverwriteExisting(true)
+    setShowImport(true)
+  }
+
+  async function onConfirmImport() {
+    if (!importData) return
+    const sections = Object.entries(importSections).filter(([,v])=>v).map(([k])=>k)
+    const payload = { data: importData, overwriteExisting, selectedSections: sections }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/booking-settings/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const data = await res.json()
+      if (!res.ok) {
+        setErrors([{ message: data.error || 'Import failed' }])
+        return
+      }
+      setSettings(data.settings)
+      setShowImport(false)
+      setPending({})
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally { setSaving(false) }
+  }
+
   if (loading) return (<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"/></div>)
 
   return (
@@ -85,6 +119,7 @@ export default function BookingSettingsPanel() {
         </div>
         <div className="flex items-center gap-3">
           <button onClick={onExport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Download className="w-4 h-4 mr-2"/>Export</button>
+          <button onClick={onOpenImport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Upload className="w-4 h-4 mr-2"/>Import</button>
           <button onClick={onReset} disabled={saving} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"><RefreshCw className="w-4 h-4 mr-2"/>Reset</button>
           <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"><Save className="w-4 h-4 mr-2"/>{saving? 'Saving...':'Save Changes'}</button>
         </div>
@@ -99,6 +134,12 @@ export default function BookingSettingsPanel() {
           <ul className="list-disc list-inside text-red-700 text-sm space-y-1">{errors.map((e,i)=>(<li key={i}>{e.message}</li>))}</ul>
         </div>
       )}
+      {warnings.length>0 && (
+        <div className="mx-6 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <div className="flex items-center mb-2"><AlertTriangle className="w-5 h-5 text-yellow-600 mr-2"/><span className="text-yellow-800 font-medium">Warnings</span></div>
+          <ul className="list-disc list-inside text-yellow-700 text-sm space-y-1">{warnings.map((w,i)=>(<li key={i}>{w.message}{w.suggestion? ` — ${w.suggestion}`:''}</li>))}</ul>
+        </div>
+      )}
 
       <div className="flex">
         <aside className="w-64 border-r border-gray-200 bg-gray-50 p-4 space-y-2">
@@ -111,6 +152,10 @@ export default function BookingSettingsPanel() {
             { id:'customers', label:'Customer Experience', icon: Users },
             { id:'assignments', label:'Team Assignments', icon: Shield },
             { id:'pricing', label:'Dynamic Pricing', icon: Zap },
+            { id:'automation', label:'Automation', icon: Zap },
+            { id:'integrations', label:'Integrations', icon: Plug },
+            { id:'capacity', label:'Capacity', icon: Gauge },
+            { id:'forms', label:'Forms', icon: ListChecks },
           ].map((t)=>{
             const Icon = t.icon
             const changed = !!(pending as any)[sectionMap(t.id)]
@@ -131,8 +176,45 @@ export default function BookingSettingsPanel() {
           {active==='customers' && <Customers settings={settings} onChange={(k,v)=>onChange('customerSettings', k, v)} pending={pending.customerSettings||{}}/>}
           {active==='assignments' && <Assignments settings={settings} onChange={(k,v)=>onChange('assignmentSettings', k, v)} pending={pending.assignmentSettings||{}}/>}
           {active==='pricing' && <Pricing settings={settings} onChange={(k,v)=>onChange('pricingSettings', k, v)} pending={pending.pricingSettings||{}}/>}
+          {active==='automation' && <Automation settings={settings} onChange={(k,v)=>onChange('automation', k, v)} pending={pending.automation||{}}/>}
+          {active==='integrations' && <Integrations settings={settings} onChange={(k,v)=>onChange('integrations', k, v)} pending={pending.integrations||{}}/>}
+          {active==='capacity' && <Capacity settings={settings} onChange={(k,v)=>onChange('capacity', k, v)} pending={pending.capacity||{}}/>}
+          {active==='forms' && <Forms settings={settings} onChange={(k,v)=>onChange('forms', k, v)} pending={pending.forms||{}}/>}
         </main>
       </div>
+
+      {showImport && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Import Booking Settings</h3>
+            <p className="text-gray-600 mb-4">Upload a previously exported settings JSON and choose which sections to import.</p>
+            <div className="space-y-4">
+              <div>
+                <input type="file" accept="application/json" onChange={async (e)=>{
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  const text = await file.text()
+                  try { setImportData(JSON.parse(text)) } catch { setImportData(null); setErrors([{ message: 'Invalid JSON file' }]) }
+                }} className="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-sm file:bg-white file:text-gray-700 hover:file:bg-gray-50"/>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={importSections.settings} onChange={(e)=>setImportSections(s=>({ ...s, settings: e.target.checked }))}/>Settings (core)</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={importSections.steps} onChange={(e)=>setImportSections(s=>({ ...s, steps: e.target.checked }))}/>Steps</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={importSections.businessHours} onChange={(e)=>setImportSections(s=>({ ...s, businessHours: e.target.checked }))}/>Business Hours</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={importSections.paymentMethods} onChange={(e)=>setImportSections(s=>({ ...s, paymentMethods: e.target.checked }))}/>Payment Methods</label>
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={importSections.notifications} onChange={(e)=>setImportSections(s=>({ ...s, notifications: e.target.checked }))}/>Notifications</label>
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={overwriteExisting} onChange={(e)=>setOverwriteExisting(e.target.checked)}/>Overwrite existing</label>
+                <div className="space-x-2">
+                  <button onClick={()=>setShowImport(false)} className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                  <button onClick={onConfirmImport} disabled={!importData || saving} className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Import</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -147,6 +229,10 @@ function sectionMap(id: string){
     case 'customers': return 'customerSettings'
     case 'assignments': return 'assignmentSettings'
     case 'pricing': return 'pricingSettings'
+    case 'automation': return 'automation'
+    case 'integrations': return 'integrations'
+    case 'capacity': return 'capacity'
+    case 'forms': return 'forms'
     default: return id
   }
 }
@@ -385,6 +471,133 @@ function Pricing({ settings, onChange, pending }:{ settings:any; onChange:(k:str
           <NumberInput label="Peak Hours (%)" value={pending.peakHoursSurcharge ?? (settings?.peakHoursSurcharge ?? 0)*100} onChange={(v)=>onChange('peakHoursSurcharge', v/100)} min={0} max={200}/>
           <NumberInput label="Weekend (%)" value={pending.weekendSurcharge ?? (settings?.weekendSurcharge ?? 0)*100} onChange={(v)=>onChange('weekendSurcharge', v/100)} min={0} max={200}/>
           <NumberInput label="Emergency (%)" value={pending.emergencyBookingSurcharge ?? (settings?.emergencyBookingSurcharge ?? 0.5)*100} onChange={(v)=>onChange('emergencyBookingSurcharge', v/100)} min={0} max={200}/>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function Automation({ settings, onChange, pending }:{ settings:any; onChange:(k:string,v:any)=>void; pending:any }){
+  return (
+    <div className="space-y-6">
+      <div><h2 className="text-xl font-semibold text-gray-900 mb-4">Automation</h2><p className="text-gray-600 mb-6">Auto-confirm rules and follow-ups</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card title="Auto-confirm" description="Automatically confirm bookings under conditions">
+          <div className="space-y-3">
+            <Toggle label="Enable Auto-confirm" value={pending.autoConfirm ?? settings?.automation?.autoConfirm ?? false} onChange={(v)=>onChange('autoConfirm', v)}/>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm If</label>
+              <select value={pending.confirmIf ?? settings?.automation?.confirmIf ?? 'known-client'} onChange={(e)=>onChange('confirmIf', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <option value="always">Always</option>
+                <option value="known-client">Known Client</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+        </Card>
+        <Card title="Cancellation Policy" description="Grace period and fees">
+          <div className="space-y-3">
+            <NumberInput label="Hours Before" value={pending.cancellationPolicy?.hoursBefore ?? settings?.automation?.cancellationPolicy?.hoursBefore ?? 24} onChange={(v)=>onChange('cancellationPolicy', { ...(pending.cancellationPolicy ?? settings?.automation?.cancellationPolicy ?? {}), hoursBefore: v })} min={0} max={720}/>
+            <NumberInput label="Fee (%)" value={pending.cancellationPolicy?.feePercent ?? settings?.automation?.cancellationPolicy?.feePercent ?? 0} onChange={(v)=>onChange('cancellationPolicy', { ...(pending.cancellationPolicy ?? settings?.automation?.cancellationPolicy ?? {}), feePercent: v })} min={0} max={100}/>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function Integrations({ settings, onChange, pending }:{ settings:any; onChange:(k:string,v:any)=>void; pending:any }){
+  return (
+    <div className="space-y-6">
+      <div><h2 className="text-xl font-semibold text-gray-900 mb-4">Integrations</h2><p className="text-gray-600 mb-6">Calendar and conferencing providers</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card title="Calendar Sync" description="Select calendar provider">
+          <select value={pending.calendarSync ?? settings?.integrations?.calendarSync ?? 'none'} onChange={(e)=>onChange('calendarSync', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            <option value="none">None</option>
+            <option value="google">Google Calendar</option>
+            <option value="outlook">Outlook</option>
+            <option value="ical">iCal</option>
+          </select>
+        </Card>
+        <Card title="Conferencing" description="Meeting link provider">
+          <select value={pending.conferencing ?? settings?.integrations?.conferencing ?? 'none'} onChange={(e)=>onChange('conferencing', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            <option value="none">None</option>
+            <option value="zoom">Zoom</option>
+            <option value="meet">Google Meet</option>
+          </select>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function Capacity({ settings, onChange, pending }:{ settings:any; onChange:(k:string,v:any)=>void; pending:any }){
+  return (
+    <div className="space-y-6">
+      <div><h2 className="text-xl font-semibold text-gray-900 mb-4">Capacity</h2><p className="text-gray-600 mb-6">Resource pooling and limits</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card title="Pooling" description="Share resources across services">
+          <Toggle label="Enable Pooled Resources" value={pending.pooledResources ?? settings?.capacity?.pooledResources ?? false} onChange={(v)=>onChange('pooledResources', v)}/>
+        </Card>
+        <Card title="Concurrent Limit" description="Max simultaneous bookings">
+          <NumberInput label="Concurrent Limit" value={pending.concurrentLimit ?? settings?.capacity?.concurrentLimit ?? 5} onChange={(v)=>onChange('concurrentLimit', v)} min={1} max={100}/>
+        </Card>
+        <Card title="Waitlist" description="Allow customers to waitlist">
+          <Toggle label="Enable Waitlist" value={pending.waitlist ?? settings?.capacity?.waitlist ?? false} onChange={(v)=>onChange('waitlist', v)}/>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function Forms({ settings, onChange, pending }:{ settings:any; onChange:(k:string,v:any)=>void; pending:any }){
+  const fields: any[] = pending.fields ?? settings?.forms?.fields ?? []
+  function updateField(idx: number, patch: any){
+    const next = [...fields]
+    next[idx] = { ...next[idx], ...patch }
+    onChange('fields', next)
+  }
+  function addField(){ onChange('fields', [...fields, { key: '', label: '', type: 'text', required: false }]) }
+  function removeField(i: number){ const next = fields.filter((_,idx)=>idx!==i); onChange('fields', next) }
+
+  return (
+    <div className="space-y-6">
+      <div><h2 className="text-xl font-semibold text-gray-900 mb-4">Forms</h2><p className="text-gray-600 mb-6">Custom intake fields and validation rules</p></div>
+      <Card title="Fields" description="Add and configure intake fields">
+        <div className="space-y-4">
+          {fields.length===0 && <div className="text-sm text-gray-600">No fields yet.</div>}
+          {fields.map((f, i) => (
+            <div key={i} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Key</label>
+                <input value={f.key} onChange={(e)=>updateField(i, { key: e.target.value })} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"/>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                <input value={f.label} onChange={(e)=>updateField(i, { label: e.target.value })} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"/>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select value={f.type} onChange={(e)=>updateField(i, { type: e.target.value })} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  <option value="text">Text</option>
+                  <option value="select">Select</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-700"><input type="checkbox" checked={!!f.required} onChange={(e)=>updateField(i, { required: e.target.checked })} className="mr-2"/>Required</label>
+                <button onClick={()=>removeField(i)} className="ml-auto px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Remove</button>
+              </div>
+              {f.type==='select' && (
+                <div className="md:col-span-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Options (comma-separated)</label>
+                  <input value={(f.options||[]).join(', ')} onChange={(e)=>updateField(i, { options: e.target.value.split(',').map((x:string)=>x.trim()).filter(Boolean) })} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"/>
+                </div>
+              )}
+            </div>
+          ))}
+          <button onClick={addField} className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Add Field</button>
         </div>
       </Card>
     </div>
