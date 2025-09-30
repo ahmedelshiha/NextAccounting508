@@ -414,16 +414,69 @@ Categories to implement (suggested order for dependencies):
   - [x] 6.I.5 Tests
 
 - Client Management
-  - [ ] 6.CM.1 schemas + service + API + UI + tests
+  - [x] 6.CM.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Implemented Zod schemas at src/schemas/settings/client-management.ts defining registration, profiles, communication, segmentation, loyalty, and portal slices.
+  - Implemented service src/services/client-settings.service.ts with SSR-safe caching, upsert/get helpers, and audit logging via logAudit.
+  - Implemented API route src/app/api/admin/client-settings/route.ts (GET, PUT) with tenant scoping, RBAC checks (CLIENT_SETTINGS_VIEW / CLIENT_SETTINGS_EDIT), Zod validation, and consistent responses.
+  - Implemented UI page src/app/admin/settings/clients/page.tsx using SettingsShell patterns and FormField primitives; actions gated with PermissionGate and integrated with the API.
+
+  ✅ Why it was done:
+  - New implementation following the Phase 6 repeatable pattern to provide an end-to-end Client Management settings surface. This centralizes client-related configuration and enables RBAC-protected admin control without duplicating logic.
+
+  ✅ Next steps:
+  - Unit & integration tests added for client, team, and task settings (vitest) in tests/admin-client-settings.api.test.ts, tests/admin-team-settings.api.test.ts, tests/admin-task-settings.api.test.ts.
+  - Add documentation entry in docs/admin-settings-usage.md describing the Client Management page and required permissions.
+  - Registry updated and middleware mapping added for clients/team/tasks routes. AdminSidebar/SettingsNavigation will now honor the registry permission fields.
+  - Proceed with the next category: 6.TM.1 (Team Management).
 
 - Team Management
-  - [ ] 6.TM.1 schemas + service + API + UI + tests
+  - [x] 6.TM.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Implemented `src/schemas/settings/team-management.ts` containing Zod schemas for structure, availability, skills, workload, and performance.
+  - Implemented `src/services/team-settings.service.ts` with SSR-safe caching, get/upsert helpers, and audit logging via `logAudit`.
+  - Implemented API route `src/app/api/admin/team-settings/route.ts` (GET, PUT) with tenant scoping and RBAC (TEAM_SETTINGS_VIEW / TEAM_SETTINGS_EDIT).
+  - Implemented UI page `src/app/admin/settings/team/page.tsx` using FormField primitives and PermissionGate; actions gated to TEAM_SETTINGS_EDIT.
+
+  ✅ Why it was done:
+  - Follows the Phase 6 repeatable pattern to provide a full Team Management settings surface enabling admins to configure org structure, availability, skills, workload and performance metrics.
+
+  ✅ Next steps:
+  - Unit & integration tests added for client, team, and task settings (vitest).
+  - Add entry to the settings registry to include a permission for the team route and ensure middleware mapping includes the route.
+  - Continue with next category: 6.TW.1 (Task & Workflow) — completed.
 
 - Task & Workflow
-  - [ ] 6.TW.1 schemas + service + API + UI + tests
+  - [x] 6.TW.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Implemented `src/schemas/settings/task-workflow.ts` with Zod schemas for templates, statuses, automation rules, board configuration, and dependencies toggle.
+  - Implemented `src/services/task-settings.service.ts` with caching, get/upsert helpers, and audit logging.
+  - Implemented API route `src/app/api/admin/task-settings/route.ts` (GET, PUT) enforcing RBAC and tenant scoping.
+  - Implemented UI page `src/app/admin/settings/tasks/page.tsx` using existing form primitives and PermissionGate, covering templates, statuses, automation, board, and dependencies.
+
+  ✅ Why it was done:
+  - Provides an end-to-end Task & Workflow settings surface following the established settings pattern so admins can configure task templates, statuses, automation, and board behaviors.
+
+  ✅ Next steps:
+  - Unit & integration tests added for client, team, and task settings (vitest).
+  - Include the task route in the settings registry and middleware permissions mapping.
+  - Proceed to next category: 6.AR.1 (Analytics & Reporting).
 
 - Analytics & Reporting
-  - [ ] 6.AR.1 schemas + service + API + UI + tests
+  - [x] 6.AR.1 schemas + service + API + UI
+
+  ✅ What was completed:
+  - Implemented `src/schemas/settings/analytics-reporting.ts` with dashboards, metrics, exports, data retention, and integrations slices.
+  - Implemented `src/services/analytics-settings.service.ts` with caching, get/upsert helpers, and audit logging.
+  - Implemented API route `src/app/api/admin/analytics-settings/route.ts` (GET, PUT) with RBAC and tenant scoping.
+  - Implemented UI page `src/app/admin/settings/analytics/page.tsx` using form primitives and PermissionGate.
+
+  ✅ Next steps:
+  - Add unit and integration tests for analytics settings (vitest).
+  - Wire analytics route in navigation if desired and confirm middleware mapping (done).
 
 - Communication
   - [ ] 6.COM.1 schemas + service + API + UI + tests

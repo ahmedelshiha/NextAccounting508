@@ -48,6 +48,10 @@ export async function middleware(req: NextServer.NextRequest) {
         { prefix: '/admin/settings/financial', perm: 'FINANCIAL_SETTINGS_VIEW' },
         { prefix: '/admin/settings/currencies', perm: 'FINANCIAL_SETTINGS_VIEW' },
         { prefix: '/admin/settings/integrations', perm: 'INTEGRATION_HUB_VIEW' },
+        { prefix: '/admin/settings/clients', perm: 'CLIENT_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/team', perm: 'TEAM_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/tasks', perm: 'TASK_WORKFLOW_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/analytics', perm: 'ANALYTICS_REPORTING_SETTINGS_VIEW' },
       ]
       const match = routePerm.find(r => pathname.startsWith(r.prefix))
       if (match) {
