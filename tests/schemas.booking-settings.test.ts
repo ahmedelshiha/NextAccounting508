@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { BookingSettingsStepsPayload, BookingSettingsBusinessHoursPayload, BookingSettingsPaymentMethodsPayload } from '@/schemas/booking-settings.schemas'
+import { BookingSettingsStepsPayload, BookingSettingsBusinessHoursPayload, BookingSettingsPaymentMethodsPayload, BookingSettingsAutomationPayload, BookingSettingsIntegrationsPayload, BookingSettingsCapacityPayload, BookingSettingsFormsPayload } from '@/schemas/booking-settings.schemas'
 
 describe('booking-settings schemas', () => {
   it('accepts valid steps payload', () => {
