@@ -254,7 +254,7 @@ Goal: Implement Organization Settings (General, Contact, Localization, Branding,
   - Implemented `GeneralTab.tsx`, `ContactTab.tsx`, `LocalizationTab.tsx`, `BrandingTab.tsx`, and `LegalTab.tsx` under `src/components/admin/settings/groups/Organization/`.
   - Each tab reads from `/api/admin/org-settings` on mount and persists its respective section via PUT to the same endpoint. UI uses shared form primitives for consistent styling.
 
-  ✅ Why it was done:
+  �� Why it was done:
   - New implementation. Completes the Organization Settings end-to-end, providing admins control over General, Contact, Localization, Branding, and Legal sections.
 
   ✅ Next steps:
@@ -494,9 +494,12 @@ Categories to implement (suggested order for dependencies):
   - Implemented admin UI page at `src/app/admin/settings/communication/page.tsx` using SettingsShell and PermissionGate.
   - Wired route into navigation registry and added RBAC mapping in `src/app/middleware.ts` for COMMUNICATION_SETTINGS_VIEW.
 
+  ✅ What was additionally completed (tests):
+  - Added API tests at `tests/admin-communication-settings.api.test.ts` and UI render/save test at `tests/components/communication-settings.page.test.tsx`.
+
   ✅ Next steps:
-  - Add API and UI tests mirroring Organization/Financial patterns.
   - Add export/import coverage in Phase 9.
+  - Run full build and test suite; address any regressions.
 
 - Security & Compliance
   - [ ] 6.SEC.1 schemas + service + API + UI + tests
@@ -528,7 +531,7 @@ Goal: Ensure all new routes/pages enforce permissions and UI hides unavailable a
 - [x] 7.2 Update middleware `src/app/middleware.ts` to include route prefixes for new admin settings endpoints where required. (Outcome: middleware mapping updated)
 
   ✅ What was completed:
-  - Added route-based checks for `/admin/settings/company|contact|timezone` → ORG_SETTINGS_VIEW, `/admin/settings/financial|currencies` → FINANCIAL_SETTINGS_VIEW, `/admin/settings/integrations` → INTEGRATION_HUB_VIEW. Preserved existing booking mapping.
+  - Added route-based checks for `/admin/settings/company|contact|timezone` → ORG_SETTINGS_VIEW, `/admin/settings/financial|currencies` → FINANCIAL_SETTINGS_VIEW, `/admin/settings/integrations` → INTEGRATION_HUB_VIEW, and `/admin/settings/communication` → COMMUNICATION_SETTINGS_VIEW. Preserved existing booking mapping.
 
   ✅ Why it was done:
   - Prevents unauthorized navigation to settings pages even before page load.
@@ -603,6 +606,9 @@ MCP servers available & recommended (include all): Neon, Netlify, Zapier, Figma 
 ## Phase 11 — Tests, QA, and Documentation
 Goal: Ship with high test coverage and clear admin docs.
 
+✅ What was completed (Communication):
+- Added API test and UI render/save test for Communication Settings.
+
 - [ ] 11.1 Add unit tests for all service validation logic (vitest). Coverage target: 80%+ for new modules. (Outcome: tests committed)
 - [ ] 11.2 Add API integration tests for GET/PUT/IMPORT/EXPORT/RESET flows (tests/integration/settings.*.test.ts). (Outcome: integration tests added)
 - [ ] 11.3 Add UI tests for main pages (rendering, save flow, import, warnings) using vitest or playwright as chosen by repository. (Outcome: e2e UI tests)
@@ -615,6 +621,9 @@ Dependencies: Phases 4–10
 
 ## Phase 12 — Rollout & Post-Deploy Tasks
 Goal: Deploy safely and monitor behavior in production.
+
+✅ What was completed:
+- Prepared Netlify deployment checklist at `docs/netlify-deployment-checklist.md` covering envs, build settings, Prisma, functions, caching/edge, tests, and post-deploy validation steps.
 
 - [ ] 12.1 Create a release PR that documents the migration plan and required environment variables. (Outcome: PR with release notes)
 - [ ] 12.2 Deploy to staging; run feature QA checklist (permission checks, import/export, booking flows). (Outcome: QA checklist signed-off)
