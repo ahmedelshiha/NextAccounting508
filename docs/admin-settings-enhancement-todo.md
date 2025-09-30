@@ -361,7 +361,18 @@ Goal: Extend existing BookingSettingsPanel with Automation, Integrations, Capaci
 
   ✅ Next steps:
   - Consider collapsible details if warning payload grows.
-- [ ] 5.7 Tests: add API tests for sub-endpoints, service validations for new schemas, and UI tests for the import flow. (Outcome: tests added)
+- [x] 5.7 Tests: add API tests for sub-endpoints, service validations for new schemas, and UI tests for the import flow. (Outcome: tests added)
+
+  ✅ What was completed:
+  - Added tests/booking-settings.sub-endpoints.test.ts covering automation/integrations/capacity/forms PUT routes.
+  - Extended tests/schemas.booking-settings.test.ts with new schema payloads.
+  - Updated tests/booking-settings.panel.render.test.tsx to assert new tabs and Import presence.
+
+  ✅ Why it was done:
+  - Ensures new endpoints and schemas are validated; verifies UI surface includes new tabs and actions.
+
+  ✅ Next steps:
+  - Consider interactive DOM tests for import modal when a client renderer is available.
 
 Dependencies: Phases 1, 3, existing booking settings code
 
