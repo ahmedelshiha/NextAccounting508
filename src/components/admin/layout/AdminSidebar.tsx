@@ -70,7 +70,25 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ isCollapsed = false, isMobile = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const [expandedSections, setExpandedSections] = useState<string[]>(['dashboard', 'business'])
+  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
+    try {
+      const fromLs = typeof window !== 'undefined' ? window.localStorage.getItem('admin:sidebar:expanded') : null
+      if (fromLs) {
+        const parsed = JSON.parse(fromLs) as string[]
+        if (Array.isArray(parsed)) return parsed
+      }
+    } catch (e) {
+      // ignore and fallback
+    }
+    return ['dashboard', 'business']
+  })
+
+  // Persist expandedSections to localStorage
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:expanded', JSON.stringify(expandedSections))
+    } catch (e) {}
+  }, [expandedSections])
   
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
