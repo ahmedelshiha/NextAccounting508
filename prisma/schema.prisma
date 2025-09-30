@@ -1098,3 +1098,37 @@ enum UserRole {
   TEAM_LEAD
   ADMIN
 }
+
+// Organization settings persisted per-tenant
+model OrganizationSettings {
+  id          String   @id @default(cuid())
+  tenantId    String?  @unique
+
+  // Core
+  name        String
+  logoUrl     String?
+  tagline     String?
+  description String?  @db.Text
+  industry    String?
+
+  // Contact
+  contactEmail String?
+  contactPhone String?
+  address      Json?
+
+  // Localization
+  defaultTimezone String? @default("UTC")
+  defaultCurrency String? @default("USD")
+  defaultLocale   String? @default("en")
+
+  // Branding & legal
+  branding Json?
+  legalLinks Json?
+
+  // Meta
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("organization_settings")
+}
