@@ -444,9 +444,9 @@ Categories to implement (suggested order for dependencies):
   - Follows the Phase 6 repeatable pattern to provide a full Team Management settings surface enabling admins to configure org structure, availability, skills, workload and performance metrics.
 
   ✅ Next steps:
-  - Add unit and integration tests for the service and API routes.
-  - Add entry to the settings registry to include a permission for the team route if desired and ensure middleware mapping includes the route.
-  - Continue with next category: 6.TW.1 (Task & Workflow).
+  - Unit & integration tests added for client, team, and task settings (vitest).
+  - Add entry to the settings registry to include a permission for the team route and ensure middleware mapping includes the route.
+  - Continue with next category: 6.TW.1 (Task & Workflow) — completed.
 
 - Task & Workflow
   - [x] 6.TW.1 schemas + service + API + UI + tests
