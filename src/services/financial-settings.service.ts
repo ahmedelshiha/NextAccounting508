@@ -31,7 +31,6 @@ export class FinancialSettingsService {
       currencies: { ...(existing?.currencies ?? {}), ...(payload.currencies ?? {}) },
       reconciliation: { ...(existing?.reconciliation ?? {}), ...(payload.reconciliation ?? {}) },
     }
-    const prismaAny = prisma as any
     const saved = existing
       ? await prismaAny.financialSettings?.update({ where: { id: existing.id }, data })
       : await prismaAny.financialSettings?.create({ data })
