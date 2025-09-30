@@ -77,19 +77,16 @@ export function TranslationProvider({ children, initialLocale }: TranslationProv
     setLocale
   }
 
-  // Show loading state while translations are loading
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite" aria-busy="true">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="sr-only">Loading translations…</span>
-      </div>
-    )
-  }
-
+  // To avoid hydration mismatches, render children immediately and provide translations via context.
+  // While translations are loading we keep the page content visible (prevents server/client mismatch)
   return (
     <TranslationContext.Provider value={contextValue}>
       {children}
+      {isLoading && (
+        <div aria-hidden="true" className="fixed inset-0 flex items-center justify-center pointer-events-none">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 opacity-80" />
+        </div>
+      )}
     </TranslationContext.Provider>
   )
 }
