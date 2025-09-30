@@ -10,84 +10,84 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     key: 'organization',
     label: 'Organization Settings',
     route: '/admin/settings/company',
-    icon: (props) => <Building2 {...props} />,
+    icon: Building2,
     tabs: []
   },
   {
     key: 'serviceManagement',
     label: 'Service Management',
     route: '/admin/settings/services',
-    icon: (props) => <ClipboardList {...props} />,
+    icon: ClipboardList,
     tabs: []
   },
   {
     key: 'booking',
     label: 'Booking Configuration',
     route: '/admin/settings/booking',
-    icon: (props) => <Cog {...props} />,
+    icon: Cog,
     tabs: []
   },
   {
     key: 'clientManagement',
     label: 'Client Management',
     route: '/admin/settings/clients',
-    icon: (props) => <Users {...props} />,
+    icon: Users,
     tabs: []
   },
   {
     key: 'taskWorkflow',
     label: 'Task & Workflow',
     route: '/admin/settings/tasks',
-    icon: (props) => <ClipboardList {...props} />,
+    icon: ClipboardList,
     tabs: []
   },
   {
     key: 'teamManagement',
     label: 'Team Management',
     route: '/admin/settings/team',
-    icon: (props) => <Users {...props} />,
+    icon: Users,
     tabs: []
   },
   {
     key: 'financial',
     label: 'Financial Settings',
     route: '/admin/settings/financial',
-    icon: (props) => <CreditCard {...props} />,
+    icon: CreditCard,
     tabs: []
   },
   {
     key: 'analyticsReporting',
     label: 'Analytics & Reporting',
     route: '/admin/settings/analytics',
-    icon: (props) => <LineChart {...props} />,
+    icon: LineChart,
     tabs: []
   },
   {
     key: 'communication',
     label: 'Communication',
     route: '/admin/settings/communication',
-    icon: (props) => <MessageSquare {...props} />,
+    icon: MessageSquare,
     tabs: []
   },
   {
     key: 'securityCompliance',
     label: 'Security & Compliance',
     route: '/admin/settings/security',
-    icon: (props) => <ShieldCheck {...props} />,
+    icon: ShieldCheck,
     tabs: []
   },
   {
     key: 'integrationHub',
     label: 'Integration Hub',
     route: '/admin/settings/integrations',
-    icon: (props) => <PlugZap {...props} />,
+    icon: PlugZap,
     tabs: []
   },
   {
     key: 'systemAdministration',
     label: 'System Administration',
     route: '/admin/settings/system',
-    icon: (props) => <ServerCog {...props} />,
+    icon: ServerCog,
     tabs: []
   }
 ]
