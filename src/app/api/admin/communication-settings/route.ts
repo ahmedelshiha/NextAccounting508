@@ -4,9 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest } from '@/lib/tenant'
 import communicationSettingsService from '@/services/communication-settings.service'
-import { CommunicationSettingsSchema } from '@/schemas/settings/communication'
+import { CommunicationSettingsPatchSchema } from '@/schemas/settings/communication'
 
-const patchSchema = CommunicationSettingsSchema.deepPartial()
+const patchSchema = CommunicationSettingsPatchSchema
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions as any)

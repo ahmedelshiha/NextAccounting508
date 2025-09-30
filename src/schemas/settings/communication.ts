@@ -111,10 +111,41 @@ export const CommunicationRemindersSchema = z.object({
 })
 
 export const CommunicationSettingsSchema = z.object({
-  email: CommunicationEmailSchema.default({}),
-  sms: CommunicationSmsSchema.default({}),
-  chat: CommunicationChatSchema.default({}),
-  notifications: CommunicationNotificationsSchema.default({}),
+  email: CommunicationEmailSchema.default({
+    senderName: '',
+    senderEmail: '',
+    replyTo: '',
+    signatureHtml: '',
+    transactionalEnabled: true,
+    marketingEnabled: false,
+    complianceBcc: false,
+    templates: [],
+  }),
+  sms: CommunicationSmsSchema.default({
+    provider: 'none',
+    senderId: '',
+    transactionalEnabled: false,
+    marketingEnabled: false,
+    fallbackToEmail: true,
+    routes: [],
+  }),
+  chat: CommunicationChatSchema.default({
+    enabled: false,
+    provider: 'none',
+    routing: 'roundRobin',
+    offlineMessage: '',
+    workingHours: {
+      timezone: 'UTC',
+      start: '09:00',
+      end: '17:00',
+    },
+    escalationEmails: [],
+  }),
+  notifications: CommunicationNotificationsSchema.default({
+    preferences: [],
+    digestTime: '08:00',
+    timezone: 'UTC',
+  }),
   newsletters: CommunicationNewslettersSchema.default({
     enabled: false,
     doubleOptIn: true,
@@ -123,8 +154,44 @@ export const CommunicationSettingsSchema = z.object({
     archiveUrl: '',
     topics: [],
   }),
-  reminders: CommunicationRemindersSchema.default({}),
+  reminders: CommunicationRemindersSchema.default({
+    bookings: {
+      enabled: true,
+      offsetHours: 24,
+      channels: ['email'],
+      templateId: '',
+    },
+    invoices: {
+      enabled: true,
+      offsetHours: 72,
+      channels: ['email'],
+      templateId: '',
+    },
+    tasks: {
+      enabled: false,
+      offsetHours: 12,
+      channels: ['email'],
+      templateId: '',
+    },
+  }),
 })
+
+export const CommunicationSettingsPatchSchema = z
+  .object({
+    email: CommunicationEmailSchema.partial().optional(),
+    sms: CommunicationSmsSchema.partial().optional(),
+    chat: CommunicationChatSchema.partial().optional(),
+    notifications: CommunicationNotificationsSchema.partial().optional(),
+    newsletters: CommunicationNewslettersSchema.partial().optional(),
+    reminders: z
+      .object({
+        bookings: ReminderConfigSchema.partial().optional(),
+        invoices: ReminderConfigSchema.partial().optional(),
+        tasks: ReminderConfigSchema.partial().optional(),
+      })
+      .optional(),
+  })
+  .partial()
 
 export type CommunicationEmailSettings = z.infer<typeof CommunicationEmailSchema>
 export type CommunicationSmsSettings = z.infer<typeof CommunicationSmsSchema>
@@ -133,3 +200,4 @@ export type CommunicationNotificationsSettings = z.infer<typeof CommunicationNot
 export type CommunicationNewslettersSettings = z.infer<typeof CommunicationNewslettersSchema>
 export type CommunicationRemindersSettings = z.infer<typeof CommunicationRemindersSchema>
 export type CommunicationSettings = z.infer<typeof CommunicationSettingsSchema>
+export type CommunicationSettingsPatch = z.infer<typeof CommunicationSettingsPatchSchema>
