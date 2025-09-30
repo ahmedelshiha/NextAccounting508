@@ -7,33 +7,41 @@ import { ChevronLeft, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import Tabs from './Tabs'
+
+interface SettingsTabItem { key: string; label: string }
 
 interface SettingsShellProps {
   children: ReactNode
-  
+
   // Header
   title: string
   description?: string
   icon?: React.ComponentType<{ className?: string }>
   backHref?: string
-  
+
   // Actions (rendered in header)
   actions?: ReactNode
-  
+
   // State indicators
   loading?: boolean
   saving?: boolean
   saved?: boolean
   hasChanges?: boolean
-  
+
   // Alerts
   errors?: string[]
   warnings?: string[]
   info?: string
-  
+
   // Layout
   maxWidth?: 'md' | 'lg' | 'xl' | '2xl' | 'full'
   sidebar?: ReactNode // Optional sidebar for navigation within settings
+
+  // Tabs
+  tabs?: SettingsTabItem[]
+  activeTab?: string
+  onChangeTab?: (key: string) => void
 }
 
 export function SettingsShell({
@@ -52,6 +60,9 @@ export function SettingsShell({
   info,
   maxWidth = '2xl',
   sidebar,
+  tabs,
+  activeTab,
+  onChangeTab,
 }: SettingsShellProps) {
   const pathname = usePathname()
   
