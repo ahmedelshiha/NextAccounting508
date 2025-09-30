@@ -5,17 +5,23 @@ import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { getTenantFromRequest } from '@/lib/tenant'
 import service from '@/services/booking-settings.service'
 import { logAudit } from '@/lib/audit'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import * as Sentry from '@sentry/nextjs'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   const role = session?.user?.role ?? ''
   if (!session?.user || !hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_RESET)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const tenantId = getTenantFromRequest(req as any)
+  const ip = getClientIp(req as any)
+  const key = `booking-settings:reset:${tenantId}:${ip}`
+  if (!rateLimit(key, 2, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
   try {
     const settings = await service.resetToDefaults(tenantId)
     try { await logAudit({ action: 'booking-settings:reset', actorId: session.user.id, details: { tenantId } }) } catch {}
     return NextResponse.json({ settings })
   } catch (e) {
+    try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to reset booking settings' }, { status: 500 })
   }
 }
