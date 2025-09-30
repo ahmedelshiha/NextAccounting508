@@ -466,7 +466,17 @@ Categories to implement (suggested order for dependencies):
   - Proceed to next category: 6.AR.1 (Analytics & Reporting).
 
 - Analytics & Reporting
-  - [ ] 6.AR.1 schemas + service + API + UI + tests
+  - [x] 6.AR.1 schemas + service + API + UI
+
+  ✅ What was completed:
+  - Implemented `src/schemas/settings/analytics-reporting.ts` with dashboards, metrics, exports, data retention, and integrations slices.
+  - Implemented `src/services/analytics-settings.service.ts` with caching, get/upsert helpers, and audit logging.
+  - Implemented API route `src/app/api/admin/analytics-settings/route.ts` (GET, PUT) with RBAC and tenant scoping.
+  - Implemented UI page `src/app/admin/settings/analytics/page.tsx` using form primitives and PermissionGate.
+
+  ✅ Next steps:
+  - Add unit and integration tests for analytics settings (vitest).
+  - Wire analytics route in navigation if desired and confirm middleware mapping (done).
 
 - Communication
   - [ ] 6.COM.1 schemas + service + API + UI + tests
