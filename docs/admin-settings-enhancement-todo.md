@@ -83,7 +83,19 @@ Goal: Replace hardcoded Settings links with registry-driven navigation and RBAC 
   ✅ Next steps:
   - 2.3 Add localStorage persistence for expanded/collapsed state and tests for the persistence helper.
   - 1.3 Add unit tests for the registry shape to prevent regressions.
-- [ ] 2.3 Add localStorage persistence for expanded/collapsed state and a small unit test for the persistence helper (utils/localStorage.ts). (Outcome: sidebar preserves collapse across reloads)
+- [x] 2.3 Add localStorage persistence for expanded/collapsed state and a small unit test for the persistence helper (src/lib/localStorage.ts). (Outcome: sidebar preserves collapse across reloads)
+
+  ✅ What was completed:
+  - Implemented `src/lib/localStorage.ts` with `getJSON`, `setJSON`, and `remove` helpers that are SSR-safe and JSON-safe.
+  - Updated `src/components/admin/layout/AdminSidebar.tsx` to initialize `expandedSections` from localStorage and persist changes on update. Preserves default `['dashboard','business']` when no stored value exists or parsing fails.
+  - Added unit tests `tests/unit/localStorage.test.ts` covering set/get/remove and invalid JSON handling.
+
+  ✅ Why it was done:
+  - Enhancement: persist user preference for sidebar expanded/collapsed sections across reloads improving admin navigation UX.
+
+  ✅ Next steps:
+  - 2.4 Implement keyboard roving focus hook `useRovingTabIndex` and a11y tooltips for collapsed items.
+  - 1.3 Add unit tests for `SETTINGS_REGISTRY` shape to prevent accidental regressions.
 - [ ] 2.4 Accessibility: ensure collapsed items include aria-label and tooltip; add keyboard arrow navigation (implement focus management hook `useRovingTabIndex`). (Outcome: keyboard navigation + a11y checks passing)
 
 Dependencies: Phase 1
