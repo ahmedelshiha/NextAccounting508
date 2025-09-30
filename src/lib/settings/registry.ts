@@ -85,6 +85,7 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/security',
     icon: ShieldCheck,
     tabs: [],
+    permission: PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW,
   },
   {
     key: 'integrationHub',
@@ -100,6 +101,7 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/system',
     icon: ServerCog,
     tabs: [],
+    permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
   }
 ]
 
