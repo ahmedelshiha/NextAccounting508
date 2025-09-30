@@ -75,7 +75,16 @@ Goal: Provide single source of truth for settings categories/tabs used by sideba
   - Add unit tests for registry shape (task 1.3).
   - Refactor AdminSidebar/SettingsNavigation to consume this registry (Phase 2 tasks 2.1/2.2).
 
-- [ ] 1.3 Add unit tests for the registry shape (tests/unit/settings.registry.test.ts) asserting each category has route and label. (Outcome: test file + passing test)
+- [x] 1.3 Add unit tests for the registry shape (tests/unit/settings.registry.test.ts) asserting each category has route and label. (Outcome: test file + passing test)
+
+  ✅ What was completed:
+  - Added tests/unit/settings.registry.test.ts validating array shape, keys uniqueness, route prefix, and baseline categories.
+
+  ✅ Why it was done:
+  - Prevents regressions in the registry contract consumed by navigation and settings pages.
+
+  ✅ Next steps:
+  - Keep tests updated if categories evolve.
 
 Dependencies: none (foundational)
 
