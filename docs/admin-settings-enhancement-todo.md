@@ -70,7 +70,19 @@ Goal: Replace hardcoded Settings links with registry-driven navigation and RBAC 
   ✅ Next steps:
   - 2.2 Refactor `src/components/admin/layout/AdminSidebar.tsx` to also consume `SETTINGS_REGISTRY` (next task).
   - 1.3 Add unit test for registry shape to ensure route+label exist and to prevent regressions.
-- [ ] 2.2 Refactor `src/components/admin/layout/AdminSidebar.tsx` to render Settings section from the registry instead of hardcoded children. Keep existing styling and breakpoints. (Outcome: AdminSidebar uses registry)
+- [x] 2.2 Refactor `src/components/admin/layout/AdminSidebar.tsx` to render Settings section from the registry instead of hardcoded children. Keep existing styling and breakpoints. (Outcome: AdminSidebar uses registry)
+
+  ✅ What was completed:
+  - Updated `src/components/admin/layout/AdminSidebar.tsx` to dynamically build the "Settings" submenu from `src/lib/settings/registry.ts`.
+  - Implemented a safe runtime `require` fallback to preserve behavior if the registry cannot be loaded during edge cases.
+  - Preserved existing styling, active route highlighting, badges, and RBAC enforcement using existing `hasAccess` checks.
+
+  ✅ Why it was done:
+  - Enhancement: centralizes settings link definitions and removes duplication between the sidebar and SettingsNavigation. This simplifies adding new settings categories and ensures consistent routing and permissions.
+
+  ✅ Next steps:
+  - 2.3 Add localStorage persistence for expanded/collapsed state and tests for the persistence helper.
+  - 1.3 Add unit tests for the registry shape to prevent regressions.
 - [ ] 2.3 Add localStorage persistence for expanded/collapsed state and a small unit test for the persistence helper (utils/localStorage.ts). (Outcome: sidebar preserves collapse across reloads)
 - [ ] 2.4 Accessibility: ensure collapsed items include aria-label and tooltip; add keyboard arrow navigation (implement focus management hook `useRovingTabIndex`). (Outcome: keyboard navigation + a11y checks passing)
 
