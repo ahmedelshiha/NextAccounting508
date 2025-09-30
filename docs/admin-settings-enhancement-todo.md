@@ -96,7 +96,19 @@ Goal: Replace hardcoded Settings links with registry-driven navigation and RBAC 
   ✅ Next steps:
   - 2.4 Implement keyboard roving focus hook `useRovingTabIndex` and a11y tooltips for collapsed items.
   - 1.3 Add unit tests for `SETTINGS_REGISTRY` shape to prevent accidental regressions.
-- [ ] 2.4 Accessibility: ensure collapsed items include aria-label and tooltip; add keyboard arrow navigation (implement focus management hook `useRovingTabIndex`). (Outcome: keyboard navigation + a11y checks passing)
+- [x] 2.4 Accessibility: ensure collapsed items include aria-label and tooltip; add keyboard arrow navigation (implement focus management hook `useRovingTabIndex`). (Outcome: keyboard navigation + a11y checks passing)
+
+  ✅ What was completed:
+  - Implemented `src/hooks/useRovingTabIndex.ts` that enables ArrowUp/ArrowDown/Home/End navigation between elements marked with `data-roving` inside a container.
+  - Integrated the hook into `src/components/admin/layout/AdminSidebar.tsx` by attaching it to the sidebar nav lists. All interactive items (buttons and links) now include `data-roving`.
+  - When the sidebar is collapsed, interactive items receive `aria-label` and `title` attributes so screen readers and native tooltips convey the item name.
+
+  ✅ Why it was done:
+  - Enhancement: improves keyboard accessibility (roving focus) and provides accessible labels/tooltips when the sidebar is collapsed, addressing a11y gaps.
+
+  ✅ Next steps:
+  - Add automated a11y checks or axe-core tests if desired to validate keyboard and screen reader behavior across sidebar variants.
+  - Continue with Phase 3 (SettingsShell + FormField primitives).
 
 Dependencies: Phase 1
 
