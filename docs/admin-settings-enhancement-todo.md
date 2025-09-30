@@ -392,7 +392,7 @@ Categories to implement (suggested order for dependencies):
   - Created admin UI page using SettingsShell with 5 tabs and PermissionGate on Save.
   - Added API tests with mocked prisma.
 
-  ��� Why it was done:
+  ✅ Why it was done:
   - Establishes a repeatable pattern for remaining categories and ships a functional Financial settings hub.
 
   ✅ Next steps:
@@ -490,10 +490,13 @@ Categories to implement (suggested order for dependencies):
   ✅ Why it was done:
   - Build errors were caused by Zod v4 removing `.deepPartial()` and by `default({})` on object schemas requiring full shape. This fixes the build and ensures robust, maintainable validation.
 
+  ✅ What was additionally completed:
+  - Implemented admin UI page at `src/app/admin/settings/communication/page.tsx` using SettingsShell and PermissionGate.
+  - Wired route into navigation registry and added RBAC mapping in `src/app/middleware.ts` for COMMUNICATION_SETTINGS_VIEW.
+
   ✅ Next steps:
-  - Implement admin UI page at `src/app/admin/settings/communication/page.tsx` following the SettingsShell pattern and PermissionGate for COMMUNICATION_SETTINGS_EDIT.
   - Add API and UI tests mirroring Organization/Financial patterns.
-  - Wire route into navigation registry and middleware mapping (if not already present), and add export/import coverage in Phase 9.
+  - Add export/import coverage in Phase 9.
 
 - Security & Compliance
   - [ ] 6.SEC.1 schemas + service + API + UI + tests
@@ -501,7 +504,7 @@ Categories to implement (suggested order for dependencies):
 - System Administration
   - [ ] 6.SYS.1 schemas + service + API + UI + tests
 
-Notes: split each category into 2–4 PRs if large. Always include RBAC checks and audit logging.
+Notes: split each category into 2��4 PRs if large. Always include RBAC checks and audit logging.
 
 Dependencies: Phase 3 (UI) and Phase 1 (registry)
 
