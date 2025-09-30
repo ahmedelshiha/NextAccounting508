@@ -18,7 +18,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
