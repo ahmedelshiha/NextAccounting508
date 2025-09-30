@@ -451,7 +451,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
                       {section.section}
                     </h3>
                   )}
-                  <ul className="space-y-1">
+                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}
                   </ul>
                 </div>
