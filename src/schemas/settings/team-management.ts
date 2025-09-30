@@ -42,7 +42,7 @@ export const TeamSettingsSchema = z.object({
   structure: TeamStructureSchema.default(() => ({ orgUnits: [] })),
   availability: TeamAvailabilitySchema.default(() => ({ allowFlexibleHours: false, minimumHoursNotice: 24 })),
   skills: TeamSkillsSchema.default(() => ({ skills: [] })),
-  workload: TeamWorkloadSchema.default(() => ({ autoAssignStrategy: 'ROUND_ROBIN', maxConcurrentAssignments: 5, considerAvailability: true })),
+  workload: TeamWorkloadSchema.default(() => ({ autoAssignStrategy: 'ROUND_ROBIN', maxConcurrentAssignments: 5, considerAvailability: true } as const)),
   performance: TeamPerformanceSchema.default(() => ({ enableMetrics: true, metricsWindowDays: 30 })),
 })
 
