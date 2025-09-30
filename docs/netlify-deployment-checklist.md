@@ -1,55 +1,41 @@
-Netlify Deployment Checklist for accounting-firm
+# Netlify Deployment Checklist — Admin Settings
 
-Build & Runtime
+Use this checklist to deploy settings features (Organization, Booking, Financial, Communication, etc.) on Netlify safely.
 
-- Node engine: >=18 (package.json specifies node >=18)
-- Package manager: pnpm (packageManager in package.json)
-- Build command: pnpm db:generate && pnpm build
-  - This ensures Prisma client is generated before Next.js build
-- Publish directory: .next (default for Next.js App Router)
-
-Environment variables (required)
-
-- NEXT_PUBLIC_BASE_URL - public site URL
-- DATABASE_URL - Postgres connection string (for prisma)
-- NEXTAUTH_URL - URL for next-auth callbacks
-- SENTRY_DSN - (optional) Sentry DSN
-- SENDGRID_API_KEY - (optional) for email sending
-
-Netlify settings
-
-- Set Build command to: pnpm db:generate && pnpm build
-- Set the Node version to 18 via environment variable or .nvmrc
-- Add environment variables in Netlify UI or via Netlify CLI
-- In case of monorepo or special structure, use the Netlify plugin for Next.js: @netlify/plugin-nextjs (already present in devDependencies)
-
-Prisma & DB
-
-- Ensure DATABASE_URL is available during build if Prisma generate needs remote introspection. Prefer generating Prisma client in CI or at build time using a local shadow DB or set PRISMA_CLIENT_ENGINE_TYPE if necessary.
-- Use pnpm db:migrate or pnpm db:push in deployment only if migrations are part of the build process; prefer CI-managed migration step.
-
-CI recommendations
-
-- Run pnpm install --frozen-lockfile
-- Run pnpm db:generate (or pnpm db:generate && pnpm typecheck) before pnpm build
-- Run tests: pnpm test:thresholds and other vitest suites
-- Run lint: pnpm lint
-
-Troubleshooting
-
-- If build times out, increase Netlify build timeout and ensure heavy steps (e.g., prisma generate) are cached.
-- For Next.js App Router on Netlify, ensure @netlify/plugin-nextjs is configured in netlify.toml (already present).
-
-Security
-
-- Never commit secrets to the repo. Use Netlify environment variables and restrict access.
-- Verify CORS and webhook endpoints securely handle secrets.
-
-Post-deploy checks
-
-- Smoke test critical routes: /, /admin, /api/health
-- Verify Prisma Client works by calling a light endpoint that does not require Prod DB migrations
+- [ ] Environment variables
+  - Set in Netlify UI (never commit secrets):
+    - NEXTAUTH_URL, NEXTAUTH_SECRET
+    - DATABASE_URL (Neon/Supabase/Postgres)
+    - SENDGRID_API_KEY, FROM_EMAIL (if email sending)
+    - STRIPE_SECRET_KEY (if payments), CRON_SECRET (if scheduled jobs)
+  - Optional: MULTI_TENANCY_ENABLED, REDIS_URL
+- [ ] Build settings
+  - Base: /
+  - Build command: pnpm vercel:build (uses Prisma generate + lint + typecheck + build)
+  - Publish directory: .next
+  - Netlify Next.js plugin enabled (see netlify.toml)
+- [ ] Prisma
+  - Ensure DATABASE_URL is set for build to generate Prisma client.
+  - Apply migrations outside of build (CI or manual): pnpm db:migrate
+- [ ] Functions and Cron
+  - netlify/functions/* deployed automatically
+  - Schedule via Netlify Background Functions or external cron hitting functions (e.g., /.netlify/functions/cron-reminders)
+- [ ] Caching & Edge
+  - Middleware enforces RBAC for /admin/settings/* (see src/app/middleware.ts)
+  - Headers: Cache-Control no-store applied for admin/portal in middleware
+- [ ] Testing pre-deploy
+  - pnpm typecheck
+  - pnpm test (unit + API)
+  - pnpm test:integration (if applicable)
+  - e2e optional: pnpm e2e:ci
+- [ ] Post-deploy validation
+  - Verify routes: /admin/settings/company, /booking, /financial, /communication
+  - Verify permissions for TEAM_MEMBER vs ADMIN
+  - Test GET/PUT on each settings page
+- [ ] Monitoring
+  - Enable Sentry (dsn env vars) or Netlify logs
+  - Review netlify/functions/health-monitor.ts
 
 Notes
-
-- I ran typecheck and unit thresholds tests locally; lint was executed and required one fix (replacing a require with a direct import of Prisma). If you want, I can re-run lint and fix any remaining style issues.
+- Do not log secrets. Avoid printing envs in runtime logs.
+- For masked secrets in Integration Hub, ensure UI only sends masked updates and audit events record metadata, not raw secrets.
