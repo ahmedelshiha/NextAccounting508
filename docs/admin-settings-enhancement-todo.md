@@ -426,7 +426,7 @@ Categories to implement (suggested order for dependencies):
   - New implementation following the Phase 6 repeatable pattern to provide an end-to-end Client Management settings surface. This centralizes client-related configuration and enables RBAC-protected admin control without duplicating logic.
 
   ✅ Next steps:
-  - Add unit tests and API integration tests for the new service and route (vitest).
+  - Unit & integration tests added for client, team, and task settings (vitest) in tests/admin-client-settings.api.test.ts, tests/admin-team-settings.api.test.ts, tests/admin-task-settings.api.test.ts.
   - Add documentation entry in docs/admin-settings-usage.md describing the Client Management page and required permissions.
   - Wire the registry entry to include a permission field and ensure AdminSidebar/middleware mapping includes the clients route.
   - Proceed with the next category: 6.TM.1 (Team Management).
