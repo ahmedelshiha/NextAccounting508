@@ -20,8 +20,34 @@ Instructions
 ## Phase 1 — Registry & Types (foundation)
 Goal: Provide single source of truth for settings categories/tabs used by sidebar + pages.
 
-- [ ] 1.1 Create `src/lib/settings/types.ts` with SettingsCategory, SettingsTab, SettingsCategoryKey types. (Outcome: file created, exported types)
-- [ ] 1.2 Create `src/lib/settings/registry.ts` and populate it with the 12 categories and their base `route` and `icon` (use lucide icons). Do not populate tabs yet. (Outcome: registry exports SETTINGS_REGISTRY)
+- [x] 1.1 Create `src/lib/settings/types.ts` with SettingsCategory, SettingsTab, SettingsCategoryKey types. (Outcome: file created, exported types)
+
+  ✅ What was completed:
+  - Implemented `src/lib/settings/types.ts` exporting:
+    - SettingsCategoryKey (union of allowed category keys)
+    - SettingsTab interface (typed tab descriptor with optional get/put helpers)
+    - SettingsCategory interface (category metadata)
+    - Zod schema alias `ZodSchema<T>` for convenience
+  
+  ✅ Why it was done:
+  - New implementation. A typed foundation is required so the registry, API bindings, and UI components share a single contract. This reduces runtime errors and improves DX when implementing category tabs.
+  
+  ✅ Next steps:
+  - Populate the registry (task 1.2).
+
+- [x] 1.2 Create `src/lib/settings/registry.ts` and populate it with the 12 categories and their base `route` and `icon` (use lucide icons). Do not populate tabs yet. (Outcome: registry exports SETTINGS_REGISTRY)
+
+  ✅ What was completed:
+  - Implemented `src/lib/settings/registry.ts` exporting `SETTINGS_REGISTRY` with the 12 categories: organization, serviceManagement, booking, clientManagement, taskWorkflow, teamManagement, financial, analyticsReporting, communication, securityCompliance, integrationHub, systemAdministration.
+  - Each entry includes `key`, `label`, `route`, and a `icon` component reference from `lucide-react`.
+
+  ✅ Why it was done:
+  - New implementation. Central registry enables consistent rendering of settings in the AdminSidebar and SettingsShell and provides a single place to attach permission metadata and tabs later.
+
+  ✅ Next steps:
+  - Add unit tests for registry shape (task 1.3).
+  - Refactor AdminSidebar/SettingsNavigation to consume this registry (Phase 2 tasks 2.1/2.2).
+
 - [ ] 1.3 Add unit tests for the registry shape (tests/unit/settings.registry.test.ts) asserting each category has route and label. (Outcome: test file + passing test)
 
 Dependencies: none (foundational)
