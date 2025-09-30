@@ -49,12 +49,37 @@ export const ClientPortalSchema = z.object({
 })
 
 export const ClientManagementSettingsSchema = z.object({
-  registration: ClientRegistrationSchema.default({}),
-  profiles: ClientProfilesSchema.default({}),
-  communication: ClientCommunicationSchema.default({}),
-  segmentation: ClientSegmentationSchema.default({}),
-  loyalty: ClientLoyaltySchema.default({}),
-  portal: ClientPortalSchema.default({}),
+  registration: ClientRegistrationSchema.default({
+    requireAccount: false,
+    emailVerification: true,
+    duplicateCheck: 'email',
+    collectAddress: false,
+  }),
+  profiles: ClientProfilesSchema.default({
+    fields: [],
+  }),
+  communication: ClientCommunicationSchema.default({
+    emailOptInDefault: true,
+    smsOptInDefault: false,
+    preferredChannel: 'email',
+    marketingOptInDefault: false,
+  }),
+  segmentation: ClientSegmentationSchema.default({
+    tags: [],
+    autoSegments: [],
+  }),
+  loyalty: ClientLoyaltySchema.default({
+    enabled: false,
+    pointsPerDollar: 0,
+    tiers: [],
+  }),
+  portal: ClientPortalSchema.default({
+    allowDocumentUpload: true,
+    allowInvoiceView: true,
+    allowPaymentHistory: true,
+    language: 'en',
+    timezone: 'UTC',
+  }),
 })
 
 export type ClientRegistration = z.infer<typeof ClientRegistrationSchema>
