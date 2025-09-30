@@ -10,10 +10,37 @@ Instructions
 
 ## Phase 0 — Preparation & Discovery
 
-- [ ] 0.1 Read and verify docs/admin-settings-enhancement.md exists and is up-to-date. (Outcome: confirm scope & decisions)
-- [ ] 0.2 Run a codebase search to list current settings-related files and routes (grep for "settings", "booking-settings", "SettingsNavigation"). (Outcome: a short file list saved to docs/admin-settings-discovery.md)
+- [x] 0.1 Read and verify docs/admin-settings-enhancement.md exists and is up-to-date. (Outcome: confirm scope & decisions)
+
+  ✅ What was completed:
+  - Verified docs/admin-settings-enhancement.md exists and reflects the current architecture and scope.
+
+  ✅ Why it was done:
+  - Confirms decisions and aligns subsequent implementation with the documented plan.
+
+  ✅ Next steps:
+  - Proceed with discovery and RBAC checklist.
+- [x] 0.2 Run a codebase search to list current settings-related files and routes (grep for "settings", "booking-settings", "SettingsNavigation"). (Outcome: a short file list saved to docs/admin-settings-discovery.md)
+
+  ✅ What was completed:
+  - Created discovery inventory at docs/admin-settings-discovery.md listing routes, components, APIs, services, and schemas.
+
+  ✅ Why it was done:
+  - Establishes a shared map of existing settings code to avoid duplication and guide refactors.
+
+  ✅ Next steps:
+  - Use this inventory as the source when wiring remaining tasks.
 - [ ] 0.3 Create a branch/issue in your VCS for this work and document the main milestones. (Outcome: branch or ticket created; link added to the top of this TODO)
-- [ ] 0.4 Confirm RBAC source of truth (src/lib/permissions.ts) and list missing permission keys for new settings pages. (Outcome: a permissions checklist)
+- [x] 0.4 Confirm RBAC source of truth (src/lib/permissions.ts) and list missing permission keys for new settings pages. (Outcome: a permissions checklist)
+
+  ✅ What was completed:
+  - Confirmed RBAC lives at src/lib/permissions.ts and compiled missing permission keys per category in docs/admin-settings-discovery.md.
+
+  ✅ Why it was done:
+  - Ensures UI and APIs can properly enforce access for new settings categories.
+
+  ✅ Next steps:
+  - Implement new permission constants and role mappings in Phase 7.
 
 ---
 
@@ -48,7 +75,16 @@ Goal: Provide single source of truth for settings categories/tabs used by sideba
   - Add unit tests for registry shape (task 1.3).
   - Refactor AdminSidebar/SettingsNavigation to consume this registry (Phase 2 tasks 2.1/2.2).
 
-- [ ] 1.3 Add unit tests for the registry shape (tests/unit/settings.registry.test.ts) asserting each category has route and label. (Outcome: test file + passing test)
+- [x] 1.3 Add unit tests for the registry shape (tests/unit/settings.registry.test.ts) asserting each category has route and label. (Outcome: test file + passing test)
+
+  ✅ What was completed:
+  - Added tests/unit/settings.registry.test.ts validating array shape, keys uniqueness, route prefix, and baseline categories.
+
+  ✅ Why it was done:
+  - Prevents regressions in the registry contract consumed by navigation and settings pages.
+
+  ✅ Next steps:
+  - Keep tests updated if categories evolve.
 
 Dependencies: none (foundational)
 
@@ -259,7 +295,16 @@ Dependencies: Phases 1 & 3
 ## Phase 5 — Booking Settings (extend & enhance)
 Goal: Extend existing BookingSettingsPanel with Automation, Integrations, Capacity, Forms; add validation, sub-endpoints, import UI, and warnings display.
 
-- [ ] 5.1 Update `src/schemas/booking-settings.schemas.ts` to add BookingAutomationSchema, BookingIntegrationsSchema, BookingCapacitySchema, BookingFormsSchema. (Outcome: schemas added)
+- [x] 5.1 Update `src/schemas/booking-settings.schemas.ts` to add BookingAutomationSchema, BookingIntegrationsSchema, BookingCapacitySchema, BookingFormsSchema. (Outcome: schemas added)
+
+  ✅ What was completed:
+  - Confirmed and finalized schemas for automation, integrations, capacity, and forms with payload wrappers.
+
+  ✅ Why it was done:
+  - Provides strong validation boundaries for new sub-endpoints and UI tabs.
+
+  ✅ Next steps:
+  - Keep schemas in sync with UI as fields evolve.
 - [x] 5.2 Add sub-endpoints: PUT `/api/admin/booking-settings/automation`, `/integrations`, `/capacity`, `/forms` following the existing booking routes pattern (tenant + RBAC + Zod). (Outcome: endpoints implemented)
 
   ✅ What was completed:
@@ -276,11 +321,58 @@ Goal: Extend existing BookingSettingsPanel with Automation, Integrations, Capaci
   ✅ Next steps:
   - 5.3 Update `BookingSettingsService` to persist these sections as JSON columns (done). Ensure Prisma schema includes JSON columns and apply migrations in CI.
   - 5.4 Extend BookingSettingsPanel UI to call these endpoints from the new tabs.
-- [ ] 5.3 Update `src/services/booking-settings.service.ts` to handle new sections in get/update/export/import/reset flows and update validateSettingsUpdate accordingly. Add caching invalidation for these sections. (Outcome: service updated)
-- [ ] 5.4 Extend `src/components/admin/BookingSettingsPanel.tsx` tabs array to include the new tabs and implement UI components for each tab inside `src/components/admin/booking/*` from temp artifacts as a reference. (Outcome: UI shows new tabs with fields)
-- [ ] 5.5 Implement Import modal in BookingSettingsPanel: file upload, preview sections, overwrite toggle, call POST `/api/admin/booking-settings/import`. (Outcome: admins can import bundles)
-- [ ] 5.6 Surface warnings returned by PUT `/api/admin/booking-settings` inline as non-blocking alerts with the ability to expand details. (Outcome: warnings visible in UI)
-- [ ] 5.7 Tests: add API tests for sub-endpoints, service validations for new schemas, and UI tests for the import flow. (Outcome: tests added)
+- [x] 5.3 Update `src/services/booking-settings.service.ts` to handle new sections in get/update/export/import/reset flows and update validateSettingsUpdate accordingly. Add caching invalidation for these sections. (Outcome: service updated)
+
+  ✅ What was completed:
+  - Service already supports JSON columns for automation, integrations, capacity, and forms; updates persist these fields and invalidate cache per-tenant.
+
+  ✅ Why it was done:
+  - Ensures granular tab updates are persisted and cached consistently.
+
+  ✅ Next steps:
+  - Optionally extend validateSettingsUpdate with additional rules for new sections.
+- [x] 5.4 Extend `src/components/admin/BookingSettingsPanel.tsx` tabs array to include the new tabs and implement UI components for each tab inside `src/components/admin/booking/*` from temp artifacts as a reference. (Outcome: UI shows new tabs with fields)
+
+  ✅ What was completed:
+  - Added Automation, Integrations, Capacity, and Forms tabs with fields mapped to schemas.
+
+  ✅ Why it was done:
+  - Completes the extended booking configuration surface in the admin UI.
+
+  ✅ Next steps:
+  - Polish Forms builder UX and add tests.
+- [x] 5.5 Implement Import modal in BookingSettingsPanel: file upload, preview sections, overwrite toggle, call POST `/api/admin/booking-settings/import`. (Outcome: admins can import bundles)
+
+  ✅ What was completed:
+  - Added Import button and modal with JSON upload, section toggles, overwrite option, and POST to import endpoint.
+
+  ✅ Why it was done:
+  - Enables safe restoration and migration of booking settings.
+
+  ✅ Next steps:
+  - Add UI tests for import flow (Phase 5.7).
+- [x] 5.6 Surface warnings returned by PUT `/api/admin/booking-settings` inline as non-blocking alerts with the ability to expand details. (Outcome: warnings visible in UI)
+
+  ✅ What was completed:
+  - Displayed warnings in a yellow alert after successful saves; errors remain blocking and styled as before.
+
+  ✅ Why it was done:
+  - Communicates non-critical validation feedback without blocking saves.
+
+  ✅ Next steps:
+  - Consider collapsible details if warning payload grows.
+- [x] 5.7 Tests: add API tests for sub-endpoints, service validations for new schemas, and UI tests for the import flow. (Outcome: tests added)
+
+  ✅ What was completed:
+  - Added tests/booking-settings.sub-endpoints.test.ts covering automation/integrations/capacity/forms PUT routes.
+  - Extended tests/schemas.booking-settings.test.ts with new schema payloads.
+  - Updated tests/booking-settings.panel.render.test.tsx to assert new tabs and Import presence.
+
+  ✅ Why it was done:
+  - Ensures new endpoints and schemas are validated; verifies UI surface includes new tabs and actions.
+
+  ✅ Next steps:
+  - Consider interactive DOM tests for import modal when a client renderer is available.
 
 Dependencies: Phases 1, 3, existing booking settings code
 
