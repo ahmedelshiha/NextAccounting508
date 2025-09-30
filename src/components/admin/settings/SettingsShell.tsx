@@ -274,3 +274,5 @@ export function SettingsCard({ children, className }: SettingsCardProps) {
     </div>
   )
 }
+
+export default SettingsShell
