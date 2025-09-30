@@ -51,6 +51,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import SETTINGS_REGISTRY from '@/lib/settings/registry'
+import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 
 interface NavigationItem {
   name: string
