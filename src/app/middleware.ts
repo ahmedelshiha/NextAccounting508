@@ -40,7 +40,14 @@ export async function middleware(req: NextServer.NextRequest) {
         { prefix: '/admin/team', perm: 'TEAM_VIEW' },
         { prefix: '/admin/roles', perm: 'USERS_MANAGE' },
         { prefix: '/admin/permissions', perm: 'USERS_MANAGE' },
+        // Settings pages
         { prefix: '/admin/settings/booking', perm: 'BOOKING_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/company', perm: 'ORG_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/contact', perm: 'ORG_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/timezone', perm: 'ORG_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/financial', perm: 'FINANCIAL_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/currencies', perm: 'FINANCIAL_SETTINGS_VIEW' },
+        { prefix: '/admin/settings/integrations', perm: 'INTEGRATION_HUB_VIEW' },
       ]
       const match = routePerm.find(r => pathname.startsWith(r.prefix))
       if (match) {

@@ -429,10 +429,51 @@ Dependencies: Phase 3 (UI) and Phase 1 (registry)
 ## Phase 7 — RBAC, Permissions & UI Hiding
 Goal: Ensure all new routes/pages enforce permissions and UI hides unavailable actions.
 
-- [ ] 7.1 Add new PERMISSIONS keys for each category/tab in `src/lib/permissions.ts` with mapping to roles in ROLE_PERMISSIONS. (Outcome: permission keys added)
-- [ ] 7.2 Update middleware `src/app/middleware.ts` to include route prefixes for new admin settings endpoints where required. (Outcome: middleware mapping updated)
-- [ ] 7.3 Update UI components (SettingsShell, BookingSettingsPanel) to hide Import/Reset/Test actions when the user lacks the related permission. (Outcome: UI respects permissions)
-- [ ] 7.4 Add unit tests asserting unauthorized responses (401/403) for protected API routes. (Outcome: tests cover permission enforcement)
+- [x] 7.1 Add new PERMISSIONS keys for each category/tab in `src/lib/permissions.ts` with mapping to roles in ROLE_PERMISSIONS. (Outcome: permission keys added)
+
+  ✅ What was completed:
+  - Added comprehensive settings permissions: ORG_SETTINGS_*, FINANCIAL_SETTINGS_*, INTEGRATION_HUB_*, CLIENT_SETTINGS_*, TEAM_SETTINGS_*, TASK_WORKFLOW_SETTINGS_*, ANALYTICS_REPORTING_SETTINGS_*, COMMUNICATION_SETTINGS_*, SECURITY_COMPLIANCE_SETTINGS_*, SYSTEM_ADMIN_SETTINGS_*.
+  - Updated ROLE_PERMISSIONS: TEAM_MEMBER gains read-only for org/booking; TEAM_LEAD gains broader view/edit including import/reset for booking and export for org; ADMIN retains full access.
+
+  ✅ Why it was done:
+  - Establish fine-grained RBAC for current and future settings categories so UI and routes can consistently enforce access.
+
+  ✅ Next steps:
+  - Expand mappings as new categories ship (Phase 6).
+
+- [x] 7.2 Update middleware `src/app/middleware.ts` to include route prefixes for new admin settings endpoints where required. (Outcome: middleware mapping updated)
+
+  ✅ What was completed:
+  - Added route-based checks for `/admin/settings/company|contact|timezone` → ORG_SETTINGS_VIEW, `/admin/settings/financial|currencies` → FINANCIAL_SETTINGS_VIEW, `/admin/settings/integrations` → INTEGRATION_HUB_VIEW. Preserved existing booking mapping.
+
+  ✅ Why it was done:
+  - Prevents unauthorized navigation to settings pages even before page load.
+
+  ✅ Next steps:
+  - Add mappings for remaining categories as their pages are introduced (Phase 6).
+
+- [x] 7.3 Update UI components (SettingsShell, BookingSettingsPanel) to hide Import/Reset/Test actions when the user lacks the related permission. (Outcome: UI respects permissions)
+
+  ✅ What was completed:
+  - Wrapped Export/Import/Reset/Save buttons in BookingSettingsPanel with PermissionGate using BOOKING_SETTINGS_EXPORT/IMPORT/RESET/EDIT.
+  - Import modal is only rendered for users with BOOKING_SETTINGS_IMPORT.
+
+  ✅ Why it was done:
+  - Ensures non-privileged users cannot see or trigger sensitive actions.
+
+  ✅ Next steps:
+  - Apply similar gating to future category UIs (Integration Hub test buttons, etc.).
+
+- [x] 7.4 Add unit tests asserting unauthorized responses (401/403) for protected API routes. (Outcome: tests cover permission enforcement)
+
+  ✅ What was completed:
+  - Added tests/admin-org-settings.permissions.test.ts: asserts 401 for unauthenticated GET and for PUT by TEAM_MEMBER lacking ORG_SETTINGS_EDIT.
+
+  ✅ Why it was done:
+  - Guards against regressions in server-side permission checks.
+
+  ✅ Next steps:
+  - Extend with additional routes as categories are implemented.
 
 Dependencies: Phases 4–6
 
