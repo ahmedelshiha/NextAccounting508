@@ -1,3 +1,4 @@
+'use client'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import dynamic from 'next/dynamic'
 import React, { useState, Suspense } from 'react'
