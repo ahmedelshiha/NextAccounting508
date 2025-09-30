@@ -1139,3 +1139,21 @@ model OrganizationSettings {
   @@index([tenantId])
   @@map("organization_settings")
 }
+
+// Integration Hub settings per-tenant (no raw secrets stored)
+model IntegrationSettings {
+  id        String   @id @default(cuid())
+  tenantId  String?  @unique
+
+  payments   Json?   // e.g., { provider: 'stripe', publishableKeyMasked: 'pk_live_***7890', hasSecret: true, testMode: true }
+  calendars  Json?   // e.g., { googleConnected: false, outlookConnected: false }
+  comms      Json?   // e.g., { sendgridConfigured: true }
+  analytics  Json?   // e.g., { gaTrackingIdMasked: 'UA-***123' }
+  storage    Json?   // e.g., { provider: 'none'|'s3'|'netlify', bucket: 'masked' }
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("integration_settings")
+}
