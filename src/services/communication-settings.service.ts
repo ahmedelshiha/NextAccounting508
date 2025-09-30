@@ -3,14 +3,13 @@ import { CacheService } from '@/lib/cache.service'
 import { logAudit } from '@/lib/audit'
 import {
   CommunicationSettingsSchema,
+  CommunicationSettingsPatchSchema,
   type CommunicationSettings,
+  type CommunicationSettingsPatch,
 } from '@/schemas/settings/communication'
-import type { z } from 'zod'
 
 const cache = new CacheService()
-const patchSchema = CommunicationSettingsSchema.deepPartial()
-
-type CommunicationSettingsPatch = z.infer<typeof patchSchema>
+const patchSchema = CommunicationSettingsPatchSchema
 
 function cacheKeyFor(tenantId: string | null) {
   return `communication-settings:${tenantId ?? 'default'}`
