@@ -331,10 +331,12 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
               onClick={() => toggleSection(item.href.split('/').pop() || '')}
               aria-expanded={isExpanded}
               aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+              data-roving
+              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
               className={`
                 w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive 
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' 
+                ${isActive
+                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 }
                 ${depth > 0 ? 'ml-4' : ''}
@@ -362,10 +364,12 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               onClick={isMobile ? onClose : undefined}
+              data-roving
+              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
               className={`
                 flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive 
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' 
+                ${isActive
+                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
                   : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 }
                 ${depth > 0 ? 'ml-4' : ''}
