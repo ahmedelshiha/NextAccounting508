@@ -184,6 +184,13 @@ export function SettingsShell({
           )}
         </div>
         
+        {/* Tabs (optional) */}
+        {tabs && tabs.length > 0 && (
+          <div className="mb-6">
+            <Tabs tabs={tabs} active={activeTab} onChange={onChangeTab} />
+          </div>
+        )}
+
         {/* Main Content with Optional Sidebar */}
         {sidebar ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
