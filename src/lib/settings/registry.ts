@@ -69,6 +69,7 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/analytics',
     icon: LineChart,
     tabs: [],
+    permission: PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_VIEW,
   },
   {
     key: 'communication',
