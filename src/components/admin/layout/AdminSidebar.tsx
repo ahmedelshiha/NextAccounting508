@@ -409,16 +409,19 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     }
   `
 
+  const roving = require('@/hooks/useRovingTabIndex').default()
+  // attach to nav container via ref setter
+
   return (
     <>
       {/* Mobile backdrop */}
       {isMobile && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <div className={sidebarClasses}>
         <div className="flex flex-col h-full">
