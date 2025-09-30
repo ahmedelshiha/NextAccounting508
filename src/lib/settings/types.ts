@@ -40,6 +40,8 @@ export interface SettingsCategory {
   // Icon is a React component that receives className (lucide-react compatible)
   icon?: (props: { className?: string }) => JSX.Element
   tabs?: SettingsTab<any>[]
+  // Optional permission to control visibility in the registry-driven nav
+  permission?: Permission
 }
 
 // Re-export Zod type helper for convenience in category implementations
