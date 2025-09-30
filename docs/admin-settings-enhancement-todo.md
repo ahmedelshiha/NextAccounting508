@@ -10,10 +10,37 @@ Instructions
 
 ## Phase 0 — Preparation & Discovery
 
-- [ ] 0.1 Read and verify docs/admin-settings-enhancement.md exists and is up-to-date. (Outcome: confirm scope & decisions)
-- [ ] 0.2 Run a codebase search to list current settings-related files and routes (grep for "settings", "booking-settings", "SettingsNavigation"). (Outcome: a short file list saved to docs/admin-settings-discovery.md)
+- [x] 0.1 Read and verify docs/admin-settings-enhancement.md exists and is up-to-date. (Outcome: confirm scope & decisions)
+
+  ✅ What was completed:
+  - Verified docs/admin-settings-enhancement.md exists and reflects the current architecture and scope.
+
+  ✅ Why it was done:
+  - Confirms decisions and aligns subsequent implementation with the documented plan.
+
+  ✅ Next steps:
+  - Proceed with discovery and RBAC checklist.
+- [x] 0.2 Run a codebase search to list current settings-related files and routes (grep for "settings", "booking-settings", "SettingsNavigation"). (Outcome: a short file list saved to docs/admin-settings-discovery.md)
+
+  ✅ What was completed:
+  - Created discovery inventory at docs/admin-settings-discovery.md listing routes, components, APIs, services, and schemas.
+
+  ✅ Why it was done:
+  - Establishes a shared map of existing settings code to avoid duplication and guide refactors.
+
+  ✅ Next steps:
+  - Use this inventory as the source when wiring remaining tasks.
 - [ ] 0.3 Create a branch/issue in your VCS for this work and document the main milestones. (Outcome: branch or ticket created; link added to the top of this TODO)
-- [ ] 0.4 Confirm RBAC source of truth (src/lib/permissions.ts) and list missing permission keys for new settings pages. (Outcome: a permissions checklist)
+- [x] 0.4 Confirm RBAC source of truth (src/lib/permissions.ts) and list missing permission keys for new settings pages. (Outcome: a permissions checklist)
+
+  ✅ What was completed:
+  - Confirmed RBAC lives at src/lib/permissions.ts and compiled missing permission keys per category in docs/admin-settings-discovery.md.
+
+  ✅ Why it was done:
+  - Ensures UI and APIs can properly enforce access for new settings categories.
+
+  ✅ Next steps:
+  - Implement new permission constants and role mappings in Phase 7.
 
 ---
 
