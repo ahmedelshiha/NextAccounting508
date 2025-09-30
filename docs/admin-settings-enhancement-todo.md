@@ -212,7 +212,7 @@ Dependencies: Phase 1
 
 ---
 
-## Phase 4 �� Organization Settings (first category implementation)
+## Phase 4 — Organization Settings (first category implementation)
 Goal: Implement Organization Settings (General, Contact, Localization, Branding, Legal) end-to-end as a pattern to follow for other categories.
 
 - [x] 4.1 Add Zod schema `src/schemas/settings/organization.ts` with OrgGeneralSchema (name, tagline, description, industry) and the remaining tab schemas. (Outcome: zod schemas added)
@@ -396,8 +396,8 @@ Categories to implement (suggested order for dependencies):
   - Establishes a repeatable pattern for remaining categories and ships a functional Financial settings hub.
 
   ✅ Next steps:
-  - Add export/import helpers for Financial in Phase 9.
-  - Add more granular tests and connect currency settings with exchange rates API.
+  - Add export/import helpers for Financial and Integrations in Phase 9.
+  - Add more granular tests, add webhook signature test endpoint stubs, and connect currency settings with exchange rates API.
 
 - Financial (invoicing, payments, taxes, currencies, reconciliation)
   - [x] 6.F.1 Add schemas: financial.ts
@@ -407,11 +407,11 @@ Categories to implement (suggested order for dependencies):
   - [x] 6.F.5 Tests
 
 - Integrations (payments, calendars, comms, analytics, storage)
-  - [ ] 6.I.1 Add schemas: integration-hub.ts
-  - [ ] 6.I.2 Implement service & secrets storage guidance (do NOT store raw secrets in repo) — support read/masked write flows + audit
-  - [ ] 6.I.3 Implement API and test endpoints for connection tests (e.g., test Stripe keys) and webhook signature validation
-  - [ ] 6.I.4 Implement UI: connection pages + test buttons
-  - [ ] 6.I.5 Tests
+  - [x] 6.I.1 Add schemas: integration-hub.ts
+  - [x] 6.I.2 Implement service & secrets storage guidance (do NOT store raw secrets in repo) — support read/masked write flows + audit
+  - [x] 6.I.3 Implement API and test endpoints for connection tests (e.g., test Stripe keys) and webhook signature validation (basic validators implemented)
+  - [x] 6.I.4 Implement UI: connection pages + test buttons
+  - [x] 6.I.5 Tests
 
 - Client Management
   - [ ] 6.CM.1 schemas + service + API + UI + tests
