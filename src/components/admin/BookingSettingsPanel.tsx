@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Settings as SettingsIcon, CreditCard, Clock, Calendar, Bell, Users, Shield, Zap, Download, RefreshCw, Save, AlertTriangle, CheckCircle, Plug, Gauge, ListChecks, Upload } from 'lucide-react'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
 
 /**
  * BookingSettingsPanel provides a tabbed admin UI to configure booking settings.
@@ -118,10 +120,18 @@ export default function BookingSettingsPanel() {
           <p className="text-gray-600 mt-1">Configure booking policies, payments, steps, and notifications</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={onExport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Download className="w-4 h-4 mr-2"/>Export</button>
-          <button onClick={onOpenImport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Upload className="w-4 h-4 mr-2"/>Import</button>
-          <button onClick={onReset} disabled={saving} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"><RefreshCw className="w-4 h-4 mr-2"/>Reset</button>
-          <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"><Save className="w-4 h-4 mr-2"/>{saving? 'Saving...':'Save Changes'}</button>
+          <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_EXPORT}>
+            <button onClick={onExport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Download className="w-4 h-4 mr-2"/>Export</button>
+          </PermissionGate>
+          <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_IMPORT}>
+            <button onClick={onOpenImport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Upload className="w-4 h-4 mr-2"/>Import</button>
+          </PermissionGate>
+          <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_RESET}>
+            <button onClick={onReset} disabled={saving} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"><RefreshCw className="w-4 h-4 mr-2"/>Reset</button>
+          </PermissionGate>
+          <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_EDIT}>
+            <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"><Save className="w-4 h-4 mr-2"/>{saving? 'Saving...':'Save Changes'}</button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -184,8 +194,9 @@ export default function BookingSettingsPanel() {
       </div>
 
       {showImport && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
+        <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_IMPORT}>
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Import Booking Settings</h3>
             <p className="text-gray-600 mb-4">Upload a previously exported settings JSON and choose which sections to import.</p>
             <div className="space-y-4">
@@ -212,8 +223,9 @@ export default function BookingSettingsPanel() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
-        </div>
+        </PermissionGate>
       )}
     </div>
   )

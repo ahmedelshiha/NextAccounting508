@@ -9,7 +9,7 @@ import { logAudit } from '@/lib/audit'
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions as any)
-  if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
+  if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ORG_SETTINGS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const tenantId = getTenantFromRequest(req as any)
@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   const session = await getServerSession(authOptions as any)
-  if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
+  if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ORG_SETTINGS_EDIT)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const tenantId = getTenantFromRequest(req as any)

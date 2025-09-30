@@ -38,6 +38,52 @@ export const PERMISSIONS = {
   BOOKING_SETTINGS_EXPORT: 'booking.settings.export',
   BOOKING_SETTINGS_IMPORT: 'booking.settings.import',
   BOOKING_SETTINGS_RESET: 'booking.settings.reset',
+
+  // Organization settings
+  ORG_SETTINGS_VIEW: 'org.settings.view',
+  ORG_SETTINGS_EDIT: 'org.settings.edit',
+  ORG_SETTINGS_EXPORT: 'org.settings.export',
+  ORG_SETTINGS_IMPORT: 'org.settings.import',
+  ORG_SETTINGS_RESET: 'org.settings.reset',
+
+  // Financial settings
+  FINANCIAL_SETTINGS_VIEW: 'financial.settings.view',
+  FINANCIAL_SETTINGS_EDIT: 'financial.settings.edit',
+  FINANCIAL_SETTINGS_EXPORT: 'financial.settings.export',
+
+  // Integration Hub
+  INTEGRATION_HUB_VIEW: 'integration.settings.view',
+  INTEGRATION_HUB_EDIT: 'integration.settings.edit',
+  INTEGRATION_HUB_TEST: 'integration.settings.test',
+  INTEGRATION_HUB_SECRETS_WRITE: 'integration.settings.secrets.write',
+
+  // Client Management settings
+  CLIENT_SETTINGS_VIEW: 'client.settings.view',
+  CLIENT_SETTINGS_EDIT: 'client.settings.edit',
+
+  // Team Management settings
+  TEAM_SETTINGS_VIEW: 'team.settings.view',
+  TEAM_SETTINGS_EDIT: 'team.settings.edit',
+
+  // Task & Workflow settings
+  TASK_WORKFLOW_SETTINGS_VIEW: 'task.settings.view',
+  TASK_WORKFLOW_SETTINGS_EDIT: 'task.settings.edit',
+
+  // Analytics & Reporting settings
+  ANALYTICS_REPORTING_SETTINGS_VIEW: 'analytics-reporting.settings.view',
+  ANALYTICS_REPORTING_SETTINGS_EDIT: 'analytics-reporting.settings.edit',
+
+  // Communication settings
+  COMMUNICATION_SETTINGS_VIEW: 'communication.settings.view',
+  COMMUNICATION_SETTINGS_EDIT: 'communication.settings.edit',
+
+  // Security & Compliance settings
+  SECURITY_COMPLIANCE_SETTINGS_VIEW: 'security-compliance.settings.view',
+  SECURITY_COMPLIANCE_SETTINGS_EDIT: 'security-compliance.settings.edit',
+
+  // System Administration settings
+  SYSTEM_ADMIN_SETTINGS_VIEW: 'system-admin.settings.view',
+  SYSTEM_ADMIN_SETTINGS_EDIT: 'system-admin.settings.edit',
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
@@ -59,6 +105,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.SERVICES_VIEW,
     PERMISSIONS.SERVICES_ANALYTICS,
     PERMISSIONS.SERVICES_EXPORT,
+    // Settings visibility (read-only)
+    PERMISSIONS.BOOKING_SETTINGS_VIEW,
+    PERMISSIONS.ORG_SETTINGS_VIEW,
   ],
   TEAM_LEAD: [
     PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
@@ -75,9 +124,21 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.SERVICES_VIEW,
     PERMISSIONS.SERVICES_ANALYTICS,
     PERMISSIONS.SERVICES_EXPORT,
+    // Booking settings
     PERMISSIONS.BOOKING_SETTINGS_VIEW,
     PERMISSIONS.BOOKING_SETTINGS_EDIT,
     PERMISSIONS.BOOKING_SETTINGS_EXPORT,
+    PERMISSIONS.BOOKING_SETTINGS_IMPORT,
+    PERMISSIONS.BOOKING_SETTINGS_RESET,
+    // Organization settings
+    PERMISSIONS.ORG_SETTINGS_VIEW,
+    PERMISSIONS.ORG_SETTINGS_EDIT,
+    PERMISSIONS.ORG_SETTINGS_EXPORT,
+    // Financial
+    PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+    // Integration Hub (view + test)
+    PERMISSIONS.INTEGRATION_HUB_VIEW,
+    PERMISSIONS.INTEGRATION_HUB_TEST,
   ],
   ADMIN: [
     ...Object.values(PERMISSIONS),
