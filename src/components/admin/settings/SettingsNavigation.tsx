@@ -1,26 +1,23 @@
 'use client'
 
-import Link from 'next/link'
-import React from 'react'
-import { Settings, Calendar, DollarSign, Users } from 'lucide-react'
+'use client'
 
-import Link from 'next/link'
 import React from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Settings, Calendar, DollarSign, Users } from 'lucide-react'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import { usePermissions } from '@/lib/use-permissions'
 
 export default function SettingsNavigation({ className = '' }: { className?: string }) {
-  const pathname = usePathname ? usePathname() : (typeof window !== 'undefined' ? window.location.pathname : '')
+  const pathname = usePathname()
   const perms = usePermissions()
 
-  const items = SETTINGS_REGISTRY.filter((c) => {
+  const items = (Array.isArray(SETTINGS_REGISTRY) ? SETTINGS_REGISTRY : []).filter((c) => {
     if (!c) return false
     // If the category has an explicit permission, honor it. Otherwise show by default.
-    // Registry entries may be extended later to include a `permission` property.
-    // @ts-ignore
     const required = (c as any).permission as string | undefined
-    if (required) return perms.has(required)
+    if (required) return perms.has(required as any)
     return true
   })
 

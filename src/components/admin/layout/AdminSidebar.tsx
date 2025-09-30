@@ -51,6 +51,8 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import SETTINGS_REGISTRY from '@/lib/settings/registry'
+import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 
 interface NavigationItem {
   name: string
@@ -235,23 +237,11 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           name: 'Settings',
           href: '/admin/settings',
           icon: Settings,
-          children: (function(){
-            try {
-              // Import registry at runtime to avoid circular module issues
-              // (module-scoped import would be ok here, but keep try/catch safe)
-              // eslint-disable-next-line @typescript-eslint/no-var-requires
-              const registry = require('@/lib/settings/registry').default as any[]
-              // Map registry entries to sidebar children
-              return registry.map((c: any) => ({ name: c.label, href: c.route, icon: c.icon || Settings, permission: c.permission }))
-            } catch (e) {
-              // Fallback to static list if registry cannot be loaded
-              return [
-                { name: 'General', href: '/admin/settings', icon: Settings },
-                { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
-                { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
-              ]
-            }
-          })()
+          children: (SETTINGS_REGISTRY && Array.isArray(SETTINGS_REGISTRY) ? SETTINGS_REGISTRY.map((c: any) => ({ name: c.label, href: c.route, icon: c.icon || Settings, permission: c.permission })) : [
+              { name: 'General', href: '/admin/settings', icon: Settings },
+              { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
+              { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
+            ])
         },
         {
           name: 'Users & Permissions',
@@ -413,7 +403,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     }
   `
 
-  const roving = require('@/hooks/useRovingTabIndex').default()
+  const roving = useRovingTabIndex()
   // attach to nav container via ref setter
 
   return (
