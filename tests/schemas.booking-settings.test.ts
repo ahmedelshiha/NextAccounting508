@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest'
 import { BookingSettingsStepsPayload, BookingSettingsBusinessHoursPayload, BookingSettingsPaymentMethodsPayload, BookingSettingsAutomationPayload, BookingSettingsIntegrationsPayload, BookingSettingsCapacityPayload, BookingSettingsFormsPayload } from '@/schemas/booking-settings.schemas'
 
 describe('booking-settings schemas', () => {
@@ -31,5 +30,29 @@ describe('booking-settings schemas', () => {
 
   it('rejects invalid payment methods payload', () => {
     expect(() => BookingSettingsPaymentMethodsPayload.parse({ paymentMethods: null as any })).toThrow()
+  })
+
+  it('accepts valid automation payload', () => {
+    const payload = { automation: { autoConfirm: true, confirmIf: 'known-client', followUps: [], cancellationPolicy: { hoursBefore: 24, feePercent: 0 } } }
+    const parsed = BookingSettingsAutomationPayload.parse(payload)
+    expect(parsed.automation.autoConfirm).toBe(true)
+  })
+
+  it('accepts valid integrations payload', () => {
+    const payload = { integrations: { calendarSync: 'google', conferencing: 'none' } }
+    const parsed = BookingSettingsIntegrationsPayload.parse(payload)
+    expect(parsed.integrations.calendarSync).toBe('google')
+  })
+
+  it('accepts valid capacity payload', () => {
+    const payload = { capacity: { pooledResources: true, concurrentLimit: 3, waitlist: true } }
+    const parsed = BookingSettingsCapacityPayload.parse(payload)
+    expect(parsed.capacity.concurrentLimit).toBe(3)
+  })
+
+  it('accepts valid forms payload', () => {
+    const payload = { forms: { fields: [{ key: 'company', label: 'Company', type: 'text', required: false }], rules: [] } }
+    const parsed = BookingSettingsFormsPayload.parse(payload)
+    expect(parsed.forms.fields[0].key).toBe('company')
   })
 })
