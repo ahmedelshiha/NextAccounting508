@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { SETTINGS_REGISTRY } from '@/lib/settings/registry'
+import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import { hasPermission } from '@/lib/permissions'
 
 export default function SettingsNavigation() {
