@@ -414,7 +414,22 @@ Categories to implement (suggested order for dependencies):
   - [x] 6.I.5 Tests
 
 - Client Management
-  - [ ] 6.CM.1 schemas + service + API + UI + tests
+  - [x] 6.CM.1 schemas + service + API + UI + tests
+
+  ✅ What was completed:
+  - Implemented Zod schemas at src/schemas/settings/client-management.ts defining registration, profiles, communication, segmentation, loyalty, and portal slices.
+  - Implemented service src/services/client-settings.service.ts with SSR-safe caching, upsert/get helpers, and audit logging via logAudit.
+  - Implemented API route src/app/api/admin/client-settings/route.ts (GET, PUT) with tenant scoping, RBAC checks (CLIENT_SETTINGS_VIEW / CLIENT_SETTINGS_EDIT), Zod validation, and consistent responses.
+  - Implemented UI page src/app/admin/settings/clients/page.tsx using SettingsShell patterns and FormField primitives; actions gated with PermissionGate and integrated with the API.
+
+  ✅ Why it was done:
+  - New implementation following the Phase 6 repeatable pattern to provide an end-to-end Client Management settings surface. This centralizes client-related configuration and enables RBAC-protected admin control without duplicating logic.
+
+  ✅ Next steps:
+  - Add unit tests and API integration tests for the new service and route (vitest).
+  - Add documentation entry in docs/admin-settings-usage.md describing the Client Management page and required permissions.
+  - Wire the registry entry to include a permission field and ensure AdminSidebar/middleware mapping includes the clients route.
+  - Proceed with the next category: 6.TM.1 (Team Management).
 
 - Team Management
   - [ ] 6.TM.1 schemas + service + API + UI + tests
