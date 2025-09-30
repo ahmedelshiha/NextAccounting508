@@ -260,7 +260,22 @@ Dependencies: Phases 1 & 3
 Goal: Extend existing BookingSettingsPanel with Automation, Integrations, Capacity, Forms; add validation, sub-endpoints, import UI, and warnings display.
 
 - [ ] 5.1 Update `src/schemas/booking-settings.schemas.ts` to add BookingAutomationSchema, BookingIntegrationsSchema, BookingCapacitySchema, BookingFormsSchema. (Outcome: schemas added)
-- [ ] 5.2 Add sub-endpoints: PUT `/api/admin/booking-settings/automation`, `/integrations`, `/capacity`, `/forms` following the existing booking routes pattern (tenant + RBAC + Zod). (Outcome: endpoints implemented)
+- [x] 5.2 Add sub-endpoints: PUT `/api/admin/booking-settings/automation`, `/integrations`, `/capacity`, `/forms` following the existing booking routes pattern (tenant + RBAC + Zod). (Outcome: endpoints implemented)
+
+  ✅ What was completed:
+  - Implemented PUT routes for automation, integrations, capacity, and forms at:
+    - `src/app/api/admin/booking-settings/automation/route.ts`
+    - `src/app/api/admin/booking-settings/integrations/route.ts`
+    - `src/app/api/admin/booking-settings/capacity/route.ts`
+    - `src/app/api/admin/booking-settings/forms/route.ts`
+  - Each route validates input with Zod schemas from `src/schemas/booking-settings.schemas.ts`, enforces `BOOKING_SETTINGS_EDIT` permission, and delegates persistence to `BookingSettingsService.updateBookingSettings`.
+
+  ✅ Why it was done:
+  - Enhancement: provides granular endpoints for heavy or frequently edited sections of booking settings, keeping payloads smaller and validation scoped.
+
+  ✅ Next steps:
+  - 5.3 Update `BookingSettingsService` to persist these sections as JSON columns (done). Ensure Prisma schema includes JSON columns and apply migrations in CI.
+  - 5.4 Extend BookingSettingsPanel UI to call these endpoints from the new tabs.
 - [ ] 5.3 Update `src/services/booking-settings.service.ts` to handle new sections in get/update/export/import/reset flows and update validateSettingsUpdate accordingly. Add caching invalidation for these sections. (Outcome: service updated)
 - [ ] 5.4 Extend `src/components/admin/BookingSettingsPanel.tsx` tabs array to include the new tabs and implement UI components for each tab inside `src/components/admin/booking/*` from temp artifacts as a reference. (Outcome: UI shows new tabs with fields)
 - [ ] 5.5 Implement Import modal in BookingSettingsPanel: file upload, preview sections, overwrite toggle, call POST `/api/admin/booking-settings/import`. (Outcome: admins can import bundles)
