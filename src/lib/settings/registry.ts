@@ -8,6 +8,13 @@ import { PERMISSIONS } from '@/lib/permissions'
 // Keep tabs empty here — individual category modules will register their own tabs or the registry can be extended at runtime.
 export const SETTINGS_REGISTRY: SettingsCategory[] = [
   {
+    key: 'overview',
+    label: 'Settings Overview',
+    route: '/admin/settings',
+    icon: Cog,
+    tabs: [],
+  },
+  {
     key: 'organization',
     label: 'Organization Settings',
     route: '/admin/settings/company',
