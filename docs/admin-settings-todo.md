@@ -117,8 +117,8 @@ For each page:
 - Outcome: all pages reachable at canonical `/admin/settings/*` routes with tested access.
 
 4.3 Users & Permissions specific (detailed)
-- [ ] Add registry entry `users` with route `/admin/settings/users` and `permission: PERMISSIONS.USERS_VIEW`.
-- [ ] Create landing page `src/app/admin/settings/users/page.tsx` with tabs: Users, Roles, Permissions.
+- [x] Add registry entry `users` with route `/admin/settings/users` and `permission: PERMISSIONS.USERS_VIEW`.
+- [x] Create landing page `src/app/admin/settings/users/page.tsx` with tabs: Users, Roles, Permissions.
 - [ ] Each tab loads existing components via thin wrappers (reuse implementation from `src/app/admin/users`, `roles`, `permissions`).
 - [ ] Add RBAC tests: ensure `PERMISSIONS.USERS_MANAGE` gates mutation actions (create/update/delete roles/users).
 - Outcome: consolidated user management inside settings with RBAC intact.
