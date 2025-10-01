@@ -3,9 +3,9 @@
 import React, { useState } from 'react'
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import AdminUsersPage from '@/app/admin/users/page'
-import AdminRolesPage from '@/app/admin/roles/page'
-import AdminPermissionsPage from '@/app/admin/permissions/page'
+import AdminUsersPage from '@/app/admin/users/UsersPageImpl'
+import AdminRolesPage from '@/app/admin/roles/RolesPageImpl'
+import AdminPermissionsPage from '@/app/admin/permissions/PermissionsPageImpl'
 import { PERMISSIONS } from '@/lib/permissions'
 
 export default function SettingsUsersPage() {
