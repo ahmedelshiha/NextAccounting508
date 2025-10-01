@@ -1,11 +1,12 @@
 // src/lib/settings/registry.ts
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, Upload, Clock } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
 // Keep tabs empty here — individual category modules will register their own tabs or the registry can be extended at runtime.
+// Added `group` and `order` metadata to support grouped navigation and deterministic ordering.
 export const SETTINGS_REGISTRY: SettingsCategory[] = [
   {
     key: 'organization',
@@ -15,6 +16,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     tabs: [],
     // permission optional — can be used by UI to hide entries
     permission: PERMISSIONS.ORG_SETTINGS_VIEW,
+    group: 'platform',
+    order: 10,
   },
   {
     key: 'serviceManagement',
@@ -22,6 +25,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/services',
     icon: ClipboardList,
     tabs: [],
+    group: 'platform',
+    order: 20,
   },
   {
     key: 'booking',
@@ -30,6 +35,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: Cog,
     tabs: [],
     permission: PERMISSIONS.BOOKING_SETTINGS_VIEW,
+    group: 'business',
+    order: 30,
   },
   {
     key: 'clientManagement',
@@ -38,6 +45,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: Users,
     tabs: [],
     permission: PERMISSIONS.CLIENT_SETTINGS_VIEW,
+    group: 'business',
+    order: 40,
   },
   {
     key: 'taskWorkflow',
@@ -46,6 +55,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ClipboardList,
     tabs: [],
     permission: PERMISSIONS.TASK_WORKFLOW_SETTINGS_VIEW,
+    group: 'operations',
+    order: 50,
   },
   {
     key: 'teamManagement',
@@ -54,6 +65,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: Users,
     tabs: [],
     permission: PERMISSIONS.TEAM_SETTINGS_VIEW,
+    group: 'operations',
+    order: 60,
   },
   {
     key: 'financial',
@@ -62,6 +75,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: CreditCard,
     tabs: [],
     permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+    group: 'financial',
+    order: 70,
   },
   {
     key: 'analyticsReporting',
@@ -70,6 +85,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: LineChart,
     tabs: [],
     permission: PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_VIEW,
+    group: 'financial',
+    order: 80,
   },
   {
     key: 'communication',
@@ -78,6 +95,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: MessageSquare,
     tabs: [],
     permission: PERMISSIONS.COMMUNICATION_SETTINGS_VIEW,
+    group: 'platform',
+    order: 90,
   },
   {
     key: 'securityCompliance',
@@ -86,6 +105,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ShieldCheck,
     tabs: [],
     permission: PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW,
+    group: 'security',
+    order: 100,
   },
   {
     key: 'integrationHub',
@@ -94,6 +115,8 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: PlugZap,
     tabs: [],
     permission: PERMISSIONS.INTEGRATION_HUB_VIEW,
+    group: 'integrations',
+    order: 110,
   },
   {
     key: 'systemAdministration',
@@ -102,6 +125,39 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ServerCog,
     tabs: [],
     permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+    group: 'platform',
+    order: 120,
+  },
+  // Explicit system items that were previously top-level routes
+  {
+    key: 'users',
+    label: 'Users & Permissions',
+    route: '/admin/settings/users',
+    icon: Users,
+    tabs: [],
+    permission: PERMISSIONS.USERS_VIEW,
+    group: 'security',
+    order: 130,
+  },
+  {
+    key: 'uploads',
+    label: 'Uploads',
+    route: '/admin/settings/uploads',
+    icon: Upload,
+    tabs: [],
+    permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+    group: 'platform',
+    order: 140,
+  },
+  {
+    key: 'cron',
+    label: 'Cron Telemetry',
+    route: '/admin/settings/cron',
+    icon: Clock,
+    tabs: [],
+    permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+    group: 'platform',
+    order: 150,
   }
 ]
 

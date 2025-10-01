@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
-import { logAudit } from '@/lib/audit'
+import { auditSettingsChange } from '@/lib/audit-settings'
 import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: Request) {
@@ -66,7 +66,7 @@ export async function PUT(req: Request) {
       ? await prisma.organizationSettings.update({ where: { id: existing.id }, data })
       : await prisma.organizationSettings.create({ data })
 
-    try { await logAudit({ action: 'org-settings:update', actorId: session.user.id, details: { tenantId } }) } catch {}
+    try { await auditSettingsChange((session.user as any).id, 'org-settings', existing, saved) } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })
   } catch (e) {

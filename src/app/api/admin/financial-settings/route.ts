@@ -36,8 +36,9 @@ export async function PUT(req: Request) {
     try { Sentry.captureMessage('financial-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
+  const before = await service.get(tenantId)
   const saved = await service.update(tenantId, parsed.data, (session.user as any).id)
-  try { await logAudit({ action: 'financial-settings:update', actorId: (session.user as any).id, details: { tenantId } }) } catch {}
+  try { await import('@/lib/audit-settings').then(m => m.auditSettingsChange((session.user as any).id, 'financial-settings', before, saved)).catch(() => {}) } catch {}
   return NextResponse.json({ settings: saved })
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}

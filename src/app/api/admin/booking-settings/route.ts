@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { getTenantFromRequest } from '@/lib/tenant'
 import service from '@/services/booking-settings.service'
-import { logAudit } from '@/lib/audit'
+import { auditSettingsChange } from '@/lib/audit-settings'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -35,8 +35,9 @@ export async function PUT(req: NextRequest) {
     const validated = await service.validateSettingsUpdate(tenantId, updates)
     if (!validated.isValid) return NextResponse.json({ error: 'Settings validation failed', errors: validated.errors, warnings: validated.warnings }, { status: 400 })
 
+    const before = await service.getBookingSettings(tenantId)
     const settings = await service.updateBookingSettings(tenantId, updates)
-    try { await logAudit({ action: 'booking-settings:update', actorId: session.user.id, details: { tenantId, updates } }) } catch {}
+    try { await auditSettingsChange((session.user as any).id, 'booking-settings', before, settings) } catch {}
     return NextResponse.json({ settings, warnings: validated.warnings })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed to update booking settings' }, { status: 500 })

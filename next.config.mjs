@@ -100,6 +100,28 @@ const nextConfig = {
       },
     ]
   },
+
+  async redirects() {
+    return [
+      // User management -> settings
+      { source: '/admin/users', destination: '/admin/settings/users', permanent: true },
+      { source: '/admin/roles', destination: '/admin/settings/users/roles', permanent: true },
+      { source: '/admin/permissions', destination: '/admin/settings/users/permissions', permanent: true },
+
+      // Security & audits
+      { source: '/admin/security', destination: '/admin/settings/security', permanent: true },
+      { source: '/admin/audits', destination: '/admin/settings/security/audits', permanent: true },
+
+      // Integrations (already redirected via page wrapper earlier) - keep canonical
+      { source: '/admin/integrations', destination: '/admin/settings/integrations', permanent: true },
+
+      // Uploads
+      { source: '/admin/uploads/quarantine', destination: '/admin/settings/uploads/quarantine', permanent: true },
+
+      // Cron telemetry
+      { source: '/admin/cron-telemetry', destination: '/admin/settings/cron', permanent: true },
+    ]
+  },
 }
 
 export default withSentryConfig(nextConfig, { silent: true, tunnelRoute: '/monitoring' })
