@@ -8,11 +8,16 @@
 - [x] Audit Admin Settings pages and fix issues
   - What: Ensured consistent Export/Import controls and PermissionGate usage across settings pages; fixed missing PermissionGate import in booking settings page.
   - Scope: src/app/admin/settings/booking/page.tsx (added PermissionGate import), verified clients/team/tasks/analytics/financial/company pages.
+- [x] Harden Communication Settings API endpoints
+  - What: Standardized REST responses with `NextResponse`, enforced permission guards, and added inline documentation for maintainers across GET, PUT, export, and import handlers.
+  - Why: Ensures manual verification can proceed with predictable responses, rate limiting, and error handling for the export/import JSON workflow.
+  - Scope: src/app/api/admin/communication-settings/route.ts, src/app/api/admin/communication-settings/export/route.ts, src/app/api/admin/communication-settings/import/route.ts
+- [x] Run full typecheck/build to baseline admin settings feature health
+  - What: Executed `pnpm typecheck` (tsconfig.build.json) and resolved duplicate import errors in booking settings and communication settings API routes.
+  - Why: Guarantees current code compiles before proceeding to manual verification and future enhancements.
+  - Scope: src/app/admin/settings/booking/page.tsx, src/app/api/admin/communication-settings/export/route.ts, src/app/api/admin/communication-settings/import/route.ts
 
 ## Next Steps
-- [ ] Run full typecheck/build and address any additional TypeScript errors.
-- [x] Add smoke tests for Import modal open/close and JSON parsing success/failure paths. (Already present: tests/components/communication-settings.export-import.ui.test.tsx)
-- [x] Add Playwright E2E spec for Export/Import flow (e2e/tests/admin-communication-settings.spec.ts)
 - [ ] Manually verify /api/admin/communication-settings/export and /import endpoints end-to-end from the UI.
 
 ### Manual Verification Checklist
