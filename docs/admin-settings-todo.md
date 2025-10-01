@@ -131,8 +131,8 @@ For each page:
 - Outcome: consistent permission enforcement and smaller page code.
 
 5.2 Audit logging on save
-- [ ] Implement `src/lib/audit-settings.ts` with `auditSettingsChange(userId, key, before, after)` calling existing audit infra.
-- [ ] Update each settings `PUT`/`PATCH` handler to call audit helper on success.
+- [x] Implement `src/lib/audit-settings.ts` with `auditSettingsChange(userId, key, before, after)` calling existing audit infra.
+- [x] Update settings `PUT`/`PATCH` handlers to call audit helper on success (updated booking and financial handlers).
 - [ ] Add tests verifying audit hook execution.
 - Outcome: audit trail exists for all settings changes.
 
