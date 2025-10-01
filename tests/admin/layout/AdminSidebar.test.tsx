@@ -149,7 +149,7 @@ describe('AdminSidebar', () => {
   })
 
   it('handles toggle label differences by collapsed state (text-only)', () => {
-    render(<AdminSidebar {...defaultProps} collapsed={false} />)
+    render(<AdminSidebar {...defaultProps} isCollapsed={false} />)
     // In text render, look for 'Help' as indicator of full state
     expect(screen.getByText('Help')).toBeTruthy()
 
