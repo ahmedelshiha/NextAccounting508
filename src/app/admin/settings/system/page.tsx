@@ -31,6 +31,9 @@ export default function SystemAdministrationPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Server-side summary computed here (SSR-safe)
+  const systemStatus = getSystemStatus()
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
