@@ -29,13 +29,13 @@ Implementation checklist (actionable, ordered):
    - Implement responsive card grid and sections for "System Health", "Quick Actions", "Recent Changes", and "Pinned Settings".
    - Add placeholders for actions (export/import, run diagnostics) wired to service calls.
 
-3. [ ] Service endpoints & client helpers
-   - Add minimal read endpoints or extend existing services in src/services/*-settings.service.ts to provide health data and recent activity.
-   - Use zod for response validation where applicable.
+3. [x] Service endpoints & client helpers
+   - Implemented minimal endpoints and client helpers in src/services/settings.service.ts. Routes added: /api/admin/settings/diagnostics (POST), /api/admin/settings/export (GET), /api/admin/settings/import (POST).
+   - Import route validates payload with zod and returns structured responses.
 
-4. [ ] Registry & routing
-   - Wire the Overview component into SETTINGS_REGISTRY (already contains /admin/settings route). Ensure nav highlights and breadcrumbs.
-   - Add a lightweight route page at src/app/admin/settings/overview/page.tsx (or reuse existing page.tsx to render component when route is /admin/settings).
+4. [x] Registry & routing
+   - Overview component wired into /admin/settings page and consumes SETTINGS_REGISTRY for nav integration.
+   - No additional route file required; the existing page renders the Overview component.
 
 5. [x] Quick actions implementation
    - Implemented actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings" via client helpers and server routes.
