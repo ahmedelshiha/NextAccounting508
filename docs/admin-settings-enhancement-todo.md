@@ -61,9 +61,8 @@ Implementation checklist (actionable, ordered):
    - Performance optimizations: lazy-loaded RecentChanges component, memoized SettingsOverview, non-blocking operations for export/import.
    - Recommended follow-ups: run axe/core a11y scan and Lighthouse performance report in staging.
 
-8. [ ] Documentation & rollout
-   - Update docs/admin-settings-enhancement-todo.md and components README describing use and how to extend registry widgets.
-   - Create developer notes for deploying (Netlify build variables, monitoring URLs) and telemetry events to instrument.
+8. [x] Documentation & rollout — docs/admin-settings-rollout.md and docs/developer-notes-settings.md added
+   - Implementation notes, environment checklist, observability guidance, and smoke tests included.
 
 9. [ ] Deploy & monitor
    - Deploy to staging, run smoke tests, and monitor Sentry/telemetry for 24h after rollout.
