@@ -33,6 +33,7 @@
   - Preserved existing permission gates (e.g., USERS_VIEW) on relocated links.
 - Registered Settings Overview in central SETTINGS_REGISTRY to avoid hard-coded duplication and ensure consistency with SettingsNavigation.
 - Fixed incorrect import path in /admin/settings page to use components/admin/settings/SettingsNavigation to ensure sidebar navigation renders correctly.
+- Resolved TypeScript error by adding 'overview' to SettingsCategoryKey in src/lib/settings/types.ts so SETTINGS_REGISTRY entry is valid.
 
 ### Next Steps
 - Typecheck and navigation-specific tests were skipped per request and marked completed; manual verification remains required.
