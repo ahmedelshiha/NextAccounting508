@@ -5,19 +5,26 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest } from '@/lib/tenant'
 import clientService from '@/services/client-settings.service'
 import { ClientManagementSettingsSchema } from '@/schemas/settings/client-management'
+import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: Request) {
-  const session = await getServerSession(authOptions as any)
+  try {
+    const session = await getServerSession(authOptions as any)
   if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.CLIENT_SETTINGS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const tenantId = getTenantFromRequest(req as any)
   const settings = await clientService.get(tenantId)
   return NextResponse.json(settings)
+  } catch (e) {
+    try { Sentry.captureException(e as any) } catch {}
+    return NextResponse.json({ error: 'Failed to load client settings' }, { status: 500 })
+  }
 }
 
 export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions as any)
+  try {
+    const session = await getServerSession(authOptions as any)
   if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.CLIENT_SETTINGS_EDIT)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -25,8 +32,13 @@ export async function PUT(req: Request) {
   const body = await req.json().catch(() => ({}))
   const parsed = ClientManagementSettingsSchema.partial().safeParse(body)
   if (!parsed.success) {
+    try { Sentry.captureMessage('client-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
   const updated = await clientService.upsert(tenantId, parsed.data)
   return NextResponse.json(updated)
+  } catch (e) {
+    try { Sentry.captureException(e as any) } catch {}
+    return NextResponse.json({ error: 'Failed to update client settings' }, { status: 500 })
+  }
 }
