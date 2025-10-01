@@ -7,6 +7,7 @@ import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { Toggle, NumberField, TextField } from '@/components/admin/settings/FormField'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { getSystemStatus } from '@/lib/systemStatus'
 
 interface SystemState {
   maintenanceMode: boolean
