@@ -156,7 +156,7 @@ For each page:
 - [ ] E2E: verify redirects from legacy routes.
 
 6.4 CI configuration
-- [ ] Add pre-merge checks: run unit tests, run duplicate-route scanner, run integration smoke tests.
+- [x] Add pre-merge checks: run unit tests, run duplicate-route scanner, run integration smoke tests. (GitHub Actions workflow `.github/workflows/ci.yml` added)
 
 ---
 ## 7. Documentation & developer onboarding
