@@ -12,7 +12,7 @@ beforeEach(() => {
     if (u.endsWith('/api/admin/task-settings') && (!opts || opts.method === 'GET')) {
       return { ok: true, json: async () => ({ templates: [], statuses: [], automation: [], board: {}, dependenciesEnabled: true }) }
     }
-    if (u.endsWith('/api/admin/task-settings\') && opts && opts.method === \'PUT')) {
+    if (u.endsWith('/api/admin/task-settings') && opts && opts.method === 'PUT') {
       return { ok: true, json: async () => JSON.parse(opts.body || '{}') }
     }
     if (u.endsWith('/api/admin/task-settings/export')) {
