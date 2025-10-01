@@ -58,17 +58,18 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
 ---
 ## 2. Settings layout & components
 2.1 Create SettingsShell (layout wrapper)
-- [ ] Create `src/components/admin/settings/SettingsShell.tsx`:
-  - [ ] Responsibilities: render left nav (`SettingsNavigation`), header (title, breadcrumbs), main content container with consistent padding, and footer area for Save/Reset actions.
-  - [ ] Props: `title?: string`, `subtitle?: string`, `actions?: ReactNode`.
-  - [ ] Use existing UI primitives (`Card`, `Button`) and preserve Tailwind styles/variables.
+- [x] Create `src/components/admin/settings/SettingsShell.tsx`:
+  - [x] Responsibilities: render left nav (`SettingsNavigation`), header (title, breadcrumbs), main content container with consistent padding, and footer area for Save/Reset actions.
+  - [x] Props: `title?: string`, `subtitle?: string`, `actions?: ReactNode`.
+  - [x] Use existing UI primitives (`Card`, `Button`) and preserve Tailwind styles/variables.
   - Outcome: all settings pages share consistent chrome and spacing.
+  - [ ] Add unit tests for SettingsShell rendering and accessibility
 
 2.2 App-level settings layout
-- [ ] Create `src/app/admin/settings/layout.tsx`:
-  - [ ] Wrap children with `SettingsShell` so nested pages inherit the layout automatically.
-  - [ ] Ensure correct server/client boundaries (`use client` only in client components).
-  - Outcome: `/admin/settings/*` pages render inside the unified shell.
+- [x] Create `src/app/admin/settings/layout.tsx`:
+  - [x] Implement layout that renders `SettingsNavigation` in an aside and `children` in main content.
+  - [x] Ensure correct server/client boundaries (`use client` only in client components where necessary).
+  - Outcome: `/admin/settings/*` pages render inside a consistent settings container; pages may still use `SettingsShell` directly if they need additional chrome.
 
 2.3 SettingsNavigation enhancements
 - [ ] Update `src/components/admin/SettingsNavigation.tsx` to:
