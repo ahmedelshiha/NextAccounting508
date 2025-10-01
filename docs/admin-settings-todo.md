@@ -29,6 +29,9 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
 - [x] Fixed ESLint error in tests/integration/settings-navigation.dom.test.tsx (@typescript-eslint/no-require-imports)
   - Why: Test used require() which violates TS ESLint rules. Switched to top-level vi.mock for next/navigation and next-auth before imports.
   - Next steps: Run affected test and settings suite in CI; ensure nav grouping and permissions remain covered.
+- [x] Fixed TS error in src/lib/settings/permissions.ts (TS2769) by passing children inside props to React.createElement
+  - Why: SettingsPermissionWrapper Props require children; React 19 types complained when children passed as 3rd arg. Moved children into props object to satisfy types without functional change.
+  - Next steps: Re-run build to confirm; adopt same pattern if other wrappers use createElement.
 
 ---
 
