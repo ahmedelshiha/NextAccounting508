@@ -18,6 +18,7 @@
     "check:rbac": "node scripts/check_admin_rbac.js",
     "audit:rbac": "node scripts/audit-admin-rbac.js",
     "check:settings-registry": "node scripts/check-settings-registry.js",
+    "ci:preflight": "node scripts/check-settings-registry.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
