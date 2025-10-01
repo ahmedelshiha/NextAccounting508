@@ -69,6 +69,67 @@ export default function SystemAdministrationPage() {
         }
       >
         <div className="space-y-8">
+          {/* Platform Health Widgets moved here from Settings landing */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Database</CardTitle>
+                <CardDescription>Connection status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-700">NETLIFY_DATABASE_URL</div>
+                  <Badge className={Boolean(process.env.NETLIFY_DATABASE_URL) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    {Boolean(process.env.NETLIFY_DATABASE_URL) ? 'Configured' : 'Missing'}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Authentication</CardTitle>
+                <CardDescription>NextAuth configuration</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">NEXTAUTH_URL</div>
+                    <Badge className={process.env.NEXTAUTH_URL ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {process.env.NEXTAUTH_URL ? 'Configured' : 'Missing'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-700">NEXTAUTH_SECRET</div>
+                    <Badge className={process.env.NEXTAUTH_SECRET ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {process.env.NEXTAUTH_SECRET ? 'Configured' : 'Missing'}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Environment</CardTitle>
+              <CardDescription>Runtime flags and status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="flex items-center justify-between">
+                  <span>NODE_ENV</span>
+                  <span className="font-medium">{process.env.NODE_ENV || 'development'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Database configured</span>
+                  <span className="font-medium">{Boolean(process.env.NETLIFY_DATABASE_URL) ? 'Yes' : 'No'}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing System sections */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Runtime Modes</h2>
             <div className="grid gap-4">
