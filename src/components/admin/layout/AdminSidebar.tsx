@@ -296,43 +296,73 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     const isActive = isActiveRoute(item.href)
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
+    const isSettingsParent = item.href === '/admin/settings'
 
     return (
       <li key={item.href}>
         <div className="relative">
           {hasChildren ? (
-            <button
-              onClick={() => toggleSection(item.href.split('/').pop() || '')}
-              aria-expanded={isExpanded}
-              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-              data-roving
-              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-              className={`
-                w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                }
-                ${depth > 0 ? 'ml-4' : ''}
-              `}
-            >
-              <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              {!isCollapsed && (
-                <>
-                  <span className="flex-1 text-left">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-2">
-                      {item.badge}
-                    </Badge>
-                  )}
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  )}
-                </>
-              )}
-            </button>
+            // Special-case: Settings parent should always be expanded and non-collapsible
+            isSettingsParent ? (
+              <div
+                aria-expanded={true}
+                data-roving
+                {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+                className={`
+                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
+                  ${isActive
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }
+                  ${depth > 0 ? 'ml-4' : ''}
+                `}
+              >
+                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{item.name}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-2">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleSection(item.href.split('/').pop() || '')}
+                aria-expanded={isExpanded}
+                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+                data-roving
+                {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+                className={`
+                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
+                  ${isActive
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }
+                  ${depth > 0 ? 'ml-4' : ''}
+                `}
+              >
+                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{item.name}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-2">
+                        {item.badge}
+                      </Badge>
+                    )}
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    )}
+                  </>
+                )}
+              </button>
+            )
           ) : (
             <Link
               href={item.href}
@@ -363,8 +393,8 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
             </Link>
           )}
         </div>
-        
-        {hasChildren && isExpanded && !isCollapsed && (
+
+        {hasChildren && (isSettingsParent || isExpanded) && !isCollapsed && (
           <ul
             id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
             className="mt-1 space-y-1"
