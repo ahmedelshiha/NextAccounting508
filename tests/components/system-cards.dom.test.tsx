@@ -25,14 +25,18 @@ describe('SystemCardsClient (jsdom)', () => {
     const dbBtn = await screen.findByTestId('test-db')
     expect(dbBtn).toBeTruthy()
     await fireEvent.click(dbBtn)
-    const dbMessage = await screen.findByTestId('db-message')
-    expect(dbMessage.textContent).toMatch(/Connection OK/)
+    await waitFor(() => {
+      const dbMessage = screen.getByTestId('db-message')
+      expect(dbMessage.textContent).toMatch(/Connection OK/)
+    })
 
     const authBtn = await screen.findByTestId('test-auth')
     expect(authBtn).toBeTruthy()
     await fireEvent.click(authBtn)
-    const authMessage = await screen.findByTestId('auth-message')
-    expect(authMessage.textContent).toMatch(/Auth OK/)
+    await waitFor(() => {
+      const authMessage = screen.getByTestId('auth-message')
+      expect(authMessage.textContent).toMatch(/Auth OK/)
+    })
   })
 
   it('shows failure messages when status missing', async () => {
