@@ -1,5 +1,7 @@
 # Netlify Deployment Notes for Unified Admin Settings
 
+Note: This project is primarily deployed on Vercel. The notes below are kept for reference if you need Netlify-specific instructions. For Vercel deployment instructions, see `docs/deployment-vercel.md`.
+
 This document describes production-ready deployment steps, Netlify best practices, and rollback instructions for the unified /admin/settings migration.
 
 1) Build & CI
