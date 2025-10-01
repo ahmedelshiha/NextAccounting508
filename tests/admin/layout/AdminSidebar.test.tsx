@@ -25,9 +25,13 @@ vi.mock('@/stores/adminLayoutStore', () => ({
   })),
 }))
 
-vi.mock('@/lib/permissions', () => ({
-  hasRole: vi.fn(),
-}))
+vi.mock('@/lib/permissions', async () => {
+  const actual = await vi.importActual('@/lib/permissions')
+  return {
+    ...actual,
+    hasRole: vi.fn(),
+  }
+})
 
 describe('AdminSidebar', () => {
   const mockUsePathname = usePathname as any
