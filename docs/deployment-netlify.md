@@ -19,6 +19,7 @@ This document describes production-ready deployment steps, Netlify best practice
 - We use Next.js redirects in `next.config.mjs`. Netlify plugin `@netlify/plugin-nextjs` will transform these into Netlify redirects.
 - Ensure `netlify.toml` includes any additional proxies or rewrite rules. Keep canonical redirects for `/admin/*` routes to `/admin/settings/*` as configured.
 - CSP and security headers are set in `next.config.mjs` headers method; Netlify will respect via _headers file.
+- A sample `netlify.toml` has been added to the repo to configure the Next plugin and environment contexts.
 
 4) Feature flag & gradual rollout
 - Use `NEXT_PUBLIC_FEATURE_UNIFIED_SETTINGS=false` in production initially to test. Flip to `true` for canary sub-site or internal staff.
