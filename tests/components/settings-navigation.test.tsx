@@ -2,15 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import SettingsNavigation from '@/components/admin/SettingsNavigation'
 
-vi.mock('next/navigation', () => ({ usePathname: vi.fn() }))
+let mockPath = '/admin/settings/booking'
+vi.mock('next/navigation', () => ({ usePathname: () => mockPath }))
 vi.mock('next-auth/react', () => ({ useSession: () => ({ data: { user: { role: 'ADMIN' } } }) }))
 
 describe('SettingsNavigation', () => {
-  const mockUsePathname = (require('next/navigation') as any).usePathname
-
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUsePathname.mockReturnValue('/admin/settings/booking')
+    mockPath = '/admin/settings/booking'
   })
 
   it('renders group headings from registry and items', () => {
