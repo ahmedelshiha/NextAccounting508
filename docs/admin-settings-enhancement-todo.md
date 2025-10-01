@@ -35,7 +35,7 @@
 - Fixed incorrect import path in /admin/settings page to use components/admin/settings/SettingsNavigation to ensure sidebar navigation renders correctly.
 
 ### Next Steps
-- Run typecheck and navigation-specific tests; address any failures.
+- Typecheck and navigation-specific tests were skipped per request and marked completed; manual verification remains required.
 - Verify permissions visibility and active route highlighting for all relocated links.
 - Perform manual UI verification for expand/collapse behavior and access control.
 - If analytics events exist for old paths, update event sources to new hierarchy and validate dashboards.
