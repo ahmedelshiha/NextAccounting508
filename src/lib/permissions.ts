@@ -60,22 +60,32 @@ export const PERMISSIONS = {
   // Client Management settings
   CLIENT_SETTINGS_VIEW: 'client.settings.view',
   CLIENT_SETTINGS_EDIT: 'client.settings.edit',
+  CLIENT_SETTINGS_EXPORT: 'client.settings.export',
+  CLIENT_SETTINGS_IMPORT: 'client.settings.import',
 
   // Team Management settings
   TEAM_SETTINGS_VIEW: 'team.settings.view',
   TEAM_SETTINGS_EDIT: 'team.settings.edit',
+  TEAM_SETTINGS_EXPORT: 'team.settings.export',
+  TEAM_SETTINGS_IMPORT: 'team.settings.import',
 
   // Task & Workflow settings
   TASK_WORKFLOW_SETTINGS_VIEW: 'task.settings.view',
   TASK_WORKFLOW_SETTINGS_EDIT: 'task.settings.edit',
+  TASK_WORKFLOW_SETTINGS_EXPORT: 'task.settings.export',
+  TASK_WORKFLOW_SETTINGS_IMPORT: 'task.settings.import',
 
   // Analytics & Reporting settings
   ANALYTICS_REPORTING_SETTINGS_VIEW: 'analytics-reporting.settings.view',
   ANALYTICS_REPORTING_SETTINGS_EDIT: 'analytics-reporting.settings.edit',
+  ANALYTICS_REPORTING_SETTINGS_EXPORT: 'analytics-reporting.settings.export',
+  ANALYTICS_REPORTING_SETTINGS_IMPORT: 'analytics-reporting.settings.import',
 
   // Communication settings
   COMMUNICATION_SETTINGS_VIEW: 'communication.settings.view',
   COMMUNICATION_SETTINGS_EDIT: 'communication.settings.edit',
+  COMMUNICATION_SETTINGS_EXPORT: 'communication.settings.export',
+  COMMUNICATION_SETTINGS_IMPORT: 'communication.settings.import',
 
   // Security & Compliance settings
   SECURITY_COMPLIANCE_SETTINGS_VIEW: 'security-compliance.settings.view',
