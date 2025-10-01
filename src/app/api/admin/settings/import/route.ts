@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-const ImportSchema = z.object({ exportedAt: z.string().optional(), env: z.record(z.any()).optional() })
+const ImportSchema = z.object({ exportedAt: z.string().optional(), env: z.record(z.string(), z.any()).optional() })
 
 export async function POST(req: Request) {
   try {
