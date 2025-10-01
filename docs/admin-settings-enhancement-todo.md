@@ -664,19 +664,35 @@ Goal: Provide reliable export/import reset flows across settings and ensure idem
 - [ ] 9.2 Complete Booking import UI and apply same pattern to Organization & Financial imports. (Outcome: import UI per category)
 
   ✅ What was completed:
-  - Added Organization export/import endpoints:
+  - Organization export/import endpoints:
     - GET src/app/api/admin/org-settings/export/route.ts
-    - POST src/app/api/admin/org-settings/import/route.ts (with rate limit + audit + validation)
-  - Added Financial export endpoint:
-    - GET src/app/api/admin/financial-settings/export/route.ts (with rate limit)
+    - POST src/app/api/admin/org-settings/import/route.ts (rate limit + audit + validation)
+  - Financial export/import endpoints:
+    - GET src/app/api/admin/financial-settings/export/route.ts (rate limit)
+    - POST src/app/api/admin/financial-settings/import/route.ts (rate limit + audit + validation)
+  - Additional categories export/import:
+    - Client: GET src/app/api/admin/client-settings/export/route.ts, POST src/app/api/admin/client-settings/import/route.ts
+    - Team: GET src/app/api/admin/team-settings/export/route.ts, POST src/app/api/admin/team-settings/import/route.ts
+    - Task: GET src/app/api/admin/task-settings/export/route.ts, POST src/app/api/admin/task-settings/import/route.ts
+    - Analytics: GET src/app/api/admin/analytics-settings/export/route.ts, POST src/app/api/admin/analytics-settings/import/route.ts
+    - Communication: GET src/app/api/admin/communication-settings/export/route.ts, POST src/app/api/admin/communication-settings/import/route.ts
 
   ✅ Why it was done:
-  - Enhancement of existing settings to support standardized export/import flows, starting with Organization and Financial.
+  - Enhancement to standardize export/import across core categories using the new helper, with RBAC, rate limits, Sentry monitoring, and audit logs where applicable.
 
   ✅ Next steps:
-  - Add Organization import UI and Financial import endpoint/UI when permissions and design are approved.
-  - Extend export/import to remaining categories using the helper.
-- [ ] 9.3 Add server-side import validation that accepts `sections` selection and `overwriteExisting` boolean. (Outcome: safe import endpoint)
+  - Add UI affordances (Export/Import buttons) to each settings page, gated by permissions.
+  - Extend to Integration Hub with secret-masking rules (do not export raw secrets).
+- [x] 9.3 Add server-side import validation that accepts `sections` selection and `overwriteExisting` boolean. (Outcome: safe import endpoint)
+
+  ✅ What was completed:
+  - Implemented schema-based server validation for imports across categories using validateImportWithSchema and category-specific Zod schemas. Booking already supports sections/overwrite; others accept full category payloads.
+
+  ✅ Why it was done:
+  - Ensure robust validation and consistent failure modes for imports.
+
+  ✅ Next steps:
+  - Consider adding sections/overwrite support per category where meaningful.
 - [ ] 9.4 Add restore/backup tests: export → db snapshot apply import → verify settings. (Outcome: integration test)
 - [ ] 9.5 Add admin-only cron or manual job to snapshot settings daily to object storage (S3/Netlify blobs). (Outcome: scheduled snapshot configured)
 
