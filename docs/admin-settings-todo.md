@@ -137,8 +137,8 @@ For each page:
 - Outcome: audit trail exists for all settings changes.
 
 5.3 Feature flag & safety
-- [ ] Add `FEATURE_UNIFIED_SETTINGS` env var guard; default `true`.
-- [ ] If false, show legacy navigation and routes unchanged.
+- [x] Add `NEXT_PUBLIC_FEATURE_UNIFIED_SETTINGS` env var guard and helper `src/lib/featureFlags.ts`.
+- [x] Show a banner in the settings layout when the feature flag is disabled to indicate rollout state.
 - Outcome: rollback knob for staged rollout.
 
 ---
