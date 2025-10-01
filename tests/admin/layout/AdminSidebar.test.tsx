@@ -39,7 +39,7 @@ describe('AdminSidebar', () => {
   const mockHasRole = hasRole as any
 
   const defaultProps = {
-    collapsed: false,
+    isCollapsed: false,
     isOpen: false,
     isMobile: false,
     onToggle: vi.fn(),
