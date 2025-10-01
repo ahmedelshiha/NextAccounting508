@@ -87,9 +87,9 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
   - [ ] `/admin/permissions` -> `/admin/settings/users/permissions`
   - [x] `/admin/integrations` -> `/admin/settings/integrations` (created)
   - [x] `/admin/security` -> `/admin/settings/security` (created)
-  - [ ] `/admin/audits` -> `/admin/settings/security/audits`
-  - [ ] `/admin/uploads/quarantine` -> `/admin/settings/uploads/quarantine`
-  - [ ] `/admin/cron-telemetry` -> `/admin/settings/cron`
+  - [x] `/admin/audits` -> `/admin/settings/security/audits` (redirect added via next.config)
+  - [x] `/admin/uploads/quarantine` -> `/admin/settings/uploads/quarantine` (redirect added via next.config)
+  - [x] `/admin/cron-telemetry` -> `/admin/settings/cron` (redirect added via next.config)
   - Outcome: no broken external links; SEO/links preserved.
 
 3.2 Verify no duplicate pages
