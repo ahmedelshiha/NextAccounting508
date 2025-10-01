@@ -19,7 +19,7 @@ Goal: Build a polished Settings Overview page that matches the admin dashboard a
 
 Implementation checklist (actionable, ordered):
 
-1. [ ] Design & content spec (Deliverable: Figma or image + MD)
+1. [x] Design & content spec (Deliverable: Figma or image + MD) — implemented at docs/admin-settings-overview-spec.md
    - Define the Overview layout: top KPI/status cards, quick-actions, recent activity/audit trail, pinned settings, and contextual help.
    - Create content for each card (DB, Auth, Payments, Integrations, Deploy/Env, Last config change).
    - Accessibility and responsive considerations.
