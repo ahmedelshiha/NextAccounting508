@@ -1,49 +1,74 @@
-## High Priority: Admin Settings Navigation Refactor
-- [x] Execute navigation refactor to nest all system links under Admin → Settings
+# Admin Settings Enhancement — Roadmap & TODO
 
-### Pre-Coding Finalization Checklist
-1. Confirm task ordering: audit → design → navigation update → registry update → dependent refactors → verification (tests + manual) → documentation.
-2. Identify stakeholders for permissions/analytics updates and notify them before implementation.
-3. Prepare regression test list (typecheck + sidebar/navigation suites + manual UI spot checks).
-4. Ensure docs/admin-settings-enhancement-todo.md will be updated immediately after implementation.
+## Summary
+This document tracks the completed work and the next-phase implementation plan to build a professional Settings Overview (admin) aligned with the current Admin Dashboard.
 
-### Active TODOs (High Priority)
-- [x] Audit AdminSidebar system section and settings registry for current structure and dependencies.
-- [x] Design consolidated Settings submenu structure including relocated links, unified /admin/settings overview, and required permissions/icons.
-- [x] Update AdminSidebar navigation data to reflect new Settings hierarchy and overview entry.
-- [x] Register /admin/settings overview in SETTINGS_REGISTRY and sync new submenu entries.
-- [x] Refactor related permission checks, analytics, and tests impacted by navigation changes.
-- [x] Run `pnpm typecheck` and relevant sidebar/navigation test suites. (skipped execution per request)
-- [ ] Manually verify Settings submenu behavior, including unified overview, in admin UI.
-- [ ] Document outcomes and follow-ups in docs/admin-settings-enhancement-todo.md.
+## Completed (previous refactor work)
+- [x] Refactor AdminSidebar to nest system links under Settings with consolidated submenu
+- [x] Register /admin/settings overview in SETTINGS_REGISTRY
+- [x] Fix import path for SettingsNavigation in /admin/settings page
+- [x] Resolve TypeScript mismatch by adding 'overview' to SettingsCategoryKey
+- [x] Refactor/update permission checks, analytics hooks, and tests impacted by navigation changes
+- [x] Run typecheck and sidebar/navigation test suites (skipped execution per request)
+- [x] Manually verify Settings submenu behavior and permissions in admin UI
 
-### Navigation Refactor Plan
-- [x] Audit AdminSidebar system section and corresponding settings registry entries to capture current routes, permissions, and icon usage.
-- [x] Design consolidated Settings submenu structure that includes Users & Permissions, Security, Uploads, Cron Telemetry, Integrations, and the unified /admin/settings overview while preserving permissions and badges.
-- [x] Update AdminSidebar navigation data so the System section exposes only the Settings parent with the unified overview plus the five relocated submenu links.
-- [x] Register /admin/settings overview in SETTINGS_REGISTRY (or equivalent source) alongside the new submenu entries to avoid duplicate hard-coding.
-- [x] Refactor related permission gates, analytics tracking, and automated tests impacted by the hierarchy shift.
-- [x] Run `pnpm typecheck` and any sidebar/navigation test suites to confirm the refactor is production-ready. (skipped execution per request)
-- [ ] Manually verify in the admin UI that the Settings submenu renders the unified overview and new links, expands/collapses correctly, and respects permissions.
-- [ ] Document the completed work and any follow-up actions in this file once the refactor ships.
+---
 
-### Completed Work (Why and What)
-- Implemented consolidated Settings submenu in AdminSidebar:
-  - Moved Users & Permissions, Security Center, Uploads (Quarantine), Cron Telemetry, and Integrations under Settings.
-  - Preserved existing permission gates (e.g., USERS_VIEW) on relocated links.
-- Registered Settings Overview in central SETTINGS_REGISTRY to avoid hard-coded duplication and ensure consistency with SettingsNavigation.
-- Fixed incorrect import path in /admin/settings page to use components/admin/settings/SettingsNavigation to ensure sidebar navigation renders correctly.
-- Resolved TypeScript error by adding 'overview' to SettingsCategoryKey in src/lib/settings/types.ts so SETTINGS_REGISTRY entry is valid.
+## New Work: Settings Overview (priority)
+Goal: Build a polished Settings Overview page that matches the admin dashboard aesthetic and workflow. Provide quick system health checks, actionable controls, recent activity, and fast access to frequently-used settings.
 
-### Next Steps
-- Typecheck and navigation-specific tests were skipped per request and marked completed; manual verification remains required.
-- Verify permissions visibility and active route highlighting for all relocated links.
-- Perform manual UI verification for expand/collapse behavior and access control.
-- If analytics events exist for old paths, update event sources to new hierarchy and validate dashboards.
+Implementation checklist (actionable, ordered):
 
-### Manual Verification Checklist
-- Navigate to Admin → Settings → Communication
-- Click Export and confirm a JSON download is triggered
-- Click Import and upload a valid JSON; confirm Import button enables and sends POST to /api/admin/communication-settings/import
-- After import, confirm settings reload and modal closes
-- Validate permissions: Import/Export buttons are hidden without appropriate permissions
+1. [ ] Design & content spec (Deliverable: Figma or image + MD)
+   - Define the Overview layout: top KPI/status cards, quick-actions, recent activity/audit trail, pinned settings, and contextual help.
+   - Create content for each card (DB, Auth, Payments, Integrations, Deploy/Env, Last config change).
+   - Accessibility and responsive considerations.
+
+2. [ ] SettingsOverview component (src/components/admin/settings/SettingsOverview.tsx)
+   - Use existing SettingsShell, SettingsCard components for visual parity.
+   - Implement responsive card grid and sections for "System Health", "Quick Actions", "Recent Changes", and "Pinned Settings".
+   - Add placeholders for actions (export/import, run diagnostics) wired to service calls.
+
+3. [ ] Service endpoints & client helpers
+   - Add minimal read endpoints or extend existing services in src/services/*-settings.service.ts to provide health data and recent activity.
+   - Use zod for response validation where applicable.
+
+4. [ ] Registry & routing
+   - Wire the Overview component into SETTINGS_REGISTRY (already contains /admin/settings route). Ensure nav highlights and breadcrumbs.
+   - Add a lightweight route page at src/app/admin/settings/overview/page.tsx (or reuse existing page.tsx to render component when route is /admin/settings).
+
+5. [ ] Quick actions implementation
+   - Implement actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings". Use existing API endpoints and ensure RBAC checks.
+   - Confirm imports validate JSON payloads server-side and return meaningful errors.
+
+6. [ ] Tests
+   - Unit tests for SettingsOverview rendering and card states.
+   - Integration tests for quick actions (mock service responses).
+   - Add e2e tests (Playwright) that cover visibility and actions for an admin user.
+
+7. [ ] Accessibility & Performance
+   - Run an accessibility pass and fix issues (ARIA, keyboard nav, color contrast).
+   - Ensure lazy-loading of heavy widgets (charts, logs) and server-side caching where appropriate.
+
+8. [ ] Documentation & rollout
+   - Update docs/admin-settings-enhancement-todo.md and components README describing use and how to extend registry widgets.
+   - Create developer notes for deploying (Netlify build variables, monitoring URLs) and telemetry events to instrument.
+
+9. [ ] Deploy & monitor
+   - Deploy to staging, run smoke tests, and monitor Sentry/telemetry for 24h after rollout.
+
+---
+
+## Deliverables & Acceptance Criteria
+- Settings Overview page implemented and accessible at /admin/settings for users with view permission.
+- All quick actions function and return success/failure states in UI.
+- RBAC respected: users without numeric permissions cannot view or act on restricted items.
+- Unit and integration tests added; Playwright e2e added.
+- Documented design, APIs, and rollout plan in this repo.
+
+---
+
+## Notes
+- Reuse existing components (SettingsShell, SettingsCard, StandardPage) and services wherever possible.
+- For design parity with marketing/home pages, consult src/components/home/hero-section.tsx and admin dashboard components for spacing and card patterns.
+- If you want, I can implement the SettingsOverview component and related services and open a PR.
