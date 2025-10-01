@@ -24,7 +24,7 @@ Implementation checklist (actionable, ordered):
    - Create content for each card (DB, Auth, Payments, Integrations, Deploy/Env, Last config change).
    - Accessibility and responsive considerations.
 
-2. [ ] SettingsOverview component (src/components/admin/settings/SettingsOverview.tsx)
+2. [x] SettingsOverview component (src/components/admin/settings/SettingsOverview.tsx) - implemented and wired into /admin/settings page
    - Use existing SettingsShell, SettingsCard components for visual parity.
    - Implement responsive card grid and sections for "System Health", "Quick Actions", "Recent Changes", and "Pinned Settings".
    - Add placeholders for actions (export/import, run diagnostics) wired to service calls.
