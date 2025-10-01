@@ -20,6 +20,16 @@
 ## Next Steps
 - [ ] Execute navigation refactor to nest all system links under Admin → Settings
 
+### Active TODOs
+- [ ] Audit AdminSidebar system section and settings registry for current structure and dependencies.
+- [ ] Design consolidated Settings submenu structure including relocated links and required permissions/icons.
+- [ ] Update AdminSidebar navigation data to reflect new Settings hierarchy.
+- [ ] Align SETTINGS_REGISTRY (or equivalent source) with new submenu entries.
+- [ ] Refactor related permission checks, analytics, and tests impacted by navigation changes.
+- [ ] Run `pnpm typecheck` and relevant sidebar/navigation test suites.
+- [ ] Manually verify Settings submenu behavior in admin UI.
+- [ ] Document outcomes and follow-ups in docs/admin-settings-enhancement-todo.md.
+
 ### Navigation Refactor Plan
 - [ ] Audit AdminSidebar system section and corresponding settings registry entries to capture current routes, permissions, and icon usage.
 - [ ] Design consolidated Settings submenu structure that includes Users & Permissions, Security, Uploads, Cron Telemetry, and Integrations while preserving permissions and badges.
