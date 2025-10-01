@@ -5,6 +5,9 @@
   - What: Added missing local state for Import modal (showImport, importData) and wired Export/Import controls.
   - Why: Enhancement/refactor of existing page to match established pattern used in other settings pages (clients, team, tasks), and to fix TS2304 errors.
   - Scope: src/app/admin/settings/communication/page.tsx
+- [x] Audit Admin Settings pages and fix issues
+  - What: Ensured consistent Export/Import controls and PermissionGate usage across settings pages; fixed missing PermissionGate import in booking settings page.
+  - Scope: src/app/admin/settings/booking/page.tsx (added PermissionGate import), verified clients/team/tasks/analytics/financial/company pages.
 
 ## Next Steps
 - [ ] Run full typecheck/build and address any additional TypeScript errors.
