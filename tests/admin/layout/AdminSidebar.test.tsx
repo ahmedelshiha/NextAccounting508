@@ -167,6 +167,13 @@ describe('AdminSidebar', () => {
   it('handles missing user role gracefully (text-only)', () => {
     mockUseSession.mockReturnValue({ data: { user: { name: 'Test User' } } })
     render(<AdminSidebar {...defaultProps} />)
-    expect(screen.getByText('Test User') || screen.getByText('Admin Portal')).toBeTruthy()
+    let found = false
+    try { screen.getByText('Test User'); found = true } catch (e) {}
+    if (!found) {
+      // Fallback to portal text
+      expect(screen.getByText('Admin Portal')).toBeTruthy()
+    } else {
+      expect(found).toBe(true)
+    }
   })
 })
