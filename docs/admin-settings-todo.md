@@ -44,11 +44,11 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
   - Outcome: registry file compiles and tests pass.
 
 1.2 Duplicate-route and key check
-- [ ] Create script `scripts/check-settings-registry.ts` that validates:
+- [x] Create script `scripts/check-settings-registry.js` that validates:
   - All registry `key` values are unique.
   - No registry `route` collides with another registry route.
   - No registry `route` collides with existing top-level admin routes (scan `src/app/admin/**/page.tsx`).
-- [ ] Add CI job to run the script on PRs (update CI config / package.json).
+- [x] Add CI job to run the script on PRs (CI workflow `.github/workflows/ci.yml` runs `pnpm ci:preflight`).
   - Outcome: PRs fail early if registry problems introduced.
 
 1.3 Inventory verification (performed)
