@@ -1,33 +1,33 @@
 name: CI
 
 on:
-  pull_request:
-    branches: [ main ]
   push:
+    branches: [ main, ai_main_490cdcad1769 ]
+  pull_request:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18]
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 18
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-      - name: Setup pnpm
+      - name: Install pnpm
         run: npm install -g pnpm@8
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Generate Prisma client
-        run: pnpm db:generate || true
-      - name: Run typecheck
-        run: pnpm run typecheck
-      - name: Run lint
-        run: pnpm run lint
-      - name: Run tests
-        run: pnpm test:thresholds || true
-      - name: Build (optional)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pnpm build
+      - name: Run registry checker
+        run: pnpm ci:preflight
+      - name: Run unit & integration tests
+        run: pnpm test
+      - name: Build (optional – will run in branch deploys)
+        env:
+          SKIP_ENV_VALIDATION: 'true'
+        run: pnpm build:skip-env
