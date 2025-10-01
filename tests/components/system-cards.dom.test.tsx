@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
 // Use actual testing-library react (bypass test alias) in jsdom tests
-let render: any, screen: any, fireEvent: any
+let render: any, screen: any, fireEvent: any, waitFor: any
 beforeEach(async () => {
   const path = require.resolve('@testing-library/react')
   const rtl = await vi.importActual(path)
   render = rtl.render
   screen = rtl.screen
   fireEvent = rtl.fireEvent
+  waitFor = rtl.waitFor
 })
 
 import SystemCardsClient from '@/components/admin/settings/SystemCardsClient'
