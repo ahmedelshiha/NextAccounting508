@@ -161,6 +161,7 @@ export class BookingSettingsService {
     const updated = (await this.getBookingSettings(tenantId)) as BookingSettings
     // Refresh cache with updated value
     await cache.set(this.cacheKey(tenantId), updated, 300)
+    try { await logAudit({ action: 'booking-settings:update', details: { tenantId, sections: Object.keys(updates || {}) } }) } catch {}
     return updated
   }
 
