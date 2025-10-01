@@ -7,7 +7,7 @@ import { Settings } from 'lucide-react'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
-import SettingsNavigation from '@/components/admin/SettingsNavigation'
+import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 
 export default function AdminSettingsPage() {
   const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
