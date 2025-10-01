@@ -9,6 +9,7 @@ import type { ComponentType } from 'react'
 export type Permission = string
 
 export type SettingsCategoryKey =
+  | 'overview'
   | 'organization'
   | 'serviceManagement'
   | 'booking'
