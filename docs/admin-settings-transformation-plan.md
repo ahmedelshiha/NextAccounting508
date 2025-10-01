@@ -25,130 +25,145 @@ Observations:
 
 Conclusion: foundational pieces exist (registry, navigation, permission wrapper); the task is to consolidate, re-route, and standardize the UI and behavior.
 
+## System tab — full inventory (items to migrate)
+The AdminSidebar `system` section currently contains the following items and subpages (source: src/components/admin/layout/AdminSidebar.tsx):
+
+- Settings (/admin/settings)
+  - Children come from SETTINGS_REGISTRY and typically include: General, Booking Settings, Currencies, Financial, Communication, Tasks, etc.
+- Users & Permissions (/admin/users)
+  - Users (/admin/users)
+  - Roles (/admin/roles)
+  - Permissions (/admin/permissions)
+- Security (/admin/security)
+  - Security Center (/admin/security)
+  - Audits (/admin/audits)
+  - Compliance (/admin/compliance)
+- Uploads (/admin/uploads)
+  - Quarantine (/admin/uploads/quarantine)
+- Cron Telemetry (/admin/cron-telemetry)
+- Integrations (/admin/integrations)
+
+All of these must be discoverable and manageable from the unified Settings surface. Some settings pages are already under /admin/settings/*; others (users, roles, permissions, security, audits, integrations) need to be surfaced inside the settings navigation and routed under /admin/settings where appropriate, or linked prominently from within settings.
+
 ## High-level design
-1. Canonical registry: Ensure src/lib/settings/registry exports a complete list of setting modules with metadata: { key, label, route, icon, permission, order, group }. This becomes the single source-of-truth.
-2. Single settings layout: Create or extend a SettingsShell component (or SettingsLayout) used on /admin/settings and all nested settings routes. Responsibilities:
+1. Canonical registry: Ensure src/lib/settings/registry exports a complete list of setting modules with metadata: { key, label, route, icon, permission, order, group } and includes mappings for Users & Permissions, Security, Uploads, Cron Telemetry, Integrations, etc.
+2. Single settings layout: Create or extend a SettingsShell component used on /admin/settings and nested routes. Responsibilities:
    - Render SettingsNavigation (left) — driven by registry and permission checks.
-   - Render a header (title, breadcrumbs, quick actions) and main content area.
+   - Render header (title, breadcrumbs, quick actions) and main content area.
    - Provide contextual helpers (Save/Reset), and a consistent modal/import/export experience.
-3. Route consolidation: Move or alias system routes to live under /admin/settings where appropriate. Example:
+3. Route consolidation: Move or alias system routes to live under /admin/settings where appropriate. Example mapping:
    - /admin/settings (General)
-   - /admin/settings/booking
-   - /admin/settings/users (Users & Permissions)
-   - /admin/settings/security
-   - /admin/settings/integrations
-   - /admin/settings/uploads
-   Keep legacy top-level routes as redirects or thin wrappers where necessary (to preserve external links/backwards compatibility).
+   - /admin/settings/booking (Booking Settings)
+   - /admin/settings/currencies (Currencies)
+   - /admin/settings/users (Users & Permissions – wrapper linking Users/Roles/Permissions)
+   - /admin/settings/security (Security Center, Audits, Compliance)
+   - /admin/settings/integrations (Integrations)
+   - /admin/settings/uploads (Uploads / Quarantine)
+   - /admin/settings/cron (Cron Telemetry)
+   Keep legacy top-level routes as redirects or thin wrappers where necessary to preserve external links.
 4. Centralize permissions and audit logging:
-   - Continue using PermissionGate but add a lightweight HOC/helper for settings pages to automatically wrap page components and emit audit events when a settings change is saved.
-5. UI/UX
-   - Left nav: vertical list of registry items with grouping (General, Booking, Financial, Integrations, Security, Platform).
-   - Main: responsive grid of cards on top-level /admin/settings for settings overview and quick links.
+   - Continue using PermissionGate but add a helper that wraps settings pages to emit audit events on save/update.
+5. UI/UX:
+   - Left nav: grouped list of settings (General, Platform, Security, Integrations) with badges and ordering defined by registry.
+   - Main: responsive grid of cards on top-level /admin/settings for overview and quick access.
    - Each settings page: consistent header, Save/Reset controls, Import/Export controls (when supported), and inline help.
 
+## Migration plan (detailed)
+For each system item below, the plan shows target route, acceptance criteria and implementation notes.
+
+1) Settings (registry-driven)
+- Target: /admin/settings and /admin/settings/* for children
+- Acceptance: All registry entries appear in SettingsNavigation and their pages render inside SettingsShell.
+- Notes: Normalize registry entries with group/order metadata; lazy-load heavy pages.
+
+2) Users & Permissions
+- Target: /admin/settings/users (landing) with links or nested child routes for users/roles/permissions (/admin/settings/users/list, /admin/settings/users/roles, /admin/settings/users/permissions)
+- Acceptance: Existing user management pages are reachable under settings; permission checks remain enforced (PERMISSIONS.USERS_VIEW, USERS_MANAGE).
+- Notes: Prefer thin wrapper pages referencing existing implementations under src/app/admin/users/* to avoid duplication. Add redirects from /admin/users -> /admin/settings/users.
+
+3) Security
+- Target: /admin/settings/security with nested tabs or subsections for Security Center, Audits, Compliance.
+- Acceptance: Security workflows (audit logs, compliance pages) render inside SettingsShell; audit & monitoring hooks enabled.
+- Notes: Keep audit logs route and ensure retention and RBAC checks unchanged.
+
+4) Uploads
+- Target: /admin/settings/uploads and /admin/settings/uploads/quarantine
+- Acceptance: Upload quarantine page appears under settings and functionality unchanged.
+- Notes: Ensure file upload/Post handlers and quarantine client remain accessible.
+
+5) Cron Telemetry
+- Target: /admin/settings/cron or /admin/settings/telemetry
+- Acceptance: Cron telemetry dashboard accessible from settings and preserves read permissions.
+
+6) Integrations
+- Target: /admin/settings/integrations
+- Acceptance: Integrations page(s) show under settings and maintain existing test/run capabilities; connections remain intact.
+
+7) Backwards compatibility
+- For any moved top-level route (e.g., /admin/users, /admin/security, /admin/integrations), provide thin redirect pages that perform a 1:1 internal redirect (Next.js redirect or client-side router push) to new /admin/settings route to avoid breaking links.
+
 ## Implementation plan (step-by-step)
-Priorities and estimated effort (small-medium-large):
-
-1) Preparation (small — 1-2 dev days)
-- Audit and normalize src/lib/settings/registry: ensure every settings page is registered with a unique key, route under /admin/settings, label, icon, and permission.
-- Add `group` and `order` metadata to registry entries to allow grouping and ordering in the nav.
-
-2) Create SettingsShell / Layout (small — 1-2 dev days)
-- File: src/components/admin/settings/SettingsShell.tsx (or extend existing SettingsShell if present).
-- Responsibilities: render SettingsNavigation, content container, consistent header, and common modals (Import/Export/Reset).
-- Ensure server and client rendering boundaries are correct (use client directive where needed).
-
-3) Migrate pages to nested routes (medium — 2-4 dev days)
-- Move or create wrappers for pages so they mount under /admin/settings/* using Next's nested routing (app directory):
-  - src/app/admin/settings/layout.tsx (wraps children with SettingsShell)
-  - For each settings page, ensure route path matches registry.route.
-- Create thin redirect pages for legacy locations if any important routes are used externally.
-
-4) Consolidate Users & Permissions into settings (medium — 3-5 dev days)
-- Move or import user management pages (src/app/admin/users/*) under src/app/admin/settings/users/* or provide a strong link in the settings nav.
-- Update Permission checks: roles and permission management tools should be accessible only when current user has PERMISSIONS.USERS_MANAGE, etc.
-- Consider adding an admin-only feature flag during rollout.
-
-5) Security & Auditing integration (medium — 3 dev days)
-- Wrap settings save/update actions with audit logging (src/lib/audit.ts) to record who changed what.
-- Integrate with Sentry for error capture in settings flows.
-
-6) Integrations & Cron pages (small — 1-2 dev days)
-- Move integrations and cron pages into settings, or add them as secondary registry items under the Integrations group, ensuring permissions remain intact.
-
-7) Testing (small — 2-3 dev days)
-- Unit tests for SettingsNavigation, SettingsShell, permission gating and registry transformation.
-- Integration/e2e tests for basic flows (navigating settings, saving, import/export).
-
-8) Documentation & Rollout (small — 1-2 dev days)
-- Update README/Docs: add migration notes, how to register a new settings page, and how to add permissions.
-- Rollout strategy: beta flag, gradual rollout and monitoring.
+1. Audit & normalize SETTINGS_REGISTRY; add missing system items (Users, Security, Uploads, Cron, Integrations) with group/order and permission metadata.
+2. Create SettingsShell: src/components/admin/settings/SettingsShell.tsx and app-level layout: src/app/admin/settings/layout.tsx to wrap nested settings pages.
+3. Update SettingsNavigation to support groups, ordering and expanded/collapsed behavior.
+4. Create thin redirect pages for legacy system routes (e.g., src/app/admin/users/page.tsx -> redirect to /admin/settings/users).
+5. Migrate or wrap existing pages to mount under /admin/settings. Start with Booking as POC, then migrate Users & Permissions, Security, Integrations, Uploads, Cron.
+6. Add audit logging and Sentry integration to settings save/update handlers.
+7. Test, QA and rollout behind feature flag.
 
 ## Files to create/update (concrete)
-- Add/ensure registry: src/lib/settings/registry.ts (normalize keys)
-- New layout: src/app/admin/settings/layout.tsx -> wraps children with SettingsShell
-- New component: src/components/admin/settings/SettingsShell.tsx
-- Update existing nav: src/components/admin/SettingsNavigation.tsx (already exists — ensure it reads new `group` & `order`) 
-- Update AdminSidebar.tsx to keep a single link to /admin/settings; ensure children are curated via registry (already wired)
-- Update: settings pages under src/app/admin/settings/* to conform to new layout (header, save handlers)
-- Migrate or alias: src/app/admin/users -> src/app/admin/settings/users (or thin redirect)
-
-## Developer-level implementation notes
-- Use SETTINGS_REGISTRY as authoritative and ensure imports are static where possible to enable tree-shaking. For heavier settings that are rarely used, use dynamic import() to code-split.
-- Keep PermissionGate and use it consistently: wrap entire settings layout and also critical actions (save/export/import) with an additional permission check.
-- Preserve existing CSS variables and Tailwind classes. Don’t alter color variables or break existing media queries.
-- When moving pages, add a simple redirect route file in the old location to avoid breaking bookmarks and external links — a 1:1 redirect to new nesting.
-- Preserve URLs where possible: prefer moving UI surface without changing public route if required; otherwise add redirects.
+- src/lib/settings/registry.ts — normalize and include all system items
+- src/components/admin/settings/SettingsShell.tsx
+- src/app/admin/settings/layout.tsx
+- src/components/admin/SettingsNavigation.tsx — ensure support for groups/order
+- Redirect wrappers under src/app/admin/* for legacy system routes
+- Migrate/wrap existing pages under src/app/admin/settings/*
 
 ## Permission & Data migration considerations
-- Permissions: Consolidation doesn’t change permissions semantics, but you must ensure registry entries include correct PERMISSIONS.* values. Use centralized permission constants from src/lib/permissions.
-- Data: No DB schema changes necessarily required. If moving to central settings model (persisted setting items), consider adding a `settings` table or using existing settings storage; scope this separately.
+- Permissions remain enforced via PermissionGate. Use centralized PERMISSIONS constants.
+- No DB schema changes required for UI migration; if centralizing persisted settings, plan a separate migration for a `settings` store/table.
 
 ## QA & Testing plan
-- Unit tests for: registry mapping, SettingsNavigation, SettingsShell rendering and permission filtering.
-- Integration tests: navigation flows, create/update flows for a sample settings page (booking settings), export/import roundtrip.
-- E2E: critical path: visit /admin/settings -> open Booking -> save changes -> verify audit log and UI toast.
+- Unit tests for registry mapping and SettingsNavigation permission filtering.
+- Integration tests for navigation flows and sample save flow.
+- E2E tests for critical path: /admin/settings -> open Booking -> save -> audit event.
 
 ## Rollout & monitoring
-- Release behind a feature flag (config: `FEATURE_UNIFIED_SETTINGS=true`).
-- Monitor: Sentry errors, usage telemetry (how often users click moved links), and user feedback.
-- Keep redirects for at least 30 days; log broken/404 hits to find missed links.
+- Feature flagged rollout, monitor Sentry and usage telemetry, keep redirects for at least 30 days.
 
 ## Risks & mitigation
-- Risk: Broken bookmarks and external links. Mitigation: add redirects and deprecation notice.
-- Risk: Permission regressions. Mitigation: tight unit tests, code review and RBAC tests.
-- Risk: Large settings pages may increase bundle size. Mitigation: lazy-load heavy editors.
+- Bookmarks/external links: mitigate via redirects.
+- Permissions regressions: mitigate via RBAC tests and review.
+- Bundle size: mitigate via lazy-loading.
 
 ## Timeline (example)
 - Discovery & registry normalization: 2 days
 - SettingsShell & layout: 2 days
-- Page migration (booking/financial/communication): 4 days
-- Users & Security consolidation: 5 days
+- Page migration (full system tab): 7 days
 - Testing & rollout: 3 days
-- Total (approx): 16 days (1 developer)
+- Total (approx): 14 days (1 developer)
 
 ## Concrete next steps (actionable)
-1. Audit SETTINGS_REGISTRY and add `group`/`order` fields.
+1. Audit SETTINGS_REGISTRY and add `group`/`order` fields; ensure it contains mappings for Users, Security, Uploads, Cron, Integrations.
 2. Implement src/app/admin/settings/layout.tsx and src/components/admin/settings/SettingsShell.tsx.
-3. Migrate a single page (Booking) into the new layout and validate flows + tests.
-4. Migrate remaining pages in small batches, adding redirects for legacy routes.
+3. Migrate Booking settings as a POC and then migrate remaining system items in small batches.
+4. Add redirects for legacy system routes.
 5. Consolidate Users & Permissions last and ensure thorough RBAC testing.
 
 ## Recommended MCP integrations (available in Builder.io)
-These MCP integrations are recommended for various parts of the plan — include all available MCP servers as requested:
-
-- Builder.io (CMS & content): Use for help content, settings documentation pages, and marketing landing management. Connect via [Open MCP popover](#open-mcp-popover) — Connect to Builder.io.
-- Neon (serverless Postgres): Useful if you need a dedicated database for settings or feature flags. Connect via [Connect to Neon](#open-mcp-popover).
-- Netlify (hosting & deployment): If deploying there, use Netlify for CDN and deployment automation — [Connect to Netlify](#open-mcp-popover).
-- Zapier (automation): Good for automating notifications when settings change or for integration workflows — [Connect to Zapier](#open-mcp-popover).
-- Figma (design -> code): Use Builder.io Figma plugin to import design iterations for the Settings UI. Get plugin from the MCP Servers section or at the plugin URL: https://www.figma.com/community/plugin/747985167520967365/builder-io-ai-powered-figma-to-code-react-vue-tailwind-more
-- Supabase (auth & DB): Alternative to Neon for auth/DB; useful if you prefer an all-in-one backend — [Connect to Supabase](#open-mcp-popover).
-- Sentry (error monitoring): Integrate to capture issues during rollout — [Connect to Sentry](#open-mcp-popover).
-- Linear (issue tracking): Track migration tasks and bugs during the rollout — [Connect to Linear](#open-mcp-popover).
-- Notion (docs): Publish migration docs/runbook to the team workspace — [Connect to Notion](#open-mcp-popover).
-- Context7 (docs lookup): Use for up-to-date library docs and technical reference while implementing changes — [Connect to Context7](#open-mcp-popover).
-- Semgrep (security scanning): Run SAST checks on new code to avoid regressions — [Connect to Semgrep](#open-mcp-popover).
-- Prisma Postgres (ORM): If you manage schema migrations with Prisma, use this to validate DB changes — [Connect to Prisma](#open-mcp-popover).
+Include all recommended MCPs and how they help the migration and rollout:
+- Builder.io (CMS & content): use for help content and settings documentation — [Open MCP popover](#open-mcp-popover).
+- Neon (serverless Postgres): for a dedicated settings database or feature flags — [Connect to Neon](#open-mcp-popover).
+- Netlify (hosting & deployment): use Netlify for deployment automation — [Connect to Netlify](#open-mcp-popover).
+- Zapier (automation): trigger notifications or workflows when settings change — [Connect to Zapier](#open-mcp-popover).
+- Figma (design -> code): import designs via the Builder.io Figma plugin — get plugin via MCP Servers or the plugin URL.
+- Supabase (auth & DB): alternative storage/auth option; useful for quick prototyping — [Connect to Supabase](#open-mcp-popover).
+- Sentry (error monitoring): capture errors during migration/rollout — [Connect to Sentry](#open-mcp-popover).
+- Linear (issue tracking): track migration tasks & bugs — [Connect to Linear](#open-mcp-popover).
+- Notion (docs): publish runbooks & migration notes — [Connect to Notion](#open-mcp-popover).
+- Context7 (docs lookup): use for library docs and references — [Connect to Context7](#open-mcp-popover).
+- Semgrep (security scanning): run SAST checks on new code — [Connect to Semgrep](#open-mcp-popover).
+- Prisma Postgres (ORM): help validate DB schema and migrations if needed — [Connect to Prisma](#open-mcp-popover).
 
 ## Acceptance criteria
 - All system-level pages reachable under /admin/settings with consistent left navigation.
@@ -159,8 +174,4 @@ These MCP integrations are recommended for various parts of the plan — include
 
 ---
 
-If you want, I can:
-- Start implementing the SettingsShell and layout and migrate the Booking settings page as the first PR.
-- Create the registry audit changes in a branch and open a draft PR.
-
-Tell me which step you'd like me to begin with, or say "Start migration" to begin implementing the SettingsShell and migrate Booking settings as a proof-of-concept.
+If you want, I can begin by normalizing SETTINGS_REGISTRY and creating the SettingsShell and layout, then migrate Booking settings as a proof-of-concept. Say "Start migration" to begin implementation or specify which system items I should prioritize first.
