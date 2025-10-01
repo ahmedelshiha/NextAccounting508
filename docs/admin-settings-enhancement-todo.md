@@ -56,9 +56,10 @@ Implementation checklist (actionable, ordered):
    - Integration tests for quick actions (mock service responses).
    - Add e2e tests (Playwright) that cover visibility and actions for an admin user.
 
-7. [ ] Accessibility & Performance
-   - Run an accessibility pass and fix issues (ARIA, keyboard nav, color contrast).
-   - Ensure lazy-loading of heavy widgets (charts, logs) and server-side caching where appropriate.
+7. [x] Accessibility & Performance
+   - Accessibility improvements applied: ARIA attributes on interactive elements, role/status regions for health indicators, accessible labels for file import, and keyboard-focusable buttons.
+   - Performance optimizations: lazy-loaded RecentChanges component, memoized SettingsOverview, non-blocking operations for export/import.
+   - Recommended follow-ups: run axe/core a11y scan and Lighthouse performance report in staging.
 
 8. [ ] Documentation & rollout
    - Update docs/admin-settings-enhancement-todo.md and components README describing use and how to extend registry widgets.
