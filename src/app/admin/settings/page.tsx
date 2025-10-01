@@ -8,6 +8,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
 import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
+import SettingsOverview from '@/components/admin/settings/SettingsOverview'
 
 export default function AdminSettingsPage() {
   const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
