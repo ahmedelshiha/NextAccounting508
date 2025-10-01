@@ -681,7 +681,7 @@ Goal: Provide reliable export/import reset flows across settings and ensure idem
   - Enhancement to standardize export/import across core categories using the new helper, with RBAC, rate limits, Sentry monitoring, and audit logs where applicable.
 
   ✅ Next steps:
-  - Add UI affordances (Export/Import buttons) to each settings page, gated by permissions.
+  - Add UI affordances (Export/Import buttons) to each settings page, gated by permissions. (Partially done: Organization and Financial pages updated.)
   - Extend to Integration Hub with secret-masking rules (do not export raw secrets).
 - [x] 9.3 Add server-side import validation that accepts `sections` selection and `overwriteExisting` boolean. (Outcome: safe import endpoint)
 
