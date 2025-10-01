@@ -7,4 +7,5 @@ export function isUnifiedSettingsEnabled(): boolean {
   }
 }
 
-export default { isUnifiedSettingsEnabled }
+const featureFlags = { isUnifiedSettingsEnabled }
+export default featureFlags
