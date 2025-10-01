@@ -133,7 +133,7 @@ For each page:
 5.2 Audit logging on save
 - [x] Implement `src/lib/audit-settings.ts` with `auditSettingsChange(userId, key, before, after)` calling existing audit infra.
 - [x] Update settings `PUT`/`PATCH` handlers to call audit helper on success (updated booking and financial handlers).
-- [ ] Add tests verifying audit hook execution.
+- [x] Add tests verifying audit hook execution. (Added unit test for audit-settings helper)
 - Outcome: audit trail exists for all settings changes.
 
 5.3 Feature flag & safety
