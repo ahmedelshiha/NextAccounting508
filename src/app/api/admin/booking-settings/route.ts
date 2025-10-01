@@ -35,8 +35,9 @@ export async function PUT(req: NextRequest) {
     const validated = await service.validateSettingsUpdate(tenantId, updates)
     if (!validated.isValid) return NextResponse.json({ error: 'Settings validation failed', errors: validated.errors, warnings: validated.warnings }, { status: 400 })
 
+    const before = await service.getBookingSettings(tenantId)
     const settings = await service.updateBookingSettings(tenantId, updates)
-    try { await logAudit({ action: 'booking-settings:update', actorId: session.user.id, details: { tenantId, updates } }) } catch {}
+    try { await auditSettingsChange((session.user as any).id, 'booking-settings', before, settings) } catch {}
     return NextResponse.json({ settings, warnings: validated.warnings })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed to update booking settings' }, { status: 500 })
