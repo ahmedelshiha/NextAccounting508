@@ -101,8 +101,8 @@ Follow this repeatable process for each system item; start with Booking (POC), t
 
 4.1 POC: Booking settings (progress)
 - [x] Source exists: `src/app/admin/settings/booking/page.tsx` — validated and TypeScript build error fixed.
-- [ ] Wrap booking page with `SettingsShell` (if not already) and move visual header into shell.
-- [ ] Verify `PermissionGate` usage remains (`PERMISSIONS.BOOKING_SETTINGS_VIEW`).
+- [x] Wrap booking page with `SettingsShell` and move visual header into shell.
+- [x] Verify `PermissionGate` usage remains (`PERMISSIONS.BOOKING_SETTINGS_VIEW`).
 - [ ] Add unit/integration test: navigate to `/admin/settings/booking` and assert content loads and nav highlight.
 - Outcome: Booking page fully integrated into unified settings shell.
 
