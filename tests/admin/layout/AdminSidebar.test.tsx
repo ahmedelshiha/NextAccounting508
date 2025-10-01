@@ -111,7 +111,7 @@ describe('AdminSidebar', () => {
   })
 
   it('handles collapsed state correctly (text-only)', () => {
-    render(<AdminSidebar {...defaultProps} collapsed={true} />)
+    render(<AdminSidebar {...defaultProps} isCollapsed={true} />)
 
     // Brand text should be hidden when collapsed — assert absence via throwing
     expect(() => screen.getByText('NextAccounting')).toThrow()
@@ -153,7 +153,7 @@ describe('AdminSidebar', () => {
     // In text render, look for 'Help' as indicator of full state
     expect(screen.getByText('Help')).toBeTruthy()
 
-    render(<AdminSidebar {...defaultProps} collapsed={true} />)
+    render(<AdminSidebar {...defaultProps} isCollapsed={true} />)
     // Collapsed state should not contain full menu text
     expect(() => screen.getByText('Help')).toThrow()
   })
