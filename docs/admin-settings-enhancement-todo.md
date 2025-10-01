@@ -18,7 +18,17 @@
   - Scope: src/app/admin/settings/booking/page.tsx, src/app/api/admin/communication-settings/export/route.ts, src/app/api/admin/communication-settings/import/route.ts
 
 ## Next Steps
-- [ ] Manually verify /api/admin/communication-settings/export and /import endpoints end-to-end from the UI.
+- [ ] Execute navigation refactor to nest all system links under Admin → Settings
+
+### Navigation Refactor Plan
+- [ ] Audit AdminSidebar system section and corresponding settings registry entries to capture current routes, permissions, and icon usage.
+- [ ] Design consolidated Settings submenu structure that includes Users & Permissions, Security, Uploads, Cron Telemetry, and Integrations while preserving permissions and badges.
+- [ ] Update AdminSidebar navigation data so the System section exposes only the Settings parent with the five relocated submenu links.
+- [ ] Align SETTINGS_REGISTRY (or equivalent source) with the new submenu entries to avoid duplicate hard-coding.
+- [ ] Refactor related permission gates, analytics tracking, and automated tests impacted by the hierarchy shift.
+- [ ] Run `pnpm typecheck` and any sidebar/navigation test suites to confirm the refactor is production-ready.
+- [ ] Manually verify in the admin UI that the Settings submenu renders the new links, expands/collapses correctly, and respects permissions.
+- [ ] Document the completed work and any follow-up actions in this file once the refactor ships.
 
 ### Manual Verification Checklist
 - Navigate to Admin → Settings → Communication
