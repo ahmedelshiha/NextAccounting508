@@ -112,7 +112,7 @@ For each page:
 - [x] If implementation lives at top-level, create a thin wrapper under `/admin/settings/<key>/page.tsx` that imports and renders the existing component. (Created wrappers for: security/audits, uploads/quarantine, cron)
 - [ ] Update registry entry to point to canonical `/admin/settings/<key>` route.
 - [x] Ensure `PermissionGate` wraps page with correct permission constant.
-- [ ] Add automated tests (unit + integration) verifying access & save behavior.
+- [x] Add automated tests (unit + integration) verifying access & save behavior. (Added tests for Booking POC and Users landing page)
 - [ ] Add redirect from legacy route if needed.
 - Outcome: all pages reachable at canonical `/admin/settings/*` routes with tested access.
 
