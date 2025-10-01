@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { getTenantFromRequest } from '@/lib/tenant'
 import service from '@/services/booking-settings.service'
-import { logAudit } from '@/lib/audit'
+import { auditSettingsChange } from '@/lib/audit-settings'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
