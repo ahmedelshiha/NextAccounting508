@@ -1,7 +1,6 @@
 import PermissionGate from '@/components/PermissionGate'
 import StandardPage from '@/components/dashboard/templates/StandardPage'
 import BookingSettingsPanel from '@/components/admin/BookingSettingsPanel'
-import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
 export default function AdminBookingSettingsPage() {
