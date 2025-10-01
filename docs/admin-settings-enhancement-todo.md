@@ -41,6 +41,15 @@ Implementation checklist (actionable, ordered):
    - Implement actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings". Use existing API endpoints and ensure RBAC checks.
    - Confirm imports validate JSON payloads server-side and return meaningful errors.
 
+6. [ ] Sidebar behavior: Disable expand/collapse for Settings in AdminSidebar
+   - Make the Settings parent entry always expanded and non-collapsible so its submenu items are always visible.
+   - Implementation: treat the Settings item's children as static sublinks (do not toggle via expandedSections). Ensure permissions still filter items and active-route highlighting works.
+   - Update AdminSidebar tests to assert Settings submenu is always visible and not affected by collapse state.
+
+7. [ ] Tests
+   - Implement actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings". Use existing API endpoints and ensure RBAC checks.
+   - Confirm imports validate JSON payloads server-side and return meaningful errors.
+
 6. [ ] Tests
    - Unit tests for SettingsOverview rendering and card states.
    - Integration tests for quick actions (mock service responses).
