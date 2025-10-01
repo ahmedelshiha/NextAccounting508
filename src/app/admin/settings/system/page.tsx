@@ -5,6 +5,8 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { Toggle, NumberField, TextField } from '@/components/admin/settings/FormField'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface SystemState {
   maintenanceMode: boolean
