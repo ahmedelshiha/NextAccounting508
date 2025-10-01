@@ -21,6 +21,10 @@ export type SettingsCategoryKey =
   | 'securityCompliance'
   | 'integrationHub'
   | 'systemAdministration'
+  // Extended keys added for registry normalization
+  | 'users'
+  | 'uploads'
+  | 'cron'
 
 // Each tab exposes a typed get/put contract. Concrete schemas (Zod) are provided by category modules.
 export interface SettingsTab<Schema = any> {
@@ -43,6 +47,9 @@ export interface SettingsCategory {
   tabs?: SettingsTab<any>[]
   // Optional permission to control visibility in the registry-driven nav
   permission?: Permission
+  // Optional grouping and ordering metadata for navigation rendering
+  group?: string
+  order?: number
 }
 
 // Re-export Zod type helper for convenience in category implementations
