@@ -18,7 +18,7 @@ export const SystemSessionSchema = z.object({
 export const SystemAdministrationSettingsSchema = z.object({
   maintenanceMode: z.boolean().default(false),
   readOnlyMode: z.boolean().default(false),
-  featureFlags: z.record(z.boolean()).default({}),
+  featureFlags: z.record(z.string(), z.boolean()).default({}),
   backup: SystemBackupSchema.default({ enabled: false, retentionDays: 30 }),
   impersonation: SystemImpersonationSchema.default({ enabled: false, allowedRoles: ['ADMIN'] }),
   session: SystemSessionSchema.default({ maxSessionMinutes: 1440, singleSession: false }),
