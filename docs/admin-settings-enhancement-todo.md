@@ -37,9 +37,10 @@ Implementation checklist (actionable, ordered):
    - Wire the Overview component into SETTINGS_REGISTRY (already contains /admin/settings route). Ensure nav highlights and breadcrumbs.
    - Add a lightweight route page at src/app/admin/settings/overview/page.tsx (or reuse existing page.tsx to render component when route is /admin/settings).
 
-5. [ ] Quick actions implementation
-   - Implement actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings". Use existing API endpoints and ensure RBAC checks.
-   - Confirm imports validate JSON payloads server-side and return meaningful errors.
+5. [x] Quick actions implementation
+   - Implemented actions: "Run Connection Test", "Export Settings (JSON)", "Import Settings" via client helpers and server routes.
+   - Server routes added: /api/admin/settings/diagnostics (POST), /api/admin/settings/export (GET), /api/admin/settings/import (POST) with basic validation.
+   - Client helpers added in src/services/settings.service.ts and wired to the overview UI.
 
 6. [x] Sidebar behavior: Disable expand/collapse for Settings in AdminSidebar
    - Make the Settings parent entry always expanded and non-collapsible so its submenu items are always visible.
