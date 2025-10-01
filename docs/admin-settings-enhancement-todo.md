@@ -1,26 +1,7 @@
-# Admin Settings Enhancements
-
-## Completed
-- [x] Resolve build failure in Communication Settings page
-  - What: Added missing local state for Import modal (showImport, importData) and wired Export/Import controls.
-  - Why: Enhancement/refactor of existing page to match established pattern used in other settings pages (clients, team, tasks), and to fix TS2304 errors.
-  - Scope: src/app/admin/settings/communication/page.tsx
-- [x] Audit Admin Settings pages and fix issues
-  - What: Ensured consistent Export/Import controls and PermissionGate usage across settings pages; fixed missing PermissionGate import in booking settings page.
-  - Scope: src/app/admin/settings/booking/page.tsx (added PermissionGate import), verified clients/team/tasks/analytics/financial/company pages.
-- [x] Harden Communication Settings API endpoints
-  - What: Standardized REST responses with `NextResponse`, enforced permission guards, and added inline documentation for maintainers across GET, PUT, export, and import handlers.
-  - Why: Ensures manual verification can proceed with predictable responses, rate limiting, and error handling for the export/import JSON workflow.
-  - Scope: src/app/api/admin/communication-settings/route.ts, src/app/api/admin/communication-settings/export/route.ts, src/app/api/admin/communication-settings/import/route.ts
-- [x] Run full typecheck/build to baseline admin settings feature health
-  - What: Executed `pnpm typecheck` (tsconfig.build.json) and resolved duplicate import errors in booking settings and communication settings API routes.
-  - Why: Guarantees current code compiles before proceeding to manual verification and future enhancements.
-  - Scope: src/app/admin/settings/booking/page.tsx, src/app/api/admin/communication-settings/export/route.ts, src/app/api/admin/communication-settings/import/route.ts
-
-## Next Steps
+## High Priority: Admin Settings Navigation Refactor
 - [ ] Execute navigation refactor to nest all system links under Admin → Settings
 
-### Active TODOs
+### Active TODOs (High Priority)
 - [ ] Audit AdminSidebar system section and settings registry for current structure and dependencies.
 - [ ] Design consolidated Settings submenu structure including relocated links and required permissions/icons.
 - [ ] Update AdminSidebar navigation data to reflect new Settings hierarchy.
