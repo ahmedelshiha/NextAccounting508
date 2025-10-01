@@ -661,28 +661,24 @@ Goal: Provide reliable export/import reset flows across settings and ensure idem
 
   ✅ Next steps:
   - Adopt helper in remaining category routes as they add export/import.
-- [ ] 9.2 Complete Booking import UI and apply same pattern to Organization & Financial imports. (Outcome: import UI per category)
+- [x] 9.2 Complete Booking import UI and apply same pattern to Organization & Financial imports. (Outcome: import UI per category)
 
   ✅ What was completed:
-  - Organization export/import endpoints:
-    - GET src/app/api/admin/org-settings/export/route.ts
-    - POST src/app/api/admin/org-settings/import/route.ts (rate limit + audit + validation)
-  - Financial export/import endpoints:
-    - GET src/app/api/admin/financial-settings/export/route.ts (rate limit)
-    - POST src/app/api/admin/financial-settings/import/route.ts (rate limit + audit + validation)
-  - Additional categories export/import:
-    - Client: GET src/app/api/admin/client-settings/export/route.ts, POST src/app/api/admin/client-settings/import/route.ts
-    - Team: GET src/app/api/admin/team-settings/export/route.ts, POST src/app/api/admin/team-settings/import/route.ts
-    - Task: GET src/app/api/admin/task-settings/export/route.ts, POST src/app/api/admin/task-settings/import/route.ts
-    - Analytics: GET src/app/api/admin/analytics-settings/export/route.ts, POST src/app/api/admin/analytics-settings/import/route.ts
-    - Communication: GET src/app/api/admin/communication-settings/export/route.ts, POST src/app/api/admin/communication-settings/import/route.ts
+  - Organization and Financial pages already exposed Export/Import.
+  - Added Export/Import buttons and modals (permission-gated) to pages:
+    - Analytics: src/app/admin/settings/analytics/page.tsx
+    - Clients: src/app/admin/settings/clients/page.tsx
+    - Team: src/app/admin/settings/team/page.tsx
+    - Task & Workflow: src/app/admin/settings/tasks/page.tsx
+    - Communication: src/app/admin/settings/communication/page.tsx
+  - Buttons call category-specific GET /export and POST /import endpoints and refresh page state after import.
 
   ✅ Why it was done:
-  - Enhancement to standardize export/import across core categories using the new helper, with RBAC, rate limits, Sentry monitoring, and audit logs where applicable.
+  - Completes the standardized import/export UX across settings, aligning UI with existing endpoints and RBAC.
 
   ✅ Next steps:
-  - Add UI affordances (Export/Import buttons) to each settings page, gated by permissions. (Partially done: Organization and Financial pages updated.)
   - Extend to Integration Hub with secret-masking rules (do not export raw secrets).
+  - Add UI tests for new import/export actions.
 - [x] 9.3 Add server-side import validation that accepts `sections` selection and `overwriteExisting` boolean. (Outcome: safe import endpoint)
 
   ✅ What was completed:
