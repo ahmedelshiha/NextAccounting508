@@ -8,5 +8,12 @@
 
 ## Next Steps
 - [ ] Run full typecheck/build and address any additional TypeScript errors.
-- [ ] Add smoke tests for Import modal open/close and JSON parsing success/failure paths.
+- [x] Add smoke tests for Import modal open/close and JSON parsing success/failure paths. (Already present: tests/components/communication-settings.export-import.ui.test.tsx)
 - [ ] Manually verify /api/admin/communication-settings/export and /import endpoints end-to-end from the UI.
+
+### Manual Verification Checklist
+- Navigate to Admin → Settings → Communication
+- Click Export and confirm a JSON download is triggered
+- Click Import and upload a valid JSON; confirm Import button enables and sends POST to /api/admin/communication-settings/import
+- After import, confirm settings reload and modal closes
+- Validate permissions: Import/Export buttons are hidden without appropriate permissions
