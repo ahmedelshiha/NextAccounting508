@@ -83,6 +83,8 @@
     "@netlify/plugin-nextjs": "5.13.3",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.0",
+    "@testing-library/react": "^14.3.1",
     "@types/node": "^20",
     "@types/pg": "^8.11.6",
     "@types/react": "^19",
