@@ -49,12 +49,16 @@ describe('SystemCardsClient (jsdom)', () => {
 
     const dbBtn = await screen.findByTestId('test-db')
     await fireEvent.click(dbBtn)
-    const dbMessage = await screen.findByTestId('db-message')
-    expect(dbMessage.textContent).toMatch(/Connection Failed/)
+    await waitFor(() => {
+      const dbMessage = screen.getByTestId('db-message')
+      expect(dbMessage.textContent).toMatch(/Connection Failed/)
+    })
 
     const authBtn = await screen.findByTestId('test-auth')
     await fireEvent.click(authBtn)
-    const authMessage = await screen.findByTestId('auth-message')
-    expect(authMessage.textContent).toMatch(/Auth Incomplete/)
+    await waitFor(() => {
+      const authMessage = screen.getByTestId('auth-message')
+      expect(authMessage.textContent).toMatch(/Auth Incomplete/)
+    })
   })
 })
