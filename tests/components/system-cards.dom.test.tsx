@@ -3,7 +3,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 // Use actual testing-library react (bypass test alias) in jsdom tests
 let render: any, screen: any, fireEvent: any
 beforeEach(async () => {
-  const rtl = await vi.importActual('@testing-library/react')
+  const path = require.resolve('@testing-library/react')
+  const rtl = await vi.importActual(path)
   render = rtl.render
   screen = rtl.screen
   fireEvent = rtl.fireEvent
