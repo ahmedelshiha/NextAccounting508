@@ -24,66 +24,7 @@ export default function AdminSettingsPage() {
           <SettingsNavigation />
 
           <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Database</CardTitle>
-                  <CardDescription>Connection status</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700">NETLIFY_DATABASE_URL</div>
-                    <Badge className={hasDb ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                      {hasDb ? 'Configured' : 'Missing'}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Authentication</CardTitle>
-                  <CardDescription>NextAuth configuration</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700">NEXTAUTH_URL</div>
-                      <Badge className={process.env.NEXTAUTH_URL ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                        {process.env.NEXTAUTH_URL ? 'Configured' : 'Missing'}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-700">NEXTAUTH_SECRET</div>
-                      <Badge className={process.env.NEXTAUTH_SECRET ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                        {process.env.NEXTAUTH_SECRET ? 'Configured' : 'Missing'}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Environment</CardTitle>
-                  <CardDescription>Runtime flags and status</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <div className="flex items-center justify-between">
-                      <span>NODE_ENV</span>
-                      <span className="font-medium">{process.env.NODE_ENV || 'development'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Database configured</span>
-                      <span className="font-medium">{hasDb ? 'Yes' : 'No'}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <SettingsOverview />
           </div>
         </div>
       </StandardPage>
