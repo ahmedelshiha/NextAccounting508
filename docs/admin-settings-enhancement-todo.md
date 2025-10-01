@@ -22,7 +22,7 @@
 - [x] Design consolidated Settings submenu structure that includes Users & Permissions, Security, Uploads, Cron Telemetry, Integrations, and the unified /admin/settings overview while preserving permissions and badges.
 - [x] Update AdminSidebar navigation data so the System section exposes only the Settings parent with the unified overview plus the five relocated submenu links.
 - [x] Register /admin/settings overview in SETTINGS_REGISTRY (or equivalent source) alongside the new submenu entries to avoid duplicate hard-coding.
-- [ ] Refactor related permission gates, analytics tracking, and automated tests impacted by the hierarchy shift.
+- [x] Refactor related permission gates, analytics tracking, and automated tests impacted by the hierarchy shift.
 - [ ] Run `pnpm typecheck` and any sidebar/navigation test suites to confirm the refactor is production-ready.
 - [ ] Manually verify in the admin UI that the Settings submenu renders the unified overview and new links, expands/collapses correctly, and respects permissions.
 - [ ] Document the completed work and any follow-up actions in this file once the refactor ships.
