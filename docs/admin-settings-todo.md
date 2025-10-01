@@ -23,6 +23,13 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
 
 > Note: The audit and planning steps are complete. No registry normalization or route redirects have been applied to production code yet — those are next.
 
+- [x] Fixed ESLint warning in src/lib/featureFlags.ts (import/no-anonymous-default-export)
+  - Why: Lint blocked CI builds. Replaced anonymous default export with a named const default export (featureFlags) while preserving named export.
+  - Next steps: Run lint/typecheck in CI to validate; no functional changes expected.
+- [x] Fixed ESLint error in tests/integration/settings-navigation.dom.test.tsx (@typescript-eslint/no-require-imports)
+  - Why: Test used require() which violates TS ESLint rules. Switched to top-level vi.mock for next/navigation and next-auth before imports.
+  - Next steps: Run affected test and settings suite in CI; ensure nav grouping and permissions remain covered.
+
 ---
 
 ## 0. Pre-req: repo & env
