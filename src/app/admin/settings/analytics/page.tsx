@@ -18,8 +18,15 @@ export default function AnalyticsSettingsPage(){
   const [settings, setSettings] = useState<any>(null)
   const [pending, setPending] = useState<Record<string, any>>({})
   const [saving, setSaving] = useState(false)
+  const [showImport, setShowImport] = useState(false)
+  const [importData, setImportData] = useState<any>(null)
 
-  useEffect(()=>{ (async ()=>{ const r = await fetch('/api/admin/analytics-settings', { cache: 'no-store' }); if (r.ok) setSettings(await r.json()) })() }, [])
+  useEffect(()=>{ load() }, [])
+
+  async function load(){
+    const r = await fetch('/api/admin/analytics-settings', { cache: 'no-store' })
+    if (r.ok) setSettings(await r.json())
+  }
 
   function onChange(section: string, key: string, value: any){ setPending(p => ({ ...p, [section]: { ...(p as any)[section], [key]: value } })) }
 
@@ -93,6 +100,20 @@ export default function AnalyticsSettingsPage(){
               <p className="text-gray-600">Dashboards, metrics, exports, and retention</p>
             </div>
             <div className="flex items-center gap-3">
+              <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_EXPORT}>
+                <button onClick={async ()=>{
+                  const r = await fetch('/api/admin/analytics-settings/export');
+                  const d = await r.json();
+                  const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url; a.download = `analytics-settings-${new Date().toISOString().slice(0,10)}.json`;
+                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+                }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
+              </PermissionGate>
+              <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_IMPORT}>
+                <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
+              </PermissionGate>
               <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_EDIT}>
                 <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
               </PermissionGate>
@@ -117,6 +138,27 @@ export default function AnalyticsSettingsPage(){
           </div>
         </div>
       </div>
+      {showImport && (
+        <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_IMPORT}>
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Import Analytics & Reporting Settings</h3>
+              <p className="text-gray-600 mb-4">Upload a previously exported settings JSON.</p>
+              <div className="space-y-4">
+                <input type="file" accept="application/json" onChange={async (e)=>{
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try { const text = await file.text(); setImportData(JSON.parse(text)) } catch { setImportData(null) }
+                }} className="block w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-sm file:bg-white file:text-gray-700 hover:file:bg-gray-50" />
+                <div className="flex items-center justify-end gap-2">
+                  <button onClick={()=>setShowImport(false)} className="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                  <button onClick={async ()=>{ if (!importData) return; const res = await fetch('/api/admin/analytics-settings/import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(importData) }); if (res.ok) { await load(); setShowImport(false) } }} disabled={!importData} className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Import</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </PermissionGate>
+      )}
     </PermissionGate>
   )
 }
