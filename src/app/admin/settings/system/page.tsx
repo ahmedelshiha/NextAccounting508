@@ -72,15 +72,15 @@ export default function SystemAdministrationPage() {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Runtime Modes</h2>
             <div className="grid gap-4">
-              <Toggle label="Maintenance mode" checked={state.maintenanceMode} onChange={(v)=>setState(s=>({ ...s, maintenanceMode: v }))} />
-              <Toggle label="Read-only mode" checked={state.readOnlyMode} onChange={(v)=>setState(s=>({ ...s, readOnlyMode: v }))} />
+              <Toggle label="Maintenance mode" value={state.maintenanceMode} onChange={(v)=>setState(s=>({ ...s, maintenanceMode: v }))} />
+              <Toggle label="Read-only mode" value={state.readOnlyMode} onChange={(v)=>setState(s=>({ ...s, readOnlyMode: v }))} />
             </div>
           </section>
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Backups</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Toggle label="Enable backups" checked={state.backup.enabled} onChange={(v)=>setState(s=>({ ...s, backup: { ...s.backup, enabled: v } }))} />
+              <Toggle label="Enable backups" value={state.backup.enabled} onChange={(v)=>setState(s=>({ ...s, backup: { ...s.backup, enabled: v } }))} />
               <NumberField label="Retention (days)" value={state.backup.retentionDays} onChange={(v)=>setState(s=>({ ...s, backup: { ...s.backup, retentionDays: Number(v||0) } }))} />
             </div>
           </section>
@@ -88,7 +88,7 @@ export default function SystemAdministrationPage() {
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Impersonation</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Toggle label="Allow user impersonation" checked={state.impersonation.enabled} onChange={(v)=>setState(s=>({ ...s, impersonation: { ...s.impersonation, enabled: v } }))} />
+              <Toggle label="Allow user impersonation" value={state.impersonation.enabled} onChange={(v)=>setState(s=>({ ...s, impersonation: { ...s.impersonation, enabled: v } }))} />
               <TextField label="Allowed roles (comma-separated)" value={state.impersonation.allowedRoles.join(',')} onChange={(v)=>setState(s=>({ ...s, impersonation: { ...s.impersonation, allowedRoles: v.split(',').map(x=>x.trim()).filter(Boolean) } }))} />
             </div>
           </section>
@@ -97,7 +97,7 @@ export default function SystemAdministrationPage() {
             <h2 className="text-lg font-semibold">Sessions</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <NumberField label="Max session minutes" value={state.session.maxSessionMinutes} onChange={(v)=>setState(s=>({ ...s, session: { ...s.session, maxSessionMinutes: Number(v||0) } }))} />
-              <Toggle label="Single session per user" checked={state.session.singleSession} onChange={(v)=>setState(s=>({ ...s, session: { ...s.session, singleSession: v } }))} />
+              <Toggle label="Single session per user" value={state.session.singleSession} onChange={(v)=>setState(s=>({ ...s, session: { ...s.session, singleSession: v } }))} />
             </div>
           </section>
         </div>
