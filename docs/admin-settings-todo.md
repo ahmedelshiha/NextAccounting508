@@ -35,9 +35,9 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
 - [x] Generate inventory and audit doc: `docs/admin-settings-audit.md` — confirms current pages and duplicates.
 
 1.1 Normalize SETTINGS_REGISTRY
-- [ ] Edit `src/lib/settings/registry.ts`:
-  - [ ] Ensure every entry has: `key` (unique), `label`, `route` (starts with `/admin/settings`), `icon`, `permission` (or null), `group`, `order`.
-  - [ ] Add explicit entries for missing system items with canonical routes:
+- [x] Edit `src/lib/settings/registry.ts`:
+  - [x] Ensure every entry has: `key` (unique), `label`, `route` (starts with `/admin/settings`), `icon`, `permission` (or null), `group`, `order`.
+  - [x] Add explicit entries for missing system items with canonical routes:
     - Users & Permissions -> `/admin/settings/users`
     - Uploads -> `/admin/settings/uploads`
     - Cron Telemetry -> `/admin/settings/cron`
