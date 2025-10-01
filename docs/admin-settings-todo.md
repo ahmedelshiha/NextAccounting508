@@ -109,9 +109,9 @@ Follow this repeatable process for each system item; start with Booking (POC), t
 4.2 Repeatable migration steps (for each item: financial, communication, analytics, integrations, uploads, cron, users & permissions, security)
 For each page:
 - [ ] Confirm existing implementation file path.
-- [ ] If implementation lives at top-level, create a thin wrapper under `/admin/settings/<key>/page.tsx` that imports and renders the existing component.
+- [x] If implementation lives at top-level, create a thin wrapper under `/admin/settings/<key>/page.tsx` that imports and renders the existing component. (Created wrappers for: security/audits, uploads/quarantine, cron)
 - [ ] Update registry entry to point to canonical `/admin/settings/<key>` route.
-- [ ] Ensure `PermissionGate` wraps page with correct permission constant.
+- [x] Ensure `PermissionGate` wraps page with correct permission constant.
 - [ ] Add automated tests (unit + integration) verifying access & save behavior.
 - [ ] Add redirect from legacy route if needed.
 - Outcome: all pages reachable at canonical `/admin/settings/*` routes with tested access.
