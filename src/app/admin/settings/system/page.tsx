@@ -71,7 +71,18 @@ export default function SystemAdministrationPage() {
         }
       >
         <div className="space-y-8">
-          {/* Platform Health Widgets moved here from Settings landing */}
+          {/* Server-rendered summary (SSR-safe) */}
+          <div data-server-summary className="rounded-md border p-4 bg-muted">
+            <h3 className="font-semibold">Platform summary</h3>
+            <dl className="mt-2 text-sm">
+              <div className="flex justify-between"><dt>Database</dt><dd>{systemStatus.database ? 'Configured' : 'Missing'}</dd></div>
+              <div className="flex justify-between"><dt>Auth URL</dt><dd>{systemStatus.authentication.url ? 'Configured' : 'Missing'}</dd></div>
+              <div className="flex justify-between"><dt>Auth Secret</dt><dd>{systemStatus.authentication.secret ? 'Configured' : 'Missing'}</dd></div>
+              <div className="flex justify-between"><dt>NODE_ENV</dt><dd>{systemStatus.environment.nodeEnv}</dd></div>
+            </dl>
+          </div>
+
+          {/* Client widgets (richer UI) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -81,8 +92,8 @@ export default function SystemAdministrationPage() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-700">NETLIFY_DATABASE_URL</div>
-                  <Badge className={Boolean(process.env.NETLIFY_DATABASE_URL) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                    {Boolean(process.env.NETLIFY_DATABASE_URL) ? 'Configured' : 'Missing'}
+                  <Badge className={systemStatus.database ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    {systemStatus.database ? 'Configured' : 'Missing'}
                   </Badge>
                 </div>
               </CardContent>
@@ -97,14 +108,14 @@ export default function SystemAdministrationPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-700">NEXTAUTH_URL</div>
-                    <Badge className={process.env.NEXTAUTH_URL ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                      {process.env.NEXTAUTH_URL ? 'Configured' : 'Missing'}
+                    <Badge className={systemStatus.authentication.url ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {systemStatus.authentication.url ? 'Configured' : 'Missing'}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-gray-700">NEXTAUTH_SECRET</div>
-                    <Badge className={process.env.NEXTAUTH_SECRET ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                      {process.env.NEXTAUTH_SECRET ? 'Configured' : 'Missing'}
+                    <Badge className={systemStatus.authentication.secret ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {systemStatus.authentication.secret ? 'Configured' : 'Missing'}
                     </Badge>
                   </div>
                 </div>
@@ -121,11 +132,11 @@ export default function SystemAdministrationPage() {
               <div className="space-y-2 text-sm text-gray-700">
                 <div className="flex items-center justify-between">
                   <span>NODE_ENV</span>
-                  <span className="font-medium">{process.env.NODE_ENV || 'development'}</span>
+                  <span className="font-medium">{systemStatus.environment.nodeEnv}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Database configured</span>
-                  <span className="font-medium">{Boolean(process.env.NETLIFY_DATABASE_URL) ? 'Yes' : 'No'}</span>
+                  <span className="font-medium">{systemStatus.environment.databaseConfigured ? 'Yes' : 'No'}</span>
                 </div>
               </div>
             </CardContent>
