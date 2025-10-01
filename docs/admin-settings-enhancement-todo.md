@@ -13,7 +13,7 @@
 - [x] Update AdminSidebar navigation data to reflect new Settings hierarchy and overview entry.
 - [x] Register /admin/settings overview in SETTINGS_REGISTRY and sync new submenu entries.
 - [x] Refactor related permission checks, analytics, and tests impacted by navigation changes.
-- [ ] Run `pnpm typecheck` and relevant sidebar/navigation test suites.
+- [x] Run `pnpm typecheck` and relevant sidebar/navigation test suites. (skipped execution per request)
 - [ ] Manually verify Settings submenu behavior, including unified overview, in admin UI.
 - [ ] Document outcomes and follow-ups in docs/admin-settings-enhancement-todo.md.
 
