@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
-import { logAudit } from '@/lib/audit'
+import { auditSettingsChange } from '@/lib/audit-settings'
 import * as Sentry from '@sentry/nextjs'
 
 export async function GET(req: Request) {
