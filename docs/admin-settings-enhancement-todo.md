@@ -651,8 +651,31 @@ Dependencies: Phase 5 & Phase 6
 ## Phase 9 — Import/Export, Backup & Reset Flows
 Goal: Provide reliable export/import reset flows across settings and ensure idempotency.
 
-- [ ] 9.1 Standardize export format across categories and create `src/lib/settings/export.ts` helper. (Outcome: consistent export format)
+- [x] 9.1 Standardize export format across categories and create `src/lib/settings/export.ts` helper. (Outcome: consistent export format)
+
+  ✅ What was completed:
+  - Introduced SettingsExportBundle/SettingsImportBundle and helper functions (buildExportBundle, validateImportWithSchema) in src/lib/settings/export.ts.
+
+  ✅ Why it was done:
+  - New implementation to unify export/import shape across categories and reduce duplication.
+
+  ✅ Next steps:
+  - Adopt helper in remaining category routes as they add export/import.
 - [ ] 9.2 Complete Booking import UI and apply same pattern to Organization & Financial imports. (Outcome: import UI per category)
+
+  ✅ What was completed:
+  - Added Organization export/import endpoints:
+    - GET src/app/api/admin/org-settings/export/route.ts
+    - POST src/app/api/admin/org-settings/import/route.ts (with rate limit + audit + validation)
+  - Added Financial export endpoint:
+    - GET src/app/api/admin/financial-settings/export/route.ts (with rate limit)
+
+  ✅ Why it was done:
+  - Enhancement of existing settings to support standardized export/import flows, starting with Organization and Financial.
+
+  ✅ Next steps:
+  - Add Organization import UI and Financial import endpoint/UI when permissions and design are approved.
+  - Extend export/import to remaining categories using the helper.
 - [ ] 9.3 Add server-side import validation that accepts `sections` selection and `overwriteExisting` boolean. (Outcome: safe import endpoint)
 - [ ] 9.4 Add restore/backup tests: export → db snapshot apply import → verify settings. (Outcome: integration test)
 - [ ] 9.5 Add admin-only cron or manual job to snapshot settings daily to object storage (S3/Netlify blobs). (Outcome: scheduled snapshot configured)
