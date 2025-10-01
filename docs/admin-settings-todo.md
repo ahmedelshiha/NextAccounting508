@@ -85,8 +85,8 @@ This checklist orders tasks by dependencies. Complete parent tasks before depend
   - [ ] `/admin/users` -> `/admin/settings/users`
   - [ ] `/admin/roles` -> `/admin/settings/users/roles`
   - [ ] `/admin/permissions` -> `/admin/settings/users/permissions`
-  - [ ] `/admin/integrations` -> `/admin/settings/integrations` (if chosen canonical)
-  - [ ] `/admin/security` -> `/admin/settings/security`
+  - [x] `/admin/integrations` -> `/admin/settings/integrations` (created)
+  - [x] `/admin/security` -> `/admin/settings/security` (created)
   - [ ] `/admin/audits` -> `/admin/settings/security/audits`
   - [ ] `/admin/uploads/quarantine` -> `/admin/settings/uploads/quarantine`
   - [ ] `/admin/cron-telemetry` -> `/admin/settings/cron`
