@@ -1,6 +1,12 @@
 ## High Priority: Admin Settings Navigation Refactor
 - [ ] Execute navigation refactor to nest all system links under Admin → Settings
 
+### Pre-Coding Finalization Checklist
+1. Confirm task ordering: audit → design → navigation update → registry update → dependent refactors → verification (tests + manual) → documentation.
+2. Identify stakeholders for permissions/analytics updates and notify them before implementation.
+3. Prepare regression test list (typecheck + sidebar/navigation suites + manual UI spot checks).
+4. Ensure docs/admin-settings-enhancement-todo.md will be updated immediately after implementation.
+
 ### Active TODOs (High Priority)
 - [ ] Audit AdminSidebar system section and settings registry for current structure and dependencies.
 - [ ] Design consolidated Settings submenu structure including relocated links, unified /admin/settings overview, and required permissions/icons.
