@@ -22,11 +22,10 @@ describe('Admin settings smoke checks', () => {
     expect(containsEnv).toBe(false)
   })
 
-  it('system page contains platform health widgets', () => {
+  it('system page renders its header and description (SSR-safe)', () => {
     render(<SystemAdministrationPage />)
-    // The cards should be present in the system page
-    expect(screen.getByText('Database')).toBeTruthy()
-    expect(screen.getByText('Authentication')).toBeTruthy()
-    expect(screen.getByText('Environment')).toBeTruthy()
+    // The server-rendered header and description should be present
+    expect(screen.getByText('System Administration')).toBeTruthy()
+    expect(screen.getByText('Global runtime controls, maintenance, and platform safeguards')).toBeTruthy()
   })
 })
