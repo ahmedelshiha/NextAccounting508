@@ -7,6 +7,9 @@ describe('E2E: getAvailabilityForService respects tenant defaultTimezone', () =>
   const tenantId = 'test-tenant-tz'
   let serviceId: string | null = null
 
+  // register tenant for centralized cleanup
+  import('../testSetup').then(mod => mod.registerTenant(tenantId)).catch(() => {})
+
   beforeAll(async () => {
     const svc = await (await import('../fixtures/tenantFixtures')).seedTenantWithService({ tenantId, timezone: 'America/New_York', serviceName: 'TZ Test Service' })
     serviceId = svc.id
