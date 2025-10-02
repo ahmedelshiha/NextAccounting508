@@ -3,7 +3,6 @@ import SettingsShell from '@/components/admin/settings/SettingsShell'
 import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import BookingSettingsPanel from '@/components/admin/BookingSettingsPanel'
 import { PERMISSIONS } from '@/lib/permissions'
-import PermissionGate from '@/components/PermissionGate'
 
 export default function AdminBookingSettingsPage() {
   return (
