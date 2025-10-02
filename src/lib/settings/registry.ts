@@ -1,6 +1,6 @@
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign, Mail, Clock } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -21,6 +21,14 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     tabs: [],
     // permission optional — can be used by UI to hide entries
     permission: PERMISSIONS.ORG_SETTINGS_VIEW,
+  },
+  {
+    key: 'contact',
+    label: 'Contact',
+    route: '/admin/settings/contact',
+    icon: Mail,
+    tabs: [],
+    permission: PERMISSIONS.ANALYTICS_VIEW,
   },
   {
     key: 'serviceManagement',
@@ -77,6 +85,14 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: DollarSign,
     tabs: [],
     permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+  },
+  {
+    key: 'timezone',
+    label: 'Timezone & Localization',
+    route: '/admin/settings/timezone',
+    icon: Clock,
+    tabs: [],
+    permission: PERMISSIONS.ANALYTICS_VIEW,
   },
   {
     key: 'analyticsReporting',
