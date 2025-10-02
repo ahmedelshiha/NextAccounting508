@@ -37,7 +37,7 @@ const FlatServicesSettingsSchema = z.object({
   // Optional notification templates (nested)
   notification: z.object({
     templates: z.object({
-      serviceRequests: z.record(z.string()).optional(),
+      serviceRequests: NotificationServiceRequestTemplatesSchema.optional(),
     }).optional(),
   }).optional(),
 })
