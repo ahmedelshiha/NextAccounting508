@@ -404,7 +404,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         // role navigation preserved
         role="navigation"
         aria-label="Admin sidebar"
-        aria-expanded={!collapsedEffective}
         className={`${baseSidebarClasses} ${isMobile ? mobileSidebarClasses : ''}`}
         style={{ width: `${effectiveWidth}px` }}
       >

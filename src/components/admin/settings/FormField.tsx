@@ -1,10 +1,27 @@
 'use client'
 import React from 'react'
+import clsx from 'clsx'
 
-export function TextField({ label, value, onChange, placeholder, disabled = false, error }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean; error?: string }){
+type FieldBaseProps = {
+  label: string
+  containerClassName?: string
+  labelHidden?: boolean
+  error?: string
+}
+
+export function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  disabled = false,
+  error,
+  labelHidden = false,
+  containerClassName,
+}: FieldBaseProps & { value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean }){
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <div className={clsx('mb-4', containerClassName)}>
+      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <input
         value={value}
         onChange={(e)=>onChange(e.target.value)}
@@ -17,10 +34,19 @@ export function TextField({ label, value, onChange, placeholder, disabled = fals
   )
 }
 
-export function SelectField({ label, value, onChange, options, disabled = false, error }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean; error?: string }){
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  disabled = false,
+  error,
+  labelHidden = false,
+  containerClassName,
+}: FieldBaseProps & { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean }){
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <div className={clsx('mb-4', containerClassName)}>
+      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <select
         value={value}
         onChange={(e)=>onChange(e.target.value)}
@@ -60,16 +86,28 @@ export function Toggle({ label, value, onChange, disabled = false }: { label: st
   )
 }
 
-export function NumberField({ label, value, onChange, min, max, disabled = false, error }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean; error?: string }){
+export function NumberField({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  disabled = false,
+  error,
+  labelHidden = false,
+  containerClassName,
+  step,
+}: FieldBaseProps & { value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean; step?: number }){
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <div className={clsx('mb-4', containerClassName)}>
+      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <input
         type="number"
         value={String(value)}
         onChange={(e)=>onChange(Number(e.target.value))}
         min={min}
         max={max}
+        step={step}
         disabled={disabled}
         className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       />

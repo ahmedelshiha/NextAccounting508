@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import Tabs from '@/components/admin/settings/Tabs'
 import { TextField, SelectField, Toggle, NumberField } from '@/components/admin/settings/FormField'
@@ -185,7 +184,15 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
               <div className="space-y-2">
                 {categories.map((c, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <TextField value={c} onChange={(v) => setCategories((prev) => { const copy = [...prev]; copy[idx] = v; return copy })} placeholder="Category name" />
+                    <TextField
+                      label={`Category ${idx + 1}`}
+                      labelHidden
+                      containerClassName="flex-1 mb-0"
+                      value={c}
+                      onChange={(v) => setCategories((prev) => { const copy = [...prev]; copy[idx] = v; return copy })}
+                      placeholder="Category name"
+                      error={errors[`category_${idx}`]}
+                    />
                     <button type="button" onClick={() => setCategories((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
                   </div>
                 ))}
@@ -200,8 +207,25 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
               <div className="space-y-2">
                 {pricingRules.map((r, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <TextField value={r.currency} onChange={(v) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], currency: v.toUpperCase() }; return copy })} placeholder="USD" />
-                    <NumberField value={r.multiplier} onChange={(n) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], multiplier: Number(n) }; return copy })} min={0.0001} step={0.01} />
+                    <TextField
+                      label={`Currency ${idx + 1}`}
+                      labelHidden
+                      containerClassName="w-28 mb-0"
+                      value={r.currency}
+                      onChange={(v) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], currency: v.toUpperCase() }; return copy })}
+                      placeholder="USD"
+                      error={errors[`pricing_${idx}`]}
+                    />
+                    <NumberField
+                      label={`Multiplier ${idx + 1}`}
+                      labelHidden
+                      containerClassName="w-40 mb-0"
+                      value={r.multiplier}
+                      onChange={(n) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], multiplier: Number(n) }; return copy })}
+                      min={0.0001}
+                      step={0.01}
+                      error={errors[`pricing_val_${idx}`]}
+                    />
                     <button type="button" onClick={() => setPricingRules((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
                   </div>
                 ))}
@@ -216,7 +240,15 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
               <div className="space-y-2">
                 {currencyOverrides.map((c, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <TextField value={c} onChange={(v) => setCurrencyOverrides((prev) => { const copy = [...prev]; copy[idx] = v.toUpperCase(); return copy })} placeholder="USD" />
+                    <TextField
+                      label={`Currency override ${idx + 1}`}
+                      labelHidden
+                      containerClassName="flex-1 mb-0"
+                      value={c}
+                      onChange={(v) => setCurrencyOverrides((prev) => { const copy = [...prev]; copy[idx] = v.toUpperCase(); return copy })}
+                      placeholder="USD"
+                      error={errors[`currency_${idx}`]}
+                    />
                     <button type="button" onClick={() => setCurrencyOverrides((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
                   </div>
                 ))}

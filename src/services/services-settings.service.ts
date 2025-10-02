@@ -5,6 +5,7 @@ import {
   ServicesSettingsSchema,
   ServiceRequestSettingsSchema,
   ServicesCoreSettingsSchema,
+  NotificationServiceRequestTemplatesSchema,
   type ServicesSettings,
   type ServiceRequestSettings,
   type ServicesCoreSettings,
@@ -36,29 +37,54 @@ const FlatServicesSettingsSchema = z.object({
   // Optional notification templates (nested)
   notification: z.object({
     templates: z.object({
-      serviceRequests: z.record(z.string()).optional(),
+      serviceRequests: NotificationServiceRequestTemplatesSchema.optional(),
     }).optional(),
   }).optional(),
 })
 
 export type FlatServicesSettings = z.infer<typeof FlatServicesSettingsSchema>
 
+type ServiceRequestTemplateUpdates = Partial<z.infer<typeof NotificationServiceRequestTemplatesSchema>>
+
 // Updates shape allows partial nested groups for ergonomic patching
 type ServicesSettingsUpdates = {
   services?: Partial<ServicesCoreSettings>
   serviceRequests?: Partial<ServiceRequestSettings>
-  notification?: { templates?: { serviceRequests?: Record<string, string> } }
+  notification?: { templates?: { serviceRequests?: ServiceRequestTemplateUpdates } }
+}
+
+function mergeTemplateSettings(
+  baseTemplates?: ServiceRequestTemplateUpdates,
+  updates?: ServiceRequestTemplateUpdates,
+): ServiceRequestTemplateUpdates {
+  const next: Record<string, unknown> = { ...(baseTemplates ?? {}) }
+
+  if (updates) {
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === 'undefined' || value === null) {
+        delete next[key]
+      } else if (typeof value === 'string') {
+        next[key] = value
+      }
+    }
+  }
+
+  return NotificationServiceRequestTemplatesSchema.parse(next)
 }
 
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
   if (!updates) return base
+  const mergedTemplates = mergeTemplateSettings(
+    base.notification?.templates?.serviceRequests,
+    updates.notification?.templates?.serviceRequests,
+  )
+
   return ServicesSettingsSchema.parse({
     services: { ...base.services, ...(updates.services ?? {}) },
     serviceRequests: { ...base.serviceRequests, ...(updates.serviceRequests ?? {}) },
     notification: {
-      serviceRequests: {
-        ...(base.notification?.serviceRequests ?? {}),
-        ...(updates.notification?.templates?.serviceRequests ?? {}),
+      templates: {
+        serviceRequests: mergedTemplates,
       },
     },
   })
@@ -72,6 +98,11 @@ function normalizeFromLegacy(raw: Record<string, unknown>): ServicesSettings {
     allowCloning: parsedLegacy.allowCloning,
     featuredToggleEnabled: parsedLegacy.featuredToggleEnabled,
     priceRounding: parsedLegacy.priceRounding,
+    categories: parsedLegacy.categories,
+    pricingRules: parsedLegacy.pricingRules,
+    currencyOverrides: parsedLegacy.currencyOverrides,
+    versioningEnabled: parsedLegacy.versioningEnabled,
+    versionRetention: parsedLegacy.versionRetention,
   }
   const serviceRequests: Partial<ServiceRequestSettings> = {
     defaultRequestStatus: parsedLegacy.defaultRequestStatus,
@@ -80,7 +111,10 @@ function normalizeFromLegacy(raw: Record<string, unknown>): ServicesSettings {
     allowConvertToBooking: parsedLegacy.allowConvertToBooking,
     defaultBookingType: parsedLegacy.defaultBookingType,
   }
-  return mergeSettings(DEFAULT_SETTINGS, { services, serviceRequests })
+  const notification = parsedLegacy.notification
+    ? { templates: { serviceRequests: parsedLegacy.notification.templates?.serviceRequests } }
+    : undefined
+  return mergeSettings(DEFAULT_SETTINGS, { services, serviceRequests, notification })
 }
 
 async function readFile(): Promise<unknown> {
@@ -120,6 +154,13 @@ function coerceSettings(raw: unknown): ServicesSettings {
 }
 
 function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
+  const templates = NotificationServiceRequestTemplatesSchema.parse(
+    settings.notification?.templates?.serviceRequests ?? {},
+  )
+  const templateEntries = Object.entries(templates).filter(([, value]) => typeof value === 'string')
+  const normalizedTemplates = Object.fromEntries(templateEntries) as ServiceRequestTemplateUpdates
+  const hasTemplates = templateEntries.length > 0
+
   return {
     defaultCategory: settings.services.defaultCategory,
     defaultCurrency: settings.services.defaultCurrency,
@@ -136,12 +177,14 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
     autoAssignStrategy: settings.serviceRequests.autoAssignStrategy,
     allowConvertToBooking: settings.serviceRequests.allowConvertToBooking,
     defaultBookingType: settings.serviceRequests.defaultBookingType,
-    notification: settings.notification ? { templates: { serviceRequests: settings.notification.serviceRequests } } : undefined,
+    notification: hasTemplates ? { templates: { serviceRequests: normalizedTemplates } } : undefined,
   }
 }
 
 function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates {
   const parsed = FlatServicesSettingsSchema.parse(flat)
+  const templateUpdates = parsed.notification?.templates?.serviceRequests
+
   return {
     services: {
       defaultCategory: parsed.defaultCategory,
@@ -162,7 +205,7 @@ function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates
       allowConvertToBooking: parsed.allowConvertToBooking,
       defaultBookingType: parsed.defaultBookingType,
     },
-    notification: parsed.notification ? { templates: { serviceRequests: parsed.notification.templates?.serviceRequests ?? {} } } : undefined,
+    notification: typeof templateUpdates !== 'undefined' ? { templates: { serviceRequests: templateUpdates } } : undefined,
   }
 }
 
