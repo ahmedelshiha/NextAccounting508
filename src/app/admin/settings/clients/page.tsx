@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
+import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
