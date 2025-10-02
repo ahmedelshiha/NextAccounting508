@@ -64,7 +64,7 @@ export default async function RootLayout({
         <link rel="icon" href="/next.svg" />
         <meta name="theme-color" content="#0ea5e9" />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         {/* Global skip link for keyboard users */}
         <a
           href="#site-main-content"
