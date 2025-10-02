@@ -48,17 +48,19 @@ export default function SettingsNavigation({ className = '' }: { className?: str
           </ul>
         </nav>
 
-        <div className="bg-white border rounded-lg p-3">
-          <h4 className="text-xs font-semibold text-gray-500 mb-2">Quick Links</h4>
-          <ul className="text-sm space-y-1">
-            <li>
-              <a href="/admin/settings/booking" className="text-gray-600 hover:text-gray-800">Booking Settings</a>
-            </li>
-            <li>
-              <a href="/admin/settings/currencies" className="text-gray-600 hover:text-gray-800">Currency Management</a>
-            </li>
-          </ul>
-        </div>
+        {pathname !== '/admin/settings' && (
+          <div className="bg-white border rounded-lg p-3">
+            <h4 className="text-xs font-semibold text-gray-500 mb-2">Quick Links</h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <a href="/admin/settings/booking" className="text-gray-600 hover:text-gray-800">Booking Settings</a>
+              </li>
+              <li>
+                <a href="/admin/settings/currencies" className="text-gray-600 hover:text-gray-800">Currency Management</a>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
     </aside>
   )
