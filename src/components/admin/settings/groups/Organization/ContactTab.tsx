@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
+import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
 export default function ContactTab(){
   const [pending, setPending] = useState({ contactEmail: '', contactPhone: '', address: { line1: '', line2: '', city: '', region: '', postalCode: '', country: '' } })
@@ -8,21 +9,16 @@ export default function ContactTab(){
 
   useEffect(() => { (async () => {
     try {
-      const r = await fetch('/api/admin/org-settings')
-      if (r.ok) {
-        const j = await r.json()
-        const c = j?.contact || {}
-        setPending({ contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', address: c.address ?? { line1: '', line2: '', city: '', region: '', postalCode: '', country: '' } })
-      }
+      const j = await getOrgSettings()
+      const c = j?.contact || {}
+      setPending({ contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', address: c.address ?? { line1: '', line2: '', city: '', region: '', postalCode: '', country: '' } })
     } catch (e) { console.error(e) }
   })() }, [])
 
   async function save(){
     setSaving(true)
     try {
-      const body = { contact: pending }
-      const r = await fetch('/api/admin/org-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) console.error('Failed to save contact settings')
+      await updateOrgSettings({ contact: pending })
     } catch (e) { console.error(e) }
     setSaving(false)
   }

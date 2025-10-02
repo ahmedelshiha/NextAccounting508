@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { SelectField, TextField } from '@/components/admin/settings/FormField'
+import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
 export default function LocalizationTab(){
   const [pending, setPending] = useState({ defaultTimezone: 'UTC', defaultCurrency: 'USD', defaultLocale: 'en' })
@@ -8,21 +9,16 @@ export default function LocalizationTab(){
 
   useEffect(() => { (async () => {
     try {
-      const r = await fetch('/api/admin/org-settings')
-      if (r.ok) {
-        const j = await r.json()
-        const loc = j?.localization || {}
-        setPending({ defaultTimezone: loc.defaultTimezone ?? 'UTC', defaultCurrency: loc.defaultCurrency ?? 'USD', defaultLocale: loc.defaultLocale ?? 'en' })
-      }
+      const j = await getOrgSettings()
+      const loc = j?.localization || {}
+      setPending({ defaultTimezone: loc.defaultTimezone ?? 'UTC', defaultCurrency: loc.defaultCurrency ?? 'USD', defaultLocale: loc.defaultLocale ?? 'en' })
     } catch (e) { console.error(e) }
   })() }, [])
 
   async function save(){
     setSaving(true)
     try {
-      const body = { localization: pending }
-      const r = await fetch('/api/admin/org-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) console.error('Failed to save localization settings')
+      await updateOrgSettings({ localization: pending })
     } catch (e) { console.error(e) }
     setSaving(false)
   }

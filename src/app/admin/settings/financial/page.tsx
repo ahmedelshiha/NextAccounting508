@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
 export default function FinancialSettingsPage() {
   const [active, setActive] = useState('invoicing')
+  const searchParams = useSearchParams()
   const [settings, setSettings] = useState<any>({})
   const [pending, setPending] = useState<any>({})
   const [loading, setLoading] = useState(true)
@@ -15,6 +17,11 @@ export default function FinancialSettingsPage() {
   const [importData, setImportData] = useState<any>(null)
 
   useEffect(() => { load() }, [])
+  useEffect(()=>{
+    const t = searchParams.get('tab')
+    if (t && tabs.some(tab=>tab.key===t)) setActive(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
 
   async function load(){
     setLoading(true)

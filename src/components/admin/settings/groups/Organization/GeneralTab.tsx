@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { TextField } from '@/components/admin/settings/FormField'
+import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
 export default function OrgGeneralTab(){
   const [pending, setPending] = useState({ name: '', tagline: '', description: '', industry: '' })
@@ -9,23 +10,15 @@ export default function OrgGeneralTab(){
 
   useEffect(() => { (async () => {
     try {
-      const r = await fetch('/api/admin/org-settings')
-      if (r.ok) {
-        const j = await r.json()
-        setPending({ name: j?.general?.name ?? '', tagline: j?.general?.tagline ?? '', description: j?.general?.description ?? '', industry: j?.general?.industry ?? '' })
-      }
+      const j = await getOrgSettings()
+      setPending({ name: j?.general?.name ?? '', tagline: j?.general?.tagline ?? '', description: j?.general?.description ?? '', industry: j?.general?.industry ?? '' })
     } catch (e) { console.error(e) }
   })() }, [])
 
   async function save(){
     setSaving(true)
     try {
-      const body = { general: pending }
-      const r = await fetch('/api/admin/org-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) {
-        const j = await r.json().catch(()=>({}))
-        console.error('Failed to save organization settings', j)
-      }
+      await updateOrgSettings({ general: pending })
     } catch (e) { console.error(e) }
     setSaving(false)
   }

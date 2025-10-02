@@ -56,7 +56,7 @@ export default function SettingsNavigation({ className = '' }: { className?: str
                 <a href="/admin/settings/booking" className="text-gray-600 hover:text-gray-800">Booking Settings</a>
               </li>
               <li>
-                <a href="/admin/settings/currencies" className="text-gray-600 hover:text-gray-800">Currency Management</a>
+                <a href="/admin/settings/financial" className="text-gray-600 hover:text-gray-800">Financial Settings</a>
               </li>
             </ul>
           </div>
