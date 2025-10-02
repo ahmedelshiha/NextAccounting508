@@ -100,6 +100,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
     if (!defaultCategory?.trim()) nextErrors.defaultCategory = 'Required'
     if (!/^[A-Z]{3}$/.test(defaultCurrency)) nextErrors.defaultCurrency = 'Use 3-letter code (e.g., USD)'
     if (!Number.isInteger(priceRounding) || priceRounding < 0 || priceRounding > 6) nextErrors.priceRounding = '0–6 allowed'
+    if (!Number.isInteger(versionRetention) || versionRetention < 0 || versionRetention > 100) nextErrors.versionRetention = '0–100 allowed'
     if (!['SUBMITTED','IN_REVIEW','ASSIGNED','APPROVED','DRAFT','IN_PROGRESS','COMPLETED','CANCELLED'].includes(defaultRequestStatus)) nextErrors.defaultRequestStatus = 'Invalid value'
     if (!['round_robin','load_based','skill_based'].includes(autoAssignStrategy)) nextErrors.autoAssignStrategy = 'Invalid value'
     if (!['STANDARD','RECURRING','EMERGENCY','CONSULTATION'].includes(defaultBookingType)) nextErrors.defaultBookingType = 'Invalid value'
