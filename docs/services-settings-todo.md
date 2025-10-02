@@ -11,6 +11,15 @@ Progress log (most recent first)
 - ✅ Next steps
   - Wire notification sender (notification service) to consume these templates when sending emails/SMS; add tests for template rendering and edge cases (missing variables).
 
+### Completed: Categories & pricing rules UI and persistence (task 6.1)
+- ✅ What was completed
+  - Implemented categories (CRUD) and pricing rules (per-currency multiplier) UI inside `src/components/admin/settings/ServicesSettingsModal.tsx` under the Services tab.
+  - Extended `src/schemas/settings/services.ts` to include `services.categories` and `services.pricingRules` and updated `src/services/services-settings.service.ts` to persist and return these values.
+- ✅ Why it was done
+  - Allow administrators to manage service categories and default pricing adjustments per currency directly from the Settings modal, persisted to the settings store for use by service creation and pricing engines.
+- ✅ Next steps
+  - Integrate pricing overrides into the pricing engine (`src/lib/booking/pricing.ts` or related) and add unit tests for pricing rule application.
+
 
 ### Completed: Enforced UI permissions for Services settings (task 7.2)
 - ✅ What was completed
