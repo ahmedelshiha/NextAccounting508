@@ -278,6 +278,18 @@ export class ServicesService {
     if (type === 'clone') {
       const createdIds: string[] = [];
       const errors: Array<{ id: string; error: string }> = [];
+
+      // Check global settings: cloning might be disabled
+      try {
+        const settings = await servicesSettingsService.get(tenantId)
+        if (!settings?.services?.allowCloning) {
+          // Return errors for all ids indicating cloning disabled
+          return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Cloning disabled by settings' })) } as any
+        }
+      } catch (e) {
+        return { updatedCount: 0, errors: serviceIds.map(id => ({ id, error: 'Failed to verify settings' })) } as any
+      }
+
       for (const id of serviceIds) {
         try {
           const orig = await this.getServiceById(tenantId, id);
