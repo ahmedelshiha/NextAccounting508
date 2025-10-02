@@ -172,7 +172,10 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
             <NumberField label="Price rounding (decimals)" value={priceRounding} onChange={setPriceRounding} min={0} max={6} error={errors.priceRounding} />
 
             <div className="pt-3">
-              <Toggle label="Enable versioning for services" value={typeof (undefined) !== 'undefined' ? (true) : false} onChange={() => {}} />
+              <Toggle label="Enable versioning for services" value={versioningEnabled} onChange={setVersioningEnabled} />
+              <div className="mt-2">
+                <NumberField label="Version retention (max versions to keep)" value={versionRetention} onChange={setVersionRetention} min={0} max={100} error={errors.versionRetention} />
+              </div>
             </div>
 
             <div className="pt-4 border-t">
