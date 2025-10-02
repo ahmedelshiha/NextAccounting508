@@ -195,6 +195,21 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
               </div>
             </div>
 
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Currency Overrides</h4>
+              <div className="space-y-2">
+                {currencyOverrides.map((c, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <TextField value={c} onChange={(v) => setCurrencyOverrides((prev) => { const copy = [...prev]; copy[idx] = v.toUpperCase(); return copy })} placeholder="USD" />
+                    <button type="button" onClick={() => setCurrencyOverrides((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
+                  </div>
+                ))}
+                <div>
+                  <button type="button" onClick={() => setCurrencyOverrides((prev) => [...prev, 'USD'])} className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">Add currency</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 
