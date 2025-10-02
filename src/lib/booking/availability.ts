@@ -22,6 +22,8 @@ export type AvailabilityOptions = {
   businessHours?: BusinessHours
   // Reference time used to filter out past slots (defaults to now)
   now?: Date
+  // Optional timezone to evaluate business hours & "now" in tenant-local time (IANA TZ name)
+  timeZone?: string
 }
 
 export function toMinutes(str: string | number) {
