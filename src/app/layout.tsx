@@ -41,9 +41,13 @@ export default async function RootLayout({
 
   // Load organization default locale (server-side, no auth required for read)
   let orgLocale: string = 'en'
+  let orgName: string = 'Accounting Firm'
+  let orgLogoUrl: string | null = null
   try {
-    const row = await prisma.organizationSettings.findFirst({ select: { defaultLocale: true } })
+    const row = await prisma.organizationSettings.findFirst({ select: { defaultLocale: true, name: true, logoUrl: true } })
     orgLocale = (row?.defaultLocale as string) || 'en'
+    orgName = (row?.name as string) || orgName
+    orgLogoUrl = (row?.logoUrl as string | null) ?? null
   } catch {}
 
   return (
@@ -62,7 +66,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <TranslationProvider initialLocale={orgLocale as any}>
-          <ClientLayout session={session}>
+          <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined}>
             {children}
           </ClientLayout>
         </TranslationProvider>
