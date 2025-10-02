@@ -30,6 +30,9 @@ export async function cleanupTenant(tenantId: string) {
     await prisma.organizationSettings.deleteMany({ where: { tenantId } })
   } catch {}
   try {
-    await prisma.booking.deleteMany({ where: { tenantId } })
+    // Delete bookings for services that belong to this tenant
+    const svcs = await prisma.service.findMany({ where: { tenantId }, select: { id: true } }).catch(() => [])
+    const ids = svcs.map(s => s.id)
+    if (ids.length) await prisma.booking.deleteMany({ where: { serviceId: { in: ids } } })
   } catch {}
 }
