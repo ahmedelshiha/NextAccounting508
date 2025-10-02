@@ -1,11 +1,12 @@
 import prisma from '@/lib/prisma'
 
-export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string> }) {
-  const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours } = opts
+export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
+  const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
   await prisma.organizationSettings.deleteMany({ where: { tenantId } }).catch(() => {})
   await prisma.service.deleteMany({ where: { tenantId } }).catch(() => {})
 
-  await prisma.organizationSettings.create({ data: { tenantId, name: `${tenantId} Org`, defaultTimezone: timezone } })
+  const org = await prisma.organizationSettings.create({ data: { tenantId, name: `${tenantId} Org`, defaultTimezone: timezone } })
+  if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('organizationSettings', org.id)
 
   const svc = await prisma.service.create({ data: {
     name: serviceName ?? 'Fixture Service',
@@ -16,6 +17,7 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
     tenantId,
     businessHours: businessHours ?? { '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00' }
   }})
+  if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('service', svc.id)
 
   return svc
 }
