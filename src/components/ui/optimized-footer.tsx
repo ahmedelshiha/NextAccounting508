@@ -8,14 +8,12 @@ import { useOrgSettings } from '@/components/providers/SettingsProvider'
 
 export function OptimizedFooter({ orgName = 'Accounting Firm', orgLogoUrl, contactEmail, contactPhone, legalLinks }: { orgName?: string; orgLogoUrl?: string; contactEmail?: string; contactPhone?: string; legalLinks?: LegalLinks }) {
   // prefer centralized settings when provider present
-  try {
-    const ctx = useOrgSettings()
-    orgName = (ctx.settings?.name as string | undefined) ?? orgName
-    orgLogoUrl = (ctx.settings?.logoUrl as string | undefined) ?? orgLogoUrl
-    contactEmail = (ctx.settings?.contactEmail as string | undefined) ?? contactEmail
-    contactPhone = (ctx.settings?.contactPhone as string | undefined) ?? contactPhone
-    legalLinks = (ctx.settings?.legalLinks as LegalLinks | undefined) ?? legalLinks
-  } catch {}
+  const ctx = useOrgSettings()
+  orgName = (ctx?.settings?.name as string | undefined) ?? orgName
+  orgLogoUrl = (ctx?.settings?.logoUrl as string | undefined) ?? orgLogoUrl
+  contactEmail = (ctx?.settings?.contactEmail as string | undefined) ?? contactEmail
+  contactPhone = (ctx?.settings?.contactPhone as string | undefined) ?? contactPhone
+  legalLinks = (ctx?.settings?.legalLinks as LegalLinks | undefined) ?? legalLinks
 
   const initials = (orgName || 'A').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
   const termsHref = legalLinks?.terms || '/terms'
