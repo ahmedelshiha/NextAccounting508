@@ -35,6 +35,20 @@ Progress log (most recent first)
 
 ---
 
+### Completed: Service Settings API endpoints (GET + POST)
+- ✅ What was completed
+  - Added server routes at `src/app/api/admin/settings/services/route.ts` implementing:
+    - GET /api/admin/settings/services — returns persisted services settings or sensible defaults
+    - POST /api/admin/settings/services — validates payload and persists settings to `data/admin-settings-services.json`
+  - Validation uses zod schema; RBAC enforced via `getServerSession(authOptions)` and `hasPermission(role, PERMISSIONS.SERVICES_VIEW)`.
+- ✅ Why it was done
+  - New implementation to provide immediate, secure server-side persistence for Services & Service-Requests settings used by the admin modal. Implemented as a minimal-backed solution (file-based) to avoid DB migrations while delivering functionality quickly.
+- ✅ Next steps
+  - Replace file-based persistence with the proper settings service (`src/services/...-settings.service.ts`) and persist to the database (Prisma) or centralized settings store.
+  - Add unit tests for the new route (tests for GET/POST, validation, RBAC).
+
+---
+
 ### Completed: Redirect for Service Requests settings route
 - ✅ What was completed
   - Created `src/app/admin/settings/service-requests/page.tsx` which redirects to `/admin/service-requests` to avoid 404 and keep navigation stable while a full settings page is implemented.
