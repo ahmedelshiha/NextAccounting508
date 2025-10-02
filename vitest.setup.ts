@@ -16,6 +16,9 @@ vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => defaultSession),
   // other exports if needed
 }))
+
+// Import centralized test setup that registers tenants and performs global cleanup
+import './tests/testSetup'
 vi.mock('next-auth/next', () => ({
   getServerSession: vi.fn(async () => defaultSession),
 }))
