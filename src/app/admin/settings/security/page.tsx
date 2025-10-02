@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
 
@@ -109,7 +108,7 @@ export default function SecurityComplianceSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Security & Compliance Settings.</div>}>
-      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="mb-4 flex items-center justify-between">

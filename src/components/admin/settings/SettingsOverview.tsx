@@ -133,39 +133,6 @@ function SettingsOverviewInner() {
         </SettingsCard>
       </div>
 
-      <SettingsSection title="Pinned Settings" description="Frequently accessed settings">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <SettingsCard>
-            <h4 className="text-sm font-medium">Booking Settings</h4>
-            <p className="text-sm text-muted-foreground mt-1">Configure booking defaults</p>
-            <div className="mt-3">
-              <Button asChild>
-                <a href="/admin/settings/booking">Open</a>
-              </Button>
-            </div>
-          </SettingsCard>
-
-          <SettingsCard>
-            <h4 className="text-sm font-medium">Currency Management</h4>
-            <p className="text-sm text-muted-foreground mt-1">Manage supported currencies and overrides</p>
-            <div className="mt-3">
-              <Button asChild>
-                <a href="/admin/settings/currencies">Open</a>
-              </Button>
-            </div>
-          </SettingsCard>
-
-          <SettingsCard>
-            <h4 className="text-sm font-medium">Integration Hub</h4>
-            <p className="text-sm text-muted-foreground mt-1">Manage connected integrations</p>
-            <div className="mt-3">
-              <Button asChild>
-                <a href="/admin/settings/integrations">Open</a>
-              </Button>
-            </div>
-          </SettingsCard>
-        </div>
-      </SettingsSection>
     </SettingsShell>
   )
 }

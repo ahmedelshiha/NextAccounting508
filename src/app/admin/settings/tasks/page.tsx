@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
 
@@ -118,7 +117,7 @@ export default function TaskWorkflowSettingsPage(){
 
   return (
     <PermissionGate permission={PERMISSIONS.TASK_WORKFLOW_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Task & Workflow settings.</div>}>
-      <SettingsShell title="Task & Workflow" description="Templates, statuses, automation, and board configuration for tasks" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Task & Workflow" description="Templates, statuses, automation, and board configuration for tasks">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="mb-4 flex items-center justify-between">

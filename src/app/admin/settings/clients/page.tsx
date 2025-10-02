@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
@@ -125,7 +124,7 @@ export default function ClientManagementSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Client Settings.</div>}>
-      <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="mb-4 flex items-center justify-between">

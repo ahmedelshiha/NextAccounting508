@@ -5,7 +5,6 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle } from '@/components/admin/settings/FormField'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 
 const tabs = [
   { key: 'dashboards', label: 'Dashboards' },
@@ -94,7 +93,7 @@ export default function AnalyticsSettingsPage(){
 
   return (
     <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Analytics & Reporting settings.</div>}>
-      <SettingsShell title="Analytics & Reporting" description="Dashboards, metrics, exports, and retention" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Analytics & Reporting" description="Dashboards, metrics, exports, and retention">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="mb-4 flex items-center justify-between">

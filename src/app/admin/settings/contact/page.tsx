@@ -2,7 +2,6 @@
 
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,7 +19,7 @@ export default function ContactSettingsPage() {
 
   return (
     <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Contact settings.</div>}>
-      <SettingsShell title="Contact" description="Public contact information and support channels" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Contact" description="Public contact information and support channels">
         <div className="max-w-3xl mx-auto space-y-6">
           <Card>
             <CardHeader>
