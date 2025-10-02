@@ -96,11 +96,7 @@ export default function AnalyticsSettingsPage(){
       <SettingsShell title="Analytics & Reporting" description="Dashboards, metrics, exports, and retention">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Analytics & Reporting</h1>
-                <p className="text-gray-600">Dashboards, metrics, exports, and retention</p>
-              </div>
+            <div className="mb-4 flex items-center justify-end">
               <div className="flex items-center gap-3">
                 <PermissionGate permission={PERMISSIONS.ANALYTICS_REPORTING_SETTINGS_EXPORT}>
                   <button onClick={async ()=>{
