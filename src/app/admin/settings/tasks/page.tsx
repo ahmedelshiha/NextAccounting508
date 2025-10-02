@@ -120,11 +120,7 @@ export default function TaskWorkflowSettingsPage(){
       <SettingsShell title="Task & Workflow" description="Templates, statuses, automation, and board configuration for tasks">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Task & Workflow</h1>
-                <p className="text-gray-600">Templates, statuses, automation, and board configuration for tasks</p>
-              </div>
+            <div className="mb-4 flex items-center justify-end">
               <div className="flex items-center gap-3">
                 <PermissionGate permission={PERMISSIONS.TASK_WORKFLOW_SETTINGS_EXPORT}>
                   <button onClick={async ()=>{
