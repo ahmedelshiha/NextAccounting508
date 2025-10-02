@@ -17,7 +17,7 @@ type CandidateWorkload = {
   tm: {
     id: string
     name: string
-    email: string
+    email: string | null
     specialties: string[] | null
   }
   count: number

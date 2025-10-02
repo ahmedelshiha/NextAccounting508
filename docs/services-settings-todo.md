@@ -2,6 +2,22 @@
 
 Progress log (most recent first)
 
+### Completed: Aligned auto-assign candidate email typing
+- ✅ What was completed
+  - Updated `CandidateWorkload` in `src/lib/service-requests/assignment.ts` to allow `email` values that may be `null`, matching Prisma team member records and resolving the build failure.
+- ✅ Why it was done
+  - The auto-assign flow selects active team members whose email can be missing; enforcing a strict string type caused TypeScript errors during builds.
+- ✅ Next steps
+  - Audit other team member consumers to ensure nullable email is handled gracefully (e.g., display fallbacks in notifications and UI badges).
+
+### Completed: Marked services settings page as client component
+- ✅ What was completed
+  - Added the `'use client'` directive to `src/app/admin/settings/services/page.tsx` so its React state and effects execute without build-time errors.
+- ✅ Why it was done
+  - The page relied on `useState` and `useEffect`, causing Turbopack to fail because it was treated as a server component. Making it a client component restores the admin settings UI.
+- ✅ Next steps
+  - Confirm no other settings pages use client hooks without the directive; consider extracting shared client logic into reusable hooks for consistency.
+
 ### Completed: Fixed TS build errors in services settings service
 - ✅ What was completed
   - Corrected types in `src/services/services-settings.service.ts` to allow nested partial updates via `ServicesSettingsUpdates` and adjusted merge logic; resolved TS2322 on `defaultCategory`/`defaultRequestStatus`.
