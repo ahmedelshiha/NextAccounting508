@@ -234,6 +234,25 @@ export async function POST(req: Request) {
     const effectiveTenant = Math.max(1, Math.floor(defaultTenant * (errorRate > 0.10 ? 0.5 : 1)))
 
     // Helper to process a single appointment (shared logic)
+    const tenantTimezoneCache = new Map<string, string | null>()
+
+    async function getTenantDefaultTimezone(tenantKey: string) {
+      if (tenantTimezoneCache.has(tenantKey)) return tenantTimezoneCache.get(tenantKey) ?? undefined
+      try {
+        if (!tenantKey || tenantKey === 'default') {
+          tenantTimezoneCache.set(tenantKey, null)
+          return undefined
+        }
+        const row = await prisma.organizationSettings.findFirst({ where: { tenantId: tenantKey }, select: { defaultTimezone: true } }).catch(() => null)
+        const tz = row?.defaultTimezone ?? null
+        tenantTimezoneCache.set(tenantKey, tz)
+        return tz ?? undefined
+      } catch {
+        tenantTimezoneCache.set(tenantKey, null)
+        return undefined
+      }
+    }
+
     async function processAppointmentItem(item: { tenant: string; appt: any }) {
       const appt = item.appt
       const tenantKey = item.tenant
@@ -253,6 +272,9 @@ export async function POST(req: Request) {
           return
         }
 
+        const tenantTz = await getTenantDefaultTimezone(tenantKey)
+        const tzForDelivery = prefs?.timeZone || tenantTz || undefined
+
         await sendBookingReminder(
           {
             id: appt.id,
@@ -261,7 +283,7 @@ export async function POST(req: Request) {
             clientEmail: appt.client.email || '',
             service: { name: appt.service.name },
           },
-          { locale: (prefs?.preferredLanguage || 'en'), timeZone: (prefs?.timeZone || undefined) }
+          { locale: (prefs?.preferredLanguage || 'en'), timeZone: tzForDelivery }
         )
 
         // Optional SMS
@@ -271,7 +293,7 @@ export async function POST(req: Request) {
           const wantsSms = prefs?.smsReminder === true
           if (smsUrl && wantsSms && appt.clientPhone) {
             const locale = (prefs?.preferredLanguage || 'en-US')
-            const tzOpt = prefs?.timeZone ? { timeZone: prefs.timeZone } as const : undefined
+            const tzOpt = tzForDelivery ? { timeZone: tzForDelivery } as const : undefined
             const formattedDate = new Date(scheduledAt).toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', ...(tzOpt || {}) } as any)
             const formattedTime = new Date(scheduledAt).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true, ...(tzOpt || {}) } as any)
             const message = `Reminder: ${appt.service.name} on ${formattedDate} at ${formattedTime}`
