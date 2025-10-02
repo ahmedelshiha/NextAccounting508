@@ -109,40 +109,42 @@ export default function SecurityComplianceSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Security & Compliance Settings.</div>}>
-      <div className="px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Security & Compliance</h1>
-              <p className="text-gray-600">Policies for authentication, sessions, network, data protection, and compliance</p>
-            </div>
-            <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}>
-              <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
-            </PermissionGate>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <aside className="lg:col-span-1">
-              <nav className="bg-white border rounded-lg p-3">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Security Settings</h3>
-                <ul className="space-y-1">
-                  {tabs.map(t => (
-                    <li key={t.key}>
-                      <button onClick={()=>setActive(t.key)} className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm ${active===t.key? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <span>{t.label}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </aside>
-            <section className="lg:col-span-4">
-              <div className="bg-white border rounded-lg p-6">
-                {body}
+      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" sidebar={<SettingsNavigation />}>
+        <div className="px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Security & Compliance</h1>
+                <p className="text-gray-600">Policies for authentication, sessions, network, data protection, and compliance</p>
               </div>
-            </section>
+              <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}>
+                <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
+              </PermissionGate>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <aside className="lg:col-span-1">
+                <nav className="bg-white border rounded-lg p-3">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Security Settings</h3>
+                  <ul className="space-y-1">
+                    {tabs.map(t => (
+                      <li key={t.key}>
+                        <button onClick={()=>setActive(t.key)} className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm ${active===t.key? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                          <span>{t.label}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </aside>
+              <section className="lg:col-span-4">
+                <div className="bg-white border rounded-lg p-6">
+                  {body}
+                </div>
+              </section>
+            </div>
           </div>
         </div>
-      </div>
+      </SettingsShell>
     </PermissionGate>
   )
 }
