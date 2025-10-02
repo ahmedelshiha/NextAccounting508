@@ -171,7 +171,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
   - Add toggles controlling cloning behavior and version retention policy. (Acceptance: toggles affect Clone API behavior and are enforceable.)
 
 ## 7. Permissions & RBAC
-- [ ] 7.1 Verify permissions for new API routes (settings read/write) using `src/lib/permissions.ts` constants. Add new permission keys if needed (e.g., `SERVICES_SETTINGS_EDIT`) and include in ROLE_PERMISSIONS for ADMIN/TEAM_LEAD where appropriate.
+- [x] 7.1 Verify permissions for new API routes (settings read/write) using `src/lib/permissions.ts` constants. Add new permission keys if needed (e.g., `SERVICES_SETTINGS_EDIT`) and include in ROLE_PERMISSIONS for ADMIN/TEAM_LEAD where appropriate.
   (Acceptance: only users with correct permissions can POST settings.)
 
 - [ ] 7.2 Update `use-permissions` helper flags where helpful (`canManageCurrencies`, `canManageCurrencies` style). (Acceptance: UI conditionally shows settings only to authorized roles.)
