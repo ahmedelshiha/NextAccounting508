@@ -100,16 +100,22 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
     setLoading(true)
     try {
       const payload = {
-        defaultCategory,
-        defaultCurrency,
-        allowCloning,
-        featuredToggleEnabled,
-        priceRounding,
-        defaultRequestStatus,
-        autoAssign,
-        autoAssignStrategy,
-        allowConvertToBooking,
-        defaultBookingType,
+        services: {
+          defaultCategory,
+          defaultCurrency,
+          allowCloning,
+          featuredToggleEnabled,
+          priceRounding,
+          categories,
+          pricingRules,
+        },
+        serviceRequests: {
+          defaultRequestStatus,
+          autoAssign,
+          autoAssignStrategy,
+          allowConvertToBooking,
+          defaultBookingType,
+        },
         notification: {
           templates: {
             serviceRequests: {
