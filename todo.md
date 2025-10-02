@@ -26,16 +26,16 @@ Notes: Completed via code audit. API route exists at `src/app/api/admin/org-sett
 Notes: Persistence, validation, and wiring were already present. PUT route performs safeParse against `OrganizationSettingsSchema` and upserts the tenant-scoped row.
 
 ### Phase 3 – Ensure Real Impact
-- [ ] Identify each setting’s intended purpose (timezone, require2FA, booking duration) and assign owners.
-- [ ] For each setting, confirm code references it; implement missing usages (examples below).
-  - require2FA → integrate into auth middleware
-  - defaultTimezone → apply in scheduling/availability services
-  - defaultCurrency → consider for price display fallbacks
-  - legalLinks/contact → surface in site footer
+- [x] Identify each setting’s intended purpose (timezone, require2FA, booking duration) and assign owners (documented in audit notes).
+- [x] Implemented the following enforcements/wiring:
+  - require2FA → enforcement added to `requireAuth` behind env flag `ENFORCE_ORG_2FA` (opt-in).
+  - defaultTimezone → reminder delivery now falls back to tenant defaultTimezone when user preference missing (src/app/api/cron/reminders/route.ts).
+  - contact/legal → surfaced in OptimizedFooter and Navigation via SettingsProvider.
+- [ ] defaultCurrency → consider for price display fallbacks (planned).
 - [ ] Write integration tests to verify behavior changes when settings are toggled.
 - [ ] Document unused/legacy settings for removal.
 
-Notes: Audit found many settings are stored but unused at runtime (tagline, description, contact.* are admin-only). Action: wire contact/legal into footer (see OptimizedFooter) and schedule larger enforcement work.
+Notes: Many settings were previously inert. Implemented low-risk, opt-in enforcement for 2FA and timezone fallback in reminders; next is to wire timezone into scheduling/availability where needed and add tests.
 
 ### Phase 4 – Standards Compliance (Modern Settings Architecture)
 - [x] Ensure all settings are schema-driven (Zod + Prisma alignment). Some alignment exists; tighten legalLinks typing.
