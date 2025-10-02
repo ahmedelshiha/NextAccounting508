@@ -41,6 +41,16 @@ export const ServiceRequestSettingsSchema = z.object({
   defaultBookingType: BookingTypeEnum.default('STANDARD'),
 })
 
+export const NotificationServiceRequestTemplatesSchema = z.object({
+  created: z.string().optional(),
+  assigned: z.string().optional(),
+  statusChanged: z.string().optional(),
+}).default({})
+
+export const NotificationTemplatesSchema = z.object({
+  serviceRequests: NotificationServiceRequestTemplatesSchema.default({})
+}).default({})
+
 export const ServicesSettingsSchema = z.object({
   services: ServicesCoreSettingsSchema.default({
     defaultCategory: 'General',
@@ -56,6 +66,7 @@ export const ServicesSettingsSchema = z.object({
     allowConvertToBooking: true,
     defaultBookingType: 'STANDARD',
   }),
+  notification: NotificationTemplatesSchema.default({}),
 }).default({
   services: {
     defaultCategory: 'General',
@@ -71,6 +82,7 @@ export const ServicesSettingsSchema = z.object({
     allowConvertToBooking: true,
     defaultBookingType: 'STANDARD',
   },
+  notification: {},
 })
 
 export type ServicesCoreSettings = z.infer<typeof ServicesCoreSettingsSchema>
