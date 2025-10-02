@@ -16,6 +16,7 @@ export default function Page() {
 
   const [activeTab, setActiveTab] = useState<string>('services')
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Services settings
   const [defaultCategory, setDefaultCategory] = useState('General')
@@ -58,6 +59,16 @@ export default function Page() {
   }, [])
 
   const onSave = async () => {
+    const nextErrors: Record<string, string> = {}
+    if (!defaultCategory?.trim()) nextErrors.defaultCategory = 'Required'
+    if (!/^[A-Z]{3}$/.test(defaultCurrency)) nextErrors.defaultCurrency = 'Use 3-letter code (e.g., USD)'
+    if (!Number.isInteger(priceRounding) || priceRounding < 0 || priceRounding > 6) nextErrors.priceRounding = '0–6 allowed'
+    if (!['SUBMITTED','IN_REVIEW','ASSIGNED','APPROVED','DRAFT','IN_PROGRESS','COMPLETED','CANCELLED'].includes(defaultRequestStatus)) nextErrors.defaultRequestStatus = 'Invalid value'
+    if (!['round_robin','load_based','skill_based'].includes(autoAssignStrategy)) nextErrors.autoAssignStrategy = 'Invalid value'
+    if (!['STANDARD','RECURRING','EMERGENCY','CONSULTATION'].includes(defaultBookingType)) nextErrors.defaultBookingType = 'Invalid value'
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) return
+
     setLoading(true)
     try {
       const payload = {
@@ -99,21 +110,21 @@ export default function Page() {
         <Suspense fallback={<div /> }>
           {activeTab === 'services' && (
             <div className="space-y-4">
-              <TextField label="Default Category" value={defaultCategory} onChange={setDefaultCategory} placeholder="General" />
-              <TextField label="Default Currency" value={defaultCurrency} onChange={setDefaultCurrency} placeholder="USD" />
+              <TextField label="Default Category" value={defaultCategory} onChange={setDefaultCategory} placeholder="General" error={errors.defaultCategory} />
+              <TextField label="Default Currency" value={defaultCurrency} onChange={setDefaultCurrency} placeholder="USD" error={errors.defaultCurrency} />
               <Toggle label="Allow cloning of services" value={allowCloning} onChange={setAllowCloning} />
               <Toggle label="Enable featured toggle on service card" value={featuredToggleEnabled} onChange={setFeaturedToggleEnabled} />
-              <NumberField label="Price rounding (decimals)" value={priceRounding} onChange={setPriceRounding} min={0} max={6} />
+              <NumberField label="Price rounding (decimals)" value={priceRounding} onChange={setPriceRounding} min={0} max={6} error={errors.priceRounding} />
             </div>
           )}
 
           {activeTab === 'requests' && (
             <div className="space-y-4">
-              <SelectField label="Default Request Status" value={defaultRequestStatus} onChange={setDefaultRequestStatus} options={[{ value: 'SUBMITTED', label: 'Submitted' }, { value: 'IN_REVIEW', label: 'In Review' }, { value: 'ASSIGNED', label: 'Assigned' }]} />
+              <SelectField label="Default Request Status" value={defaultRequestStatus} onChange={setDefaultRequestStatus} options={[{ value: 'SUBMITTED', label: 'Submitted' }, { value: 'IN_REVIEW', label: 'In Review' }, { value: 'ASSIGNED', label: 'Assigned' }]} error={errors.defaultRequestStatus} />
               <Toggle label="Auto-assign requests to team members" value={autoAssign} onChange={setAutoAssign} />
-              <SelectField label="Auto-assign strategy" value={autoAssignStrategy} onChange={setAutoAssignStrategy} options={[{ value: 'round_robin', label: 'Round Robin' }, { value: 'load_based', label: 'Load-based' }, { value: 'skill_based', label: 'Skill-based' }]} />
+              <SelectField label="Auto-assign strategy" value={autoAssignStrategy} onChange={setAutoAssignStrategy} options={[{ value: 'round_robin', label: 'Round Robin' }, { value: 'load_based', label: 'Load-based' }, { value: 'skill_based', label: 'Skill-based' }]} error={errors.autoAssignStrategy} />
               <Toggle label="Allow conversion of requests to bookings" value={allowConvertToBooking} onChange={setAllowConvertToBooking} />
-              <SelectField label="Default Booking Type" value={defaultBookingType} onChange={setDefaultBookingType} options={[{ value: 'STANDARD', label: 'Standard' }, { value: 'CONSULTATION', label: 'Consultation' }, { value: 'EMERGENCY', label: 'Emergency' }]} />
+              <SelectField label="Default Booking Type" value={defaultBookingType} onChange={setDefaultBookingType} options={[{ value: 'STANDARD', label: 'Standard' }, { value: 'CONSULTATION', label: 'Consultation' }, { value: 'EMERGENCY', label: 'Emergency' }]} error={errors.defaultBookingType} />
             </div>
           )}
         </Suspense>
