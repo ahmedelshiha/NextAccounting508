@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-
 'use client'
 
 import React, { useEffect, useState, Suspense } from 'react'
