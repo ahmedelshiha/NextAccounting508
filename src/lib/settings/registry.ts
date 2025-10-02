@@ -37,15 +37,6 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ClipboardList,
     tabs: [],
   },
-  // Explicit Services settings entry (alias for serviceManagement)
-  {
-    key: 'services',
-    label: 'Services',
-    route: '/admin/settings/services',
-    icon: ClipboardList,
-    tabs: [],
-    permission: PERMISSIONS.SERVICES_VIEW,
-  },
   {
     key: 'booking',
     label: 'Booking Configuration',
@@ -102,14 +93,6 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: Clock,
     tabs: [],
     permission: PERMISSIONS.ANALYTICS_VIEW,
-  },
-  {
-    key: 'serviceRequests',
-    label: 'Service Requests',
-    route: '/admin/settings/service-requests',
-    icon: FileText,
-    tabs: [],
-    permission: PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
   },
   {
     key: 'analyticsReporting',
