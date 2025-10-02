@@ -19,6 +19,7 @@ interface SettingsShellProps {
   description?: string
   icon?: React.ComponentType<{ className?: string }>
   backHref?: string
+  showBackButton?: boolean
 
   // Actions (rendered in header)
   actions?: ReactNode
