@@ -2,6 +2,16 @@
 
 Progress log (most recent first)
 
+### Completed: Service Requests notification templates (task 5.2)
+- ✅ What was completed
+  - Added notification templates UI to `src/components/admin/settings/ServicesSettingsModal.tsx` with editable templates for: request created, assigned, and status changed. Templates are editable via Textarea controls in the Service Requests tab.
+  - Extended `src/schemas/settings/services.ts` and `src/services/services-settings.service.ts` to support persisting `notification.templates.serviceRequests` alongside existing settings. The settings API (POST /api/admin/settings/services) now accepts and persists the nested notification templates.
+- ✅ Why it was done
+  - Provide administrators the ability to customize notification content for Service Request lifecycle events and persist these templates for downstream notification senders.
+- ✅ Next steps
+  - Wire notification sender (notification service) to consume these templates when sending emails/SMS; add tests for template rendering and edge cases (missing variables).
+
+
 ### Completed: Enforced UI permissions for Services settings (task 7.2)
 - ✅ What was completed
   - Added canViewServicesSettings/canEditServicesSettings to src/lib/use-permissions.ts and gated the Save button on /admin/settings/services by SERVICES_EDIT.
