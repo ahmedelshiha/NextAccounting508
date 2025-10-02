@@ -274,7 +274,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [ ] 8.4 Add e2e tests (Playwright) that exercise saving settings from the UI and verify downstream changes (e.g., convert-to-booking disabled prevents conversion). (Acceptance: e2e tests added and pass in CI.)
 
 ## 9. Documentation & Handoff
-- [ ] 9.1 Update docs: `docs/admin-services-audit.md` and `docs/admin-dashboard-spec_mapping.md` to reference new settings pages and API endpoints. (Acceptance: docs updated with route and schema examples.)
+- [x] 9.1 Update docs: `docs/admin-services-audit.md` and `docs/admin-dashboard-spec_mapping.md` to reference new settings pages and API endpoints. (Acceptance: docs updated with route and schema examples.)
 
 - [ ] 9.2 Provide short developer guide describing where settings are stored, how to extend key names, and how to integrate new behavior (auto-assign extension). Add to `Doc/` or `docs/`. (Acceptance: doc added and accepted by engineering reviewer.)
 
