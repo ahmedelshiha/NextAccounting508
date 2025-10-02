@@ -78,7 +78,9 @@ async function readFile(): Promise<unknown> {
 async function writeFile(settings: ServicesSettings): Promise<void> {
   const dir = path.dirname(SETTINGS_FILE_PATH)
   await fs.mkdir(dir, { recursive: true })
-  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2), 'utf-8')
+  // Persist in flat shape for legacy compatibility and test expectations
+  const flat = flattenSettings(settings)
+  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(flat, null, 2), 'utf-8')
 }
 
 function cacheKey(tenantId: string | null) {
