@@ -213,7 +213,7 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientL
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter orgName={orgName} />}
+        {!isAdminRoute && <OptimizedFooter />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}
