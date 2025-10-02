@@ -79,6 +79,11 @@ function normalizeFromLegacy(raw: Record<string, unknown>): ServicesSettings {
     allowCloning: parsedLegacy.allowCloning,
     featuredToggleEnabled: parsedLegacy.featuredToggleEnabled,
     priceRounding: parsedLegacy.priceRounding,
+    categories: parsedLegacy.categories,
+    pricingRules: parsedLegacy.pricingRules,
+    currencyOverrides: parsedLegacy.currencyOverrides,
+    versioningEnabled: parsedLegacy.versioningEnabled,
+    versionRetention: parsedLegacy.versionRetention,
   }
   const serviceRequests: Partial<ServiceRequestSettings> = {
     defaultRequestStatus: parsedLegacy.defaultRequestStatus,
@@ -87,7 +92,10 @@ function normalizeFromLegacy(raw: Record<string, unknown>): ServicesSettings {
     allowConvertToBooking: parsedLegacy.allowConvertToBooking,
     defaultBookingType: parsedLegacy.defaultBookingType,
   }
-  return mergeSettings(DEFAULT_SETTINGS, { services, serviceRequests })
+  const notification = parsedLegacy.notification
+    ? { templates: { serviceRequests: parsedLegacy.notification.templates?.serviceRequests } }
+    : undefined
+  return mergeSettings(DEFAULT_SETTINGS, { services, serviceRequests, notification })
 }
 
 async function readFile(): Promise<unknown> {
