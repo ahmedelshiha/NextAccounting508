@@ -30,6 +30,43 @@ declare global {
 }
 
 export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks }: ClientLayoutProps) {
+  const [uiOrgName, setUiOrgName] = React.useState(orgName)
+  const [uiOrgLogoUrl, setUiOrgLogoUrl] = React.useState(orgLogoUrl)
+  const [uiContactEmail, setUiContactEmail] = React.useState(contactEmail)
+  const [uiContactPhone, setUiContactPhone] = React.useState(contactPhone)
+  const [uiLegalLinks, setUiLegalLinks] = React.useState(legalLinks)
+
+  React.useEffect(() => {
+    setUiOrgName(orgName)
+    setUiOrgLogoUrl(orgLogoUrl)
+    setUiContactEmail(contactEmail)
+    setUiContactPhone(contactPhone)
+    setUiLegalLinks(legalLinks)
+  }, [orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
+
+  React.useEffect(() => {
+    const update = async () => {
+      try {
+        const res = await fetch('/api/public/org-settings', { cache: 'no-store' })
+        if (!res.ok) return
+        const j = await res.json()
+        setUiOrgName(j.name || uiOrgName)
+        setUiOrgLogoUrl(j.logoUrl || uiOrgLogoUrl)
+        setUiContactEmail(j.contactEmail || uiContactEmail)
+        setUiContactPhone(j.contactPhone || uiContactPhone)
+        setUiLegalLinks(j.legalLinks || uiLegalLinks)
+      } catch {}
+    }
+    const onStorage = (e: StorageEvent) => { if (e.key === 'org-settings-updated') update() }
+    const onCustom = () => update()
+    window.addEventListener('storage', onStorage)
+    window.addEventListener('org-settings-updated', onCustom as any)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener('org-settings-updated', onCustom as any)
+    }
+  }, [])
+
   useEffect(() => {
     let handled = false
 
