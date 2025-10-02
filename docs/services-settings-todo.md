@@ -2,6 +2,30 @@
 
 Progress log (most recent first)
 
+### Completed: Enforced UI permissions for Services settings (task 7.2)
+- ✅ What was completed
+  - Added canViewServicesSettings/canEditServicesSettings to src/lib/use-permissions.ts and gated the Save button on /admin/settings/services by SERVICES_EDIT.
+- ✅ Why it was done
+  - Ensure the UI respects RBAC, preventing unauthorized edits while still allowing read access when permitted.
+- ✅ Next steps
+  - Use the flags in ServicesSettingsModal and Services list page to conditionally show the Settings action.
+
+### Completed: Immediate cache update on save (task 8.1)
+- ✅ What was completed
+  - Verified servicesSettingsService.save updates the cache with merged settings and GET reads from cache; changes are reflected immediately (TTL 120s still applies for other readers).
+- ✅ Why it was done
+  - Meet acceptance that changes are visible immediately or within TTL without stale reads.
+- ✅ Next steps
+  - Consider emitting revalidation/invalidation events if ISR is introduced later.
+
+### Completed: Unit tests for settings API in place (task 8.2)
+- ✅ What was completed
+  - Confirmed tests/admin-services-settings.route.test.ts and tests/admin-services-settings.permissions.test.ts cover GET/POST, defaults, persistence, validation, and RBAC.
+- ✅ Why it was done
+  - Ensure regression protection and correctness for the API contract.
+- ✅ Next steps
+  - Add edge-case tests (invalid enum values, missing body) if needed.
+
 ### Completed: Aligned auto-assign candidate email typing
 - ✅ What was completed
   - Updated `CandidateWorkload` in `src/lib/service-requests/assignment.ts` to allow `email` values that may be `null`, matching Prisma team member records and resolving the build failure.
