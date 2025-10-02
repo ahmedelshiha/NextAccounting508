@@ -242,12 +242,12 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
           Only show main site navigation on NON-admin routes
           Admin routes will have their own dedicated layout with sidebar navigation
         */}
-        {!isAdminRoute && <Navigation orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} />}
+        {!isAdminRoute && <Navigation />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} contactEmail={uiContactEmail} contactPhone={uiContactPhone} legalLinks={uiLegalLinks} />}
+        {!isAdminRoute && <OptimizedFooter />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}
