@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import Tabs from '@/components/admin/settings/Tabs'
 import { TextField, SelectField, Toggle, NumberField } from '@/components/admin/settings/FormField'
