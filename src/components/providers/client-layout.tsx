@@ -15,6 +15,8 @@ import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 interface ClientLayoutProps {
   children: React.ReactNode
   session?: Session | null
+  orgName?: string
+  orgLogoUrl?: string
 }
 
 // extend Window to store a fetch flag without using `any`
@@ -24,7 +26,7 @@ declare global {
   }
 }
 
-export function ClientLayout({ children, session }: ClientLayoutProps) {
+export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
 
@@ -206,12 +208,12 @@ export function ClientLayout({ children, session }: ClientLayoutProps) {
           Only show main site navigation on NON-admin routes
           Admin routes will have their own dedicated layout with sidebar navigation
         */}
-        {!isAdminRoute && <Navigation />}
+        {!isAdminRoute && <Navigation orgName={orgName} orgLogoUrl={orgLogoUrl} />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter />}
+        {!isAdminRoute && <OptimizedFooter orgName={orgName} />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}
