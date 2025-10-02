@@ -111,11 +111,7 @@ export default function SecurityComplianceSettingsPage() {
       <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Security & Compliance</h1>
-                <p className="text-gray-600">Policies for authentication, sessions, network, data protection, and compliance</p>
-              </div>
+            <div className="mb-4 flex items-center justify-end">
               <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}>
                 <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
               </PermissionGate>
