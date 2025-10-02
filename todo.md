@@ -32,10 +32,10 @@ Notes: Persistence, validation, and wiring were already present. PUT route perfo
   - defaultTimezone → reminder delivery now falls back to tenant defaultTimezone when user preference missing (src/app/api/cron/reminders/route.ts).
   - contact/legal → surfaced in OptimizedFooter and Navigation via SettingsProvider.
 - [ ] defaultCurrency → consider for price display fallbacks (planned).
-- [ ] Write integration tests to verify behavior changes when settings are toggled.
+- [x] Write integration tests to verify behavior changes when settings are toggled. (Added availability timezone tests)
 - [ ] Document unused/legacy settings for removal.
 
-Notes: Many settings were previously inert. Implemented low-risk, opt-in enforcement for 2FA and timezone fallback in reminders; next is to wire timezone into scheduling/availability where needed and add tests.
+Notes: Many settings were previously inert. Implemented low-risk, opt-in enforcement for 2FA and timezone fallback in reminders; wired tenant timezone into scheduling/availability using luxon for DST-correct calculations and added integration tests for tenant timezones.
 
 ### Phase 4 – Standards Compliance (Modern Settings Architecture)
 - [x] Ensure all settings are schema-driven (Zod + Prisma alignment). Some alignment exists; tighten legalLinks typing.
