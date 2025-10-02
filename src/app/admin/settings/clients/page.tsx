@@ -127,11 +127,7 @@ export default function ClientManagementSettingsPage() {
       <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Client Management</h1>
-                <p className="text-gray-600">Registration, profiles, communication, segmentation, loyalty, and portal preferences</p>
-              </div>
+            <div className="mb-4 flex items-center justify-end">
               <div className="flex items-center gap-3">
                 <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EXPORT}>
                   <button onClick={async ()=>{
