@@ -74,10 +74,10 @@ function mergeTemplateSettings(
 
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
   if (!updates) return base
-  const mergedTemplates = NotificationServiceRequestTemplatesSchema.parse({
-    ...(base.notification?.templates?.serviceRequests ?? {}),
-    ...(updates.notification?.templates?.serviceRequests ?? {}),
-  })
+  const mergedTemplates = mergeTemplateSettings(
+    base.notification?.templates?.serviceRequests,
+    updates.notification?.templates?.serviceRequests,
+  )
 
   return ServicesSettingsSchema.parse({
     services: { ...base.services, ...(updates.services ?? {}) },
