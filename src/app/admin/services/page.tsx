@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'
 import PermissionGate from '@/components/PermissionGate'
+import ServicesSettingsModal from '@/components/admin/settings/ServicesSettingsModal'
 import { PERMISSIONS } from '@/lib/permissions'
 
 interface ServiceRow {
