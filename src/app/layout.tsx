@@ -6,8 +6,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
-import dynamic from 'next/dynamic'
-const SettingsProvider = dynamic(() => import('@/components/providers/SettingsProvider').then(m=>m.SettingsProvider), { ssr: false })
+import { SettingsProvider } from '@/components/providers/SettingsProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
