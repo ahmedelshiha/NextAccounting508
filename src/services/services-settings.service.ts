@@ -154,6 +154,11 @@ function coerceSettings(raw: unknown): ServicesSettings {
 }
 
 function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
+  const templates = NotificationServiceRequestTemplatesSchema.parse(
+    settings.notification?.templates?.serviceRequests ?? {},
+  )
+  const hasTemplates = Object.values(templates).some((value) => typeof value === 'string' && value.length > 0)
+
   return {
     defaultCategory: settings.services.defaultCategory,
     defaultCurrency: settings.services.defaultCurrency,
@@ -170,9 +175,7 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
     autoAssignStrategy: settings.serviceRequests.autoAssignStrategy,
     allowConvertToBooking: settings.serviceRequests.allowConvertToBooking,
     defaultBookingType: settings.serviceRequests.defaultBookingType,
-    notification: settings.notification?.templates
-      ? { templates: { serviceRequests: settings.notification.templates.serviceRequests } }
-      : undefined,
+    notification: hasTemplates ? { templates: { serviceRequests: templates } } : undefined,
   }
 }
 
