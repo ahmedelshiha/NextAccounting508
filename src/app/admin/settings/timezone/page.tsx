@@ -2,7 +2,6 @@
 
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -26,7 +25,7 @@ export default function TimezoneSettingsPage() {
 
   return (
     <PermissionGate permission={[PERMISSIONS.ANALYTICS_VIEW]} fallback={<div className="p-6">You do not have access to Timezone settings.</div>}>
-      <SettingsShell title="Timezone & Localization" description="Configure timezone and localization preferences" sidebar={<SettingsNavigation />}>
+      <SettingsShell title="Timezone & Localization" description="Configure timezone and localization preferences">
         <div className="max-w-3xl mx-auto space-y-6">
           <Card>
             <CardHeader>

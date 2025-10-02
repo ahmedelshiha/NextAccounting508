@@ -1,6 +1,5 @@
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import BookingSettingsPanel from '@/components/admin/BookingSettingsPanel'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -10,7 +9,6 @@ export default function AdminBookingSettingsPage() {
       <SettingsShell
         title="Booking Settings"
         description="Manage booking rules and availability preferences"
-        sidebar={<SettingsNavigation />}
       >
         <div className="p-0">
           <BookingSettingsPanel />
