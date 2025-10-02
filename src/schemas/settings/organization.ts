@@ -29,7 +29,11 @@ export const OrgLocalizationSchema = z.object({
 export const OrgBrandingSchema = z.object({
   logoUrl: z.string().url().optional(),
   branding: z.record(z.string(), z.any()).optional(),
-  legalLinks: z.record(z.string(), z.string()).optional()
+  legalLinks: z.object({
+    terms: z.string().url().optional(),
+    privacy: z.string().url().optional(),
+    refund: z.string().url().optional(),
+  }).optional()
 })
 
 export const OrganizationSettingsSchema = z.object({

@@ -17,6 +17,9 @@ interface ClientLayoutProps {
   session?: Session | null
   orgName?: string
   orgLogoUrl?: string
+  contactEmail?: string
+  contactPhone?: string
+  legalLinks?: Record<string, string>
 }
 
 // extend Window to store a fetch flag without using `any`
@@ -26,7 +29,7 @@ declare global {
   }
 }
 
-export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientLayoutProps) {
+export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks }: ClientLayoutProps) {
   useEffect(() => {
     let handled = false
 
@@ -213,7 +216,7 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientL
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter />}
+        {!isAdminRoute && <OptimizedFooter orgName={orgName} orgLogoUrl={orgLogoUrl} contactEmail={contactEmail} contactPhone={contactPhone} legalLinks={legalLinks} />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}

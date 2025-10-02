@@ -2,22 +2,32 @@
 import Link from 'next/link'
 import { Phone, Mail, Linkedin, Facebook, Twitter } from 'lucide-react'
 
-export function OptimizedFooter() {
+type LegalLinks = { terms?: string; privacy?: string; refund?: string }
+
+export function OptimizedFooter({ orgName = 'Accounting Firm', orgLogoUrl, contactEmail, contactPhone, legalLinks }: { orgName?: string; orgLogoUrl?: string; contactEmail?: string; contactPhone?: string; legalLinks?: LegalLinks }) {
+  const initials = (orgName || 'A').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()
+  const termsHref = legalLinks?.terms || '/terms'
+  const privacyHref = legalLinks?.privacy || '/privacy'
   return (
     <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center mb-4">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold">AF</span>
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                {orgLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={orgLogoUrl} alt={`${orgName} logo`} className="h-8 w-8 object-cover" />
+                ) : (
+                  <span className="text-white font-bold">{initials}</span>
+                )}
               </div>
-              <span className="text-xl font-bold">Accounting Firm</span>
+              <span className="text-xl font-bold">{orgName}</span>
             </Link>
             <p className="text-gray-400 text-sm mb-4 max-w-sm">Professional accounting services for growing businesses since 2009. CPA certified • BBB A+ rated • 500+ happy clients.</p>
             <div className="space-y-1 text-sm">
-              <a href="tel:+15551234567" className="flex items-center text-gray-300 hover:text-white"><Phone className="h-4 w-4 mr-2"/>(555) 123-4567</a>
-              <a href="mailto:info@accountingfirm.com" className="flex items-center text-gray-300 hover:text-white"><Mail className="h-4 w-4 mr-2"/>info@accountingfirm.com</a>
+              <a href={contactPhone ? `tel:${contactPhone}` : 'tel:+15551234567'} className="flex items-center text-gray-300 hover:text-white"><Phone className="h-4 w-4 mr-2"/>{contactPhone || '(555) 123-4567'}</a>
+              <a href={contactEmail ? `mailto:${contactEmail}` : 'mailto:info@accountingfirm.com'} className="flex items-center text-gray-300 hover:text-white"><Mail className="h-4 w-4 mr-2"/>{contactEmail || 'info@accountingfirm.com'}</a>
             </div>
           </div>
           <div>
@@ -60,8 +70,8 @@ export function OptimizedFooter() {
           <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-gray-400">
             <p>© {new Date().getFullYear()} Accounting Firm. All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 sm:mt-0">
-              <Link href="/privacy" className="hover:text-white">Privacy</Link>
-              <Link href="/terms" className="hover:text-white">Terms</Link>
+              <Link href={privacyHref} className="hover:text-white">Privacy</Link>
+              <Link href={termsHref} className="hover:text-white">Terms</Link>
               <span className="hidden sm:inline">•</span>
               <span className="text-xs">CPA Licensed in NY, CA, TX</span>
             </div>
