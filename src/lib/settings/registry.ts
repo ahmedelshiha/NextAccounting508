@@ -23,14 +23,6 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     permission: PERMISSIONS.ORG_SETTINGS_VIEW,
   },
   {
-    key: 'contact',
-    label: 'Contact',
-    route: '/admin/settings/contact',
-    icon: Mail,
-    tabs: [],
-    permission: PERMISSIONS.ANALYTICS_VIEW,
-  },
-  {
     key: 'serviceManagement',
     label: 'Service Management',
     route: '/admin/settings/services',
@@ -78,22 +70,6 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
   },
   // Currency management appears as its own top-level settings category so it's visible in the main settings navigation
-  {
-    key: 'currencies',
-    label: 'Currency Management',
-    route: '/admin/settings/currencies',
-    icon: DollarSign,
-    tabs: [],
-    permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
-  },
-  {
-    key: 'timezone',
-    label: 'Timezone & Localization',
-    route: '/admin/settings/timezone',
-    icon: Clock,
-    tabs: [],
-    permission: PERMISSIONS.ANALYTICS_VIEW,
-  },
   {
     key: 'analyticsReporting',
     label: 'Analytics & Reporting',
