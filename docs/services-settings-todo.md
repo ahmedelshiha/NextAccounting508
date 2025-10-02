@@ -110,7 +110,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [x] 2.1 Ensure settings registry includes Services and Service Requests entries (`src/lib/settings/registry.ts`). (Acceptance: both entries present and appear in Settings nav for roles with required permissions.)
 
 ## 3. Backend: Settings storage & API (must be done before UI saves)
-- [ ] 3.1 Design settings schema for Services & Service-Requests (db or settings service). Define keys, types and defaults:
+- [x] 3.1 Design settings schema for Services & Service-Requests (db or settings service). Define keys, types and defaults:
     - services.defaultCategory: string
     - services.defaultCurrency: string
     - services.allowCloning: boolean
@@ -123,17 +123,17 @@ This file below retains the full, ordered TODO list for remaining work (unchange
     - serviceRequests.defaultBookingType: enum
   (Acceptance: JSON schema file added to `src/schemas` or documented in `docs/`.)
 
-- [ ] 3.2 Implement GET /api/admin/settings/services
+- [x] 3.2 Implement GET /api/admin/settings/services
   - Create route: `src/app/api/admin/settings/services/route.ts` (or reuse `settings.service` patterns).
   - Return current settings JSON or sensible defaults.
   (Acceptance: GET returns 200 + JSON with keys above.)
 
-- [ ] 3.3 Implement POST /api/admin/settings/services
+- [x] 3.3 Implement POST /api/admin/settings/services
   - Persist settings in existing settings store/service (e.g., `src/services/settings.service.ts`) following RBAC checks.
   - Validate payload against schema and return 200 on success.
   (Acceptance: POST persists settings and GET reflects updates.)
 
-- [ ] 3.4 Add server-side integration points
+- [x] 3.4 Add server-side integration points
   - Wire settings into auto-assign logic (`src/lib/service-requests/assignment.ts`) so autoAssign and strategy are read from settings at runtime.
   - Read allowConvertToBooking flag in `convert-to-booking` handler to allow/deny conversion.
   (Acceptance: behavior changes based on stored settings; unit tests to verify.)
@@ -141,10 +141,10 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 ## 4. Frontend: Admin settings UI & modal/page
 - [x] 4.1 Create Services Settings modal component (client) at `src/components/admin/settings/ServicesSettingsModal.tsx`. (Done)
 
-- [ ] 4.2 Persist modal to call API endpoints
+- [x] 4.2 Persist modal to call API endpoints
   - Wire modal Save button to POST `/api/admin/settings/services` and show toast. (Acceptance: Changes persist and success message shown.)
 
-- [ ] 4.3 Create dedicated settings page (optional but recommended)
+- [x] 4.3 Create dedicated settings page (optional but recommended)
   - Implement `/admin/settings/services/page.tsx` that uses `SettingsShell` and the Services settings panels (split into tabs: Services / Service Requests / Workflows / Notifications).
   - Provide link from SettingsNavigation (registry already includes route so nav shows page). (Acceptance: navigating to route loads SettingsShell and panels.)
 
