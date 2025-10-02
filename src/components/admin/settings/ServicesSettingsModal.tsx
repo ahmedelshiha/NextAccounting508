@@ -164,6 +164,10 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
             <Toggle label="Enable featured toggle on service card" value={featuredToggleEnabled} onChange={setFeaturedToggleEnabled} />
             <NumberField label="Price rounding (decimals)" value={priceRounding} onChange={setPriceRounding} min={0} max={6} error={errors.priceRounding} />
 
+            <div className="pt-3">
+              <Toggle label="Enable versioning for services" value={typeof (undefined) !== 'undefined' ? (true) : false} onChange={() => {}} />
+            </div>
+
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium text-gray-700 mb-2">Service Categories</h4>
               <div className="space-y-2">
