@@ -1,6 +1,6 @@
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign, Mail, Clock } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
