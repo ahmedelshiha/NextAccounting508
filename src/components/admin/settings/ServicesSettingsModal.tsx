@@ -94,6 +94,10 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
     if (!['SUBMITTED','IN_REVIEW','ASSIGNED','APPROVED','DRAFT','IN_PROGRESS','COMPLETED','CANCELLED'].includes(defaultRequestStatus)) nextErrors.defaultRequestStatus = 'Invalid value'
     if (!['round_robin','load_based','skill_based'].includes(autoAssignStrategy)) nextErrors.autoAssignStrategy = 'Invalid value'
     if (!['STANDARD','RECURRING','EMERGENCY','CONSULTATION'].includes(defaultBookingType)) nextErrors.defaultBookingType = 'Invalid value'
+
+    // categories validation
+    categories.forEach((c, i) => { if (!c || !c.trim()) nextErrors[`category_${i}`] = 'Required' })
+    pricingRules.forEach((r, i) => { if (!/^[A-Z]{3}$/.test(String(r.currency))) nextErrors[`pricing_${i}`] = 'Use 3-letter currency code'; if (!(typeof r.multiplier === 'number') || Number(r.multiplier) <= 0) nextErrors[`pricing_val_${i}`] = 'Must be > 0' })
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
