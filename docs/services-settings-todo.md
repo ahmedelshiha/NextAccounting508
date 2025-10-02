@@ -2,6 +2,15 @@
 
 Progress log (most recent first)
 
+### Completed: Designed Services settings schema (task 3.1)
+- ✅ What was completed
+  - Added `src/schemas/settings/services.ts` defining `ServicesSettingsSchema`, enumerations sourced from Prisma, and defaults for both services and service request workflows.
+- ✅ Why it was done
+  - New implementation establishing a single source of truth for settings validation across API and UI layers, ensuring parity with persisted enums and defaults before backend wiring.
+- ✅ Next steps
+  - Update the services settings API to consume this schema for GET/POST validation (tasks 3.2 & 3.3).
+  - Wire service request assignment logic to honor schema-backed settings values (task 3.4).
+
 ### Completed: Add registry entries (services, service-requests, currencies, contact, timezone)
 - ✅ What was completed
   - Added explicit entries to `src/lib/settings/registry.ts` for: Services (/admin/settings/services), Service Requests (/admin/settings/service-requests), Currency Management (/admin/settings/currencies), Contact (/admin/settings/contact), and Timezone & Localization (/admin/settings/timezone).
