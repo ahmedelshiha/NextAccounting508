@@ -13,6 +13,7 @@ import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics
 import PermissionGate from '@/components/PermissionGate'
 import ServicesSettingsModal from '@/components/admin/settings/ServicesSettingsModal'
 import { PERMISSIONS } from '@/lib/permissions'
+import { usePermissions } from '@/lib/use-permissions'
 
 interface ServiceRow {
   id: string | number
@@ -57,6 +58,7 @@ export default function ServicesAdminPage() {
   const [editing, setEditing] = useState<ServiceRow | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const perms = usePermissions()
 
   const query = buildQuery({ search: search || undefined, status: filters.status && filters.status !== 'all' ? filters.status : undefined, category: filters.category, limit: String(pageSize), offset: String((page-1)*pageSize), sortBy, sortOrder })
   const { data, isLoading, mutate } = useSWR<{ services: ServiceRow[]; total: number; analytics: any }>(`/api/admin/services${query}`, fetcher)
