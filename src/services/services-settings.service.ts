@@ -44,11 +44,13 @@ const FlatServicesSettingsSchema = z.object({
 
 export type FlatServicesSettings = z.infer<typeof FlatServicesSettingsSchema>
 
+type ServiceRequestTemplateUpdates = Partial<z.infer<typeof NotificationServiceRequestTemplatesSchema>>
+
 // Updates shape allows partial nested groups for ergonomic patching
 type ServicesSettingsUpdates = {
   services?: Partial<ServicesCoreSettings>
   serviceRequests?: Partial<ServiceRequestSettings>
-  notification?: { templates?: { serviceRequests?: Record<string, string> } }
+  notification?: { templates?: { serviceRequests?: ServiceRequestTemplateUpdates } }
 }
 
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
