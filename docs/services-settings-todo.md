@@ -222,13 +222,13 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [x] 7.1 Verify permissions for new API routes (settings read/write) using `src/lib/permissions.ts` constants. Add new permission keys if needed (e.g., `SERVICES_SETTINGS_EDIT`) and include in ROLE_PERMISSIONS for ADMIN/TEAM_LEAD where appropriate.
   (Acceptance: only users with correct permissions can POST settings.)
 
-- [ ] 7.2 Update `use-permissions` helper flags where helpful (`canManageCurrencies`, `canManageCurrencies` style). (Acceptance: UI conditionally shows settings only to authorized roles.)
+- [x] 7.2 Update `use-permissions` helper flags where helpful (`canManageCurrencies`, `canManageCurrencies` style). (Acceptance: UI conditionally shows settings only to authorized roles.)
 
 ## 8. Server-side integration & QA
-- [ ] 8.1 Ensure settings are cached safely and invalidated when updated (use revalidation events or short TTL).
+- [x] 8.1 Ensure settings are cached safely and invalidated when updated (use revalidation events or short TTL).
   (Acceptance: changes are reflected to users within accepted TTL or immediately after update.)
 
-- [ ] 8.2 Add unit tests for settings API (GET/POST validation, RBAC) under `tests/`.
+- [x] 8.2 Add unit tests for settings API (GET/POST validation, RBAC) under `tests/`.
   (Acceptance: tests pass locally: `pnpm test`.)
 
 - [x] 8.3 Add integration tests for settings affecting auto-assign and convert-to-booking behaviors.
