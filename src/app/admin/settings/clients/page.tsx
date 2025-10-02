@@ -124,27 +124,26 @@ export default function ClientManagementSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Client Settings.</div>}>
-      <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences">
+      <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences" actions={(
+        <div className="flex items-center gap-2">
+          <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EXPORT}>
+            <button onClick={async ()=>{
+              const r = await fetch('/api/admin/client-settings/export'); const d = await r.json();
+              const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob);
+              const a = document.createElement('a'); a.href = url; a.download = `client-settings-${new Date().toISOString().slice(0,10)}.json`;
+              document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+            }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
+          </PermissionGate>
+          <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_IMPORT}>
+            <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
+          </PermissionGate>
+          <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EDIT}>
+            <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
+          </PermissionGate>
+        </div>
+      )}>
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-end">
-              <div className="flex items-center gap-3">
-                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EXPORT}>
-                  <button onClick={async ()=>{
-                    const r = await fetch('/api/admin/client-settings/export'); const d = await r.json();
-                    const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = `client-settings-${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
-                  }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
-                </PermissionGate>
-                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_IMPORT}>
-                  <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
-                </PermissionGate>
-                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EDIT}>
-                  <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
-                </PermissionGate>
-              </div>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               <aside className="lg:col-span-1">
                 <nav className="bg-white border rounded-lg p-3">
