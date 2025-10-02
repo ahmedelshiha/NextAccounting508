@@ -55,13 +55,17 @@ type ServicesSettingsUpdates = {
 
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
   if (!updates) return base
+  const mergedTemplates = NotificationServiceRequestTemplatesSchema.parse({
+    ...(base.notification?.templates?.serviceRequests ?? {}),
+    ...(updates.notification?.templates?.serviceRequests ?? {}),
+  })
+
   return ServicesSettingsSchema.parse({
     services: { ...base.services, ...(updates.services ?? {}) },
     serviceRequests: { ...base.serviceRequests, ...(updates.serviceRequests ?? {}) },
     notification: {
-      serviceRequests: {
-        ...(base.notification?.serviceRequests ?? {}),
-        ...(updates.notification?.templates?.serviceRequests ?? {}),
+      templates: {
+        serviceRequests: mergedTemplates,
       },
     },
   })
