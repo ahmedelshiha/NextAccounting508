@@ -64,12 +64,19 @@ function ClientNotificationsList() {
   )
 }
 
+import { useOrgSettings } from '@/components/providers/SettingsProvider'
+
 export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgName?: string; orgLogoUrl?: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const user = session?.user as any
   const isAdminUser = ['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((user?.role as string) || '')
+
+  // prefer centralized settings when provider present
+  const ctx = useOrgSettings()
+  orgName = ctx?.settings?.name ?? orgName
+  orgLogoUrl = (ctx?.settings?.logoUrl as string | undefined) ?? orgLogoUrl
 
   const isActive = (href: string) => {
     if (href === '/') {

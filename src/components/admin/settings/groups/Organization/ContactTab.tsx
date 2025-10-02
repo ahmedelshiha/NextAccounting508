@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
+import { toast } from 'sonner'
 
 export default function ContactTab(){
   const [pending, setPending] = useState({ contactEmail: '', contactPhone: '', address: { line1: '', line2: '', city: '', region: '', postalCode: '', country: '' } })
@@ -31,7 +32,12 @@ export default function ContactTab(){
     setSaving(true)
     try {
       await updateOrgSettings({ contact: pending })
-    } catch (e) { console.error(e) }
+      toast.success('Contact settings saved')
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof Error ? e.message : 'Failed to save contact settings'
+      toast.error(msg)
+    }
     setSaving(false)
   }
 

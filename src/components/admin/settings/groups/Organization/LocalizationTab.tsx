@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { SelectField, TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
+import { toast } from 'sonner'
 
 type LocalizationState = { defaultTimezone: string; defaultCurrency: string; defaultLocale: string }
 
@@ -21,7 +22,12 @@ export default function LocalizationTab(){
     setSaving(true)
     try {
       await updateOrgSettings({ localization: pending })
-    } catch (e) { console.error(e) }
+      toast.success('Localization settings saved')
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof Error ? e.message : 'Failed to save localization settings'
+      toast.error(msg)
+    }
     setSaving(false)
   }
 

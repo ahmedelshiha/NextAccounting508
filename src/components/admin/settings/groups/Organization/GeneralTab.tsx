@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
+import { toast } from 'sonner'
 
 export default function OrgGeneralTab(){
   const [pending, setPending] = useState({ name: '', tagline: '', description: '', industry: '' })
@@ -19,7 +20,12 @@ export default function OrgGeneralTab(){
     setSaving(true)
     try {
       await updateOrgSettings({ general: pending })
-    } catch (e) { console.error(e) }
+      toast.success('Organization settings saved')
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof Error ? e.message : 'Failed to save organization settings'
+      toast.error(msg)
+    }
     setSaving(false)
   }
 

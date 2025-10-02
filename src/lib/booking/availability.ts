@@ -1,5 +1,7 @@
 import prisma from '@/lib/prisma'
 
+import { DateTime } from 'luxon'
+
 export type ISO = string
 
 export type AvailabilitySlot = { start: ISO; end: ISO; available: boolean }
@@ -22,6 +24,8 @@ export type AvailabilityOptions = {
   businessHours?: BusinessHours
   // Reference time used to filter out past slots (defaults to now)
   now?: Date
+  // Optional timezone to evaluate business hours & "now" in tenant-local time (IANA TZ name)
+  timeZone?: string
 }
 
 export function toMinutes(str: string | number) {
@@ -107,73 +111,59 @@ export function generateAvailability(
   to: Date,
   slotMinutes: number,
   busy: BusyInterval[],
-  opts: AvailabilityOptions = {}
+  opts: AvailabilityOptions & { timeZone?: string } = {}
 ): AvailabilitySlot[] {
-  const options: { bookingBufferMinutes: number; skipWeekends: boolean; maxDailyBookings: number; businessHours: BusinessHours; now: Date } = {
-    bookingBufferMinutes: opts.bookingBufferMinutes ?? 0,
-    skipWeekends: opts.skipWeekends ?? true,
-    maxDailyBookings: opts.maxDailyBookings ?? 0,
-    businessHours: opts.businessHours ?? {
-      1: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      2: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      3: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      4: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      5: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-    },
-    now: opts.now ?? new Date(),
+  const tz = opts.timeZone ?? 'UTC'
+  const businessHours = opts.businessHours ?? {
+    1: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    2: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    3: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    4: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    5: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
   }
 
+  const nowDT = opts.now ? DateTime.fromJSDate(opts.now).setZone(tz) : DateTime.now().setZone(tz)
+  const startDT = DateTime.fromJSDate(from).setZone(tz).startOf('day')
+  const endDT = DateTime.fromJSDate(to).setZone(tz).endOf('day')
+
   const result: AvailabilitySlot[] = []
-  const start = new Date(from)
-  const end = new Date(to)
-  const now = options.now
 
-  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    const wd = d.getDay() // 0..6
-    const bh = options.businessHours[wd]
+  for (let day = startDT; day <= endDT; day = day.plus({ days: 1 })) {
+    // map luxon weekday (1=Mon..7=Sun) to our businessHours index (0=Sun..6=Sat)
+    const weekdayIdx = day.weekday % 7
+    const bh = businessHours[weekdayIdx]
     if (!bh) continue
-    if (options.skipWeekends && (wd === 0 || wd === 6)) continue
+    if (opts.skipWeekends && (weekdayIdx === 0 || weekdayIdx === 6)) continue
 
-    const windowRange = clampToBusinessHours(d, bh)
-    if (!windowRange) continue
+    const dayStartDT = day.startOf('day').plus({ minutes: bh.startMinutes })
+    const dayEndDT = day.startOf('day').plus({ minutes: bh.endMinutes })
+    if (dayEndDT <= dayStartDT) continue
 
-    // enforce max daily bookings by counting existing busy intervals fully in this day
-    const dayBusy = busy.filter((b) => {
-      const s = dayStart(d)
-      const e = addMinutes(s, 24 * 60)
-      return rangesOverlap(b.start, b.end, s, e)
-    })
-    if (options.maxDailyBookings > 0) {
-      const countExisting = dayBusy.length
-      if (countExisting >= options.maxDailyBookings) continue
+    // Busy intervals that overlap this day (compare instants)
+    const dayWindowStart = day.startOf('day').toJSDate()
+    const dayWindowEnd = day.startOf('day').plus({ days: 1 }).toJSDate()
+    const dayBusy = busy.filter((b) => rangesOverlap(b.start, b.end, dayWindowStart, dayWindowEnd))
+
+    // Max daily bookings enforcement
+    if ((opts.maxDailyBookings ?? 0) > 0) {
+      if (dayBusy.length >= (opts.maxDailyBookings ?? 0)) continue
     }
 
-    const slotStart = new Date(windowRange.start)
-    while (true) {
-      const slotEnd = addMinutes(slotStart, slotMinutes)
-      if (slotEnd > windowRange.end) break
+    for (let slotDT = dayStartDT; slotDT.plus({ minutes: slotMinutes }) <= dayEndDT; slotDT = slotDT.plus({ minutes: slotMinutes })) {
+      const slotEndDT = slotDT.plus({ minutes: slotMinutes })
 
-      // Skip past slots using provided reference time
-      if (slotStart < now) {
-        slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
-        continue
-      }
+      // Skip past slots using tenant-local now
+      if (slotDT < nowDT) continue
 
-      // apply buffer around busy intervals
-      const bufferedBusy = options.bookingBufferMinutes > 0
-        ? dayBusy.map((b) => ({
-            start: addMinutes(b.start, -options.bookingBufferMinutes),
-            end: addMinutes(b.end, options.bookingBufferMinutes),
-          }))
+      // apply buffer around busy intervals (in absolute time)
+      const bufferedBusy = (opts.bookingBufferMinutes ?? 0) > 0
+        ? dayBusy.map((b) => ({ start: addMinutes(b.start, -(opts.bookingBufferMinutes ?? 0)), end: addMinutes(b.end, opts.bookingBufferMinutes ?? 0) }))
         : dayBusy
 
-      // Consider a slot blocked if its START falls within any buffered busy interval.
-      // This matches expected behavior where a slot starting before the buffer begins is allowed.
-      const conflicts = bufferedBusy.some((b) => slotStart >= b.start && slotStart < b.end)
+      const slotJS = slotDT.toJSDate()
+      const conflicts = bufferedBusy.some((b) => slotJS >= b.start && slotJS < b.end)
 
-      result.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), available: !conflicts })
-
-      slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
+      result.push({ start: slotDT.toUTC().toISO(), end: slotEndDT.toUTC().toISO(), available: !conflicts })
     }
   }
 
@@ -297,8 +287,19 @@ export async function getAvailabilityForService(params: {
     // ignore availability slot errors and continue with bookings
   }
 
+  // Determine timezone for slot generation: prefer options, then member, then tenant default
+  let tz: string | undefined = options?.timeZone
+  if (!tz && member && member.timeZone) tz = member.timeZone || undefined
+  if (!tz) {
+    try {
+      const org = await prisma.organizationSettings.findFirst({ where: { tenantId: svc.tenantId }, select: { defaultTimezone: true } }).catch(() => null)
+      tz = org?.defaultTimezone ?? undefined
+    } catch {}
+  }
+
   const slots = generateAvailability(from, to, minutes, busy, {
     ...options,
+    timeZone: tz,
     bookingBufferMinutes,
     maxDailyBookings,
     businessHours,

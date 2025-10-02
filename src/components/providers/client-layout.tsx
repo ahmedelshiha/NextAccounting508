@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic'
 const LiveChatWidget = dynamic(() => import('@/components/portal/LiveChatWidget'), { ssr: false })
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
 import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
+import { useOrgSettings } from '@/components/providers/SettingsProvider'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -44,28 +45,17 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
     setUiLegalLinks(legalLinks)
   }, [orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
 
-  React.useEffect(() => {
-    const update = async () => {
-      try {
-        const res = await fetch('/api/public/org-settings', { cache: 'no-store' })
-        if (!res.ok) return
-        const j = await res.json()
-        setUiOrgName(j.name || uiOrgName)
-        setUiOrgLogoUrl(j.logoUrl || uiOrgLogoUrl)
-        setUiContactEmail(j.contactEmail || uiContactEmail)
-        setUiContactPhone(j.contactPhone || uiContactPhone)
-        setUiLegalLinks(j.legalLinks || uiLegalLinks)
-      } catch {}
-    }
-    const onStorage = (e: StorageEvent) => { if (e.key === 'org-settings-updated') update() }
-    const onCustom = () => update()
-    window.addEventListener('storage', onStorage)
-    window.addEventListener('org-settings-updated', onCustom as any)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener('org-settings-updated', onCustom as any)
-    }
-  }, [])
+  // Use centralized org settings from SettingsProvider when available
+  const ctx = useOrgSettings()
+  useEffect(() => {
+    if (!ctx?.settings) return
+    const s = ctx.settings
+    setUiOrgName(s.name ?? orgName)
+    setUiOrgLogoUrl(s.logoUrl ?? orgLogoUrl)
+    setUiContactEmail(s.contactEmail ?? contactEmail)
+    setUiContactPhone(s.contactPhone ?? contactPhone)
+    setUiLegalLinks(s.legalLinks ?? legalLinks)
+  }, [ctx?.settings, orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
 
   useEffect(() => {
     let handled = false
@@ -248,12 +238,12 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
           Only show main site navigation on NON-admin routes
           Admin routes will have their own dedicated layout with sidebar navigation
         */}
-        {!isAdminRoute && <Navigation orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} />}
+        {!isAdminRoute && <Navigation />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} contactEmail={uiContactEmail} contactPhone={uiContactPhone} legalLinks={uiLegalLinks} />}
+        {!isAdminRoute && <OptimizedFooter />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}

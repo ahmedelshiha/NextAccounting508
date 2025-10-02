@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
+import { SettingsProvider } from '@/components/providers/SettingsProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -72,9 +73,11 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <TranslationProvider initialLocale={orgLocale as any}>
-          <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
-            {children}
-          </ClientLayout>
+          <SettingsProvider initialSettings={{ name: orgName, logoUrl: orgLogoUrl ?? null, contactEmail: contactEmail ?? null, contactPhone: contactPhone ?? null, legalLinks: legalLinks ?? null, defaultLocale: orgLocale }}>
+            <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
+              {children}
+            </ClientLayout>
+          </SettingsProvider>
         </TranslationProvider>
 
         {/* Structured data for SEO */}
