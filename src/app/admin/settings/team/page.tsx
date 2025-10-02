@@ -121,24 +121,6 @@ export default function TeamSettingsPage(){
       <SettingsShell title="Team Management" description="Organizational structure, availability, skills, workload, and performance settings" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_EXPORT}><button onClick={async ()=>{ const r = await fetch('/api/admin/team-settings/export'); const d = await r.json(); const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `team-settings-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button></PermissionGate><PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_IMPORT}><button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button></PermissionGate><PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate></div>)}>
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-end">
-              <div className="flex items-center gap-3">
-                <PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_EXPORT}>
-                  <button onClick={async ()=>{
-                    const r = await fetch('/api/admin/team-settings/export'); const d = await r.json();
-                    const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = `team-settings-${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
-                  }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
-                </PermissionGate>
-                <PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_IMPORT}>
-                  <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
-                </PermissionGate>
-                <PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_EDIT}>
-                  <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
-                </PermissionGate>
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               <aside className="lg:col-span-1">
