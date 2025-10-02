@@ -154,6 +154,38 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
             <Toggle label="Allow cloning of services" value={allowCloning} onChange={setAllowCloning} />
             <Toggle label="Enable featured toggle on service card" value={featuredToggleEnabled} onChange={setFeaturedToggleEnabled} />
             <NumberField label="Price rounding (decimals)" value={priceRounding} onChange={setPriceRounding} min={0} max={6} error={errors.priceRounding} />
+
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Service Categories</h4>
+              <div className="space-y-2">
+                {categories.map((c, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <TextField value={c} onChange={(v) => setCategories((prev) => { const copy = [...prev]; copy[idx] = v; return copy })} placeholder="Category name" />
+                    <button type="button" onClick={() => setCategories((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
+                  </div>
+                ))}
+                <div>
+                  <button type="button" onClick={() => setCategories((prev) => [...prev, ''])} className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">Add category</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Pricing rules (per currency)</h4>
+              <div className="space-y-2">
+                {pricingRules.map((r, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <TextField value={r.currency} onChange={(v) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], currency: v.toUpperCase() }; return copy })} placeholder="USD" />
+                    <NumberField value={r.multiplier} onChange={(n) => setPricingRules((prev) => { const copy = [...prev]; copy[idx] = { ...copy[idx], multiplier: Number(n) }; return copy })} min={0.0001} step={0.01} />
+                    <button type="button" onClick={() => setPricingRules((prev) => prev.filter((_, i) => i !== idx))} className="px-2 py-1 text-sm text-red-600 border border-red-100 rounded">Remove</button>
+                  </div>
+                ))}
+                <div>
+                  <button type="button" onClick={() => setPricingRules((prev) => [...prev, { currency: 'USD', multiplier: 1 }])} className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">Add pricing rule</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 
