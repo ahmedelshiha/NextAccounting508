@@ -137,8 +137,44 @@ Immediate next steps (recommended, ordered):
 - Modified: `src/components/admin/settings/groups/Organization/LegalTab.tsx`
 - Modified: `src/components/admin/settings/groups/Organization/ContactTab.tsx`
 
-If you want I can:
-- Replace any remaining prop-based org settings usages in other components (search and replace).
-- Add integration tests for provider hydration and cross-tab update propagation.
-- Implement safe migration for legalLinks schema changes.
+Pending tasks & recommendations (future work)
+
+High priority
+- [ ] Test: Change a setting → automated integration test to confirm persistence and UI reload (complete manual verification done; automate).
+- [ ] Fix cross-tenant leakage risk: ensure all server reads (especially src/app/layout.tsx) use tenantFilter when MULTI_TENANCY_ENABLED=true; add unit tests for tenant isolation.
+- [ ] Migrate legalLinks schema to explicit object (terms/privacy/refund). Create safe DB migration and backfill script; update Zod schema and re-run tests.
+- [ ] Wire defaultCurrency where it impacts pricing and display (service-level vs org-level precedence); add tests for currency fallbacks.
+- [ ] Add CI step to run integration tests with a disposable test DB (Docker or sqlite) and ensure test secrets/config are set.
+
+Medium priority
+- [ ] Apply tenant timezone across UI: calendar views, booking creation, portal settings UI. Replace ad-hoc Date usages with DateTime.setZone from luxon for display and parsing.
+- [ ] Enforce require2FA semantics fully: integrate org SecuritySettings into auth flows (not only requireAuth opt-in). Add end-to-end tests for 2FA paths.
+- [ ] Implement SettingsContext caching strategy (edge or in-memory LRU) for public pages to avoid repeated DB reads; add cache invalidation on org-settings updates.
+- [ ] Replace remaining prop-drilling patterns (search for components accepting orgName/orgLogo props) and convert to useOrgSettings hook.
+
+Low priority / cleanup
+- [ ] Audit unused settings (tagline, description, industry, contact.address, branding.branding) and either wire them into UI (footer/meta) or mark for deprecation and remove.
+- [ ] Consolidate LegalTab and BrandingTab so legal links are authored only in LegalTab.
+- [ ] Document Branding.branding JSON contract or remove until needed.
+- [ ] Add style/UX polish: move quick toggles to Popover/Modal where appropriate.
+
+Testing & infra recommendations
+- [x] Added integration tests for timezone/DST (start & end) and provider hydration tests.
+- [x] Centralized fixtures and cleanup helpers (tests/fixtures/*, tests/testSetup).
+- [x] Added advisory transaction helper (tests/testUtils/dbTransaction.ts) for best-effort rollback.
+- [ ] Implement true transactional test harness: open a dedicated DB connection per test and run application code using that transaction (requires refactor to accept a Prisma client / transaction object in data layer).
+- [ ] Add a serial integration test runner in CI to avoid DB conflicts, or migrate tests to isolated databases per job.
+
+Developer notes / context
+- Key files modified: See Files touched section above for file list.
+- Timezone handling: generateAvailability now uses luxon for timezone/DST-aware slot generation. This improves correctness for tenant-local slot calculations; please consider introducing luxon across all scheduling and formatting code for consistency.
+- Test DB: Integration tests run against the configured Prisma DB. Ensure migrations applied and test DB isolated.
+
+How I can help next
+- Implement true transactional tests (wrap app DB calls into test transaction) — medium effort.
+- Add CI steps to spin up an ephemeral DB and run integration tests — medium effort.
+- Wire tenant timezone into calendar UI and booking creation flows (luxon-based rendering) — medium effort.
+- Create migration script to normalize legalLinks JSON to explicit object keys and update schema — low/medium effort.
+
+If you’d like I can start with any of the above; tell me which one to prioritize and I’ll implement it next.
 
