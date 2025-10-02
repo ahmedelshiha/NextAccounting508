@@ -43,6 +43,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
   // Categories & pricing rules
   const [categories, setCategories] = useState<string[]>([])
   const [pricingRules, setPricingRules] = useState<{ currency: string; multiplier: number }[]>([])
+  const [currencyOverrides, setCurrencyOverrides] = useState<string[]>([])
 
   useEffect(() => {
     if (!open) return
