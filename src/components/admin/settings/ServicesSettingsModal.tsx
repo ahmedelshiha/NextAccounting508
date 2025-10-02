@@ -86,6 +86,8 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
           setPricingRules(s.pricingRules.map((r: any) => ({ currency: String(r?.currency ?? '').toUpperCase(), multiplier: Number(r?.multiplier ?? 1) })))
         }
         if (Array.isArray(s.currencyOverrides)) setCurrencyOverrides(s.currencyOverrides.map((c: any) => String(c).toUpperCase()))
+        if (typeof s.versioningEnabled === 'boolean') setVersioningEnabled(s.versioningEnabled)
+        if (typeof s.versionRetention === 'number') setVersionRetention(Number(s.versionRetention))
       } catch (e) {
         // ignore load failures
       }
