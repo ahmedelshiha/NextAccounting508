@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
+import { toast } from 'sonner'
 
 export default function LegalTab(){
   const [pending, setPending] = useState({ termsUrl: '', privacyUrl: '', refundUrl: '' })
@@ -19,7 +20,12 @@ export default function LegalTab(){
     setSaving(true)
     try {
       await updateOrgSettings({ branding: { legalLinks: { terms: pending.termsUrl, privacy: pending.privacyUrl, refund: pending.refundUrl } } })
-    } catch (e) { console.error(e) }
+      toast.success('Legal links saved')
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof Error ? e.message : 'Failed to save legal links'
+      toast.error(msg)
+    }
     setSaving(false)
   }
 
