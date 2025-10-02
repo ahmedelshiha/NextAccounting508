@@ -20,6 +20,14 @@ Progress log (most recent first)
 - ✅ Next steps
   - Integrate pricing overrides into the pricing engine (`src/lib/booking/pricing.ts` or related) and add unit tests for pricing rule application.
 
+### Completed: Currency overrides UI and persistence (task 6.2)
+- ✅ What was completed
+  - Implemented Currency Overrides UI inside `src/components/admin/settings/ServicesSettingsModal.tsx` to add/remove allowed or override currencies. Added `services.currencyOverrides` to schema and persistence via `src/services/services-settings.service.ts`.
+- ✅ Why it was done
+  - Allow administrators to configure which currencies are explicitly supported/overridden for services across the org.
+- ✅ Next steps
+  - Integrate these overrides into service creation and price display logic, and add tests verifying fallback/override behavior.
+
 
 ### Completed: Enforced UI permissions for Services settings (task 7.2)
 - ✅ What was completed
