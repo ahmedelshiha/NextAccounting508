@@ -64,7 +64,7 @@ function ClientNotificationsList() {
   )
 }
 
-export function Navigation() {
+export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgName?: string; orgLogoUrl?: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const { data: session, status } = useSession()
@@ -84,12 +84,17 @@ export function Navigation() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" aria-label="Accounting Firm home" className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AF</span>
+            <Link href="/" aria-label={`${orgName} home`} className="flex items-center space-x-2">
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center overflow-hidden">
+                {orgLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={orgLogoUrl} alt={`${orgName} logo`} className="h-8 w-8 object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-sm">{(orgName || 'A').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
+                )}
               </div>
               <span className="text-xl font-bold text-gray-900">
-                Accounting Firm
+                {orgName}
               </span>
             </Link>
           </div>
