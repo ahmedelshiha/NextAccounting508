@@ -177,7 +177,7 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
     autoAssignStrategy: settings.serviceRequests.autoAssignStrategy,
     allowConvertToBooking: settings.serviceRequests.allowConvertToBooking,
     defaultBookingType: settings.serviceRequests.defaultBookingType,
-    notification: hasTemplates ? { templates: { serviceRequests: templates } } : undefined,
+    notification: hasTemplates ? { templates: { serviceRequests: normalizedTemplates } } : undefined,
   }
 }
 
