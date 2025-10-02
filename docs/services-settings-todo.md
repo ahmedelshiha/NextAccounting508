@@ -2,6 +2,14 @@
 
 Progress log (most recent first)
 
+### Completed: Fixed TS build errors in services settings service
+- ✅ What was completed
+  - Corrected types in `src/services/services-settings.service.ts` to allow nested partial updates via `ServicesSettingsUpdates` and adjusted merge logic; resolved TS2322 on `defaultCategory`/`defaultRequestStatus`.
+- ✅ Why it was done
+  - To restore build, ensure safe schema-validated merges, and support legacy normalization without requiring all fields.
+- ✅ Next steps
+  - Run tests (`pnpm test`), verify admin settings GET/POST still pass; consider DB-backed persistence and add tests for partial updates.
+
 ### Completed: Designed Services settings schema (task 3.1)
 - ✅ What was completed
   - Added `src/schemas/settings/services.ts` defining `ServicesSettingsSchema`, enumerations sourced from Prisma, and defaults for both services and service request workflows.
