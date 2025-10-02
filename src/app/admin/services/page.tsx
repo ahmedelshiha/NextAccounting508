@@ -163,9 +163,13 @@ export default function ServicesAdminPage() {
           title="Services Management"
           subtitle="Manage your service offerings, pricing, and availability"
           primaryAction={{ label: 'New Service', onClick: () => { setEditing(null); setShowModal(true) } }}
-          secondaryActions={[{ label: 'Export', onClick: exportCsv }, { label: 'Analytics', onClick: () => setActiveTab('analytics') }, { label: 'Refresh', onClick: () => mutate() }]}
+          secondaryActions={[
+            { label: 'Export', onClick: exportCsv },
+            { label: 'Analytics', onClick: () => setActiveTab('analytics') },
+            { label: 'Refresh', onClick: () => mutate() },
+            { label: 'Settings', onClick: () => setShowSettings(true) }
+          ]}
           primaryTabs={primaryTabs}
-          secondaryActions={[{ label: 'Settings', onClick: () => setShowSettings(true) }] }
           activePrimaryTab={activeTab}
           onPrimaryTabChange={setActiveTab}
           filters={filterConfigs}
