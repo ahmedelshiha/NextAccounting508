@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     }
 
     const role = (session.user as any)?.role as string | undefined
-    if (!hasPermission(role, PERMISSIONS.SERVICES_VIEW)) {
+    if (!hasPermission(role, PERMISSIONS.SERVICES_EDIT)) {
       return jsonResponse({ ok: false, error: 'Forbidden' }, 403)
     }
 

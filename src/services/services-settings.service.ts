@@ -32,7 +32,13 @@ const FlatServicesSettingsSchema = z.object({
 
 export type FlatServicesSettings = z.infer<typeof FlatServicesSettingsSchema>
 
-function mergeSettings(base: ServicesSettings, updates?: Partial<ServicesSettings>): ServicesSettings {
+// Updates shape allows partial nested groups for ergonomic patching
+type ServicesSettingsUpdates = {
+  services?: Partial<ServicesCoreSettings>
+  serviceRequests?: Partial<ServiceRequestSettings>
+}
+
+function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
   if (!updates) return base
   return ServicesSettingsSchema.parse({
     services: { ...base.services, ...(updates.services ?? {}) },
@@ -72,7 +78,9 @@ async function readFile(): Promise<unknown> {
 async function writeFile(settings: ServicesSettings): Promise<void> {
   const dir = path.dirname(SETTINGS_FILE_PATH)
   await fs.mkdir(dir, { recursive: true })
-  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2), 'utf-8')
+  // Persist in flat shape for legacy compatibility and test expectations
+  const flat = flattenSettings(settings)
+  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(flat, null, 2), 'utf-8')
 }
 
 function cacheKey(tenantId: string | null) {
@@ -104,7 +112,7 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
   }
 }
 
-function expandFlatSettings(flat: FlatServicesSettings): Partial<ServicesSettings> {
+function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates {
   const parsed = FlatServicesSettingsSchema.parse(flat)
   return {
     services: {
@@ -141,10 +149,10 @@ export class ServicesSettingsService {
     return flattenSettings(settings)
   }
 
-  async save(flatOrNested: Partial<ServicesSettings> | FlatServicesSettings, tenantId: string | null = null): Promise<ServicesSettings> {
+  async save(flatOrNested: ServicesSettingsUpdates | FlatServicesSettings, tenantId: string | null = null): Promise<ServicesSettings> {
     const current = await this.get(tenantId)
     const updates = 'services' in (flatOrNested as any) || 'serviceRequests' in (flatOrNested as any)
-      ? (flatOrNested as Partial<ServicesSettings>)
+      ? (flatOrNested as ServicesSettingsUpdates)
       : expandFlatSettings(flatOrNested as FlatServicesSettings)
 
     const merged = mergeSettings(current, updates)
