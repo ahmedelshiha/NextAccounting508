@@ -8,26 +8,12 @@ describe('E2E: getAvailabilityForService handles DST end (fall-back) without dup
   let serviceId: string | null = null
 
   beforeAll(async () => {
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } }).catch(() => {})
-    await prisma.service.deleteMany({ where: { tenantId } }).catch(() => {})
-
-    await prisma.organizationSettings.create({ data: { tenantId, name: 'TZ Fall Org', defaultTimezone: 'America/New_York' } })
-
-    const svc = await prisma.service.create({ data: {
-      name: 'TZ Fall Service',
-      slug: `tz-fall-${Date.now()}`,
-      description: 'For TZ fall test',
-      price: 100,
-      duration: 60,
-      tenantId,
-      businessHours: { '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00' }
-    }})
+    const svc = await (await import('../fixtures/tenantFixtures')).seedTenantWithService({ tenantId, timezone: 'America/New_York', serviceName: 'TZ Fall Service' })
     serviceId = svc.id
   })
 
   afterAll(async () => {
-    if (serviceId) await prisma.service.deleteMany({ where: { id: serviceId } }).catch(() => {})
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } }).catch(() => {})
+    await (await import('../fixtures/tenantFixtures')).cleanupTenant(tenantId)
   })
 
   it('does not produce duplicate local-start times on DST end day', async () => {
