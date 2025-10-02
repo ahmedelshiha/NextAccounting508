@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
-import prisma from '@/lib/prisma'
+import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,15 +39,21 @@ export default async function RootLayout({
     session = null
   }
 
-  // Load organization default locale (server-side, no auth required for read)
-  let orgLocale: string = 'en'
-  let orgName: string = 'Accounting Firm'
-  let orgLogoUrl: string | null = null
+  // Load organization defaults with tenant scoping (server-side, no auth required for read)
+  let orgLocale = 'en'
+  let orgName = 'Accounting Firm'
+  let orgLogoUrl: string | null | undefined = null
+  let contactEmail: string | null | undefined = null
+  let contactPhone: string | null | undefined = null
+  let legalLinks: Record<string, string> | null | undefined = null
   try {
-    const row = await prisma.organizationSettings.findFirst({ select: { defaultLocale: true, name: true, logoUrl: true } })
-    orgLocale = (row?.defaultLocale as string) || 'en'
-    orgName = (row?.name as string) || orgName
-    orgLogoUrl = (row?.logoUrl as string | null) ?? null
+    const eff = await getEffectiveOrgSettingsFromHeaders()
+    orgLocale = eff.locale || 'en'
+    orgName = eff.name || orgName
+    orgLogoUrl = eff.logoUrl ?? null
+    contactEmail = eff.contactEmail ?? null
+    contactPhone = eff.contactPhone ?? null
+    legalLinks = eff.legalLinks ?? null
   } catch {}
 
   return (
@@ -66,7 +72,7 @@ export default async function RootLayout({
           Skip to main content
         </a>
         <TranslationProvider initialLocale={orgLocale as any}>
-          <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined}>
+          <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
             {children}
           </ClientLayout>
         </TranslationProvider>

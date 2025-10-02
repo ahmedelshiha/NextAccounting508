@@ -17,6 +17,9 @@ interface ClientLayoutProps {
   session?: Session | null
   orgName?: string
   orgLogoUrl?: string
+  contactEmail?: string
+  contactPhone?: string
+  legalLinks?: Record<string, string>
 }
 
 // extend Window to store a fetch flag without using `any`
@@ -26,7 +29,44 @@ declare global {
   }
 }
 
-export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientLayoutProps) {
+export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks }: ClientLayoutProps) {
+  const [uiOrgName, setUiOrgName] = React.useState(orgName)
+  const [uiOrgLogoUrl, setUiOrgLogoUrl] = React.useState(orgLogoUrl)
+  const [uiContactEmail, setUiContactEmail] = React.useState(contactEmail)
+  const [uiContactPhone, setUiContactPhone] = React.useState(contactPhone)
+  const [uiLegalLinks, setUiLegalLinks] = React.useState(legalLinks)
+
+  React.useEffect(() => {
+    setUiOrgName(orgName)
+    setUiOrgLogoUrl(orgLogoUrl)
+    setUiContactEmail(contactEmail)
+    setUiContactPhone(contactPhone)
+    setUiLegalLinks(legalLinks)
+  }, [orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
+
+  React.useEffect(() => {
+    const update = async () => {
+      try {
+        const res = await fetch('/api/public/org-settings', { cache: 'no-store' })
+        if (!res.ok) return
+        const j = await res.json()
+        setUiOrgName(j.name || uiOrgName)
+        setUiOrgLogoUrl(j.logoUrl || uiOrgLogoUrl)
+        setUiContactEmail(j.contactEmail || uiContactEmail)
+        setUiContactPhone(j.contactPhone || uiContactPhone)
+        setUiLegalLinks(j.legalLinks || uiLegalLinks)
+      } catch {}
+    }
+    const onStorage = (e: StorageEvent) => { if (e.key === 'org-settings-updated') update() }
+    const onCustom = () => update()
+    window.addEventListener('storage', onStorage)
+    window.addEventListener('org-settings-updated', onCustom as any)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener('org-settings-updated', onCustom as any)
+    }
+  }, [])
+
   useEffect(() => {
     let handled = false
 
@@ -208,12 +248,12 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl }: ClientL
           Only show main site navigation on NON-admin routes
           Admin routes will have their own dedicated layout with sidebar navigation
         */}
-        {!isAdminRoute && <Navigation orgName={orgName} orgLogoUrl={orgLogoUrl} />}
+        {!isAdminRoute && <Navigation orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} />}
         <main id="site-main-content" tabIndex={-1} role="main" className="flex-1">
           {children}
         </main>
         {/* Only show footer on non-admin routes */}
-        {!isAdminRoute && <OptimizedFooter orgName={orgName} />}
+        {!isAdminRoute && <OptimizedFooter orgName={uiOrgName} orgLogoUrl={uiOrgLogoUrl} contactEmail={uiContactEmail} contactPhone={uiContactPhone} legalLinks={uiLegalLinks} />}
       </div>
       {/* Capture performance metrics only on admin routes to reduce noise on public pages */}
       {isAdminRoute ? <PerfMetricsReporter /> : null}

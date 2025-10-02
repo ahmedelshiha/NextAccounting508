@@ -10,8 +10,20 @@ export default function ContactTab(){
   useEffect(() => { (async () => {
     try {
       const j = await getOrgSettings()
-      const c = j?.contact || {}
-      setPending({ contactEmail: c.contactEmail ?? '', contactPhone: c.contactPhone ?? '', address: c.address ?? { line1: '', line2: '', city: '', region: '', postalCode: '', country: '' } })
+      const c = (j?.contact || {}) as Partial<{ contactEmail: string; contactPhone: string; address: Partial<{ line1: string; line2: string; city: string; region: string; postalCode: string; country: string }> }>
+      const addr = c.address || {}
+      setPending({
+        contactEmail: c.contactEmail ?? '',
+        contactPhone: c.contactPhone ?? '',
+        address: {
+          line1: addr.line1 ?? '',
+          line2: addr.line2 ?? '',
+          city: addr.city ?? '',
+          region: addr.region ?? '',
+          postalCode: addr.postalCode ?? '',
+          country: addr.country ?? ''
+        }
+      })
     } catch (e) { console.error(e) }
   })() }, [])
 
