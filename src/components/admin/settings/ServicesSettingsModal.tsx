@@ -73,6 +73,12 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
           if (typeof templates.assigned === 'string') setNotifAssigned(templates.assigned)
           if (typeof templates.statusChanged === 'string') setNotifStatusChanged(templates.statusChanged)
         }
+
+        // load categories and pricing rules (flat response includes these)
+        if (Array.isArray(s.categories)) setCategories(s.categories.filter((c: any) => typeof c === 'string'))
+        if (Array.isArray(s.pricingRules)) {
+          setPricingRules(s.pricingRules.map((r: any) => ({ currency: String(r?.currency ?? '').toUpperCase(), multiplier: Number(r?.multiplier ?? 1) })))
+        }
       } catch (e) {
         // ignore load failures
       }
