@@ -1,16 +1,22 @@
 import PermissionGate from '@/components/PermissionGate'
-import StandardPage from '@/components/dashboard/templates/StandardPage'
+import SettingsShell from '@/components/admin/settings/SettingsShell'
+import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import BookingSettingsPanel from '@/components/admin/BookingSettingsPanel'
 import { PERMISSIONS } from '@/lib/permissions'
+import PermissionGate from '@/components/PermissionGate'
 
 export default function AdminBookingSettingsPage() {
   return (
     <PermissionGate permission={[PERMISSIONS.BOOKING_SETTINGS_VIEW]} fallback={<div className="p-6">You do not have access to Booking Settings.</div>}>
-      <StandardPage title="Booking Settings" subtitle="Manage booking rules and availability preferences">
+      <SettingsShell
+        title="Booking Settings"
+        description="Manage booking rules and availability preferences"
+        sidebar={<SettingsNavigation />}
+      >
         <div className="p-0">
           <BookingSettingsPanel />
         </div>
-      </StandardPage>
+      </SettingsShell>
     </PermissionGate>
   )
 }
