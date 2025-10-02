@@ -121,11 +121,7 @@ export default function TeamSettingsPage(){
       <SettingsShell title="Team Management" description="Organizational structure, availability, skills, workload, and performance settings">
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
-                <p className="text-gray-600">Organizational structure, availability, skills, workload, and performance settings</p>
-              </div>
+            <div className="mb-4 flex items-center justify-end">
               <div className="flex items-center gap-3">
                 <PermissionGate permission={PERMISSIONS.TEAM_SETTINGS_EXPORT}>
                   <button onClick={async ()=>{
