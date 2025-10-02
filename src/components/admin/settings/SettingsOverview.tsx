@@ -85,6 +85,7 @@ function SettingsOverviewInner() {
       description="System health, quick actions and recent changes"
       icon={undefined}
       sidebar={<SettingsNavigation />}
+      showBackButton={false}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <SettingsCard>
