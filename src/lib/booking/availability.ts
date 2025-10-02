@@ -163,7 +163,12 @@ export function generateAvailability(
       const slotJS = slotDT.toJSDate()
       const conflicts = bufferedBusy.some((b) => slotJS >= b.start && slotJS < b.end)
 
-      result.push({ start: slotDT.toUTC().toISO(), end: slotEndDT.toUTC().toISO(), available: !conflicts })
+      const slotStartIso = slotDT.toUTC().toISO()
+      if (!slotStartIso) continue
+      const slotEndIso = slotEndDT.toUTC().toISO()
+      if (!slotEndIso) continue
+
+      result.push({ start: slotStartIso, end: slotEndIso, available: !conflicts })
     }
   }
 
