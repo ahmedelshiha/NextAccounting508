@@ -46,20 +46,16 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
   }, [orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
 
   // Use centralized org settings from SettingsProvider when available
-  try {
-    const ctx = useOrgSettings()
-    useEffect(() => {
-      const s = ctx.settings
-      if (!s) return
-      setUiOrgName(s.name ?? orgName)
-      setUiOrgLogoUrl(s.logoUrl ?? orgLogoUrl)
-      setUiContactEmail(s.contactEmail ?? contactEmail)
-      setUiContactPhone(s.contactPhone ?? contactPhone)
-      setUiLegalLinks(s.legalLinks ?? legalLinks)
-    }, [ctx.settings])
-  } catch (e) {
-    // If SettingsProvider not present, fallback to existing behavior (do nothing)
-  }
+  const ctx = useOrgSettings()
+  useEffect(() => {
+    if (!ctx?.settings) return
+    const s = ctx.settings
+    setUiOrgName(s.name ?? orgName)
+    setUiOrgLogoUrl(s.logoUrl ?? orgLogoUrl)
+    setUiContactEmail(s.contactEmail ?? contactEmail)
+    setUiContactPhone(s.contactPhone ?? contactPhone)
+    setUiLegalLinks(s.legalLinks ?? legalLinks)
+  }, [ctx?.settings, orgName, orgLogoUrl, contactEmail, contactPhone, legalLinks])
 
   useEffect(() => {
     let handled = false
