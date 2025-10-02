@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import Tabs from '@/components/admin/settings/Tabs'
@@ -36,6 +34,11 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
   const [allowConvertToBooking, setAllowConvertToBooking] = useState(true)
   const [defaultBookingType, setDefaultBookingType] = useState('STANDARD')
 
+  // Notification templates for service requests
+  const [notifCreated, setNotifCreated] = useState('')
+  const [notifAssigned, setNotifAssigned] = useState('')
+  const [notifStatusChanged, setNotifStatusChanged] = useState('')
+
   useEffect(() => {
     if (!open) return
     // load current settings from server if available
@@ -58,6 +61,14 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
         if (s.autoAssignStrategy) setAutoAssignStrategy(s.autoAssignStrategy)
         if (typeof s.allowConvertToBooking === 'boolean') setAllowConvertToBooking(s.allowConvertToBooking)
         if (s.defaultBookingType) setDefaultBookingType(s.defaultBookingType)
+
+        // load notification templates if present
+        const templates = s.notification?.templates?.serviceRequests ?? s.notification?.serviceRequests ?? null
+        if (templates) {
+          if (typeof templates.created === 'string') setNotifCreated(templates.created)
+          if (typeof templates.assigned === 'string') setNotifAssigned(templates.assigned)
+          if (typeof templates.statusChanged === 'string') setNotifStatusChanged(templates.statusChanged)
+        }
       } catch (e) {
         // ignore load failures
       }
@@ -89,6 +100,15 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
         autoAssignStrategy,
         allowConvertToBooking,
         defaultBookingType,
+        notification: {
+          templates: {
+            serviceRequests: {
+              created: notifCreated || undefined,
+              assigned: notifAssigned || undefined,
+              statusChanged: notifStatusChanged || undefined,
+            }
+          }
+        }
       }
       const res = await fetch('/api/admin/settings/services', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       await toastFromResponse(res, { success: 'Settings saved', failure: 'Failed to save settings' })
@@ -128,6 +148,18 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
             <SelectField label="Auto-assign strategy" value={autoAssignStrategy} onChange={setAutoAssignStrategy} options={[{ value: 'round_robin', label: 'Round Robin' }, { value: 'load_based', label: 'Load-based' }, { value: 'skill_based', label: 'Skill-based' }]} error={errors.autoAssignStrategy} />
             <Toggle label="Allow conversion of requests to bookings" value={allowConvertToBooking} onChange={setAllowConvertToBooking} />
             <SelectField label="Default Booking Type" value={defaultBookingType} onChange={setDefaultBookingType} options={[{ value: 'STANDARD', label: 'Standard' }, { value: 'CONSULTATION', label: 'Consultation' }, { value: 'EMERGENCY', label: 'Emergency' }]} error={errors.defaultBookingType} />
+
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Notification templates (Service Requests)</h4>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Request created</label>
+              <Textarea rows={3} value={notifCreated} onChange={(e) => setNotifCreated(e.target.value)} placeholder="Template for request created notifications" className="w-full border border-gray-200 rounded-md p-2" />
+
+              <label className="block text-xs font-medium text-gray-600 mt-3 mb-1">Assigned to team member</label>
+              <Textarea rows={3} value={notifAssigned} onChange={(e) => setNotifAssigned(e.target.value)} placeholder="Template for assignment notifications" className="w-full border border-gray-200 rounded-md p-2" />
+
+              <label className="block text-xs font-medium text-gray-600 mt-3 mb-1">Status changed</label>
+              <Textarea rows={3} value={notifStatusChanged} onChange={(e) => setNotifStatusChanged(e.target.value)} placeholder="Template for status change notifications" className="w-full border border-gray-200 rounded-md p-2" />
+            </div>
           </div>
         )}
 
