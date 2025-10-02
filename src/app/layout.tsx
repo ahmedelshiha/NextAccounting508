@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
+import prisma from '@/lib/prisma'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,8 +39,15 @@ export default async function RootLayout({
     session = null
   }
 
+  // Load organization default locale (server-side, no auth required for read)
+  let orgLocale: string = 'en'
+  try {
+    const row = await prisma.organizationSettings.findFirst({ select: { defaultLocale: true } })
+    orgLocale = (row?.defaultLocale as string) || 'en'
+  } catch {}
+
   return (
-    <html lang="en">
+    <html lang={orgLocale}>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/next.svg" />
@@ -53,7 +61,7 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <TranslationProvider>
+        <TranslationProvider initialLocale={orgLocale as any}>
           <ClientLayout session={session}>
             {children}
           </ClientLayout>
