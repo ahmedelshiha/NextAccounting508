@@ -333,8 +333,19 @@ export async function getAvailabilityForService(params: {
     // ignore availability slot errors and continue with bookings
   }
 
+  // Determine timezone for slot generation: prefer options, then member, then tenant default
+  let tz: string | undefined = options?.timeZone
+  if (!tz && member && member.timeZone) tz = member.timeZone || undefined
+  if (!tz) {
+    try {
+      const org = await prisma.organizationSettings.findFirst({ where: { tenantId: svc.tenantId }, select: { defaultTimezone: true } }).catch(() => null)
+      tz = org?.defaultTimezone ?? undefined
+    } catch {}
+  }
+
   const slots = generateAvailability(from, to, minutes, busy, {
     ...options,
+    timeZone: tz,
     bookingBufferMinutes,
     maxDailyBookings,
     businessHours,
