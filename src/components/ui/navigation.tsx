@@ -74,11 +74,9 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
   const isAdminUser = ['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((user?.role as string) || '')
 
   // prefer centralized settings when provider present
-  try {
-    const ctx = useOrgSettings()
-    orgName = ctx.settings?.name ?? orgName
-    orgLogoUrl = (ctx.settings?.logoUrl as string | undefined) ?? orgLogoUrl
-  } catch {}
+  const ctx = useOrgSettings()
+  orgName = ctx?.settings?.name ?? orgName
+  orgLogoUrl = (ctx?.settings?.logoUrl as string | undefined) ?? orgLogoUrl
 
   const isActive = (href: string) => {
     if (href === '/') {
