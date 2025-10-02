@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
+import { toast } from 'sonner'
 
 type BrandingState = {
   logoUrl: string
@@ -27,7 +28,12 @@ export default function BrandingTab(){
     setSaving(true)
     try {
       await updateOrgSettings({ branding: { logoUrl: pending.logoUrl, branding: pending.branding } })
-    } catch (e) { console.error(e) }
+      toast.success('Branding settings saved')
+    } catch (e) {
+      console.error(e)
+      const msg = e instanceof Error ? e.message : 'Failed to save branding settings'
+      toast.error(msg)
+    }
     setSaving(false)
   }
 
