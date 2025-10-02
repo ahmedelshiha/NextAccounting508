@@ -124,6 +124,8 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
           categories,
           pricingRules,
           currencyOverrides,
+          versioningEnabled,
+          versionRetention,
         },
         serviceRequests: {
           defaultRequestStatus,
