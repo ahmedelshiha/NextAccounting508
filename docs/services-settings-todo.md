@@ -153,7 +153,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
   - Add helpful tooltips and explanation text in modal. (Acceptance: Settings button opens modal and user can save.)
 
 ## 5. Service Requests settings UI (detailed)
-- [ ] 5.1 Implement Service Requests tab in settings modal/page
+- [x] 5.1 Implement Service Requests tab in settings modal/page
   - Controls required: defaultRequestStatus (select), autoAssign (toggle), autoAssignStrategy (select), allowConvertToBooking (toggle), defaultBookingType (select)
   - Validate input client-side, show inline errors. (Acceptance: inputs validate and POST succeeds.)
 
