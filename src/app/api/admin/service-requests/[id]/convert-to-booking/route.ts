@@ -67,6 +67,21 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       )
     }
 
+    let allowConvertToBooking = true
+    try {
+      const tenantScopedSettings = await servicesSettingsService.get((serviceRequest as any)?.tenantId ?? null)
+      allowConvertToBooking = tenantScopedSettings.serviceRequests.allowConvertToBooking
+    } catch {
+      allowConvertToBooking = DEFAULT_SERVICES_SETTINGS.serviceRequests.allowConvertToBooking
+    }
+
+    if (!allowConvertToBooking) {
+      return NextResponse.json(
+        { error: 'Converting service requests to bookings is disabled by settings' },
+        { status: 403 }
+      )
+    }
+
     // Check if service request is in a convertible status
     const convertibleStatuses = ['APPROVED', 'ASSIGNED', 'IN_PROGRESS']
     if (!convertibleStatuses.includes(serviceRequest.status)) {
