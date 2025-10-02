@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 
-export function TextField({ label, value, onChange, placeholder, disabled = false }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean }){
+export function TextField({ label, value, onChange, placeholder, disabled = false, error }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean; error?: string }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -12,11 +12,12 @@ export function TextField({ label, value, onChange, placeholder, disabled = fals
         disabled={disabled}
         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       />
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
   )
 }
 
-export function SelectField({ label, value, onChange, options, disabled = false }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean }){
+export function SelectField({ label, value, onChange, options, disabled = false, error }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean; error?: string }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -28,6 +29,7 @@ export function SelectField({ label, value, onChange, options, disabled = false 
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
   )
 }
@@ -58,7 +60,7 @@ export function Toggle({ label, value, onChange, disabled = false }: { label: st
   )
 }
 
-export function NumberField({ label, value, onChange, min, max, disabled = false }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean }){
+export function NumberField({ label, value, onChange, min, max, disabled = false, error }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean; error?: string }){
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -71,6 +73,7 @@ export function NumberField({ label, value, onChange, min, max, disabled = false
         disabled={disabled}
         className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       />
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>
   )
 }
