@@ -53,6 +53,25 @@ type ServicesSettingsUpdates = {
   notification?: { templates?: { serviceRequests?: ServiceRequestTemplateUpdates } }
 }
 
+function mergeTemplateSettings(
+  baseTemplates?: ServiceRequestTemplateUpdates,
+  updates?: ServiceRequestTemplateUpdates,
+): ServiceRequestTemplateUpdates {
+  const next: Record<string, unknown> = { ...(baseTemplates ?? {}) }
+
+  if (updates) {
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === 'undefined' || value === null) {
+        delete next[key]
+      } else if (typeof value === 'string') {
+        next[key] = value
+      }
+    }
+  }
+
+  return NotificationServiceRequestTemplatesSchema.parse(next)
+}
+
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
   if (!updates) return base
   const mergedTemplates = NotificationServiceRequestTemplatesSchema.parse({
