@@ -33,7 +33,7 @@ export const OrgBrandingSchema = z.object({
     terms: z.string().url().optional(),
     privacy: z.string().url().optional(),
     refund: z.string().url().optional(),
-  }).optional()
+  }).strict().optional()
 })
 
 export const OrganizationSettingsSchema = z.object({
