@@ -8,6 +8,8 @@ import { NotificationService } from '@/lib/notification.service';
 import { createHash } from 'crypto';
 import { serviceEvents } from '@/lib/events/service-events';
 
+import servicesSettingsService from '@/services/services-settings.service'
+
 export class ServicesService {
   constructor(
     private cache: CacheService = new CacheService(),
