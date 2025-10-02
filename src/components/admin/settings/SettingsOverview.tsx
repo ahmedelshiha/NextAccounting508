@@ -88,49 +88,57 @@ function SettingsOverviewInner() {
       showBackButton={false}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <SettingsCard>
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">System Health</h3>
-              <p className="text-sm text-muted-foreground mt-1">Database, authentication, and integrations status</p>
-              <div className="mt-4 space-y-2" role="status" aria-live="polite">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Database</span>
-                  <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Authentication</span>
-                  <Badge className="bg-green-100 text-green-800">Configured</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Integrations</span>
-                  <Badge className="bg-amber-100 text-amber-800">Partial</Badge>
-                </div>
+        <SettingsCard className="h-full flex flex-col min-h-[180px]">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">System Health</h3>
+            <p className="text-sm text-muted-foreground mt-1">Database, authentication, and integrations status</p>
+
+            <div className="mt-4 space-y-2" role="status" aria-live="polite">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Database</span>
+                <Badge className="bg-green-100 text-green-800">Connected</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Authentication</span>
+                <Badge className="bg-green-100 text-green-800">Configured</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Integrations</span>
+                <Badge className="bg-amber-100 text-amber-800">Partial</Badge>
               </div>
             </div>
-            <div className="ml-4">
-              <Button type="button" aria-label="Run diagnostics" onClick={handleRunDiagnostics} disabled={running}>
-                {running ? 'Running…' : 'Run Diagnostics'}
-              </Button>
-            </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Button type="button" aria-label="Run diagnostics" onClick={handleRunDiagnostics} disabled={running}>
+              {running ? 'Running…' : 'Run Diagnostics'}
+            </Button>
           </div>
         </SettingsCard>
 
-        <SettingsCard>
-          <h3 className="text-lg font-semibold">Quick Actions</h3>
-          <p className="text-sm text-muted-foreground mt-1">Export or import settings, run health checks</p>
-          <div className="mt-4 flex gap-2">
+        <SettingsCard className="h-full flex flex-col min-h-[180px]">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">Quick Actions</h3>
+            <p className="text-sm text-muted-foreground mt-1">Export or import settings, run health checks</p>
+          </div>
+
+          <div className="mt-4 flex gap-2 justify-end">
             <Button type="button" aria-label="Export settings" onClick={handleExport} disabled={exporting}>{exporting ? 'Exporting…' : 'Export'}</Button>
             <Button variant="secondary" type="button" aria-label="Import settings" onClick={handleImport} disabled={importing}>{importing ? 'Importing…' : 'Import'}</Button>
           </div>
         </SettingsCard>
 
-        <SettingsCard>
-          <h3 className="text-lg font-semibold">Recent Changes</h3>
-          <p className="text-sm text-muted-foreground mt-1">Latest configuration updates and audit events</p>
-          <Suspense fallback={<div className="mt-4 text-sm text-gray-500">Loading recent changes…</div>}>
-            <RecentChanges />
-          </Suspense>
+        <SettingsCard className="h-full flex flex-col min-h-[180px]">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">Recent Changes</h3>
+            <p className="text-sm text-muted-foreground mt-1">Latest configuration updates and audit events</p>
+
+            <div className="mt-4 overflow-auto max-h-52">
+              <Suspense fallback={<div className="text-sm text-gray-500">Loading recent changes…</div>}>
+                <RecentChanges />
+              </Suspense>
+            </div>
+          </div>
         </SettingsCard>
       </div>
 
