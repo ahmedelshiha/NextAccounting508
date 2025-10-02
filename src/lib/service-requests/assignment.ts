@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma'
 import { CacheService } from '@/lib/cache.service'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
