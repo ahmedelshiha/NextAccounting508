@@ -45,6 +45,10 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
   const [pricingRules, setPricingRules] = useState<{ currency: string; multiplier: number }[]>([])
   const [currencyOverrides, setCurrencyOverrides] = useState<string[]>([])
 
+  // Versioning controls
+  const [versioningEnabled, setVersioningEnabled] = useState(true)
+  const [versionRetention, setVersionRetention] = useState(5)
+
   useEffect(() => {
     if (!open) return
     // load current settings from server if available
