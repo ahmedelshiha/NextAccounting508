@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react'
 import { SelectField, TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
+type LocalizationState = { defaultTimezone: string; defaultCurrency: string; defaultLocale: string }
+
 export default function LocalizationTab(){
-  const [pending, setPending] = useState({ defaultTimezone: 'UTC', defaultCurrency: 'USD', defaultLocale: 'en' })
+  const [pending, setPending] = useState<LocalizationState>({ defaultTimezone: 'UTC', defaultCurrency: 'USD', defaultLocale: 'en' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { (async () => {
     try {
       const j = await getOrgSettings()
-      const loc = j?.localization || {}
+      const loc = (j?.localization || {}) as Partial<LocalizationState>
       setPending({ defaultTimezone: loc.defaultTimezone ?? 'UTC', defaultCurrency: loc.defaultCurrency ?? 'USD', defaultLocale: loc.defaultLocale ?? 'en' })
     } catch (e) { console.error(e) }
   })() }, [])
