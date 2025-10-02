@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
+import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
@@ -124,53 +125,55 @@ export default function ClientManagementSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Client Settings.</div>}>
-      <div className="px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Client Management</h1>
-              <p className="text-gray-600">Registration, profiles, communication, segmentation, loyalty, and portal preferences</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EXPORT}>
-                <button onClick={async ()=>{
-                  const r = await fetch('/api/admin/client-settings/export'); const d = await r.json();
-                  const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a'); a.href = url; a.download = `client-settings-${new Date().toISOString().slice(0,10)}.json`;
-                  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
-                }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
-              </PermissionGate>
-              <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_IMPORT}>
-                <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
-              </PermissionGate>
-              <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EDIT}>
-                <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
-              </PermissionGate>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <aside className="lg:col-span-1">
-              <nav className="bg-white border rounded-lg p-3">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Client Settings</h3>
-                <ul className="space-y-1">
-                  {tabs.map(t => (
-                    <li key={t.key}>
-                      <button onClick={()=>setActive(t.key)} className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm ${active===t.key? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <span>{t.label}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            </aside>
-            <section className="lg:col-span-4">
-              <div className="bg-white border rounded-lg p-6">
-                {body}
+      <SettingsShell title="Client Management" description="Registration, profiles, communication, segmentation, loyalty, and portal preferences" sidebar={<SettingsNavigation />}>
+        <div className="px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Client Management</h1>
+                <p className="text-gray-600">Registration, profiles, communication, segmentation, loyalty, and portal preferences</p>
               </div>
-            </section>
+              <div className="flex items-center gap-3">
+                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EXPORT}>
+                  <button onClick={async ()=>{
+                    const r = await fetch('/api/admin/client-settings/export'); const d = await r.json();
+                    const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `client-settings-${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+                  }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
+                </PermissionGate>
+                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_IMPORT}>
+                  <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
+                </PermissionGate>
+                <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EDIT}>
+                  <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
+                </PermissionGate>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <aside className="lg:col-span-1">
+                <nav className="bg-white border rounded-lg p-3">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Client Settings</h3>
+                  <ul className="space-y-1">
+                    {tabs.map(t => (
+                      <li key={t.key}>
+                        <button onClick={()=>setActive(t.key)} className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm ${active===t.key? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}>
+                          <span>{t.label}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </aside>
+              <section className="lg:col-span-4">
+                <div className="bg-white border rounded-lg p-6">
+                  {body}
+                </div>
+              </section>
+            </div>
           </div>
         </div>
-      </div>
+      </SettingsShell>
       {showImport && (
         <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_IMPORT}>
           <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

@@ -237,50 +237,34 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           name: 'Settings',
           href: '/admin/settings',
           icon: Settings,
-          children: (SETTINGS_REGISTRY && Array.isArray(SETTINGS_REGISTRY) ? SETTINGS_REGISTRY.map((c: any) => ({ name: c.label, href: c.route, icon: c.icon || Settings, permission: c.permission })) : [
-              { name: 'General', href: '/admin/settings', icon: Settings },
-              { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
-              { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
-            ])
-        },
-        {
-          name: 'Users & Permissions',
-          href: '/admin/users',
-          icon: UserCog,
-          permission: PERMISSIONS.USERS_VIEW,
-          children: [
-            { name: 'Users', href: '/admin/users', icon: Users },
-            { name: 'Roles', href: '/admin/roles', icon: Shield },
-            { name: 'Permissions', href: '/admin/permissions', icon: Shield },
-          ]
-        },
-        {
-          name: 'Security',
-          href: '/admin/security',
-          icon: Shield,
-          children: [
-            { name: 'Security Center', href: '/admin/security', icon: Shield },
-            { name: 'Audits', href: '/admin/audits', icon: FileText },
-            { name: 'Compliance', href: '/admin/compliance', icon: Shield },
-          ]
-        },
-        {
-          name: 'Uploads',
-          href: '/admin/uploads',
-          icon: Upload,
-          children: [
-            { name: 'Quarantine', href: '/admin/uploads/quarantine', icon: Shield },
-          ]
-        },
-        {
-          name: 'Cron Telemetry',
-          href: '/admin/cron-telemetry',
-          icon: Clock,
-        },
-        {
-          name: 'Integrations',
-          href: '/admin/integrations',
-          icon: Zap,
+          children: (
+            SETTINGS_REGISTRY && Array.isArray(SETTINGS_REGISTRY)
+              ? [
+                  // Categories from the central registry (includes Settings overview)
+                  ...SETTINGS_REGISTRY.map((c: any) => ({
+                    name: c.label,
+                    href: c.route,
+                    icon: (c.icon as any) || Settings,
+                    permission: c.permission,
+                  })),
+                  // Relocated system links under Settings
+                  { name: 'Users & Permissions', href: '/admin/users', icon: UserCog, permission: PERMISSIONS.USERS_VIEW },
+                  { name: 'Security Center', href: '/admin/security', icon: Shield },
+                  { name: 'Uploads', href: '/admin/uploads/quarantine', icon: Upload },
+                  { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Clock },
+                  { name: 'Integrations', href: '/admin/integrations', icon: Zap },
+                ]
+              : [
+                  { name: 'Overview', href: '/admin/settings', icon: Settings },
+                  { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
+                  { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
+                  { name: 'Users & Permissions', href: '/admin/users', icon: UserCog, permission: PERMISSIONS.USERS_VIEW },
+                  { name: 'Security Center', href: '/admin/security', icon: Shield },
+                  { name: 'Uploads', href: '/admin/uploads/quarantine', icon: Upload },
+                  { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Clock },
+                  { name: 'Integrations', href: '/admin/integrations', icon: Zap },
+                ]
+          )
         },
       ]
     }
@@ -312,43 +296,73 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
     const isActive = isActiveRoute(item.href)
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
+    const isSettingsParent = item.href === '/admin/settings'
 
     return (
       <li key={item.href}>
         <div className="relative">
           {hasChildren ? (
-            <button
-              onClick={() => toggleSection(item.href.split('/').pop() || '')}
-              aria-expanded={isExpanded}
-              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-              data-roving
-              {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-              className={`
-                w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                ${isActive
-                  ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                }
-                ${depth > 0 ? 'ml-4' : ''}
-              `}
-            >
-              <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              {!isCollapsed && (
-                <>
-                  <span className="flex-1 text-left">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-2">
-                      {item.badge}
-                    </Badge>
-                  )}
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  )}
-                </>
-              )}
-            </button>
+            // Special-case: Settings parent should always be expanded and non-collapsible
+            isSettingsParent ? (
+              <div
+                aria-expanded={true}
+                data-roving
+                {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+                className={`
+                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
+                  ${isActive
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }
+                  ${depth > 0 ? 'ml-4' : ''}
+                `}
+              >
+                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{item.name}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-2">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleSection(item.href.split('/').pop() || '')}
+                aria-expanded={isExpanded}
+                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+                data-roving
+                {...(isCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+                className={`
+                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
+                  ${isActive
+                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  }
+                  ${depth > 0 ? 'ml-4' : ''}
+                `}
+              >
+                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{item.name}</span>
+                    {item.badge && (
+                      <Badge variant="secondary" className="ml-2">
+                        {item.badge}
+                      </Badge>
+                    )}
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 ml-2" />
+                    )}
+                  </>
+                )}
+              </button>
+            )
           ) : (
             <Link
               href={item.href}
@@ -379,8 +393,8 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
             </Link>
           )}
         </div>
-        
-        {hasChildren && isExpanded && !isCollapsed && (
+
+        {hasChildren && (isSettingsParent || isExpanded) && !isCollapsed && (
           <ul
             id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
             className="mt-1 space-y-1"
