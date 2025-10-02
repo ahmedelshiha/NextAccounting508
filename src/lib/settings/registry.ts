@@ -1,7 +1,6 @@
-// src/lib/settings/registry.ts
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -67,6 +66,15 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     label: 'Financial Settings',
     route: '/admin/settings/financial',
     icon: CreditCard,
+    tabs: [],
+    permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+  },
+  // Currency management appears as its own top-level settings category so it's visible in the main settings navigation
+  {
+    key: 'currencies',
+    label: 'Currency Management',
+    route: '/admin/settings/currencies',
+    icon: DollarSign,
     tabs: [],
     permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
   },
