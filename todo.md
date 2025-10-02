@@ -103,7 +103,7 @@ Why:
 
 Immediate next steps (recommended, ordered):
 1. Manual verification: Save org settings in admin UI, then refresh public pages to confirm footer and header reflect changes.
-2. Replace direct prop-based org settings consumption in other components (any components still accepting org props) with useOrgSettings for consistency.
+2. Replace direct prop-based org settings consumption in other components (any components still accepting org props) with useOrgSettings for consistency. — Completed (Navigation, OptimizedFooter, ClientLayout updated).
 3. Add tests: integration tests for provider hydration, cross-tab update propagation, and tenant isolation.
 4. Tighten the legalLinks schema and create a migration if necessary.
 5. Consider caching provider data (edge/memoization) for public pages that are cold.
