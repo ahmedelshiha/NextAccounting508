@@ -5,7 +5,6 @@ import { Inter } from 'next/font/google'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
-import prisma from '@/lib/prisma'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
 
 const inter = Inter({ subsets: ['latin'] })
