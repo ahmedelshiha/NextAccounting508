@@ -64,6 +64,14 @@ Progress log (most recent first)
   - Replace file-based persistence with the proper settings service (`src/services/...-settings.service.ts`) and persist to the database (Prisma) or centralized settings store.
   - Add unit tests for the new route (tests for GET/POST, validation, RBAC).
 
+### Completed: Dedicated Services Settings page
+- ✅ What was completed
+  - Implemented `/admin/settings/services/page.tsx` using `SettingsShell` with tabs for Services and Service Requests, reusing existing form fields, wired to GET/POST API with toasts.
+- ✅ Why it was done
+  - Provides a full-page management experience in addition to the modal, aligning with Settings navigation and enabling future expansion (Workflows/Notifications).
+- ✅ Next steps
+  - Add client-side validation messages for each field; consider export/import actions once endpoints exist.
+
 ---
 
 ### Completed: Unit tests for Service Settings API
