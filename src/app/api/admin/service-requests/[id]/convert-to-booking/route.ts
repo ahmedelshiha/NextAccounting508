@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import servicesSettingsService, { DEFAULT_SERVICES_SETTINGS } from '@/services/services-settings.service'
 
 /**
  * Convert a service request to a booking
