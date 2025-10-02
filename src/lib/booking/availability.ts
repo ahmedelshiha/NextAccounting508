@@ -1,5 +1,7 @@
 import prisma from '@/lib/prisma'
 
+import { DateTime } from 'luxon'
+
 export type ISO = string
 
 export type AvailabilitySlot = { start: ISO; end: ISO; available: boolean }
@@ -104,33 +106,6 @@ function normalizeBusinessHours(raw: unknown): BusinessHours | undefined {
   return Object.keys(out).length ? out : undefined
 }
 
-function getTimeZoneOffsetMinutes(d: Date, timeZone: string) {
-  try {
-    const dtf = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      hour12: false,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    })
-    const parts = dtf.formatToParts(d).reduce((acc: any, part) => { acc[part.type] = (part.value); return acc }, {})
-    const year = Number(parts.year)
-    const month = Number(parts.month)
-    const day = Number(parts.day)
-    const hour = Number(parts.hour)
-    const minute = Number(parts.minute)
-    const second = Number(parts.second)
-    const asUtc = Date.UTC(year, month - 1, day, hour, minute, second)
-    const diffMinutes = Math.round((asUtc - d.getTime()) / 60000)
-    return diffMinutes
-  } catch (e) {
-    return 0
-  }
-}
-
 export function generateAvailability(
   from: Date,
   to: Date,
@@ -138,80 +113,57 @@ export function generateAvailability(
   busy: BusyInterval[],
   opts: AvailabilityOptions & { timeZone?: string } = {}
 ): AvailabilitySlot[] {
-  // If a timezone is provided, adjust the reference "now" to the tenant's local time so
-  // that "skip past slots" logic uses the tenant's perceived current time.
-  if (opts.timeZone) {
-    const originalNow = opts.now ?? new Date()
-    const offset = getTimeZoneOffsetMinutes(originalNow, opts.timeZone)
-    // offset is (asUtc - now) minutes to align wall-clock in tz; add to now to get tz-local instant
-    opts.now = new Date(originalNow.getTime() + offset * 60000)
+  const tz = opts.timeZone ?? 'UTC'
+  const businessHours = opts.businessHours ?? {
+    1: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    2: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    3: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    4: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
+    5: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
   }
 
-  const options: { bookingBufferMinutes: number; skipWeekends: boolean; maxDailyBookings: number; businessHours: BusinessHours; now: Date } = {
-    bookingBufferMinutes: opts.bookingBufferMinutes ?? 0,
-    skipWeekends: opts.skipWeekends ?? true,
-    maxDailyBookings: opts.maxDailyBookings ?? 0,
-    businessHours: opts.businessHours ?? {
-      1: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      2: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      3: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      4: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-      5: { startMinutes: 9 * 60, endMinutes: 17 * 60 },
-    },
-    now: opts.now ?? new Date(),
-  }
+  const nowDT = opts.now ? DateTime.fromJSDate(opts.now).setZone(tz) : DateTime.now().setZone(tz)
+  const startDT = DateTime.fromJSDate(from).setZone(tz).startOf('day')
+  const endDT = DateTime.fromJSDate(to).setZone(tz).endOf('day')
 
   const result: AvailabilitySlot[] = []
-  const start = new Date(from)
-  const end = new Date(to)
-  const now = options.now
 
-  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    const wd = d.getDay() // 0..6
-    const bh = options.businessHours[wd]
+  for (let day = startDT; day <= endDT; day = day.plus({ days: 1 })) {
+    // map luxon weekday (1=Mon..7=Sun) to our businessHours index (0=Sun..6=Sat)
+    const weekdayIdx = day.weekday % 7
+    const bh = businessHours[weekdayIdx]
     if (!bh) continue
-    if (options.skipWeekends && (wd === 0 || wd === 6)) continue
+    if (opts.skipWeekends && (weekdayIdx === 0 || weekdayIdx === 6)) continue
 
-    const windowRange = clampToBusinessHours(d, bh)
-    if (!windowRange) continue
+    const dayStartDT = day.startOf('day').plus({ minutes: bh.startMinutes })
+    const dayEndDT = day.startOf('day').plus({ minutes: bh.endMinutes })
+    if (dayEndDT <= dayStartDT) continue
 
-    // enforce max daily bookings by counting existing busy intervals fully in this day
-    const dayBusy = busy.filter((b) => {
-      const s = dayStart(d)
-      const e = addMinutes(s, 24 * 60)
-      return rangesOverlap(b.start, b.end, s, e)
-    })
-    if (options.maxDailyBookings > 0) {
-      const countExisting = dayBusy.length
-      if (countExisting >= options.maxDailyBookings) continue
+    // Busy intervals that overlap this day (compare instants)
+    const dayWindowStart = day.startOf('day').toJSDate()
+    const dayWindowEnd = day.startOf('day').plus({ days: 1 }).toJSDate()
+    const dayBusy = busy.filter((b) => rangesOverlap(b.start, b.end, dayWindowStart, dayWindowEnd))
+
+    // Max daily bookings enforcement
+    if ((opts.maxDailyBookings ?? 0) > 0) {
+      if (dayBusy.length >= (opts.maxDailyBookings ?? 0)) continue
     }
 
-    const slotStart = new Date(windowRange.start)
-    while (true) {
-      const slotEnd = addMinutes(slotStart, slotMinutes)
-      if (slotEnd > windowRange.end) break
+    for (let slotDT = dayStartDT; slotDT.plus({ minutes: slotMinutes }) <= dayEndDT; slotDT = slotDT.plus({ minutes: slotMinutes })) {
+      const slotEndDT = slotDT.plus({ minutes: slotMinutes })
 
-      // Skip past slots using provided reference time
-      if (slotStart < now) {
-        slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
-        continue
-      }
+      // Skip past slots using tenant-local now
+      if (slotDT < nowDT) continue
 
-      // apply buffer around busy intervals
-      const bufferedBusy = options.bookingBufferMinutes > 0
-        ? dayBusy.map((b) => ({
-            start: addMinutes(b.start, -options.bookingBufferMinutes),
-            end: addMinutes(b.end, options.bookingBufferMinutes),
-          }))
+      // apply buffer around busy intervals (in absolute time)
+      const bufferedBusy = (opts.bookingBufferMinutes ?? 0) > 0
+        ? dayBusy.map((b) => ({ start: addMinutes(b.start, -(opts.bookingBufferMinutes ?? 0)), end: addMinutes(b.end, opts.bookingBufferMinutes ?? 0) }))
         : dayBusy
 
-      // Consider a slot blocked if its START falls within any buffered busy interval.
-      // This matches expected behavior where a slot starting before the buffer begins is allowed.
-      const conflicts = bufferedBusy.some((b) => slotStart >= b.start && slotStart < b.end)
+      const slotJS = slotDT.toJSDate()
+      const conflicts = bufferedBusy.some((b) => slotJS >= b.start && slotJS < b.end)
 
-      result.push({ start: slotStart.toISOString(), end: slotEnd.toISOString(), available: !conflicts })
-
-      slotStart.setMinutes(slotStart.getMinutes() + slotMinutes)
+      result.push({ start: slotDT.toUTC().toISO(), end: slotEndDT.toUTC().toISO(), available: !conflicts })
     }
   }
 
