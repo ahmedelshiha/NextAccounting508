@@ -39,6 +39,10 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
   const [notifAssigned, setNotifAssigned] = useState('')
   const [notifStatusChanged, setNotifStatusChanged] = useState('')
 
+  // Categories & pricing rules
+  const [categories, setCategories] = useState<string[]>([])
+  const [pricingRules, setPricingRules] = useState<{ currency: string; multiplier: number }[]>([])
+
   useEffect(() => {
     if (!open) return
     // load current settings from server if available
