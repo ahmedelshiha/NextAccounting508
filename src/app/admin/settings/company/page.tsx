@@ -1,7 +1,8 @@
 'use client'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import dynamic from 'next/dynamic'
-import React, { useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Tabs from '@/components/admin/settings/Tabs'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -22,6 +23,12 @@ export default function Page(){
   ]
 
   const [activeTab, setActiveTab] = useState<string>('general')
+  const searchParams = useSearchParams()
+  useEffect(()=>{
+    const t = searchParams.get('tab')
+    if (t && tabList.some(tab=>tab.key===t)) setActiveTab(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
   const [showImport, setShowImport] = useState(false)
   const [importData, setImportData] = useState<any>(null)
 
