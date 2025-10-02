@@ -28,6 +28,16 @@ Progress log (most recent first)
 - ✅ Next steps
   - Integrate these overrides into service creation and price display logic, and add tests verifying fallback/override behavior.
 
+### Completed: Cloning & versioning controls (task 6.3)
+- ✅ What was completed
+  - Added UI controls for cloning/versioning in `src/components/admin/settings/ServicesSettingsModal.tsx`: a toggle `Enable versioning for services` and `Version retention (max versions to keep)` numeric field.
+  - Extended settings schema (`src/schemas/settings/services.ts`) with `services.versioningEnabled` and `services.versionRetention`, and updated persistence in `src/services/services-settings.service.ts`.
+  - Enforced cloning guard in server routes: `src/app/api/admin/services/[id]/clone/route.ts` now checks settings and returns 403 if cloning is disabled. Bulk clone (admin performBulkAction) in `src/services/services.service.ts` also checks settings and aborts clones when disabled.
+- ✅ Why it was done
+  - Provide administrators control over cloning behavior and version retention across the org and ensure the backend respects these policies.
+- ✅ Next steps
+  - Implement full version history storage and retention enforcement in the service versioning subsystem; add tests for clone blocking and version retention behavior.
+
 
 ### Completed: Enforced UI permissions for Services settings (task 7.2)
 - ✅ What was completed
