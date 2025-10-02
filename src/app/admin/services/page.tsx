@@ -163,6 +163,7 @@ export default function ServicesAdminPage() {
           primaryAction={{ label: 'New Service', onClick: () => { setEditing(null); setShowModal(true) } }}
           secondaryActions={[{ label: 'Export', onClick: exportCsv }, { label: 'Analytics', onClick: () => setActiveTab('analytics') }, { label: 'Refresh', onClick: () => mutate() }]}
           primaryTabs={primaryTabs}
+          secondaryActions={[{ label: 'Settings', onClick: () => setShowSettings(true) }] }
           activePrimaryTab={activeTab}
           onPrimaryTabChange={setActiveTab}
           filters={filterConfigs}
