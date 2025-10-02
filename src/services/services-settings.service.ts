@@ -5,6 +5,7 @@ import {
   ServicesSettingsSchema,
   ServiceRequestSettingsSchema,
   ServicesCoreSettingsSchema,
+  NotificationServiceRequestTemplatesSchema,
   type ServicesSettings,
   type ServiceRequestSettings,
   type ServicesCoreSettings,
