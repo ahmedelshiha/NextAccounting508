@@ -1,6 +1,6 @@
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign, Mail, Clock } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign, Mail, Clock, FileText } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -36,6 +36,15 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     route: '/admin/settings/services',
     icon: ClipboardList,
     tabs: [],
+  },
+  // Explicit Services settings entry (alias for serviceManagement)
+  {
+    key: 'services',
+    label: 'Services',
+    route: '/admin/settings/services',
+    icon: ClipboardList,
+    tabs: [],
+    permission: PERMISSIONS.SERVICES_VIEW,
   },
   {
     key: 'booking',
@@ -93,6 +102,14 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: Clock,
     tabs: [],
     permission: PERMISSIONS.ANALYTICS_VIEW,
+  },
+  {
+    key: 'serviceRequests',
+    label: 'Service Requests',
+    route: '/admin/settings/service-requests',
+    icon: FileText,
+    tabs: [],
+    permission: PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
   },
   {
     key: 'analyticsReporting',
