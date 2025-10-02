@@ -60,7 +60,12 @@ export function SettingsProvider({ initialSettings, children }: { initialSetting
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }
 
-export function useOrgSettings() {
+export function useOrgSettings(): SettingsContextValue | undefined {
+  return useContext(SettingsContext)
+}
+
+// For callers that require the provider, offer a helper that throws when missing
+export function useRequiredOrgSettings(): SettingsContextValue {
   const ctx = useContext(SettingsContext)
   if (!ctx) throw new Error('useOrgSettings must be used within SettingsProvider')
   return ctx
