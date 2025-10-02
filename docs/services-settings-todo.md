@@ -72,6 +72,14 @@ Progress log (most recent first)
 - ✅ Next steps
   - Add client-side validation messages for each field; consider export/import actions once endpoints exist.
 
+### Completed: Tests for RBAC and validation; flat file persistence
+- ✅ What was completed
+  - Persisted settings in flat JSON shape for legacy compatibility and existing tests; added tests for POST RBAC (403 without SERVICES_EDIT) and invalid payload (400).
+- ✅ Why it was done
+  - Aligns with current test expectations and ensures RBAC/validation behavior is verified.
+- ✅ Next steps
+  - Migrate persistence to DB later; when switching to nested persistence, update tests accordingly.
+
 ---
 
 ### Completed: Unit tests for Service Settings API
