@@ -234,6 +234,10 @@ export default function ServicesAdminPage() {
           />
         </Modal>
         )}
+
+        {showSettings && (
+          <ServicesSettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
+        )}
       </div>
     </PermissionGate>
   )
