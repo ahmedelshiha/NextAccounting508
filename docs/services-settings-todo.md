@@ -49,6 +49,20 @@ Progress log (most recent first)
 
 ---
 
+### Completed: Unit tests for Service Settings API
+- ✅ What was completed
+  - Added tests at `tests/admin-services-settings.route.test.ts` that:
+    - Verify GET returns defaults when no persisted file exists.
+    - Verify POST persists settings (file) and GET returns persisted values.
+  - Tests clean up the file before each run to keep environment deterministic.
+- ✅ Why it was done
+  - New tests (enhancement) to ensure GET/POST behave correctly and to provide regression protection while the persistence approach is later migrated to a database-backed service.
+- ✅ Next steps
+  - Add RBAC/validation error tests (e.g., invalid payload -> 400, unauthorized -> 401) and include tests for edge cases.
+  - Migrate persistence to `src/services/*` and update tests to mock DB instead of file system.
+
+---
+
 ### Completed: Redirect for Service Requests settings route
 - ✅ What was completed
   - Created `src/app/admin/settings/service-requests/page.tsx` which redirects to `/admin/service-requests` to avoid 404 and keep navigation stable while a full settings page is implemented.
