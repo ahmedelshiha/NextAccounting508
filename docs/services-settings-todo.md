@@ -2,6 +2,14 @@
 
 Progress log (most recent first)
 
+### Completed: Marked services settings page as client component
+- ✅ What was completed
+  - Added the `'use client'` directive to `src/app/admin/settings/services/page.tsx` so its React state and effects execute without build-time errors.
+- ✅ Why it was done
+  - The page relied on `useState` and `useEffect`, causing Turbopack to fail because it was treated as a server component. Making it a client component restores the admin settings UI.
+- ✅ Next steps
+  - Confirm no other settings pages use client hooks without the directive; consider extracting shared client logic into reusable hooks for consistency.
+
 ### Completed: Fixed TS build errors in services settings service
 - ✅ What was completed
   - Corrected types in `src/services/services-settings.service.ts` to allow nested partial updates via `ServicesSettingsUpdates` and adjusted merge logic; resolved TS2322 on `defaultCategory`/`defaultRequestStatus`.
