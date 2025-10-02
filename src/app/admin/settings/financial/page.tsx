@@ -49,25 +49,27 @@ export default function FinancialSettingsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end gap-2">
-        <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EXPORT}>
-          <button onClick={async ()=>{
-            const r = await fetch('/api/admin/financial-settings/export'); const d = await r.json(); const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `financial-settings-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
-          }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
-        </PermissionGate>
-        <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EDIT}>
-          <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
-        </PermissionGate>
-        <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EDIT}>
-          <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button>
-        </PermissionGate>
-      </div>
       <SettingsShell
         title="Financial Settings"
         description="Configure invoicing, payments, taxes, currencies, and reconciliation"
         tabs={tabs}
         activeTab={active}
         onChangeTab={setActive}
+        actions={(
+          <div className="flex items-center gap-2">
+            <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EXPORT}>
+              <button onClick={async ()=>{
+                const r = await fetch('/api/admin/financial-settings/export'); const d = await r.json(); const blob = new Blob([JSON.stringify(d,null,2)], { type:'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `financial-settings-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+              }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Export</button>
+            </PermissionGate>
+            <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EDIT}>
+              <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
+            </PermissionGate>
+            <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EDIT}>
+              <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button>
+            </PermissionGate>
+          </div>
+        )}
       >
         {active==='invoicing' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
