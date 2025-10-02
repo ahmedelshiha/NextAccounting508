@@ -237,34 +237,7 @@ export default function AdminSidebar({ isCollapsed = false, isMobile = false, on
           name: 'Settings',
           href: '/admin/settings',
           icon: Settings,
-          children: (
-            SETTINGS_REGISTRY && Array.isArray(SETTINGS_REGISTRY)
-              ? [
-                  // Categories from the central registry (includes Settings overview)
-                  ...SETTINGS_REGISTRY.map((c: any) => ({
-                    name: c.label,
-                    href: c.route,
-                    icon: (c.icon as any) || Settings,
-                    permission: c.permission,
-                  })),
-                  // Relocated system links under Settings
-                  { name: 'Users & Permissions', href: '/admin/users', icon: UserCog, permission: PERMISSIONS.USERS_VIEW },
-                  { name: 'Security Center', href: '/admin/security', icon: Shield },
-                  { name: 'Uploads', href: '/admin/uploads/quarantine', icon: Upload },
-                  { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Clock },
-                  { name: 'Integrations', href: '/admin/integrations', icon: Zap },
-                ]
-              : [
-                  { name: 'Overview', href: '/admin/settings', icon: Settings },
-                  { name: 'Booking Settings', href: '/admin/settings/booking', icon: Calendar },
-                  { name: 'Currencies', href: '/admin/settings/currencies', icon: DollarSign },
-                  { name: 'Users & Permissions', href: '/admin/users', icon: UserCog, permission: PERMISSIONS.USERS_VIEW },
-                  { name: 'Security Center', href: '/admin/security', icon: Shield },
-                  { name: 'Uploads', href: '/admin/uploads/quarantine', icon: Upload },
-                  { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Clock },
-                  { name: 'Integrations', href: '/admin/integrations', icon: Zap },
-                ]
-          )
+          children: []
         },
       ]
     }
