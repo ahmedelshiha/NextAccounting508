@@ -183,6 +183,8 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
 
 function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates {
   const parsed = FlatServicesSettingsSchema.parse(flat)
+  const templateUpdates = parsed.notification?.templates?.serviceRequests
+
   return {
     services: {
       defaultCategory: parsed.defaultCategory,
@@ -203,7 +205,7 @@ function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates
       allowConvertToBooking: parsed.allowConvertToBooking,
       defaultBookingType: parsed.defaultBookingType,
     },
-    notification: parsed.notification ? { templates: { serviceRequests: parsed.notification.templates?.serviceRequests ?? {} } } : undefined,
+    notification: typeof templateUpdates !== 'undefined' ? { templates: { serviceRequests: templateUpdates } } : undefined,
   }
 }
 
