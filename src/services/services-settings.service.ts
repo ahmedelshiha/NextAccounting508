@@ -25,6 +25,7 @@ const FlatServicesSettingsSchema = z.object({
   priceRounding: ServicesCoreSettingsSchema.shape.priceRounding.optional(),
   categories: z.array(z.string()).optional(),
   pricingRules: z.array(z.object({ currency: z.string(), multiplier: z.number() })).optional(),
+  currencyOverrides: z.array(z.string()).optional(),
   defaultRequestStatus: ServiceRequestSettingsSchema.shape.defaultRequestStatus.optional(),
   autoAssign: ServiceRequestSettingsSchema.shape.autoAssign.optional(),
   autoAssignStrategy: ServiceRequestSettingsSchema.shape.autoAssignStrategy.optional(),
@@ -125,6 +126,7 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
     priceRounding: settings.services.priceRounding,
     categories: settings.services.categories ?? [],
     pricingRules: settings.services.pricingRules ?? [],
+    currencyOverrides: settings.services.currencyOverrides ?? [],
     defaultRequestStatus: settings.serviceRequests.defaultRequestStatus,
     autoAssign: settings.serviceRequests.autoAssign,
     autoAssignStrategy: settings.serviceRequests.autoAssignStrategy,
@@ -145,6 +147,7 @@ function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates
       priceRounding: parsed.priceRounding,
       categories: parsed.categories,
       pricingRules: parsed.pricingRules,
+      currencyOverrides: parsed.currencyOverrides,
     },
     serviceRequests: {
       defaultRequestStatus: parsed.defaultRequestStatus,
