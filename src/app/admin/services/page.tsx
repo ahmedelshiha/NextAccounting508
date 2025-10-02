@@ -167,7 +167,7 @@ export default function ServicesAdminPage() {
             { label: 'Export', onClick: exportCsv },
             { label: 'Analytics', onClick: () => setActiveTab('analytics') },
             { label: 'Refresh', onClick: () => mutate() },
-            { label: 'Settings', onClick: () => setShowSettings(true) }
+            ...(perms.has(PERMISSIONS.SERVICES_VIEW) ? [{ label: 'Settings', onClick: () => setShowSettings(true) }] : [])
           ]}
           primaryTabs={primaryTabs}
           activePrimaryTab={activeTab}
