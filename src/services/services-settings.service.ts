@@ -157,7 +157,9 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
   const templates = NotificationServiceRequestTemplatesSchema.parse(
     settings.notification?.templates?.serviceRequests ?? {},
   )
-  const hasTemplates = Object.values(templates).some((value) => typeof value === 'string' && value.length > 0)
+  const templateEntries = Object.entries(templates).filter(([, value]) => typeof value === 'string')
+  const normalizedTemplates = Object.fromEntries(templateEntries) as ServiceRequestTemplateUpdates
+  const hasTemplates = templateEntries.length > 0
 
   return {
     defaultCategory: settings.services.defaultCategory,
