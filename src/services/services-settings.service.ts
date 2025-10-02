@@ -28,6 +28,12 @@ const FlatServicesSettingsSchema = z.object({
   autoAssignStrategy: ServiceRequestSettingsSchema.shape.autoAssignStrategy.optional(),
   allowConvertToBooking: ServiceRequestSettingsSchema.shape.allowConvertToBooking.optional(),
   defaultBookingType: ServiceRequestSettingsSchema.shape.defaultBookingType.optional(),
+  // Optional notification templates (nested)
+  notification: z.object({
+    templates: z.object({
+      serviceRequests: z.record(z.string()).optional(),
+    }).optional(),
+  }).optional(),
 })
 
 export type FlatServicesSettings = z.infer<typeof FlatServicesSettingsSchema>
@@ -36,6 +42,7 @@ export type FlatServicesSettings = z.infer<typeof FlatServicesSettingsSchema>
 type ServicesSettingsUpdates = {
   services?: Partial<ServicesCoreSettings>
   serviceRequests?: Partial<ServiceRequestSettings>
+  notification?: { templates?: { serviceRequests?: Record<string, string> } }
 }
 
 function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates): ServicesSettings {
@@ -43,6 +50,12 @@ function mergeSettings(base: ServicesSettings, updates?: ServicesSettingsUpdates
   return ServicesSettingsSchema.parse({
     services: { ...base.services, ...(updates.services ?? {}) },
     serviceRequests: { ...base.serviceRequests, ...(updates.serviceRequests ?? {}) },
+    notification: {
+      serviceRequests: {
+        ...(base.notification?.serviceRequests ?? {}),
+        ...(updates.notification?.templates?.serviceRequests ?? {}),
+      },
+    },
   })
 }
 
@@ -78,9 +91,13 @@ async function readFile(): Promise<unknown> {
 async function writeFile(settings: ServicesSettings): Promise<void> {
   const dir = path.dirname(SETTINGS_FILE_PATH)
   await fs.mkdir(dir, { recursive: true })
-  // Persist in flat shape for legacy compatibility and test expectations
-  const flat = flattenSettings(settings)
-  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(flat, null, 2), 'utf-8')
+  // Persist nested shape including notification templates for clarity while keeping legacy flat getters supported
+  const payload = {
+    services: settings.services,
+    serviceRequests: settings.serviceRequests,
+    notification: settings.notification ?? {},
+  }
+  await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(payload, null, 2), 'utf-8')
 }
 
 function cacheKey(tenantId: string | null) {
@@ -109,6 +126,7 @@ function flattenSettings(settings: ServicesSettings): FlatServicesSettings {
     autoAssignStrategy: settings.serviceRequests.autoAssignStrategy,
     allowConvertToBooking: settings.serviceRequests.allowConvertToBooking,
     defaultBookingType: settings.serviceRequests.defaultBookingType,
+    notification: settings.notification ? { templates: { serviceRequests: settings.notification.serviceRequests } } : undefined,
   }
 }
 
@@ -129,6 +147,7 @@ function expandFlatSettings(flat: FlatServicesSettings): ServicesSettingsUpdates
       allowConvertToBooking: parsed.allowConvertToBooking,
       defaultBookingType: parsed.defaultBookingType,
     },
+    notification: parsed.notification ? { templates: { serviceRequests: parsed.notification.templates?.serviceRequests ?? {} } } : undefined,
   }
 }
 
