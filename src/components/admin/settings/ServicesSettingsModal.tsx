@@ -42,7 +42,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
         if (!res.ok) return
         const json = await res.json().catch(() => null)
         if (!json || ignore) return
-        const s = json || {}
+        const s = (json?.data ?? json) || {}
         if (s.defaultCategory) setDefaultCategory(s.defaultCategory)
         if (s.defaultCurrency) setDefaultCurrency(s.defaultCurrency)
         if (typeof s.allowCloning === 'boolean') setAllowCloning(s.allowCloning)

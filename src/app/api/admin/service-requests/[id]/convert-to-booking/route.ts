@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import servicesSettingsService, { DEFAULT_SERVICES_SETTINGS } from '@/services/services-settings.service'
 
 /**
  * Convert a service request to a booking
@@ -63,6 +64,21 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       return NextResponse.json(
         { error: 'Service request not found' },
         { status: 404 }
+      )
+    }
+
+    let allowConvertToBooking = true
+    try {
+      const tenantScopedSettings = await servicesSettingsService.get((serviceRequest as any)?.tenantId ?? null)
+      allowConvertToBooking = tenantScopedSettings.serviceRequests.allowConvertToBooking
+    } catch {
+      allowConvertToBooking = DEFAULT_SERVICES_SETTINGS.serviceRequests.allowConvertToBooking
+    }
+
+    if (!allowConvertToBooking) {
+      return NextResponse.json(
+        { error: 'Converting service requests to bookings is disabled by settings' },
+        { status: 403 }
       )
     }
 
