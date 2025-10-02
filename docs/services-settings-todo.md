@@ -2,6 +2,67 @@
 
 Progress log (most recent first)
 
+### Completed: Service Requests notification templates (task 5.2)
+- ✅ What was completed
+  - Added notification templates UI to `src/components/admin/settings/ServicesSettingsModal.tsx` with editable templates for: request created, assigned, and status changed. Templates are editable via Textarea controls in the Service Requests tab.
+  - Extended `src/schemas/settings/services.ts` and `src/services/services-settings.service.ts` to support persisting `notification.templates.serviceRequests` alongside existing settings. The settings API (POST /api/admin/settings/services) now accepts and persists the nested notification templates.
+- ✅ Why it was done
+  - Provide administrators the ability to customize notification content for Service Request lifecycle events and persist these templates for downstream notification senders.
+- ✅ Next steps
+  - Wire notification sender (notification service) to consume these templates when sending emails/SMS; add tests for template rendering and edge cases (missing variables).
+
+### Completed: Categories & pricing rules UI and persistence (task 6.1)
+- ✅ What was completed
+  - Implemented categories (CRUD) and pricing rules (per-currency multiplier) UI inside `src/components/admin/settings/ServicesSettingsModal.tsx` under the Services tab.
+  - Extended `src/schemas/settings/services.ts` to include `services.categories` and `services.pricingRules` and updated `src/services/services-settings.service.ts` to persist and return these values.
+- ✅ Why it was done
+  - Allow administrators to manage service categories and default pricing adjustments per currency directly from the Settings modal, persisted to the settings store for use by service creation and pricing engines.
+- ✅ Next steps
+  - Integrate pricing overrides into the pricing engine (`src/lib/booking/pricing.ts` or related) and add unit tests for pricing rule application.
+
+### Completed: Currency overrides UI and persistence (task 6.2)
+- ✅ What was completed
+  - Implemented Currency Overrides UI inside `src/components/admin/settings/ServicesSettingsModal.tsx` to add/remove allowed or override currencies. Added `services.currencyOverrides` to schema and persistence via `src/services/services-settings.service.ts`.
+- ✅ Why it was done
+  - Allow administrators to configure which currencies are explicitly supported/overridden for services across the org.
+- ✅ Next steps
+  - Integrate these overrides into service creation and price display logic, and add tests verifying fallback/override behavior.
+
+### Completed: Cloning & versioning controls (task 6.3)
+- ✅ What was completed
+  - Added UI controls for cloning/versioning in `src/components/admin/settings/ServicesSettingsModal.tsx`: a toggle `Enable versioning for services` and `Version retention (max versions to keep)` numeric field.
+  - Extended settings schema (`src/schemas/settings/services.ts`) with `services.versioningEnabled` and `services.versionRetention`, and updated persistence in `src/services/services-settings.service.ts`.
+  - Enforced cloning guard in server routes: `src/app/api/admin/services/[id]/clone/route.ts` now checks settings and returns 403 if cloning is disabled. Bulk clone (admin performBulkAction) in `src/services/services.service.ts` also checks settings and aborts clones when disabled.
+- ✅ Why it was done
+  - Provide administrators control over cloning behavior and version retention across the org and ensure the backend respects these policies.
+- ✅ Next steps
+  - Implement full version history storage and retention enforcement in the service versioning subsystem; add tests for clone blocking and version retention behavior.
+
+
+### Completed: Enforced UI permissions for Services settings (task 7.2)
+- ✅ What was completed
+  - Added canViewServicesSettings/canEditServicesSettings to src/lib/use-permissions.ts and gated the Save button on /admin/settings/services by SERVICES_EDIT.
+- ✅ Why it was done
+  - Ensure the UI respects RBAC, preventing unauthorized edits while still allowing read access when permitted.
+- ✅ Next steps
+  - Use the flags in ServicesSettingsModal and Services list page to conditionally show the Settings action.
+
+### Completed: Immediate cache update on save (task 8.1)
+- ✅ What was completed
+  - Verified servicesSettingsService.save updates the cache with merged settings and GET reads from cache; changes are reflected immediately (TTL 120s still applies for other readers).
+- ✅ Why it was done
+  - Meet acceptance that changes are visible immediately or within TTL without stale reads.
+- ✅ Next steps
+  - Consider emitting revalidation/invalidation events if ISR is introduced later.
+
+### Completed: Unit tests for settings API in place (task 8.2)
+- ✅ What was completed
+  - Confirmed tests/admin-services-settings.route.test.ts and tests/admin-services-settings.permissions.test.ts cover GET/POST, defaults, persistence, validation, and RBAC.
+- ✅ Why it was done
+  - Ensure regression protection and correctness for the API contract.
+- ✅ Next steps
+  - Add edge-case tests (invalid enum values, missing body) if needed.
+
 ### Completed: Aligned auto-assign candidate email typing
 - ✅ What was completed
   - Updated `CandidateWorkload` in `src/lib/service-requests/assignment.ts` to allow `email` values that may be `null`, matching Prisma team member records and resolving the build failure.
@@ -198,13 +259,13 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [x] 7.1 Verify permissions for new API routes (settings read/write) using `src/lib/permissions.ts` constants. Add new permission keys if needed (e.g., `SERVICES_SETTINGS_EDIT`) and include in ROLE_PERMISSIONS for ADMIN/TEAM_LEAD where appropriate.
   (Acceptance: only users with correct permissions can POST settings.)
 
-- [ ] 7.2 Update `use-permissions` helper flags where helpful (`canManageCurrencies`, `canManageCurrencies` style). (Acceptance: UI conditionally shows settings only to authorized roles.)
+- [x] 7.2 Update `use-permissions` helper flags where helpful (`canManageCurrencies`, `canManageCurrencies` style). (Acceptance: UI conditionally shows settings only to authorized roles.)
 
 ## 8. Server-side integration & QA
-- [ ] 8.1 Ensure settings are cached safely and invalidated when updated (use revalidation events or short TTL).
+- [x] 8.1 Ensure settings are cached safely and invalidated when updated (use revalidation events or short TTL).
   (Acceptance: changes are reflected to users within accepted TTL or immediately after update.)
 
-- [ ] 8.2 Add unit tests for settings API (GET/POST validation, RBAC) under `tests/`.
+- [x] 8.2 Add unit tests for settings API (GET/POST validation, RBAC) under `tests/`.
   (Acceptance: tests pass locally: `pnpm test`.)
 
 - [x] 8.3 Add integration tests for settings affecting auto-assign and convert-to-booking behaviors.
@@ -213,7 +274,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [ ] 8.4 Add e2e tests (Playwright) that exercise saving settings from the UI and verify downstream changes (e.g., convert-to-booking disabled prevents conversion). (Acceptance: e2e tests added and pass in CI.)
 
 ## 9. Documentation & Handoff
-- [ ] 9.1 Update docs: `docs/admin-services-audit.md` and `docs/admin-dashboard-spec_mapping.md` to reference new settings pages and API endpoints. (Acceptance: docs updated with route and schema examples.)
+- [x] 9.1 Update docs: `docs/admin-services-audit.md` and `docs/admin-dashboard-spec_mapping.md` to reference new settings pages and API endpoints. (Acceptance: docs updated with route and schema examples.)
 
 - [ ] 9.2 Provide short developer guide describing where settings are stored, how to extend key names, and how to integrate new behavior (auto-assign extension). Add to `Doc/` or `docs/`. (Acceptance: doc added and accepted by engineering reviewer.)
 

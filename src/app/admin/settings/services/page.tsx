@@ -5,6 +5,7 @@ import SettingsShell from '@/components/admin/settings/SettingsShell'
 import Tabs from '@/components/admin/settings/Tabs'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { usePermissions } from '@/lib/use-permissions'
 import { TextField, SelectField, Toggle, NumberField } from '@/components/admin/settings/FormField'
 import { toastFromResponse, toastSuccess, toastError } from '@/lib/toast-api'
 
@@ -17,6 +18,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<string>('services')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const perms = usePermissions()
 
   // Services settings
   const [defaultCategory, setDefaultCategory] = useState('General')
@@ -101,7 +103,7 @@ export default function Page() {
         onChangeTab={setActiveTab}
         actions={(
           <div className="flex items-center gap-2">
-            <button onClick={onSave} disabled={loading} className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">
+            <button onClick={onSave} disabled={loading || !perms.has(PERMISSIONS.SERVICES_EDIT)} className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">
               {loading ? 'Saving…' : 'Save settings'}
             </button>
           </div>

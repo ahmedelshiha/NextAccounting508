@@ -23,5 +23,7 @@ export function usePermissions() {
     canManageNewsletter: role === 'ADMIN',
     canViewCurrencies: role === 'ADMIN' || has(PERMISSIONS.ANALYTICS_VIEW),
     canManageCurrencies: role === 'ADMIN',
+    canViewServicesSettings: has(PERMISSIONS.SERVICES_VIEW),
+    canEditServicesSettings: has(PERMISSIONS.SERVICES_EDIT),
   }
 }

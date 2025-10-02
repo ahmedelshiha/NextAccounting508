@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { ServicesService } from '@/services/services.service';
+import servicesSettingsService from '@/services/services-settings.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { getTenantFromRequest } from '@/lib/tenant';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
@@ -32,6 +33,18 @@ export async function POST(request: NextRequest, context: Ctx) {
 
     // Fetch original to provide sensible default name
     const tenantId = getTenantFromRequest(request);
+
+    // Check settings - cloning may be disabled
+    try {
+      const settings = await servicesSettingsService.get(tenantId)
+      if (!settings?.services?.allowCloning) {
+        return NextResponse.json(makeErrorBody({ code: 'CLONING_DISABLED', message: 'Cloning is disabled by organization settings' } as any), { status: 403 })
+      }
+    } catch (e) {
+      // If settings lookup fails, default to disallowing cloning to be safe
+      return NextResponse.json(makeErrorBody({ code: 'SETTINGS_ERROR', message: 'Failed to verify settings' } as any), { status: 500 })
+    }
+
     const original = await svc.getServiceById(tenantId, id);
     if (!original) return NextResponse.json(makeErrorBody({ code: 'NOT_FOUND', message: 'Source service not found' } as any), { status: 404 });
 
