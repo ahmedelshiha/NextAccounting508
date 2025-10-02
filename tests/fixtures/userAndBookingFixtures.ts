@@ -29,5 +29,9 @@ export async function seedBooking(opts: { serviceId: string; clientId?: string; 
 }
 
 export async function cleanupBookingsForTenant(tenantId: string) {
-  try { await prisma.booking.deleteMany({ where: { tenantId } }) } catch {}
+  try {
+    const svcs = await prisma.service.findMany({ where: { tenantId }, select: { id: true } }).catch(() => [])
+    const ids = svcs.map(s => s.id)
+    if (ids.length) await prisma.booking.deleteMany({ where: { serviceId: { in: ids } } })
+  } catch {}
 }
