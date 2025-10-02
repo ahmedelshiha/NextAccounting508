@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle } from '@/components/admin/settings/FormField'
+import SettingsShell from '@/components/admin/settings/SettingsShell'
+import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
 
 const tabs = [
   { key: 'dashboards', label: 'Dashboards' },
