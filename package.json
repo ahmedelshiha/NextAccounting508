@@ -74,7 +74,8 @@
     "tailwind-merge": "^3.3.1",
     "xml-js": "^1.6.11",
     "zod": "^4.1.5",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "luxon": "^3.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
