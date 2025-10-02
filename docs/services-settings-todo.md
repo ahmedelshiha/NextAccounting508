@@ -191,7 +191,7 @@ This file below retains the full, ordered TODO list for remaining work (unchange
 - [ ] 8.2 Add unit tests for settings API (GET/POST validation, RBAC) under `tests/`.
   (Acceptance: tests pass locally: `pnpm test`.)
 
-- [ ] 8.3 Add integration tests for settings affecting auto-assign and convert-to-booking behaviors.
+- [x] 8.3 Add integration tests for settings affecting auto-assign and convert-to-booking behaviors.
   (Acceptance: CI tests validate behavioral change under different settings.)
 
 - [ ] 8.4 Add e2e tests (Playwright) that exercise saving settings from the UI and verify downstream changes (e.g., convert-to-booking disabled prevents conversion). (Acceptance: e2e tests added and pass in CI.)
