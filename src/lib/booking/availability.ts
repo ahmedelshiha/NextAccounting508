@@ -102,13 +102,49 @@ function normalizeBusinessHours(raw: unknown): BusinessHours | undefined {
   return Object.keys(out).length ? out : undefined
 }
 
+function getTimeZoneOffsetMinutes(d: Date, timeZone: string) {
+  try {
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+    const parts = dtf.formatToParts(d).reduce((acc: any, part) => { acc[part.type] = (part.value); return acc }, {})
+    const year = Number(parts.year)
+    const month = Number(parts.month)
+    const day = Number(parts.day)
+    const hour = Number(parts.hour)
+    const minute = Number(parts.minute)
+    const second = Number(parts.second)
+    const asUtc = Date.UTC(year, month - 1, day, hour, minute, second)
+    const diffMinutes = Math.round((asUtc - d.getTime()) / 60000)
+    return diffMinutes
+  } catch (e) {
+    return 0
+  }
+}
+
 export function generateAvailability(
   from: Date,
   to: Date,
   slotMinutes: number,
   busy: BusyInterval[],
-  opts: AvailabilityOptions = {}
+  opts: AvailabilityOptions & { timeZone?: string } = {}
 ): AvailabilitySlot[] {
+  // If a timezone is provided, adjust the reference "now" to the tenant's local time so
+  // that "skip past slots" logic uses the tenant's perceived current time.
+  if (opts.timeZone) {
+    const originalNow = opts.now ?? new Date()
+    const offset = getTimeZoneOffsetMinutes(originalNow, opts.timeZone)
+    // offset is (asUtc - now) minutes to align wall-clock in tz; add to now to get tz-local instant
+    opts.now = new Date(originalNow.getTime() + offset * 60000)
+  }
+
   const options: { bookingBufferMinutes: number; skipWeekends: boolean; maxDailyBookings: number; businessHours: BusinessHours; now: Date } = {
     bookingBufferMinutes: opts.bookingBufferMinutes ?? 0,
     skipWeekends: opts.skipWeekends ?? true,
