@@ -25,7 +25,7 @@ export type EffectiveOrgSettings = {
 }
 
 export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrgSettings> {
-  const h = headers()
+  const h = await headers()
   const host = h.get('host') || null
   const tenantId = isMultiTenancyEnabled() ? extractSubdomain(host) : null
 
