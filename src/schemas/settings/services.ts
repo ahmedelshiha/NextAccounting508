@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
 // Core service configuration keys (used by admin Services UI and service creation defaults)
+export const PricingRuleSchema = z.object({
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  multiplier: z.number().min(0.0001).default(1),
+})
+
 export const ServicesCoreSettingsSchema = z.object({
   defaultCategory: z.string().min(1).max(120).default('General'),
   defaultCurrency: z
@@ -10,6 +15,8 @@ export const ServicesCoreSettingsSchema = z.object({
   allowCloning: z.boolean().default(true),
   featuredToggleEnabled: z.boolean().default(true),
   priceRounding: z.number().int().min(0).max(6).default(2),
+  categories: z.array(z.string().min(1)).default([]),
+  pricingRules: z.array(PricingRuleSchema).default([]),
 })
 
 // Enumerations sourced from Prisma schema to ensure parity with persisted data
@@ -58,6 +65,8 @@ export const ServicesSettingsSchema = z.object({
     allowCloning: true,
     featuredToggleEnabled: true,
     priceRounding: 2,
+    categories: [],
+    pricingRules: [],
   }),
   serviceRequests: ServiceRequestSettingsSchema.default({
     defaultRequestStatus: 'SUBMITTED',
@@ -74,6 +83,8 @@ export const ServicesSettingsSchema = z.object({
     allowCloning: true,
     featuredToggleEnabled: true,
     priceRounding: 2,
+    categories: [],
+    pricingRules: [],
   },
   serviceRequests: {
     defaultRequestStatus: 'SUBMITTED',
