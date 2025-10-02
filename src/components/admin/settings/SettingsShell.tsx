@@ -19,6 +19,7 @@ interface SettingsShellProps {
   description?: string
   icon?: React.ComponentType<{ className?: string }>
   backHref?: string
+  showBackButton?: boolean
 
   // Actions (rendered in header)
   actions?: ReactNode
@@ -50,6 +51,7 @@ export function SettingsShell({
   description,
   icon: Icon,
   backHref = '/admin/settings',
+  showBackButton = true,
   actions,
   loading = false,
   saving = false,
@@ -82,17 +84,19 @@ export function SettingsShell({
           <div className="flex items-center justify-between">
             {/* Left: Back button + Title */}
             <div className="flex items-center gap-4 min-w-0 flex-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="flex-shrink-0"
-              >
-                <Link href={backHref}>
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Link>
-              </Button>
+              {showBackButton && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="flex-shrink-0"
+                >
+                  <Link href={backHref}>
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Back
+                  </Link>
+                </Button>
+              )}
               
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">

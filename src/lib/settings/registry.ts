@@ -1,7 +1,6 @@
-// src/lib/settings/registry.ts
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, DollarSign, Mail, Clock, FileText } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -24,11 +23,28 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     permission: PERMISSIONS.ORG_SETTINGS_VIEW,
   },
   {
+    key: 'contact',
+    label: 'Contact',
+    route: '/admin/settings/contact',
+    icon: Mail,
+    tabs: [],
+    permission: PERMISSIONS.ANALYTICS_VIEW,
+  },
+  {
     key: 'serviceManagement',
     label: 'Service Management',
     route: '/admin/settings/services',
     icon: ClipboardList,
     tabs: [],
+  },
+  // Explicit Services settings entry (alias for serviceManagement)
+  {
+    key: 'services',
+    label: 'Services',
+    route: '/admin/settings/services',
+    icon: ClipboardList,
+    tabs: [],
+    permission: PERMISSIONS.SERVICES_VIEW,
   },
   {
     key: 'booking',
@@ -69,6 +85,31 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: CreditCard,
     tabs: [],
     permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+  },
+  // Currency management appears as its own top-level settings category so it's visible in the main settings navigation
+  {
+    key: 'currencies',
+    label: 'Currency Management',
+    route: '/admin/settings/currencies',
+    icon: DollarSign,
+    tabs: [],
+    permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW,
+  },
+  {
+    key: 'timezone',
+    label: 'Timezone & Localization',
+    route: '/admin/settings/timezone',
+    icon: Clock,
+    tabs: [],
+    permission: PERMISSIONS.ANALYTICS_VIEW,
+  },
+  {
+    key: 'serviceRequests',
+    label: 'Service Requests',
+    route: '/admin/settings/service-requests',
+    icon: FileText,
+    tabs: [],
+    permission: PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
   },
   {
     key: 'analyticsReporting',

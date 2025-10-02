@@ -108,18 +108,9 @@ export default function SecurityComplianceSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Security & Compliance Settings.</div>}>
-      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance">
+      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate></div>)}>
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Security & Compliance</h1>
-                <p className="text-gray-600">Policies for authentication, sessions, network, data protection, and compliance</p>
-              </div>
-              <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}>
-                <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
-              </PermissionGate>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
               <aside className="lg:col-span-1">
                 <nav className="bg-white border rounded-lg p-3">

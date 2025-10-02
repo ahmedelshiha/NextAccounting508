@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'
 import PermissionGate from '@/components/PermissionGate'
+import ServicesSettingsModal from '@/components/admin/settings/ServicesSettingsModal'
 import { PERMISSIONS } from '@/lib/permissions'
 
 interface ServiceRow {
@@ -55,6 +56,7 @@ export default function ServicesAdminPage() {
   const pageSize = 20
   const [editing, setEditing] = useState<ServiceRow | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const query = buildQuery({ search: search || undefined, status: filters.status && filters.status !== 'all' ? filters.status : undefined, category: filters.category, limit: String(pageSize), offset: String((page-1)*pageSize), sortBy, sortOrder })
   const { data, isLoading, mutate } = useSWR<{ services: ServiceRow[]; total: number; analytics: any }>(`/api/admin/services${query}`, fetcher)
@@ -161,7 +163,12 @@ export default function ServicesAdminPage() {
           title="Services Management"
           subtitle="Manage your service offerings, pricing, and availability"
           primaryAction={{ label: 'New Service', onClick: () => { setEditing(null); setShowModal(true) } }}
-          secondaryActions={[{ label: 'Export', onClick: exportCsv }, { label: 'Analytics', onClick: () => setActiveTab('analytics') }, { label: 'Refresh', onClick: () => mutate() }]}
+          secondaryActions={[
+            { label: 'Export', onClick: exportCsv },
+            { label: 'Analytics', onClick: () => setActiveTab('analytics') },
+            { label: 'Refresh', onClick: () => mutate() },
+            { label: 'Settings', onClick: () => setShowSettings(true) }
+          ]}
           primaryTabs={primaryTabs}
           activePrimaryTab={activeTab}
           onPrimaryTabChange={setActiveTab}
@@ -226,6 +233,10 @@ export default function ServicesAdminPage() {
             })()}
           />
         </Modal>
+        )}
+
+        {showSettings && (
+          <ServicesSettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
         )}
       </div>
     </PermissionGate>

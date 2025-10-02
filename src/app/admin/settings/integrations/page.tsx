@@ -52,14 +52,9 @@ export default function IntegrationHubPage(){
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600">{testResult}</div>
-        <PermissionGate permission={PERMISSIONS.INTEGRATION_HUB_EDIT}>
-          <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button>
-        </PermissionGate>
-      </div>
+      <div className="text-sm text-gray-600">{testResult}</div>
 
-      <SettingsShell title="Integration Hub" description="Connect payments, calendars, communications, analytics, and storage" tabs={tabs} activeTab={active} onChangeTab={setActive}>
+      <SettingsShell title="Integration Hub" description="Connect payments, calendars, communications, analytics, and storage" tabs={tabs} activeTab={active} onChangeTab={setActive} actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.INTEGRATION_HUB_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button></PermissionGate></div>)}>
         {active==='payments' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

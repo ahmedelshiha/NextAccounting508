@@ -10,7 +10,7 @@ import { PERMISSIONS } from '@/lib/permissions'
  * - Tracks local changes per section
  * - Validates and persists via PUT /api/admin/booking-settings
  */
-export default function BookingSettingsPanel() {
+export default function BookingSettingsPanel({ showHeaderText = true }: { showHeaderText?: boolean }) {
   const [active, setActive] = useState<'general'|'payments'|'steps'|'availability'|'notifications'|'customers'|'assignments'|'pricing'|'automation'|'integrations'|'capacity'|'forms'>('general')
   const [settings, setSettings] = useState<any>(null)
   const [pending, setPending] = useState<Record<string, any>>({})
@@ -116,10 +116,12 @@ export default function BookingSettingsPanel() {
   return (
     <div className="bg-white rounded-lg shadow-lg">
       <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center"><SettingsIcon className="w-6 h-6 mr-2"/> Booking Settings</h1>
-          <p className="text-gray-600 mt-1">Configure booking policies, payments, steps, and notifications</p>
-        </div>
+        {showHeaderText && (
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center"><SettingsIcon className="w-6 h-6 mr-2"/> Booking Settings</h1>
+            <p className="text-gray-600 mt-1">Configure booking policies, payments, steps, and notifications</p>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <PermissionGate permission={PERMISSIONS.BOOKING_SETTINGS_EXPORT}>
             <button onClick={onExport} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50"><Download className="w-4 h-4 mr-2"/>Export</button>

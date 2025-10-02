@@ -11,7 +11,7 @@ export default function AdminBookingSettingsPage() {
         description="Manage booking rules and availability preferences"
       >
         <div className="p-0">
-          <BookingSettingsPanel />
+          <BookingSettingsPanel showHeaderText={false} />
         </div>
       </SettingsShell>
     </PermissionGate>
