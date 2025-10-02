@@ -101,6 +101,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
     // categories validation
     categories.forEach((c, i) => { if (!c || !c.trim()) nextErrors[`category_${i}`] = 'Required' })
     pricingRules.forEach((r, i) => { if (!/^[A-Z]{3}$/.test(String(r.currency))) nextErrors[`pricing_${i}`] = 'Use 3-letter currency code'; if (!(typeof r.multiplier === 'number') || Number(r.multiplier) <= 0) nextErrors[`pricing_val_${i}`] = 'Must be > 0' })
+    currencyOverrides.forEach((c, i) => { if (!/^[A-Z]{3}$/.test(String(c))) nextErrors[`currency_${i}`] = 'Use 3-letter code' })
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) return
 
@@ -115,6 +116,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
           priceRounding,
           categories,
           pricingRules,
+          currencyOverrides,
         },
         serviceRequests: {
           defaultRequestStatus,
