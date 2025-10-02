@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
+import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
 export default function LegalTab(){
   const [pending, setPending] = useState({ termsUrl: '', privacyUrl: '', refundUrl: '' })
@@ -8,21 +9,16 @@ export default function LegalTab(){
 
   useEffect(() => { (async () => {
     try {
-      const r = await fetch('/api/admin/org-settings')
-      if (r.ok) {
-        const j = await r.json()
-        const links = j?.branding?.legalLinks || {}
-        setPending({ termsUrl: links.terms ?? '', privacyUrl: links.privacy ?? '', refundUrl: links.refund ?? '' })
-      }
+      const j = await getOrgSettings()
+      const links = j?.branding?.legalLinks || {}
+      setPending({ termsUrl: links.terms ?? '', privacyUrl: links.privacy ?? '', refundUrl: links.refund ?? '' })
     } catch (e) { console.error(e) }
   })() }, [])
 
   async function save(){
     setSaving(true)
     try {
-      const body = { branding: { legalLinks: { terms: pending.termsUrl, privacy: pending.privacyUrl, refund: pending.refundUrl } } }
-      const r = await fetch('/api/admin/org-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) console.error('Failed to save legal links')
+      await updateOrgSettings({ branding: { legalLinks: { terms: pending.termsUrl, privacy: pending.privacyUrl, refund: pending.refundUrl } } })
     } catch (e) { console.error(e) }
     setSaving(false)
   }

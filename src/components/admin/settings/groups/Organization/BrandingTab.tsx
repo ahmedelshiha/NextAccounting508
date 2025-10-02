@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
+import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
 export default function BrandingTab(){
   const [pending, setPending] = useState({ logoUrl: '', branding: {} as Record<string, any>, legalLinks: { terms: '', privacy: '', refund: '' } })
@@ -8,21 +9,16 @@ export default function BrandingTab(){
 
   useEffect(() => { (async () => {
     try {
-      const r = await fetch('/api/admin/org-settings')
-      if (r.ok) {
-        const j = await r.json()
-        const b = j?.branding || {}
-        setPending({ logoUrl: b.logoUrl ?? '', branding: b.branding ?? {}, legalLinks: b.legalLinks ?? { terms: '', privacy: '', refund: '' } })
-      }
+      const j = await getOrgSettings()
+      const b = j?.branding || {}
+      setPending({ logoUrl: b.logoUrl ?? '', branding: b.branding ?? {}, legalLinks: b.legalLinks ?? { terms: '', privacy: '', refund: '' } })
     } catch (e) { console.error(e) }
   })() }, [])
 
   async function save(){
     setSaving(true)
     try {
-      const body = { branding: { logoUrl: pending.logoUrl, branding: pending.branding, legalLinks: pending.legalLinks } }
-      const r = await fetch('/api/admin/org-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      if (!r.ok) console.error('Failed to save branding settings')
+      await updateOrgSettings({ branding: { logoUrl: pending.logoUrl, branding: pending.branding, legalLinks: pending.legalLinks } })
     } catch (e) { console.error(e) }
     setSaving(false)
   }
