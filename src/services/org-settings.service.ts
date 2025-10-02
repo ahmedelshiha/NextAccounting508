@@ -22,6 +22,14 @@ export async function updateOrgSettings(patch: OrgSettingsPatch): Promise<void> 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
   })
+  try {
+    if (typeof window !== 'undefined') {
+      // Cross-tab notification via storage (fires on other tabs)
+      localStorage.setItem('org-settings-updated', String(Date.now()))
+      // Same-tab notification via custom event
+      window.dispatchEvent(new Event('org-settings-updated'))
+    }
+  } catch {}
 }
 
 export async function exportOrgSettings(): Promise<Blob> {
