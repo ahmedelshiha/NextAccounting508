@@ -8,6 +8,7 @@ import { toastFromResponse, toastSuccess, toastError } from '@/lib/toast-api'
 import { Button } from '@/components/ui/button'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { usePermissions } from '@/lib/use-permissions'
 
 interface Props {
   open: boolean
@@ -18,6 +19,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
   const [active, setActive] = useState<string>('services')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const perms = usePermissions()
 
   // Services settings
   const [defaultCategory, setDefaultCategory] = useState('General')
@@ -130,7 +132,7 @@ export default function ServicesSettingsModal({ open, onClose }: Props) {
 
         <div className="mt-6 flex items-center justify-end gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={loading}>{loading ? 'Saving…' : 'Save settings'}</Button>
+          <Button onClick={save} disabled={loading || !perms.has(PERMISSIONS.SERVICES_EDIT)}>{loading ? 'Saving…' : 'Save settings'}</Button>
         </div>
       </Modal>
     </PermissionGate>
