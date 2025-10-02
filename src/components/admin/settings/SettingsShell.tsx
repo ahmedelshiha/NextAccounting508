@@ -51,6 +51,7 @@ export function SettingsShell({
   description,
   icon: Icon,
   backHref = '/admin/settings',
+  showBackButton = true,
   actions,
   loading = false,
   saving = false,
