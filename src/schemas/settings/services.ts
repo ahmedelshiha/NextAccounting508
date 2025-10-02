@@ -17,6 +17,7 @@ export const ServicesCoreSettingsSchema = z.object({
   priceRounding: z.number().int().min(0).max(6).default(2),
   categories: z.array(z.string().min(1)).default([]),
   pricingRules: z.array(PricingRuleSchema).default([]),
+  currencyOverrides: z.array(z.string().regex(/^[A-Z]{3}$/)).default([]),
 })
 
 // Enumerations sourced from Prisma schema to ensure parity with persisted data
@@ -67,6 +68,7 @@ export const ServicesSettingsSchema = z.object({
     priceRounding: 2,
     categories: [],
     pricingRules: [],
+    currencyOverrides: [],
   }),
   serviceRequests: ServiceRequestSettingsSchema.default({
     defaultRequestStatus: 'SUBMITTED',
@@ -85,6 +87,7 @@ export const ServicesSettingsSchema = z.object({
     priceRounding: 2,
     categories: [],
     pricingRules: [],
+    currencyOverrides: [],
   },
   serviceRequests: {
     defaultRequestStatus: 'SUBMITTED',
