@@ -3,15 +3,32 @@ import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 
+type LegalLinks = { terms: string; privacy: string; refund: string }
+
+type BrandingState = {
+  logoUrl: string
+  branding: Record<string, any>
+  legalLinks: LegalLinks
+}
+
 export default function BrandingTab(){
-  const [pending, setPending] = useState({ logoUrl: '', branding: {} as Record<string, any>, legalLinks: { terms: '', privacy: '', refund: '' } })
+  const [pending, setPending] = useState<BrandingState>({ logoUrl: '', branding: {}, legalLinks: { terms: '', privacy: '', refund: '' } })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { (async () => {
     try {
       const j = await getOrgSettings()
-      const b = j?.branding || {}
-      setPending({ logoUrl: b.logoUrl ?? '', branding: b.branding ?? {}, legalLinks: b.legalLinks ?? { terms: '', privacy: '', refund: '' } })
+      const b = (j?.branding || {}) as Partial<{ logoUrl: string; branding: Record<string, any>; legalLinks: Record<string, string> }>
+      const ll = (b.legalLinks || {}) as Record<string, string>
+      setPending({
+        logoUrl: b.logoUrl ?? '',
+        branding: b.branding ?? {},
+        legalLinks: {
+          terms: ll.terms ?? '',
+          privacy: ll.privacy ?? '',
+          refund: ll.refund ?? ''
+        }
+      })
     } catch (e) { console.error(e) }
   })() }, [])
 
