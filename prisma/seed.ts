@@ -63,9 +63,10 @@ async function main() {
     })
 
     const s = await tx.user.upsert({
-      where: { email: 'staff@accountingfirm.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'staff@accountingfirm.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'staff@accountingfirm.com',
         name: 'Staff Member',
         password: staffPassword,
