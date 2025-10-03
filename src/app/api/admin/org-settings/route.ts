@@ -66,6 +66,11 @@ export async function PUT(req: Request) {
     defaultLocale: parsed.data.localization?.defaultLocale ?? existing?.defaultLocale ?? 'en',
     logoUrl: parsed.data.branding?.logoUrl ?? existing?.logoUrl ?? null,
     branding: parsed.data.branding?.branding ?? existing?.branding ?? null,
+    // Save explicit URL fields if provided (new columns)
+    termsUrl: parsed.data.branding?.termsUrl ?? existing?.termsUrl ?? (parsed.data.branding?.legalLinks?.terms ?? existing?.legalLinks?.terms ?? null),
+    privacyUrl: parsed.data.branding?.privacyUrl ?? existing?.privacyUrl ?? (parsed.data.branding?.legalLinks?.privacy ?? existing?.legalLinks?.privacy ?? null),
+    refundUrl: parsed.data.branding?.refundUrl ?? existing?.refundUrl ?? (parsed.data.branding?.legalLinks?.refund ?? existing?.legalLinks?.refund ?? null),
+    // Keep legacy JSON blob for backward compatibility
     legalLinks: parsed.data.branding?.legalLinks ?? existing?.legalLinks ?? null,
   }
 
