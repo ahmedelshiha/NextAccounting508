@@ -1,7 +1,8 @@
 import type { PrismaClient as PrismaClientType } from '@prisma/client'
+import { registerTenantGuard } from '@/lib/prisma-tenant-guard'
 
 declare global {
-   
+  
   var __prisma__: PrismaClientType | undefined;
 }
 
@@ -13,13 +14,15 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 
 function createClient(url: string) {
   // Lazily require to avoid loading @prisma/client when DB is not configured
-   
+  
   // This file intentionally uses require() because importing @prisma/client at module
   // initialization can attempt to connect to the DB in environments where the DB
   // is not configured (build/test). Keep lazy require to avoid that behavior.
-   
+  
   const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
-  return new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  const client = new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
+  registerTenantGuard(client as any);
+  return client;
 }
 
 // Export a proxy that lazily creates Prisma client on first use
