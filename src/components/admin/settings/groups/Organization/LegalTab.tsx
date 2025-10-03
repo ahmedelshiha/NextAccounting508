@@ -3,10 +3,13 @@ import React, { useEffect, useState } from 'react'
 import { TextField } from '@/components/admin/settings/FormField'
 import { getOrgSettings, updateOrgSettings } from '@/services/org-settings.service'
 import { toast } from 'sonner'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 export default function LegalTab(){
   const [pending, setPending] = useState({ termsUrl: '', privacyUrl: '', refundUrl: '' })
   const [saving, setSaving] = useState(false)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => { (async () => {
     try {
@@ -19,8 +22,9 @@ export default function LegalTab(){
   async function save(){
     setSaving(true)
     try {
-      await updateOrgSettings({ branding: { legalLinks: { terms: pending.termsUrl, privacy: pending.privacyUrl, refund: pending.refundUrl } } })
+      await updateOrgSettings({ branding: { legalLinks: { terms: pending.termsUrl, privacy: pending.privacyUrl, refund: pending.refundUrl }, termsUrl: pending.termsUrl || undefined, privacyUrl: pending.privacyUrl || undefined, refundUrl: pending.refundUrl || undefined } })
       toast.success('Legal links saved')
+      setOpen(false)
     } catch (e) {
       console.error(e)
       const msg = e instanceof Error ? e.message : 'Failed to save legal links'
@@ -31,12 +35,32 @@ export default function LegalTab(){
 
   return (
     <div className="space-y-4">
-      <TextField label="Terms of Service URL" value={pending.termsUrl} onChange={(v)=>setPending(p=>({ ...p, termsUrl: v }))} />
-      <TextField label="Privacy Policy URL" value={pending.privacyUrl} onChange={(v)=>setPending(p=>({ ...p, privacyUrl: v }))} />
-      <TextField label="Refund Policy URL" value={pending.refundUrl} onChange={(v)=>setPending(p=>({ ...p, refundUrl: v }))} />
-
-      <div className="pt-4">
-        <button onClick={save} className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50" disabled={saving}>Save Changes</button>
+      <div className="rounded-md border p-4 bg-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-gray-600">Manage links to your policies shown in the footer.</div>
+            <div className="mt-1 text-xs text-gray-500">Current: {pending.termsUrl || '—'} • {pending.privacyUrl || '—'} • {pending.refundUrl || '—'}</div>
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default">Edit Legal Links</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Legal Links</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <TextField label="Terms of Service URL" value={pending.termsUrl} onChange={(v)=>setPending(p=>({ ...p, termsUrl: v }))} />
+                <TextField label="Privacy Policy URL" value={pending.privacyUrl} onChange={(v)=>setPending(p=>({ ...p, privacyUrl: v }))} />
+                <TextField label="Refund Policy URL" value={pending.refundUrl} onChange={(v)=>setPending(p=>({ ...p, refundUrl: v }))} />
+              </div>
+              <DialogFooter>
+                <Button variant="secondary" onClick={()=>setOpen(false)}>Cancel</Button>
+                <Button onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
     </div>
   )

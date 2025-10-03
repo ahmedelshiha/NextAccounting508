@@ -15,6 +15,7 @@ function extractSubdomain(hostname: string | null): string | null {
   return sub || null
 }
 
+
 export type EffectiveOrgSettings = {
   locale: string
   name: string
@@ -37,7 +38,6 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
       logoUrl: true,
       contactEmail: true,
       contactPhone: true,
-      legalLinks: true,
       termsUrl: true,
       privacyUrl: true,
       refundUrl: true,
@@ -51,9 +51,9 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
     contactEmail: (row?.contactEmail as string | null) ?? null,
     contactPhone: (row?.contactPhone as string | null) ?? null,
     legalLinks: (row ? ({
-      terms: (row.termsUrl as string | null) ?? (row.legalLinks?.terms ?? null),
-      privacy: (row.privacyUrl as string | null) ?? (row.legalLinks?.privacy ?? null),
-      refund: (row.refundUrl as string | null) ?? (row.legalLinks?.refund ?? null),
+      terms: (row.termsUrl as string | null) ?? null,
+      privacy: (row.privacyUrl as string | null) ?? null,
+      refund: (row.refundUrl as string | null) ?? null,
     }) : null) as Record<string, string> | null,
   }
 }

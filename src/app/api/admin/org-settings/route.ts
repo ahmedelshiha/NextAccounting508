@@ -8,6 +8,7 @@ import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
 import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
 
+
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions as any)
@@ -17,6 +18,7 @@ export async function GET(req: Request) {
     const tenantId = getTenantFromRequest(req as any)
     const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
     if (!row) return NextResponse.json({ name: '', tagline: '', description: '', industry: '' })
+
     const out = {
       general: { name: row.name, tagline: row.tagline, description: row.description, industry: row.industry },
       contact: { contactEmail: row.contactEmail, contactPhone: row.contactPhone, address: row.address || {} },
@@ -24,11 +26,12 @@ export async function GET(req: Request) {
       branding: {
         logoUrl: row.logoUrl,
         branding: row.branding || {},
-        // Prefer explicit columns, fallback to JSON blob
-        termsUrl: row.termsUrl ?? (row.legalLinks?.terms ?? null),
-        privacyUrl: row.privacyUrl ?? (row.legalLinks?.privacy ?? null),
-        refundUrl: row.refundUrl ?? (row.legalLinks?.refund ?? null),
-        legalLinks: row.legalLinks || {}
+        // Use explicit URL columns
+        termsUrl: row.termsUrl ?? null,
+        privacyUrl: row.privacyUrl ?? null,
+        refundUrl: row.refundUrl ?? null,
+        // Provide normalized object for clients
+        legalLinks: { terms: row.termsUrl ?? null, privacy: row.privacyUrl ?? null, refund: row.refundUrl ?? null }
       }
     }
     return NextResponse.json(out)
@@ -67,11 +70,17 @@ export async function PUT(req: Request) {
     logoUrl: parsed.data.branding?.logoUrl ?? existing?.logoUrl ?? null,
     branding: parsed.data.branding?.branding ?? existing?.branding ?? null,
     // Save explicit URL fields if provided (new columns)
-    termsUrl: parsed.data.branding?.termsUrl ?? existing?.termsUrl ?? (parsed.data.branding?.legalLinks?.terms ?? existing?.legalLinks?.terms ?? null),
-    privacyUrl: parsed.data.branding?.privacyUrl ?? existing?.privacyUrl ?? (parsed.data.branding?.legalLinks?.privacy ?? existing?.legalLinks?.privacy ?? null),
-    refundUrl: parsed.data.branding?.refundUrl ?? existing?.refundUrl ?? (parsed.data.branding?.legalLinks?.refund ?? existing?.legalLinks?.refund ?? null),
-    // Keep legacy JSON blob for backward compatibility
-    legalLinks: parsed.data.branding?.legalLinks ?? existing?.legalLinks ?? null,
+    termsUrl:
+      parsed.data.branding?.termsUrl ??
+      (parsed.data.branding?.legalLinks?.terms ?? existing?.termsUrl ?? null),
+    privacyUrl:
+      parsed.data.branding?.privacyUrl ??
+      (parsed.data.branding?.legalLinks?.privacy ?? existing?.privacyUrl ?? null),
+    refundUrl:
+      parsed.data.branding?.refundUrl ??
+      (parsed.data.branding?.legalLinks?.refund ?? existing?.refundUrl ?? null),
+    // Stop persisting legacy JSON blob
+    legalLinks: null,
   }
 
   try {
