@@ -15,6 +15,12 @@ function extractSubdomain(hostname: string | null): string | null {
   return sub || null
 }
 
+// Narrow Prisma JsonValue to expected shape
+type LegalLinks = { terms?: string | null; privacy?: string | null; refund?: string | null }
+const toLegalLinks = (val: unknown): LegalLinks | null => {
+  return val && typeof val === 'object' && !Array.isArray(val) ? (val as LegalLinks) : null
+}
+
 export type EffectiveOrgSettings = {
   locale: string
   name: string
@@ -44,6 +50,8 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
     },
   }).catch(() => null)
 
+  const legacyLinks = toLegalLinks((row as any)?.legalLinks)
+
   return {
     locale: (row?.defaultLocale as string) || 'en',
     name: (row?.name as string) || 'Accounting Firm',
@@ -51,9 +59,9 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
     contactEmail: (row?.contactEmail as string | null) ?? null,
     contactPhone: (row?.contactPhone as string | null) ?? null,
     legalLinks: (row ? ({
-      terms: (row.termsUrl as string | null) ?? (row.legalLinks?.terms ?? null),
-      privacy: (row.privacyUrl as string | null) ?? (row.legalLinks?.privacy ?? null),
-      refund: (row.refundUrl as string | null) ?? (row.legalLinks?.refund ?? null),
+      terms: (row.termsUrl as string | null) ?? (legacyLinks?.terms ?? null),
+      privacy: (row.privacyUrl as string | null) ?? (legacyLinks?.privacy ?? null),
+      refund: (row.refundUrl as string | null) ?? (legacyLinks?.refund ?? null),
     }) : null) as Record<string, string> | null,
   }
 }
