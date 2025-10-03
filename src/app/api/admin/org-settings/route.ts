@@ -94,12 +94,14 @@ export async function PUT(req: Request) {
   if (normalized.branding === null) normalized.branding = Prisma.JsonNull
   if (normalized.legalLinks === null) normalized.legalLinks = Prisma.JsonNull
 
-  const data = withTenant(normalized, tenantId)
+  // For creating, Prisma nested relation expects tenant: { connect: { id } }
+  const createData = { ...normalized, tenant: { connect: { id: tenantId } } }
+  const updateData = { ...normalized }
 
   try {
     const saved = existing
-      ? await prisma.organizationSettings.update({ where: { id: existing.id }, data })
-      : await prisma.organizationSettings.create({ data })
+      ? await prisma.organizationSettings.update({ where: { id: existing.id }, data: updateData })
+      : await prisma.organizationSettings.create({ data: createData })
 
     try {
       await logAudit({
