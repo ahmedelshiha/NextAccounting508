@@ -137,8 +137,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       priority: priority as any,
-      dueAt: dueIso ? new Date(dueIso) : null,
-      assigneeId: parsed.data.assigneeId ?? null,
+      dueAt: dueIso ? new Date(dueIso) : undefined,
+      assignee: parsed.data.assigneeId
+        ? {
+            connect: { id: parsed.data.assigneeId },
+          }
+        : undefined,
     },
     include: { assignee: { select: { id: true, name: true, email: true } } },
   })
