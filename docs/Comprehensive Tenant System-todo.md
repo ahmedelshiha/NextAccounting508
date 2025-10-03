@@ -1,5 +1,7 @@
 # Comprehensive Tenant System Enhancement Checklist
 
+> Reference guideline: [Comprehensive Tenant System Enhancement Plan](./Comprehensive%20Tenant%20System%20Enhancement%20Plan.md)
+
 ## Phase 0: Planning and Governance
 - [ ] Confirm executive sponsorship and security requirements for zero-trust tenant isolation with stakeholders.
 - [ ] Define tenant identifier canonical source (tenant table schema, slug, domain mapping) and document naming conventions.
