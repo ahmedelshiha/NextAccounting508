@@ -21,7 +21,15 @@ export async function GET(req: Request) {
       general: { name: row.name, tagline: row.tagline, description: row.description, industry: row.industry },
       contact: { contactEmail: row.contactEmail, contactPhone: row.contactPhone, address: row.address || {} },
       localization: { defaultTimezone: row.defaultTimezone, defaultCurrency: row.defaultCurrency, defaultLocale: row.defaultLocale },
-      branding: { logoUrl: row.logoUrl, branding: row.branding || {}, legalLinks: row.legalLinks || {} }
+      branding: {
+        logoUrl: row.logoUrl,
+        branding: row.branding || {},
+        // Prefer explicit columns, fallback to JSON blob
+        termsUrl: row.termsUrl ?? (row.legalLinks?.terms ?? null),
+        privacyUrl: row.privacyUrl ?? (row.legalLinks?.privacy ?? null),
+        refundUrl: row.refundUrl ?? (row.legalLinks?.refund ?? null),
+        legalLinks: row.legalLinks || {}
+      }
     }
     return NextResponse.json(out)
   } catch (e) {
