@@ -1,5 +1,8 @@
 import prisma from '@/lib/prisma'
 
+import prisma from '@/lib/prisma'
+import { resolveTenantId } from '@/lib/default-tenant'
+
 interface AuditEntry {
   action: string
   actorId?: string | null
@@ -28,8 +31,10 @@ export async function logAudit(entry: AuditEntry) {
       console.info('[AUDIT]', message)
       return { ok: true, stored: false }
     }
+    const tenantId = await resolveTenantId(null)
     await target.healthLog.create({
       data: {
+        tenantId,
         service: 'AUDIT',
         status: 'INFO',
         message,
