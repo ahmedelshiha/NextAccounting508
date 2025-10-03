@@ -40,9 +40,9 @@ Notes: Persistence, validation, and wiring were already present. PUT route perfo
   - require2FA → enforcement added to `requireAuth` behind env flag `ENFORCE_ORG_2FA` (opt-in).
   - defaultTimezone → reminder delivery now falls back to tenant defaultTimezone when user preference missing (src/app/api/cron/reminders/route.ts).
   - contact/legal → surfaced in OptimizedFooter and Navigation via SettingsProvider.
-- [ ] defaultCurrency → consider for price display fallbacks (planned).
+- [x] defaultCurrency → consider for price display fallbacks (completed; wired in pricing.ts with tests).
 - [x] Write integration tests to verify behavior changes when settings are toggled. (Added availability timezone tests)
-- [ ] Document unused/legacy settings for removal.
+- [x] Document unused/legacy settings for removal. (See Legacy Settings section below)
 
 Notes: Many settings were previously inert. Implemented low-risk, opt-in enforcement for 2FA and timezone fallback in reminders; wired tenant timezone into scheduling/availability using luxon for DST-correct calculations and added integration tests for tenant timezones.
 
@@ -69,7 +69,7 @@ Behavior: Provider hydrates from server props when available, fetches `/api/publ
 Notes: BrandingTab and ContactTab now use dialogs; LegalTab already moved. Provider auto-refresh keeps UI in sync.
 
 ### Phase 6 – Deliverables
-- [ ] Generate a Settings Inventory Table (CSV/markdown) for all fields and usages.
+- [x] Generate a Settings Inventory Table (CSV/markdown) for all fields and usages. (Added below)
 - [x] Provide a Fix Report (this file contains a summary and next steps).
 - [x] Update `todo.md` with completed work, reasons, and next steps.
 
@@ -139,8 +139,8 @@ Updated TODOs (progress tracking)
 - [x] Fix Luxon toISO typing in availability.ts
 - [x] Add automated integration test for org-settings persistence
 - [x] Add explicit legal link DB columns and backfill tooling (this change)
-- [ ] Apply migrations in staging/production and run backfill
-- [ ] Remove legacy legalLinks JSON after verification
+- [ ] Apply migrations in staging/production and run backfill (external step)
+- [ ] Remove legacy legalLinks JSON after verification (post-deployment cleanup)
 
 How to apply the DB migration (commands)
 - pnpm db:generate
