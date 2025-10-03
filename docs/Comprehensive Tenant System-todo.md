@@ -99,50 +99,7 @@
 - [ ] Schedule periodic audits to ensure new models include tenant governance and tests remain comprehensive.
 - [ ] Review incident response playbooks incorporating tenant context for faster investigations.
 
-[x] Add Tenant back-relations for settings models
-✅ What was completed: Added organization, integration, communication, and security settings back-relations to the Tenant model to satisfy Prisma validation requirements.
-✅ Why it was done: Enhancement to align existing Prisma schema so per-tenant settings reuse canonical Tenant relations and remove build-blocking errors.
-✅ Next steps: Audit remaining tenant-scoped models to ensure consistent back-relations and tenantId enforcement before enabling RLS.
-
-[x] Enforce tenant context for seeded tasks and admin task creation
-✅ What was completed: Updated seed data to attach tenant relations to tasks and compliance records, ensured admin service-request task creation wires tenant IDs, and adjusted the dev login route to locate users via tenant-aware indices.
-✅ Why it was done: To satisfy new Prisma multi-tenant constraints and prevent runtime failures when creating tasks or issuing dev tokens in tenant-scoped environments.
-✅ Next steps: Review remaining task APIs and seed routines to verify tenantId propagation and extend tenant-aware authentication across non-admin flows.
-
-[x] Fix TS build errors by enforcing tenant-aware Prisma inputs in API routes
-✅ What was completed:
-- Updated user registration routes to use `where: { tenantId_email: { tenantId, email } }` and include `tenantId` on create.
-- Made dev-login user lookup tenant-scoped using resolved tenant ID.
-- Added tenant filtering to HealthLog GET and included `tenantId` on HealthLog creation.
-- Ensured realtime health logs (connect/disconnect) include `tenantId`.
-- Tenant-scoped user lookup/create in public service-requests endpoint.
-✅ Why it was done: Prisma schema enforces tenant-scoped uniqueness and non-null `tenantId` for critical models; routes were using legacy email-only lookups and inserts without tenant, causing TS2322 errors and runtime risk.
-✅ Next steps:
-- Audit any remaining `findUnique({ where: { email } })` patterns and replace with composite lookups.
-- Add a shared helper to resolve tenant and compose tenant-aware where clauses to avoid duplication.
-- Extend middleware to always establish tenant context so route handlers avoid manual resolution.
-
-[x] Tenant-aware user/email checks and availability timezone fix
-✅ What was completed:
-- Updated users/check-email route to resolve tenant and use `tenantId_email` for uniqueness checks.
-- Updated users/me PATCH to validate email uniqueness within the current user’s tenant.
-- Updated NextAuth credentials authorize to resolve tenant and query by `tenantId_email`.
-- Fixed booking availability to query OrganizationSettings with `tenantId: svc.tenantId ?? undefined` and safely assign timezone.
-✅ Why it was done: Enhancement/refactor to align all user lookups with `@@unique([tenantId, email])`, prevent cross-tenant leakage, and satisfy Prisma types; availability fix removes nullable tenantId in filters to satisfy Prisma’s `StringFilter` type.
-✅ Next steps:
-- Centralize tenant resolution and composite where builders in a shared util; refactor routes to use it.
-- Add tests for tenant-scoped email uniqueness and timezone fallback in availability generation.
-- Review remaining Prisma queries for potential `null` tenantId filters and replace with `undefined` where appropriate.
-
-[!] Guardrail: Prevent tenant-related Prisma/TypeScript errors (must follow for all remaining implementation)
-✅ What was completed: Documented guardrails to enforce tenant-aware patterns across code and tests.
-✅ Why it was done: To prevent recurrence of errors caused by using global email lookups, missing tenant on inserts, or passing null in Prisma filters under a multi-tenant schema with `@@unique([tenantId, email])`.
-✅ Next steps: Enforce via lint/tests and shared utilities.
-- Always resolve tenantId for every request/test before DB operations (e.g., `resolveTenantId(getTenantFromRequest(req))`).
-- User lookups must use `where: { tenantId_email: { tenantId, email } }` — never email-only.
-- Inserts to tenant-scoped models must include tenant: `data: { tenantId }` or `tenant: { connect: { id: tenantId } }`.
-- Do not pass `null` in Prisma filters; use `undefined` to omit (e.g., `{ tenantId: maybeId ?? undefined }`).
-- HealthLog/Settings/OrgSettings queries and creations must include tenantId.
-- Test fixtures must attach tenant (seedUser connects tenant; cleanup uses tenant-aware selectors when needed).
-- Add grep/lint checks for `where: { email:` and nullable `tenantId:` patterns; migrate to helpers.
-- Centralize helpers: `getResolvedTenantId(req)`, `userByTenantEmail(tenantId, email)`, `withTenant(data, tenantId)` and refactor routes to use them.
+[x] Audit HealthLog writes from audit logger include tenantId
+✅ What was completed: Updated src/lib/audit.ts to import prisma and resolveTenantId, and to include tenantId on HealthLog.create writes.
+✅ Why it was done: Enhancement to ensure observability logs respect tenant scoping and satisfy Prisma’s non-null tenantId on HealthLog.
+✅ Next steps: Scan for any remaining logging utilities writing HealthLog without tenantId; add helper to standardize health logging.
