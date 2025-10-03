@@ -84,10 +84,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const dueIso = parsed.data.dueAt || (parsed.data.dueDate ? new Date(parsed.data.dueDate).toISOString() : undefined)
 
   const tenantId = getTenantFromRequest(req as any)
+  let serviceRequest: Awaited<ReturnType<typeof prisma.serviceRequest.findUnique>> | null = null
   if (hasDb) {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id } })
-    if (!sr) return respond.notFound('Service request not found')
-    if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
+    serviceRequest = await prisma.serviceRequest.findUnique({ where: { id } })
+    if (!serviceRequest) return respond.notFound('Service request not found')
+    if (
+      isMultiTenancyEnabled() &&
+      tenantId &&
+      serviceRequest.tenantId &&
+      serviceRequest.tenantId !== tenantId
+    ) {
       return respond.notFound('Service request not found')
     }
   }
@@ -117,13 +123,26 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return respond.created(row)
   }
 
+  const resolvedTenantId =
+    serviceRequest?.tenantId ??
+    (typeof tenantId === 'string' && tenantId.trim().length > 0 ? tenantId : null)
+
+  if (!resolvedTenantId) {
+    return respond.badRequest('Tenant context missing for task creation')
+  }
+
   const createdTask = await prisma.task.create({
     data: {
+      tenant: { connect: { id: resolvedTenantId } },
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       priority: priority as any,
-      dueAt: dueIso ? new Date(dueIso) : null,
-      assigneeId: parsed.data.assigneeId ?? null,
+      dueAt: dueIso ? new Date(dueIso) : undefined,
+      assignee: parsed.data.assigneeId
+        ? {
+            connect: { id: parsed.data.assigneeId },
+          }
+        : undefined,
     },
     include: { assignee: { select: { id: true, name: true, email: true } } },
   })
@@ -133,11 +152,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   try { realtimeService.emitTaskUpdate(createdTask.id, { action: 'created', serviceRequestId: id }) } catch {}
   try { realtimeService.emitServiceRequestUpdate(id, { action: 'task-created', taskId: createdTask.id }) } catch {}
   try {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
-    if (sr?.clientId) {
+    const srClientId =
+      serviceRequest?.clientId ??
+      (await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true } }))?.clientId
+    if (srClientId) {
       const ts = new Date().toISOString()
-      realtimeService.broadcastToUser(String(sr.clientId), { type: 'task-updated', data: { taskId: createdTask.id, serviceRequestId: id, action: 'created' }, timestamp: ts })
-      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'task-created', taskId: createdTask.id }, timestamp: ts })
+      realtimeService.broadcastToUser(String(srClientId), { type: 'task-updated', data: { taskId: createdTask.id, serviceRequestId: id, action: 'created' }, timestamp: ts })
+      realtimeService.broadcastToUser(String(srClientId), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'task-created', taskId: createdTask.id }, timestamp: ts })
     }
   } catch {}
 

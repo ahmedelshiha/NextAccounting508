@@ -19,10 +19,28 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}))
     const email = (body?.email as string) || 'staff@accountingfirm.com'
-    const user = await prisma.user.findUnique({ where: { email } })
+    const tenantSlug = typeof body?.tenantSlug === 'string' && body.tenantSlug.trim().length > 0 ? body.tenantSlug.trim() : 'primary'
+    const tenantIdOverride = typeof body?.tenantId === 'string' && body.tenantId.trim().length > 0 ? body.tenantId.trim() : null
+
+    const tenantLookup = tenantIdOverride
+      ? await prisma.tenant.findUnique({ where: { id: tenantIdOverride } })
+      : await prisma.tenant.findUnique({ where: { slug: tenantSlug } })
+
+    const tenant = tenantLookup ?? (await prisma.tenant.findFirst())
+
+    const user =
+      (tenant
+        ? await prisma.user.findUnique({
+            where: { tenantId_email: { tenantId: tenant.id, email } },
+          })
+        : null) ?? (await prisma.user.findFirst({ where: { email } }))
+
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
+
+    const activeTenantId = tenant?.id ?? user.tenantId ?? null
+    const activeTenantSlug = tenant?.slug ?? null
 
     const tokenPayload = {
       name: user.name,
@@ -31,6 +49,8 @@ export async function POST(req: Request) {
       sub: user.id,
       role: user.role,
       sessionVersion: user.sessionVersion ?? 0,
+      tenantId: activeTenantId,
+      tenantSlug: activeTenantSlug,
       iat: Math.floor(Date.now() / 1000),
     }
 

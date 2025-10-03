@@ -103,3 +103,8 @@
 ✅ What was completed: Added organization, integration, communication, and security settings back-relations to the Tenant model to satisfy Prisma validation requirements.
 ✅ Why it was done: Enhancement to align existing Prisma schema so per-tenant settings reuse canonical Tenant relations and remove build-blocking errors.
 ✅ Next steps: Audit remaining tenant-scoped models to ensure consistent back-relations and tenantId enforcement before enabling RLS.
+
+[x] Enforce tenant context for seeded tasks and admin task creation
+✅ What was completed: Updated seed data to attach tenant relations to tasks and compliance records, ensured admin service-request task creation wires tenant IDs, and adjusted the dev login route to locate users via tenant-aware indices.
+✅ Why it was done: To satisfy new Prisma multi-tenant constraints and prevent runtime failures when creating tasks or issuing dev tokens in tenant-scoped environments.
+✅ Next steps: Review remaining task APIs and seed routines to verify tenantId propagation and extend tenant-aware authentication across non-admin flows.

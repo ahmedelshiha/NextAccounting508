@@ -708,15 +708,26 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   const now = new Date()
   const past = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10) // 10 days ago
   const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7) // in 7 days
+  const completedPast = new Date(past.getTime() + 1000 * 60 * 60 * 24 * 2) // completed 2 days after created
 
   const t1 = await prisma.task.upsert({
     where: { id: 'task_c1' },
-    update: {},
-    create: {
-      id: 'task_c1',
+    update: {
+      tenant: { connect: { id: defaultTenant.id } },
       title: 'File Quarterly Compliance Report',
       description: 'Prepare and file the quarterly compliance report for client X',
-      dueAt: past.toISOString(),
+      dueAt: past,
+      priority: 'HIGH',
+      status: 'OPEN',
+      complianceRequired: true,
+      complianceDeadline: past,
+    },
+    create: {
+      id: 'task_c1',
+      tenant: { connect: { id: defaultTenant.id } },
+      title: 'File Quarterly Compliance Report',
+      description: 'Prepare and file the quarterly compliance report for client X',
+      dueAt: past,
       priority: 'HIGH',
       status: 'OPEN',
       complianceRequired: true,
@@ -726,12 +737,22 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   const t2 = await prisma.task.upsert({
     where: { id: 'task_c2' },
-    update: {},
-    create: {
-      id: 'task_c2',
+    update: {
+      tenant: { connect: { id: defaultTenant.id } },
       title: 'Submit AML Documentation',
       description: 'Collect and submit AML documents for onboarding',
-      dueAt: future.toISOString(),
+      dueAt: future,
+      priority: 'MEDIUM',
+      status: 'IN_PROGRESS',
+      complianceRequired: true,
+      complianceDeadline: future,
+    },
+    create: {
+      id: 'task_c2',
+      tenant: { connect: { id: defaultTenant.id } },
+      title: 'Submit AML Documentation',
+      description: 'Collect and submit AML documents for onboarding',
+      dueAt: future,
       priority: 'MEDIUM',
       status: 'IN_PROGRESS',
       complianceRequired: true,
@@ -741,12 +762,21 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   const t3 = await prisma.task.upsert({
     where: { id: 'task_c3' },
-    update: {},
-    create: {
-      id: 'task_c3',
+    update: {
+      tenant: { connect: { id: defaultTenant.id } },
       title: 'Annual Tax Compliance Review',
       description: 'Review annual tax compliance and close items',
-      dueAt: future.toISOString(),
+      dueAt: future,
+      priority: 'MEDIUM',
+      status: 'OPEN',
+      complianceRequired: false,
+    },
+    create: {
+      id: 'task_c3',
+      tenant: { connect: { id: defaultTenant.id } },
+      title: 'Annual Tax Compliance Review',
+      description: 'Review annual tax compliance and close items',
+      dueAt: future,
       priority: 'MEDIUM',
       status: 'OPEN',
       complianceRequired: false,
@@ -756,14 +786,24 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   // Create ComplianceRecords for tasks
   await prisma.complianceRecord.upsert({
     where: { id: 'cr_1' },
-    update: {},
-    create: {
-      id: 'cr_1',
-      taskId: t1.id,
+    update: {
+      tenant: { connect: { id: defaultTenant.id } },
+      task: { connect: { id: t1.id } },
       type: 'REPORTING',
       status: 'COMPLETED',
       dueAt: past,
-      completedAt: new Date(past.getTime() + 1000 * 60 * 60 * 24 * 2), // completed 2 days after created
+      completedAt: completedPast,
+      riskScore: 3,
+      notes: 'Filed successfully',
+    },
+    create: {
+      id: 'cr_1',
+      tenant: { connect: { id: defaultTenant.id } },
+      task: { connect: { id: t1.id } },
+      type: 'REPORTING',
+      status: 'COMPLETED',
+      dueAt: past,
+      completedAt: completedPast,
       riskScore: 3,
       notes: 'Filed successfully',
     },
@@ -771,10 +811,20 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   await prisma.complianceRecord.upsert({
     where: { id: 'cr_2' },
-    update: {},
+    update: {
+      tenant: { connect: { id: defaultTenant.id } },
+      task: { connect: { id: t2.id } },
+      type: 'KYC',
+      status: 'PENDING',
+      dueAt: future,
+      completedAt: null,
+      riskScore: 5,
+      notes: 'Waiting for client documents',
+    },
     create: {
       id: 'cr_2',
-      taskId: t2.id,
+      tenant: { connect: { id: defaultTenant.id } },
+      task: { connect: { id: t2.id } },
       type: 'KYC',
       status: 'PENDING',
       dueAt: future,
