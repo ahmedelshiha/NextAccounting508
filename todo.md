@@ -1,3 +1,12 @@
+# Build Error Fix – Organization Settings (blocking compile)
+
+- [x] Resolve TS compile error in `src/app/api/admin/org-settings/route.ts` caused by accessing properties on `JsonValue`.
+  - Change: Added runtime type guard `toLegalLinks` and `LegalLinks` type; safely narrowed `legalLinks` in both GET and PUT to read `terms/privacy/refund` without type errors. Also updated fallbacks to use the narrowed object.
+  - Why: Next.js build failed due to `Property 'terms' does not exist on type 'string | number | boolean | JsonObject | JsonArray'`.
+  - Next: Run `pnpm typecheck` and full tests; verify admin UI reads/writes legal links correctly.
+
+---
+
 # Organization Settings Audit & Fix TODO
 
 This file is a dependency-ordered TODO list, status, and a short fix report.
@@ -51,7 +60,7 @@ Notes: Implemented a client-side SettingsProvider and hook to centralize org set
 Behavior: Provider hydrates from server props when available, fetches `/api/public/org-settings` otherwise, and listens for `org-settings-updated` (custom event) and localStorage key `org-settings-updated` to refresh automatically after admin saves.
 
 ### Phase 5 – UI/UX Alignment
-- [x] Add success/error feedback on Save (toasts) in all Organization tabs.
+- [x] Add success/error feedback on Save (toasts) in all Organization admin tabs.
 - [x] Centralize header/footer to use SettingsProvider (Navigation + OptimizedFooter now prefer provider values).
 - [ ] Move quick toggles into Modal/Popover where appropriate.
 - [ ] Move org-wide controls into Dedicated Settings Page (already present).
@@ -159,4 +168,3 @@ If you’d like I can now:
 - Modified: package.json (added db:migrate:legalLinks script)
 
 ---
-
