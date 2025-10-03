@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
 import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
@@ -16,7 +17,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = getTenantFromRequest(req as any)
-    const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
+    const resolvedTenantId = await resolveTenantId(tenantId)
+    const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+    const row = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
     if (!row) return NextResponse.json({ name: '', tagline: '', description: '', industry: '' })
 
     const out = {
@@ -47,16 +50,18 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const tenantId = getTenantFromRequest(req as any)
+  const resolvedTenantId = await resolveTenantId(tenantId)
   const body = await req.json().catch(() => ({}))
   const parsed = OrganizationSettingsSchema.safeParse(body)
   if (!parsed.success) {
     try { Sentry.captureMessage('org-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
-  const existing = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
+  const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+  const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
   const data: any = {
-    tenantId: tenantId || undefined,
+    tenantId: resolvedTenantId,
     name: parsed.data.general?.name ?? existing?.name ?? '',
     tagline: parsed.data.general?.tagline ?? existing?.tagline ?? null,
     description: parsed.data.general?.description ?? existing?.description ?? null,
@@ -88,7 +93,13 @@ export async function PUT(req: Request) {
       ? await prisma.organizationSettings.update({ where: { id: existing.id }, data })
       : await prisma.organizationSettings.create({ data })
 
-    try { await logAudit({ action: 'org-settings:update', actorId: session.user.id, details: { tenantId } }) } catch {}
+    try {
+      await logAudit({
+        action: 'org-settings:update',
+        actorId: session.user.id,
+        details: { tenantId: resolvedTenantId, requestedTenantId: tenantId ?? null },
+      })
+    } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })
   } catch (e) {

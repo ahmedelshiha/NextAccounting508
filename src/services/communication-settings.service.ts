@@ -7,6 +7,7 @@ import {
   type CommunicationSettings,
   type CommunicationSettingsPatch,
 } from '@/schemas/settings/communication'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 const cache = new CacheService()
 const patchSchema = CommunicationSettingsPatchSchema
