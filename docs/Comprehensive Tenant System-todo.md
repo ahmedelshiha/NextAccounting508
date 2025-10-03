@@ -168,6 +168,11 @@
 
 ---
 
+[x] Phase 1 guardrails review
+✅ What was completed: Verified `registerTenantGuard` enforces tenant context requirements, confirmed existing integration tests cover missing-tenant, tenant mismatch, super-admin bypass, and tenantless read scenarios, and ensured guard logs capture tenant context leaks for reads and mutations.
+✅ Why it was done: Confirms the core safety net remains intact before advancing to refactors in subsequent phases.
+✅ Next steps: Move to Phase 2 tasks starting with hardening authentication, middleware, and high-risk API routes.
+
 ## Next Implementation Tasks (actionable, prioritized)
 
 1) Refactor remaining admin routes to use withTenantContext (priority: P1)
