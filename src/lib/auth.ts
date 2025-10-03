@@ -3,6 +3,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { getTenantFromRequest } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
 
@@ -24,7 +26,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
 
         if (!hasDb) {
@@ -34,7 +36,9 @@ export const authOptions: NextAuthOptions = {
           return { id: u.id, email: u.email, name: u.name, role: u.role }
         }
 
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } })
+        const tenantHint = getTenantFromRequest((req as any)?.request ?? (req as any))
+        const tenantId = await resolveTenantId(tenantHint)
+        const user = await prisma.user.findUnique({ where: { tenantId_email: { tenantId, email: credentials.email as string } } })
         if (!user || !user.password) return null
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
