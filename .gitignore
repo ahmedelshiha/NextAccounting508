@@ -1,26 +1,41 @@
 # Dependencies
 node_modules/
 
-# Next.js
+# Build outputs
 .next/
-.netlify/
 out/
+dist/
 build/
+coverage/
 
-# TypeScript
-*.tsbuildinfo
+# Environment files
+.env*
+*.local
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+logs/
+*.log
 
-# Environment variables
-.env
-.env.*
-!.env.example
+# Editor directories
+.idea/
+.vscode/
+.DS_Store
 
-# Prisma local files
-prisma/dev.db
-prisma/dev.db-journal
+# Backups and archives
+/backups/
+/archive/**/files/
+!/archive/**/README.md
+!/archive/**/metadata.json
+.archive-system/archive-log.json
+
+# Prisma
+prisma/generated/
+
+# Playwright and Vitest outputs
+playwright-report/
+playwright/.cache/
+.vitest/

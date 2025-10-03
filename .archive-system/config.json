@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "archiveRoot": "./archive",
+  "backupRoot": "./backups",
+  "retention": {
+    "daily": 7,
+    "weekly": 4,
+    "monthly": 12
+  },
+  "excludePatterns": [
+    "node_modules",
+    ".git",
+    "*.log",
+    "dist",
+    "build",
+    ".env*"
+  ],
+  "compression": {
+    "enabled": true,
+    "format": "tar.gz",
+    "level": 6
+  },
+  "notifications": {
+    "email": "engineering@accountingfirm.example",
+    "slack": false
+  }
+}

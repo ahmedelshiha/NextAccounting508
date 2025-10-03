@@ -1,0 +1,4 @@
+archive/**/README.md text
+archive/**/metadata.json text
+*.tar.gz binary
+*.zip binary
