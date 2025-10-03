@@ -297,7 +297,7 @@ export async function getAvailabilityForService(params: {
   if (!tz && member && member.timeZone) tz = member.timeZone || undefined
   if (!tz) {
     try {
-      const org = await prisma.organizationSettings.findFirst({ where: { tenantId: svc.tenantId }, select: { defaultTimezone: true } }).catch(() => null)
+      const org = await prisma.organizationSettings.findFirst({ where: { tenantId: svc.tenantId ?? undefined }, select: { defaultTimezone: true } }).catch(() => null)
       tz = org?.defaultTimezone ?? undefined
     } catch {}
   }
