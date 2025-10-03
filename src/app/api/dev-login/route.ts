@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { encode } from 'next-auth/jwt'
+import { getTenantFromRequest } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -19,7 +21,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}))
     const email = (body?.email as string) || 'staff@accountingfirm.com'
-    const user = await prisma.user.findUnique({ where: { email } })
+    const tenantHint = getTenantFromRequest(req as any)
+    const tenantId = await resolveTenantId(tenantHint)
+    const user = await prisma.user.findUnique({ where: { tenantId_email: { tenantId, email } } })
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }

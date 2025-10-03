@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 import { logAudit } from '@/lib/audit'
 
 const GuestCreateSchema = z.object({
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   const tenantId = getTenantFromRequest(request as any)
+  const resolvedTenantId = await resolveTenantId(tenantId)
   const body = await request.json().catch(() => null)
   const parsed = GuestCreateSchema.safeParse(body)
   if (!parsed.success) {
@@ -55,10 +57,10 @@ export async function POST(request: NextRequest) {
       return respond.badRequest('Service not found or inactive')
     }
 
-    // Find or create user by email as CLIENT
-    let user = await prisma.user.findUnique({ where: { email: data.email } })
+    // Find or create user by email as CLIENT, tenant-scoped
+    let user = await prisma.user.findUnique({ where: { tenantId_email: { tenantId: resolvedTenantId, email: data.email } } })
     if (!user) {
-      user = await prisma.user.create({ data: { email: data.email, name: data.name, role: 'CLIENT' as any } })
+      user = await prisma.user.create({ data: { tenantId: resolvedTenantId, email: data.email, name: data.name, role: 'CLIENT' as any } })
     }
 
     // Generate title if missing

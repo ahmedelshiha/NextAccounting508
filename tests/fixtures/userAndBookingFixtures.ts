@@ -1,10 +1,19 @@
 import prisma from '@/lib/prisma'
 import { v4 as uuidv4 } from 'uuid'
+import { resolveTenantId } from '@/lib/default-tenant'
 
-export async function seedUser(opts: { email?: string; name?: string, tenantId?: string }) {
+export async function seedUser(opts: { email?: string; name?: string; tenantId?: string }) {
   const email = opts.email ?? `test.user.${Date.now()}@example.test`
   const name = opts.name ?? 'Test User'
-  const user = await prisma.user.create({ data: { email, name, role: 'CLIENT' } })
+  const tenantId = await resolveTenantId(opts.tenantId ?? null)
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name,
+      role: 'CLIENT',
+      tenant: { connect: { id: tenantId } },
+    },
+  })
   return user
 }
 

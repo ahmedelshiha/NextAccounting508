@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { logAudit } from '@/lib/audit'
+import { getTenantFromRequest } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 import { registerSchema } from '@/schemas/auth'
 
@@ -16,9 +18,12 @@ export async function POST(request: NextRequest) {
     const validatedData = registerSchema.parse(body)
     const { name, email, password } = validatedData
 
-    // Check if user already exists
+    // Resolve tenant and check if user already exists within tenant scope
+    const tenantHint = getTenantFromRequest(request as any)
+    const tenantId = await resolveTenantId(tenantHint)
+
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { tenantId_email: { tenantId, email } }
     })
 
     if (existingUser) {
@@ -34,11 +39,12 @@ export async function POST(request: NextRequest) {
     // Create user
     const user = await prisma.user.create({
       data: {
+        tenantId,
         name,
         email,
         password: hashedPassword,
-        role: 'CLIENT', // Default role
-        emailVerified: new Date(), // Auto-verify for demo purposes
+        role: 'CLIENT',
+        emailVerified: new Date(),
       },
       select: {
         id: true,

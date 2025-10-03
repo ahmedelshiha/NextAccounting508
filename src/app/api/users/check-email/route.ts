@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getTenantFromRequest } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +16,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ exists: false })
     }
 
-    const user = await prisma.user.findUnique({ where: { email } })
+    const tenantHint = getTenantFromRequest(request as any)
+    const tenantId = await resolveTenantId(tenantHint)
+    const user = await prisma.user.findUnique({ where: { tenantId_email: { tenantId, email } } })
     return NextResponse.json({ exists: !!user })
   } catch {
     return NextResponse.json({ exists: false })

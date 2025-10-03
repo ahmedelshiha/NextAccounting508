@@ -46,7 +46,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Current password is required to change email or password' }, { status: 400 })
     }
 
-    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true, email: true } })
+    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true, email: true, tenantId: true } })
     if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     if ((changingEmail || changingPassword)) {
@@ -63,8 +63,8 @@ export async function PATCH(request: NextRequest) {
 
     if (parsed.data.name) updates.name = parsed.data.name
     if (changingEmail) {
-      // check uniqueness
-      const exists = await prisma.user.findUnique({ where: { email: parsed.data.email } })
+      // check uniqueness within tenant
+      const exists = await prisma.user.findUnique({ where: { tenantId_email: { tenantId: currentUser.tenantId as string, email: parsed.data.email as string } } })
       if (exists && exists.id !== session.user.id) {
         return NextResponse.json({ error: 'Email already in use' }, { status: 400 })
       }
