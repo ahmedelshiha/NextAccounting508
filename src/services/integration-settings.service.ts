@@ -19,8 +19,11 @@ export class IntegrationSettingsService {
     const key = this.cacheKey(tenantId)
     const cached = await this.cache.get<any>(key)
     if (cached) return cached
-    const row = await prisma.integrationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(()=>null as any)
-    const value = row ?? await this.createDefault(tenantId)
+
+    const resolvedTenantId = await resolveTenantId(tenantId)
+    const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+    const row = await prisma.integrationSettings.findFirst({ where: scope }).catch(() => null as any)
+    const value = row ?? await this.createDefault(resolvedTenantId)
     await this.cache.set(key, value, 60)
     return value
   }
