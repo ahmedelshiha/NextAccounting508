@@ -1131,6 +1131,10 @@ model OrganizationSettings {
   // Branding & legal
   branding Json?
   legalLinks Json?
+  // Explicit legal link columns for stricter querying and validation
+  termsUrl String?
+  privacyUrl String?
+  refundUrl String?
 
   // Meta
   createdAt   DateTime @default(now())
