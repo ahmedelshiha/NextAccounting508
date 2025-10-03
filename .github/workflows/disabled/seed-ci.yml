@@ -1,0 +1,70 @@
+name: Seed & Migrations CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  migrate-and-seed:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d testdb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: |
+          # Prefer frozen install but fall back to a non-frozen install if pnpm reports incompatibility
+          pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..15}; do
+            pg_isready -h 127.0.0.1 -p 5432 && break || sleep 2
+          done
+
+      - name: Set env for Prisma
+        run: |
+          echo "NETLIFY_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/testdb?schema=public" >> $GITHUB_ENV
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply Prisma schema to ephemeral DB (db push)
+        run: |
+          # For ephemeral CI databases we apply the current Prisma schema directly to the DB
+          pnpm exec prisma db push --accept-data-loss
+
+      - name: Generate Prisma client (post-push)
+        run: pnpm db:generate
+
+      - name: Run seed
+        run: pnpm db:seed
+
+      - name: Run smoke checks
+        run: pnpm exec tsx scripts/seed-smoke.ts
