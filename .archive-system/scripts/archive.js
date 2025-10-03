@@ -1,6 +1,21 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
+let fs;
+try {
+  fs = require('fs-extra');
+} catch (err) {
+  // fallback to built-in fs (Node 18+)
+  fs = require('fs');
+  fs.ensureDir = async (p) => fs.promises.mkdir(p, { recursive: true });
+  fs.copy = async (src, dest) => fs.promises.cp(src, dest, { recursive: true });
+  fs.pathExists = async (p) => {
+    try { await fs.promises.access(p); return true; } catch { return false; }
+  };
+  fs.readJSON = async (p) => JSON.parse(await fs.promises.readFile(p, 'utf8'));
+  fs.writeJSON = async (p, obj, opts) => fs.promises.writeFile(p, JSON.stringify(obj, null, opts && opts.spaces ? opts.spaces : 2), 'utf8');
+  fs.readFile = fs.promises.readFile;
+  fs.writeFile = fs.promises.writeFile;
+}
 const path = require('path');
 const { exec } = require('child_process');
 const util = require('util');
