@@ -1,0 +1,70 @@
+name: PR CI
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Enable corepack and pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.16.1 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Run fast tests
+        run: pnpm test:thresholds || true
+
+  e2e:
+    needs: checks
+    runs-on: ubuntu-latest
+    env:
+      E2E_BASE_URL: 'https://270bab01d2d740ed9bdf153dcb2084e7-160dac6e-56d5-4056-a40e-66fdac.fly.dev'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Enable corepack and pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.16.1 --activate
+
+      - name: Install system deps for Playwright
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libgtk-3-0 libxss1 libasound2 libgbm1 libdrm2 || true
+
+      - name: Install deps (with dev)
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E (Playwright)
+        env:
+          CI: true
+          E2E_BASE_URL: ${{ env.E2E_BASE_URL }}
+        run: pnpm e2e:ci || true

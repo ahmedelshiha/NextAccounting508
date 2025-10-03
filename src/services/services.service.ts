@@ -207,7 +207,14 @@ export class ServicesService {
     await validateSlugUniqueness(sanitized.slug, tenantId);
 
     const isActive = sanitized.active ?? true;
-    const s = await prisma.service.create({ data: { ...sanitized, ...(tenantId ? { tenantId } : {}), active: isActive, status: (isActive ? 'ACTIVE' : 'INACTIVE') as any } });
+    // Ensure serviceSettings has the correct Prisma JSON type
+    const payload: any = { ...sanitized, ...(tenantId ? { tenantId } : {}), active: isActive, status: (isActive ? 'ACTIVE' : 'INACTIVE') as any };
+    if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
+      // Prisma expects InputJsonValue / NullableJsonNullValueInput; cast safely
+      (payload as any).serviceSettings = sanitized.serviceSettings as unknown as Prisma.InputJsonValue;
+    }
+
+    const s = await prisma.service.create({ data: payload });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
@@ -224,6 +231,10 @@ export class ServicesService {
     const updateData: any = { ...sanitized };
     if (Object.prototype.hasOwnProperty.call(sanitized, 'active')) {
       updateData.status = (sanitized as any).active ? ('ACTIVE' as any) : ('INACTIVE' as any);
+    }
+    // Cast serviceSettings if present to Prisma JSON type
+    if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
+      updateData.serviceSettings = (sanitized as any).serviceSettings as unknown as Prisma.InputJsonValue;
     }
     const s = await prisma.service.update({ where: { id }, data: updateData });
     await this.clearCaches(tenantId, id);

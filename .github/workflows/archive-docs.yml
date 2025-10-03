@@ -1,0 +1,59 @@
+name: Archive Docs Now
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_path:
+        description: 'Source path to archive'
+        required: false
+        default: 'docs'
+      reason:
+        description: 'Reason for archiving'
+        required: false
+        default: 'archived by CI'
+      name:
+        description: 'Archive name'
+        required: false
+        default: 'Docs Archive'
+      category:
+        description: 'Archive category'
+        required: false
+        default: 'docs'
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Enable corepack and pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.16.1 --activate
+
+      - name: Make scripts executable
+        run: |
+          chmod +x ./.archive-system/scripts/*.sh ./.archive-system/scripts/*.js || true
+
+      - name: Run archive script
+        run: |
+          echo "Archiving ${{ inputs.source_path }}"
+          node ./.archive-system/scripts/archive.js "${{ inputs.source_path }}" "${{ inputs.reason }}" "${{ inputs.name }}" "${{ inputs.category }}"
+
+      - name: List archives
+        run: |
+          echo "Archive directory contents:"
+          ls -la archive || true
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archived-docs
+          path: archive/
+          retention-days: 7

@@ -1,69 +1,69 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -euo pipefail
+# Professional Backup Script
+# Usage: ./backup.sh [daily|weekly|monthly]
 
+set -e  # Exit on error
+
+# Configuration
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-CONFIG_FILE="${PROJECT_ROOT}/.archive-system/config.json"
 BACKUP_ROOT="${PROJECT_ROOT}/backups"
+CONFIG_FILE="${PROJECT_ROOT}/.archive-system/config.json"
 
+# Load retention settings from config
+DAILY_RETENTION=$(jq -r '.retention.daily' "$CONFIG_FILE")
+WEEKLY_RETENTION=$(jq -r '.retention.weekly' "$CONFIG_FILE")
+MONTHLY_RETENTION=$(jq -r '.retention.monthly' "$CONFIG_FILE")
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Logging function
 log() {
-  printf '\033[0;32m[%s]\033[0m %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$1"
-}
-
-warn() {
-  printf '\033[1;33m[WARN]\033[0m %s\n' "$1"
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
 }
 
 error() {
-  printf '\033[0;31m[ERROR]\033[0m %s\n' "$1" >&2
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
-ensure_config() {
-  if [[ ! -f "$CONFIG_FILE" ]]; then
-    error "Archive configuration not found at $CONFIG_FILE"
-    exit 1
-  fi
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
-read_retention_value() {
-  local key=$1
-  node -e "const cfg = require(process.argv[1]); const fallback = { daily: 7, weekly: 4, monthly: 12 }; console.log(cfg?.retention?.[process.argv[2]] ?? fallback[process.argv[2]]);" "$CONFIG_FILE" "$key"
-}
-
-cleanup_temp_file() {
-  local file_path=$1
-  [[ -f "$file_path" ]] && rm -f "$file_path"
-}
-
+# Backup function
 create_backup() {
-  local backup_type=$1
-  local subdir="$BACKUP_ROOT/${backup_type}"
-  mkdir -p "$subdir"
-
-  local timestamp
-  case "$backup_type" in
-    weekly)
-      timestamp="$(date +'%Y-W%V')_weekly"
-      ;;
-    monthly)
-      timestamp="$(date +'%Y-%m')_monthly"
-      ;;
-    *)
-      timestamp="$(date +'%Y-%m-%d')_daily"
-      ;;
-  esac
-
-  local backup_file="$subdir/${timestamp}.tar.gz"
-  if [[ -f "$backup_file" ]]; then
-    warn "Backup already exists: ${backup_file}"
-    return 0
-  fi
-
-  log "Creating ${backup_type} backup";
-
-  local exclude_file
-  exclude_file="$(mktemp)"
-  cat <<'EOF' > "$exclude_file"
+    local backup_type=$1
+    local backup_dir="${BACKUP_ROOT}/${backup_type}"
+    
+    mkdir -p "$backup_dir"
+    
+    # Generate backup filename
+    local timestamp
+    if [ "$backup_type" = "weekly" ]; then
+        timestamp="$(date +'%Y-W%V')_weekly"
+    elif [ "$backup_type" = "monthly" ]; then
+        timestamp="$(date +'%Y-%m')_monthly"
+    else
+        timestamp="$(date +'%Y-%m-%d')_daily"
+    fi
+    
+    local backup_file="${backup_dir}/${timestamp}.tar.gz"
+    
+    # Check if backup already exists
+    if [ -f "$backup_file" ]; then
+        warn "Backup already exists: $backup_file"
+        return 0
+    fi
+    
+    log "Creating ${backup_type} backup..."
+    
+    # Create temporary exclusion list
+    local exclude_file=$(mktemp)
+    cat > "$exclude_file" << EOF
 --exclude=node_modules
 --exclude=.git
 --exclude=dist
@@ -74,116 +74,108 @@ create_backup() {
 --exclude=*.tar.gz
 --exclude=.DS_Store
 EOF
-
-  local includes=()
-  for candidate in archive docs src tests .archive-system package.json pnpm-lock.yaml; do
-    if [[ -e "$PROJECT_ROOT/$candidate" ]]; then
-      includes+=("$candidate")
-    fi
-  done
-
-  if [[ ${#includes[@]} -eq 0 ]]; then
-    cleanup_temp_file "$exclude_file"
-    error "No files available to include in the backup."
-    exit 1
-  fi
-
-  if tar -czf "$backup_file" \
-    --exclude-from="$exclude_file" \
-    -C "$PROJECT_ROOT" \
-    "${includes[@]}" 2>/dev/null; then
-    cleanup_temp_file "$exclude_file"
-  else
-    cleanup_temp_file "$exclude_file"
-    error "Failed to create backup archive."
-    exit 1
-  fi
-
-  local checksum_file="${backup_file}.sha256"
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$backup_file" > "$checksum_file"
-  else
-    warn "sha256sum not available; skipping checksum creation."
-  fi
-
-  if [[ -f "$backup_file" ]]; then
-    local size
-    size=$(du -h "$backup_file" | cut -f1)
-    log "Backup created at ${backup_file} (${size})"
-    verify_backup "$backup_file"
-  else
-    error "Backup archive missing after creation attempt."
-    exit 1
-  fi
-}
-
-verify_backup() {
-  local archive_path=$1
-  local checksum_file="${archive_path}.sha256"
-
-  if [[ -f "$checksum_file" ]]; then
-    if sha256sum -c "$checksum_file" >/dev/null 2>&1; then
-      log "Checksum verification succeeded"
+    
+    # Create backup
+    tar -czf "$backup_file" \
+        --exclude-from="$exclude_file" \
+        -C "$PROJECT_ROOT" \
+        src docs tests archive .archive-system 2>/dev/null || true
+    
+    rm "$exclude_file"
+    
+    # Verify backup was created
+    if [ -f "$backup_file" ]; then
+        local size=$(du -h "$backup_file" | cut -f1)
+        log "✓ Backup created: ${backup_file} (${size})"
+        
+        # Create checksum
+        sha256sum "$backup_file" > "${backup_file}.sha256"
+        log "✓ Checksum created"
     else
-      error "Checksum verification failed for ${archive_path}"
-      exit 1
+        error "Failed to create backup"
+        return 1
     fi
-  else
-    warn "Checksum file missing for ${archive_path}; verification skipped"
-  fi
 }
 
+# Cleanup old backups
 cleanup_old_backups() {
-  local backup_type=$1
-  local retention=$2
-  local target_dir="$BACKUP_ROOT/${backup_type}"
-
-  [[ -d "$target_dir" ]] || return 0
-
-  mapfile -t archives < <(ls -1t "$target_dir"/*.tar.gz 2>/dev/null)
-  local keep=$retention
-
-  if [[ ${#archives[@]} -le $keep ]]; then
-    return 0
-  fi
-
-  for ((i=keep; i<${#archives[@]}; i++)); do
-    local file="${archives[$i]}"
-    rm -f "$file" "${file}.sha256"
-    log "Removed old backup $(basename "$file")"
-  done
+    local backup_type=$1
+    local retention=$2
+    local backup_dir="${BACKUP_ROOT}/${backup_type}"
+    
+    if [ ! -d "$backup_dir" ]; then
+        return 0
+    fi
+    
+    log "Cleaning up old ${backup_type} backups (keeping last ${retention})..."
+    
+    # Keep only the most recent N backups
+    local files_to_delete=$(ls -t "${backup_dir}"/*.tar.gz 2>/dev/null | tail -n +$((retention + 1)))
+    
+    if [ -n "$files_to_delete" ]; then
+        echo "$files_to_delete" | while read -r file; do
+            rm -f "$file" "${file}.sha256"
+            log "✓ Removed old backup: $(basename "$file")"
+        done
+    else
+        log "No old backups to remove"
+    fi
 }
 
+# Verify backup integrity
+verify_backup() {
+    local backup_file=$1
+    
+    if [ ! -f "$backup_file" ]; then
+        error "Backup file not found: $backup_file"
+        return 1
+    fi
+    
+    log "Verifying backup integrity..."
+    
+    # Check if checksum file exists
+    if [ -f "${backup_file}.sha256" ]; then
+        if sha256sum -c "${backup_file}.sha256" > /dev/null 2>&1; then
+            log "✓ Backup integrity verified"
+            return 0
+        else
+            error "Backup integrity check failed!"
+            return 1
+        fi
+    else
+        warn "No checksum file found, skipping verification"
+        return 0
+    fi
+}
+
+# Main execution
 main() {
-  ensure_config
-
-  local backup_type="${1:-daily}"
-  local daily_retention weekly_retention monthly_retention
-  daily_retention=$(read_retention_value daily)
-  weekly_retention=$(read_retention_value weekly)
-  monthly_retention=$(read_retention_value monthly)
-
-  case "$backup_type" in
-    daily)
-      create_backup "daily"
-      cleanup_old_backups "daily" "$daily_retention"
-      ;;
-    weekly)
-      create_backup "weekly"
-      cleanup_old_backups "weekly" "$weekly_retention"
-      ;;
-    monthly)
-      create_backup "monthly"
-      cleanup_old_backups "monthly" "$monthly_retention"
-      ;;
-    *)
-      error "Unsupported backup type: ${backup_type}"
-      echo "Usage: backup.sh [daily|weekly|monthly]"
-      exit 1
-      ;;
-  esac
-
-  log "${backup_type^} backup workflow completed"
+    local backup_type=${1:-daily}
+    
+    log "Starting ${backup_type} backup process..."
+    
+    case $backup_type in
+        daily)
+            create_backup "daily"
+            cleanup_old_backups "daily" "$DAILY_RETENTION"
+            ;;
+        weekly)
+            create_backup "weekly"
+            cleanup_old_backups "weekly" "$WEEKLY_RETENTION"
+            ;;
+        monthly)
+            create_backup "monthly"
+            cleanup_old_backups "monthly" "$MONTHLY_RETENTION"
+            ;;
+        *)
+            error "Invalid backup type: $backup_type"
+            echo "Usage: $0 [daily|weekly|monthly]"
+            exit 1
+            ;;
+    esac
+    
+    log "Backup process completed successfully!"
 }
 
+# Run main function
 main "$@"

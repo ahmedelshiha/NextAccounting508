@@ -1,94 +1,36 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ArchiveMetadata",
-  "type": "object",
-  "required": [
-    "archiveId",
-    "timestamp",
-    "archivedBy",
-    "source",
-    "metadata"
-  ],
-  "properties": {
-    "archiveId": {
-      "type": "string"
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "archivedBy": {
-      "type": "string"
-    },
-    "source": {
-      "type": "object",
-      "required": ["path", "gitCommit", "gitBranch", "gitTags"],
-      "properties": {
-        "path": { "type": "string" },
-        "gitCommit": { "type": "string" },
-        "gitBranch": { "type": "string" },
-        "gitTags": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "metadata": {
-      "type": "object",
-      "required": ["name", "type", "reason", "category"],
-      "properties": {
-        "name": { "type": "string" },
-        "type": {
-          "type": "string",
-          "enum": ["code", "documentation", "feature", "component", "workflow", "asset"]
-        },
-        "reason": {
-          "type": "string",
-          "enum": ["deprecated", "replaced", "obsolete", "end-of-life", "archived"]
-        },
-        "category": { "type": "string" }
-      }
-    },
-    "files": {
-      "type": "object",
-      "properties": {
-        "count": { "type": "integer" },
-        "totalSize": { "type": "string" },
-        "types": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "dependencies": {
-      "type": "object",
-      "properties": {
-        "runtime": { "type": "string" },
-        "packages": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "replacement": {
-      "type": "object",
-      "properties": {
-        "exists": { "type": "boolean" },
-        "path": { "type": "string" },
-        "migrationDate": { "type": "string", "format": "date" }
-      }
-    },
-    "retrieval": {
-      "type": "object",
-      "properties": {
-        "gitCommit": { "type": "string" },
-        "gitTag": { "type": "string" },
-        "difficulty": {
-          "type": "string",
-          "enum": ["easy", "medium", "complex"]
-        }
-      }
-    }
+  "archiveId": "string",
+  "timestamp": "string (ISO 8601)",
+  "archivedBy": "string",
+  "source": {
+    "path": "string",
+    "gitCommit": "string",
+    "gitBranch": "string",
+    "gitTags": ["string"]
   },
-  "additionalProperties": false
+  "metadata": {
+    "name": "string",
+    "type": "code|documentation|feature|component",
+    "reason": "deprecated|replaced|obsolete|end-of-life",
+    "category": "backend|frontend|docs|infrastructure"
+  },
+  "files": {
+    "count": "number",
+    "totalSize": "string",
+    "types": [".js", ".md", ".json"]
+  },
+  "dependencies": {
+    "runtime": "string",
+    "packages": ["string"]
+  },
+  "replacement": {
+    "exists": "boolean",
+    "path": "string",
+    "migrationDate": "string (ISO 8601)"
+  },
+  "retrieval": {
+    "gitCommit": "string",
+    "gitTag": "string",
+    "difficulty": "easy|medium|complex"
+  }
 }

@@ -21,7 +21,7 @@
     "level": 6
   },
   "notifications": {
-    "email": "engineering@accountingfirm.example",
+    "email": "dev-team@example.com",
     "slack": false
   }
 }
