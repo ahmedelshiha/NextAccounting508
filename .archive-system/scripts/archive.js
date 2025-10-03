@@ -96,7 +96,8 @@ class ArchiveManager {
     const year = now.getFullYear();
     const quarter = `Q${Math.ceil((now.getMonth() + 1) / 3)}`;
     const timestamp = now.toISOString().split('T')[0];
-    const sanitizedName = (options.name || path.basename(resolvedSource)).replace(/[^a-z0-9-]+/gi, '-');
+    const displayName = options.name || path.basename(resolvedSource);
+    const sanitizedName = displayName.replace(/[^a-z0-9-]+/gi, '-');
     const folderName = `${timestamp}_${sanitizedName}`;
     const archiveDestination = path.join(this.archiveRoot, String(year), quarter, folderName);
 
@@ -115,16 +116,17 @@ class ArchiveManager {
       type: options.type,
       category: options.category,
       gitInfo,
+      name: displayName,
     });
 
     await writeJson(path.join(archiveDestination, 'metadata.json'), metadata);
-    await this.createReadme({ archiveDestination, metadata, timestamp, gitInfo, name: sanitizedName });
+    await this.createReadme({ archiveDestination, metadata, timestamp, gitInfo, name: displayName });
     await this.appendLog(metadata);
 
     return archiveDestination;
   }
 
-  async buildMetadata({ now, sourcePath, reason, type, category, gitInfo }) {
+  async buildMetadata({ now, sourcePath, reason, type, category, gitInfo, name }) {
     const relativeSource = path.relative(PROJECT_ROOT, sourcePath);
 
     const metadata = {
@@ -138,7 +140,7 @@ class ArchiveManager {
         gitTags: gitInfo.tags,
       },
       metadata: {
-        name: path.basename(relativeSource),
+        name: name || path.basename(relativeSource),
         type: type || 'code',
         reason: reason || 'archived',
         category: category || 'general',
