@@ -61,19 +61,21 @@ export async function PUT(req: Request) {
   const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId }
   const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
-  const data = withTenant({
+import { Prisma } from '@prisma/client'
+
+  const rawData = {
     name: parsed.data.general?.name ?? existing?.name ?? '',
     tagline: parsed.data.general?.tagline ?? existing?.tagline ?? null,
     description: parsed.data.general?.description ?? existing?.description ?? null,
     industry: parsed.data.general?.industry ?? existing?.industry ?? null,
     contactEmail: parsed.data.contact?.contactEmail ?? existing?.contactEmail ?? null,
     contactPhone: parsed.data.contact?.contactPhone ?? existing?.contactPhone ?? null,
-    address: parsed.data.contact?.address ?? existing?.address ?? null,
+    address: parsed.data.contact?.address ?? existing?.address ?? undefined,
     defaultTimezone: parsed.data.localization?.defaultTimezone ?? existing?.defaultTimezone ?? 'UTC',
     defaultCurrency: parsed.data.localization?.defaultCurrency ?? existing?.defaultCurrency ?? 'USD',
     defaultLocale: parsed.data.localization?.defaultLocale ?? existing?.defaultLocale ?? 'en',
     logoUrl: parsed.data.branding?.logoUrl ?? existing?.logoUrl ?? null,
-    branding: parsed.data.branding?.branding ?? existing?.branding ?? null,
+    branding: parsed.data.branding?.branding ?? existing?.branding ?? undefined,
     // Save explicit URL fields if provided (new columns)
     termsUrl:
       parsed.data.branding?.termsUrl ??
@@ -84,9 +86,17 @@ export async function PUT(req: Request) {
     refundUrl:
       parsed.data.branding?.refundUrl ??
       (parsed.data.branding?.legalLinks?.refund ?? existing?.refundUrl ?? null),
-    // Stop persisting legacy JSON blob
-    legalLinks: null,
-  }, tenantId)
+    // Stop persisting legacy JSON blob (explicitly set JSON null)
+    legalLinks: parsed.data.branding?.legalLinks === undefined ? undefined : Prisma.JsonNull,
+  }
+
+  // Normalize JSON nullable fields to Prisma-compatible values
+  const normalized: Record<string, any> = { ...rawData }
+  if (normalized.address === null) normalized.address = Prisma.JsonNull
+  if (normalized.branding === null) normalized.branding = Prisma.JsonNull
+  if (normalized.legalLinks === null) normalized.legalLinks = Prisma.JsonNull
+
+  const data = withTenant(normalized, tenantId)
 
   try {
     const saved = existing
