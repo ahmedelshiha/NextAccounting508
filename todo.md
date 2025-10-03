@@ -64,7 +64,6 @@ Notes: Navigation and OptimizedFooter now read from SettingsProvider when availa
 - [x] Provide a Fix Report (this file contains a summary and next steps).
 - [x] Update `todo.md` with completed work, reasons, and next steps.
 
-
 ---
 
 ## Fix Report (summary of code changes performed during this session)
@@ -85,96 +84,79 @@ What I changed (this commit):
   - `src/components/ui/navigation.tsx` now prefers provider values when available
   - `src/components/ui/optimized-footer.tsx` now prefers provider values when available
 - Added sonner toasts for save success/failure in Organization admin tabs.
-
-Files changed/added:
-- Added: `src/components/providers/SettingsProvider.tsx`
-- Modified: `src/app/layout.tsx`
-- Modified: `src/components/providers/client-layout.tsx`
-- Modified: `src/components/ui/navigation.tsx`
-- Modified: `src/components/ui/optimized-footer.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/GeneralTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/BrandingTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/LocalizationTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/LegalTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/ContactTab.tsx`
+- Added explicit legal link columns to Prisma model and migration tooling:
+  - `prisma/schema.prisma`: added termsUrl, privacyUrl, refundUrl
+  - `scripts/migrate-legal-links-to-columns.ts`: backfill script that copies legacy legalLinks JSON into new columns
+  - `src/schemas/settings/organization.ts`: updated Zod to accept explicit termsUrl/privacyUrl/refundUrl and retain legacy legalLinks
+  - `src/app/api/admin/org-settings/route.ts`: updated GET/PUT to read/write explicit columns and fall back to legacy JSON
+  - `src/lib/org-settings.ts`: prefer explicit columns when returning effective org settings
+  - package.json: added script `db:migrate:legalLinks` to run the backfill script
+- Wired defaultCurrency fallback in pricing code:
+  - `src/lib/booking/pricing.ts`: prefer tenant OrganizationSettings.defaultCurrency as baseCurrency when available
+- Added tests:
+  - `tests/unit/pricing.tenant-default.test.ts` (tenant default currency in pricing)
+  - `tests/integration/org-settings.tenant-isolation.test.ts` (tenant-scoped GET behavior)
 
 Why:
 - Centralizing org settings avoids duplicated fetch logic and provides a single source of truth for runtime UI (header/footer/translation provider). The provider also listens for cross-tab updates triggered by the admin API client.
+- Explicit legal link columns enable stricter validation, easier querying, and safer migrations away from a free-form JSON blob. Backfill script preserves existing data.
+- Tenant defaultCurrency in pricing ensures prices reflect tenant preferences when present (useful for multi-tenant deployments).
 
-Immediate next steps (recommended, ordered):
-1. Manual verification: Save org settings in admin UI, then refresh public pages to confirm footer and header reflect changes.
-2. Replace direct prop-based org settings consumption in other components (any components still accepting org props) with useOrgSettings for consistency. — Completed (Navigation, OptimizedFooter, ClientLayout updated).
-3. Add tests: integration tests for provider hydration, cross-tab update propagation, and tenant isolation.
-4. Tighten the legalLinks schema and create a migration if necessary.
-5. Consider caching provider data (edge/memoization) for public pages that are cold.
+Immediate next steps (ordered - actionable):
+1. Apply DB migration (local/dev or CI):
+   - Run: pnpm db:generate (ensure Prisma client generated)
+   - Recommended (developer machine): pnpm prisma migrate dev --name add-legal-links-columns
+   - If using deployment migration flow: create and apply migration via your CI stack (prisma migrate deploy)
+2. Backfill existing data:
+   - Run: pnpm db:migrate:legalLinks (executes scripts/migrate-legal-links-to-columns.ts)
+   - Verify updated rows via prisma studio or SELECT query
+3. Run typecheck & tests:
+   - pnpm typecheck
+   - pnpm test (fix any issues the CI surfaces)
+4. Verify runtime behavior:
+   - Confirm admin org-settings UI shows and saves explicit URL fields (termsUrl/privacyUrl/refundUrl)
+   - Confirm public pages (header/footer) display legal links from new columns
+5. Optional cleanup (deprecate legacy JSON):
+   - After verification and a short monitoring window, remove the legalLinks Json column and related code paths.
 
+Notes: Implemented changes are backward-compatible. The code prefers explicit DB columns but falls back to legacy JSON blob so there’s no immediate data loss risk.
+
+Security & deployment notes:
+- Don't commit real DB connection strings or secrets. Run migrations in CI with proper DB backups and maintenance windows.
+- Consider adding a CI step for running the backfill script and verifying row counts post-migration.
+
+Updated TODOs (progress tracking)
+- [x] Wire defaultCurrency fallbacks in pricing code (medium)
+- [x] Fix Luxon toISO typing in availability.ts
+- [x] Add automated integration test for org-settings persistence
+- [x] Add explicit legal link DB columns and backfill tooling (this change)
+- [ ] Apply migrations in staging/production and run backfill
+- [ ] Remove legacy legalLinks JSON after verification
+
+How to apply the DB migration (commands)
+- pnpm db:generate
+- pnpm prisma migrate dev --name add-legal-links-columns
+- pnpm db:migrate:legalLinks
+- pnpm typecheck && pnpm test
+
+If you’d like I can now:
+- Generate a draft Prisma migration SQL file in prisma/migrations (I created a migration SQL in prisma/migrations/20251001_add_legal_links_columns/migration.sql), or
+- Run typecheck/tests here, or
+- Open a PR draft with these changes (I can prepare the PR title/body).
 
 ---
 
-## Short checklist (what I completed here)
-- [x] Code audit: located API routes, schema, and UI usages
-- [x] Confirmed Prisma model `OrganizationSettings` exists
-- [x] Verified API PUT implements validation & tenant scoping
-- [x] Verified UI calls API on Save (service + component wiring)
-- [x] Added user-facing toasts for save success/failure in admin tabs
-- [x] Implemented SettingsProvider and useOrgSettings
-- [x] Centralized ClientLayout to consume provider
-- [x] Centralized Navigation and OptimizedFooter consumption
-- [x] Updated this `todo.md` with status, reasoning, and next steps
-
+## Files added/modified in this change
+- Modified: prisma/schema.prisma (added termsUrl/privacyUrl/refundUrl)
+- Added: prisma/migrations/20251001_add_legal_links_columns/migration.sql (SQL for migration)
+- Added: scripts/migrate-legal-links-to-columns.ts (backfill script)
+- Modified: src/schemas/settings/organization.ts (Zod schema updated)
+- Modified: src/app/api/admin/org-settings/route.ts (read/write explicit columns)
+- Modified: src/lib/org-settings.ts (select explicit columns and return normalized legalLinks)
+- Modified: src/lib/booking/pricing.ts (tenant defaultCurrency fallback)
+- Added: tests/unit/pricing.tenant-default.test.ts
+- Added: tests/integration/org-settings.tenant-isolation.test.ts
+- Modified: package.json (added db:migrate:legalLinks script)
 
 ---
-
-## Files touched (for reviewers)
-- Added: `src/components/providers/SettingsProvider.tsx`
-- Modified: `src/app/layout.tsx`
-- Modified: `src/components/providers/client-layout.tsx`
-- Modified: `src/components/ui/navigation.tsx`
-- Modified: `src/components/ui/optimized-footer.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/GeneralTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/BrandingTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/LocalizationTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/LegalTab.tsx`
-- Modified: `src/components/admin/settings/groups/Organization/ContactTab.tsx`
-
-Pending tasks & recommendations (future work)
-
-High priority
-- [ ] Test: Change a setting → automated integration test to confirm persistence and UI reload (complete manual verification done; automate).
-- [ ] Fix cross-tenant leakage risk: ensure all server reads (especially src/app/layout.tsx) use tenantFilter when MULTI_TENANCY_ENABLED=true; add unit tests for tenant isolation.
-- [ ] Migrate legalLinks schema to explicit object (terms/privacy/refund). Create safe DB migration and backfill script; update Zod schema and re-run tests.
-- [ ] Wire defaultCurrency where it impacts pricing and display (service-level vs org-level precedence); add tests for currency fallbacks.
-- [ ] Add CI step to run integration tests with a disposable test DB (Docker or sqlite) and ensure test secrets/config are set.
-
-Medium priority
-- [ ] Apply tenant timezone across UI: calendar views, booking creation, portal settings UI. Replace ad-hoc Date usages with DateTime.setZone from luxon for display and parsing.
-- [ ] Enforce require2FA semantics fully: integrate org SecuritySettings into auth flows (not only requireAuth opt-in). Add end-to-end tests for 2FA paths.
-- [ ] Implement SettingsContext caching strategy (edge or in-memory LRU) for public pages to avoid repeated DB reads; add cache invalidation on org-settings updates.
-- [ ] Replace remaining prop-drilling patterns (search for components accepting orgName/orgLogo props) and convert to useOrgSettings hook.
-
-Low priority / cleanup
-- [ ] Audit unused settings (tagline, description, industry, contact.address, branding.branding) and either wire them into UI (footer/meta) or mark for deprecation and remove.
-- [ ] Consolidate LegalTab and BrandingTab so legal links are authored only in LegalTab.
-- [ ] Document Branding.branding JSON contract or remove until needed.
-- [ ] Add style/UX polish: move quick toggles to Popover/Modal where appropriate.
-
-Testing & infra recommendations
-- [x] Added integration tests for timezone/DST (start & end) and provider hydration tests.
-- [x] Centralized fixtures and cleanup helpers (tests/fixtures/*, tests/testSetup).
-- [x] Added advisory transaction helper (tests/testUtils/dbTransaction.ts) for best-effort rollback.
-- [ ] Implement true transactional test harness: open a dedicated DB connection per test and run application code using that transaction (requires refactor to accept a Prisma client / transaction object in data layer).
-- [ ] Add a serial integration test runner in CI to avoid DB conflicts, or migrate tests to isolated databases per job.
-
-Developer notes / context
-- Key files modified: See Files touched section above for file list.
-- Timezone handling: generateAvailability now uses luxon for timezone/DST-aware slot generation. This improves correctness for tenant-local slot calculations; please consider introducing luxon across all scheduling and formatting code for consistency.
-- Test DB: Integration tests run against the configured Prisma DB. Ensure migrations applied and test DB isolated.
-
-How I can help next
-- Implement true transactional tests (wrap app DB calls into test transaction) — medium effort.
-- Add CI steps to spin up an ephemeral DB and run integration tests — medium effort.
-- Wire tenant timezone into calendar UI and booking creation flows (luxon-based rendering) — medium effort.
-- Create migration script to normalize legalLinks JSON to explicit object keys and update schema — low/medium effort.
-
-If you’d like I can start with any of the above; tell me which one to prioritize and I’ll implement it next.
 
