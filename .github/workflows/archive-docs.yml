@@ -32,6 +32,11 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Enable corepack and pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.16.1 --activate
+
       - name: Make scripts executable
         run: |
           chmod +x ./.archive-system/scripts/*.sh ./.archive-system/scripts/*.js || true
