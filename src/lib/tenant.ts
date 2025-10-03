@@ -83,13 +83,14 @@ export function userByTenantEmail(tenantId: string, email: string): Prisma.UserW
   return { tenantId_email: { tenantId, email } }
 }
 
-export function withTenant<T extends Record<string, unknown>>(data: T, tenantId: string, field = 'tenantId'):
-T & Record<string, string> {
+export function withTenant<T extends Record<string, unknown>>(data: T, tenantId: string): T & { tenantId: string }
+export function withTenant<T extends Record<string, unknown>, F extends string>(data: T, tenantId: string, field: F): T & Record<F, string>
+export function withTenant<T extends Record<string, unknown>>(data: T, tenantId: string, field = 'tenantId') {
   const payload = { ...data } as Record<string, unknown>
   const existing = payload[field]
   if (typeof existing === 'string' && existing !== tenantId) {
     throw new Error(`Tenant mismatch for ${field} assignment`)
   }
   payload[field] = tenantId
-  return payload as T & Record<string, string>
+  return payload as any
 }
