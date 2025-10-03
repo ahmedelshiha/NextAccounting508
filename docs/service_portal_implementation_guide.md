@@ -1,1778 +1,1485 @@
-# Enhanced Service Portal Implementation Guide
-*Aligned with Accounting Firm Platform Architecture*
+# Service Portal Implementation Guide
 
 ## Table of Contents
-1. [Project Context & Alignment](#project-context--alignment)
-2. [Enhanced Database Schema](#enhanced-database-schema)
-3. [Extended API Architecture](#extended-api-architecture)
-4. [Admin Dashboard Integration](#admin-dashboard-integration)
-5. [Enhanced User Management](#enhanced-user-management)
-6. [Service Request Workflow](#service-request-workflow)
-7. [Task Management System](#task-management-system)
-8. [Real-time Features](#real-time-features)
-9. [Security & Permissions](#security--permissions)
-10. [Implementation Strategy](#implementation-strategy)
-11. [Migration from Existing System](#migration-from-existing-system)
+1. [Project Overview](#project-overview)
+2. [Technology Stack](#technology-stack)
+3. [Database Schema](#database-schema)
+4. [Backend Architecture](#backend-architecture)
+5. [Frontend Architecture](#frontend-architecture)
+6. [API Design](#api-design)
+7. [Authentication & Authorization](#authentication--authorization)
+8. [User Management System](#user-management-system)
+9. [Service Request Workflow](#service-request-workflow)
+10. [File Management](#file-management)
+11. [Notification System](#notification-system)
+12. [Reporting & Analytics](#reporting--analytics)
+13. [Security Implementation](#security-implementation)
+14. [Testing Strategy](#testing-strategy)
+15. [Deployment Guide](#deployment-guide)
+16. [Monitoring & Maintenance](#monitoring--maintenance)
+17. [Implementation Timeline](#implementation-timeline)
 
 ---
 
-## Project Context & Alignment
+## Project Overview
 
-### Current Platform Overview
-The existing accounting firm platform provides a solid foundation with:
-- **Next.js 14 App Router** with TypeScript
-- **Prisma ORM** with PostgreSQL database
-- **NextAuth.js** authentication with role-based access
-- **Comprehensive admin dashboard** at `/admin/*`
-- **Established API patterns** at `/api/admin/*`
-- **Multi-language support** (EN/AR/HI)
+### Business Requirements
+- **Client Portal**: Registration, service selection, request tracking
+- **Team Management**: Task assignment, progress tracking, collaboration
+- **Admin Dashboard**: User management, system oversight, reporting
+- **Role-Based Access**: Granular permissions for different user types
 
-### Enhancement Scope
-We'll extend the existing platform to support:
-- **Service catalog management** beyond current basic services
-- **Advanced request workflows** with team assignment
-- **Task management system** with real-time updates
-- **Enhanced user roles** (Client, Team Member, Team Lead, Admin)
-- **Multi-tenant capabilities** for different accounting services
+### Core Features
+- Multi-role user management system
+- Service catalog and request management
+- Real-time notifications and updates
+- File upload and document management
+- Reporting and analytics dashboard
+- Audit trail and activity logging
 
 ---
 
-## Enhanced Database Schema
+## Technology Stack
 
-### Extending Existing Models
+### Backend
+- **Framework**: Node.js with Express.js / Laravel (PHP) / Django (Python)
+- **Database**: MySQL 8.0+ / PostgreSQL 13+
+- **Cache**: Redis 6.0+
+- **Queue System**: Bull Queue (Node.js) / Laravel Queues / Celery (Python)
+- **File Storage**: AWS S3 / MinIO / Local Storage with CDN
+- **Search**: Elasticsearch (optional for advanced search)
 
+### Frontend
+- **Framework**: React 18+ with TypeScript / Vue 3+ / Next.js
+- **State Management**: Redux Toolkit / Zustand / Vuex
+- **UI Library**: Material-UI / Ant Design / Tailwind CSS + Headless UI
+- **Build Tool**: Vite / Webpack 5
+- **PWA Support**: Workbox for offline capabilities
+
+### DevOps & Infrastructure
+- **Containerization**: Docker + Docker Compose
+- **CI/CD**: GitHub Actions / GitLab CI / Jenkins
+- **Cloud**: AWS / Google Cloud / Azure
+- **Monitoring**: Prometheus + Grafana / DataDog
+- **Logging**: ELK Stack / CloudWatch
+
+---
+
+## Database Schema
+
+### Core Tables Structure
+
+#### Users Management
 ```sql
--- Extend existing User model with new roles and fields
--- Note: This builds on the existing users table structure
-ALTER TABLE users ADD COLUMN employee_id VARCHAR(50) UNIQUE;
-ALTER TABLE users ADD COLUMN department VARCHAR(100);
-ALTER TABLE users ADD COLUMN position VARCHAR(100);
-ALTER TABLE users ADD COLUMN skills JSON;
-ALTER TABLE users ADD COLUMN expertise_level ENUM('junior', 'mid', 'senior', 'lead', 'expert') DEFAULT 'junior';
-ALTER TABLE users ADD COLUMN hourly_rate DECIMAL(10,2);
-ALTER TABLE users ADD COLUMN availability_status ENUM('available', 'busy', 'offline', 'on_leave') DEFAULT 'available';
-ALTER TABLE users ADD COLUMN max_concurrent_projects INT DEFAULT 3;
-ALTER TABLE users ADD COLUMN hire_date DATE;
-ALTER TABLE users ADD COLUMN manager_id BIGINT;
-ALTER TABLE users ADD FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL;
+-- Core user table with role-based access
+users (id, uuid, email, password_hash, first_name, last_name, phone, avatar_url, status, email_verified_at, last_login_at, created_at, updated_at)
 
--- Extend existing services table
-ALTER TABLE services ADD COLUMN category VARCHAR(100);
-ALTER TABLE services ADD COLUMN base_price DECIMAL(10,2);
-ALTER TABLE services ADD COLUMN estimated_duration_hours INT;
-ALTER TABLE services ADD COLUMN required_skills JSON;
-ALTER TABLE services ADD COLUMN status ENUM('active', 'inactive', 'deprecated') DEFAULT 'active';
+-- Role definitions with permissions
+roles (id, name, display_name, description, permissions, is_system_role, created_at, updated_at)
 
--- New tables for enhanced functionality
-CREATE TABLE service_requests (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    uuid VARCHAR(36) UNIQUE NOT NULL,
-    client_id BIGINT NOT NULL,
-    service_id BIGINT NOT NULL,
-    title VARCHAR(300) NOT NULL,
-    description TEXT,
-    priority ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
-    status ENUM('draft', 'submitted', 'in_review', 'approved', 'assigned', 'in_progress', 'completed', 'cancelled') DEFAULT 'draft',
-    budget_min DECIMAL(10,2),
-    budget_max DECIMAL(10,2),
-    deadline DATE,
-    requirements JSON,
-    attachments JSON,
-    assigned_team_member_id BIGINT,
-    assigned_at TIMESTAMP NULL,
-    assigned_by BIGINT,
-    completed_at TIMESTAMP NULL,
-    client_approval_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT,
-    FOREIGN KEY (assigned_team_member_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL,
-    
-    INDEX idx_client_id (client_id),
-    INDEX idx_status (status),
-    INDEX idx_priority (priority),
-    INDEX idx_assigned_team_member (assigned_team_member_id),
-    INDEX idx_deadline (deadline)
-);
-
--- Enhanced task management (extending existing task system)
-CREATE TABLE task_templates (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    category VARCHAR(100),
-    default_assignee_role ENUM('team_member', 'team_lead', 'admin'),
-    estimated_hours INT,
-    checklist_items JSON,
-    required_skills JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Task comments and attachments (if not already existing)
-CREATE TABLE task_comments (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    task_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    content TEXT NOT NULL,
-    attachments JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_task_id (task_id),
-    INDEX idx_created_at (created_at)
-);
-
--- Service request to task relationships
-CREATE TABLE request_tasks (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    service_request_id BIGINT NOT NULL,
-    task_id BIGINT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (service_request_id) REFERENCES service_requests(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_request_task (service_request_id, task_id)
-);
-
--- Enhanced permissions system
-CREATE TABLE user_permissions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    permission_type VARCHAR(100) NOT NULL,
-    resource_id BIGINT NULL,
-    granted_by BIGINT,
-    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NULL,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE SET NULL,
-    
-    INDEX idx_user_permission (user_id, permission_type),
-    INDEX idx_resource (resource_id)
-);
+-- User-role assignments
+user_roles (id, user_id, role_id, assigned_at, assigned_by, expires_at)
 ```
 
-### Prisma Schema Updates
+#### User Profiles
+```sql
+-- Client-specific data
+client_profiles (id, user_id, company_name, industry, company_size, billing_address, tax_id, preferred_contact_method, notes, created_at, updated_at)
 
-```prisma
-// prisma/schema.prisma updates
-model User {
-  // Existing fields...
-  employeeId            String?           @unique @map("employee_id")
-  department           String?
-  position             String?
-  skills               Json?
-  expertiseLevel       ExpertiseLevel?   @default(junior) @map("expertise_level")
-  hourlyRate           Decimal?          @map("hourly_rate") @db.Decimal(10,2)
-  availabilityStatus   AvailabilityStatus @default(available) @map("availability_status")
-  maxConcurrentProjects Int?             @default(3) @map("max_concurrent_projects")
-  hireDate            DateTime?         @map("hire_date") @db.Date
-  managerId           BigInt?           @map("manager_id")
-  manager             User?             @relation("ManagerEmployee", fields: [managerId], references: [id])
-  employees           User[]            @relation("ManagerEmployee")
-  
-  // Relations
-  assignedRequests    ServiceRequest[]  @relation("AssignedTeamMember")
-  assignedByRequests  ServiceRequest[]  @relation("AssignedBy")
-  clientRequests      ServiceRequest[]  @relation("ClientRequests")
-  taskComments        TaskComment[]
-  grantedPermissions  UserPermission[]  @relation("GrantedBy")
-  userPermissions     UserPermission[]  @relation("UserPermissions")
-  
-  @@map("users")
-}
+-- Team member-specific data
+team_profiles (id, user_id, employee_id, department, position, skills, expertise_level, hourly_rate, availability_status, max_concurrent_projects, hire_date, manager_id, created_at, updated_at)
+```
 
-model Service {
-  // Existing fields...
-  category              String?
-  basePrice            Decimal?          @map("base_price") @db.Decimal(10,2)
-  estimatedDurationHours Int?            @map("estimated_duration_hours")
-  requiredSkills       Json?             @map("required_skills")
-  status               ServiceStatus     @default(active)
-  
-  serviceRequests      ServiceRequest[]
-  
-  @@map("services")
-}
+#### Service Management
+```sql
+-- Available services
+services (id, name, description, category, base_price, estimated_duration_hours, required_skills, status, created_at, updated_at)
 
-model ServiceRequest {
-  id                    BigInt            @id @default(autoincrement())
-  uuid                 String            @unique @default(uuid())
-  clientId             BigInt            @map("client_id")
-  serviceId            BigInt            @map("service_id")
-  title                String            @db.VarChar(300)
-  description          String?           @db.Text
-  priority             Priority          @default(medium)
-  status               RequestStatus     @default(draft)
-  budgetMin            Decimal?          @map("budget_min") @db.Decimal(10,2)
-  budgetMax            Decimal?          @map("budget_max") @db.Decimal(10,2)
-  deadline             DateTime?         @db.Date
-  requirements         Json?
-  attachments          Json?
-  assignedTeamMemberId BigInt?           @map("assigned_team_member_id")
-  assignedAt           DateTime?         @map("assigned_at")
-  assignedBy           BigInt?           @map("assigned_by")
-  completedAt          DateTime?         @map("completed_at")
-  clientApprovalAt     DateTime?         @map("client_approval_at")
-  createdAt            DateTime          @default(now()) @map("created_at")
-  updatedAt            DateTime          @updatedAt @map("updated_at")
-  
-  client               User              @relation("ClientRequests", fields: [clientId], references: [id])
-  service              Service           @relation(fields: [serviceId], references: [id])
-  assignedTeamMember   User?             @relation("AssignedTeamMember", fields: [assignedTeamMemberId], references: [id])
-  assignedByUser       User?             @relation("AssignedBy", fields: [assignedBy], references: [id])
-  requestTasks         RequestTask[]
-  
-  @@map("service_requests")
-}
+-- Service requests from clients
+service_requests (id, uuid, client_id, service_id, title, description, priority, status, budget_min, budget_max, deadline, requirements, attachments, assigned_team_member_id, assigned_at, assigned_by, completed_at, client_approval_at, created_at, updated_at)
+```
 
-model RequestTask {
-  id               BigInt         @id @default(autoincrement())
-  serviceRequestId BigInt         @map("service_request_id")
-  taskId           BigInt         @map("task_id")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  
-  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
-  
-  @@unique([serviceRequestId, taskId], name: "unique_request_task")
-  @@map("request_tasks")
-}
+#### System Tables
+```sql
+-- Session management
+user_sessions (id, user_id, ip_address, user_agent, last_activity, expires_at)
 
-model TaskTemplate {
-  id                  Int              @id @default(autoincrement())
-  name               String           @db.VarChar(200)
-  description        String?          @db.Text
-  category           String?          @db.VarChar(100)
-  defaultAssigneeRole DefaultRole?    @map("default_assignee_role")
-  estimatedHours     Int?             @map("estimated_hours")
-  checklistItems     Json?            @map("checklist_items")
-  requiredSkills     Json?            @map("required_skills")
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime         @updatedAt @map("updated_at")
-  
-  @@map("task_templates")
-}
+-- Audit logging
+audit_logs (id, user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent, created_at)
+```
 
-model TaskComment {
-  id          BigInt   @id @default(autoincrement())
-  taskId      BigInt   @map("task_id")
-  userId      BigInt   @map("user_id")
-  content     String   @db.Text
-  attachments Json?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("task_comments")
-}
-
-model UserPermission {
-  id             BigInt    @id @default(autoincrement())
-  userId         BigInt    @map("user_id")
-  permissionType String    @map("permission_type") @db.VarChar(100)
-  resourceId     BigInt?   @map("resource_id")
-  grantedBy      BigInt?   @map("granted_by")
-  grantedAt      DateTime  @default(now()) @map("granted_at")
-  expiresAt      DateTime? @map("expires_at")
-  
-  user           User      @relation("UserPermissions", fields: [userId], references: [id], onDelete: Cascade)
-  grantedByUser  User?     @relation("GrantedBy", fields: [grantedBy], references: [id])
-  
-  @@index([userId, permissionType], name: "idx_user_permission")
-  @@map("user_permissions")
-}
-
-enum ExpertiseLevel {
-  junior
-  mid
-  senior
-  lead
-  expert
-}
-
-enum AvailabilityStatus {
-  available
-  busy
-  offline
-  on_leave
-}
-
-enum ServiceStatus {
-  active
-  inactive
-  deprecated
-}
-
-enum Priority {
-  low
-  medium
-  high
-  urgent
-}
-
-enum RequestStatus {
-  draft
-  submitted
-  in_review
-  approved
-  assigned
-  in_progress
-  completed
-  cancelled
-}
-
-enum DefaultRole {
-  team_member
-  team_lead
-  admin
-}
+### Indexing Strategy
+```sql
+-- Performance optimization indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_service_requests_client ON service_requests(client_id);
+CREATE INDEX idx_service_requests_status ON service_requests(status);
+CREATE INDEX idx_service_requests_assigned ON service_requests(assigned_team_member_id);
+CREATE INDEX idx_audit_logs_user_action ON audit_logs(user_id, action);
+CREATE INDEX idx_user_sessions_expires ON user_sessions(expires_at);
 ```
 
 ---
 
-## Extended API Architecture
+## Backend Architecture
 
-### New API Endpoints Structure
-
+### Directory Structure
 ```
-src/app/api/admin/
-├── service-requests/
-│   ├── route.ts                    # GET list, POST create
-│   ├── [id]/route.ts               # GET, PATCH, DELETE
-│   ├── [id]/assign/route.ts        # POST assign to team member
-│   ├── [id]/tasks/route.ts         # GET related tasks, POST create task
-│   ├── [id]/comments/route.ts      # GET comments, POST comment
-│   ├── [id]/status/route.ts        # PATCH status update
-│   ├── bulk/route.ts               # POST bulk operations
-│   ├── export/route.ts             # GET CSV export
-│   └── analytics/route.ts          # GET analytics data
-
-├── team-management/
-│   ├── availability/route.ts       # GET/PATCH team availability
-│   ├── skills/route.ts             # GET/POST skill management
-│   ├── workload/route.ts           # GET team workload analytics
-│   └── assignments/route.ts        # GET assignment history
-
-├── task-templates/
-│   ├── route.ts                    # GET list, POST create
-│   ├── [id]/route.ts               # GET, PATCH, DELETE
-│   └── categories/route.ts         # GET template categories
-
-├── permissions/
-│   ├── route.ts                    # GET permissions list
-│   ├── [userId]/route.ts           # GET user permissions, POST grant
-│   └── roles/route.ts              # GET role definitions
+backend/
+├── src/
+│   ├── config/
+│   │   ├── database.js
+│   │   ├── redis.js
+│   │   ├── storage.js
+│   │   └── app.js
+│   ├── controllers/
+│   │   ├── AuthController.js
+│   │   ├── UserController.js
+│   │   ├── ServiceController.js
+│   │   ├── RequestController.js
+│   │   └── AdminController.js
+│   ├── middleware/
+│   │   ├── auth.js
+│   │   ├── rbac.js
+│   │   ├── validation.js
+│   │   ├── rateLimit.js
+│   │   └── audit.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Role.js
+│   │   ├── Service.js
+│   │   ├── ServiceRequest.js
+│   │   └── AuditLog.js
+│   ├── services/
+│   │   ├── AuthService.js
+│   │   ├── UserService.js
+│   │   ├── NotificationService.js
+│   │   ├── FileService.js
+│   │   └── EmailService.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── users.js
+│   │   ├── services.js
+│   │   ├── requests.js
+│   │   └── admin.js
+│   ├── utils/
+│   │   ├── helpers.js
+│   │   ├── validators.js
+│   │   ├── constants.js
+│   │   └── logger.js
+│   └── jobs/
+│       ├── EmailJob.js
+│       ├── NotificationJob.js
+│       └── ReportJob.js
+├── tests/
+├── migrations/
+├── seeders/
+└── package.json
 ```
 
-### Enhanced API Implementation Examples
+### Core Services Implementation
 
-#### Service Requests API
-```typescript
-// src/app/api/admin/service-requests/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-
-const CreateServiceRequestSchema = z.object({
-  clientId: z.string(),
-  serviceId: z.string(),
-  title: z.string().min(5).max(300),
-  description: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-  budgetMin: z.number().optional(),
-  budgetMax: z.number().optional(),
-  deadline: z.string().datetime().optional(),
-  requirements: z.record(z.any()).optional()
-})
-
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+#### Authentication Service
+```javascript
+class AuthService {
+  async register(userData, roleType) {
+    // Hash password, create user, assign role
+    // Send verification email
+    // Return user with JWT token
+  }
   
-  if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role as string)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  async login(email, password) {
+    // Validate credentials, check status
+    // Update last_login_at
+    // Generate JWT token with user roles
+    // Create session record
   }
-
-  const { searchParams } = new URL(request.url)
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '10')
-  const status = searchParams.get('status')
-  const priority = searchParams.get('priority')
-  const assignedTo = searchParams.get('assignedTo')
   
-  const where = {
-    ...(status && { status }),
-    ...(priority && { priority }),
-    ...(assignedTo && { assignedTeamMemberId: assignedTo })
+  async refreshToken(token) {
+    // Validate refresh token
+    // Generate new access token
   }
-
-  try {
-    const [requests, total] = await Promise.all([
-      prisma.serviceRequest.findMany({
-        where,
-        include: {
-          client: { select: { id: true, name: true, email: true } },
-          service: { select: { id: true, name: true, category: true } },
-          assignedTeamMember: { select: { id: true, name: true, email: true } },
-          requestTasks: { include: { task: true } }
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit
-      }),
-      prisma.serviceRequest.count({ where })
-    ])
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        requests,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Service requests fetch error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch service requests' },
-      { status: 500 }
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
   
-  if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role as string)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  async logout(userId, sessionId) {
+    // Invalidate session
+    // Add token to blacklist
   }
-
-  try {
-    const body = await request.json()
-    const parsed = CreateServiceRequestSchema.safeParse(body)
-    
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request data', details: parsed.error.errors },
-        { status: 400 }
-      )
-    }
-
-    const serviceRequest = await prisma.serviceRequest.create({
-      data: {
-        ...parsed.data,
-        clientId: BigInt(parsed.data.clientId),
-        serviceId: BigInt(parsed.data.serviceId),
-        deadline: parsed.data.deadline ? new Date(parsed.data.deadline) : null
-      },
-      include: {
-        client: { select: { id: true, name: true, email: true } },
-        service: { select: { id: true, name: true, category: true } }
-      }
-    })
-
-    // Auto-assign based on service requirements and team availability
-    await autoAssignRequest(serviceRequest.id)
-
-    return NextResponse.json({
-      success: true,
-      data: serviceRequest
-    }, { status: 201 })
-  } catch (error) {
-    console.error('Service request creation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create service request' },
-      { status: 500 }
-    )
-  }
-}
-
-async function autoAssignRequest(requestId: bigint) {
-  // Implementation for automatic assignment logic
-  // Based on team member skills, availability, and workload
 }
 ```
 
-#### Team Management API
-```typescript
-// src/app/api/admin/team-management/availability/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user.role as string)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  try {
-    const teamMembers = await prisma.user.findMany({
-      where: {
-        role: { in: ['STAFF', 'TEAM_MEMBER'] }
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        availabilityStatus: true,
-        maxConcurrentProjects: true,
-        assignedRequests: {
-          where: {
-            status: { in: ['assigned', 'in_progress'] }
-          },
-          select: { id: true, title: true, priority: true }
-        }
+#### Role-Based Access Control (RBAC)
+```javascript
+class RBACMiddleware {
+  checkPermission(requiredPermission) {
+    return (req, res, next) => {
+      const userPermissions = req.user.permissions;
+      if (userPermissions.includes(requiredPermission)) {
+        next();
+      } else {
+        res.status(403).json({ error: 'Insufficient permissions' });
       }
-    })
-
-    const teamAvailability = teamMembers.map(member => ({
-      ...member,
-      currentWorkload: member.assignedRequests.length,
-      availabilityPercentage: Math.max(0, 
-        ((member.maxConcurrentProjects || 3) - member.assignedRequests.length) / 
-        (member.maxConcurrentProjects || 3) * 100
-      )
-    }))
-
-    return NextResponse.json({
-      success: true,
-      data: teamAvailability
-    })
-  } catch (error) {
-    console.error('Team availability fetch error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch team availability' },
-      { status: 500 }
-    )
+    };
+  }
+  
+  checkRole(requiredRoles) {
+    return (req, res, next) => {
+      const userRoles = req.user.roles;
+      const hasRole = requiredRoles.some(role => userRoles.includes(role));
+      if (hasRole) {
+        next();
+      } else {
+        res.status(403).json({ error: 'Access denied' });
+      }
+    };
   }
 }
 ```
 
 ---
 
-## Admin Dashboard Integration
+## Frontend Architecture
 
-### Enhanced Dashboard Components
-
-```typescript
-// src/app/admin/page.tsx - Updated to include service portal metrics
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ServiceRequestsOverview } from '@/components/admin/service-requests-overview'
-import { TeamWorkloadChart } from '@/components/admin/team-workload-chart'
-import { RequestStatusDistribution } from '@/components/admin/request-status-distribution'
-
-export default async function AdminDashboard() {
-  // Fetch enhanced analytics including service portal data
-  const [
-    dashboardStats,
-    serviceRequestStats,
-    teamPerformance
-  ] = await Promise.all([
-    fetch('/api/admin/analytics'),
-    fetch('/api/admin/service-requests/analytics'),
-    fetch('/api/admin/team-management/workload')
-  ]).then(responses => Promise.all(responses.map(r => r.json())))
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{serviceRequestStats.activeRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              +{serviceRequestStats.newThisWeek} from last week
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Utilization</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{teamPerformance.utilization}%</div>
-            <p className="text-xs text-muted-foreground">
-              Across {teamPerformance.activeMembers} team members
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{serviceRequestStats.completionRate}%</div>
-            <p className="text-xs text-muted-foreground">
-              This month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenue Pipeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${serviceRequestStats.pipelineValue}</div>
-            <p className="text-xs text-muted-foreground">
-              From pending requests
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ServiceRequestsOverview data={serviceRequestStats} />
-        <TeamWorkloadChart data={teamPerformance} />
-      </div>
-      
-      <div className="grid gap-4 lg:grid-cols-3">
-        <RequestStatusDistribution data={serviceRequestStats.statusDistribution} />
-        {/* Other existing dashboard components */}
-      </div>
-    </div>
-  )
-}
+### Directory Structure
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── Layout.tsx
+│   │   ├── auth/
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   └── ProtectedRoute.tsx
+│   │   ├── dashboard/
+│   │   │   ├── ClientDashboard.tsx
+│   │   │   ├── TeamDashboard.tsx
+│   │   │   └── AdminDashboard.tsx
+│   │   ├── services/
+│   │   │   ├── ServiceCatalog.tsx
+│   │   │   ├── ServiceCard.tsx
+│   │   │   └── ServiceRequestForm.tsx
+│   │   └── requests/
+│   │       ├── RequestList.tsx
+│   │       ├── RequestDetails.tsx
+│   │       └── RequestStatus.tsx
+│   ├── pages/
+│   │   ├── auth/
+│   │   ├── dashboard/
+│   │   ├── services/
+│   │   ├── requests/
+│   │   └── admin/
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── usePermissions.ts
+│   │   ├── useServices.ts
+│   │   └── useRequests.ts
+│   ├── store/
+│   │   ├── authSlice.ts
+│   │   ├── userSlice.ts
+│   │   ├── serviceSlice.ts
+│   │   └── requestSlice.ts
+│   ├── services/
+│   │   ├── api.ts
+│   │   ├── authAPI.ts
+│   │   ├── userAPI.ts
+│   │   └── serviceAPI.ts
+│   ├── utils/
+│   │   ├── constants.ts
+│   │   ├── helpers.ts
+│   │   └── validators.ts
+│   └── types/
+│       ├── auth.ts
+│       ├── user.ts
+│       └── service.ts
+├── public/
+└── package.json
 ```
 
-### Service Requests Management Page
-
+### State Management Implementation
 ```typescript
-// src/app/admin/service-requests/page.tsx
-import React from 'react'
-import { ServiceRequestsTable } from '@/components/admin/service-requests/table'
-import { ServiceRequestsFilters } from '@/components/admin/service-requests/filters'
-import { ServiceRequestsBulkActions } from '@/components/admin/service-requests/bulk-actions'
-
-export default function ServiceRequestsPage() {
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Service Requests</h1>
-        <Button onClick={() => setCreateModalOpen(true)}>
-          Create Request
-        </Button>
-      </div>
-      
-      <ServiceRequestsFilters />
-      <ServiceRequestsBulkActions />
-      <ServiceRequestsTable />
-    </div>
-  )
+// authSlice.ts
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  permissions: string[];
+  roles: string[];
+  isLoading: boolean;
+  error: string | null;
 }
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    loginStart: (state) => {
+      state.isLoading = true;
+      state.error = null;
+    },
+    loginSuccess: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.permissions = action.payload.permissions;
+      state.roles = action.payload.roles;
+      state.isLoading = false;
+    },
+    loginFailure: (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.permissions = [];
+      state.roles = [];
+    }
+  }
+});
 ```
 
 ---
 
-## Enhanced User Management
+## API Design
 
-### Extended User Management Component
+### RESTful API Structure
 
-```typescript
-// src/app/admin/users/page.tsx - Enhanced for service portal roles
-import React from 'react'
-import { useUsers } from '@/hooks/useUsers'
-import { UserRoleManager } from '@/components/admin/users/role-manager'
-import { TeamMemberProfile } from '@/components/admin/users/team-member-profile'
-
-export default function UsersPage() {
-  const { users, updateUser, loading } = useUsers()
-
-  const handleRoleUpdate = async (userId: string, updates: any) => {
-    await updateUser(userId, updates)
-  }
-
-  const handleSkillsUpdate = async (userId: string, skills: string[]) => {
-    await updateUser(userId, { skills })
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-6">
-        {users.map(user => (
-          <Card key={user.id}>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold">{user.name}</h3>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {user.department} - {user.position}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <UserRoleManager 
-                    user={user} 
-                    onUpdate={handleRoleUpdate} 
-                  />
-                  {['STAFF', 'TEAM_MEMBER'].includes(user.role) && (
-                    <TeamMemberProfile 
-                      user={user}
-                      onSkillsUpdate={handleSkillsUpdate}
-                    />
-                  )}
-                </div>
-              </div>
-              
-              {user.role === 'STAFF' && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Availability:</span>
-                      <span className="ml-2">{user.availabilityStatus}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Active Projects:</span>
-                      <span className="ml-2">{user.assignedRequests?.length || 0}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Skills:</span>
-                      <div className="mt-1">
-                        {user.skills?.map((skill: string) => (
-                          <Badge key={skill} variant="secondary" className="mr-1">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-medium">Hourly Rate:</span>
-                      <span className="ml-2">${user.hourlyRate}/hr</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-  )
-}
+#### Authentication Endpoints
+```
+POST /api/auth/register          # User registration
+POST /api/auth/login             # User login
+POST /api/auth/refresh           # Refresh token
+POST /api/auth/logout            # User logout
+POST /api/auth/forgot-password   # Password reset request
+POST /api/auth/reset-password    # Password reset
+GET  /api/auth/verify-email      # Email verification
 ```
 
-### Permission Management System
-
-```typescript
-// src/lib/permissions.ts - Enhanced permission system
-export const PERMISSIONS = {
-  // Service Request Permissions
-  SERVICE_REQUESTS_CREATE: 'service_requests.create',
-  SERVICE_REQUESTS_READ_ALL: 'service_requests.read.all',
-  SERVICE_REQUESTS_READ_OWN: 'service_requests.read.own',
-  SERVICE_REQUESTS_UPDATE: 'service_requests.update',
-  SERVICE_REQUESTS_DELETE: 'service_requests.delete',
-  SERVICE_REQUESTS_ASSIGN: 'service_requests.assign',
-  
-  // Task Permissions
-  TASKS_CREATE: 'tasks.create',
-  TASKS_READ_ALL: 'tasks.read.all',
-  TASKS_READ_ASSIGNED: 'tasks.read.assigned',
-  TASKS_UPDATE: 'tasks.update',
-  TASKS_DELETE: 'tasks.delete',
-  TASKS_ASSIGN: 'tasks.assign',
-  
-  // Team Management
-  TEAM_MANAGE: 'team.manage',
-  TEAM_VIEW: 'team.view',
-  
-  // User Management
-  USERS_MANAGE: 'users.manage',
-  USERS_VIEW: 'users.view',
-  
-  // Analytics
-  ANALYTICS_VIEW: 'analytics.view',
-  ANALYTICS_EXPORT: 'analytics.export'
-} as const
-
-export const ROLE_PERMISSIONS = {
-  CLIENT: [
-    PERMISSIONS.SERVICE_REQUESTS_CREATE,
-    PERMISSIONS.SERVICE_REQUESTS_READ_OWN,
-    PERMISSIONS.TASKS_READ_ASSIGNED
-  ],
-  STAFF: [
-    PERMISSIONS.SERVICE_REQUESTS_READ_ALL,
-    PERMISSIONS.SERVICE_REQUESTS_UPDATE,
-    PERMISSIONS.TASKS_CREATE,
-    PERMISSIONS.TASKS_READ_ALL,
-    PERMISSIONS.TASKS_UPDATE,
-    PERMISSIONS.TEAM_VIEW,
-    PERMISSIONS.ANALYTICS_VIEW
-  ],
-  ADMIN: [
-    ...Object.values(PERMISSIONS) // Full access
-  ]
-}
-
-export function hasPermission(userRole: string, permission: string): boolean {
-  const rolePerms = ROLE_PERMISSIONS[userRole as keyof typeof ROLE_PERMISSIONS]
-  return rolePerms?.includes(permission as any) || false
-}
-
-export function checkPermissions(userRole: string, requiredPermissions: string[]): boolean {
-  return requiredPermissions.every(permission => hasPermission(userRole, permission))
-}
+#### User Management
+```
+GET    /api/users                # List users (admin/team-lead)
+GET    /api/users/:id            # Get user details
+PUT    /api/users/:id            # Update user
+DELETE /api/users/:id            # Deactivate user
+GET    /api/users/profile        # Current user profile
+PUT    /api/users/profile        # Update current user profile
+POST   /api/users/:id/roles      # Assign role (admin only)
+DELETE /api/users/:id/roles/:roleId # Remove role (admin only)
 ```
 
----
-
-## Task Management System
-
-### Enhanced Task Integration
-
-```typescript
-// src/app/admin/tasks/components/ServiceRequestTaskCreator.tsx
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useTaskTemplates } from '@/hooks/useTaskTemplates'
-import { useTeamMembers } from '@/hooks/useTeamMembers'
-
-interface ServiceRequestTaskCreatorProps {
-  serviceRequestId: string
-  onTaskCreated: (task: any) => void
-}
-
-export function ServiceRequestTaskCreator({ serviceRequestId, onTaskCreated }: ServiceRequestTaskCreatorProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const { templates, loading: templatesLoading } = useTaskTemplates()
-  const { teamMembers, loading: teamLoading } = useTeamMembers()
-  
-  const handleCreateFromTemplate = async (templateId: string, assigneeId?: string) => {
-    try {
-      const response = await fetch('/api/admin/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          templateId,
-          serviceRequestId,
-          assigneeId
-        })
-      })
-      
-      if (response.ok) {
-        const task = await response.json()
-        onTaskCreated(task.data)
-        setIsOpen(false)
-      }
-    } catch (error) {
-      console.error('Failed to create task from template:', error)
-    }
-  }
-
-  return (
-    <>
-      <Button onClick={() => setIsOpen(true)}>Create Task from Template</Button>
-      
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create Task from Template</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4">
-            {templates.map(template => (
-              <div key={template.id} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{template.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {template.description}
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {template.category}
-                      </span>
-                      <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                        ~{template.estimatedHours}h
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Select onValueChange={(assigneeId) => 
-                      handleCreateFromTemplate(template.id, assigneeId)}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Assign to..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teamMembers
-                          .filter(member => 
-                            !template.requiredSkills || 
-                            template.requiredSkills.some(skill => 
-                              member.skills?.includes(skill)
-                            )
-                          )
-                          .map(member => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button 
-                      size="sm"
-                      onClick={() => handleCreateFromTemplate(template.id)}
-                    >
-                      Create
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
-}
+#### Service Management
+```
+GET    /api/services             # List all services
+GET    /api/services/:id         # Get service details
+POST   /api/services             # Create service (admin)
+PUT    /api/services/:id         # Update service (admin)
+DELETE /api/services/:id         # Delete service (admin)
+GET    /api/services/categories  # Get service categories
 ```
 
-### Task-Service Request Integration
-
-```typescript
-// src/hooks/useServiceRequestTasks.ts
-import { useState, useEffect } from 'react'
-import { apiFetch } from '@/lib/api'
-
-export function useServiceRequestTasks(serviceRequestId: string) {
-  const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const fetchTasks = async () => {
-    try {
-      setLoading(true)
-      const response = await apiFetch(`/api/admin/service-requests/${serviceRequestId}/tasks`)
-      setTasks(response.data)
-    } catch (err) {
-      setError(err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createTask = async (taskData: any) => {
-    try {
-      const response = await apiFetch(`/api/admin/service-requests/${serviceRequestId}/tasks`, {
-        method: 'POST',
-        body: JSON.stringify(taskData)
-      })
-      
-      setTasks(prev => [...prev, response.data])
-      return response.data
-    } catch (err) {
-      throw err
-    }
-  }
-
-  const updateTaskStatus = async (taskId: string, status: string) => {
-    try {
-      await apiFetch(`/api/admin/tasks/${taskId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      })
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, status } : task
-      ))
-    } catch (err) {
-      throw err
-    }
-  }
-
-  useEffect(() => {
-    if (serviceRequestId) {
-      fetchTasks()
-    }
-  }, [serviceRequestId])
-
-  return {
-    tasks,
-    loading,
-    error,
-    createTask,
-    updateTaskStatus,
-    refresh: fetchTasks
-  }
-}
+#### Service Requests
+```
+GET    /api/requests             # List requests (filtered by role)
+GET    /api/requests/:id         # Get request details
+POST   /api/requests             # Create new request (client)
+PUT    /api/requests/:id         # Update request
+DELETE /api/requests/:id         # Cancel request
+POST   /api/requests/:id/assign  # Assign to team member (team-lead/admin)
+POST   /api/requests/:id/complete # Mark as complete (team member)
+POST   /api/requests/:id/approve  # Client approval
+GET    /api/requests/:id/history  # Request activity history
 ```
 
----
-
-## Real-time Features
-
-### Enhanced Real-time System
-
-```typescript
-// src/lib/realtime-enhanced.ts
-import { EventEmitter } from 'events'
-
-interface RealtimeEvent {
-  type: string
-  data: any
-  userId?: string
-  timestamp: Date
-}
-
-class EnhancedRealtimeService extends EventEmitter {
-  private connections = new Map<string, Set<ReadableStreamDefaultController>>()
-  private userSubscriptions = new Map<string, Set<string>>() // userId -> event types
-
-  subscribeToEvents(controller: ReadableStreamDefaultController, userId: string, eventTypes: string[]) {
-    const connectionId = Math.random().toString(36)
-    
-    // Store connection
-    if (!this.connections.has(connectionId)) {
-      this.connections.set(connectionId, new Set())
-    }
-    this.connections.get(connectionId)!.add(controller)
-    
-    // Store user subscriptions
-    if (!this.userSubscriptions.has(userId)) {
-      this.userSubscriptions.set(userId, new Set())
-    }
-    eventTypes.forEach(type => this.userSubscriptions.get(userId)!.add(type))
-
-    return connectionId
-  }
-
-  broadcast(event: RealtimeEvent) {
-    this.connections.forEach((controllers, connectionId) => {
-      controllers.forEach(controller => {
-        try {
-          const message = `data: ${JSON.stringify(event)}\n\n`
-          controller.enqueue(new TextEncoder().encode(message))
-        } catch (error) {
-          console.error('Failed to send realtime event:', error)
-          controllers.delete(controller)
-        }
-      })
-    })
-  }
-
-  broadcastToUser(userId: string, event: RealtimeEvent) {
-    // Implementation for user-specific broadcasts
-    this.broadcast({ ...event, userId })
-  }
-
-  broadcastServiceRequestUpdate(serviceRequestId: string, data: any) {
-    this.broadcast({
-      type: 'service-request-updated',
-      data: { serviceRequestId, ...data },
-      timestamp: new Date()
-    })
-  }
-
-  broadcastTaskUpdate(taskId: string, data: any) {
-    this.broadcast({
-      type: 'task-updated',
-      data: { taskId, ...data },
-      timestamp: new Date()
-    })
-  }
-
-  broadcastTeamAssignment(assignmentData: any) {
-    this.broadcast({
-      type: 'team-assignment',
-      data: assignmentData,
-      timestamp: new Date()
-    })
-  }
-
-  cleanup(connectionId: string) {
-    this.connections.delete(connectionId)
-  }
-}
-
-export const realtimeService = new EnhancedRealtimeService()
+#### File Management
+```
+POST   /api/files/upload         # Upload file
+GET    /api/files/:id            # Download file
+DELETE /api/files/:id            # Delete file
+POST   /api/requests/:id/attachments # Attach file to request
 ```
 
-### Real-time API Endpoint
-
-```typescript
-// src/app/api/admin/realtime/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { realtimeService } from '@/lib/realtime-enhanced'
-
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
-
-  const { searchParams } = new URL(request.url)
-  const eventTypes = searchParams.get('events')?.split(',') || ['all']
-
-  const stream = new ReadableStream({
-    start(controller) {
-      // Send initial connection message
-      controller.enqueue(
-        new TextEncoder().encode(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date() })}\n\n`)
-      )
-
-      // Subscribe to events
-      const connectionId = realtimeService.subscribeToEvents(
-        controller, 
-        session.user.id, 
-        eventTypes
-      )
-
-      // Handle connection cleanup
-      request.signal.addEventListener('abort', () => {
-        realtimeService.cleanup(connectionId)
-        try {
-          controller.close()
-        } catch (error) {
-          // Connection already closed
-        }
-      })
-    }
-  })
-
-  return new NextResponse(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive'
-    }
-  })
-}
-```
-
-### Client-side Real-time Hook
-
-```typescript
-// src/hooks/useRealtime.ts
-import { useEffect, useRef, useState } from 'react'
-import { useSession } from 'next-auth/react'
-
-interface RealtimeEvent {
-  type: string
-  data: any
-  timestamp: string
-}
-
-export function useRealtime(eventTypes: string[] = ['all']) {
-  const { data: session } = useSession()
-  const [events, setEvents] = useState<RealtimeEvent[]>([])
-  const [connected, setConnected] = useState(false)
-  const eventSourceRef = useRef<EventSource | null>(null)
-
-  useEffect(() => {
-    if (!session?.user) return
-
-    const eventSource = new EventSource(
-      `/api/admin/realtime?events=${eventTypes.join(',')}`
-    )
-
-    eventSource.onopen = () => {
-      setConnected(true)
-    }
-
-    eventSource.onmessage = (event) => {
-      try {
-        const parsedEvent = JSON.parse(event.data)
-        setEvents(prev => [...prev.slice(-99), parsedEvent]) // Keep last 100 events
-      } catch (error) {
-        console.error('Failed to parse realtime event:', error)
-      }
-    }
-
-    eventSource.onerror = () => {
-      setConnected(false)
-    }
-
-    eventSourceRef.current = eventSource
-
-    return () => {
-      eventSource.close()
-      setConnected(false)
-    }
-  }, [session?.user, eventTypes.join(',')])
-
-  const getEventsByType = (type: string) => {
-    return events.filter(event => event.type === type)
-  }
-
-  const getLatestEvent = (type: string) => {
-    const typeEvents = getEventsByType(type)
-    return typeEvents[typeEvents.length - 1] || null
-  }
-
-  return {
-    events,
-    connected,
-    getEventsByType,
-    getLatestEvent
-  }
-}
-```
-
----
-
-## Security & Permissions
-
-### Enhanced Middleware
-
-```typescript
-// middleware.ts - Enhanced for service portal
-import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
-
-export default withAuth(
-  function middleware(req) {
-    const { pathname } = req.nextUrl
-    const token = req.nextauth.token
-
-    // Admin routes protection
-    if (pathname.startsWith('/admin')) {
-      if (!token || !['ADMIN', 'STAFF'].includes(token.role as string)) {
-        return NextResponse.redirect(new URL('/login', req.url))
-      }
-
-      // Service portal specific admin routes
-      if (pathname.startsWith('/admin/service-requests')) {
-        const hasPermission = hasServiceRequestPermission(token.role as string, 'read')
-        if (!hasPermission) {
-          return NextResponse.redirect(new URL('/admin', req.url))
-        }
-      }
-
-      if (pathname.startsWith('/admin/team-management')) {
-        const hasPermission = hasTeamManagementPermission(token.role as string)
-        if (!hasPermission) {
-          return NextResponse.redirect(new URL('/admin', req.url))
-        }
-      }
-    }
-
-    // API routes protection
-    if (pathname.startsWith('/api/admin')) {
-      if (!token || !['ADMIN', 'STAFF'].includes(token.role as string)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-    }
-
-    // Client portal routes
-    if (pathname.startsWith('/portal')) {
-      if (!token) {
-        return NextResponse.redirect(new URL('/login', req.url))
-      }
-
-      // Service requests - clients can only access their own
-      if (pathname.startsWith('/portal/service-requests')) {
-        // Additional client-specific validation can be added here
-      }
-    }
-
-    return NextResponse.next()
+### API Response Format
+```json
+{
+  "success": true,
+  "data": {
+    // Response data
   },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Allow public routes
-        const { pathname } = req.nextUrl
-        const publicRoutes = ['/', '/login', '/register', '/services', '/blog', '/contact']
-        
-        if (publicRoutes.some(route => pathname === route || pathname.startsWith('/api/auth'))) {
-          return true
-        }
-
-        return !!token
-      }
-    }
+  "message": "Operation successful",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "totalPages": 10
+  },
+  "meta": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "version": "1.0"
   }
-)
-
-function hasServiceRequestPermission(role: string, action: string): boolean {
-  const permissions = {
-    ADMIN: ['read', 'create', 'update', 'delete', 'assign'],
-    STAFF: ['read', 'create', 'update', 'assign'],
-    CLIENT: ['read_own', 'create']
-  }
-  
-  return permissions[role as keyof typeof permissions]?.includes(action) || false
-}
-
-function hasTeamManagementPermission(role: string): boolean {
-  return ['ADMIN', 'STAFF'].includes(role)
-}
-
-export const config = {
-  matcher: [
-    '/admin/:path*',
-    '/portal/:path*',
-    '/api/admin/:path*',
-    '/api/portal/:path*'
-  ]
-}
-```
-
-### Permission-based Component Rendering
-
-```typescript
-// src/components/PermissionGate.tsx
-import React from 'react'
-import { useSession } from 'next-auth/react'
-import { hasPermission } from '@/lib/permissions'
-
-interface PermissionGateProps {
-  permission: string | string[]
-  fallback?: React.ReactNode
-  children: React.ReactNode
-}
-
-export function PermissionGate({ permission, fallback = null, children }: PermissionGateProps) {
-  const { data: session } = useSession()
-
-  if (!session?.user?.role) {
-    return <>{fallback}</>
-  }
-
-  const permissions = Array.isArray(permission) ? permission : [permission]
-  const hasRequiredPermission = permissions.some(p => 
-    hasPermission(session.user.role, p)
-  )
-
-  return hasRequiredPermission ? <>{children}</> : <>{fallback}</>
-}
-
-// Usage example
-export function ServiceRequestActions({ requestId }: { requestId: string }) {
-  return (
-    <div className="flex gap-2">
-      <PermissionGate permission="service_requests.update">
-        <Button variant="outline">Edit</Button>
-      </PermissionGate>
-      
-      <PermissionGate permission="service_requests.assign">
-        <Button variant="outline">Assign</Button>
-      </PermissionGate>
-      
-      <PermissionGate permission="service_requests.delete">
-        <Button variant="destructive">Delete</Button>
-      </PermissionGate>
-    </div>
-  )
 }
 ```
 
 ---
 
-## Implementation Strategy
+## Authentication & Authorization
 
-### Phase 1: Database & API Foundation (Week 1-2)
+### JWT Token Structure
+```json
+{
+  "sub": "user-uuid",
+  "email": "user@example.com",
+  "roles": ["client", "team_member"],
+  "permissions": ["requests.create", "requests.read_own"],
+  "iat": 1642234800,
+  "exp": 1642321200
+}
+```
 
+### Session Management
+- JWT access tokens (15-30 minutes expiry)
+- Refresh tokens (7-30 days expiry)
+- Session tracking in database
+- Token blacklisting for logout
+- Rate limiting on auth endpoints
+
+### Password Security
+- Minimum 8 characters with complexity requirements
+- bcrypt hashing with salt rounds >= 12
+- Password history prevention (last 5 passwords)
+- Account lockout after failed attempts
+- Password expiry for admin users
+
+---
+
+## User Management System
+
+### User Registration Flow
+1. **Registration Form Validation**
+   - Email format and uniqueness
+   - Password strength requirements
+   - Required field validation
+
+2. **Account Creation**
+   - Generate UUID for user
+   - Hash password securely
+   - Create user record with 'pending_verification' status
+   - Assign default role based on registration type
+
+3. **Email Verification**
+   - Send verification email with secure token
+   - User clicks verification link
+   - Update status to 'active'
+   - Log successful verification
+
+### Role Assignment Logic
+```javascript
+const roleAssignmentRules = {
+  client: {
+    auto_approve: true,
+    default_permissions: ['requests.create', 'requests.read_own', 'profile.update']
+  },
+  team_member: {
+    auto_approve: false, // Requires admin approval
+    default_permissions: ['requests.read_assigned', 'profile.update']
+  },
+  team_lead: {
+    auto_approve: false,
+    requires_role: ['admin', 'super_admin'], // Who can assign this role
+    default_permissions: ['team.manage', 'requests.assign']
+  }
+};
+```
+
+### User Profile Management
+- **Client Profile**: Company info, billing details, preferences
+- **Team Profile**: Skills, availability, department, manager
+- **Common Profile**: Contact info, avatar, notification preferences
+
+---
+
+## Service Request Workflow
+
+### Request Lifecycle States
+```
+draft → submitted → in_review → approved → assigned → in_progress → completed → approved/cancelled
+```
+
+### State Transition Rules
+```javascript
+const stateTransitions = {
+  draft: ['submitted', 'cancelled'],
+  submitted: ['in_review', 'cancelled'],
+  in_review: ['approved', 'submitted'], // Can send back for changes
+  approved: ['assigned'],
+  assigned: ['in_progress'],
+  in_progress: ['completed'],
+  completed: ['approved'] // Client approval
+};
+```
+
+### Automated Assignment Logic
+```javascript
+class RequestAssignmentService {
+  async autoAssign(requestId) {
+    const request = await ServiceRequest.findById(requestId);
+    const requiredSkills = request.service.required_skills;
+    
+    // Find available team members with matching skills
+    const availableMembers = await this.findAvailableTeamMembers(requiredSkills);
+    
+    // Sort by workload and expertise
+    const bestMatch = this.rankTeamMembers(availableMembers, requiredSkills);
+    
+    // Assign to best match
+    await this.assignRequest(requestId, bestMatch.id);
+    
+    // Send notifications
+    await this.notifyAssignment(requestId, bestMatch.id);
+  }
+}
+```
+
+---
+
+## File Management
+
+### File Upload System
+- **Allowed Types**: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, ZIP
+- **Size Limits**: 10MB per file, 100MB per request
+- **Storage**: AWS S3 or local storage with CDN
+- **Security**: Virus scanning, type validation
+- **Organization**: Files organized by request/user
+
+### File Storage Structure
+```
+uploads/
+├── requests/
+│   ├── {request-uuid}/
+│   │   ├── attachments/
+│   │   └── deliverables/
+├── users/
+│   └── avatars/
+└── temp/
+    └── {upload-session}/
+```
+
+### File Security
+- Signed URLs for secure access
+- Access control based on user permissions
+- Audit logging for file access
+- Automatic cleanup of temp files
+
+---
+
+## Notification System
+
+### Notification Types
+- **Email**: Important updates, assignments, deadlines
+- **In-App**: Real-time updates, messages
+- **Push**: Mobile/browser notifications for urgent items
+- **SMS**: Critical alerts (optional)
+
+### Notification Triggers
+```javascript
+const notificationTriggers = {
+  'request.submitted': ['admin', 'team_lead'],
+  'request.assigned': ['assigned_team_member'],
+  'request.completed': ['client'],
+  'request.approved': ['assigned_team_member', 'team_lead'],
+  'user.registered': ['admin'],
+  'deadline.approaching': ['assigned_team_member', 'client']
+};
+```
+
+### Queue-Based Processing
+```javascript
+// Email notification job
+class EmailNotificationJob {
+  async process(job) {
+    const { userId, template, data } = job.data;
+    const user = await User.findById(userId);
+    
+    await EmailService.send({
+      to: user.email,
+      template: template,
+      data: data
+    });
+    
+    // Log notification sent
+    await AuditLog.create({
+      user_id: userId,
+      action: 'notification.sent',
+      details: { template, recipient: user.email }
+    });
+  }
+}
+```
+
+---
+
+## Reporting & Analytics
+
+### Dashboard Metrics
+
+#### Client Dashboard
+- Active requests count
+- Request status distribution
+- Average completion time
+- Spending analytics
+- Service usage patterns
+
+#### Team Member Dashboard
+- Assigned requests
+- Completion rate
+- Average rating
+- Workload distribution
+- Performance trends
+
+#### Admin Dashboard
+- User growth metrics
+- Service request volume
+- Team performance analytics
+- Revenue metrics
+- System health indicators
+
+### Report Generation
+```javascript
+class ReportService {
+  async generateUserReport(dateRange, userType) {
+    const query = this.buildUserQuery(dateRange, userType);
+    const data = await database.execute(query);
+    
+    return {
+      summary: this.calculateSummary(data),
+      trends: this.analyzeTrends(data),
+      charts: this.generateChartData(data)
+    };
+  }
+  
+  async scheduleReport(reportType, schedule, recipients) {
+    // Schedule recurring reports
+    await Queue.add('generate-report', {
+      type: reportType,
+      schedule: schedule,
+      recipients: recipients
+    }, {
+      repeat: { cron: schedule }
+    });
+  }
+}
+```
+
+---
+
+## Security Implementation
+
+### Security Headers
+```javascript
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+}));
+```
+
+### Input Validation
+```javascript
+const serviceRequestSchema = {
+  title: {
+    type: 'string',
+    minLength: 5,
+    maxLength: 300,
+    sanitize: true
+  },
+  description: {
+    type: 'string',
+    minLength: 10,
+    maxLength: 5000,
+    sanitize: true
+  },
+  service_id: {
+    type: 'integer',
+    required: true,
+    validate: 'exists:services,id'
+  }
+};
+```
+
+### Rate Limiting
+```javascript
+const rateLimitConfig = {
+  auth: { windowMs: 15 * 60 * 1000, max: 5 }, // 5 attempts per 15 minutes
+  api: { windowMs: 15 * 60 * 1000, max: 100 }, // 100 requests per 15 minutes
+  upload: { windowMs: 60 * 60 * 1000, max: 10 } // 10 uploads per hour
+};
+```
+
+### Audit Logging
+- All user actions logged
+- IP address and user agent tracking
+- Data change tracking (before/after)
+- Failed authentication attempts
+- Permission escalation attempts
+
+---
+
+## Testing Strategy
+
+### Unit Testing
+```javascript
+// Example test for AuthService
+describe('AuthService', () => {
+  describe('login', () => {
+    it('should authenticate valid user', async () => {
+      const userData = { email: 'test@example.com', password: 'password123' };
+      const result = await AuthService.login(userData.email, userData.password);
+      
+      expect(result).toHaveProperty('token');
+      expect(result).toHaveProperty('user');
+      expect(result.user.email).toBe(userData.email);
+    });
+    
+    it('should reject invalid credentials', async () => {
+      await expect(
+        AuthService.login('test@example.com', 'wrongpassword')
+      ).rejects.toThrow('Invalid credentials');
+    });
+  });
+});
+```
+
+### Integration Testing
+- API endpoint testing
+- Database integration tests
+- File upload/download tests
+- Email notification tests
+- Queue processing tests
+
+### End-to-End Testing
+```javascript
+// Example E2E test with Cypress
+describe('Service Request Flow', () => {
+  it('client can create and submit service request', () => {
+    cy.login('client@example.com', 'password');
+    cy.visit('/services');
+    cy.get('[data-cy=service-card]').first().click();
+    cy.get('[data-cy=request-service-btn]').click();
+    
+    cy.get('[data-cy=request-title]').type('Website Development');
+    cy.get('[data-cy=request-description]').type('Need a new website for my business');
+    cy.get('[data-cy=submit-request]').click();
+    
+    cy.url().should('include', '/requests');
+    cy.contains('Request submitted successfully');
+  });
+});
+```
+
+---
+
+## Deployment Guide
+
+### Docker Configuration
+```dockerfile
+# Backend Dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+### Docker Compose
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+  
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - db_data:/var/lib/mysql
+  
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+  
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+```
+
+### CI/CD Pipeline
+```yaml
+# GitHub Actions workflow
+name: Deploy to Production
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run test
+      - run: npm run test:e2e
+  
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        run: |
+          ssh ${{ secrets.SERVER_HOST }} "
+            cd /var/www/app &&
+            git pull origin main &&
+            docker-compose down &&
+            docker-compose up -d --build
+          "
+```
+
+### Environment Variables
 ```bash
-# Step 1: Database Schema Migration
-npx prisma migrate dev --name "add_service_portal_tables"
+# Production environment
+NODE_ENV=production
+PORT=3000
 
-# Step 2: Seed Enhanced Data
-npm run db:seed:service-portal
+# Database
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=service_portal
+DB_USER=app_user
+DB_PASSWORD=secure_password
 
-# Step 3: Create Core API Endpoints
-# - /api/admin/service-requests/*
-# - /api/admin/team-management/*
-# - /api/admin/task-templates/*
-```
+# Redis
+REDIS_URL=redis://localhost:6379
 
-#### Migration Script Example
+# JWT
+JWT_SECRET=your-super-secret-key
+JWT_EXPIRES_IN=30m
+REFRESH_TOKEN_SECRET=another-secret
+REFRESH_TOKEN_EXPIRES_IN=7d
 
-```typescript
-// prisma/migrations/add_service_portal_tables/migration.sql
--- CreateEnum for new enums
-CREATE TYPE "ExpertiseLevel" AS ENUM ('junior', 'mid', 'senior', 'lead', 'expert');
-CREATE TYPE "AvailabilityStatus" AS ENUM ('available', 'busy', 'offline', 'on_leave');
-CREATE TYPE "RequestStatus" AS ENUM ('draft', 'submitted', 'in_review', 'approved', 'assigned', 'in_progress', 'completed', 'cancelled');
-CREATE TYPE "Priority" AS ENUM ('low', 'medium', 'high', 'urgent');
+# Email
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=noreply@yourdomain.com
+SMTP_PASSWORD=email_password
 
--- Add new columns to existing users table
-ALTER TABLE "users" ADD COLUMN "employee_id" TEXT;
-ALTER TABLE "users" ADD COLUMN "department" TEXT;
-ALTER TABLE "users" ADD COLUMN "position" TEXT;
-ALTER TABLE "users" ADD COLUMN "skills" JSONB;
-ALTER TABLE "users" ADD COLUMN "expertise_level" "ExpertiseLevel" DEFAULT 'junior';
-ALTER TABLE "users" ADD COLUMN "hourly_rate" DECIMAL(10,2);
-ALTER TABLE "users" ADD COLUMN "availability_status" "AvailabilityStatus" DEFAULT 'available';
-ALTER TABLE "users" ADD COLUMN "max_concurrent_projects" INTEGER DEFAULT 3;
-ALTER TABLE "users" ADD COLUMN "hire_date" DATE;
-ALTER TABLE "users" ADD COLUMN "manager_id" BIGINT;
+# File Storage
+STORAGE_TYPE=s3
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_S3_BUCKET=your-bucket-name
+AWS_REGION=us-east-1
 
--- Add foreign key constraint
-ALTER TABLE "users" ADD CONSTRAINT "users_manager_id_fkey" FOREIGN KEY ("manager_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- Create unique index on employee_id
-CREATE UNIQUE INDEX "users_employee_id_key" ON "users"("employee_id");
-
--- Create new tables
-CREATE TABLE "service_requests" (
-    "id" BIGSERIAL NOT NULL,
-    "uuid" TEXT NOT NULL,
-    "client_id" BIGINT NOT NULL,
-    "service_id" BIGINT NOT NULL,
-    "title" VARCHAR(300) NOT NULL,
-    "description" TEXT,
-    "priority" "Priority" NOT NULL DEFAULT 'medium',
-    "status" "RequestStatus" NOT NULL DEFAULT 'draft',
-    "budget_min" DECIMAL(10,2),
-    "budget_max" DECIMAL(10,2),
-    "deadline" DATE,
-    "requirements" JSONB,
-    "attachments" JSONB,
-    "assigned_team_member_id" BIGINT,
-    "assigned_at" TIMESTAMP(3),
-    "assigned_by" BIGINT,
-    "completed_at" TIMESTAMP(3),
-    "client_approval_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "service_requests_pkey" PRIMARY KEY ("id")
-);
-
--- Create indexes for service_requests
-CREATE UNIQUE INDEX "service_requests_uuid_key" ON "service_requests"("uuid");
-CREATE INDEX "service_requests_client_id_idx" ON "service_requests"("client_id");
-CREATE INDEX "service_requests_status_idx" ON "service_requests"("status");
-CREATE INDEX "service_requests_assigned_team_member_id_idx" ON "service_requests"("assigned_team_member_id");
-
--- Add foreign key constraints
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_client_id_fkey" FOREIGN KEY ("client_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "services"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_assigned_team_member_id_fkey" FOREIGN KEY ("assigned_team_member_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "service_requests" ADD CONSTRAINT "service_requests_assigned_by_fkey" FOREIGN KEY ("assigned_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-```
-
-### Phase 2: Admin Dashboard Integration (Week 2-3)
-
-```typescript
-// Enhanced admin dashboard pages structure
-src/app/admin/
-├── service-requests/
-│   ├── page.tsx                    # Main service requests management
-│   ├── [id]/
-│   │   ├── page.tsx               # Service request details
-│   │   └── edit/page.tsx          # Edit service request
-│   └── new/page.tsx               # Create new service request
-├── team-management/
-│   ├── page.tsx                   # Team overview and management
-│   ├── availability/page.tsx      # Team availability calendar
-│   ├── skills/page.tsx            # Skills management
-│   └── workload/page.tsx          # Workload distribution
-└── task-templates/
-    ├── page.tsx                   # Template management
-    └── [id]/page.tsx              # Template editor
-```
-
-### Phase 3: Real-time Features & Client Portal (Week 3-4)
-
-```typescript
-// Client portal structure
-src/app/portal/
-├── page.tsx                       # Client dashboard
-├── service-requests/
-│   ├── page.tsx                   # Client's service requests
-│   ├── new/page.tsx               # Create new request
-│   └── [id]/page.tsx              # Request details and tracking
-└── tasks/
-    └── page.tsx                   # Assigned tasks view (if client has tasks)
-```
-
-### Phase 4: Testing & Optimization (Week 4)
-
-```typescript
-// Testing structure
-src/tests/
-├── api/
-│   ├── admin/
-│   │   ├── service-requests.test.ts
-│   │   ├── team-management.test.ts
-│   │   └── task-templates.test.ts
-│   └── portal/
-│       └── service-requests.test.ts
-├── components/
-│   ├── admin/
-│   │   ├── ServiceRequestsTable.test.tsx
-│   │   ├── TeamWorkloadChart.test.tsx
-│   │   └── TaskTemplateEditor.test.tsx
-│   └── portal/
-│       └── RequestTracker.test.tsx
-└── hooks/
-    ├── useServiceRequests.test.ts
-    ├── useTeamManagement.test.ts
-    └── useRealtime.test.ts
+# Security
+BCRYPT_ROUNDS=12
+SESSION_SECRET=session-secret-key
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 ---
 
-## Migration from Existing System
+## Monitoring & Maintenance
 
-### Data Migration Strategy
-
-```typescript
-// scripts/migrate-existing-data.ts
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
-
-async function migrateExistingData() {
-  console.log('Starting data migration...')
-  
+### Application Monitoring
+```javascript
+// Health check endpoint
+app.get('/health', async (req, res) => {
   try {
-    // 1. Update existing users with new service portal roles
-    await migrateUserRoles()
+    // Check database connectivity
+    await database.ping();
     
-    // 2. Convert existing bookings to service requests where applicable
-    await migrateBookingsToServiceRequests()
+    // Check Redis connectivity
+    await redis.ping();
     
-    // 3. Create default task templates
-    await createDefaultTaskTemplates()
+    // Check queue status
+    const queueHealth = await Queue.getJobCounts();
     
-    // 4. Set up default team structure
-    await setupDefaultTeamStructure()
-    
-    console.log('Data migration completed successfully!')
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      cache: 'connected',
+      queue: queueHealth
+    });
   } catch (error) {
-    console.error('Migration failed:', error)
-    throw error
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message
+    });
   }
-}
-
-async function migrateUserRoles() {
-  // Update STAFF users to have team member capabilities
-  await prisma.user.updateMany({
-    where: { role: 'STAFF' },
-    data: {
-      availabilityStatus: 'available',
-      maxConcurrentProjects: 5,
-      expertiseLevel: 'mid'
-    }
-  })
-  
-  console.log('✅ User roles migrated')
-}
-
-async function migrateBookingsToServiceRequests() {
-  // Convert complex bookings to service requests
-  const complexBookings = await prisma.booking.findMany({
-    where: {
-      // Criteria for bookings that should become service requests
-      OR: [
-        { notes: { not: null } },
-        { status: 'PENDING' }
-      ]
-    },
-    include: { user: true, service: true }
-  })
-  
-  for (const booking of complexBookings) {
-    await prisma.serviceRequest.create({
-      data: {
-        clientId: booking.userId,
-        serviceId: booking.serviceId,
-        title: `${booking.service.name} - ${booking.user.name}`,
-        description: booking.notes || '',
-        status: booking.status === 'CONFIRMED' ? 'approved' : 'submitted',
-        deadline: booking.date,
-        priority: 'medium'
-      }
-    })
-  }
-  
-  console.log(`✅ Migrated ${complexBookings.length} bookings to service requests`)
-}
-
-async function createDefaultTaskTemplates() {
-  const templates = [
-    {
-      name: 'Tax Return Preparation',
-      description: 'Complete tax return preparation for individual client',
-      category: 'Tax Services',
-      defaultAssigneeRole: 'team_member',
-      estimatedHours: 4,
-      requiredSkills: ['Tax Preparation', 'QuickBooks'],
-      checklistItems: [
-        'Gather client documents',
-        'Enter data into tax software',
-        'Review for accuracy',
-        'Client review and approval',
-        'File return'
-      ]
-    },
-    {
-      name: 'Bookkeeping Setup',
-      description: 'Set up bookkeeping system for new business client',
-      category: 'Bookkeeping',
-      defaultAssigneeRole: 'team_member',
-      estimatedHours: 6,
-      requiredSkills: ['QuickBooks', 'Bookkeeping'],
-      checklistItems: [
-        'Chart of accounts setup',
-        'Bank account connection',
-        'Initial data entry',
-        'Client training session'
-      ]
-    },
-    {
-      name: 'Financial Statement Review',
-      description: 'Review and prepare financial statements',
-      category: 'Financial Services',
-      defaultAssigneeRole: 'team_lead',
-      estimatedHours: 8,
-      requiredSkills: ['Financial Analysis', 'GAAP'],
-      checklistItems: [
-        'Review trial balance',
-        'Prepare statements',
-        'Partner review',
-        'Client presentation'
-      ]
-    }
-  ]
-  
-  for (const template of templates) {
-    await prisma.taskTemplate.create({ data: template })
-  }
-  
-  console.log(`✅ Created ${templates.length} default task templates`)
-}
-
-async function setupDefaultTeamStructure() {
-  // Set up manager relationships
-  const adminUsers = await prisma.user.findMany({
-    where: { role: 'ADMIN' }
-  })
-  
-  const staffUsers = await prisma.user.findMany({
-    where: { role: 'STAFF' }
-  })
-  
-  if (adminUsers.length > 0 && staffUsers.length > 0) {
-    // Assign first admin as manager for staff
-    await prisma.user.updateMany({
-      where: { role: 'STAFF' },
-      data: { managerId: adminUsers[0].id }
-    })
-    
-    console.log('✅ Default team structure established')
-  }
-}
-
-// Run migration
-if (require.main === module) {
-  migrateExistingData()
-    .catch(console.error)
-    .finally(() => prisma.$disconnect())
-}
+});
 ```
 
-### Deployment Checklist
+### Performance Monitoring
+- Response time tracking
+- Database query performance
+- Memory and CPU usage
+- Error rate monitoring
+- User activity tracking
 
-```markdown
-## Pre-deployment Checklist
+### Backup Strategy
+```bash
+#!/bin/bash
+# Database backup script
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/backups"
+DB_NAME="service_portal"
 
-### Database
-- [ ] Run database migrations in staging
-- [ ] Test data migration script
-- [ ] Verify existing data integrity
-- [ ] Create database backups
+# Create database backup
+mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME > $BACKUP_DIR/db_backup_$DATE.sql
 
-### API Testing
-- [ ] Test all new API endpoints
-- [ ] Verify permission systems
-- [ ] Load test real-time features
-- [ ] Test error handling
+# Compress backup
+gzip $BACKUP_DIR/db_backup_$DATE.sql
 
-### UI/UX
-- [ ] Test admin dashboard integration
-- [ ] Verify responsive design
-- [ ] Test accessibility features
-- [ ] Browser compatibility testing
+# Upload to S3
+aws s3 cp $BACKUP_DIR/db_backup_$DATE.sql.gz s3://your-backup-bucket/database/
 
-### Security
-- [ ] Review permission implementations
-- [ ] Test authentication flows
-- [ ] Validate input sanitization
-- [ ] Security audit of new endpoints
+# Clean old local backups (keep last 7 days)
+find $BACKUP_DIR -name "db_backup_*.sql.gz" -mtime +7 -delete
+```
 
-### Performance
-- [ ] Database query optimization
-- [ ] Real-time connection limits
-- [ ] Caching strategy verification
-- [ ] CDN configuration for assets
+### Log Management
+```javascript
+const winston = require('winston');
 
-### Monitoring
-- [ ] Error tracking setup
-- [ ] Performance monitoring
-- [ ] Real-time connection monitoring
-- [ ] Database performance tracking
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'service-portal' },
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' })
+  ]
+});
 ```
 
 ---
 
-the service portal seamlessly with the existing accounting firm platform architecture. By leveraging the established Next.js 14 App Router structure, Prisma ORM patterns, and NextAuth.js authentication system, this enhancement extends the current platform's capabilities while maintaining consistency and security standards.
+## Implementation Timeline
 
-### Key Integration Benefits
+### Phase 1: Foundation (Weeks 1-4)
+- **Week 1**: Database schema setup and initial backend structure
+- **Week 2**: User authentication and role management system
+- **Week 3**: Basic API endpoints and middleware
+- **Week 4**: Frontend setup and authentication UI
 
-**Architectural Consistency**: The service portal follows the same patterns established in the existing admin dashboard, using similar API structures at `/api/admin/*`, consistent component organization, and the same state management approaches.
+### Phase 2: Core Features (Weeks 5-8)
+- **Week 5**: Service catalog and request creation
+- **Week 6**: Request assignment and workflow management
+- **Week 7**: File upload and management system
+- **Week 8**: Basic dashboard and user profiles
 
-**Database Evolution**: Rather than creating a separate system, the enhanced schema extends existing models (users, services) and adds complementary tables that integrate naturally with current booking and user management systems.
+### Phase 3: Advanced Features (Weeks 9-12)
+- **Week 9**: Notification system implementation
+- **Week 10**: Reporting and analytics dashboard
+- **Week 11**: Admin panel and user management
+- **Week 12**: Testing and bug fixes
 
-**Security Continuity**: The enhanced permission system builds upon the existing role-based access control, extending it with granular service portal permissions while maintaining the same authentication flow.
+### Phase 4: Polish & Deployment (Weeks 13-16)
+- **Week 13**: UI/UX improvements and responsive design
+- **Week 14**: Performance optimization and caching
+- **Week 15**: Security hardening and audit
+- **Week 16**: Production deployment and monitoring setup
 
-**UI/UX Harmony**: New admin pages follow the established design patterns using the same shadcn/ui components, maintaining visual consistency while adding powerful new functionality.
+### Phase 5: Post-Launch (Ongoing)
+- User feedback integration
+- Feature enhancements
+- Performance monitoring
+- Regular security updates
 
-### Implementation Advantages
+---
 
-**Minimal Disruption**: The phased approach allows for gradual rollout without affecting existing functionality. Current users and workflows remain unchanged while new capabilities are added.
+## Success Metrics
 
-**Data Migration**: Existing bookings can be seamlessly converted to service requests where appropriate, preserving historical data and client relationships.
+### Technical KPIs
+- **Response Time**: < 200ms for API calls
+- **Uptime**: 99.9% availability
+- **Security**: Zero data breaches
+- **Performance**: Page load times < 2 seconds
 
-**Team Onboarding**: Staff familiar with the current admin interface will find the new service portal features intuitive, reducing training time.
+### Business KPIs
+- **User Adoption**: 80% of registered users active monthly
+- **Request Completion**: 95% of requests completed on time
+- **User Satisfaction**: 4.5+ star average rating
+- **System Efficiency**: 50% reduction in manual process time
 
-**Scalability**: The enhanced architecture supports growth from simple task assignment to complex project management while maintaining performance.
+---
 
-### Technical Highlights
+## Conclusion
 
-**Real-time Capabilities**: Server-sent events integration provides live updates for service requests and task assignments without requiring external services.
+This implementation guide provides a comprehensive roadmap for building a robust service portal with multi-role user management. The architecture emphasizes scalability, security, and maintainability while providing a seamless user experience across all user types.
 
-**Enhanced Task Management**: Building on the existing task system with templates, bulk operations, and service request integration creates a comprehensive workflow management solution.
+### Key Success Factors
 
-**Advanced Analytics**: New dashboard metrics complement existing analytics, providing deeper insights into team performance and service delivery.
+1. **Start Simple**: Begin with MVP features and iterate based on user feedback
+2. **Security First**: Implement security measures from day one, not as an afterthought
+3. **Performance Monitoring**: Set up monitoring and alerting before going live
+4. **Documentation**: Maintain comprehensive API and system documentation
+5. **Testing**: Implement automated testing at all levels
+6. **User Training**: Provide comprehensive user guides and training materials
 
-**Multi-tenant Ready**: The permission system and data structure support multiple client workspaces and team hierarchies.
+### Next Steps
 
-This implementation represents a natural evolution of the existing platform, transforming a solid accounting firm management system into a comprehensive professional services portal. The careful alignment with existing patterns ensures maintainability while the enhanced features provide significant business value through improved workflow management, team collaboration, and client service delivery.
+1. **Environment Setup**: Set up development, staging, and production environments
+2. **Team Assembly**: Assign roles to frontend, backend, DevOps, and QA team members
+3. **Tool Selection**: Choose specific technologies from the recommended stack
+4. **Database Creation**: Implement the database schema and initial data seeding
+5. **Development Kickoff**: Start with Phase 1 implementation following the timeline
 
-The guide provides a complete roadmap for implementation, from database migrations to deployment strategies, ensuring a smooth transition that enhances rather than disrupts the current successful platform.
+---
+
+## Appendices
+
+### Appendix A: Sample Data for Testing
+
+#### Sample Roles Data
+```sql
+INSERT INTO roles (name, display_name, description, permissions, is_system_role) VALUES
+('super_admin', 'Super Administrator', 'Full system access', 
+ '["*"]', true),
+('admin', 'Administrator', 'Administrative access', 
+ '["users.*", "services.*", "requests.*", "reports.*"]', true),
+('team_lead', 'Team Leader', 'Team management access', 
+ '["team.*", "requests.assign", "requests.update", "reports.team"]', true),
+('team_member', 'Team Member', 'Standard team member access', 
+ '["requests.read_assigned", "requests.update_assigned", "profile.update"]', true),
+('client', 'Client', 'Client portal access', 
+ '["requests.create", "requests.read_own", "requests.update_own", "services.browse", "profile.update"]', true);
+```
+
+#### Sample Services Data
+```sql
+INSERT INTO services (name, description, category, base_price, estimated_duration_hours, required_skills, status) VALUES
+('Website Development', 'Custom website development with modern technologies', 'Web Development', 2500.00, 80, '["HTML", "CSS", "JavaScript", "React"]', 'active'),
+('Mobile App Development', 'Native or cross-platform mobile application', 'Mobile Development', 5000.00, 160, '["React Native", "Flutter", "iOS", "Android"]', 'active'),
+('SEO Optimization', 'Search engine optimization for better visibility', 'Digital Marketing', 800.00, 20, '["SEO", "Analytics", "Content Marketing"]', 'active'),
+('Logo Design', 'Professional logo design and branding', 'Design', 300.00, 8, '["Graphic Design", "Adobe Illustrator", "Branding"]', 'active'),
+('Database Design', 'Database architecture and optimization', 'Backend Development', 1200.00, 32, '["MySQL", "PostgreSQL", "Database Design"]', 'active');
+```
+
+### Appendix B: API Documentation Examples
+
+#### Authentication API
+```yaml
+/api/auth/login:
+  post:
+    summary: User login
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+                minLength: 8
+    responses:
+      200:
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                data:
+                  type: object
+                  properties:
+                    user:
+                      $ref: '#/components/schemas/User'
+                    token:
+                      type: string
+                    permissions:
+                      type: array
+                      items:
+                        type: string
+      401:
+        description: Invalid credentials
+```
+
+### Appendix C: Security Checklist
+
+#### Pre-Launch Security Audit
+- [ ] SQL injection protection implemented
+- [ ] XSS protection in place
+- [ ] CSRF tokens implemented
+- [ ] Rate limiting configured
+- [ ] Input validation on all endpoints
+- [ ] File upload restrictions enforced
+- [ ] Password hashing with bcrypt (12+ rounds)
+- [ ] JWT tokens with reasonable expiry
+- [ ] HTTPS enforced in production
+- [ ] Security headers configured
+- [ ] Database access restricted
+- [ ] Environment variables secured
+- [ ] Audit logging implemented
+- [ ] Error messages don't leak sensitive info
+- [ ] Dependencies updated and scanned
+- [ ] Backup and recovery procedures tested
+
+### Appendix D: Performance Optimization Guidelines
+
+#### Database Optimization
+```sql
+-- Query optimization examples
+-- Index on frequently queried columns
+CREATE INDEX idx_service_requests_status_created ON service_requests(status, created_at);
+CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
+
+-- Query optimization for request listing
+SELECT sr.*, s.name as service_name, u.first_name, u.last_name
+FROM service_requests sr
+JOIN services s ON sr.service_id = s.id
+JOIN users u ON sr.client_id = u.id
+WHERE sr.status IN ('submitted', 'in_review', 'assigned')
+ORDER BY sr.created_at DESC
+LIMIT 20 OFFSET 0;
+```
+
+#### Caching Strategy
+```javascript
+// Redis caching implementation
+class CacheService {
+  async get(key) {
+    try {
+      const cached = await redis.get(key);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      logger.error('Cache get error:', error);
+      return null;
+    }
+  }
+  
+  async set(key, data, ttl = 3600) {
+    try {
+      await redis.setex(key, ttl, JSON.stringify(data));
+    } catch (error) {
+      logger.error('Cache set error:', error);
+    }
+  }
+  
+  async del(key) {
+    try {
+      await redis.del(key);
+    } catch (error) {
+      logger.error('Cache delete error:', error);
+    }
+  }
+}
+
+// Usage in service
+class ServiceRequestService {
+  async getRequests(userId, filters) {
+    const cacheKey = `requests:${userId}:${JSON.stringify(filters)}`;
+    
+    // Try cache first
+    let requests = await CacheService.get(cacheKey);
+    
+    if (!requests) {
+      // Query database
+      requests = await ServiceRequest.findByUser(userId, filters);
+      // Cache for 5 minutes
+      await CacheService.set(cacheKey, requests, 300);
+    }
+    
+    return requests;
+  }
+}
+```
+
+### Appendix E: Error Handling Best Practices
+
+#### Global Error Handler
+```javascript
+// Express error handling middleware
+const errorHandler = (err, req, res, next) => {
+  let error = { ...err };
+  error.message = err.message;
+
+  // Log error
+  logger.error('Error:', err);
+
+  // Mongoose bad ObjectId
+  if (err.name === 'CastError') {
+    const message = 'Resource not found';
+    error = { message, statusCode: 404 };
+  }
+
+  // Mongoose duplicate key
+  if (err.code === 11000) {
+    const message = 'Duplicate field value entered';
+    error = { message, statusCode: 400 };
+  }
+
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    const message = Object.values(err.errors).map(val => val.message);
+    error = { message, statusCode: 400 };
+  }
+
+  res.status(error.statusCode || 500).json({
+    success: false,
+    error: {
+      message: error.message || 'Server Error',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  });
+};
+```
+
+#### Custom Error Classes
+```javascript
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+class ValidationError extends AppError {
+  constructor(message) {
+    super(message, 400);
+  }
+}
+
+class AuthenticationError extends AppError {
+  constructor(message = 'Authentication failed') {
+    super(message, 401);
+  }
+}
+
+class AuthorizationError extends AppError {
+  constructor(message = 'Not authorized to access this resource') {
+    super(message, 403);
+  }
+}
+```
+
+### Appendix F: Deployment Scripts
+
+#### Production Deployment Script
+```bash
+#!/bin/bash
+
+# production-deploy.sh
+set -e
+
+echo "Starting production deployment..."
+
+# Variables
+APP_DIR="/var/www/service-portal"
+BACKUP_DIR="/var/backups/service-portal"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup
+echo "Creating backup..."
+mkdir -p $BACKUP_DIR
+cp -r $APP_DIR $BACKUP_DIR/backup_$DATE
+
+# Pull latest code
+echo "Pulling latest code..."
+cd $APP_DIR
+git pull origin main
+
+# Install dependencies
+echo "Installing dependencies..."
+npm ci --production
+
+# Run database migrations
+echo "Running database migrations..."
+npm run migrate
+
+# Build frontend
+echo "Building frontend..."
+npm run build
+
+# Run tests
+echo "Running tests..."
+npm run test:production
+
+# Restart services
+echo "Restarting services..."
+docker-compose down
+docker-compose up -d
+
+# Health check
+echo "Performing health check..."
+sleep 30
+curl -f http://localhost:3000/health || exit 1
+
+# Clean old backups (keep last 7)
+echo "Cleaning old backups..."
+find $BACKUP_DIR -name "backup_*" -mtime +7 -exec rm -rf {} \;
+
+echo "Deployment completed successfully!"
+```
+
+#### Database Migration Script
+```bash
+#!/bin/bash
+
+# migrate.sh
+echo "Running database migrations..."
+
+# Check database connection
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD -e "SELECT 1" $DB_NAME
+
+# Run migrations
+for migration in migrations/*.sql; do
+  echo "Applying migration: $migration"
+  mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME < $migration
+done
+
+echo "Database migrations completed!"
+```
+
+### Appendix G: Monitoring and Alerting Configuration
+
+#### Prometheus Configuration
+```yaml
+# prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'service-portal'
+    static_configs:
+      - targets: ['localhost:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['localhost:9104']
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
+```
+
+#### Grafana Dashboard JSON
+```json
+{
+  "dashboard": {
+    "title": "Service Portal Metrics",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{route}}"
+          }
+        ]
+      },
+      {
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Appendix H: User Training Materials
+
+#### Quick Start Guide for Clients
+1. **Registration**
+   - Visit the portal homepage
+   - Click "Register as Client"
+   - Fill in company information
+   - Verify your email address
+
+2. **Requesting Services**
+   - Browse the service catalog
+   - Click "Request Service" on desired service
+   - Fill in project requirements
+   - Submit request and wait for approval
+
+3. **Tracking Progress**
+   - View request status in your dashboard
+   - Communicate with assigned team members
+   - Review and approve completed work
+
+#### Admin User Manual
+1. **User Management**
+   - Access admin panel
+   - View all registered users
+   - Approve or reject team member applications
+   - Assign roles and permissions
+
+2. **Service Management**
+   - Create new service offerings
+   - Update pricing and descriptions
+   - Manage service categories
+   - Archive outdated services
+
+3. **Request Oversight**
+   - Monitor all active requests
+   - Reassign requests when needed
+   - Generate performance reports
+   - Handle escalated issues
+
+This comprehensive implementation guide provides everything needed to successfully build and deploy your service portal. The modular approach allows for phased implementation while maintaining scalability and security throughout the development process.
