@@ -156,3 +156,11 @@
 ✅ What was completed: Added shared helpers in src/lib/tenant.ts for resolving tenant IDs, composing tenant/email lookups, and enforcing tenant data writes; refactored auth registration, dev login, portal realtime, public service-requests, users/check-email, and admin org-settings routes to rely on the new helpers.
 ✅ Why it was done: Enhancement to remove duplicated tenant resolution logic, prevent mismatched tenant IDs in Prisma queries, and standardize tenant-aware access across critical endpoints.
 ✅ Next steps: Migrate remaining services and background jobs to the shared helpers, and extend coverage to additional Prisma access patterns (e.g., repository layer and other admin routes).
+
+[x] Resolve TS build errors: withTenant typing and audit import
+✅ What was completed:
+- Refined `withTenant` overloads to return `{ tenantId: string }` by default, satisfying Prisma UncheckedCreateInput and preventing TS2322 in create calls.
+- Removed duplicate `prisma` import in `src/lib/audit.ts` fixing TS2300.
+- Verified affected routes (org-settings, auth/register, portal/realtime, public/service-requests) create calls include tenant.
+✅ Why it was done: Fix compile-time failures after enforcing tenant constraints in Prisma.
+✅ Next steps: Run full typecheck/build in CI and audit remaining routes for any direct unchecked tenant assignments.
