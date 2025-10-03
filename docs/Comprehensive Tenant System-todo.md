@@ -156,6 +156,15 @@
 ✅ Why it was done: Fix compile-time failures after enforcing tenant constraints in Prisma.
 ✅ Next steps: Run full typecheck/build in CI and audit remaining routes for any direct unchecked tenant assignments.
 
+[x] Restore homepage hero import alias
+✅ What was completed: Added the missing `HeroSection` import to `src/app/page.tsx`, aliasing it as `HomeHeroSection` so the homepage renders without runtime reference errors.
+✅ Why it was done: Without the import the dev server crashed on render, leaving the app non-functional for `/`; restoring the alias reestablishes the expected hero toggle logic.
+✅ Next steps: None.
+
+[x] Enforce Prisma tenant guard and add isolation tests
+✅ What was completed: Introduced `registerTenantGuard` middleware that inspects Prisma operations for tenant-scoped models, blocking writes lacking tenant assignments, enforcing bulk filters, and logging unsafe reads; added integration tests (`tests/integration/prisma-tenant-guard.test.ts`) validating missing-tenant failures, and upgraded logger coverage for tenant-context leaks. Also wired the guard through `src/lib/prisma.ts` so every client instance applies the middleware.
+✅ Why it was done: Establishes the Phase 1 safety net ensuring no new data is persisted without tenant attribution, prevents cross-tenant bulk mutations, and surfaces read-time leaks for follow-up hardening.
+✅ Next steps: Extend the guard to auto-enforce tenant filters on single-record mutations once routes adopt `withTenantContext`, and capture log metrics for investigation dashboards.
 
 ---
 

@@ -1,0 +1,246 @@
+import type { Prisma, PrismaClient } from '@prisma/client'
+import { logger } from '@/lib/logger'
+import { tenantContext } from '@/lib/tenant-context'
+import { isMultiTenancyEnabled } from '@/lib/tenant'
+
+type TenantModelConfig = {
+  field: string
+  optional: boolean
+}
+
+type GuardedAction =
+  | 'create'
+  | 'createMany'
+  | 'upsert'
+  | 'updateMany'
+  | 'deleteMany'
+  | 'update'
+  | 'delete'
+  | 'findFirst'
+  | 'findUnique'
+  | 'findMany'
+  | 'aggregate'
+  | 'count'
+  | 'groupBy'
+
+const WRITE_ACTIONS: ReadonlySet<GuardedAction> = new Set(['create', 'createMany', 'upsert'])
+const BULK_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['updateMany', 'deleteMany'])
+const SINGLE_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['update', 'delete'])
+const READ_ACTIONS: ReadonlySet<GuardedAction> = new Set(['findFirst', 'findUnique', 'findMany', 'aggregate', 'count', 'groupBy'])
+
+const tenantModelConfigs: ReadonlyMap<string, TenantModelConfig> = (() => {
+  const configs = new Map<string, TenantModelConfig>()
+  for (const model of Prisma.dmmf.datamodel.models) {
+    const tenantField = model.fields.find(field => field.name === 'tenantId')
+    if (tenantField) {
+      configs.set(model.name, {
+        field: tenantField.name,
+        optional: !tenantField.isRequired,
+      })
+    }
+  }
+  return configs
+})()
+
+function extractTenantValuesFromScalar(value: unknown): string[] {
+  if (typeof value === 'string' && value.trim().length > 0) return [value]
+  if (value && typeof value === 'object') {
+    const candidate = value as Record<string, unknown>
+    if (typeof candidate.equals === 'string') return [candidate.equals]
+    if (Array.isArray(candidate.in)) {
+      return candidate.in.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    }
+    if (typeof candidate.set === 'string') return [candidate.set]
+  }
+  return []
+}
+
+function collectTenantValues(input: unknown, tenantField: string): string[] {
+  if (!input || typeof input !== 'object') return []
+
+  const values: string[] = []
+  const record = input as Record<string, unknown>
+
+  if (tenantField in record) {
+    values.push(...extractTenantValuesFromScalar(record[tenantField]))
+  }
+
+  for (const [key, value] of Object.entries(record)) {
+    if (!value || typeof value !== 'object') continue
+    if (key === 'AND' || key === 'OR') {
+      const clauses = Array.isArray(value) ? value : [value]
+      for (const clause of clauses) values.push(...collectTenantValues(clause, tenantField))
+    } else if (key === 'NOT') {
+      const clauses = Array.isArray(value) ? value : [value]
+      for (const clause of clauses) values.push(...collectTenantValues(clause, tenantField))
+    } else if (key.toLowerCase().includes('tenant')) {
+      values.push(...collectTenantValues(value, tenantField))
+    }
+  }
+
+  return Array.from(new Set(values.filter(v => typeof v === 'string' && v.trim().length > 0)))
+}
+
+function assertTenantForCreate(
+  model: string,
+  action: GuardedAction,
+  data: unknown,
+  tenantField: string,
+  expectedTenantId: string,
+  allowDifferentTenant: boolean,
+  allowNullForOptional: boolean
+) {
+  const records = Array.isArray(data) ? data : [data]
+
+  for (const entry of records) {
+    if (!entry || typeof entry !== 'object') {
+      logger.error('Tenant guard blocked create due to malformed payload', {
+        model,
+        action,
+        reason: 'non-object-record',
+      })
+      throw new Error('Tenant guard: invalid create payload')
+    }
+    const record = entry as Record<string, unknown>
+    const rawTenantValue = record[tenantField]
+    const values = extractTenantValuesFromScalar(rawTenantValue)
+
+    if (!values.length) {
+      if (allowNullForOptional && rawTenantValue == null) return
+      logger.error('Tenant guard blocked create without tenantId', {
+        model,
+        action,
+      })
+      throw new Error('Tenant guard: tenantId is required for tenant-scoped create')
+    }
+
+    for (const provided of values) {
+      if (!allowDifferentTenant && provided !== expectedTenantId) {
+        logger.error('Tenant guard blocked tenant mismatch on create', {
+          model,
+          action,
+          expectedTenantId,
+          providedTenantId: provided,
+        })
+        throw new Error('Tenant guard: tenantId mismatch')
+      }
+    }
+  }
+}
+
+function assertTenantForBulkWhere(
+  model: string,
+  action: GuardedAction,
+  where: unknown,
+  tenantField: string,
+  expectedTenantId: string,
+  allowDifferentTenant: boolean
+) {
+  const values = collectTenantValues(where ?? {}, tenantField)
+  if (!values.length) {
+    logger.error('Tenant guard blocked bulk mutation without tenant scope', {
+      model,
+      action,
+    })
+    throw new Error('Tenant guard: bulk mutations require tenant filter')
+  }
+  if (!allowDifferentTenant && values.some(value => value !== expectedTenantId)) {
+    logger.error('Tenant guard blocked mismatched tenant scope on bulk mutation', {
+      model,
+      action,
+      expectedTenantId,
+      providedTenantIds: values,
+    })
+    throw new Error('Tenant guard: bulk mutation tenant mismatch')
+  }
+}
+
+function logReadWithoutTenant(model: string, action: GuardedAction, where: unknown, tenantField: string, tenantId: string) {
+  const values = collectTenantValues(where ?? {}, tenantField)
+  if (!values.length) {
+    logger.warn('Tenant guard detected read without tenant constraint', {
+      model,
+      action,
+      tenantId,
+    })
+  }
+}
+
+export function enforceTenantGuard(params: Prisma.MiddlewareParams): void {
+  if (!isMultiTenancyEnabled()) return
+  const model = params.model
+  if (!model) return
+
+  const config = tenantModelConfigs.get(model)
+  if (!config) return
+
+  const context = tenantContext.getContextOrNull()
+  if (!context || !context.tenantId) {
+    logger.error('Tenant guard blocked operation due to missing tenant context', {
+      model,
+      action: params.action,
+    })
+    throw new Error('Tenant guard: tenant context is required')
+  }
+
+  const action = params.action as GuardedAction
+  const allowDifferentTenant = Boolean(context.isSuperAdmin)
+
+  if (WRITE_ACTIONS.has(action)) {
+    assertTenantForCreate(
+      model,
+      action,
+      params.args?.data,
+      config.field,
+      context.tenantId,
+      allowDifferentTenant,
+      config.optional && allowDifferentTenant
+    )
+  }
+
+  if (BULK_MUTATION_ACTIONS.has(action)) {
+    assertTenantForBulkWhere(
+      model,
+      action,
+      params.args?.where,
+      config.field,
+      context.tenantId,
+      allowDifferentTenant
+    )
+  }
+
+  if (SINGLE_MUTATION_ACTIONS.has(action) && !allowDifferentTenant) {
+    const values = collectTenantValues(params.args?.where ?? {}, config.field)
+    if (!values.length) {
+      logger.warn('Tenant guard detected single-record mutation without tenant filter', {
+        model,
+        action,
+        tenantId: context.tenantId,
+      })
+    } else if (values.some(value => value !== context.tenantId)) {
+      logger.error('Tenant guard blocked tenant mismatch on single mutation', {
+        model,
+        action,
+        expectedTenantId: context.tenantId,
+        providedTenantIds: values,
+      })
+      throw new Error('Tenant guard: tenant mismatch on mutation')
+    }
+  }
+
+  if (READ_ACTIONS.has(action)) {
+    logReadWithoutTenant(model, action, params.args?.where, config.field, context.tenantId)
+  }
+}
+
+export function registerTenantGuard(client: PrismaClient): void {
+  const flag = Symbol.for('tenantGuardRegistered')
+  const anyClient = client as unknown as Record<symbol, boolean>
+  if (anyClient[flag]) return
+  anyClient[flag] = true
+
+  client.$use(async (params, next) => {
+    enforceTenantGuard(params)
+    return next(params)
+  })
+}
