@@ -83,6 +83,9 @@ export default async function RootLayout({
         {/* Structured data for SEO */}
         <SchemaMarkup />
 
+        {/* Remove third-party instrumentation attributes (bis_*) from server HTML early on the client to avoid hydration mismatches */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(typeof document==='undefined')return;var els=document.getElementsByTagName('*');for(var i=0;i<els.length;i++){var a=els[i].attributes;for(var j=a.length-1;j>=0;j--){var n=a[j].name;if(/^bis_/i.test(n)||n.indexOf('bis_')===0||n.indexOf('bis')===0){try{els[i].removeAttribute(n)}catch(e){}}}}}catch(e){} })();` }} />
+
         {/* Performance monitoring: report page load time to analytics (gtag stub) */}
         <script
           dangerouslySetInnerHTML={{
