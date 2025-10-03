@@ -98,3 +98,8 @@
 - [ ] Update developer onboarding documentation with tenant context usage guidelines.
 - [ ] Schedule periodic audits to ensure new models include tenant governance and tests remain comprehensive.
 - [ ] Review incident response playbooks incorporating tenant context for faster investigations.
+
+[x] Add Tenant back-relations for settings models
+✅ What was completed: Added organization, integration, communication, and security settings back-relations to the Tenant model to satisfy Prisma validation requirements.
+✅ Why it was done: Enhancement to align existing Prisma schema so per-tenant settings reuse canonical Tenant relations and remove build-blocking errors.
+✅ Next steps: Audit remaining tenant-scoped models to ensure consistent back-relations and tenantId enforcement before enabling RLS.
