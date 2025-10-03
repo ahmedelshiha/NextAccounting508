@@ -32,9 +32,9 @@ export function useServicesData(options: UseServicesDataOptions = {}) {
       setError(null);
       const qp = new URLSearchParams();
       if (debouncedSearch) qp.set('search', debouncedSearch);
-      if (filters.category !== 'all') qp.set('category', filters.category);
-      if (filters.featured !== 'all') qp.set('featured', filters.featured);
-      if (filters.status !== 'all') qp.set('status', filters.status);
+      if (filters.category && filters.category !== 'all') qp.set('category', String(filters.category));
+      if (filters.featured && filters.featured !== 'all') qp.set('featured', String(filters.featured));
+      if (filters.status && filters.status !== 'all') qp.set('status', String(filters.status));
       const res = await apiFetch(`/api/admin/services?${qp.toString()}`);
       if (!res.ok) throw new Error('Failed to load services');
       const data = await res.json();
