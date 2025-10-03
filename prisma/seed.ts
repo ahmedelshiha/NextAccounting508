@@ -1,4 +1,5 @@
 import prisma from '../src/lib/prisma'
+import { TenantStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -14,6 +15,20 @@ async function main() {
   console.log('🌱 Starting seed...')
 
   const SEED_FAIL_FAST = process.env.SEED_FAIL_FAST === 'true'
+
+  const defaultTenant = await prisma.tenant.upsert({
+    where: { slug: 'primary' },
+    update: {
+      name: 'Primary Accounting Tenant',
+      status: TenantStatus.ACTIVE,
+    },
+    create: {
+      slug: 'primary',
+      name: 'Primary Accounting Tenant',
+      status: TenantStatus.ACTIVE,
+      description: 'Default seeded tenant for the accounting firm demo environment',
+    },
+  })
 
   // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
@@ -35,9 +50,10 @@ async function main() {
   // Create users inside a transaction to ensure consistency
   const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
     const a = await tx.user.upsert({
-      where: { email: 'admin@accountingfirm.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'admin@accountingfirm.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'admin@accountingfirm.com',
         name: 'Admin User',
         password: adminPassword,
@@ -47,9 +63,10 @@ async function main() {
     })
 
     const s = await tx.user.upsert({
-      where: { email: 'staff@accountingfirm.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'staff@accountingfirm.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'staff@accountingfirm.com',
         name: 'Staff Member',
         password: staffPassword,
@@ -59,9 +76,10 @@ async function main() {
     })
 
     const c1 = await tx.user.upsert({
-      where: { email: 'client1@example.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'client1@example.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'client1@example.com',
         name: 'Client One',
         password: clientPassword,
@@ -71,9 +89,10 @@ async function main() {
     })
 
     const c2 = await tx.user.upsert({
-      where: { email: 'client2@example.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'client2@example.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'client2@example.com',
         name: 'Client Two',
         password: clientPassword,
@@ -83,9 +102,10 @@ async function main() {
     })
 
     const l = await tx.user.upsert({
-      where: { email: 'lead@accountingfirm.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'lead@accountingfirm.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'lead@accountingfirm.com',
         name: 'Team Lead',
         password: leadPassword,
