@@ -29,9 +29,11 @@ export class IntegrationSettingsService {
   }
 
   async update(tenantId: string | null, payload: IntegrationHubSettings, actorId?: string | null){
-    const existing = await prisma.integrationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(()=>null as any)
+    const resolvedTenantId = await resolveTenantId(tenantId)
+    const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+    const existing = await prisma.integrationSettings.findFirst({ where: scope }).catch(() => null as any)
     const next: any = {
-      tenantId: tenantId ?? undefined,
+      tenantId: resolvedTenantId,
       payments: { ...(existing?.payments ?? {}), ...(payload.payments ? {
         provider: payload.payments.provider ?? (existing?.payments?.provider ?? 'none'),
         publishableKeyMasked: payload.payments.publishableKey ? mask(payload.payments.publishableKey, 4) : (existing?.payments?.publishableKeyMasked ?? undefined),
@@ -47,7 +49,9 @@ export class IntegrationSettingsService {
       ? await prisma.integrationSettings.update({ where: { id: existing.id }, data: next })
       : await prisma.integrationSettings.create({ data: next })
     await this.cache.delete(this.cacheKey(tenantId))
-    try { await logAudit({ action: 'integration-settings:update', actorId: actorId ?? null, details: { tenantId, sections: Object.keys(payload) } }) } catch {}
+    try {
+      await logAudit({ action: 'integration-settings:update', actorId: actorId ?? null, details: { tenantId: resolvedTenantId, requestedTenantId: tenantId ?? null, sections: Object.keys(payload) } })
+    } catch {}
     return saved
   }
 
