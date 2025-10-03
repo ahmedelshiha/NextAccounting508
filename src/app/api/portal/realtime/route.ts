@@ -1,6 +1,8 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { getTenantFromRequest } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 export const runtime = 'nodejs'
 
@@ -15,7 +17,9 @@ export async function GET(request: Request) {
   // Best-effort health log for observability
   try {
     const { default: prisma } = await import('@/lib/prisma')
-    await prisma.healthLog.create({ data: { service: 'portal:realtime', status: 'CONNECTED', message: `user:${userId} events:${eventTypes.join(',')}` } }).catch(() => null)
+    const tenantHint = getTenantFromRequest(request as any)
+    const tenantId = await resolveTenantId(tenantHint)
+    await prisma.healthLog.create({ data: { tenantId, service: 'portal:realtime', status: 'CONNECTED', message: `user:${userId} events:${eventTypes.join(',')}` } }).catch(() => null)
   } catch {}
 
   const stream = new ReadableStream<Uint8Array>({
@@ -33,7 +37,9 @@ export async function GET(request: Request) {
         // Log disconnect
         try {
           const { default: prisma } = await import('@/lib/prisma')
-          await prisma.healthLog.create({ data: { service: 'portal:realtime', status: 'DISCONNECTED', message: `user:${userId}` } }).catch(() => null)
+          const tenantHint = getTenantFromRequest(request as any)
+          const tenantId = await resolveTenantId(tenantHint)
+          await prisma.healthLog.create({ data: { tenantId, service: 'portal:realtime', status: 'DISCONNECTED', message: `user:${userId}` } }).catch(() => null)
         } catch {}
       }
       request.signal.addEventListener('abort', onAbort)
