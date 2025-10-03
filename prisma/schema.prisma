@@ -329,14 +329,18 @@ model ContactSubmission {
 // Health monitoring logs
 model HealthLog {
   id        String   @id @default(cuid())
+  tenantId  String
   service   String
   status    String
   message   String?
   checkedAt DateTime @default(now())
 
-  @@index([checkedAt])
-  @@index([service, checkedAt])
-  @@index([service, status, checkedAt])
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, checkedAt])
+  @@index([tenantId, service, checkedAt])
+  @@index([tenantId, service, status, checkedAt])
 }
 
 // Health thresholds stored in DB for admin-configurable alerts
