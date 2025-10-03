@@ -155,6 +155,27 @@ If you’d like I can now:
 
 ---
 
+## Settings Inventory (CSV)
+
+Field,Type,Source,Used In,Notes
+name,string,OrganizationSettings.name,Header/Footer/SEO,Displayed brand name
+logoUrl,string,OrganizationSettings.logoUrl,Header/Footer,Shown as logo; initials fallback
+contactEmail,string,OrganizationSettings.contactEmail,Footer/Contact,Support email link
+contactPhone,string,OrganizationSettings.contactPhone,Footer/Contact,Support phone link
+address,json,OrganizationSettings.address,Contact/Admin,Structured address fields
+defaultTimezone,string,OrganizationSettings.defaultTimezone,Reminders/Availability,Timezone fallback
+defaultCurrency,string,OrganizationSettings.defaultCurrency,Pricing/Display,Base currency fallback
+defaultLocale,string,OrganizationSettings.defaultLocale,i18n,Language default
+branding,json,OrganizationSettings.branding,Admin UI,Fine-grained theming (optional)
+termsUrl,string,OrganizationSettings.termsUrl,Footer/Public pages,Legal link (preferred)
+privacyUrl,string,OrganizationSettings.privacyUrl,Footer/Public pages,Legal link (preferred)
+refundUrl,string,OrganizationSettings.refundUrl,Admin/Public pages,Optional legal link
+legalLinks(json; legacy),json,OrganizationSettings.legalLinks,Compatibility,Fallback only; slated for removal
+
+## Legacy Settings
+- legalLinks JSON is legacy; explicit URL columns (termsUrl, privacyUrl, refundUrl) are the source of truth.
+- Removal plan: after migrations/backfill verified in prod, drop legalLinks column and code fallbacks.
+
 ## Files added/modified in this change
 - Modified: prisma/schema.prisma (added termsUrl/privacyUrl/refundUrl)
 - Added: prisma/migrations/20251001_add_legal_links_columns/migration.sql (SQL for migration)
