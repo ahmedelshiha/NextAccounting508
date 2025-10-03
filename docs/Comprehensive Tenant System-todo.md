@@ -1,0 +1,100 @@
+# Comprehensive Tenant System Enhancement Checklist
+
+> Reference guideline: [Comprehensive Tenant System Enhancement Plan](./Comprehensive%20Tenant%20System%20Enhancement%20Plan.md) · [Tenant System Audit Report](./tenant-system-audit.md)
+
+## Phase 0: Planning and Governance
+- [ ] Confirm executive sponsorship and security requirements for zero-trust tenant isolation with stakeholders.
+- [ ] Define tenant identifier canonical source (tenant table schema, slug, domain mapping) and document naming conventions.
+- [ ] Catalog all tenant-owned models, cross-tenant relationships, and singleton tables requiring partial uniqueness.
+- [ ] Establish rollout environments (dev, staging, production) and change-management approvals for multi-tenant migrations.
+
+## Phase 1: Database Schema Overhaul
+- [ ] Add `tenantId` column (non-null) with indexes and foreign keys to `User`, `Task`, `ComplianceRecord`, `HealthLog`, `AuditLog`, and any remaining tenant-owned tables.
+- [ ] Normalize nullable tenant columns by enforcing `tenantId` NOT NULL or explicit defaults for global rows.
+- [ ] Introduce compound unique constraints (e.g., `@@unique([tenantId, slug])`) to enforce tenant-scoped uniqueness on services, users, and similar tables.
+- [ ] Create partial unique indexes for singleton settings tables (`OrganizationSettings`, `BookingSettings`, `IntegrationSettings`, `SecuritySettings`, etc.) separating global vs tenant-specific rows.
+- [ ] Implement compound foreign keys ensuring child entities reference parent entities with matching tenant IDs.
+
+## Phase 2: Data Backfill and Integrity Scripts
+- [ ] Write migration scripts to backfill new tenant columns using existing relationships (e.g., join tasks to assignee tenant).
+- [ ] Resolve orphaned records by assigning them to a default system tenant or archiving as required.
+- [ ] Remove temporary default values and enforce NOT NULL constraints post-backfill.
+- [ ] Create verification queries ensuring all tenant-owned tables contain no NULL tenant IDs and respect compound constraints.
+
+## Phase 3: Row-Level Security Enablement
+- [ ] Add migration to enable PostgreSQL RLS on all tenant-scoped tables.
+- [ ] Define tenant isolation policies using `current_setting('app.current_tenant_id')` for each protected table.
+- [ ] Add optional super-admin bypass policy gated by `app.is_superadmin` session parameter.
+- [ ] Document operational steps for setting session variables in migrations, scripts, and read replicas.
+
+## Phase 4: Authentication and Tenant Binding
+- [ ] Extend NextAuth credentials flow to return tenant memberships, active tenant ID, slug, and tenant role after login.
+- [ ] Store tenant membership records (e.g., `TenantMembership` join table) linking users to allowed tenants with default flags.
+- [ ] Update JWT callback to embed tenant metadata and token version for invalidation.
+- [ ] Add session callback to expose tenant data to the client while rejecting invalidated tokens.
+- [ ] Implement tenant switch endpoint that validates membership before updating JWT tenant context.
+
+## Phase 5: Tenant Context Propagation
+- [ ] Introduce AsyncLocalStorage-based `tenantContext` manager to capture tenant metadata per request lifecycle.
+- [ ] Build helper utilities (`requireTenantContext`, `getTenantFilter`, enforcement helpers) for tenant-aware validations and logging.
+- [ ] Ensure tenant context is established at the start of every server action, API route, and background job before accessing Prisma.
+- [ ] Audit existing utility modules to replace manual header checks with tenant context helpers.
+
+## Phase 6: Middleware and Request Pipeline
+- [ ] Expand Next.js middleware matcher to include `/api/:path*` while excluding static assets.
+- [ ] Validate tenant consistency between JWT, signed tenant cookie, and subdomain, rejecting mismatches with 403 responses.
+- [ ] Strip or overwrite inbound `x-tenant-id` headers and replace with server-verified tenant identifiers.
+- [ ] Issue HMAC-signed tenant cookies (`tenant_sig`) and verify them on every request.
+- [ ] Log request metadata (`tenantId`, `userId`, `requestId`) for observability and traceability.
+
+## Phase 7: Prisma Client Enhancements
+- [ ] Wrap Prisma client in custom class that registers middleware enforcing tenant scopes for configured models.
+- [ ] Inject tenant filters automatically for read operations, update/delete operations, and inserts lacking explicit tenant IDs.
+- [ ] Prevent cross-tenant operations by comparing requested tenant filters against context tenant, raising errors on mismatches.
+- [ ] Add helpers to set session variables before executing raw queries to satisfy RLS policies.
+- [ ] Document tenant-scoped model list and ensure future models are added via linting or code review checks.
+
+## Phase 8: Repository and Service Layer Updates
+- [ ] Create tenant-scoped repository abstractions that centralize Prisma access using tenant context helpers.
+- [ ] Refactor service modules to depend on repositories instead of direct Prisma calls.
+- [ ] Ensure repositories expose tenant-safe CRUD and analytics methods without accepting raw tenant IDs from callers.
+- [ ] Update caching mechanisms to include tenant identifiers in cache keys and invalidation logic.
+- [ ] Audit background jobs and cron scripts to run within tenant context or iterate per tenant with isolation.
+
+## Phase 9: API Layer Refactor
+- [ ] Implement `withTenantContext` API wrapper that enforces authentication, tenant signatures, and role-based access before invoking route handlers.
+- [ ] Update high-risk admin routes (tasks, analytics, service requests, bookings, etc.) to use the wrapper and tenant repositories.
+- [ ] Replace `findUnique({ where: { id } })` patterns with composite tenant-aware lookups.
+- [ ] Ensure response payloads exclude data from other tenants and include tenant context where appropriate for auditing.
+- [ ] Add consistent error handling for tenant mismatches, returning 403 Forbidden with structured error bodies.
+
+## Phase 10: Client and Portal Adjustments
+- [ ] Update frontend data-fetching hooks to remove manual tenant header injection and rely on authenticated API endpoints.
+- [ ] Provide tenant switcher UI that calls secure tenant-switch endpoints and refreshes session data.
+- [ ] Ensure portal routes display tenant-specific information only after verifying session tenant alignment.
+- [ ] Review offline or cached data stores (localStorage, IndexedDB) to include tenant scoping for multi-tenant clients.
+
+## Phase 11: Testing and Quality Assurance
+- [ ] Expand integration tests to cover tenant impersonation attempts and expect 403/404 outcomes.
+- [ ] Add unit tests for Prisma middleware validating injected tenant filters and rejection of mismatched tenant IDs.
+- [ ] Create Playwright or Cypress tests for subdomain routing and tenant switching flows.
+- [ ] Implement automated migration tests verifying schema changes, data backfill, and RLS policies on CI databases.
+- [ ] Establish regression tests ensuring analytics and reporting endpoints return isolated tenant aggregates.
+
+## Phase 12: Monitoring and Observability
+- [ ] Augment logger to include tenant identifiers on every log entry and audit event.
+- [ ] Configure Sentry (or equivalent) to tag events with tenant context and user identifiers.
+- [ ] Create dashboards tracking tenant-specific request volume, error rates, and security incidents.
+- [ ] Instrument critical flows (login, tenant switch, task CRUD) with performance metrics segmented by tenant.
+
+## Phase 13: Deployment and Rollout
+- [ ] Sequence migrations with feature flags to decouple schema rollout from application changes.
+- [ ] Establish backfill progress monitoring and rollback procedures for production rollout.
+- [ ] Perform staged deployment (dev → staging → production) verifying tenant isolation at each step.
+- [ ] Communicate tenant-impacting changes, downtime windows, and new security requirements to stakeholders.
+
+## Phase 14: Post-Rollout Operations
+- [ ] Monitor logs and alerts for cross-tenant access attempts or RLS violations after deployment.
+- [ ] Update developer onboarding documentation with tenant context usage guidelines.
+- [ ] Schedule periodic audits to ensure new models include tenant governance and tests remain comprehensive.
+- [ ] Review incident response playbooks incorporating tenant context for faster investigations.
