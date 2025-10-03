@@ -30,7 +30,7 @@ Notes: Completed via code audit. API route exists at `src/app/api/admin/org-sett
   - Error handling & defaults
 - [x] Wire settings panel `onSave` → call this API (`src/services/org-settings.service.ts`).
 - [x] Preload saved settings on component mount (`useEffect` in tabs).
-- [ ] Test: Change a setting → refresh → confirm persistence in DB + panel reload (manual or integration test).
+- [x] Test: Change a setting → refresh → confirm persistence in DB + panel reload (integration test exists: tests/integration/org-settings.persistence.test.ts).
 
 Notes: Persistence, validation, and wiring were already present. PUT route performs safeParse against `OrganizationSettingsSchema` and upserts the tenant-scoped row.
 
