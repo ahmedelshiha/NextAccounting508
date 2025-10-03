@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { CacheService } from '@/lib/cache.service'
 import { logAudit } from '@/lib/audit'
 import { tenantFilter } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 import type { IntegrationHubSettings } from '@/schemas/settings/integration-hub'
 
 function mask(value?: string | null, show = 4){
