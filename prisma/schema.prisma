@@ -9,15 +9,16 @@ datasource db {
 
 // User model for authentication and role management
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  password      String?
-  image         String?
-  role          UserRole  @default(CLIENT)
-  emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  tenantId       String
+  email          String
+  name           String?
+  password       String?
+  image          String?
+  role           UserRole  @default(CLIENT)
+  emailVerified  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   sessionVersion Int       @default(0)
 
   employeeId            String?  @unique
@@ -30,6 +31,8 @@ model User {
   maxConcurrentProjects Int?     @default(3)
   hireDate              DateTime?
   managerId             String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   // Relations
   accounts Account[]
@@ -55,9 +58,9 @@ model User {
   invoices Invoice[]
   expenses Expense[]
 
-  @@index([email])
-  @@index([role])
-  @@index([createdAt])
+  @@unique([tenantId, email])
+  @@index([tenantId, role])
+  @@index([tenantId, createdAt])
   @@map("users")
 }
 
