@@ -16,6 +16,20 @@ async function main() {
 
   const SEED_FAIL_FAST = process.env.SEED_FAIL_FAST === 'true'
 
+  const defaultTenant = await prisma.tenant.upsert({
+    where: { slug: 'primary' },
+    update: {
+      name: 'Primary Accounting Tenant',
+      status: TenantStatus.ACTIVE,
+    },
+    create: {
+      slug: 'primary',
+      name: 'Primary Accounting Tenant',
+      status: TenantStatus.ACTIVE,
+      description: 'Default seeded tenant for the accounting firm demo environment',
+    },
+  })
+
   // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
   await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
