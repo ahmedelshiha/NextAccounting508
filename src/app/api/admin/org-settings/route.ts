@@ -50,6 +50,7 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const tenantId = getTenantFromRequest(req as any)
+  const resolvedTenantId = await resolveTenantId(tenantId)
   const body = await req.json().catch(() => ({}))
   const parsed = OrganizationSettingsSchema.safeParse(body)
   if (!parsed.success) {
