@@ -38,6 +38,9 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
       contactEmail: true,
       contactPhone: true,
       legalLinks: true,
+      termsUrl: true,
+      privacyUrl: true,
+      refundUrl: true,
     },
   }).catch(() => null)
 
