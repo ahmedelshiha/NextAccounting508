@@ -1,0 +1,66 @@
+name: Automated Backups
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Daily at 02:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Ensure tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq rclone || true
+
+      - name: Make backup scripts executable
+        run: |
+          chmod +x ./.archive-system/scripts/*.sh ./.archive-system/scripts/*.js || true
+
+      - name: Run backup script (daily)
+        run: |
+          echo "Running backup script..."
+          ./.archive-system/scripts/backup.sh daily
+
+      - name: Upload backups to S3 (if configured)
+        if: ${{ secrets.AWS_S3_BUCKET != '' }}
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync backups to S3
+        if: ${{ secrets.AWS_S3_BUCKET != '' }}
+        run: |
+          echo "Syncing backups to s3://${{ secrets.AWS_S3_BUCKET }}"
+          aws s3 sync backups s3://${{ secrets.AWS_S3_BUCKET }} --delete --exact-timestamps
+
+      - name: Upload backups using rclone (if configured)
+        if: ${{ secrets.RCLONE_CONFIG != '' && secrets.AWS_S3_BUCKET == '' }}
+        run: |
+          echo "Writing rclone config"
+          mkdir -p $HOME/.config/rclone
+          echo "$RCLONE_CONFIG" > $HOME/.config/rclone/rclone.conf
+          echo "Syncing backups with rclone to remote:$RCLONE_REMOTE_PATH"
+          rclone sync backups "$RCLONE_REMOTE_PATH" --progress
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+          RCLONE_REMOTE_PATH: ${{ secrets.RCLONE_REMOTE_PATH }}
+
+      - name: Upload artifact (fallback)
+        if: ${{ secrets.AWS_S3_BUCKET == '' && secrets.RCLONE_CONFIG == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backups
+          path: backups/
+          retention-days: 7
