@@ -63,8 +63,10 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/next.svg" />
         <meta name="theme-color" content="#0ea5e9" />
+        {/* Early removal of instrumentation attributes to avoid hydration mismatches */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(typeof document==='undefined')return;var els=document.getElementsByTagName('*');for(var i=0;i<els.length;i++){var a=els[i].attributes;for(var j=a.length-1;j>=0;j--){var n=a[j].name;if(/^bis_/i.test(n)||n.indexOf('bis_')===0||n.indexOf('bis')===0){try{els[i].removeAttribute(n)}catch(e){}}}}}catch(e){} })();` }} />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         {/* Global skip link for keyboard users */}
         <a
           href="#site-main-content"
@@ -82,6 +84,9 @@ export default async function RootLayout({
 
         {/* Structured data for SEO */}
         <SchemaMarkup />
+
+        {/* Remove third-party instrumentation attributes (bis_*) from server HTML early on the client to avoid hydration mismatches */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(typeof document==='undefined')return;var els=document.getElementsByTagName('*');for(var i=0;i<els.length;i++){var a=els[i].attributes;for(var j=a.length-1;j>=0;j--){var n=a[j].name;if(/^bis_/i.test(n)||n.indexOf('bis_')===0||n.indexOf('bis')===0){try{els[i].removeAttribute(n)}catch(e){}}}}}catch(e){} })();` }} />
 
         {/* Performance monitoring: report page load time to analytics (gtag stub) */}
         <script

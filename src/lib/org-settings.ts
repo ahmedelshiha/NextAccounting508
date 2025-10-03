@@ -38,6 +38,9 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
       contactEmail: true,
       contactPhone: true,
       legalLinks: true,
+      termsUrl: true,
+      privacyUrl: true,
+      refundUrl: true,
     },
   }).catch(() => null)
 
@@ -47,6 +50,10 @@ export async function getEffectiveOrgSettingsFromHeaders(): Promise<EffectiveOrg
     logoUrl: (row?.logoUrl as string | null) ?? null,
     contactEmail: (row?.contactEmail as string | null) ?? null,
     contactPhone: (row?.contactPhone as string | null) ?? null,
-    legalLinks: (row?.legalLinks as Record<string, string> | null) || null,
+    legalLinks: (row ? ({
+      terms: (row.termsUrl as string | null) ?? (row.legalLinks?.terms ?? null),
+      privacy: (row.privacyUrl as string | null) ?? (row.legalLinks?.privacy ?? null),
+      refund: (row.refundUrl as string | null) ?? (row.legalLinks?.refund ?? null),
+    }) : null) as Record<string, string> | null,
   }
 }

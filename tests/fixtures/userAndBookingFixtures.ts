@@ -23,7 +23,6 @@ export async function seedBooking(opts: { serviceId: string; clientId?: string; 
     duration,
     clientName: 'Fixture Client',
     clientEmail: 'fixture.client@example.test',
-    tenantId: tenantId ?? undefined
   }})
   return booking
 }

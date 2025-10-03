@@ -29,11 +29,16 @@ export const OrgLocalizationSchema = z.object({
 export const OrgBrandingSchema = z.object({
   logoUrl: z.string().url().optional(),
   branding: z.record(z.string(), z.any()).optional(),
+  // Backwards-compatible JSON blob (deprecated in favor of explicit URL fields)
   legalLinks: z.object({
     terms: z.string().url().optional(),
     privacy: z.string().url().optional(),
     refund: z.string().url().optional(),
-  }).strict().optional()
+  }).strict().optional(),
+  // Explicit fields stored in DB for easier validation and querying
+  termsUrl: z.string().url().optional(),
+  privacyUrl: z.string().url().optional(),
+  refundUrl: z.string().url().optional(),
 })
 
 export const OrganizationSettingsSchema = z.object({

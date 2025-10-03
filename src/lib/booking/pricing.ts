@@ -57,7 +57,20 @@ export async function calculateServicePrice(params: {
   }
 
   // Base currency and base price
-  const baseCurrency = process.env.EXCHANGE_BASE_CURRENCY || 'USD'
+  // Prefer tenant-specific organization default currency when available
+  let baseCurrency = process.env.EXCHANGE_BASE_CURRENCY || 'USD'
+  try {
+    const tenantId = (svc as any).tenantId as string | undefined | null
+    if (tenantId) {
+      const org = await prisma.organizationSettings.findFirst({ where: { tenantId } }).catch(() => null)
+      if (org && typeof org.defaultCurrency === 'string' && org.defaultCurrency) {
+        baseCurrency = org.defaultCurrency
+      }
+    }
+  } catch (e) {
+    // ignore and fallback to env/default
+  }
+
   const targetCurrency = options.currency || baseCurrency
 
   const basePrice = decimalToNumber(svc.basePrice ?? svc.price ?? 0)

@@ -21,7 +21,15 @@ export async function GET(req: Request) {
       general: { name: row.name, tagline: row.tagline, description: row.description, industry: row.industry },
       contact: { contactEmail: row.contactEmail, contactPhone: row.contactPhone, address: row.address || {} },
       localization: { defaultTimezone: row.defaultTimezone, defaultCurrency: row.defaultCurrency, defaultLocale: row.defaultLocale },
-      branding: { logoUrl: row.logoUrl, branding: row.branding || {}, legalLinks: row.legalLinks || {} }
+      branding: {
+        logoUrl: row.logoUrl,
+        branding: row.branding || {},
+        // Prefer explicit columns, fallback to JSON blob
+        termsUrl: row.termsUrl ?? (row.legalLinks?.terms ?? null),
+        privacyUrl: row.privacyUrl ?? (row.legalLinks?.privacy ?? null),
+        refundUrl: row.refundUrl ?? (row.legalLinks?.refund ?? null),
+        legalLinks: row.legalLinks || {}
+      }
     }
     return NextResponse.json(out)
   } catch (e) {
@@ -58,6 +66,11 @@ export async function PUT(req: Request) {
     defaultLocale: parsed.data.localization?.defaultLocale ?? existing?.defaultLocale ?? 'en',
     logoUrl: parsed.data.branding?.logoUrl ?? existing?.logoUrl ?? null,
     branding: parsed.data.branding?.branding ?? existing?.branding ?? null,
+    // Save explicit URL fields if provided (new columns)
+    termsUrl: parsed.data.branding?.termsUrl ?? existing?.termsUrl ?? (parsed.data.branding?.legalLinks?.terms ?? existing?.legalLinks?.terms ?? null),
+    privacyUrl: parsed.data.branding?.privacyUrl ?? existing?.privacyUrl ?? (parsed.data.branding?.legalLinks?.privacy ?? existing?.legalLinks?.privacy ?? null),
+    refundUrl: parsed.data.branding?.refundUrl ?? existing?.refundUrl ?? (parsed.data.branding?.legalLinks?.refund ?? existing?.legalLinks?.refund ?? null),
+    // Keep legacy JSON blob for backward compatibility
     legalLinks: parsed.data.branding?.legalLinks ?? existing?.legalLinks ?? null,
   }
 
