@@ -133,3 +133,16 @@
 - Centralize tenant resolution and composite where builders in a shared util; refactor routes to use it.
 - Add tests for tenant-scoped email uniqueness and timezone fallback in availability generation.
 - Review remaining Prisma queries for potential `null` tenantId filters and replace with `undefined` where appropriate.
+
+[!] Guardrail: Prevent tenant-related Prisma/TypeScript errors (must follow for all remaining implementation)
+✅ What was completed: Documented guardrails to enforce tenant-aware patterns across code and tests.
+✅ Why it was done: To prevent recurrence of errors caused by using global email lookups, missing tenant on inserts, or passing null in Prisma filters under a multi-tenant schema with `@@unique([tenantId, email])`.
+✅ Next steps: Enforce via lint/tests and shared utilities.
+- Always resolve tenantId for every request/test before DB operations (e.g., `resolveTenantId(getTenantFromRequest(req))`).
+- User lookups must use `where: { tenantId_email: { tenantId, email } }` — never email-only.
+- Inserts to tenant-scoped models must include tenant: `data: { tenantId }` or `tenant: { connect: { id: tenantId } }`.
+- Do not pass `null` in Prisma filters; use `undefined` to omit (e.g., `{ tenantId: maybeId ?? undefined }`).
+- HealthLog/Settings/OrgSettings queries and creations must include tenantId.
+- Test fixtures must attach tenant (seedUser connects tenant; cleanup uses tenant-aware selectors when needed).
+- Add grep/lint checks for `where: { email:` and nullable `tenantId:` patterns; migrate to helpers.
+- Centralize helpers: `getResolvedTenantId(req)`, `userByTenantEmail(tenantId, email)`, `withTenant(data, tenantId)` and refactor routes to use them.
