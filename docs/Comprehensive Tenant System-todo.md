@@ -155,3 +155,47 @@
 - Verified affected routes (org-settings, auth/register, portal/realtime, public/service-requests) create calls include tenant.
 ✅ Why it was done: Fix compile-time failures after enforcing tenant constraints in Prisma.
 ✅ Next steps: Run full typecheck/build in CI and audit remaining routes for any direct unchecked tenant assignments.
+
+
+---
+
+## Next Implementation Tasks (actionable, prioritized)
+
+1) Refactor remaining admin routes to use withTenantContext (priority: P1)
+- [ ] Refactor `src/app/api/admin/integration-hub/**` (test, route) — ensures integration testing and admin-level ops are tenant-scoped.
+- [ ] Refactor `src/app/api/admin/client-settings/**` (import/export/route) — tenant-scoped settings management.
+- [ ] Refactor `src/app/api/admin/analytics-settings/**` (import/export/route) — analytics settings must be tenant-bound.
+- [ ] Refactor `src/app/api/admin/tasks/**` (templates, notifications, bulk endpoints) — complete task endpoints migration.
+- [ ] Refactor `src/app/api/admin/availability-slots/**` — ensure availability endpoints enforce tenant context.
+
+2) Middleware & request hardening (priority: P0/P1)
+- [ ] Expand middleware matcher to include `/api/:path*` and strip/overwrite inbound `x-tenant-id` headers.
+- [ ] Implement HMAC-signed tenant cookie issuance and verification (`tenant_sig`) in middleware and require verification in withTenantContext.
+- [ ] Log tenantId, userId, requestId on each request (middleware + logger integration).
+
+3) Prisma & DB safety (priority: P1)
+- [ ] Introduce or enable Prisma middleware that enforces tenant filters for tenant-scoped models (or confirm EnhancedPrismaClient is in use).
+- [ ] Add helper methods to set session variables for RLS when executing raw queries.
+- [ ] Add migration/check scripts to detect missing tenantId on tenant-scoped rows.
+
+4) Tests & CI (priority: P1)
+- [ ] Add integration tests asserting 403 on tenant mismatch (middleware + API wrapper).
+- [ ] Add unit tests for tenant-utils and Prisma middleware behavior.
+- [ ] Add a CI job to run typecheck and the new tests after refactors.
+
+5) Developer tooling & linting (priority: P2)
+- [ ] Add grep/lint checks to find `getServerSession(` usages and ensure only withTenantContext is used in admin/portal API routes.
+- [ ] Add a code mod checklist and PR template item requiring tenant-aware patterns for new routes.
+
+6) Monitoring & rollout (priority: P2)
+- [ ] Run a staged rollout of middleware + wrapper changes on staging and validate with automated tests.
+- [ ] Monitor logs and Sentry for tenant mismatch errors and adjust policies.
+
+Notes / Options:
+- Bulk refactor option: Convert all remaining admin routes that call getServerSession to withTenantContext in a single pass. This is fastest but higher risk; recommend staged grouping by priority above.
+- I can create a prioritized patch that updates the top N files per your approval (suggest N=10). Reply with "bulk N" or confirm staged plan.
+
+
+---
+
+Please confirm which option you prefer: "staged" (I will refactor the files listed one-by-one in priority order), or "bulk N" (I will refactor the next N files in one commit).
