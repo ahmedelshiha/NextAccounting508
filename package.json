@@ -23,7 +23,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "db:migrate:legalLinks": "node scripts/migrate-legal-links-to-columns.ts",
+    "db:migrate:legalLinks": "tsx scripts/migrate-legal-links-to-columns.ts",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
     "test:tenant": "vitest run tests/tenant-filter.test.ts",
     "test:integration": "vitest --run --reporter dot --threads false tests/integration",
