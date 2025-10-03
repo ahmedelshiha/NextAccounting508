@@ -75,17 +75,23 @@ create_backup() {
 --exclude=.DS_Store
 EOF
 
+  local includes=()
+  for candidate in archive docs src tests .archive-system package.json pnpm-lock.yaml; do
+    if [[ -e "$PROJECT_ROOT/$candidate" ]]; then
+      includes+=("$candidate")
+    fi
+  done
+
+  if [[ ${#includes[@]} -eq 0 ]]; then
+    cleanup_temp_file "$exclude_file"
+    error "No files available to include in the backup."
+    exit 1
+  fi
+
   if tar -czf "$backup_file" \
     --exclude-from="$exclude_file" \
     -C "$PROJECT_ROOT" \
-    archive \
-    backups \
-    docs \
-    src \
-    tests \
-    .archive-system \
-    package.json \
-    pnpm-lock.yaml 2>/dev/null; then
+    "${includes[@]}" 2>/dev/null; then
     cleanup_temp_file "$exclude_file"
   else
     cleanup_temp_file "$exclude_file"
