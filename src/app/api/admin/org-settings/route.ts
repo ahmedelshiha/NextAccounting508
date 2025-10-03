@@ -8,6 +8,12 @@ import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
 import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
 
+// Narrow Prisma JsonValue to a plain object with expected keys
+type LegalLinks = { terms?: string | null; privacy?: string | null; refund?: string | null }
+const toLegalLinks = (val: unknown): LegalLinks | null => {
+  return val && typeof val === 'object' && !Array.isArray(val) ? (val as LegalLinks) : null
+}
+
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions as any)
@@ -17,6 +23,9 @@ export async function GET(req: Request) {
     const tenantId = getTenantFromRequest(req as any)
     const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
     if (!row) return NextResponse.json({ name: '', tagline: '', description: '', industry: '' })
+
+    const legacyLinks = toLegalLinks((row as any).legalLinks)
+
     const out = {
       general: { name: row.name, tagline: row.tagline, description: row.description, industry: row.industry },
       contact: { contactEmail: row.contactEmail, contactPhone: row.contactPhone, address: row.address || {} },
@@ -25,10 +34,10 @@ export async function GET(req: Request) {
         logoUrl: row.logoUrl,
         branding: row.branding || {},
         // Prefer explicit columns, fallback to JSON blob
-        termsUrl: row.termsUrl ?? (row.legalLinks?.terms ?? null),
-        privacyUrl: row.privacyUrl ?? (row.legalLinks?.privacy ?? null),
-        refundUrl: row.refundUrl ?? (row.legalLinks?.refund ?? null),
-        legalLinks: row.legalLinks || {}
+        termsUrl: row.termsUrl ?? (legacyLinks?.terms ?? null),
+        privacyUrl: row.privacyUrl ?? (legacyLinks?.privacy ?? null),
+        refundUrl: row.refundUrl ?? (legacyLinks?.refund ?? null),
+        legalLinks: (row as any).legalLinks || {}
       }
     }
     return NextResponse.json(out)
@@ -52,6 +61,8 @@ export async function PUT(req: Request) {
   }
   const existing = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
 
+  const existingLegal = toLegalLinks(existing?.legalLinks as any)
+
   const data: any = {
     tenantId: tenantId || undefined,
     name: parsed.data.general?.name ?? existing?.name ?? '',
@@ -67,9 +78,18 @@ export async function PUT(req: Request) {
     logoUrl: parsed.data.branding?.logoUrl ?? existing?.logoUrl ?? null,
     branding: parsed.data.branding?.branding ?? existing?.branding ?? null,
     // Save explicit URL fields if provided (new columns)
-    termsUrl: parsed.data.branding?.termsUrl ?? existing?.termsUrl ?? (parsed.data.branding?.legalLinks?.terms ?? existing?.legalLinks?.terms ?? null),
-    privacyUrl: parsed.data.branding?.privacyUrl ?? existing?.privacyUrl ?? (parsed.data.branding?.legalLinks?.privacy ?? existing?.legalLinks?.privacy ?? null),
-    refundUrl: parsed.data.branding?.refundUrl ?? existing?.refundUrl ?? (parsed.data.branding?.legalLinks?.refund ?? existing?.legalLinks?.refund ?? null),
+    termsUrl:
+      parsed.data.branding?.termsUrl ??
+      existing?.termsUrl ??
+      (parsed.data.branding?.legalLinks?.terms ?? existingLegal?.terms ?? null),
+    privacyUrl:
+      parsed.data.branding?.privacyUrl ??
+      existing?.privacyUrl ??
+      (parsed.data.branding?.legalLinks?.privacy ?? existingLegal?.privacy ?? null),
+    refundUrl:
+      parsed.data.branding?.refundUrl ??
+      existing?.refundUrl ??
+      (parsed.data.branding?.legalLinks?.refund ?? existingLegal?.refund ?? null),
     // Keep legacy JSON blob for backward compatibility
     legalLinks: parsed.data.branding?.legalLinks ?? existing?.legalLinks ?? null,
   }
