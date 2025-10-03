@@ -93,7 +93,13 @@ export async function PUT(req: Request) {
       ? await prisma.organizationSettings.update({ where: { id: existing.id }, data })
       : await prisma.organizationSettings.create({ data })
 
-    try { await logAudit({ action: 'org-settings:update', actorId: session.user.id, details: { tenantId } }) } catch {}
+    try {
+      await logAudit({
+        action: 'org-settings:update',
+        actorId: session.user.id,
+        details: { tenantId: resolvedTenantId, requestedTenantId: tenantId ?? null },
+      })
+    } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })
   } catch (e) {
