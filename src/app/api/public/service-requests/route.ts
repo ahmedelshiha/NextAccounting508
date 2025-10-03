@@ -5,8 +5,7 @@ import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { respond, zodDetails } from '@/lib/api-response'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
-import { resolveTenantId } from '@/lib/default-tenant'
+import { getResolvedTenantId, userByTenantEmail, withTenant } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
 
 const GuestCreateSchema = z.object({
@@ -41,8 +40,7 @@ export async function POST(request: NextRequest) {
     return respond.tooMany()
   }
 
-  const tenantId = getTenantFromRequest(request as any)
-  const resolvedTenantId = await resolveTenantId(tenantId)
+  const tenantId = await getResolvedTenantId(request)
   const body = await request.json().catch(() => null)
   const parsed = GuestCreateSchema.safeParse(body)
   if (!parsed.success) {
@@ -58,15 +56,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Find or create user by email as CLIENT, tenant-scoped
-    let user = await prisma.user.findUnique({ where: { tenantId_email: { tenantId: resolvedTenantId, email: data.email } } })
+    let user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, data.email) })
     if (!user) {
-      user = await prisma.user.create({ data: { tenantId: resolvedTenantId, email: data.email, name: data.name, role: 'CLIENT' as any } })
+      user = await prisma.user.create({ data: withTenant({ email: data.email, name: data.name, role: 'CLIENT' as any }, tenantId) })
     }
 
     // Generate title if missing
     const titleToUse = data.title || `${service.name} request — ${data.name} — ${new Date().toISOString().slice(0,10)}`
 
-    const createData: any = {
+    const createData = withTenant({
       clientId: user.id,
       serviceId: data.serviceId,
       title: titleToUse,
@@ -78,8 +76,7 @@ export async function POST(request: NextRequest) {
       requirements: (data.requirements as any) ?? undefined,
       attachments: (data.attachments as any) ?? undefined,
       status: 'SUBMITTED' as any,
-    }
-    if (isMultiTenancyEnabled() && tenantId) createData.tenantId = tenantId
+    }, tenantId)
 
     const created = await prisma.serviceRequest.create({
       data: createData,
@@ -120,7 +117,7 @@ export async function POST(request: NextRequest) {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
-        if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
+        if (tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
         return respond.created(created)
       } catch {
