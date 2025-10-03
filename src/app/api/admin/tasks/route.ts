@@ -1,10 +1,11 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { getTenantFilter, requireTenantContext } from '@/lib/tenant-utils'
+
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
 // In-memory fallback store (non-persistent) used only when DB is not configured
@@ -36,11 +37,11 @@ function mapStatus(v?: string | null) {
   return 'OPEN'
 }
 
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -87,9 +88,7 @@ export async function GET(request: Request) {
       return NextResponse.json(paged)
     }
 
-    const tenantId = getTenantFromRequest(request as any)
-
-    const where: any = { ...(tenantFilter(tenantId) as any) }
+    const where: any = { ...(getTenantFilter() as any) }
     if (status.length) where.status = { in: status.map(s => mapStatus(s)) }
     if (priority.length) where.priority = { in: priority.map(p => mapPriority(p)) }
     if (assigneeId) where.assigneeId = assigneeId
@@ -129,13 +128,13 @@ export async function GET(request: Request) {
     console.error('GET /api/admin/tasks error', err)
     return NextResponse.json({ error: 'Failed to list tasks' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: Request) {
+export const POST = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -169,7 +168,7 @@ export async function POST(request: Request) {
       return NextResponse.json(row, { status: 201 })
     }
 
-    const tenantId = getTenantFromRequest(request as any)
+    const tenantId = ctx.tenantId
 
     const created = await prisma.task.create({
       data: {
@@ -178,7 +177,7 @@ export async function POST(request: Request) {
         status: (mapStatus(body.status as any) || 'OPEN') as any,
         dueAt: body.dueAt ? new Date(body.dueAt) : null,
         assigneeId: body.assigneeId ?? null,
-        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
+        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
       } as any,
       include: { assignee: { select: { id: true, name: true, email: true } } },
     })
@@ -193,4 +192,4 @@ export async function POST(request: Request) {
     console.error('POST /api/admin/tasks error', err)
     return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
   }
-}
+})

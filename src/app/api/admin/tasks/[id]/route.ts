@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { getTenantFilter, requireTenantContext } from '@/lib/tenant-utils'
 
 const PriorityEnum = z.enum(['LOW','MEDIUM','HIGH'])
 const StatusEnum = z.enum(['OPEN','IN_PROGRESS','DONE'])
@@ -30,30 +30,32 @@ function mapStatus(v?: string | null) {
   return 'OPEN'
 }
 
-export async function GET(request: Request, context: any) {
-  const params = context?.params || context
+export const GET = withTenantContext(async (request, { params }: { params: { id: string } }) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
     const { id } = params
-    const task = await prisma.task.findUnique({ where: { id }, include: { assignee: { select: { id: true, name: true, email: true } } } })
+    const task = await prisma.task.findFirst({
+      where: { id, ...getTenantFilter() },
+      include: { assignee: { select: { id: true, name: true, email: true } } },
+    })
     if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(task)
   } catch (err) {
     console.error('GET /api/admin/tasks/[id] error', err)
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
-}
+})
 
-export async function PATCH(request: Request, context: any) {
-  const params = context?.params || context
+export const PATCH = withTenantContext(async (request, { params }: { params: { id: string } }) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -70,35 +72,53 @@ export async function PATCH(request: Request, context: any) {
     if (body.dueAt !== undefined) updates.dueAt = body.dueAt ? new Date(body.dueAt) : null
     if (body.assigneeId !== undefined) updates.assigneeId = body.assigneeId || null
 
-    const updated = await prisma.task.update({ where: { id }, data: updates, include: { assignee: { select: { id: true, name: true, email: true } } } })
+    // Perform tenant-scoped update
+    const where = { id, ...getTenantFilter() }
+
+    const result = await prisma.task.updateMany({ where, data: updates })
+    if (result.count === 0) {
+      return NextResponse.json({ error: 'Not found or not permitted' }, { status: 404 })
+    }
+
+    const updated = await prisma.task.findFirst({ where, include: { assignee: { select: { id: true, name: true, email: true } } } })
+
     try {
       const { broadcast } = await import('@/lib/realtime')
-      try { broadcast({ type: 'task.updated', payload: updated }) } catch(e) {}
+      try { if (updated) broadcast({ type: 'task.updated', payload: updated }) } catch(e) {}
     } catch (e) { /* best-effort */ }
+
     return NextResponse.json(updated)
   } catch (err) {
     console.error('PATCH /api/admin/tasks/[id] error', err)
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(request: Request, context: any) {
-  const params = context?.params || context
+export const DELETE = withTenantContext(async (request, { params }: { params: { id: string } }) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
     const { id } = params
-    const deleted = await prisma.task.delete({ where: { id } })
+    const where = { id, ...getTenantFilter() }
+
+    // Delete tenant-scoped
+    const deleted = await prisma.task.deleteMany({ where })
+    if (deleted.count === 0) {
+      return NextResponse.json({ error: 'Not found or not permitted' }, { status: 404 })
+    }
+
     try {
       const { broadcast } = await import('@/lib/realtime')
-      broadcast({ type: 'task.deleted', payload: { id } })
+      try { broadcast({ type: 'task.deleted', payload: { id } }) } catch (e) {}
     } catch (e) { /* best-effort */ }
-    return NextResponse.json({ ok: true, deleted })
+
+    return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('DELETE /api/admin/tasks/[id] error', err)
     return NextResponse.json({ error: 'Failed to delete' }, { status: 500 })
   }
-}
+})
