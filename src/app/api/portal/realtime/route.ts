@@ -1,8 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { realtimeService } from '@/lib/realtime-enhanced'
-import { getTenantFromRequest } from '@/lib/tenant'
-import { resolveTenantId } from '@/lib/default-tenant'
+import { getResolvedTenantId, withTenant } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
@@ -13,13 +12,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const eventTypes = (searchParams.get('events')?.split(',') ?? ['all']).filter(Boolean)
   const userId = String((session.user as any).id ?? 'anon')
+  const tenantId = await getResolvedTenantId(request)
 
   // Best-effort health log for observability
   try {
     const { default: prisma } = await import('@/lib/prisma')
-    const tenantHint = getTenantFromRequest(request as any)
-    const tenantId = await resolveTenantId(tenantHint)
-    await prisma.healthLog.create({ data: { tenantId, service: 'portal:realtime', status: 'CONNECTED', message: `user:${userId} events:${eventTypes.join(',')}` } }).catch(() => null)
+    await prisma.healthLog.create({ data: withTenant({ service: 'portal:realtime', status: 'CONNECTED', message: `user:${userId} events:${eventTypes.join(',')}` }, tenantId) }).catch(() => null)
   } catch {}
 
   const stream = new ReadableStream<Uint8Array>({
@@ -37,9 +35,7 @@ export async function GET(request: Request) {
         // Log disconnect
         try {
           const { default: prisma } = await import('@/lib/prisma')
-          const tenantHint = getTenantFromRequest(request as any)
-          const tenantId = await resolveTenantId(tenantHint)
-          await prisma.healthLog.create({ data: { tenantId, service: 'portal:realtime', status: 'DISCONNECTED', message: `user:${userId}` } }).catch(() => null)
+          await prisma.healthLog.create({ data: withTenant({ service: 'portal:realtime', status: 'DISCONNECTED', message: `user:${userId}` }, tenantId) }).catch(() => null)
         } catch {}
       }
       request.signal.addEventListener('abort', onAbort)

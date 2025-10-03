@@ -151,3 +151,8 @@
 ✅ What was completed: Updated src/lib/audit.ts to import prisma and resolveTenantId, and to include tenantId on HealthLog.create writes.
 ✅ Why it was done: Enhancement to ensure observability logs respect tenant scoping and satisfy Prisma’s non-null tenantId on HealthLog.
 ✅ Next steps: Scan for any remaining logging utilities writing HealthLog without tenantId; add helper to standardize health logging.
+
+[x] Centralize tenant-aware helper utilities and apply to high-traffic routes
+✅ What was completed: Added shared helpers in src/lib/tenant.ts for resolving tenant IDs, composing tenant/email lookups, and enforcing tenant data writes; refactored auth registration, dev login, portal realtime, public service-requests, users/check-email, and admin org-settings routes to rely on the new helpers.
+✅ Why it was done: Enhancement to remove duplicated tenant resolution logic, prevent mismatched tenant IDs in Prisma queries, and standardize tenant-aware access across critical endpoints.
+✅ Next steps: Migrate remaining services and background jobs to the shared helpers, and extend coverage to additional Prisma access patterns (e.g., repository layer and other admin routes).
