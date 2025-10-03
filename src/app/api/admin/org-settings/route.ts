@@ -57,10 +57,11 @@ export async function PUT(req: Request) {
     try { Sentry.captureMessage('org-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
-  const existing = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
+  const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+  const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
   const data: any = {
-    tenantId: tenantId || undefined,
+    tenantId: resolvedTenantId,
     name: parsed.data.general?.name ?? existing?.name ?? '',
     tagline: parsed.data.general?.tagline ?? existing?.tagline ?? null,
     description: parsed.data.general?.description ?? existing?.description ?? null,
