@@ -133,6 +133,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   const createdTask = await prisma.task.create({
     data: {
+      tenant: { connect: { id: resolvedTenantId } },
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       priority: priority as any,
