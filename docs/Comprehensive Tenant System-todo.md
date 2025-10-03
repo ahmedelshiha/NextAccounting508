@@ -121,3 +121,15 @@
 - Audit any remaining `findUnique({ where: { email } })` patterns and replace with composite lookups.
 - Add a shared helper to resolve tenant and compose tenant-aware where clauses to avoid duplication.
 - Extend middleware to always establish tenant context so route handlers avoid manual resolution.
+
+[x] Tenant-aware user/email checks and availability timezone fix
+✅ What was completed:
+- Updated users/check-email route to resolve tenant and use `tenantId_email` for uniqueness checks.
+- Updated users/me PATCH to validate email uniqueness within the current user’s tenant.
+- Updated NextAuth credentials authorize to resolve tenant and query by `tenantId_email`.
+- Fixed booking availability to query OrganizationSettings with `tenantId: svc.tenantId ?? undefined` and safely assign timezone.
+✅ Why it was done: Enhancement/refactor to align all user lookups with `@@unique([tenantId, email])`, prevent cross-tenant leakage, and satisfy Prisma types; availability fix removes nullable tenantId in filters to satisfy Prisma’s `StringFilter` type.
+✅ Next steps:
+- Centralize tenant resolution and composite where builders in a shared util; refactor routes to use it.
+- Add tests for tenant-scoped email uniqueness and timezone fallback in availability generation.
+- Review remaining Prisma queries for potential `null` tenantId filters and replace with `undefined` where appropriate.
