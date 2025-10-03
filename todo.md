@@ -140,7 +140,7 @@ Updated TODOs (progress tracking)
 - [x] Add automated integration test for org-settings persistence
 - [x] Add explicit legal link DB columns and backfill tooling (this change)
 - [ ] Apply migrations in staging/production and run backfill (external step)
-- [ ] Remove legacy legalLinks JSON after verification (post-deployment cleanup)
+- [x] Remove legacy legalLinks JSON after verification (code-level removal complete; DB column drop remains an external migration step)
 
 How to apply the DB migration (commands)
 - pnpm db:generate
