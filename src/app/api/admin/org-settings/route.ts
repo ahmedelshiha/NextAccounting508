@@ -7,7 +7,7 @@ import { getTenantFromRequest, getResolvedTenantId, tenantFilter, withTenant } f
 import { OrganizationSettingsSchema } from '@/schemas/settings/organization'
 import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
-
+import { Prisma } from '@prisma/client'
 
 export async function GET(req: Request) {
   try {
@@ -60,8 +60,6 @@ export async function PUT(req: Request) {
   const scopedFilter = tenantFilter(tenantId)
   const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId }
   const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
-
-import { Prisma } from '@prisma/client'
 
   const rawData = {
     name: parsed.data.general?.name ?? existing?.name ?? '',
