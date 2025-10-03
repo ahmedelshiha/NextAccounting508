@@ -100,8 +100,8 @@ export async function PUT(req: Request) {
 
   try {
     const saved = existing
-      ? await prisma.organizationSettings.update({ where: { id: existing.id }, data: updateData })
-      : await prisma.organizationSettings.create({ data: createData })
+      ? await prisma.organizationSettings.update({ where: { id: existing.id }, data: updateData as Prisma.OrganizationSettingsUpdateInput })
+      : await prisma.organizationSettings.create({ data: createData as Prisma.OrganizationSettingsCreateInput })
 
     try {
       await logAudit({
