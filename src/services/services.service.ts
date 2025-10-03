@@ -232,6 +232,10 @@ export class ServicesService {
     if (Object.prototype.hasOwnProperty.call(sanitized, 'active')) {
       updateData.status = (sanitized as any).active ? ('ACTIVE' as any) : ('INACTIVE' as any);
     }
+    // Cast serviceSettings if present to Prisma JSON type
+    if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
+      updateData.serviceSettings = (sanitized as any).serviceSettings as unknown as Prisma.InputJsonValue;
+    }
     const s = await prisma.service.update({ where: { id }, data: updateData });
     await this.clearCaches(tenantId, id);
     const changes = this.detectChanges(existing, sanitized);
