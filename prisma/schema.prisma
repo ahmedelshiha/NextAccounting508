@@ -113,21 +113,25 @@ enum TenantStatus {
 }
 
 model Tenant {
-  id            String        @id @default(cuid())
-  slug          String        @unique
-  name          String
-  status        TenantStatus  @default(ACTIVE)
-  primaryDomain String?       @unique
-  description   String?
-  featureFlags  Json?
-  metadata      Json?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                   String                @id @default(cuid())
+  slug                 String                @unique
+  name                 String
+  status               TenantStatus          @default(ACTIVE)
+  primaryDomain        String?               @unique
+  description          String?
+  featureFlags         Json?
+  metadata             Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
-  users             User[]
-  tasks             Task[]
-  complianceRecords ComplianceRecord[]
-  healthLogs        HealthLog[]
+  users                User[]
+  tasks                Task[]
+  complianceRecords    ComplianceRecord[]
+  healthLogs           HealthLog[]
+  organizationSettings OrganizationSettings?
+  integrationSettings  IntegrationSettings?
+  communicationSettings CommunicationSettings?
+  securitySettings     SecuritySettings?
 
   @@index([status])
 }
