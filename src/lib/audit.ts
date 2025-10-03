@@ -1,6 +1,4 @@
 import prisma from '@/lib/prisma'
-
-import prisma from '@/lib/prisma'
 import { resolveTenantId } from '@/lib/default-tenant'
 
 interface AuditEntry {
