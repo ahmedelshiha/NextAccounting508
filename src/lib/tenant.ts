@@ -46,7 +46,10 @@ function extractTenantHint(source: TenantSource): string | null {
   if (headerTenant) return headerTenant
   if (candidate.url) {
     try {
-      const parsed = new URL(candidate.url, candidate.url.startsWith('http') ? undefined : 'http://placeholder.local')
+      const normalized = candidate.url.startsWith('http')
+        ? candidate.url
+        : `http://placeholder.local${candidate.url.startsWith('/') ? '' : '/'}${candidate.url}`
+      const parsed = new URL(normalized)
       return extractSubdomain(parsed.hostname)
     } catch {}
   }
