@@ -1148,7 +1148,8 @@ enum UserRole {
 // Organization settings persisted per-tenant
 model OrganizationSettings {
   id          String   @id @default(cuid())
-  tenantId    String?  @unique
+  tenantId    String   @unique
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   // Core
   name        String
@@ -1186,7 +1187,8 @@ model OrganizationSettings {
 // Integration Hub settings per-tenant (no raw secrets stored)
 model IntegrationSettings {
   id        String   @id @default(cuid())
-  tenantId  String?  @unique
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   payments   Json?   // e.g., { provider: 'stripe', publishableKeyMasked: 'pk_live_***7890', hasSecret: true, testMode: true }
   calendars  Json?   // e.g., { googleConnected: false, outlookConnected: false }
@@ -1204,7 +1206,8 @@ model IntegrationSettings {
 // Communication settings stored per tenant
 model CommunicationSettings {
   id        String   @id @default(cuid())
-  tenantId  String?  @unique
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   email          Json?
   sms            Json?
@@ -1223,7 +1226,8 @@ model CommunicationSettings {
 // Security settings persisted per-tenant
 model SecuritySettings {
   id        String   @id @default(cuid())
-  tenantId  String?  @unique
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   passwordPolicy  Json?
   sessionSecurity Json?
