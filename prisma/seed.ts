@@ -1,4 +1,5 @@
 import prisma from '../src/lib/prisma'
+import { TenantStatus } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
