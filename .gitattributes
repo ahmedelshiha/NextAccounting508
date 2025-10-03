@@ -1,4 +1,4 @@
 archive/**/README.md text
-a rchive/**/metadata.json text
+archive/**/metadata.json text
 *.tar.gz binary
 *.zip binary
