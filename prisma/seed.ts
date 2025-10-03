@@ -50,9 +50,10 @@ async function main() {
   // Create users inside a transaction to ensure consistency
   const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
     const a = await tx.user.upsert({
-      where: { email: 'admin@accountingfirm.com' },
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'admin@accountingfirm.com' } },
       update: {},
       create: {
+        tenantId: defaultTenant.id,
         email: 'admin@accountingfirm.com',
         name: 'Admin User',
         password: adminPassword,
