@@ -62,11 +62,11 @@ Behavior: Provider hydrates from server props when available, fetches `/api/publ
 ### Phase 5 – UI/UX Alignment
 - [x] Add success/error feedback on Save (toasts) in all Organization admin tabs.
 - [x] Centralize header/footer to use SettingsProvider (Navigation + OptimizedFooter now prefer provider values).
-- [ ] Move quick toggles into Modal/Popover where appropriate.
-- [ ] Move org-wide controls into Dedicated Settings Page (already present).
-- [ ] Avoid mixing component-only preferences with org-level policies.
+- [x] Move quick toggles into Modal/Popover where appropriate. (Legal, Branding, Contact now use dialogs)
+- [x] Move org-wide controls into Dedicated Settings Page (already present).
+- [x] Avoid mixing component-only preferences with org-level policies. (Validated patterns; no remaining violations)
 
-Notes: Navigation and OptimizedFooter now read from SettingsProvider when available; they still accept props for SSR hydration/fallback.
+Notes: BrandingTab and ContactTab now use dialogs; LegalTab already moved. Provider auto-refresh keeps UI in sync.
 
 ### Phase 6 – Deliverables
 - [ ] Generate a Settings Inventory Table (CSV/markdown) for all fields and usages.
