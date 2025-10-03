@@ -17,7 +17,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = getTenantFromRequest(req as any)
-    const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
+    const resolvedTenantId = await resolveTenantId(tenantId)
+    const scope = tenantId ? tenantFilter(tenantId) : { tenantId: resolvedTenantId }
+    const row = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
     if (!row) return NextResponse.json({ name: '', tagline: '', description: '', industry: '' })
 
     const out = {
