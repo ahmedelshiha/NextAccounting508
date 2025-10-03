@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
@@ -9,9 +7,11 @@ import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { isMultiTenancyEnabled } from '@/lib/tenant'
 import { planRecurringBookings } from '@/lib/booking/recurring'
 import { parseListQuery } from '@/schemas/list-query'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const CreateBase = z.object({
   clientId: z.string().min(1),
@@ -76,10 +76,10 @@ type Filters = {
   paymentStatus?: 'UNPAID'|'INTENT'|'PAID'|'FAILED'|'REFUNDED' | null
 }
 
-export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
+export const GET = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
   }
 
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
   const sortOrderParam = common.sortOrder
   const sortByLegacy = (['createdAt','priority','status','deadline'].includes(sortBy) ? sortBy : 'createdAt')
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
   const where: any = {
     ...(filters.status && { status: filters.status }),
     ...(filters.priority && { priority: filters.priority }),
@@ -122,7 +122,6 @@ export async function GET(request: Request) {
     ] }),
     ...(filters.bookingType && { bookingType: filters.bookingType as any }),
     ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus as any }),
-    // Prefer new booking fields when available (Phase 1)
     ...(type === 'appointments' ? { isBooking: true } : {}),
     ...(type === 'requests' ? { OR: [{ isBooking: false }, { isBooking: null }] } : {}),
     ...(filters.dateFrom || filters.dateTo ? (
@@ -140,7 +139,7 @@ export async function GET(request: Request) {
             },
           }
     ) : {}),
-    ...tenantFilter(tenantId),
+    ...getTenantFilter(),
   }
 
   try {
@@ -184,7 +183,7 @@ export async function GET(request: Request) {
             ...(filters.dateTo ? { lte: new Date(new Date(filters.dateTo).setHours(23,59,59,999)) } : {}),
           }
         } : {}),
-        ...tenantFilter(tenantId),
+        ...getTenantFilter(),
       }
 
       const [items, total] = await Promise.all([
@@ -268,16 +267,16 @@ export async function GET(request: Request) {
     }
     throw e
   }
-}
+})
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_CREATE)) {
+export const POST = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_CREATE)) {
     return respond.unauthorized()
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
   const ip = getClientIp(request)
   if (!rateLimit(`service-requests:create:${ip}`, 10, 60_000)) {
     return respond.tooMany()
@@ -423,7 +422,7 @@ export async function POST(request: Request) {
           await prisma.serviceRequestComment.create({
             data: {
               serviceRequestId: parent.id,
-              authorId: (session.user as any).id ?? null,
+              authorId: ctx.userId ?? null,
               content: `Recurring occurrence skipped for ${new Date(s.start).toISOString()} due to ${s.reason || 'conflict'}.`,
             },
           })
@@ -445,7 +444,7 @@ export async function POST(request: Request) {
           try { realtimeService.emitAvailabilityUpdate(parent.serviceId, { date: d }) } catch {}
         }
       } catch {}
-      try { await logAudit({ action: 'service-request:create:recurring', actorId: (session.user as any).id ?? null, targetId: parent.id, details: { serviceId: parent.serviceId, occurrences: plan.plan.length, created: childrenCreated.length, skipped: skipped.length } }) } catch {}
+      try { await logAudit({ action: 'service-request:create:recurring', actorId: ctx.userId ?? null, targetId: parent.id, details: { serviceId: parent.serviceId, occurrences: plan.plan.length, created: childrenCreated.length, skipped: skipped.length } }) } catch {}
 
       return respond.created({ parent, childrenCreated, skipped })
     }
@@ -493,7 +492,7 @@ export async function POST(request: Request) {
         try { realtimeService.emitAvailabilityUpdate(created.serviceId, { date: d }) } catch {}
       }
     } catch {}
-    try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
+    try { await logAudit({ action: 'service-request:create', actorId: ctx.userId ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
 
     return respond.created(created)
   } catch (e: any) {
@@ -540,7 +539,7 @@ export async function POST(request: Request) {
             try { realtimeService.emitAvailabilityUpdate(created.serviceId, { date: d }) } catch {}
           }
         } catch {}
-        try { await logAudit({ action: 'service-request:create', actorId: (session.user as any).id ?? null, targetId: id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
+        try { await logAudit({ action: 'service-request:create', actorId: ctx.userId ?? null, targetId: id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority } }) } catch {}
         return respond.created(created)
       } catch {
         return respond.serverError()
@@ -548,4 +547,4 @@ export async function POST(request: Request) {
     }
     return respond.serverError('Failed to create service request', { code, message: msg })
   }
-}
+})
