@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +10,10 @@ export async function GET(request: NextRequest) {
     const service = searchParams.get('service') || undefined
     const take = limitParam ? Math.min(parseInt(limitParam, 10) || 50, 200) : 50
 
-    const where = service ? { service } : undefined
+    const tenantId = getTenantFromRequest(request as any)
+    const where: any = {}
+    if (service) where.service = service
+    Object.assign(where, tenantFilter(tenantId))
 
     const logs = await prisma.healthLog.findMany({
       where,
@@ -32,8 +37,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'service and status are required' }, { status: 400 })
     }
 
+    const tenantHint = getTenantFromRequest(request as any)
+    const tenantId = await resolveTenantId(tenantHint)
+
     const log = await prisma.healthLog.create({
       data: {
+        tenantId,
         service: String(service),
         status: String(status),
         message: message ? String(message) : null,
