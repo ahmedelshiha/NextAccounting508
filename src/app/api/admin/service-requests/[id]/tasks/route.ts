@@ -84,10 +84,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const dueIso = parsed.data.dueAt || (parsed.data.dueDate ? new Date(parsed.data.dueDate).toISOString() : undefined)
 
   const tenantId = getTenantFromRequest(req as any)
+  let serviceRequest: Awaited<ReturnType<typeof prisma.serviceRequest.findUnique>> | null = null
   if (hasDb) {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id } })
-    if (!sr) return respond.notFound('Service request not found')
-    if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
+    serviceRequest = await prisma.serviceRequest.findUnique({ where: { id } })
+    if (!serviceRequest) return respond.notFound('Service request not found')
+    if (
+      isMultiTenancyEnabled() &&
+      tenantId &&
+      serviceRequest.tenantId &&
+      serviceRequest.tenantId !== tenantId
+    ) {
       return respond.notFound('Service request not found')
     }
   }
