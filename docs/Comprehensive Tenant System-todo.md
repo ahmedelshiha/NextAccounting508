@@ -1,6 +1,6 @@
 # Comprehensive Tenant System Enhancement Checklist
 
-> Reference guideline: [Comprehensive Tenant System Enhancement Plan](./Comprehensive%20Tenant%20System%20Enhancement%20Plan.md)
+> Reference guideline: [Comprehensive Tenant System Enhancement Plan](./Comprehensive%20Tenant%20System%20Enhancement%20Plan.md) · [Tenant System Audit Report](./tenant-system-audit.md)
 
 ## Phase 0: Planning and Governance
 - [ ] Confirm executive sponsorship and security requirements for zero-trust tenant isolation with stakeholders.
