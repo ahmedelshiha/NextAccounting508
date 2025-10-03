@@ -66,9 +66,9 @@ export class IntegrationSettingsService {
     }
   }
 
-  private async createDefault(tenantId: string | null){
+  private async createDefault(resolvedTenantId: string){
     const defaults: any = {
-      tenantId: tenantId ?? undefined,
+      tenantId: resolvedTenantId,
       payments: { provider: 'none', testMode: true },
       calendars: { googleConnected: false, outlookConnected: false },
       comms: { sendgridConfigured: false },
@@ -76,10 +76,10 @@ export class IntegrationSettingsService {
       storage: { provider: 'none' },
     }
     try {
-      const created = await prisma.integrationSettings.create({ data: defaults })
-      return created
+      return await prisma.integrationSettings.create({ data: defaults })
     } catch {
-      return defaults
+      const existing = await prisma.integrationSettings.findFirst({ where: { tenantId: resolvedTenantId } }).catch(() => null as any)
+      return existing ?? defaults
     }
   }
 }
