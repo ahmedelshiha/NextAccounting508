@@ -108,3 +108,16 @@
 ✅ What was completed: Updated seed data to attach tenant relations to tasks and compliance records, ensured admin service-request task creation wires tenant IDs, and adjusted the dev login route to locate users via tenant-aware indices.
 ✅ Why it was done: To satisfy new Prisma multi-tenant constraints and prevent runtime failures when creating tasks or issuing dev tokens in tenant-scoped environments.
 ✅ Next steps: Review remaining task APIs and seed routines to verify tenantId propagation and extend tenant-aware authentication across non-admin flows.
+
+[x] Fix TS build errors by enforcing tenant-aware Prisma inputs in API routes
+✅ What was completed:
+- Updated user registration routes to use `where: { tenantId_email: { tenantId, email } }` and include `tenantId` on create.
+- Made dev-login user lookup tenant-scoped using resolved tenant ID.
+- Added tenant filtering to HealthLog GET and included `tenantId` on HealthLog creation.
+- Ensured realtime health logs (connect/disconnect) include `tenantId`.
+- Tenant-scoped user lookup/create in public service-requests endpoint.
+✅ Why it was done: Prisma schema enforces tenant-scoped uniqueness and non-null `tenantId` for critical models; routes were using legacy email-only lookups and inserts without tenant, causing TS2322 errors and runtime risk.
+✅ Next steps:
+- Audit any remaining `findUnique({ where: { email } })` patterns and replace with composite lookups.
+- Add a shared helper to resolve tenant and compose tenant-aware where clauses to avoid duplication.
+- Extend middleware to always establish tenant context so route handlers avoid manual resolution.
