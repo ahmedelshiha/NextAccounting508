@@ -123,6 +123,14 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return respond.created(row)
   }
 
+  const resolvedTenantId =
+    serviceRequest?.tenantId ??
+    (typeof tenantId === 'string' && tenantId.trim().length > 0 ? tenantId : null)
+
+  if (!resolvedTenantId) {
+    return respond.badRequest('Tenant context missing for task creation')
+  }
+
   const createdTask = await prisma.task.create({
     data: {
       title: parsed.data.title,
