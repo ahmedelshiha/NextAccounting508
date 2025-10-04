@@ -2,7 +2,7 @@ type PrismaModelMethod = (...args: any[]) => Promise<any>
 
 declare const vi: any
 
-type PrismaPrismaModelMethod = any
+type PrismaModelMethod = any
 
 type ModelMock = {
   findUnique: PrismaModelMethod
