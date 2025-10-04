@@ -79,9 +79,30 @@ export default function StandardPage({
   error,
   children,
 }: StandardPageProps) {
+  // Sanitize primary/secondary actions to avoid runtime warnings when consumers
+  // accidentally pass React elements instead of component references or pass
+  // an array for primaryAction.
+  const sanitizeIcon = (icon: any) => {
+    if (!icon) return icon
+    // If a React element was passed (object with $$typeof), extract the component
+    if (typeof icon === 'object' && icon !== null && '$$typeof' in icon && icon.type) return icon.type
+    return icon
+  }
+
+  const safePrimaryAction = Array.isArray(primaryAction) ? (primaryAction as any)[0] : primaryAction
+  const primaryActionSanitized = safePrimaryAction
+    ? { ...(safePrimaryAction as any), icon: sanitizeIcon((safePrimaryAction as any).icon) }
+    : undefined
+
+  const safeSecondaryActions = Array.isArray(secondaryActions)
+    ? secondaryActions
+        .filter((a) => a && typeof a === 'object')
+        .map((a) => ({ ...(a as any), icon: sanitizeIcon((a as any).icon) }))
+    : []
+
   return (
     <div className="-mt-4 -mx-6 px-6">
-      <PageHeader title={title} subtitle={subtitle} primaryAction={primaryAction} secondaryActions={secondaryActions} />
+      <PageHeader title={title} subtitle={subtitle} primaryAction={primaryActionSanitized} secondaryActions={safeSecondaryActions} />
 
       {primaryTabs.length > 0 && onPrimaryTabChange && (
         <PrimaryTabs tabs={primaryTabs} active={activePrimaryTab} onChange={onPrimaryTabChange} />

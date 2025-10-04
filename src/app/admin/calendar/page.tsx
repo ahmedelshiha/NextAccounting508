@@ -100,7 +100,7 @@ export default function AdminCalendar() {
 
     // Add bookings
     if (selectedType === 'all' || selectedType === 'booking') {
-      calendarData.bookings.forEach((booking) => {
+      (calendarData.bookings || []).forEach((booking) => {
         if (selectedStatus === 'all' || selectedStatus === booking.status.toLowerCase()) {
           const start = new Date(booking.scheduledAt)
           const end = new Date(start.getTime() + booking.duration * 60 * 1000)
@@ -122,7 +122,7 @@ export default function AdminCalendar() {
 
     // Add tasks
     if (selectedType === 'all' || selectedType === 'task') {
-      calendarData.tasks.forEach((task) => {
+      (calendarData.tasks || []).forEach((task) => {
         if (task.dueAt && (selectedStatus === 'all' || selectedStatus === task.status.toLowerCase())) {
           const start = new Date(task.dueAt)
           evts.push({
@@ -143,7 +143,7 @@ export default function AdminCalendar() {
 
     // Add availability
     if (selectedType === 'all' || selectedType === 'availability') {
-      calendarData.availability.forEach((slot) => {
+      (calendarData.availability || []).forEach((slot) => {
         const date = new Date(slot.date)
         const [sh, sm] = slot.startTime.split(':').map(Number)
         const [eh, em] = slot.endTime.split(':').map(Number)
@@ -437,7 +437,7 @@ export default function AdminCalendar() {
             <CalendarIcon className="h-8 w-8 text-blue-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Total Bookings</p>
-              <p className="text-2xl font-semibold text-gray-900">{calendarData?.bookings.length || 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">{(calendarData?.bookings || []).length || 0}</p>
             </div>
           </div>
         </div>
@@ -446,7 +446,7 @@ export default function AdminCalendar() {
             <CheckCircle className="h-8 w-8 text-green-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Confirmed</p>
-              <p className="text-2xl font-semibold text-gray-900">{calendarData?.bookings.filter((b) => b.status === 'CONFIRMED').length || 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">{(calendarData?.bookings || []).filter((b) => b.status === 'CONFIRMED').length || 0}</p>
             </div>
           </div>
         </div>
@@ -455,7 +455,7 @@ export default function AdminCalendar() {
             <AlertCircle className="h-8 w-8 text-amber-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Due Tasks</p>
-              <p className="text-2xl font-semibold text-gray-900">{calendarData?.tasks.filter((t) => t.dueAt && t.status !== 'COMPLETED').length || 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">{(calendarData?.tasks || []).filter((t) => t.dueAt && t.status !== 'COMPLETED').length || 0}</p>
             </div>
           </div>
         </div>
@@ -464,7 +464,7 @@ export default function AdminCalendar() {
             <Users className="h-8 w-8 text-purple-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-500">Team Available</p>
-              <p className="text-2xl font-semibold text-gray-900">{calendarData?.availability.filter((a) => a.available).length || 0}</p>
+              <p className="text-2xl font-semibold text-gray-900">{(calendarData?.availability || []).filter((a) => a.available).length || 0}</p>
             </div>
           </div>
         </div>
