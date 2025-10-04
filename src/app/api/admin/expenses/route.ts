@@ -138,7 +138,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const tenantId = getTenantFromRequest(request)
+    const tenantId = requireTenantContext().tenantId
     const { vendor, category, status, amountCents, currency, date, attachmentId } = parsed.data
 
     const expenseDate = date instanceof Date ? date : new Date(date)
