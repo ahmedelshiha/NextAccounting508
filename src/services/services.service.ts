@@ -228,10 +228,8 @@ export class ServicesService {
       (payload as any).serviceSettings = sanitized.serviceSettings as unknown as Prisma.InputJsonValue;
     }
 
-    const s = await (tenantId
-      ? prisma.service.create({ data: { ...payload, tenant: { connect: { id: tenantId } } } })
-      : prisma.service.create({ data: payload as any })
-    );
+    if (!tenantId) throw new Error('Tenant context required to create service')
+    const s = await prisma.service.create({ data: { ...payload, tenant: { connect: { id: tenantId } } } });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
