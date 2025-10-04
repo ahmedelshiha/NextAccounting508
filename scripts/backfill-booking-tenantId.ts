@@ -27,6 +27,7 @@ async function main() {
         id: true,
         tenantId: true,
         serviceRequest: { select: { tenantId: true } },
+        service: { select: { tenantId: true } },
         client: { select: { tenantId: true } }
       }
     })
