@@ -272,4 +272,97 @@ model Service {
   @@map("services")
 }
 
-// ... rest of schema unchanged (copied from prisma/schema.prisma)
+// Per-month/per-hit view tracking for services to compute time-windowed conversions
+model ServiceView {
+  id         String   @id @default(cuid())
+  serviceId  String   @map("service_id")
+  tenantId   String?  @map("tenant_id")
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, createdAt])
+  @@map("service_views")
+}
+
+// Booking system for client appointments
+model Booking {
+  id          String        @id @default(cuid())
+  clientId    String
+  serviceId   String
+  status      BookingStatus @default(PENDING)
+  scheduledAt DateTime
+  duration    Int
+  notes       String?       @db.Text
+  clientName  String
+  clientEmail String
+  clientPhone String?
+  adminNotes  String?       @db.Text
+  confirmed   Boolean       @default(false)
+  reminderSent Boolean      @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  assignedTeamMemberId String?
+  assignedTeamMember   TeamMember? @relation(fields: [assignedTeamMemberId], references: [id], onDelete: SetNull)
+
+  // Service Request linkage (integration)
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  // Relations
+  client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  workOrders WorkOrder[]
+  invoices Invoice[]
+
+  // Helpful indexes for queries
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([clientId])
+  @@index([serviceId])
+  @@index([clientEmail])
+  @@index([createdAt])
+  @@index([status, scheduledAt])
+
+  @@map("bookings")
+}
+
+// Contact form submissions
+model ContactSubmission {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  subject     String?
+  message     String   @db.Text
+  source      String?
+  responded   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([responded, createdAt])
+  @@index([createdAt])
+  @@map("contact_submissions")
+}
+
+// Health monitoring logs
+model HealthLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  service   String
+  status    String
+  message   String?
+  checkedAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, checkedAt])
+  @@index([tenantId, service, checkedAt])
+  @@index([tenantId, service, status, checkedAt])
+}
+
+// ...(rest of original schema appended)
