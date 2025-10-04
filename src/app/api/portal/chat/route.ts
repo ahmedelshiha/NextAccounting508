@@ -3,8 +3,6 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -33,12 +31,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   const tenantId = ctx.tenantId
   const userId = String(ctx.userId || '')
 
-  // Best-effort userName from session; fallback to userId
-  let userName = 'User'
-  try {
-    const session = await getServerSession(authOptions)
-    userName = String(session?.user?.name || session?.user?.email || userId || 'User')
-  } catch {}
+  // Use tenant context userId as userName fallback
+  const userName = String(ctx.userName || ctx.userEmail || userId || 'User')
 
   const role = String(ctx.role || 'user')
 
