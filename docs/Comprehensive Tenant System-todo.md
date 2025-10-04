@@ -524,3 +524,32 @@ Version: 5.0  Last Updated: 2025-10-04
 
 # Notes
 - Confirm whether to rename docs/tenant-system-audit.md to the requested docs/Comprehensive Tenant System-audit.md; currently keeping the existing path as canonical to avoid duplication.
+
+---
+
+## AI Agent Update — 2025-10-04 (Phase 1 Verification)
+
+## ✅ Completed
+- [x] Phase 1 verification snapshot across middleware and API routes
+  - Why: audit current adoption of withTenantContext and remaining direct getServerSession usages
+  - Impact: prevents premature closure; clarifies exact migration scope
+
+## ⚠️ Issues / Risks
+- Direct getServerSession in APIs bypasses tenant_sig verification and ALS tenantContext
+- Affected groups (non-exhaustive):
+  - payments/* (checkout, cod)
+  - bookings/* and portal/service-requests/[id]
+  - admin/*: team-members, tasks/templates, permissions, currencies, invoices, activity, thresholds, team-management, booking-settings/*, system-settings, users, chat, calendar
+  - posts/* and email/test
+
+## 🚧 In Progress
+- [ ] Prepare migration batches to withTenantContext and requireTenantContext
+
+## 🔧 Next Steps
+- [ ] Batch A (Auth-adjacent): payments/*, email/test, admin/auth/logout
+- [ ] Batch B (Directory-wide): admin/team-members/*, admin/permissions/*, admin/invoices/*, admin/currencies/*
+- [ ] Batch C (Legacy bridges): bookings/*, portal/service-requests/[id]
+- [ ] Batch D (Remaining): admin/chat, admin/calendar, admin/thresholds, admin/activity, admin/users
+- [ ] Add integration tests for invalid tenant_sig and header-forgery per batch
+- [ ] Run pnpm lint && pnpm typecheck and targeted integration tests after each batch
+
