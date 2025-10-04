@@ -73,8 +73,8 @@ export const POST = withTenantContext(async (request: NextRequest, context: { pa
 
     const booking = await prisma.booking.create({
       data: {
-        clientId: serviceRequest.clientId,
-        serviceId: serviceRequest.serviceId,
+        client: { connect: { id: serviceRequest.clientId } },
+        service: { connect: { id: serviceRequest.serviceId } },
         status: 'PENDING' as any,
         scheduledAt: bookingScheduledAt,
         duration: bookingDuration,
