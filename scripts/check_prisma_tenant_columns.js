@@ -12,6 +12,7 @@ const expected = [
   { table: 'services', column: 'tenantId' },
   { table: 'ServiceRequest', column: 'tenantId' },
   { table: 'Attachment', column: 'tenantId' },
+  { table: 'Booking', column: 'tenantId' },
 ]
 
 async function main(){
