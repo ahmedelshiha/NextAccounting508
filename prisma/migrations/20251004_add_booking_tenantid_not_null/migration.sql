@@ -6,7 +6,7 @@ BEGIN;
 -- Ensure the column exists (schema already has tenantId). Backfill script must populate NULLs prior to this.
 -- Add / update foreign key constraint
 ALTER TABLE IF EXISTS "bookings" DROP CONSTRAINT IF EXISTS "bookings_tenantId_fkey";
-ALTER TABLE IF EXISTS "bookings" ADD CONSTRAINT "bookings_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE CASCADE;
+ALTER TABLE IF EXISTS "bookings" ADD CONSTRAINT "bookings_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE;
 
 -- Make tenantId NOT NULL (only safe after backfill)
 ALTER TABLE IF EXISTS "bookings" ALTER COLUMN "tenantId" SET NOT NULL;
