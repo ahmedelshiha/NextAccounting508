@@ -57,7 +57,7 @@ export class ServicesService {
         status: 'DRAFT' as any,
         image: (src as any).image ?? null,
         serviceSettings: (src as any).serviceSettings ?? undefined,
-        ...(tenantId ? { tenantId } : {}),
+        ...(tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
       },
     })
 
