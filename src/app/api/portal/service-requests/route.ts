@@ -369,7 +369,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         if (item.conflict) { skipped.push(item); continue }
         const child = await prisma.serviceRequest.create({
           data: {
-            clientId: ctx.userId,
+            clientId: String(ctx.userId ?? ''),
             serviceId: (data as any).serviceId,
             title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
             description: (data as any).description ?? null,
