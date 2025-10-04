@@ -87,6 +87,21 @@ const config = [
       ]
     },
   },
+  // Forbid raw prisma queries in API routes (allowlist exceptions)
+  {
+    files: ["src/app/api/**/route.ts", "src/app/api/**/*.ts"],
+    excludedFiles: [
+      "src/app/api/db-check/route.ts",
+      "src/app/api/admin/system/health/route.ts",
+      "src/app/api/uploads/av-callback/route.ts"
+    ],
+    rules: {
+      "no-restricted-syntax": ["error",
+        { selector: "CallExpression[callee.property.name=/^\\$?(queryRaw|executeRaw|queryRawUnsafe|executeRawUnsafe)$/]",
+          message: "Use typed Prisma queries or a vetted db.raw helper with explicit tenant scoping. Raw SQL in API routes is restricted." }
+      ]
+    }
+  },
 ];
 
 export default config;
