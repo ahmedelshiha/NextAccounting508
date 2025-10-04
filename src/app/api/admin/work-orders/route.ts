@@ -117,6 +117,9 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  if (!ctx.tenantId) {
+    return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+  }
 
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
