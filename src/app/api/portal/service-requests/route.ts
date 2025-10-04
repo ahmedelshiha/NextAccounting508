@@ -352,9 +352,15 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         teamMemberId: null,
       })
 
+      const parentPayload = { ...dataObj }
+      delete (parentPayload as any).clientId
+      delete (parentPayload as any).serviceId
+
       const parent = await prisma.serviceRequest.create({
         data: {
-          ...dataObj,
+          client: { connect: { id: String(ctx.userId ?? '') } },
+          service: { connect: { id: (data as any).serviceId } },
+          ...parentPayload,
           isBooking: true,
           duration: durationMinutes,
           bookingType: 'RECURRING' as any,
