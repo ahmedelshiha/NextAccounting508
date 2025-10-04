@@ -285,22 +285,22 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/task-settings/export/route.ts
 - [x] src/app/api/admin/task-settings/import/route.ts
 - [x] src/app/api/admin/security-settings/route.ts
-- [ ] src/app/api/admin/analytics/route.ts
+- [x] src/app/api/admin/analytics/route.ts
 - [x] src/app/api/admin/stats/clients/route.ts
-- [ ] src/app/api/admin/stats/posts/route.ts
-- [ ] src/app/api/admin/stats/counts/route.ts
-- [ ] src/app/api/admin/stats/bookings/route.ts
-- [ ] src/app/api/admin/stats/users/route.ts
+- [x] src/app/api/admin/stats/posts/route.ts
+- [x] src/app/api/admin/stats/counts/route.ts
+- [x] src/app/api/admin/stats/bookings/route.ts
+- [x] src/app/api/admin/stats/users/route.ts
 - [ ] src/app/api/admin/integration-hub/test/route.ts
 - [ ] src/app/api/admin/realtime/route.ts
 - [ ] src/app/api/admin/system/health/route.ts
-- [ ] src/app/api/admin/services/stats/route.ts
-- [ ] src/app/api/admin/services/export/route.ts
-- [ ] src/app/api/admin/services/bulk/route.ts
-- [ ] src/app/api/admin/services/[id]/versions/route.ts
-- [ ] src/app/api/admin/services/[id]/clone/route.ts
-- [ ] src/app/api/admin/services/[id]/settings/route.ts
-- [ ] src/app/api/admin/services/slug-check/[slug]/route.ts
+- [x] src/app/api/admin/services/stats/route.ts
+- [x] src/app/api/admin/services/export/route.ts
+- [x] src/app/api/admin/services/bulk/route.ts
+- [x] src/app/api/admin/services/[id]/versions/route.ts
+- [x] src/app/api/admin/services/[id]/clone/route.ts
+- [x] src/app/api/admin/services/[id]/settings/route.ts
+- [x] src/app/api/admin/services/slug-check/[slug]/route.ts
 - [ ] src/app/api/admin/uploads/quarantine/route.ts
 - [ ] src/app/api/admin/service-requests/recurring/preview/route.ts
 - [ ] src/app/api/admin/service-requests/analytics/route.ts

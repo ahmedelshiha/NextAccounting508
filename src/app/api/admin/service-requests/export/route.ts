@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 type ServiceRequestWithRelations = Prisma.ServiceRequestGetPayload<{
   include: {
@@ -14,14 +14,13 @@ type ServiceRequestWithRelations = Prisma.ServiceRequestGetPayload<{
     service: { select: { id: true; name: true; slug: true } };
     assignedTeamMember: { select: { id: true; name: true; email: true } };
   };
-}>;
+}>
 
-export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) return new NextResponse('Unauthorized', { status: 401 })
+export const GET = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) return new NextResponse('Unauthorized', { status: 401 })
 
-  // Basic IP rate limit to prevent abuse
   const ip = getClientIp(request)
   if (!rateLimit(`admin:service-requests:export:${ip}`, 3, 60_000)) {
     return new NextResponse('Too Many Requests', { status: 429 })
@@ -41,7 +40,7 @@ export async function GET(request: Request) {
     dateTo: searchParams.get('dateTo'),
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
   const where: any = {
     ...(filters.status && { status: filters.status }),
     ...(filters.priority && { priority: filters.priority }),
@@ -125,7 +124,6 @@ export async function GET(request: Request) {
       } catch (e: any) {
         const msg = String(e?.message || '')
         const code = String((e as any)?.code || '')
-        // Legacy fallback when columns (isBooking/scheduledAt/bookingType) are missing
         if (code === 'P2022' || /column .*does not exist/i.test(msg)) {
           const whereLegacy: any = {
             ...(filters.status && { status: filters.status }),
@@ -169,9 +167,9 @@ export async function GET(request: Request) {
                 i.budgetMax ?? '',
                 i.deadline ? i.deadline.toISOString() : '',
                 i.createdAt.toISOString(),
-                '', // scheduledAt not available
-                '', // isBooking not available
-                '', // bookingType not available
+                '',
+                '',
+                '',
               ].join(',')
               write(row)
             }
@@ -179,7 +177,6 @@ export async function GET(request: Request) {
             if (!cursor) break
           }
         } else {
-          // Re-throw to surface 500 to client
           throw e
         }
       }
@@ -197,4 +194,4 @@ export async function GET(request: Request) {
       'Transfer-Encoding': 'chunked',
     }
   })
-}
+})

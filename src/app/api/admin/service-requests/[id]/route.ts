@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
@@ -10,6 +8,8 @@ import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { respond, zodDetails } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const UpdateSchema = z.object({
   title: z.string().min(3).max(300).optional(),
@@ -23,17 +23,17 @@ const UpdateSchema = z.object({
   attachments: z.any().optional(),
 })
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const GET = withTenantContext(async (_req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
   }
 
   try {
-    const item = await prisma.serviceRequest.findUnique({
-      where: { id: id },
+    const item = await prisma.serviceRequest.findFirst({
+      where: { id, ...getTenantFilter() },
       include: {
         client: { select: { id: true, name: true, email: true } },
         service: { select: { id: true, name: true, slug: true, category: true } },
@@ -59,13 +59,13 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ id: st
     }
     throw e
   }
-}
+})
 
-export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const PATCH = withTenantContext(async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
     return respond.unauthorized()
   }
 
@@ -84,19 +84,20 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     updates.deadline = parsed.data.deadline ? new Date(parsed.data.deadline as any) : null
   }
 
-  const sr = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
-  const updated = await prisma.serviceRequest.update({ where: { id: id }, data: updates })
+  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() }, select: { clientId: true } })
+  if (!sr) return respond.notFound('Service request not found')
+  const updated = await prisma.serviceRequest.update({ where: { id }, data: updates })
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
   try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: updated.id, action: 'updated' }, timestamp: new Date().toISOString() }) } catch {}
-  try { await logAudit({ action: 'service-request:update', actorId: (session.user as any).id ?? null, targetId: id, details: { updates } }) } catch {}
+  try { await logAudit({ action: 'service-request:update', actorId: ctx.userId ?? null, targetId: id, details: { updates } }) } catch {}
   return respond.ok(updated)
-}
+})
 
-export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const DELETE = withTenantContext(async (_req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_DELETE)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_DELETE)) {
     return respond.unauthorized()
   }
 
@@ -104,11 +105,12 @@ export async function DELETE(_req: NextRequest, context: { params: Promise<{ id:
   if (!rateLimit(`service-requests:delete:${id}:${ip}`, 10, 60_000)) {
     return respond.tooMany()
   }
-  const sr = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
+  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() }, select: { clientId: true } })
+  if (!sr) return respond.notFound('Service request not found')
   await prisma.requestTask.deleteMany({ where: { serviceRequestId: id } })
-  await prisma.serviceRequest.delete({ where: { id: id } })
+  await prisma.serviceRequest.delete({ where: { id } })
   try { realtimeService.emitServiceRequestUpdate(id, { action: 'deleted' }) } catch {}
   try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'deleted' }, timestamp: new Date().toISOString() }) } catch {}
-  try { await logAudit({ action: 'service-request:delete', actorId: (session.user as any).id ?? null, targetId: id }) } catch {}
+  try { await logAudit({ action: 'service-request:delete', actorId: ctx.userId ?? null, targetId: id }) } catch {}
   return respond.ok({})
-}
+})

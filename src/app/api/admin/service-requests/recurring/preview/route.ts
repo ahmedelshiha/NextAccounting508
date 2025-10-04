@@ -1,11 +1,10 @@
 export const runtime = 'nodejs'
 
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
 import { z } from 'zod'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { planRecurringBookings, generateOccurrences } from '@/lib/booking/recurring'
 
 const PreviewSchema = z.object({
@@ -22,14 +21,13 @@ const PreviewSchema = z.object({
   })
 })
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
+export const POST = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
   }
 
-  const tenantId = getTenantFromRequest(request as any)
   const body = await request.json().catch(() => null)
   const parsed = PreviewSchema.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
@@ -37,10 +35,9 @@ export async function POST(request: Request) {
   const { serviceId, start, duration, teamMemberId, recurringPattern } = parsed.data
 
   try {
-    // Try DB-backed planning first (conflict-aware)
     const plan = await planRecurringBookings({
       serviceId,
-      clientId: (session.user as any).id,
+      clientId: ctx.userId!,
       durationMinutes: Number(duration ?? 60),
       start: new Date(start),
       pattern: {
@@ -50,14 +47,13 @@ export async function POST(request: Request) {
         until: recurringPattern.until ? new Date(recurringPattern.until) : undefined,
         byWeekday: recurringPattern.byWeekday,
       },
-      tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+      tenantId: ctx.tenantId,
       teamMemberId: teamMemberId || null,
     })
     const created = plan.plan.filter(p => !p.conflict).length
     const skipped = plan.plan.length - created
     return respond.ok({ plan: plan.plan, summary: { total: plan.plan.length, created, skipped } })
   } catch (e: any) {
-    // Fallback: generate naive plan without conflicts when DB unavailable
     try {
       const starts = generateOccurrences(new Date(start), Number(duration ?? 60), {
         frequency: recurringPattern.frequency,
@@ -72,4 +68,4 @@ export async function POST(request: Request) {
       return respond.serverError()
     }
   }
-}
+})

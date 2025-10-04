@@ -1,29 +1,31 @@
-import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { sendBookingConfirmation } from '@/lib/email'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
-export async function POST(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const POST = withTenantContext(async (_req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
     return respond.unauthorized()
   }
 
   try {
-    const booking = await prisma.booking.findFirst({ where: { serviceRequestId: id }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
+    const booking = await prisma.booking.findFirst({
+      where: { serviceRequestId: id, ...getTenantFilter() },
+      include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } }
+    })
     if (!booking) return respond.badRequest('No linked booking to confirm')
 
     const updated = await prisma.booking.update({ where: { id: booking.id }, data: { status: 'CONFIRMED', confirmed: true } as any, include: { client: { select: { name: true, email: true } }, service: { select: { name: true, price: true } } } })
 
     try { realtimeService.emitServiceRequestUpdate(String(id), { action: 'confirmed' }) } catch {}
-    try { await logAudit({ action: 'service-request:confirm', actorId: (session.user as any).id ?? null, targetId: String(id), details: { bookingId: booking.id } }) } catch {}
+    try { await logAudit({ action: 'service-request:confirm', actorId: ctx.userId ?? null, targetId: String(id), details: { bookingId: booking.id } }) } catch {}
 
     try {
       await sendBookingConfirmation({
@@ -45,4 +47,4 @@ export async function POST(_req: NextRequest, context: { params: Promise<{ id: s
     }
     return respond.serverError('Failed to confirm booking', { code, message: msg })
   }
-}
+})

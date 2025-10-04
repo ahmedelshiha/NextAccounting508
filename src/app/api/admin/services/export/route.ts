@@ -1,49 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
-import { ServicesService } from '@/services/services.service';
-import { PERMISSIONS, hasPermission } from '@/lib/permissions';
-import { getTenantFromRequest } from '@/lib/tenant';
-import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from 'next/server'
+import { ServicesService } from '@/services/services.service'
+import { PERMISSIONS, hasPermission } from '@/lib/permissions'
+import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-const svc = new ServicesService();
+const svc = new ServicesService()
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EXPORT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICES_EXPORT)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const ip = getClientIp(request as any)
-    const tenantId = getTenantFromRequest(request)
-    if (!rateLimit(`export:${tenantId || 'global'}:${ip}`, 5, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    const tenantKey = ctx.tenantId || 'global'
+    if (!rateLimit(`export:${tenantKey}:${ip}`, 5, 60_000)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
 
+    const sp = new URL(request.url).searchParams
+    const format = sp.get('format') || 'csv'
+    const includeInactive = sp.get('includeInactive') === 'true'
 
-    const sp = new URL(request.url).searchParams;
-    const format = sp.get('format') || 'csv';
-    const includeInactive = sp.get('includeInactive') === 'true';
+    const data = await svc.exportServices(ctx.tenantId, { format, includeInactive })
 
-    const data = await svc.exportServices(tenantId, { format, includeInactive });
-
-    const ts = new Date().toISOString().split('T')[0];
-    const filename = `services-export-${ts}.${format}`;
+    const ts = new Date().toISOString().split('T')[0]
+    const filename = `services-export-${ts}.${format}`
 
     if (format === 'csv') {
-      // CSV is already sanitized/escaped at source (see services.service.ts exportServices)
-      return new NextResponse(data, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="${filename}"` } });
+      return new NextResponse(data, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="${filename}"` } })
     }
 
-    return NextResponse.json(JSON.parse(data));
+    return NextResponse.json(JSON.parse(data))
   } catch (e: any) {
-    const prismaMapped = mapPrismaError(e);
-    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status });
+    const prismaMapped = mapPrismaError(e)
+    if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status })
     if (e?.name === 'ZodError') {
-      const apiErr = mapZodError(e);
-      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status });
+      const apiErr = mapZodError(e)
+      return NextResponse.json(makeErrorBody(apiErr), { status: apiErr.status })
     }
-    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
-    console.error('export error', e);
-    return NextResponse.json(makeErrorBody(e), { status: 500 });
+    if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status })
+    console.error('export error', e)
+    return NextResponse.json(makeErrorBody(e), { status: 500 })
   }
-}
+})
