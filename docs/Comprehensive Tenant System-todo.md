@@ -1,3 +1,22 @@
+# Tenant System Audit TODO — Summary (consolidated)
+
+## ✅ Completed
+- [x] Context reload and alignment with existing audit and enhancement plan
+  - **Why**: Ensure stateful continuity and avoid redundant analysis
+  - **Impact**: Enables staged, low-risk execution aligned with prior findings
+
+## ⚠️ Issues / Risks
+- Several admin/portal APIs still lack withTenantContext; header spoofing risk where wrapper is absent
+- Middleware missing structured logs for requestId, userId, tenantId on all requests
+
+## 🚧 In Progress
+- [ ] Middleware logging: add requestId, userId, tenantId logs and propagate x-request-id across the stack
+
+## 🔧 Next Steps
+- [ ] Tests: add 403 on tenant mismatch for a high-risk admin route
+- [ ] Verify middleware matcher includes /api/:path* and excludes only static assets
+
+
 ## Comprehensive Tenant System Audit — Initial Report (v1)
 
 System overview
@@ -291,9 +310,9 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/stats/counts/route.ts
 - [x] src/app/api/admin/stats/bookings/route.ts
 - [x] src/app/api/admin/stats/users/route.ts
-- [ ] src/app/api/admin/integration-hub/test/route.ts
-- [ ] src/app/api/admin/realtime/route.ts
-- [ ] src/app/api/admin/system/health/route.ts
+- [x] src/app/api/admin/integration-hub/test/route.ts
+- [x] src/app/api/admin/realtime/route.ts
+- [x] src/app/api/admin/system/health/route.ts
 - [x] src/app/api/admin/services/stats/route.ts
 - [x] src/app/api/admin/services/export/route.ts
 - [x] src/app/api/admin/services/bulk/route.ts
@@ -301,13 +320,13 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/services/[id]/clone/route.ts
 - [x] src/app/api/admin/services/[id]/settings/route.ts
 - [x] src/app/api/admin/services/slug-check/[slug]/route.ts
-- [ ] src/app/api/admin/uploads/quarantine/route.ts
-- [ ] src/app/api/admin/service-requests/recurring/preview/route.ts
-- [ ] src/app/api/admin/service-requests/analytics/route.ts
-- [ ] src/app/api/admin/service-requests/export/route.ts
-- [ ] src/app/api/admin/service-requests/bulk/route.ts
-- [ ] src/app/api/admin/service-requests/availability/route.ts
-- [ ] src/app/api/admin/service-requests/[id]/route.ts (and subroutes)
+- [x] src/app/api/admin/uploads/quarantine/route.ts
+- [x] src/app/api/admin/service-requests/recurring/preview/route.ts
+- [x] src/app/api/admin/service-requests/analytics/route.ts
+- [x] src/app/api/admin/service-requests/export/route.ts
+- [x] src/app/api/admin/service-requests/bulk/route.ts
+- [x] src/app/api/admin/service-requests/availability/route.ts
+- [x] src/app/api/admin/service-requests/[id]/route.ts (and subroutes)
 
 Portal & public routes:
 - [ ] src/app/api/portal/realtime/route.ts
@@ -355,8 +374,3 @@ Notes:
 Notes / Options:
 - Bulk refactor option: Convert all remaining admin routes that call getServerSession to withTenantContext in a single pass. This is fastest but higher risk; recommend staged grouping by priority above.
 - I can create a prioritized patch that updates the top N files per your approval (suggest N=10). Reply with "bulk N" or confirm staged plan.
-
-
----
-
-Please confirm which option you prefer: "staged" (I will refactor the files listed one-by-one in priority order), or "bulk N" (I will refactor the next N files in one commit).

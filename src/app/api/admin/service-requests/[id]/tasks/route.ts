@@ -1,16 +1,13 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
-import { NextRequest } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 const mem: { bySr: Record<string, any[]> } = { bySr: {} }
@@ -33,19 +30,15 @@ function mapPriority(v?: string | null) {
   return 'MEDIUM'
 }
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const GET = withTenantContext(async (_req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) return respond.unauthorized()
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) return respond.unauthorized()
 
-  const tenantId = getTenantFromRequest(req as any)
   if (hasDb) {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id } })
+    const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() } })
     if (!sr) return respond.notFound('Service request not found')
-    if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
-      return respond.notFound('Service request not found')
-    }
   }
 
   if (!hasDb) {
@@ -56,21 +49,19 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   const relations = await prisma.requestTask.findMany({
     where: { serviceRequestId: id },
     include: {
-      task: {
-        include: { assignee: { select: { id: true, name: true, email: true } } },
-      },
+      task: { include: { assignee: { select: { id: true, name: true, email: true } } } },
     },
     orderBy: { createdAt: 'asc' },
   })
 
   return respond.ok(relations.map((r) => r.task))
-}
+})
 
-export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const POST = withTenantContext(async (req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return respond.unauthorized()
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) return respond.unauthorized()
 
   const ip = getClientIp(req)
   if (!rateLimit(`service-requests:task-create:${id}:${ip}`, 20, 60_000)) {
@@ -83,19 +74,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   const priority = mapPriority(parsed.data.priority as any)
   const dueIso = parsed.data.dueAt || (parsed.data.dueDate ? new Date(parsed.data.dueDate).toISOString() : undefined)
 
-  const tenantId = getTenantFromRequest(req as any)
-  let serviceRequest: Awaited<ReturnType<typeof prisma.serviceRequest.findUnique>> | null = null
+  let serviceRequest: Awaited<ReturnType<typeof prisma.serviceRequest.findFirst>> | null = null
   if (hasDb) {
-    serviceRequest = await prisma.serviceRequest.findUnique({ where: { id } })
+    serviceRequest = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() } })
     if (!serviceRequest) return respond.notFound('Service request not found')
-    if (
-      isMultiTenancyEnabled() &&
-      tenantId &&
-      serviceRequest.tenantId &&
-      serviceRequest.tenantId !== tenantId
-    ) {
-      return respond.notFound('Service request not found')
-    }
   }
 
   if (!hasDb) {
@@ -119,17 +101,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
     try { realtimeService.emitTaskUpdate(row.id, { action: 'created', serviceRequestId: id }) } catch {}
     try { realtimeService.emitServiceRequestUpdate(id, { action: 'task-created', taskId: row.id }) } catch {}
-    try { await logAudit({ action: 'service-request:task:create', actorId: (session.user as any).id ?? null, targetId: id, details: { taskId: row.id } }) } catch {}
+    try { await logAudit({ action: 'service-request:task:create', actorId: ctx.userId ?? null, targetId: id, details: { taskId: row.id } }) } catch {}
     return respond.created(row)
   }
 
-  const resolvedTenantId =
-    serviceRequest?.tenantId ??
-    (typeof tenantId === 'string' && tenantId.trim().length > 0 ? tenantId : null)
-
-  if (!resolvedTenantId) {
-    return respond.badRequest('Tenant context missing for task creation')
-  }
+  const resolvedTenantId = (serviceRequest as any)?.tenantId || ctx.tenantId
 
   const createdTask = await prisma.task.create({
     data: {
@@ -138,11 +114,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       description: parsed.data.description ?? null,
       priority: priority as any,
       dueAt: dueIso ? new Date(dueIso) : undefined,
-      assignee: parsed.data.assigneeId
-        ? {
-            connect: { id: parsed.data.assigneeId },
-          }
-        : undefined,
+      assignee: parsed.data.assigneeId ? { connect: { id: parsed.data.assigneeId } } : undefined,
     },
     include: { assignee: { select: { id: true, name: true, email: true } } },
   })
@@ -152,9 +124,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   try { realtimeService.emitTaskUpdate(createdTask.id, { action: 'created', serviceRequestId: id }) } catch {}
   try { realtimeService.emitServiceRequestUpdate(id, { action: 'task-created', taskId: createdTask.id }) } catch {}
   try {
-    const srClientId =
-      serviceRequest?.clientId ??
-      (await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true } }))?.clientId
+    const srClientId = serviceRequest?.clientId ?? (await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true } }))?.clientId
     if (srClientId) {
       const ts = new Date().toISOString()
       realtimeService.broadcastToUser(String(srClientId), { type: 'task-updated', data: { taskId: createdTask.id, serviceRequestId: id, action: 'created' }, timestamp: ts })
@@ -162,6 +132,6 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:task:create', actorId: (session.user as any).id ?? null, targetId: id, details: { taskId: createdTask.id } }) } catch {}
+  try { await logAudit({ action: 'service-request:task:create', actorId: ctx.userId ?? null, targetId: id, details: { taskId: createdTask.id } }) } catch {}
   return respond.created(createdTask)
-}
+})
