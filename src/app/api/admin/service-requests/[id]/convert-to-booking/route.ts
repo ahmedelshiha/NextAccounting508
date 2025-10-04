@@ -71,24 +71,31 @@ export const POST = withTenantContext(async (request: NextRequest, context: { pa
     const bookingScheduledAt = scheduledAt ? new Date(scheduledAt) : defaultScheduledAt
     const bookingDuration = duration || serviceRequest.service?.duration || 60
 
+    const bookingData: any = {
+      client: { connect: { id: serviceRequest.clientId } },
+      service: { connect: { id: serviceRequest.serviceId } },
+      status: 'PENDING' as any,
+      scheduledAt: bookingScheduledAt,
+      duration: bookingDuration,
+      notes: notes || serviceRequest.description || null,
+      clientName: serviceRequest.clientName || serviceRequest.client?.name || 'Unknown Client',
+      clientEmail: serviceRequest.clientEmail || serviceRequest.client?.email || '',
+      clientPhone: serviceRequest.clientPhone || null,
+      adminNotes: `Converted from Service Request #${serviceRequest.id.slice(-8).toUpperCase()}`,
+      confirmed: false,
+      reminderSent: false,
+      serviceRequest: { connect: { id: serviceRequest.id } },
+    }
+
+    if (serviceRequest.assignedTeamMemberId) {
+      bookingData.assignedTeamMember = { connect: { id: serviceRequest.assignedTeamMemberId } }
+    }
+    if (ctx.tenantId) {
+      bookingData.tenant = { connect: { id: ctx.tenantId } }
+    }
+
     const booking = await prisma.booking.create({
-      data: {
-        client: { connect: { id: serviceRequest.clientId } },
-        service: { connect: { id: serviceRequest.serviceId } },
-        status: 'PENDING' as any,
-        scheduledAt: bookingScheduledAt,
-        duration: bookingDuration,
-        notes: notes || serviceRequest.description || null,
-        clientName: serviceRequest.clientName || serviceRequest.client?.name || 'Unknown Client',
-        clientEmail: serviceRequest.clientEmail || serviceRequest.client?.email || '',
-        clientPhone: serviceRequest.clientPhone || null,
-        adminNotes: `Converted from Service Request #${serviceRequest.id.slice(-8).toUpperCase()}`,
-        confirmed: false,
-        reminderSent: false,
-        assignedTeamMemberId: serviceRequest.assignedTeamMemberId,
-        serviceRequestId: serviceRequest.id,
-        ...(getTenantFilter()),
-      },
+      data: bookingData,
       include: {
         client: { select: { id: true, name: true, email: true } },
         service: { select: { id: true, name: true, category: true } },
