@@ -18,21 +18,23 @@ async function main() {
   let unresolved = 0
 
   for (const record of batches) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: record.booking_id },
-      select: {
-        id: true,
-        serviceRequest: { select: { tenantId: true } },
-        service: { select: { tenantId: true } }
-      }
-    })
+    // Use raw SQL to read related tenantIds to avoid Prisma non-null type mapping issues
+    const rows = await prisma.$queryRaw<any>`
+      SELECT u."tenantId" AS user_tenant, s."tenantId" AS service_tenant
+      FROM "bookings" b
+      LEFT JOIN "users" u ON u.id = b."clientId"
+      LEFT JOIN "services" s ON s.id = b."serviceId"
+      WHERE b.id = ${record.booking_id}
+    `;
 
-    if (!booking) {
+    if (!rows || !rows.length) {
       console.warn('Booking disappeared during processing', { bookingId: record.booking_id })
+      unresolved++
       continue
     }
 
-    const tenantId = booking.serviceRequest?.tenantId || booking.service?.tenantId || null
+    const row = rows[0]
+    const tenantId = row.user_tenant || row.service_tenant || null
 
     if (!tenantId) {
       unresolved++
