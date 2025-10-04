@@ -235,12 +235,15 @@ export function enforceTenantGuard(params: any): void {
 
 export function registerTenantGuard(client: any): void {
   const flag = Symbol.for('tenantGuardRegistered')
-  const anyClient = client as unknown as Record<symbol, boolean>
-  if (anyClient[flag]) return
-  anyClient[flag] = true
+  const anyClient = client as any
+  if (anyClient[flag as any]) return
+  anyClient[flag as any] = true
 
-  (client as any).$use(async (params: any, next: any) => {
-    enforceTenantGuard(params)
-    return next(params)
-  })
+  const useMiddleware = (anyClient['$use'] as any)
+  if (typeof useMiddleware === 'function') {
+    useMiddleware(async (params: any, next: any) => {
+      enforceTenantGuard(params)
+      return next(params)
+    })
+  }
 }
