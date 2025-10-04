@@ -355,11 +355,13 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       const parentPayload = { ...dataObj }
       delete (parentPayload as any).clientId
       delete (parentPayload as any).serviceId
+      delete (parentPayload as any).tenantId
 
       const parent = await prisma.serviceRequest.create({
         data: {
           client: { connect: { id: String(ctx.userId ?? '') } },
           service: { connect: { id: (data as any).serviceId } },
+          ...(ctx.tenantId ? { tenant: { connect: { id: String(ctx.tenantId) } } } : {}),
           ...parentPayload,
           isBooking: true,
           duration: durationMinutes,
