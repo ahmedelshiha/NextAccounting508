@@ -310,12 +310,25 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** 10% | **Priority:** P1 | **Owner:** DB Team
 **Deadline:** 2025-12-01 | **Blocker:** Schema completeness
 
-### Task 4.1: Enable RLS and set session variables (PLANNED)
-**Status:** NOT STARTED
+### Task 4.1: Enable RLS and set session variables (IN PROGRESS)
+**Status:** IN PROGRESS
 **Priority:** P1 | **Effort:** 8d | **Deadline:** 2025-11-22
 **Subtasks:**
 - [ ] Add RLS policies using current_setting('app.current_tenant_id')
-- [ ] Add helper methods in Prisma wrapper to set session variables
+- [x] Add helper methods in Prisma wrapper to set session variables
+
+Files:
+- src/lib/prisma-rls.ts (withTenantRLS, setTenantRLSOnTx)
+- tests/integration/prisma-rls-helper.test.ts
+
+Usage pattern:
+- Wrap any RLS-protected operations:
+```ts
+await withTenantRLS(async (tx) => {
+  // All queries in this callback run with app.current_tenant_id set
+  return tx.serviceRequest.findMany({ where: { status: 'SUBMITTED' } })
+}, tenantId)
+```
 
 **AI Agent Steps:**
 ```bash
