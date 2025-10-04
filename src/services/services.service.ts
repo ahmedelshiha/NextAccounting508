@@ -28,7 +28,12 @@ export class ServicesService {
     const src = await prisma.service.findUnique({ where: { id: fromId } })
     if (!src) throw new Error('Source service not found')
 
-    const tenantId: string | null = (src as any).tenantId ?? null
+    let tenantId: string | null = (src as any).tenantId ?? null
+    if (!tenantId) {
+      const t = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+      tenantId = t?.id || null
+      if (!tenantId) throw new Error('Tenant context required to clone service')
+    }
     const baseSlug = generateSlug(name)
 
     // Ensure tenant-scoped slug uniqueness
