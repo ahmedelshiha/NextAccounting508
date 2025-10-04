@@ -700,3 +700,39 @@ Recent refactors:
 - [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
 - [x] Introduce eslint rule to flag prisma.$queryRaw/$executeRaw in src/app/api/** except allowlist (db-check, system/health, uploads/av-callback)
 - [x] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
+
+---
+
+## ✅ Completed
+- [x] Cataloged tenantId column status for Phase 2 target tables (Booking, ServiceRequest, Service, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, IdempotencyKey)
+  - **Why**: establish accurate scope for Phase 2 schema hardening
+  - **Impact**: confirmed Booking lacks tenantId and other tables remain nullable; informs migration ordering and constraints
+- [x] Reviewed existing tenant-related migrations and scripts to identify backfill coverage gaps
+  - **Why**: ensure planned migrations account for current automation
+  - **Impact**: validated absence of tenantId backfill scripts and limited CI checks, highlighting need for new tooling
+- [x] Added scripts/report-tenant-null-counts.ts to baseline tenantId NULL coverage
+  - **Why**: provide repeatable visibility into rows requiring backfill before enforcing NOT NULL constraints
+  - **Impact**: teams can run `pnpm tsx scripts/report-tenant-null-counts.ts` per environment to capture counts and track progress across migrations
+- [x] Introduced nullable Booking.tenantId column with Tenant relation and index
+  - **Why**: unblock Phase 2 backfill by giving Bookings a dedicated tenant field prior to enforcing NOT NULL
+  - **Impact**: Prisma guard now recognizes bookings as tenant-scoped; diagnostics and CI checks updated to expect the column
+- [x] Updated tenant diagnostics (report-tenant-null-counts.ts, check_prisma_tenant_columns.js) to include Booking
+  - **Why**: ensure CI and preflight tooling validate tenant coverage consistently after schema change
+  - **Impact**: scripts now flag missing Booking.tenantId and report NULL counts for backfill tracking
+- [x] Added scripts/backfill-booking-tenantId.ts for pre-migration tenant assignment
+  - **Why**: populate new Booking.tenantId column from service request or client tenancy before enforcing NOT NULL
+  - **Impact**: provides repeatable tooling with post-run counts (updated, unresolved, remaining nulls) to drive remediation
+
+## ⚠️ Issues / Risks
+- No automated tenantId backfill exists; enforcing NOT NULL prematurely would break existing rows until scripts land.
+- RLS policy currently allows NULL tenantId; policy tightening must be sequenced with schema changes to avoid blocking legitimate global records.
+
+## 🚧 In Progress
+- [ ] Author comprehensive Phase 2 migration execution plan (schema deltas, backfill steps, verification gates)
+
+## 🔧 Next Steps
+- [ ] Capture baseline metrics using `pnpm tsx scripts/report-tenant-null-counts.ts` and record results in migration log before tightening constraints.
+- [ ] Execute `pnpm tsx scripts/backfill-booking-tenantId.ts` prior to enforcing NOT NULL; review unresolved log output for manual remediation.
+- [ ] Implement transactional backfill utility covering ServiceRequest, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
+- [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
+- [ ] Update scripts/setup-rls.ts (and related tooling) once NOT NULL enforced to remove NULL allowances.
