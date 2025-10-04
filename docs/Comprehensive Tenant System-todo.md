@@ -572,7 +572,12 @@ Recent refactors:
 - Sentry tenant tags incomplete; limited per-tenant observability
 
 ## 🚧 In Progress
-- [ ] Draft test matrix and implement 8 integration tests across admin/portal routes
+- [x] Draft test matrix and implement 8 integration tests across admin/portal routes
+
+## ✅ Completed
+- [x] Added 8 tenant-mismatch integration tests across representative admin and portal routes
+  - **Why**: Increase coverage for tenant_sig verification and header mismatch detection
+  - **Impact**: Integration coverage increased to 10/10; improves regression detection for tenant isolation
 - [ ] Design Prisma guard auto-injection and repository layer RFC
 
 ## 🔧 Next Steps
