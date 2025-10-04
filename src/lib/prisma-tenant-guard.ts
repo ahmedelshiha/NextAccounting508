@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { tenantContext } from '@/lib/tenant-context'
 import { isMultiTenancyEnabled } from '@/lib/tenant'
@@ -166,7 +166,7 @@ function logReadWithoutTenant(model: string, action: GuardedAction, where: unkno
   }
 }
 
-export function enforceTenantGuard(params: Prisma.MiddlewareParams): void {
+export function enforceTenantGuard(params: any): void {
   if (!isMultiTenancyEnabled()) return
   const model = params.model
   if (!model) return
@@ -233,13 +233,13 @@ export function enforceTenantGuard(params: Prisma.MiddlewareParams): void {
   }
 }
 
-export function registerTenantGuard(client: PrismaClient): void {
+export function registerTenantGuard(client: any): void {
   const flag = Symbol.for('tenantGuardRegistered')
   const anyClient = client as unknown as Record<symbol, boolean>
   if (anyClient[flag]) return
   anyClient[flag] = true
 
-  client.$use(async (params, next) => {
+  (client as any).$use(async (params: any, next: any) => {
     enforceTenantGuard(params)
     return next(params)
   })

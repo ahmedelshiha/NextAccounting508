@@ -5,7 +5,6 @@ import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
