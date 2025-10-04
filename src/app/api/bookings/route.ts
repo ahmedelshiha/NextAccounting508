@@ -1,8 +1,8 @@
 export const runtime = 'nodejs'
 
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 function withDeprecationHeaders(init?: ResponseInit) {
   const headers = new Headers(init?.headers)
@@ -21,11 +21,9 @@ function cloneRequestWithUrl(req: NextRequest | Request, url: URL, body?: any, m
   return new Request(url.toString(), init)
 }
 
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
-  }
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
 
   const url = new URL(request.url)
   if (!url.searchParams.get('type')) {
@@ -33,7 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const role = (session.user as any)?.role as string | undefined
+    const role = ctx.role ?? undefined
     if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
       const mod = await import('@/app/api/admin/service-requests/route')
       const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any)
@@ -48,20 +46,17 @@ export async function GET(request: NextRequest) {
   } catch (e: any) {
     return NextResponse.json({ success: false, error: { message: 'Failed to fetch bookings' } }, withDeprecationHeaders({ status: 500 }))
   }
-}
+})
 
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
-  }
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, withDeprecationHeaders({ status: 401 }))
 
   let legacy: any = null
   try {
     legacy = await request.json()
   } catch {}
 
-  // Map legacy booking payload to unified Service Request shape
   const bookingDetails: any = {
     scheduledAt: legacy?.scheduledAt,
     duration: legacy?.duration,
@@ -75,14 +70,12 @@ export async function POST(request: NextRequest) {
     serviceId: legacy?.serviceId,
     title: legacy?.title || undefined,
     description: legacy?.notes || legacy?.description || undefined,
-    // Preserve any custom fields
     requirements: { ...(legacy?.requirements || {}), booking: bookingDetails },
     attachments: legacy?.attachments || undefined,
   }
 
-  // If legacy payload includes scheduledAt, normalize to booking shape for conflict detection
   if (legacy?.scheduledAt) {
-    (basePayload as any).isBooking = true
+    ;(basePayload as any).isBooking = true
     ;(basePayload as any).scheduledAt = legacy.scheduledAt
     if (legacy?.duration != null) (basePayload as any).duration = legacy.duration
     if (legacy?.clientName) (basePayload as any).clientName = legacy.clientName
@@ -92,13 +85,12 @@ export async function POST(request: NextRequest) {
     if (legacy?.recurringPattern) (basePayload as any).recurringPattern = legacy.recurringPattern
   }
 
-  const role = (session.user as any)?.role as string | undefined
+  const role = ctx.role ?? undefined
   const url = new URL(request.url)
 
   try {
     if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
-      // Admin path requires clientId; prefer provided clientId, fall back to current user
-      basePayload.clientId = legacy?.clientId || (session.user as any).id
+      basePayload.clientId = legacy?.clientId || ctx.userId
       if (legacy?.assignedTeamMemberId) (basePayload as any).assignedTeamMemberId = legacy.assignedTeamMemberId
       const mod = await import('@/app/api/admin/service-requests/route')
       const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any)
@@ -113,4 +105,4 @@ export async function POST(request: NextRequest) {
   } catch (e: any) {
     return NextResponse.json({ success: false, error: { message: 'Failed to create booking' } }, withDeprecationHeaders({ status: 500 }))
   }
-}
+})
