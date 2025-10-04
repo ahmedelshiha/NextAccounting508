@@ -241,9 +241,63 @@ SUCCESS CRITERIA CHECKLIST
 - [ ] Assign or archive orphaned rows
 - [ ] Validate via verification queries
 
+Backfill SQL (illustrative; run inside a transaction per table):
+```sql
+-- ServiceRequest.tenantId from client or service
+UPDATE "ServiceRequest" sr
+SET "tenantId" = COALESCE(u."tenantId", s."tenantId")
+FROM "User" u
+LEFT JOIN "Service" s ON s."id" = sr."serviceId"
+WHERE sr."clientId" = u."id" AND sr."tenantId" IS NULL;
+
+-- Booking.tenantId from client or linked ServiceRequest
+UPDATE "Booking" b
+SET "tenantId" = COALESCE(u."tenantId", sr."tenantId")
+FROM "User" u
+LEFT JOIN "ServiceRequest" sr ON sr."id" = b."serviceRequestId"
+WHERE b."clientId" = u."id" AND b."tenantId" IS NULL;
+
+-- WorkOrder.tenantId from related entities
+UPDATE "WorkOrder" w
+SET "tenantId" = COALESCE(sr."tenantId", b."tenantId", u."tenantId")
+FROM "ServiceRequest" sr
+LEFT JOIN "Booking" b ON b."id" = w."bookingId"
+LEFT JOIN "User" u ON u."id" = w."clientId"
+WHERE w."tenantId" IS NULL
+  AND (sr."id" = w."serviceRequestId" OR b."id" = w."bookingId" OR u."id" = w."clientId");
+
+-- Invoice/Expense.tenantId
+UPDATE "Invoice" i SET "tenantId" = COALESCE(b."tenantId", u."tenantId")
+FROM "Booking" b LEFT JOIN "User" u ON u."id" = i."clientId"
+WHERE i."tenantId" IS NULL AND (b."id" = i."bookingId" OR u."id" = i."clientId");
+
+UPDATE "Expense" e SET "tenantId" = u."tenantId"
+FROM "User" u WHERE e."tenantId" IS NULL AND e."userId" = u."id";
+
+-- Attachment/ScheduledReminder/ChatMessage by related entity
+UPDATE "Attachment" a SET "tenantId" = sr."tenantId"
+FROM "ServiceRequest" sr WHERE a."tenantId" IS NULL AND a."serviceRequestId" = sr."id";
+
+UPDATE "ScheduledReminder" r SET "tenantId" = sr."tenantId"
+FROM "ServiceRequest" sr WHERE r."tenantId" IS NULL AND r."serviceRequestId" = sr."id";
+
+-- Settings tables: already unique on tenantId; set default if missing (should not happen)
+```
+
+Verification queries:
+```sql
+SELECT 'ServiceRequest', COUNT(*) FROM "ServiceRequest" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Booking', COUNT(*) FROM "Booking" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'WorkOrder', COUNT(*) FROM "WorkOrder" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Invoice', COUNT(*) FROM "Invoice" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Expense', COUNT(*) FROM "Expense" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Attachment', COUNT(*) FROM "Attachment" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'ScheduledReminder', COUNT(*) FROM "ScheduledReminder" WHERE "tenantId" IS NULL
+```
+
 **AI Agent Steps:**
 ```bash
-psql "$DATABASE_URL" -c "-- run backfill SQL"
+psql "$DATABASE_URL" -c "BEGIN; -- run backfill SQL; COMMIT;" || psql "$DATABASE_URL" -c "ROLLBACK;"
 psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM \"ServiceRequest\" WHERE \"tenantId\" IS NULL;"
 ```
 
