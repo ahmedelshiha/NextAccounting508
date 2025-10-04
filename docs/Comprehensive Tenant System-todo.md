@@ -188,8 +188,16 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** NOT STARTED
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
-- [ ] Add tenantId column non-null to User, Task, ComplianceRecord, HealthLog, AuditLog, etc.
-- [ ] Add indexes and foreign keys where appropriate
+- [ ] Add tenantId column non-null to Booking, ServiceRequest (currently optional), Service (optional), WorkOrder (optional), Invoice (optional), Expense (optional), Attachment (optional), ScheduledReminder (optional), ChatMessage (optional), BookingSettings (optional unique), IdempotencyKey (optional)
+- [ ] Add foreign keys to Tenant(id) and relevant indexes (tenantId, composite uniques like @@unique([tenantId, slug]))
+- [ ] Tighten settings tables to require tenantId where unique constraints already imply single-tenant rows
+
+Implementation notes:
+- For settings tables already using @@unique([tenantId]), migrate tenantId from optional -> required with backfill
+- Booking.tenantId populated via joins on clientId -> User.tenantId or serviceRequest.tenantId
+- ServiceRequest.tenantId populated from clientId -> User.tenantId or service.tenantId
+- WorkOrder.tenantId populated via COALESCE over serviceRequest.tenantId, booking.tenantId, client.tenantId
+- Invoice/Expense.tenantId populated by booking/client/user relations
 
 **AI Agent Steps:**
 ```bash
@@ -233,9 +241,63 @@ SUCCESS CRITERIA CHECKLIST
 - [ ] Assign or archive orphaned rows
 - [ ] Validate via verification queries
 
+Backfill SQL (illustrative; run inside a transaction per table):
+```sql
+-- ServiceRequest.tenantId from client or service
+UPDATE "ServiceRequest" sr
+SET "tenantId" = COALESCE(u."tenantId", s."tenantId")
+FROM "User" u
+LEFT JOIN "Service" s ON s."id" = sr."serviceId"
+WHERE sr."clientId" = u."id" AND sr."tenantId" IS NULL;
+
+-- Booking.tenantId from client or linked ServiceRequest
+UPDATE "Booking" b
+SET "tenantId" = COALESCE(u."tenantId", sr."tenantId")
+FROM "User" u
+LEFT JOIN "ServiceRequest" sr ON sr."id" = b."serviceRequestId"
+WHERE b."clientId" = u."id" AND b."tenantId" IS NULL;
+
+-- WorkOrder.tenantId from related entities
+UPDATE "WorkOrder" w
+SET "tenantId" = COALESCE(sr."tenantId", b."tenantId", u."tenantId")
+FROM "ServiceRequest" sr
+LEFT JOIN "Booking" b ON b."id" = w."bookingId"
+LEFT JOIN "User" u ON u."id" = w."clientId"
+WHERE w."tenantId" IS NULL
+  AND (sr."id" = w."serviceRequestId" OR b."id" = w."bookingId" OR u."id" = w."clientId");
+
+-- Invoice/Expense.tenantId
+UPDATE "Invoice" i SET "tenantId" = COALESCE(b."tenantId", u."tenantId")
+FROM "Booking" b LEFT JOIN "User" u ON u."id" = i."clientId"
+WHERE i."tenantId" IS NULL AND (b."id" = i."bookingId" OR u."id" = i."clientId");
+
+UPDATE "Expense" e SET "tenantId" = u."tenantId"
+FROM "User" u WHERE e."tenantId" IS NULL AND e."userId" = u."id";
+
+-- Attachment/ScheduledReminder/ChatMessage by related entity
+UPDATE "Attachment" a SET "tenantId" = sr."tenantId"
+FROM "ServiceRequest" sr WHERE a."tenantId" IS NULL AND a."serviceRequestId" = sr."id";
+
+UPDATE "ScheduledReminder" r SET "tenantId" = sr."tenantId"
+FROM "ServiceRequest" sr WHERE r."tenantId" IS NULL AND r."serviceRequestId" = sr."id";
+
+-- Settings tables: already unique on tenantId; set default if missing (should not happen)
+```
+
+Verification queries:
+```sql
+SELECT 'ServiceRequest', COUNT(*) FROM "ServiceRequest" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Booking', COUNT(*) FROM "Booking" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'WorkOrder', COUNT(*) FROM "WorkOrder" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Invoice', COUNT(*) FROM "Invoice" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Expense', COUNT(*) FROM "Expense" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'Attachment', COUNT(*) FROM "Attachment" WHERE "tenantId" IS NULL
+UNION ALL SELECT 'ScheduledReminder', COUNT(*) FROM "ScheduledReminder" WHERE "tenantId" IS NULL
+```
+
 **AI Agent Steps:**
 ```bash
-psql "$DATABASE_URL" -c "-- run backfill SQL"
+psql "$DATABASE_URL" -c "BEGIN; -- run backfill SQL; COMMIT;" || psql "$DATABASE_URL" -c "ROLLBACK;"
 psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM \"ServiceRequest\" WHERE \"tenantId\" IS NULL;"
 ```
 
@@ -248,17 +310,41 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** 10% | **Priority:** P1 | **Owner:** DB Team
 **Deadline:** 2025-12-01 | **Blocker:** Schema completeness
 
-### Task 4.1: Enable RLS and set session variables (PLANNED)
-**Status:** NOT STARTED
+### Task 4.1: Enable RLS and set session variables (IN PROGRESS)
+**Status:** IN PROGRESS
 **Priority:** P1 | **Effort:** 8d | **Deadline:** 2025-11-22
 **Subtasks:**
 - [ ] Add RLS policies using current_setting('app.current_tenant_id')
-- [ ] Add helper methods in Prisma wrapper to set session variables
+- [x] Add helper methods in Prisma wrapper to set session variables
+
+Files:
+- src/lib/prisma-rls.ts (withTenantRLS, setTenantRLSOnTx)
+- tests/integration/prisma-rls-helper.test.ts
+
+Usage pattern:
+- Wrap any RLS-protected operations:
+```ts
+await withTenantRLS(async (tx) => {
+  // All queries in this callback run with app.current_tenant_id set
+  return tx.serviceRequest.findMany({ where: { status: 'SUBMITTED' } })
+}, tenantId)
+```
 
 **AI Agent Steps:**
 ```bash
-psql "$DATABASE_URL" -c "SELECT set_config('app.current_tenant_id', 'TENANT_ID', false);"
+# 1) Enable policies (idempotent) on all tables with tenantId
+pnpm db:rls:enable
+
+# 2) Verify policy presence on representative tables
+psql "$DATABASE_URL" -c "\d+ public.services" | sed -n '/Policies/,$p'
+
+# 3) App usage: wrap sensitive operations so session var is set
+#    (already available via withTenantRLS in src/lib/prisma-rls.ts)
 ```
+
+Rollout notes:
+- Current policy allows tenantId IS NULL (global rows). After Phase 2 NOT NULL migrations, tighten to strict equality.
+- Consider ALTER TABLE ... FORCE ROW LEVEL SECURITY post-stabilization.
 
 SUCCESS CRITERIA CHECKLIST
 - RLS blocks cross-tenant reads/writes without session variables set
@@ -323,13 +409,19 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** 70% | **Priority:** P1 | **Owner:** Platform/DB
 **Deadline:** 2025-11-15 | **Blocker:** Route adoption of tenantContext
 
-### Task 8.1: Register Prisma tenant guard and auto-enforce tenant filters (COMPLETE/PARTIAL)
-**Status:** PARTIAL (guard implemented; auto-injection pending)
+### Task 8.1: Register Prisma tenant guard and auto-enforce tenant filters (COMPLETE)
+**Status:** COMPLETE (guard + auto-injection verified)
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
 - [x] registerTenantGuard wired in src/lib/prisma.ts
-- [ ] Enhance guard to auto-add tenant filters for reads/writes when missing
+- [x] Enhance guard to auto-add tenant filters for reads/writes when missing
 - [ ] Add helpers to set session variables before raw queries
+
+Verification notes:
+- DMMF-based model detection enforces guard on all models with tenantId
+- Auto-injection present: ensureTenantOnCreateData and ensureTenantScopeOnWhere for non-superadmin contexts
+- Gaps: models without tenantId (e.g., Booking, ContactSubmission) not enforced by guard; handled at API/service layer
+- Raw queries detected (uploads AV callback, health checks): bypass middleware; AV callback is system-scoped and uses secret; plan lint/utility for raw queries
 
 SUCCESS CRITERIA CHECKLIST
 - Guard blocks unsafe operations; auto-injection reduces human error
@@ -417,7 +509,7 @@ SUCCESS CRITERIA CHECKLIST
 **Priority:** P2 | **Effort:** 2d | **Deadline:** 2025-10-28
 **Subtasks:**
 - [x] Middleware logs requestId/tenantId/userId
-- [ ] Configure Sentry to include tenant tags in events
+- [x] Configure Sentry to include tenant tags in events (server & edge)
 - [ ] Create dashboards for cross-tenant attempts and RLS policy hits
 
 SUCCESS CRITERIA CHECKLIST
@@ -585,3 +677,26 @@ Recent refactors:
 - [ ] Introduce tenant-scoped repository layer; refactor 2 critical services first
 - [ ] Add Sentry tenant tags in sentry.client/server config via scope.setTag
 - [ ] Prepare tenantId NOT NULL migration plan with backfill scripts and verification checks
+
+---
+
+## ✅ Completed
+- [x] Configured Sentry to tag events with tenant context on server and edge
+  - **Why**: observability enhancement
+  - **Impact**: All server/edge Sentry events include tenantId, tenantSlug, requestId, role, tenantRole, and user identity fields for better debugging
+- [x] Verified Prisma tenant guard auto-injection coverage and updated Phase 8 status
+  - **Why**: ensure database access is consistently tenant-scoped by default
+  - **Impact**: Writes auto-inject tenantId when missing; reads/mutations auto-scope to current tenant unless superadmin. Missing-tenantId models require API/service enforcement.
+
+## ⚠️ Issues / Risks
+- Edge/runtime environments without AsyncLocalStorage may rely on polyfill; tagging is best-effort there
+- Raw queries bypass Prisma middleware; limited use found (health checks, AV callback). AV callback is system-scoped; add lint rule and safe helper for any future raw queries.
+
+## 🚧 In Progress
+- [ ] Create Sentry dashboards for cross-tenant attempts and RLS hits
+
+## 🔧 Next Steps
+- [x] Add a sanity integration test that triggers a server error and asserts tenant tags present via mock transport
+- [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
+- [x] Introduce eslint rule to flag prisma.$queryRaw/$executeRaw in src/app/api/** except allowlist (db-check, system/health, uploads/av-callback)
+- [x] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
