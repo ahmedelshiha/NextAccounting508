@@ -44,7 +44,7 @@ export interface TenantContext {
 }
 
 class TenantContextManager {
-  private storage = new AsyncLocalStorageClass<TenantContext>()
+  private storage: any = new AsyncLocalStorageClass()
 
   run<T>(context: TenantContext, callback: () => T): T {
     return this.storage.run(context, callback)
