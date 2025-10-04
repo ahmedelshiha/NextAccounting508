@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const dateFrom = parseDate(searchParams.get('dateFrom'))
     const dateTo = parseDate(searchParams.get('dateTo'))
-    const tenantId = getTenantFromRequest(request)
+    const tenantId = requireTenantContext().tenantId
 
     const where: Prisma.ExpenseWhereInput = {
       ...(tenantFilter(tenantId) as Prisma.ExpenseWhereInput),
