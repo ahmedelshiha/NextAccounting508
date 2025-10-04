@@ -126,6 +126,16 @@ model Tenant {
   updatedAt            DateTime              @updatedAt
 
   users                User[]
+  services             Service[]
+  bookings             Booking[]
+  serviceRequests      ServiceRequest[]
+  workOrders           WorkOrder[]
+  attachments          Attachment[]
+  scheduledReminders   ScheduledReminder[]
+  invoices             Invoice[]
+  expenses             Expense[]
+  chatMessages         ChatMessage[]
+  idempotencyKeys      IdempotencyKey[]
   tasks                Task[]
   complianceRecords    ComplianceRecord[]
   healthLogs           HealthLog[]
