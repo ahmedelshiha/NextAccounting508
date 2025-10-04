@@ -17,9 +17,9 @@ async function runTenantScopedRaw<T>(
 
   if (!unsafe && !isTemplateStringsArray(input)) {
     if (typeof input === 'string' && values.length > 0) {
-      throw new Error('queryTenantRaw: parameterized queries require tagged template usage')
+      throw new Error('Tenant raw helpers require tagged template usage for parameterized queries')
     }
-    throw new Error('queryTenantRaw: use tagged template literals for safe execution or call the unsafe variant explicitly')
+    throw new Error('Tenant raw helpers require tagged template literals for safe execution or call the unsafe variant explicitly')
   }
 
   return withTenantRLS(async tx => {
