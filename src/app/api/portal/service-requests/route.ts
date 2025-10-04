@@ -1,14 +1,13 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
 import { planRecurringBookings } from '@/lib/booking/recurring'
 import { realtimeService } from '@/lib/realtime-enhanced'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 
@@ -55,11 +54,9 @@ const CreateBookingSchema = CreateBase.extend({
 
 const CreateSchema = z.union([CreateRequestSchema, CreateBookingSchema])
 
-export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return respond.unauthorized()
-  }
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+
   const { searchParams } = new URL(request.url)
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
@@ -71,9 +68,8 @@ export async function GET(request: Request) {
   const dateFrom = searchParams.get('dateFrom')
   const dateTo = searchParams.get('dateTo')
 
-  const tenantId = getTenantFromRequest(request as any)
   const where: any = {
-    clientId: session.user.id,
+    clientId: ctx.userId,
     ...(status && { status }),
     ...(priority && { priority }),
     ...(q && {
@@ -84,7 +80,7 @@ export async function GET(request: Request) {
     }),
     ...(type === 'appointments' ? { isBooking: true } : {}),
     ...(bookingType ? { bookingType } : {}),
-    ...(dateFrom || dateTo ? (
+    ...((dateFrom || dateTo) ? (
       type === 'appointments'
         ? { scheduledAt: {
             ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
@@ -95,7 +91,7 @@ export async function GET(request: Request) {
             ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
           } }
     ) : {}),
-    ...tenantFilter(tenantId),
+    ...getTenantFilter('tenantId'),
   }
 
   try {
@@ -120,7 +116,7 @@ export async function GET(request: Request) {
     // Legacy path when scheduledAt/isBooking columns are missing
     if (code === 'P2022' || /column .*does not exist/i.test(msg)) {
       const whereLegacy: any = {
-        clientId: session.user.id,
+        clientId: ctx.userId,
         ...(status && { status }),
         ...(priority && { priority }),
         ...(q && {
@@ -137,7 +133,7 @@ export async function GET(request: Request) {
             ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
           },
         } : {}),
-        ...tenantFilter(tenantId),
+        ...getTenantFilter('tenantId'),
       }
       const [items, total] = await Promise.all([
         prisma.serviceRequest.findMany({
@@ -157,7 +153,7 @@ export async function GET(request: Request) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         let all = getAllRequests()
-        all = all.filter((r: any) => r.clientId === session.user.id && (!isMultiTenancyEnabled() || !tenantId || r.tenantId === tenantId))
+        all = all.filter((r: any) => r.clientId === ctx.userId && r.tenantId === ctx.tenantId)
         if (type === 'appointments') all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
         if (type === 'requests') all = all.filter((r: any) => !((r as any).scheduledAt || r.deadline))
         if (status) all = all.filter((r: any) => String(r.status) === String(status))
@@ -189,15 +185,11 @@ export async function GET(request: Request) {
     }
     throw e
   }
-}
+})
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return respond.unauthorized()
-  }
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
 
-  const tenantId = getTenantFromRequest(request as any)
   const idemKey = request.headers.get('x-idempotency-key') || ''
   if (idemKey) {
     try {
@@ -209,10 +201,10 @@ export async function POST(request: Request) {
           if (existingEntity) return respond.created(existingEntity)
         } catch {}
       }
-      await reserveIdempotencyKey(idemKey, (session.user as any)?.id || null, (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null)
+      await reserveIdempotencyKey(idemKey, ctx.userId || null, ctx.tenantId)
     } catch {}
   }
-  const ip = getClientIp(request)
+  const ip = getClientIp(request as any)
   if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
     return respond.tooMany()
   }
@@ -225,13 +217,15 @@ export async function POST(request: Request) {
   const data = parsed.data
 
   // Validate service exists and active
-  // Validate service exists and active
   let svc: any = null
   try {
-    svc = await prisma.service.findUnique({ where: { id: data.serviceId } })
+    svc = await prisma.service.findUnique({ where: { id: (data as any).serviceId } })
     const _status = (svc as any)?.status ? String((svc as any).status).toUpperCase() : undefined
     const _active = (svc as any)?.active
     if (!svc || (_status ? _status !== 'ACTIVE' : _active === false)) {
+      return respond.badRequest('Service not found or inactive')
+    }
+    if ((svc as any)?.tenantId && (svc as any).tenantId !== ctx.tenantId) {
       return respond.badRequest('Service not found or inactive')
     }
   } catch (e: any) {
@@ -243,7 +237,7 @@ export async function POST(request: Request) {
         const resp: any = await mod.GET(new Request('https://internal/api/services') as any)
         const json = await resp.json().catch(() => null)
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
-        svc = list.find((s: any) => s.id === data.serviceId) || null
+        svc = list.find((s: any) => s.id === (data as any).serviceId) || null
         if (!svc) return respond.serverError()
       } catch {
         return respond.serverError()
@@ -255,18 +249,17 @@ export async function POST(request: Request) {
 
   try {
     // If title not provided, generate a friendly title using service name + client
-    let titleToUse = data.title
+    let titleToUse = (data as any).title as string | undefined
     if (!titleToUse) {
       try {
-        const clientName = (session.user as any)?.name || session.user.id
-        titleToUse = `${svc.name} request — ${clientName} — ${new Date().toISOString().slice(0,10)}`
+        titleToUse = `${svc.name} request — ${ctx.userId} — ${new Date().toISOString().slice(0,10)}`
       } catch {
-        titleToUse = `${svc.name} request — ${session.user.id} — ${new Date().toISOString().slice(0,10)}`
+        titleToUse = `${svc.name} request — ${ctx.userId} — ${new Date().toISOString().slice(0,10)}`
       }
     }
 
     const dataObj: any = {
-      clientId: session.user.id,
+      clientId: ctx.userId,
       serviceId: (data as any).serviceId,
       title: titleToUse,
       description: (data as any).description ?? null,
@@ -277,6 +270,7 @@ export async function POST(request: Request) {
       requirements: ((data as any).requirements as any) ?? undefined,
       attachments: ((data as any).attachments as any) ?? undefined,
       status: 'SUBMITTED',
+      tenantId: ctx.tenantId,
       ...('isBooking' in data && (data as any).isBooking ? {
         isBooking: true,
         scheduledAt: new Date((data as any).scheduledAt),
@@ -289,7 +283,6 @@ export async function POST(request: Request) {
     if (String((data as any).bookingType || '').toUpperCase() === 'EMERGENCY') {
       dataObj.priority = 'URGENT'
     }
-    if (isMultiTenancyEnabled() && tenantId) dataObj.tenantId = tenantId
 
     // For booking-type requests, enforce minAdvance and conflict detection prior to creation
     if ((data as any).isBooking) {
@@ -313,7 +306,7 @@ export async function POST(request: Request) {
             start: new Date((data as any).scheduledAt),
             durationMinutes: Number((data as any).duration ?? svcDuration),
             excludeBookingId: undefined,
-            tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+            tenantId: ctx.tenantId,
             teamMemberId: null,
           })
           if (check.conflict) return respond.conflict('Scheduling conflict detected', { reason: check.details?.reason, conflictingBookingId: check.details?.conflictingBookingId })
@@ -351,11 +344,11 @@ export async function POST(request: Request) {
 
       const plan = await planRecurringBookings({
         serviceId: (data as any).serviceId,
-        clientId: session.user.id,
+        clientId: ctx.userId,
         durationMinutes,
         start: new Date((data as any).scheduledAt),
         pattern: normalized as any,
-        tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+        tenantId: ctx.tenantId,
         teamMemberId: null,
       })
 
@@ -376,7 +369,7 @@ export async function POST(request: Request) {
         if (item.conflict) { skipped.push(item); continue }
         const child = await prisma.serviceRequest.create({
           data: {
-            clientId: session.user.id,
+            clientId: ctx.userId,
             serviceId: (data as any).serviceId,
             title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
             description: (data as any).description ?? null,
@@ -391,14 +384,14 @@ export async function POST(request: Request) {
             duration: durationMinutes,
             bookingType: 'RECURRING' as any,
             parentBookingId: parent.id,
-            ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+            tenantId: ctx.tenantId,
           },
           include: { service: { select: { id: true, name: true, slug: true, category: true } } },
         })
         childrenCreated.push(child)
       }
 
-      try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: parent.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+      try { realtimeService.broadcastToUser(String(ctx.userId), { type: 'service-request-updated', data: { serviceRequestId: parent.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
       try {
         const dates = new Set<string>()
         try { dates.add(new Date((parent as any).scheduledAt).toISOString().slice(0,10)) } catch {}
@@ -422,7 +415,7 @@ export async function POST(request: Request) {
     })
 
     try { if (typeof idemKey === 'string' && idemKey) { const { finalizeIdempotencyKey } = await import('@/lib/idempotency'); await finalizeIdempotencyKey(idemKey, 'ServiceRequest', created.id) } } catch {}
-    try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+    try { realtimeService.broadcastToUser(String(ctx.userId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
 
     // Auto-assign if team autoAssign is enabled (prefer team-based autoAssign flag)
     try {
@@ -444,9 +437,9 @@ export async function POST(request: Request) {
 
     // Persist attachments as Attachment records if provided
     try {
-      if (Array.isArray(data.attachments) && data.attachments.length > 0) {
+      if (Array.isArray((data as any).attachments) && (data as any).attachments.length > 0) {
         const { default: prismaClient } = await import('@/lib/prisma')
-        const toCreate = data.attachments.map((a: any) => ({
+        const toCreate = (data as any).attachments.map((a: any) => ({
           key: a.key || undefined,
           url: a.url || undefined,
           name: a.name || undefined,
@@ -459,7 +452,7 @@ export async function POST(request: Request) {
           avScanAt: a.avScanAt ? new Date(a.avScanAt) : undefined,
           avThreatName: a.avThreatName || undefined,
           avScanTime: typeof a.avScanTime === 'number' ? a.avScanTime : undefined,
-          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
+          tenantId: ctx.tenantId,
         }))
         // Bulk create, ignoring duplicates via try/catch per item
         for (const item of toCreate) {
@@ -470,7 +463,7 @@ export async function POST(request: Request) {
       try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:create:attachments' } }) } catch {}
     }
 
-    try { await logAudit({ action: 'service-request:create', actorId: session.user.id ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
+    try { await logAudit({ action: 'service-request:create', actorId: ctx.userId ?? null, targetId: created.id, details: { clientId: created.clientId, serviceId: created.serviceId, priority: created.priority, serviceSnapshot: (created.requirements as any)?.serviceSnapshot ?? null } }) } catch {}
     return respond.created(created)
   } catch (e: any) {
     try { const { captureError } = await import('@/lib/observability'); await captureError(e, { tags: { route: 'portal:service-requests:POST:create' } }) } catch {}
@@ -479,10 +472,10 @@ export async function POST(request: Request) {
       try {
         const { addRequest } = await import('@/lib/dev-fallbacks')
         const id = `dev-${Date.now().toString()}`
-        const genTitle = data.title || `${svc?.name || data.serviceId} request — ${session.user?.name || session.user.id} — ${new Date().toISOString().slice(0,10)}`
+        const genTitle = (data as any).title || `${svc?.name || (data as any).serviceId} request — ${ctx.userId} — ${new Date().toISOString().slice(0,10)}`
         const created: any = {
           id,
-          clientId: session.user.id,
+          clientId: ctx.userId,
           serviceId: (data as any).serviceId,
           title: genTitle,
           description: (data as any).description ?? null,
@@ -496,6 +489,7 @@ export async function POST(request: Request) {
           service: svc ? { id: svc.id, name: svc.name, slug: svc.slug, category: svc.category } : null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          tenantId: ctx.tenantId,
         }
         if ('isBooking' in (data as any) && (data as any).isBooking) {
           created.isBooking = true
@@ -503,9 +497,8 @@ export async function POST(request: Request) {
           created.duration = (data as any).duration ?? null
           created.bookingType = (data as any).bookingType ?? null
         }
-        if (isMultiTenancyEnabled() && tenantId) (created as any).tenantId = tenantId
         addRequest(id, created)
-        try { realtimeService.broadcastToUser(String(session.user.id), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
+        try { realtimeService.broadcastToUser(String(ctx.userId), { type: 'service-request-updated', data: { serviceRequestId: id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
         try {
           if ((created as any)?.isBooking && (created as any)?.scheduledAt) {
             const d = new Date((created as any).scheduledAt).toISOString().slice(0,10)
@@ -519,7 +512,7 @@ export async function POST(request: Request) {
     }
     throw e
   }
-}
+})
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })

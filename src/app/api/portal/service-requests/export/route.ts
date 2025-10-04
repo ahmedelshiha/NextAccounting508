@@ -1,30 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 import { toCsvCell, streamCsv } from '@/lib/csv-export'
 import type { Prisma } from '@prisma/client'
-type ServiceRequestWithService = Prisma.ServiceRequestGetPayload<{ include: { service: { select: { name: true } } } }>;
+type ServiceRequestWithService = Prisma.ServiceRequestGetPayload<{ include: { service: { select: { name: true } } } }>
 
 function toCsvValue(v: unknown): string {
   const s = v == null ? '' : String(v)
   return '"' + s.replace(/"/g, '""') + '"'
 }
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+export const GET = withTenantContext(async (req: NextRequest) => {
+  const ctx = requireTenantContext()
+  const userId = String(ctx.userId)
 
   const ip = getClientIp(req as any)
   if (!rateLimit(`portal:service-requests:export:${ip}`, 3, 60_000)) {
     return new NextResponse('Too many requests', { status: 429 })
-  }
+    }
 
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status') || undefined
@@ -36,9 +33,8 @@ export async function GET(req: NextRequest) {
   const dateTo = searchParams.get('dateTo') || undefined
   const stream = (searchParams.get('stream') || '').toLowerCase() === 'true' || searchParams.get('stream') === '1'
 
-  const tenantId = getTenantFromRequest(req as any)
   const where: any = {
-    clientId: session.user.id,
+    clientId: userId,
     ...(status && { status }),
     ...(priority && { priority }),
     ...(q && {
@@ -60,7 +56,7 @@ export async function GET(req: NextRequest) {
             ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
           } }
     ) : {}),
-    ...tenantFilter(tenantId),
+    ...getTenantFilter('tenantId'),
   }
 
   if (stream) {
@@ -142,7 +138,7 @@ export async function GET(req: NextRequest) {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         let all = getAllRequests()
-        all = all.filter((r: any) => r.clientId === session.user.id && (!tenantId || r.tenantId === tenantId))
+        all = all.filter((r: any) => r.clientId === userId && r.tenantId === ctx.tenantId)
         if (type === 'appointments') all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
         if (status) all = all.filter((r: any) => String(r.status) === String(status))
         if (priority) all = all.filter((r: any) => String(r.priority) === String(priority))
@@ -183,4 +179,4 @@ export async function GET(req: NextRequest) {
     }
     throw e
   }
-}
+})
