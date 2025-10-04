@@ -20,7 +20,7 @@ const steps: BackfillStep[] = [
         SELECT sr."id", COALESCE(u."tenantId", s."tenantId") AS tenant_id
         FROM "ServiceRequest" sr
         LEFT JOIN "users" u ON u."id" = sr."clientId"
-        LEFT JOIN "Service" s ON s."id" = sr."serviceId"
+        LEFT JOIN "services" s ON s."id" = sr."serviceId"
         WHERE sr."tenantId" IS NULL
       )
       UPDATE "ServiceRequest" sr
