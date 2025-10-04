@@ -344,7 +344,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
       const plan = await planRecurringBookings({
         serviceId: (data as any).serviceId,
-        clientId: ctx.userId,
+        clientId: String(ctx.userId ?? ''),
         durationMinutes,
         start: new Date((data as any).scheduledAt),
         pattern: normalized as any,
