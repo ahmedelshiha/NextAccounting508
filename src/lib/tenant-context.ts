@@ -1,4 +1,34 @@
-import { AsyncLocalStorage } from 'async_hooks'
+/* eslint-disable @typescript-eslint/no-require-imports */
+// Use AsyncLocalStorage only on Node.js server. Avoid static import of 'async_hooks' which breaks Turbopack/browser builds.
+let AsyncLocalStorageClass: any = undefined
+if (typeof window === 'undefined') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // Allow runtime require here because async_hooks is Node-only and static import breaks Turbopack
+    AsyncLocalStorageClass = require('async_hooks').AsyncLocalStorage
+  } catch (err) {
+    AsyncLocalStorageClass = undefined
+  }
+}
+
+// Fallback polyfill when AsyncLocalStorage is not available (client or build environments).
+if (!AsyncLocalStorageClass) {
+  AsyncLocalStorageClass = class<T> {
+    private _store: T | null = null
+    run(store: T, callback: () => any) {
+      // simple synchronous call; no async context propagation
+      this._store = store
+      try {
+        return callback()
+      } finally {
+        this._store = null
+      }
+    }
+    getStore() {
+      return this._store
+    }
+  }
+}
 
 export interface TenantContext {
   tenantId: string
@@ -14,7 +44,7 @@ export interface TenantContext {
 }
 
 class TenantContextManager {
-  private storage = new AsyncLocalStorage<TenantContext>()
+  private storage: any = new AsyncLocalStorageClass()
 
   run<T>(context: TenantContext, callback: () => T): T {
     return this.storage.run(context, callback)

@@ -259,7 +259,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     }
 
     const dataObj: any = {
-      clientId: ctx.userId,
+      clientId: String(ctx.userId ?? ''),
       serviceId: (data as any).serviceId,
       title: titleToUse,
       description: (data as any).description ?? null,
@@ -344,7 +344,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
       const plan = await planRecurringBookings({
         serviceId: (data as any).serviceId,
-        clientId: ctx.userId,
+        clientId: String(ctx.userId ?? ''),
         durationMinutes,
         start: new Date((data as any).scheduledAt),
         pattern: normalized as any,
@@ -369,7 +369,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         if (item.conflict) { skipped.push(item); continue }
         const child = await prisma.serviceRequest.create({
           data: {
-            clientId: ctx.userId,
+            clientId: String(ctx.userId ?? ''),
             serviceId: (data as any).serviceId,
             title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
             description: (data as any).description ?? null,

@@ -101,7 +101,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     }
 
     const tenantId = ctx.tenantId
-    const service = await svc.createService(tenantId, validated as any, ctx.userId ?? null)
+    const service = await svc.createService(tenantId, validated as any, String(ctx.userId ?? ''))
 
     try { await logAudit({ action: 'SERVICE_CREATED', actorId: ctx.userId ?? null, targetId: service.id, details: { slug: service.slug } }) } catch {}
 

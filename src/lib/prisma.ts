@@ -14,15 +14,29 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 
 function createClient(url: string) {
   // Lazily require to avoid loading @prisma/client when DB is not configured
-  
+
   // This file intentionally uses require() because importing @prisma/client at module
   // initialization can attempt to connect to the DB in environments where the DB
   // is not configured (build/test). Keep lazy require to avoid that behavior.
-  
-  const { PrismaClient } = require('@prisma/client') as { PrismaClient: new (...args: any[]) => PrismaClientType };
-  const client = new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
-  registerTenantGuard(client as any);
-  return client;
+
+  let PrismaClientConstructor: any
+  try {
+    const mod = require('@prisma/client')
+    PrismaClientConstructor = mod.PrismaClient || mod.default?.PrismaClient || mod.default
+  } catch (err) {
+    // In test environments the generated client may not exist on disk. Return a safe
+    // dummy proxy so tests that mock src/lib/prisma can still import this module
+    // without causing a hard failure during require().
+    if (process.env.NODE_ENV === 'test') {
+      const dummy = new Proxy({}, { get() { throw new Error('@prisma/client is not generated in test environment') } })
+      return dummy as any
+    }
+    throw err
+  }
+
+  const client = new PrismaClientConstructor(url ? { datasources: { db: { url } } } : undefined)
+  registerTenantGuard(client as any)
+  return client
 }
 
 // Export a proxy that lazily creates Prisma client on first use
