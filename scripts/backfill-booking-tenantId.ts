@@ -54,10 +54,13 @@ async function main() {
     updated++
   }
 
+  const remaining = await prisma.booking.count({ where: { tenantId: null } })
+
   console.log(`Backfill completed. Updated ${updated} bookings.`)
   if (unresolved > 0) {
     console.warn(`Unable to resolve tenantId for ${unresolved} bookings. Manual review required.`)
   }
+  console.log(`Remaining bookings without tenantId: ${remaining}`)
 }
 
 main()
