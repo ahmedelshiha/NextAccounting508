@@ -1,22 +1,22 @@
-type ModelMethod = (...args: any[]) => Promise<any>
+type PrismaModelMethod = (...args: any[]) => Promise<any>
 
 declare const vi: any
 
-type PrismaModelMethod = any
+type PrismaPrismaModelMethod = any
 
 type ModelMock = {
-  findUnique: ModelMethod
-  findFirst: ModelMethod
-  findMany: ModelMethod
-  create: ModelMethod
-  createMany: ModelMethod
-  update: ModelMethod
-  updateMany: ModelMethod
-  delete: ModelMethod
-  deleteMany: ModelMethod
-  upsert: ModelMethod
-  count: ModelMethod
-  aggregate: ModelMethod
+  findUnique: PrismaModelMethod
+  findFirst: PrismaModelMethod
+  findMany: PrismaModelMethod
+  create: PrismaModelMethod
+  createMany: PrismaModelMethod
+  update: PrismaModelMethod
+  updateMany: PrismaModelMethod
+  delete: PrismaModelMethod
+  deleteMany: PrismaModelMethod
+  upsert: PrismaModelMethod
+  count: PrismaModelMethod
+  aggregate: PrismaModelMethod
 }
 
 type PrismaMock = Record<string, ModelMock>
@@ -73,10 +73,10 @@ function resetPrismaMock() {
   }
 }
 
-function setModelMethod(model: string, method: keyof ModelMock, impl: ModelMethod) {
+function setPrismaModelMethod(model: string, method: keyof ModelMock, impl: PrismaModelMethod) {
   if (!(mockPrisma as any)[model]) (mockPrisma as any)[model] = createModelMock()
   ;(mockPrisma as any)[model][method] = impl
 }
 
-export { mockPrisma, resetPrismaMock, setModelMethod }
+export { mockPrisma, resetPrismaMock, setPrismaModelMethod }
 export default mockPrisma
