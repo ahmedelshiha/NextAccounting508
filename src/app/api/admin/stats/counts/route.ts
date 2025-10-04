@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 interface CountsResponse {
   pendingBookings: number
@@ -9,14 +9,11 @@ interface CountsResponse {
   overdueTasks: number
 }
 
-export async function GET(_req: NextRequest) {
+export const GET = withTenantContext(async (_req: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const ctx = requireTenantContext()
+    if (!ctx.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Basic sample counts; in production, compute from DB
     const data: CountsResponse = {
       pendingBookings: 3,
       newClients: 2,
@@ -29,7 +26,7 @@ export async function GET(_req: NextRequest) {
     console.error('Error fetching counts:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
 
 export async function POST() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
