@@ -82,11 +82,13 @@ export async function POST(request: NextRequest) {
     // use nested connect for relations instead of direct foreign keys
     delete (payload as any).clientId
     delete (payload as any).serviceId
+    delete (payload as any).tenantId
 
     const created = await prisma.serviceRequest.create({
       data: {
         client: { connect: { id: user.id } },
         service: { connect: { id: data.serviceId } },
+        ...(tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
         ...payload,
       },
       include: { service: { select: { id: true, name: true, slug: true, category: true } } },
