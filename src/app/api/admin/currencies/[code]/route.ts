@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
-export async function PATCH(request: NextRequest, context: { params: Promise<{ code: string }> }) {
+export const PATCH = withTenantContext(async (request: NextRequest, context: { params: Promise<{ code: string }> }) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -26,4 +27,4 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ c
     console.error('PATCH /api/admin/currencies/[code] error', e)
     return NextResponse.json({ error: 'Failed to update currency' }, { status: 500 })
   }
-}
+})
