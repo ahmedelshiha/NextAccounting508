@@ -24,7 +24,7 @@ async function ensureDefaultTenant(): Promise<string> {
       id: generatedId,
       slug: 'primary',
       name: 'Primary Tenant',
-      status: TenantStatus.ACTIVE,
+      status: 'ACTIVE',
     },
   })
   cachedDefaultTenantId = created.id
