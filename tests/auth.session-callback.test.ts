@@ -1,5 +1,9 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn(),
+}))
+
 const prismaStub = new Proxy(
   {},
   {
