@@ -153,7 +153,7 @@ export class ServicesService {
       ];
     }
 
-    const orderBy: Prisma.ServiceOrderByWithRelationInput = {};
+    const orderBy: any = {};
     if (sortBy === 'name') (orderBy as any).name = sortOrder;
     else if (sortBy === 'price') (orderBy as any).price = sortOrder;
     else if (sortBy === 'createdAt') (orderBy as any).createdAt = sortOrder;
