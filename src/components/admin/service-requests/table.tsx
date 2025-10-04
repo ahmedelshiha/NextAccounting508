@@ -55,6 +55,25 @@ function priorityColor(p: ServiceRequestItem['priority']) {
 }
 
 export default function ServiceRequestsTable({ items, selectedIds, onToggle, onToggleAll, onOpen }: Props) {
+  const renderText = (v: any) => {
+    if (v === null || v === undefined) return ''
+    if (typeof v === 'string' || typeof v === 'number') return v
+    if (typeof v === 'object') {
+      if ('name' in v && typeof v.name === 'string') return v.name
+      if ('title' in v && typeof v.title === 'string') return v.title
+      try { return JSON.stringify(v) } catch { return String(v) }
+    }
+    return String(v)
+  }
+
+  const safeDate = (val: any) => {
+    try {
+      if (!val) return ''
+      const d = new Date(val)
+      if (isNaN(d.getTime())) return ''
+      return d
+    } catch { return '' }
+  }
   const allSelected = items.length > 0 && items.every(i => selectedIds.has(i.id))
 
   return (
@@ -85,15 +104,15 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
                 <input type="checkbox" checked={selectedIds.has(r.id)} onChange={() => onToggle(r.id)} aria-label={`Select ${r.title}`} />
               </TableCell>
               <TableCell>
-                <div className="font-medium text-gray-900 truncate max-w-[280px]">{r.title}</div>
-                <div className="text-xs text-gray-500">{r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}</div>
+                <div className="font-medium text-gray-900 truncate max-w-[280px]">{renderText(r.title)}</div>
+                <div className="text-xs text-gray-500">{safeDate(r.createdAt) ? (safeDate(r.createdAt) as Date).toLocaleString() : ''}</div>
               </TableCell>
               <TableCell>
-                <div className="text-sm text-gray-900">{r.client?.name || r.client?.email || '—'}</div>
+                <div className="text-sm text-gray-900">{renderText(r.client?.name) || renderText(r.client?.email) || '—'}</div>
                 <div className="text-xs text-gray-500">{r.client?.email || ''}</div>
               </TableCell>
               <TableCell>
-                <div className="text-sm text-gray-900">{r.service?.name || '—'}</div>
+                <div className="text-sm text-gray-900">{renderText(r.service?.name) || '—'}</div>
                 <div className="text-xs text-gray-500">{r.service?.category || ''}</div>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
@@ -107,8 +126,8 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
                 )}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                <div className="text-sm text-gray-900">{(r as any).scheduledAt ? new Date((r as any).scheduledAt).toLocaleDateString() : '—'}</div>
-                <div className="text-xs text-gray-500">{(r as any).scheduledAt ? new Date((r as any).scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+                <div className="text-sm text-gray-900">{safeDate((r as any).scheduledAt) ? (safeDate((r as any).scheduledAt) as Date).toLocaleDateString() : '—'}</div>
+                <div className="text-xs text-gray-500">{safeDate((r as any).scheduledAt) ? (safeDate((r as any).scheduledAt) as Date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
               </TableCell>
               <TableCell>
                 <Badge className={statusColor(r.status)}>{r.status.replace('_',' ')}</Badge>
@@ -144,11 +163,11 @@ export default function ServiceRequestsTable({ items, selectedIds, onToggle, onT
                 })()}
               </TableCell>
               <TableCell>
-                <div className="text-sm text-gray-900">{r.assignedTeamMember?.name || 'Unassigned'}</div>
-                <div className="text-xs text-gray-500">{r.assignedTeamMember?.email || ''}</div>
+                <div className="text-sm text-gray-900">{renderText(r.assignedTeamMember?.name) || 'Unassigned'}</div>
+                <div className="text-xs text-gray-500">{renderText(r.assignedTeamMember?.email) || ''}</div>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                <div className="text-sm text-gray-900">{r.deadline ? new Date(r.deadline).toLocaleDateString() : '—'}</div>
+                <div className="text-sm text-gray-900">{safeDate(r.deadline) ? (safeDate(r.deadline) as Date).toLocaleDateString() : '—'}</div>
               </TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="sm" onClick={() => onOpen(r.id)} className="flex items-center gap-1">
