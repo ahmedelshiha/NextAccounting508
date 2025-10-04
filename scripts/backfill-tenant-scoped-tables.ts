@@ -51,7 +51,7 @@ const steps: BackfillStep[] = [
     sql: `
       WITH source AS (
         SELECT i."id", COALESCE(b."tenantId", u."tenantId") AS tenant_id
-        FROM "Invoice" i
+        FROM "invoices" i
         LEFT JOIN "Booking" b ON b."id" = i."bookingId"
         LEFT JOIN "User" u ON u."id" = i."clientId"
         WHERE i."tenantId" IS NULL
