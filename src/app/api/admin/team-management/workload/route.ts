@@ -1,30 +1,28 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
-export async function GET(req: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  const tenantId = getTenantFromRequest(req)
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+export const GET = withTenantContext(async () => {
+  const ctx = requireTenantContext()
+  if (!hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    const members = await prisma.teamMember.findMany({ where: tenantFilter(tenantId), select: { id: true, isAvailable: true } })
+    const members = await prisma.teamMember.findMany({ where: tenantFilter(ctx.tenantId), select: { id: true, isAvailable: true } })
     const activeMembers = members.length
 
     const byMember = await prisma.serviceRequest.groupBy({
-      by: ['assignedTeamMemberId','priority','status'],
-      where: { ...tenantFilter(tenantId), status: { in: ['ASSIGNED','IN_PROGRESS','COMPLETED'] as any } },
-      _count: { _all: true }
+      by: ['assignedTeamMemberId', 'priority', 'status'],
+      where: { ...tenantFilter(ctx.tenantId), status: { in: ['ASSIGNED', 'IN_PROGRESS', 'COMPLETED'] as any } },
+      _count: { _all: true },
     })
 
-    const distMap: Record<string, { memberId: string, assigned: number, inProgress: number, completed: number }> = {}
+    const distMap: Record<string, { memberId: string; assigned: number; inProgress: number; completed: number }> = {}
     for (const row of byMember) {
       const id = String(row.assignedTeamMemberId)
       if (!id) continue
@@ -36,12 +34,11 @@ export async function GET(req: Request) {
 
     const distribution = Object.values(distMap)
     const totalActiveWork = distribution.reduce((sum, d) => sum + d.assigned + d.inProgress, 0)
-    const capacity = activeMembers * 3 // assume 3 concurrent capacity per member until field exists
+    const capacity = activeMembers * 3
     const utilization = capacity ? Math.round((totalActiveWork / capacity) * 100) : 0
 
     return NextResponse.json({ data: { utilization, activeMembers, distribution } })
   } catch (e) {
-    // Fallback when DB not available
     return NextResponse.json({ data: { utilization: 0, activeMembers: 0, distribution: [] }, note: 'Workload fallback (no DB)' })
   }
-}
+})

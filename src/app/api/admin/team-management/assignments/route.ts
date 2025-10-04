@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+export const GET = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
+  if (!hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   if (!hasDb) {
@@ -22,12 +21,11 @@ export async function GET(request: Request) {
     const url = new URL(request.url)
     const memberId = url.searchParams.get('memberId')
 
-    const tenantId = getTenantFromRequest(request)
     const where: any = {}
     if (memberId) where.assignedTeamMemberId = String(memberId)
 
     const rows = await prisma.serviceRequest.findMany({
-      where: { ...where, ...tenantFilter(tenantId) },
+      where: { ...where, ...tenantFilter(ctx.tenantId) },
       select: {
         id: true,
         title: true,
@@ -48,4 +46,4 @@ export async function GET(request: Request) {
     console.error('Assignments fetch error', e)
     return NextResponse.json({ error: 'Failed to fetch assignments' }, { status: 500 })
   }
-}
+})

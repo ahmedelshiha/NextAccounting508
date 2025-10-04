@@ -1,20 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import prisma from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 import { buildExportBundle } from '@/lib/settings/export'
+import { tenantFilter } from '@/lib/tenant'
 
-export async function GET(req: Request) {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ORG_SETTINGS_EXPORT)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role || undefined, PERMISSIONS.ORG_SETTINGS_EXPORT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const tenantId = getTenantFromRequest(req as any)
-    const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(tenantId) }).catch(() => null)
+    const row = await prisma.organizationSettings.findFirst({ where: tenantFilter(ctx.tenantId) }).catch(() => null)
     const out = row ? {
       general: { name: row.name, tagline: row.tagline, description: row.description, industry: row.industry },
       contact: { contactEmail: row.contactEmail, contactPhone: row.contactPhone, address: row.address || {} },
@@ -26,4 +25,4 @@ export async function GET(req: Request) {
     try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to export organization settings' }, { status: 500 })
   }
-}
+})
