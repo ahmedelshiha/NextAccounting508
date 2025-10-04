@@ -613,6 +613,77 @@ Version: 5.0  Last Updated: 2025-10-04
 
 ## UPDATE: Recent actions
 
+### Recent migration & backfill work (summary)
+- Created individual migration SQL files to tighten tenantId -> NOT NULL for Phase 2 models. Files added under prisma/migrations/20251004_*:
+  - prisma/migrations/20251004_add_booking_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_servicerequest_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_service_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_workorder_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_invoice_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_expense_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_attachment_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_chatmessage_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_bookingsettings_tenantid_not_null/migration.sql
+  - prisma/migrations/20251004_add_idempotencykey_tenantid_not_null/migration.sql
+
+- Implemented a safe helper to apply single SQL migration files: scripts/apply-migration-file.ts — this splits a migration into statements and executes them sequentially to avoid transform/ shell quoting issues when running ad-hoc SQL files.
+
+- Developed and corrected backfill scripts for tenant population (scripts/*backfill*.ts). Key fixes made:
+  - Corrected table and column name casing to match the actual schema (e.g. users, invoices, serviceRequest -> service_request references adjusted where needed inside backfill SQL or helper scripts).
+  - Resolved JOIN/UPDATE statement errors by referencing the correct table names and columns (examples: invoices, expenses, users, services).
+  - Added a utility script assign-chatmessages-tenant-primary.ts to safely set remaining chat_messages rows to the tenant_primary value when records had no tenantId and were safe to assign.
+
+### What was applied here
+- chat_messages tenantId NOT NULL migration (prisma/migrations/20251004_add_chatmessage_tenantid_not_null/migration.sql) — successfully applied after correcting table name casing and using scripts/apply-migration-file.ts.
+  - Also ran the chat_messages assignment script to set orphan chat_message rows to tenant_primary prior to applying the NOT NULL constraint.
+
+### What remains (status)
+- Prepared but not applied here (needs DB access / operator to run):
+  - booking (prisma/migrations/20251004_add_booking_tenantid_not_null)
+  - servicerequest
+  - service
+  - workorder
+  - invoice
+  - expense
+  - attachment
+  - scheduledreminder
+  - bookingsettings
+  - idempotencykey
+
+These files are committed and present in prisma/migrations. They are ready to apply in the order above (backfill first where required).
+
+### How to apply migrations safely (recommended steps)
+1. Take a full DB snapshot/backup (critical). Do not proceed without a snapshot.
+2. Run backfill scripts for the target tables to populate tenantId for NULL rows. Example (from project root):
+
+   export DATABASE_URL='<your database url>'
+   pnpm tsx scripts/backfill-tenant-scoped-tables.ts
+
+   - Confirm verification queries show zero NULL tenantId for target tables (see Verification queries in Phase 3 section of this TODO).
+
+3. Apply migrations one-by-one (recommended order): booking -> servicerequest -> service -> workorder -> invoice -> expense -> attachment -> scheduledreminder -> bookingsettings -> idempotencykey
+
+   Example command (per file):
+
+   pnpm tsx scripts/apply-migration-file.ts prisma/migrations/20251004_add_servicerequest_tenantid_not_null/migration.sql
+
+   - After each migration, run the verification SELECT count queries shown in Phase 3 to ensure no unexpected NULLs or referential errors.
+
+4. After all migrations are applied: pnpm db:generate && pnpm typecheck && pnpm test (or your CI pipeline commands).
+
+5. Rollback plan: If a migration fails or causes data integrity/regression, restore the DB snapshot taken in step 1 and revert the migration commit(s).
+
+### Notes / Known issues encountered while preparing these changes
+- Running pnpm/tsx here in the agent environment is blocked by ACL; I could not execute pnpm tsx commands in this workspace. Where I reported earlier that chat_messages migration was applied, that reflects the work done in the prior interactive session after fixes; the remaining migrations were prepared but not executed here due to environment restrictions.
+- Backfill SQL often requires careful table-name casing and join logic adjustments; run the backfill scripts in a transaction and verify counts before committing in production.
+
+### Next recommended actions (pick one)
+- I can update this TODO further with exact per-file SQL diffs and verification queries if you want more traceability.
+- If you want, I can produce a single ordered shell script that runs the backfill, verifies counts, and applies migrations (you will run it locally or in CI after setting DATABASE_URL and taking a backup).
+- If you prefer us to run these migrations from the cloud environment, connect a DB MCP (Supabase or Neon) via the MCP popover and I can attempt to run the apply script from here.
+
+
 ## ✅ Completed - [x] Audit prisma.service.create occurrences
 - **What**: Reviewed codebase for prisma.service.create usage and ensured tenant relation is always provided.
   - Fixed ServicesService.cloneService to pass tenant via tenant: { connect: { id } } and cast serviceSettings to Prisma.InputJsonValue.
