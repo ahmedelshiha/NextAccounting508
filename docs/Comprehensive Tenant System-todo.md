@@ -551,8 +551,11 @@ Version: 5.0  Last Updated: 2025-10-04
 - [ ] Audit and prioritize refactors for routes using getServerSession; prepare batch plan and ESLint guard
 
 ## 🔧 Next Steps
-- [ ] Start batch refactor of top-traffic endpoints to withTenantContext
 - [ ] Add integration tests for invalid/missing tenant_sig on remaining representative routes
 
 Validation notes:
 - Ran targeted tests: vitest run tests/integration/tenant-mismatch.email.test.ts — passed (2)
+
+Recent refactors:
+- Wrapped /api/services (GET public, POST delegated to admin) with withTenantContext
+- Wrapped /api/contact (POST public, GET admin-only with guard) with withTenantContext
