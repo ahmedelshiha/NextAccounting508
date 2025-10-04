@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 // GET /api/admin/currencies - list all currencies
-export async function GET(_request: NextRequest) {
+export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.ANALYTICS_VIEW)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -25,13 +26,14 @@ export async function GET(_request: NextRequest) {
     console.error('GET /api/admin/currencies error', e)
     return NextResponse.json({ error: 'Failed to fetch currencies' }, { status: 500 })
   }
-}
+})
 
 // POST /api/admin/currencies - create a new currency
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -51,4 +53,4 @@ export async function POST(request: NextRequest) {
     console.error('POST /api/admin/currencies error', e)
     return NextResponse.json({ error: 'Failed to create currency' }, { status: 500 })
   }
-}
+})
