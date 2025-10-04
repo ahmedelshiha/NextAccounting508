@@ -155,7 +155,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         currency: (currency || 'USD').toUpperCase(),
         date: expenseDate,
         attachmentId: attachmentId ?? null,
-        userId: (session.user as any).id,
+        userId: requireTenantContext().userId ?? null,
         ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
       },
       include: {
