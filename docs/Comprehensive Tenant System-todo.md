@@ -332,8 +332,19 @@ await withTenantRLS(async (tx) => {
 
 **AI Agent Steps:**
 ```bash
-psql "$DATABASE_URL" -c "SELECT set_config('app.current_tenant_id', 'TENANT_ID', false);"
+# 1) Enable policies (idempotent) on all tables with tenantId
+pnpm db:rls:enable
+
+# 2) Verify policy presence on representative tables
+psql "$DATABASE_URL" -c "\d+ public.services" | sed -n '/Policies/,$p'
+
+# 3) App usage: wrap sensitive operations so session var is set
+#    (already available via withTenantRLS in src/lib/prisma-rls.ts)
 ```
+
+Rollout notes:
+- Current policy allows tenantId IS NULL (global rows). After Phase 2 NOT NULL migrations, tighten to strict equality.
+- Consider ALTER TABLE ... FORCE ROW LEVEL SECURITY post-stabilization.
 
 SUCCESS CRITERIA CHECKLIST
 - RLS blocks cross-tenant reads/writes without session variables set
