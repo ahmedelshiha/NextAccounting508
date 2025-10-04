@@ -9,7 +9,8 @@ export const GET = withTenantContext(
   async (request: NextRequest) => {
     const { searchParams } = new URL(request.url)
     const eventTypes = (searchParams.get('events')?.split(',') ?? ['all']).filter(Boolean)
-    const { userId } = tenantContext.getContext()
+    const ctx = tenantContext.getContext()
+    const userId = String(ctx.userId ?? '')
 
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
