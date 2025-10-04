@@ -130,7 +130,17 @@ export const authOptions: NextAuthOptions = {
         const tenantSlug = (token as any).tenantSlug ?? null
         const tenantRole = (token as any).tenantRole ?? null
         const tenantList = Array.isArray((token as any).availableTenants)
-          ? ((token as any).availableTenants as Array<Record<string, unknown>>).map((tenant) => ({ ...tenant }))
+          ? ((token as any).availableTenants as Array<any>)
+              .map((tenant) => {
+                if (!tenant || tenant.id == null) return null
+                return {
+                  id: String(tenant.id),
+                  slug: tenant.slug ?? null,
+                  name: tenant.name ?? null,
+                  role: tenant.role ?? null,
+                }
+              })
+              .filter((tenant): tenant is { id: string; slug: string | null; name: string | null; role: string | null } => Boolean(tenant))
           : []
         const tokenVersion = typeof (token as any).version === 'number' ? (token as any).version : 0
         const sessionVersion = typeof (token as any).sessionVersion === 'number' ? (token as any).sessionVersion : 0
