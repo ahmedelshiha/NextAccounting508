@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
+import { verifyTenantCookie } from '@/lib/tenant-cookie'
 
 export type ApiHandler = (
   request: NextRequest,
@@ -64,31 +65,25 @@ export function withTenantContext(
         )
       }
 
-      // Basic tenant cookie check: if a tenant cookie exists and doesn't match session, reject.
+      // Tenant cookie check: cryptographically verify tenant_sig and ensure it matches session
       try {
         const tenantCookie = request.cookies.get('tenant_sig')?.value
         if (tenantCookie) {
-          // The cookie format/signature verification is handled elsewhere in middleware.
-          // Here we perform a minimal sanity check: ensure session tenant matches the asserted tenant id prefix.
-          const cookieParts = tenantCookie.split('.')
-          if (cookieParts.length >= 1) {
-            const payload = cookieParts[0]
-            const [cookieTenantId] = payload.split(':')
-            if (cookieTenantId && cookieTenantId !== String(user.tenantId)) {
-              logger.warn('Tenant cookie tenant mismatch', {
-                cookieTenantId,
-                sessionTenantId: user.tenantId,
-                userId: user.id,
-              })
-              return NextResponse.json(
-                { error: 'Forbidden', message: 'Invalid tenant signature' },
-                { status: 403 }
-              )
-            }
+          const ok = verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
+          if (!ok) {
+            logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: user.tenantId })
+            return NextResponse.json(
+              { error: 'Forbidden', message: 'Invalid tenant signature' },
+              { status: 403 }
+            )
           }
         }
       } catch (err) {
         logger.warn('Failed to validate tenant cookie', { error: err })
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'Invalid tenant signature' },
+          { status: 403 }
+        )
       }
 
       const context: TenantContext = {

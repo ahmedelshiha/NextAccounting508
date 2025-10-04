@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { ServicesService } from '@/services/services.service';
 import { PERMISSIONS, hasPermission } from '@/lib/permissions';
 import { ServiceUpdateSchema } from '@/schemas/services';
-import { getTenantFromRequest } from '@/lib/tenant';
+import { withTenantContext } from '@/lib/api-wrapper';
+import { requireTenantContext } from '@/lib/tenant-utils';
 import { logAudit } from '@/lib/audit';
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses';
 import { createHash } from 'crypto';
@@ -21,15 +21,13 @@ async function resolveId(ctx: any): Promise<string | undefined> {
   } catch { return undefined }
 }
 
-export async function GET(request: NextRequest, context: Ctx) {
+export const GET = withTenantContext(async (request: NextRequest, context: Ctx) => {
   try {
     const id = await resolveId(context);
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const ctx = requireTenantContext();
+    if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-
-    const tenantId = getTenantFromRequest(request);
+    const tenantId = ctx.tenantId;
     if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const service = await svc.getServiceById(tenantId, String(id));
     if (!service) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -58,34 +56,32 @@ export async function GET(request: NextRequest, context: Ctx) {
     console.error('service GET error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
-}
+});
 
-export async function PATCH(request: NextRequest, context: Ctx) {
+export const PATCH = withTenantContext(async (request: NextRequest, context: Ctx) => {
   try {
     const id = await resolveId(context);
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+    const ctx = requireTenantContext();
+    if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.SERVICES_EDIT)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
     ServiceUpdateSchema.parse({ ...body, id: String(id || '') });
 
     // Enforce granular permission for changing 'featured'
     if (Object.prototype.hasOwnProperty.call(body, 'featured')) {
-      if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_MANAGE_FEATURED)) {
+      if (!hasPermission(ctx.role, PERMISSIONS.SERVICES_MANAGE_FEATURED)) {
         return NextResponse.json({ error: 'Forbidden: missing permission to manage featured' }, { status: 403 })
       }
     }
 
-    const tenantId = getTenantFromRequest(request);
+    const tenantId = ctx.tenantId;
     if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const original = await svc.getServiceById(tenantId, id);
     if (!original) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     try {
-      const updated = await svc.updateService(tenantId, id, body, session.user.id);
-      await logAudit({ action: 'SERVICE_UPDATED', actorId: session.user.id, targetId: id, details: { fields: Object.keys(body) } });
+      const updated = await svc.updateService(tenantId, id, body, ctx.userId as string);
+      await logAudit({ action: 'SERVICE_UPDATED', actorId: ctx.userId, targetId: id, details: { fields: Object.keys(body) } });
       return NextResponse.json({ service: updated });
     } catch (err: any) {
       const prismaMapped = mapPrismaError(err);
@@ -104,23 +100,21 @@ export async function PATCH(request: NextRequest, context: Ctx) {
     if (isApiError(e)) return NextResponse.json(makeErrorBody(e), { status: e.status });
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
-}
+});
 
-export async function DELETE(request: NextRequest, context: Ctx) {
+export const DELETE = withTenantContext(async (request: NextRequest, context: Ctx) => {
   try {
     const id = await resolveId(context);
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!hasPermission(session.user.role, PERMISSIONS.SERVICES_DELETE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const ctx = requireTenantContext();
+    if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.SERVICES_DELETE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-
-    const tenantId = getTenantFromRequest(request);
+    const tenantId = ctx.tenantId;
     if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
     const original = await svc.getServiceById(tenantId, id);
     if (!original) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    await svc.deleteService(tenantId, id, session.user.id);
-    await logAudit({ action: 'SERVICE_DELETED', actorId: session.user.id, targetId: id });
+    await svc.deleteService(tenantId, id, ctx.userId as string);
+    await logAudit({ action: 'SERVICE_DELETED', actorId: ctx.userId, targetId: id });
 
     return NextResponse.json({ message: 'Service deleted successfully' });
   } catch (e: any) {
@@ -130,4 +124,4 @@ export async function DELETE(request: NextRequest, context: Ctx) {
     console.error('service DELETE error', e);
     return NextResponse.json(makeErrorBody(e), { status: 500 });
   }
-}
+});

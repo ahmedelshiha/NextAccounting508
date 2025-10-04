@@ -42,25 +42,35 @@ export const authOptions: NextAuthOptions = {
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
         if (!isPasswordValid) return null
 
+        // Fetch tenant memberships for the user to populate available tenants
+        const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])
+
+        // Determine active tenant membership (the one used for login)
+        const activeMembership = tenantMemberships.find(m => m.tenantId === tenantId) || tenantMemberships[0] || null
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
-          image: user.image
+          image: user.image,
+          tenantId: activeMembership ? activeMembership.tenantId : tenantId,
+          tenantSlug: activeMembership?.tenant?.slug ?? null,
+          tenantRole: activeMembership ? activeMembership.role : null,
+          availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
         }
       }
     })
   ],
   session: { strategy: 'jwt' },
   callbacks: {
-    async jwt({ token, user }) {
-      // On sign in, attach role and sessionVersion
+    async jwt({ token, user, trigger, session }) {
+      // On sign in, attach role, sessionVersion and tenant metadata
       if (user) {
-        token.role = (user as User).role
+        token.role = (user as any).role
         if (hasDb) {
           try {
-            const dbUser = await prisma.user.findUnique({ where: { id: (user as User).id }, select: { sessionVersion: true } })
+            const dbUser = await prisma.user.findUnique({ where: { id: (user as any).id }, select: { sessionVersion: true } })
             token.sessionVersion = dbUser?.sessionVersion ?? 0
           } catch {
             token.sessionVersion = 0
@@ -68,8 +78,32 @@ export const authOptions: NextAuthOptions = {
         } else {
           token.sessionVersion = 0
         }
-      } else if (token.sub && hasDb) {
-        // On subsequent requests, validate token against DB version
+
+        // Attach tenant metadata if provided by authorize
+        if ((user as any).tenantId) token.tenantId = (user as any).tenantId
+        if ((user as any).tenantSlug) token.tenantSlug = (user as any).tenantSlug
+        if ((user as any).tenantRole) token.tenantRole = (user as any).tenantRole
+        if ((user as any).availableTenants) token.availableTenants = (user as any).availableTenants
+        token.version = (token.version as number || 0) + 1
+      }
+
+      // Support session update trigger for tenant switching
+      if (trigger === 'update' && session && (session as any).tenantId) {
+        const requestedTenantId = (session as any).tenantId as string
+        const available: Array<any> = (token.availableTenants as any[]) || []
+        if (available.some(t => t.id === requestedTenantId)) {
+          token.tenantId = requestedTenantId
+          const membership = available.find(t => t.id === requestedTenantId)
+          token.tenantSlug = membership?.slug ?? token.tenantSlug
+          token.tenantRole = membership?.role ?? token.tenantRole
+          token.version = (token.version as number || 0) + 1
+        } else {
+          // ignore invalid tenant switch attempts
+        }
+      }
+
+      // On subsequent requests, validate token against DB version
+      if (!user && token.sub && hasDb) {
         try {
           const dbUser = await prisma.user.findUnique({ where: { id: token.sub }, select: { sessionVersion: true } })
           if (dbUser && token.sessionVersion !== dbUser.sessionVersion) {
@@ -81,19 +115,24 @@ export const authOptions: NextAuthOptions = {
           // ignore
         }
       }
+
       return token
     },
     async session({ session, token }) {
       // If token was invalidated due to sessionVersion mismatch, return null session
       const tok = token as unknown as { invalidated?: boolean }
       if (tok.invalidated) {
-        // Token invalidated due to sessionVersion mismatch — force sign-in on client.
-        // Returning `null` is valid at runtime but TypeScript expects Session; cast safely.
         return null as unknown as Session
       }
+
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        ;(session.user as any).tenantId = token.tenantId ?? null
+        ;(session.user as any).tenantSlug = token.tenantSlug ?? null
+        ;(session.user as any).tenantRole = token.tenantRole ?? null
+        ;(session.user as any).availableTenants = token.availableTenants ?? []
+        ;(session.user as any).tokenVersion = token.version ?? 0
       }
       return session
     }

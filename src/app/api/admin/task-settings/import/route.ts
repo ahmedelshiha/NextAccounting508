@@ -1,33 +1,33 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest } from '@/lib/tenant'
-import * as Sentry from '@sentry/nextjs'
+import { requireTenantContext } from '@/lib/tenant-utils'
+import * as Sentry from '@/lib/sentry\' in \'@/lib/sentry'
 import { validateImportWithSchema } from '@/lib/settings/export'
 import { TaskWorkflowSettingsSchema } from '@/schemas/settings/task-workflow'
 import taskService from '@/services/task-settings.service'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TASK_WORKFLOW_SETTINGS_EDIT)) {
+    const ctx = requireTenantContext()
+    if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.TASK_WORKFLOW_SETTINGS_EDIT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const tenantId = getTenantFromRequest(req as any)
-    const ip = getClientIp(req)
+    const tenantId = ctx.tenantId
+    const ip = getClientIp(request as any)
     const key = `task-settings:import:${tenantId}:${ip}`
     if (!rateLimit(key, 3, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
 
-    const body = await req.json().catch(() => ({}))
+    const body = await request.json().catch(() => ({}))
     const data = validateImportWithSchema(body, TaskWorkflowSettingsSchema)
     const updated = await taskService.upsert(tenantId, data)
-    try { await logAudit({ action: 'task-settings:import', actorId: (session.user as any).id, details: { tenantId } }) } catch {}
+    try { await logAudit({ action: 'task-settings:import', actorId: ctx.userId, details: { tenantId } }) } catch {}
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to import task settings' }, { status: 500 })
   }
-}
+})

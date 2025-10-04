@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -21,14 +22,14 @@ const CreateSchema = z.object({
 
 const UpdateSchema = CreateSchema.extend({ id: z.string().min(1) })
 
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   try {
     const { searchParams } = new URL(request.url)
@@ -54,16 +55,16 @@ export async function GET(request: NextRequest) {
     console.error('admin/availability-slots GET error', e)
     return NextResponse.json({ error: 'Failed to load availability slots' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
@@ -88,16 +89,16 @@ export async function POST(request: NextRequest) {
     console.error('admin/availability-slots POST error', e)
     return NextResponse.json({ error: 'Failed to create availability slot' }, { status: 500 })
   }
-}
+})
 
-export async function PUT(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+export const PUT = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   const body = await request.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
@@ -123,16 +124,16 @@ export async function PUT(request: NextRequest) {
     console.error('admin/availability-slots PUT error', e)
     return NextResponse.json({ error: 'Failed to update availability slot' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+export const DELETE = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   try {
     const { searchParams } = new URL(request.url)
@@ -148,4 +149,4 @@ export async function DELETE(request: NextRequest) {
     console.error('admin/availability-slots DELETE error', e)
     return NextResponse.json({ error: 'Failed to delete availability slot' }, { status: 500 })
   }
-}
+})

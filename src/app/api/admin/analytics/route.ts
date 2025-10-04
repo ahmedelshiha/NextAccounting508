@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { withCache } from '@/lib/api-cache'
 
 interface AnalyticsData {
@@ -42,29 +43,24 @@ const getCachedAnalytics = withCache<AnalyticsData>(
   }
 )
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check authorization - only admin and team leads can access analytics
-    const role = (session.user as any)?.role as string | undefined
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!ctx || !ctx.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     // Use cached handler for data retrieval
-    return getCachedAnalytics(request)
+    return getCachedAnalytics(request as any)
   } catch (error) {
     console.error('Error fetching analytics data:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
+    return NextResponse.json({
+      error: 'Internal server error'
     }, { status: 500 })
   }
-}
+})
 
 /**
  * Generate analytics data based on time range

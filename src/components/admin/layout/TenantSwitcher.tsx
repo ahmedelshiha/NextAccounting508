@@ -36,18 +36,30 @@ export default function TenantSwitcher() {
 
   const canSave = useMemo(() => initialized, [initialized])
 
-  const save = () => {
+  const save = async () => {
     if (!canSave) return
     const val = tenant.trim()
-    if (val) {
+    if (!val) return
+
+    try {
+      // Call secure tenant switch endpoint which updates NextAuth JWT
+      const res = await fetch('/api/tenant/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId: val })
+      })
+      if (res.ok) {
+        // Persist admin UX preference locally for convenience, but server JWT is authoritative
+        try { window.localStorage.setItem('adminTenant', val) } catch {}
+        window.location.reload()
+        return
+      }
+    } catch (e) {
+      // Fallback to local cookie for dev/test
       try { window.localStorage.setItem('adminTenant', val) } catch {}
       setCookie('tenant', val)
-    } else {
-      try { window.localStorage.removeItem('adminTenant') } catch {}
-      setCookie('tenant', '', -1)
+      window.location.reload()
     }
-    // Reload to ensure middleware forwards the tenant header for SSR and API calls
-    window.location.reload()
   }
 
   return (

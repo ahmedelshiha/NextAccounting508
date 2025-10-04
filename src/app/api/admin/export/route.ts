@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
-
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
@@ -27,18 +26,18 @@ function parseDate(value: string | null): Date | undefined {
   return Number.isFinite(d.getTime()) ? d : undefined
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const entity = (searchParams.get('entity') || '').toLowerCase()
     const format = (searchParams.get('format') || 'csv').toLowerCase()
-    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const tenantId = ctx.tenantId
 
     if (format !== 'csv') return new NextResponse('Only CSV is supported', { status: 400 })
 
@@ -48,13 +47,13 @@ export async function GET(request: NextRequest) {
     let rows: Record<string, unknown>[] = []
 
     if (entity === 'users') {
-      const users = await prisma.user.findMany({ where: tenantFilter(tenantId), select: { id: true, name: true, email: true, role: true, createdAt: true } })
+      const users = await prisma.user.findMany({ where: { tenantId }, select: { id: true, name: true, email: true, role: true, createdAt: true } })
       rows = users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt.toISOString() }))
     } else if (entity === 'bookings') {
-      const bookings = await prisma.booking.findMany({ where: tenantFilter(tenantId), include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
+      const bookings = await prisma.booking.findMany({ where: { tenantId }, include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
       rows = bookings.map(b => ({ id: b.id, clientName: b.client?.name, clientEmail: b.client?.email, service: b.service?.name, status: b.status, scheduledAt: b.scheduledAt.toISOString(), duration: b.duration }))
     } else if (entity === 'services') {
-      const services = await prisma.service.findMany({ where: tenantFilter(tenantId), select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
+      const services = await prisma.service.findMany({ where: { tenantId }, select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
       rows = services.map(s => {
         const priceUnknown = s.price as unknown
         let priceStr = ''
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
         return { id: s.id, name: s.name, slug: s.slug, price: priceStr, active: s.active, category: s.category ?? '' }
       })
     } else if (entity === 'audits') {
-      const logs = await prisma.healthLog.findMany({ where: { ...tenantFilter(tenantId), service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
+      const logs = await prisma.healthLog.findMany({ where: { tenantId, service: 'AUDIT' }, orderBy: { checkedAt: 'desc' }, take: 200 })
       rows = logs.map(l => ({ id: l.id, checkedAt: l.checkedAt.toISOString(), service: l.service, status: l.status, message: l.message ?? '' }))
     } else if (entity === 'newsletter') {
       const subs = await prisma.newsletter.findMany({ orderBy: { createdAt: 'desc' } })
@@ -77,13 +76,13 @@ export async function GET(request: NextRequest) {
       const posts = await prisma.post.findMany({ orderBy: { updatedAt: 'desc' } })
       rows = posts.map(p => ({ id: p.id, title: p.title, slug: p.slug, status: p.status, category: p.category ?? '', published: p.published ? 'true' : 'false', featured: p.featured ? 'true' : 'false', views: p.views ?? 0, publishedAt: p.publishedAt ? p.publishedAt.toISOString() : '', updatedAt: p.updatedAt.toISOString() }))
     } else if (entity === 'payments') {
-      const reqs = await prisma.serviceRequest.findMany({ where: { ...tenantFilter(tenantId), NOT: { paymentStatus: null } }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true } } }, orderBy: { paymentUpdatedAt: 'desc' } })
+      const reqs = await prisma.serviceRequest.findMany({ where: { tenantId, NOT: { paymentStatus: null } }, include: { client: { select: { name: true, email: true } }, service: { select: { name: true } } }, orderBy: { paymentUpdatedAt: 'desc' } })
       rows = reqs.map(r => ({ id: r.id, clientName: r.clientName || r.client?.name || '', clientEmail: r.clientEmail || r.client?.email || '', service: r.service?.name || '', paymentStatus: r.paymentStatus ?? '', paymentProvider: r.paymentProvider ?? '', paymentAmount: typeof r.paymentAmountCents === 'number' ? (r.paymentAmountCents / 100).toFixed(2) : '', paymentCurrency: r.paymentCurrency ?? '', paymentUpdatedAt: r.paymentUpdatedAt ? r.paymentUpdatedAt.toISOString() : '' }))
     } else if (entity === 'invoices') {
       const status = searchParams.get('status')
       const createdFrom = parseDate(searchParams.get('createdFrom'))
       const createdTo = parseDate(searchParams.get('createdTo'))
-      const where: any = { ...tenantFilter(tenantId) }
+      const where: any = { tenantId }
       if (status && status !== 'all') where.status = status
       if (createdFrom || createdTo) {
         where.createdAt = {}
@@ -111,7 +110,7 @@ export async function GET(request: NextRequest) {
       const category = searchParams.get('category')
       const dateFrom = parseDate(searchParams.get('dateFrom'))
       const dateTo = parseDate(searchParams.get('dateTo'))
-      const where: any = { ...tenantFilter(tenantId) }
+      const where: any = { tenantId }
       if (status && status !== 'all') where.status = status
       if (category && category !== 'all') where.category = category
       if (dateFrom || dateTo) {
@@ -127,7 +126,7 @@ export async function GET(request: NextRequest) {
     }
 
     const csv = toCsv(rows)
-    try { await logAudit({ action: `admin:export:${entity}`, actorId: (session?.user as any)?.id ?? null, targetId: tenantId ?? null, details: Object.fromEntries(searchParams.entries()) }) } catch {}
+    try { await logAudit({ action: `admin:export:${entity}`, actorId: ctx.userId ?? null, targetId: tenantId ?? null, details: Object.fromEntries(searchParams.entries()) }) } catch {}
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -140,4 +139,4 @@ export async function GET(request: NextRequest) {
     console.error('Export error:', error)
     return new NextResponse('Failed to export', { status: 500 })
   }
-}
+})

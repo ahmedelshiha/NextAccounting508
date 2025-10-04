@@ -1,36 +1,23 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!ctx || !ctx.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const role = ctx.role as string | undefined
+    if (!['ADMIN', 'TEAM_LEAD', 'STAFF'].includes(role || '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Check if user has admin permissions
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id as string },
-      select: { role: true }
-    })
-
-    if (!user || !['ADMIN', 'TEAM_LEAD', 'STAFF'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
-    }
+    const tenantId = ctx.tenantId
 
     const now = new Date()
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
     // Get client statistics
     const [
@@ -42,61 +29,27 @@ export async function GET() {
       revenueStats
     ] = await Promise.all([
       // Total clients
-      prisma.user.count({
-        where: { role: 'CLIENT' }
-      }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId } }),
 
       // Active clients (simplified count - TODO: add proper booking relationship)
-      prisma.user.count({
-        where: {
-          role: 'CLIENT'
-        }
-      }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId } }),
 
       // New clients this month
-      prisma.user.count({
-        where: {
-          role: 'CLIENT',
-          createdAt: {
-            gte: firstDayOfMonth
-          }
-        }
-      }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId, createdAt: { gte: firstDayOfMonth } } }),
 
       // New clients last month (for growth calculation)
-      prisma.user.count({
-        where: {
-          role: 'CLIENT',
-          createdAt: {
-            gte: firstDayOfLastMonth,
-            lt: firstDayOfMonth
-          }
-        }
-      }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId, createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth } } }),
 
       // Booking statistics
-      prisma.booking.aggregate({
-        _count: true,
-        where: {
-          client: { role: 'CLIENT' }
-        }
-      }),
+      prisma.booking.aggregate({ _count: true, where: { tenantId, /* client: { role: 'CLIENT' } */ } }),
 
       // Revenue statistics (using duration as placeholder for totalAmount)
-      prisma.booking.aggregate({
-        _sum: {
-          duration: true
-        },
-        where: {
-          client: { role: 'CLIENT' },
-          status: 'COMPLETED'
-        }
-      })
+      prisma.booking.aggregate({ _sum: { duration: true }, where: { tenantId, status: 'COMPLETED' } })
     ])
 
     // Calculate growth percentage
-    const growth = newLastMonth > 0 
-      ? ((newThisMonth - newLastMonth) / newLastMonth) * 100 
+    const growth = newLastMonth > 0
+      ? ((newThisMonth - newLastMonth) / newLastMonth) * 100
       : newThisMonth > 0 ? 100 : 0
 
     // Calculate average revenue per client (using duration as placeholder)
@@ -105,7 +58,7 @@ export async function GET() {
 
     // Calculate retention rate (simplified - TODO: implement proper booking relationship)
     const clientsWithMultipleBookings = Math.floor(totalClients * 0.6) // Mock data
-    
+
     const retention = totalClients > 0 ? (clientsWithMultipleBookings / totalClients) * 100 : 0
 
     // Calculate average satisfaction (mock data - would need actual satisfaction surveys)
@@ -122,15 +75,9 @@ export async function GET() {
       growth: Math.round(growth * 10) / 10
     }
 
-    return NextResponse.json({
-      success: true,
-      data: stats
-    })
+    return NextResponse.json({ success: true, data: stats })
   } catch (error) {
     console.error('Error fetching client statistics:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
