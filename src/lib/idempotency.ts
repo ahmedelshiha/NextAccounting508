@@ -17,7 +17,7 @@ export type IdempotencyRecord = {
 
 export async function reserveIdempotencyKey(key: string, userId?: string | null, tenantId: string) {
   try {
-    const rec = await prisma.idempotencyKey.create({ data: { key, userId: userId || null, tenantId: tenantId || null, status: 'RESERVED' as any } })
+    const rec = await prisma.idempotencyKey.create({ data: { key, userId: userId || undefined, tenantId: tenantId, status: 'RESERVED' as any } })
     return rec as unknown as IdempotencyRecord
   } catch (e: any) {
     if (String(e?.code) === 'P2002') {
