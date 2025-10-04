@@ -13,6 +13,46 @@ if (dbUrl && dbUrl.startsWith("neon://")) {
 }
 
 function createClient(url: string) {
+  // If PRISMA_MOCK is enabled, return a mock client that is safe to import and
+  // can be stubbed in tests. The mock implements common model methods with
+  // non-throwing defaults so tests don't crash when DB is absent.
+  if (process.env.PRISMA_MOCK === 'true' || process.env.NODE_ENV === 'test' && process.env.PRISMA_MOCK !== 'false') {
+    const defaultModelHandler = {
+      get(_t: any, prop: string) {
+        // Common Prisma model operations
+        const fnNames = ['findUnique', 'findFirst', 'findMany', 'create', 'createMany', 'update', 'updateMany', 'delete', 'deleteMany', 'upsert', 'count', 'aggregate']
+        if (fnNames.includes(prop)) {
+          return async (_args?: any) => {
+            switch (prop) {
+              case 'findMany': return []
+              case 'count': return 0
+              case 'aggregate': return {}
+              case 'createMany': return { count: 0 }
+              case 'create': return {}
+              default: return null
+            }
+          }
+        }
+        // For any other nested property, return a noop function
+        return async () => null
+      }
+    }
+
+    const modelProxyFactory = () => new Proxy({}, defaultModelHandler)
+
+    const mockHandler: ProxyHandler<any> = {
+      get(_t, prop) {
+        // Return a model proxy for any model access (prisma.user, prisma.booking, etc.)
+        if (typeof prop === 'string') {
+          return modelProxyFactory()
+        }
+        return undefined
+      }
+    }
+
+    return new Proxy({}, mockHandler) as any
+  }
+
   // Lazily require to avoid loading @prisma/client when DB is not configured
 
   // This file intentionally uses require() because importing @prisma/client at module
