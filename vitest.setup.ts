@@ -26,9 +26,24 @@ vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: defaultSession, status: 'authenticated' }),
   signOut: vi.fn()
 }))
-vi.mock('next-auth/jwt', () => ({
-  getToken: vi.fn(async () => null),
-}))
+vi.mock('next-auth/jwt', () => {
+  const encode = vi.fn(async ({ token }: { token?: Record<string, unknown> }) =>
+    Buffer.from(JSON.stringify(token ?? {}), 'utf-8').toString('base64url')
+  )
+  const decode = vi.fn(async ({ token }: { token?: string }) => {
+    try {
+      const raw = Buffer.from(String(token ?? ''), 'base64url').toString('utf-8')
+      return JSON.parse(raw)
+    } catch {
+      return null
+    }
+  })
+  return {
+    getToken: vi.fn(async () => null),
+    encode,
+    decode,
+  }
+})
 
 // Polyfill Web File in Node test env
 if (typeof (globalThis as any).File === 'undefined') {
