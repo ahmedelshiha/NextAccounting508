@@ -194,7 +194,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   if (idemKey) {
     try {
       const { findIdempotentResult, reserveIdempotencyKey } = await import('@/lib/idempotency')
-      const existing = await findIdempotentResult(idemKey)
+      const existing = await findIdempotentResult(idemKey, ctx.tenantId)
       if (existing && existing.entityId && existing.entityType === 'ServiceRequest') {
         try {
           const existingEntity = await prisma.serviceRequest.findUnique({ where: { id: existing.entityId }, include: { service: { select: { id: true, name: true, slug: true, category: true } } } })
