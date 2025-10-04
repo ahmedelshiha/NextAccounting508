@@ -1,16 +1,16 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { calculateServicePrice } from '@/lib/booking/pricing'
 import prisma from '@/lib/prisma'
 
 function bad(msg: string, status = 400) { return NextResponse.json({ error: msg }, { status }) }
 
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return bad('Unauthorized', 401)
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const userId = ctx.userId ?? null
 
   const { STRIPE_SECRET_KEY } = process.env as Record<string, string | undefined>
   if (!STRIPE_SECRET_KEY) return bad('Payments not configured', 501)
@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null)
   if (!body || !body.serviceId || !body.scheduledAt) return bad('Missing required fields: serviceId, scheduledAt')
 
-  // Normalize inputs
   const serviceId = String(body.serviceId)
   const scheduledAt = new Date(String(body.scheduledAt))
   const duration = body.duration != null ? Number(body.duration) : undefined
@@ -40,9 +39,8 @@ export async function POST(request: NextRequest) {
         emergencySurchargePercent: emergencyPct,
         promoCode,
         promoResolver: async (code: string) => {
-          // Simple promo: WELCOME10 => -10%
           if (code.toUpperCase() === 'WELCOME10') {
-            const basePrice = 0 // discount is applied over subtotal via negative component; handled in pricing via resolver
+            const basePrice = 0
             return { code: 'PROMO_WELCOME10', label: 'Promo WELCOME10', amountCents: Math.round(-0.1 * 100 * 0) }
           }
           return null
@@ -59,14 +57,19 @@ export async function POST(request: NextRequest) {
     const successUrl = String(body.successUrl || `${new URL(request.url).origin}/portal`)
     const cancelUrl = String(body.cancelUrl || `${new URL(request.url).origin}/booking`)
 
-    // Optional: serviceRequestId to bind payment session preemptively
     const serviceRequestId = body.serviceRequestId ? String(body.serviceRequestId) : undefined
+
+    let customerEmail: string | undefined = undefined
+    if (userId) {
+      const dbUser = await prisma.user.findUnique({ where: { id: String(userId) }, select: { email: true } })
+      customerEmail = dbUser?.email ?? undefined
+    }
 
     const sessionObj = await stripe.checkout.sessions.create({
       mode: 'payment',
       success_url: successUrl,
       cancel_url: cancelUrl,
-      customer_email: (session.user as any)?.email || undefined,
+      customer_email: customerEmail,
       line_items: [
         {
           quantity: 1,
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
         }
       ],
       metadata: {
-        userId: String(session.user.id),
+        userId: String(userId ?? ''),
         serviceId,
         scheduledAt: scheduledAt.toISOString(),
         duration: String(duration || ''),
@@ -101,4 +104,4 @@ export async function POST(request: NextRequest) {
     console.error('checkout create error', e)
     return bad('Failed to create checkout session', 500)
   }
-}
+})

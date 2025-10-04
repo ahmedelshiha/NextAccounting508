@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
-import * as NextServer from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { logAudit } from '@/lib/audit'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (request: Request) => {
   try {
-    const session = (await getServerSession(authOptions as any)) as any
-    const actorId = session?.user?.id ?? null
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null
+    const ctx = requireTenantContext()
+    const actorId = ctx.userId ?? null
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null
     try { await logAudit({ action: 'auth:logout', actorId, targetId: actorId, details: { ip } }) } catch {}
-    return NextServer.NextResponse.json({ success: true })
+    return NextResponse.json({ success: true })
   } catch (e) {
-    return NextServer.NextResponse.json({ success: false }, { status: 500 })
+    return NextResponse.json({ success: false }, { status: 500 })
   }
-}
+})
