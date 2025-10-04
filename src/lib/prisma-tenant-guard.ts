@@ -84,6 +84,47 @@ function collectTenantValues(input: unknown, tenantField: string): string[] {
   return Array.from(new Set(values.filter(v => typeof v === 'string' && v.trim().length > 0)))
 }
 
+function ensureArgsObject(params: any): Record<string, any> {
+  if (!params.args || typeof params.args !== 'object') {
+    params.args = {}
+  }
+  return params.args as Record<string, any>
+}
+
+function ensureTenantScopeOnWhere(args: Record<string, any>, tenantField: string, tenantId: string): boolean {
+  if (!args) return false
+  const existing = args.where
+  if (!existing || typeof existing !== 'object') {
+    args.where = { [tenantField]: tenantId }
+    return true
+  }
+
+  const values = collectTenantValues(existing, tenantField)
+  if (!values.length) {
+    args.where = { AND: [existing, { [tenantField]: tenantId }] }
+    return true
+  }
+
+  return false
+}
+
+function ensureTenantOnCreateData(data: unknown, tenantField: string, tenantId: string): boolean {
+  if (!data) return false
+  const records = Array.isArray(data) ? data : [data]
+  let mutated = false
+
+  for (const entry of records) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    if (!(tenantField in record) || record[tenantField] == null) {
+      record[tenantField] = tenantId
+      mutated = true
+    }
+  }
+
+  return mutated
+}
+
 function assertTenantForCreate(
   model: string,
   action: GuardedAction,
