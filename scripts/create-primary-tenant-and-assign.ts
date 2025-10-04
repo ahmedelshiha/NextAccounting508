@@ -66,8 +66,18 @@ async function main() {
     const path = 'prisma/migrations/20251004_add_booking_tenantid_not_null/migration.sql'
     if (fs.existsSync(path)) {
       const sql = fs.readFileSync(path, 'utf8')
-      console.log('Applying migration SQL...')
-      await prisma.$executeRawUnsafe(sql)
+      console.log('Applying migration SQL statements (split)...')
+      const parts = sql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean)
+      for (const stmt of parts) {
+        // Skip empty or transaction wrappers handled by individual statements
+        if (!stmt) continue
+        try {
+          await prisma.$executeRawUnsafe(stmt)
+        } catch (err) {
+          console.error('Statement failed:', stmt, String(err))
+          throw err
+        }
+      }
       console.log('Migration SQL applied.')
     } else {
       console.log('Migration SQL file not found, skipping apply step.')
