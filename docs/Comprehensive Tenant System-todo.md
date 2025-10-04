@@ -736,3 +736,20 @@ Recent refactors:
 - [ ] Implement transactional backfill utility covering ServiceRequest, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
 - [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
 - [ ] Update scripts/setup-rls.ts (and related tooling) once NOT NULL enforced to remove NULL allowances.
+
+---
+
+## ✅ Completed
+- [x] Validated admin users API adoption of withTenantContext and restored missing NextResponse import
+  - **Why**: ensure tenant-scoped route remains functional and resolves runtime/type errors from undefined NextResponse
+  - **Impact**: admin users endpoint compiles cleanly and continues to enforce tenant context with consistent JSON responses
+
+## ⚠️ Issues / Risks
+- Targeted lint/typecheck not yet run after import fix; schedule verification to confirm no related regressions
+
+## 🚧 In Progress
+- [ ] Prepare audit of remaining admin API routes for missing framework imports
+
+## 🔧 Next Steps
+- [ ] Run pnpm lint to confirm admin routes compile after import adjustments
+- [ ] Expand audit to portal routes to ensure consistent NextResponse imports across the tenancy surface area
