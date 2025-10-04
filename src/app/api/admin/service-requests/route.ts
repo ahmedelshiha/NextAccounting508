@@ -277,6 +277,7 @@ export const POST = withTenantContext(async (request: Request) => {
   }
 
   const tenantId = ctx.tenantId
+  if (!tenantId) return respond.badRequest('Tenant context missing')
   const ip = getClientIp(request)
   if (!rateLimit(`service-requests:create:${ip}`, 10, 60_000)) {
     return respond.tooMany()
@@ -376,7 +377,7 @@ export const POST = withTenantContext(async (request: Request) => {
           clientPhone: (data as any).clientPhone ?? null,
           bookingType: 'RECURRING' as any,
           recurringPattern: normalized as any,
-          ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
+          tenant: { connect: { id: String(tenantId) } },
         },
         include: {
           client: { select: { id: true, name: true, email: true } },
@@ -409,8 +410,8 @@ export const POST = withTenantContext(async (request: Request) => {
             clientEmail: (data as any).clientEmail ?? null,
             clientPhone: (data as any).clientPhone ?? null,
             bookingType: 'RECURRING' as any,
-            parentBookingId: parent.id,
-            ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
+            parentBooking: { connect: { id: parent.id } },
+            tenant: { connect: { id: String(tenantId) } },
           },
         })
         childrenCreated.push(child)
@@ -470,7 +471,7 @@ export const POST = withTenantContext(async (request: Request) => {
           clientPhone: (data as any).clientPhone ?? null,
           bookingType: (data as any).bookingType ?? null,
         } : {}),
-        ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
+        tenant: { connect: { id: String(tenantId) } },
       },
       include: {
         client: { select: { id: true, name: true, email: true } },
