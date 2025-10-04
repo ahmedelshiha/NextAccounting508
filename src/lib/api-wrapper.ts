@@ -94,7 +94,7 @@ export function withTenantContext(
         role: user.role ?? null,
         tenantRole: user.tenantRole ?? null,
         isSuperAdmin: user.role === 'SUPER_ADMIN',
-        requestId: request.headers.get('x-request-id') || null,
+        requestId: (request && (request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('x-request-id') : null,
         timestamp: new Date(),
       }
 
