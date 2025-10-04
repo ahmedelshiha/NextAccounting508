@@ -699,4 +699,4 @@ Recent refactors:
 - [x] Add a sanity integration test that triggers a server error and asserts tenant tags present via mock transport
 - [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
 - [x] Introduce eslint rule to flag prisma.$queryRaw/$executeRaw in src/app/api/** except allowlist (db-check, system/health, uploads/av-callback)
-- [ ] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
+- [x] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
