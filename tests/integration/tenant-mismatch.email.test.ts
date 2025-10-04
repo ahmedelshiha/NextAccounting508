@@ -3,6 +3,10 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 vi.mock('@/lib/tenant-cookie', () => ({ verifyTenantCookie: vi.fn(() => false) }))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 
+// Use the shared prisma mock for DB-free tests
+const { mockPrisma } = require('../../__mocks__/prisma')
+vi.doMock('@/lib/prisma', () => ({ default: mockPrisma }))
+
 describe('Tenant mismatch — email test endpoints', () => {
   beforeEach(() => {
     vi.resetModules()
