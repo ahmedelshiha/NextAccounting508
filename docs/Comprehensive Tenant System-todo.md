@@ -287,10 +287,10 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/security-settings/route.ts
 - [x] src/app/api/admin/analytics/route.ts
 - [x] src/app/api/admin/stats/clients/route.ts
-- [ ] src/app/api/admin/stats/posts/route.ts
-- [ ] src/app/api/admin/stats/counts/route.ts
-- [ ] src/app/api/admin/stats/bookings/route.ts
-- [ ] src/app/api/admin/stats/users/route.ts
+- [x] src/app/api/admin/stats/posts/route.ts
+- [x] src/app/api/admin/stats/counts/route.ts
+- [x] src/app/api/admin/stats/bookings/route.ts
+- [x] src/app/api/admin/stats/users/route.ts
 - [ ] src/app/api/admin/integration-hub/test/route.ts
 - [ ] src/app/api/admin/realtime/route.ts
 - [ ] src/app/api/admin/system/health/route.ts
