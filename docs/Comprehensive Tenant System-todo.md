@@ -479,3 +479,28 @@ Below is the original Comprehensive Tenant System todo content included verbatim
 
 END OF AI AGENT TODO SYSTEM  
 Version: 5.0  Last Updated: 2025-10-04
+
+---
+
+## AI Agent Stateful Workflow — 2025-10-04
+
+# Context Reload Summary
+- Source: docs/Comprehensive Tenant System-todo.md and docs/tenant-system-audit.md
+- Key Points Reused:
+  - Remaining API route migrations list (Phase 1) and priority on tenant-mismatch tests.
+  - DB/schema risks and roadmap for tenantId enforcement and partial uniques.
+  - Middleware/ALS approach and session-bound tenant verification requirements.
+
+# New Analysis / Findings
+- We will operate statefully: every implementation begins with a quick reload of TODO + Audit, then we append new findings using this template.
+- Cost controls: batch independent tool calls; prefer project grep/read over web; avoid redundant audits by referencing existing sections.
+- Naming: Canonical audit doc path is docs/tenant-system-audit.md; do not create duplicate filenames.
+
+# Planned Implementation
+- [x] Initialize stateful workflow and append operating rules to both docs.
+- [ ] Add ESLint guard forbidding direct getServerSession usage in API routes; require withTenantContext.
+- [ ] Add CI precheck ensuring both docs exist and contain a recent “AI Agent Context/Workflow” entry.
+- [ ] Implement remaining 8 tenant-mismatch integration tests (Phase 12).
+
+# Notes
+- Confirm whether to rename docs/tenant-system-audit.md to the requested docs/Comprehensive Tenant System-audit.md; currently keeping the existing path as canonical to avoid duplication.

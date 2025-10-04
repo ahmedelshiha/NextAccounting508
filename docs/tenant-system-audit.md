@@ -46,7 +46,7 @@ model OrganizationSettings {
   // ...
 }
 ```
-- No foreign keys ensure child rows (e.g. `Booking`, `ServiceRequest`) share the parent’s tenant.
+- No foreign keys ensure child rows (e.g. `Booking`, `ServiceRequest`) share the parent���s tenant.
 
 **Risks**
 - Without a `tenantId` on `Task`, any tenant can read/update another tenant’s tasks once they reach task APIs.
@@ -271,3 +271,31 @@ logger.info('API Request', { tenantId, method, path, userId });
   - Roll out Postgres RLS policies for critical tables once schema carries tenant IDs.
   - Enhance observability with tenant-aware logging, Sentry tags, and dedicated audit tables.
   - Automate schema validation (lint rules) to block new models without tenant governance.
+
+---
+
+## AI Agent Context Log — 2025-10-04
+
+# Context Reload Summary
+- Source: docs/Comprehensive Tenant System-todo.md and docs/tenant-system-audit.md
+- Key Points Reused:
+  - withTenantContext adoption at ~80%; remaining API routes listed in Phase 1 checklist.
+  - DB gaps: missing tenantId on Task/ComplianceRecord/HealthLog; plan for NOT NULL and partial uniques.
+  - Security: stop trusting x-tenant-id; validate signed tenant cookies and session-bound tenants.
+  - Testing gap: tenant-mismatch tests largely missing; add 8 integration tests.
+
+# New Analysis / Findings
+- Standardize “audit doc” reference to docs/tenant-system-audit.md (current canonical path); avoid creating duplicate filenames.
+- Establish a stateful workflow: every task starts by reloading these two docs and appending findings using the template below.
+- Cost control: batch file reads/writes and search operations; avoid re-auditing areas already documented unless deltas are detected.
+- Enforcement gaps to prioritize next: ESLint rule to forbid direct getServerSession in API routes; guard auto-injects tenant filters.
+
+# Planned Implementation
+- [x] Reloaded both docs and initialized stateful workflow log entry.
+- [ ] Add “AI Agent Stateful Workflow” section to todo with operating rules and checklist.
+- [ ] Propose/implement ESLint rule to block getServerSession in API routes and require withTenantContext.
+- [ ] Plan CI precheck ensuring both docs are present and non-empty.
+- [ ] Add 8 tenant-mismatch integration tests per Phase 12.
+
+# Notes
+- File mismatch: requested docs/Comprehensive Tenant System-audit.md does not exist; using docs/tenant-system-audit.md as the canonical audit doc. Confirm if we should rename or keep as-is.
