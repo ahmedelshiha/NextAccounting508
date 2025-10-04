@@ -187,8 +187,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const tenantId = getTenantFromRequest(request)
-    const where: Prisma.ExpenseWhereInput = {
+    const tenantId = requireTenantContext().tenantId
+  const where: Prisma.ExpenseWhereInput = {
       id: { in: parsed.data.expenseIds },
     }
 
