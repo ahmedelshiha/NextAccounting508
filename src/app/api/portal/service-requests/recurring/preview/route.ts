@@ -1,10 +1,9 @@
 export const runtime = 'nodejs'
 
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { respond, zodDetails } from '@/lib/api-response'
 import { z } from 'zod'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { planRecurringBookings, generateOccurrences } from '@/lib/booking/recurring'
 
 const PreviewSchema = z.object({
@@ -20,11 +19,9 @@ const PreviewSchema = z.object({
   })
 })
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return respond.unauthorized()
+export const POST = withTenantContext(async (request: Request) => {
+  const ctx = requireTenantContext()
 
-  const tenantId = getTenantFromRequest(request as any)
   const body = await request.json().catch(() => null)
   const parsed = PreviewSchema.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
@@ -34,7 +31,7 @@ export async function POST(request: Request) {
   try {
     const plan = await planRecurringBookings({
       serviceId,
-      clientId: (session.user as any).id,
+      clientId: String(ctx.userId),
       durationMinutes: Number(duration ?? 60),
       start: new Date(start),
       pattern: {
@@ -44,7 +41,7 @@ export async function POST(request: Request) {
         until: recurringPattern.until ? new Date(recurringPattern.until) : undefined,
         byWeekday: recurringPattern.byWeekday,
       },
-      tenantId: (isMultiTenancyEnabled() && tenantId) ? String(tenantId) : null,
+      tenantId: ctx.tenantId,
       teamMemberId: null,
     })
     const created = plan.plan.filter(p => !p.conflict).length
@@ -65,4 +62,4 @@ export async function POST(request: Request) {
       return respond.serverError()
     }
   }
-}
+})

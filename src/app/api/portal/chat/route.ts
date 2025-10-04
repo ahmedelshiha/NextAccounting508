@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
+import { requireTenantContext } from '@/lib/tenant-utils'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
-import { getTenantFromRequest } from '@/lib/tenant'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
 // POST /api/portal/chat - send a chat message (authenticated portal users)
-export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return new NextResponse('Unauthorized', { status: 401 })
 
   const ip = getClientIp(request as unknown as Request)
   if (!rateLimit(`chat:post:${ip}`, 10, 10_000)) {
@@ -29,28 +30,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid message', details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const tenantId = getTenantFromRequest(request as unknown as Request)
-  const userId = String((session.user as any).id || '')
-  const userName = String(session.user.name || session.user.email || 'User')
-  const role = String((session.user as any).role || 'user')
+  const tenantId = ctx.tenantId
+  const userId = String(ctx.userId || '')
+
+  // Best-effort userName from session; fallback to userId
+  let userName = 'User'
+  try {
+    const session = await getServerSession(authOptions)
+    userName = String(session?.user?.name || session?.user?.email || userId || 'User')
+  } catch {}
+
+  const role = String(ctx.role || 'user')
 
   const msg = createChatMessage({ text: parsed.data.message, userId, userName, role, tenantId })
   await broadcastChatMessage(msg)
 
   return NextResponse.json({ ok: true, message: msg })
-}
+})
 
 // GET /api/portal/chat - list recent messages (authenticated)
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return new NextResponse('Unauthorized', { status: 401 })
 
-  const tenantId = getTenantFromRequest(request as unknown as Request)
+  const tenantId = ctx.tenantId
   const { searchParams } = new URL(request.url)
   const limit = Math.max(1, Math.min(200, Number(searchParams.get('limit') || '50')))
   const list = chatBacklog.list(tenantId, limit)
   return NextResponse.json({ messages: list })
-}
+})
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })

@@ -1,12 +1,10 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextResponse, NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
-import { NextRequest } from 'next/server'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 
@@ -15,18 +13,16 @@ const CreateSchema = z.object({
   attachments: z.any().optional(),
 })
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const GET = withTenantContext(async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return respond.unauthorized()
-  const tenantId = getTenantFromRequest(req as any)
+  const ctx = requireTenantContext()
 
   try {
-    const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, tenantId: true } })
-    if (!reqRow || reqRow.clientId !== session.user.id) {
+    const reqRow = await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true, tenantId: true } })
+    if (!reqRow || reqRow.clientId !== ctx.userId) {
       return respond.notFound('Service request not found')
     }
-    if (isMultiTenancyEnabled() && tenantId && (reqRow as any).tenantId && (reqRow as any).tenantId !== tenantId) {
+    if ((reqRow as any).tenantId && (reqRow as any).tenantId !== ctx.tenantId) {
       return respond.notFound('Service request not found')
     }
 
@@ -43,7 +39,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
       try {
         const { getRequest, getComments } = await import('@/lib/dev-fallbacks')
         const reqRow = getRequest(id)
-        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
+        if (!reqRow || reqRow.clientId !== ctx.userId) return respond.notFound('Service request not found')
         const comments = getComments(id) || []
         return respond.ok(comments)
       } catch {
@@ -52,23 +48,21 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     }
     throw e
   }
-}
+})
 
-export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const POST = withTenantContext(async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return respond.unauthorized()
-  const tenantId = getTenantFromRequest(req as any)
+  const ctx = requireTenantContext()
 
-  const reqRow = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true, tenantId: true } })
-  if (!reqRow || reqRow.clientId !== session.user.id) {
+  const reqRow = await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true, tenantId: true } })
+  if (!reqRow || reqRow.clientId !== ctx.userId) {
     return respond.notFound('Service request not found')
-    }
-    if (isMultiTenancyEnabled() && tenantId && (reqRow as any).tenantId && (reqRow as any).tenantId !== tenantId) {
-      return respond.notFound('Service request not found')
-    }
+  }
+  if ((reqRow as any).tenantId && (reqRow as any).tenantId !== ctx.tenantId) {
+    return respond.notFound('Service request not found')
+  }
 
-  const ip = getClientIp(req)
+  const ip = getClientIp(req as any)
   if (!rateLimit(`portal:service-requests:comment:${ip}`, 10, 60_000)) {
     return respond.tooMany()
   }
@@ -82,7 +76,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     const created = await prisma.serviceRequestComment.create({
       data: {
         serviceRequestId: id,
-        authorId: session.user.id,
+        authorId: String(ctx.userId),
         content: parsed.data.content,
         attachments: parsed.data.attachments ?? undefined,
       },
@@ -101,8 +95,8 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
       try {
         const { addComment, getRequest } = await import('@/lib/dev-fallbacks')
         const reqRow = getRequest(id)
-        if (!reqRow || reqRow.clientId !== session.user.id) return respond.notFound('Service request not found')
-        const comment = { id: `dev-c-${Date.now().toString()}`, content: parsed.data.content, createdAt: new Date().toISOString(), author: { id: session.user.id, name: session.user.name } }
+        if (!reqRow || reqRow.clientId !== ctx.userId) return respond.notFound('Service request not found')
+        const comment = { id: `dev-c-${Date.now().toString()}`, content: parsed.data.content, createdAt: new Date().toISOString(), author: { id: String(ctx.userId), name: undefined } }
         addComment(id, comment)
         try {
           const { realtimeService } = await import('@/lib/realtime-enhanced')
@@ -115,7 +109,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     }
     throw e
   }
-}
+})
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: { Allow: 'GET,POST,OPTIONS' } })
