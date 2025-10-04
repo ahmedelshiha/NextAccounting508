@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { tenantContext } from '@/lib/tenant-context'
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN || undefined,
@@ -7,4 +8,28 @@ Sentry.init({
   replaysOnErrorSampleRate: 0.0,
   environment: process.env.VERCEL_ENV || process.env.NODE_ENV || 'production',
   enabled: !!process.env.SENTRY_DSN,
+})
+
+// Attach tenant context to all server-side Sentry events
+Sentry.addGlobalEventProcessor((event) => {
+  try {
+    const ctx = tenantContext.getContextOrNull?.()
+    if (ctx) {
+      event.tags = {
+        ...event.tags,
+        tenantId: ctx.tenantId,
+        tenantSlug: ctx.tenantSlug ?? undefined,
+        requestId: ctx.requestId ?? undefined,
+        role: ctx.role ?? undefined,
+        tenantRole: ctx.tenantRole ?? undefined,
+      }
+      event.user = {
+        ...(event.user || {}),
+        id: ctx.userId || undefined,
+        email: ctx.userEmail || undefined,
+        username: ctx.userName || undefined,
+      }
+    }
+  } catch {}
+  return event
 })

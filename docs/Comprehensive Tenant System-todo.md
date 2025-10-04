@@ -417,7 +417,7 @@ SUCCESS CRITERIA CHECKLIST
 **Priority:** P2 | **Effort:** 2d | **Deadline:** 2025-10-28
 **Subtasks:**
 - [x] Middleware logs requestId/tenantId/userId
-- [ ] Configure Sentry to include tenant tags in events
+- [x] Configure Sentry to include tenant tags in events (server & edge)
 - [ ] Create dashboards for cross-tenant attempts and RLS policy hits
 
 SUCCESS CRITERIA CHECKLIST
@@ -585,3 +585,20 @@ Recent refactors:
 - [ ] Introduce tenant-scoped repository layer; refactor 2 critical services first
 - [ ] Add Sentry tenant tags in sentry.client/server config via scope.setTag
 - [ ] Prepare tenantId NOT NULL migration plan with backfill scripts and verification checks
+
+---
+
+## ✅ Completed
+- [x] Configured Sentry to tag events with tenant context on server and edge
+  - **Why**: observability enhancement
+  - **Impact**: All server/edge Sentry events include tenantId, tenantSlug, requestId, role, tenantRole, and user identity fields for better debugging
+
+## ⚠️ Issues / Risks
+- Edge/runtime environments without AsyncLocalStorage may rely on polyfill; tagging is best-effort there
+
+## 🚧 In Progress
+- [ ] Create Sentry dashboards for cross-tenant attempts and RLS hits
+
+## 🔧 Next Steps
+- [ ] Add a sanity integration test that triggers a server error and asserts tenant tags present via mock transport
+- [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
