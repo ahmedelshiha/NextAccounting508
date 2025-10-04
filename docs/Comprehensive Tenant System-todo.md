@@ -188,8 +188,16 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** NOT STARTED
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
-- [ ] Add tenantId column non-null to User, Task, ComplianceRecord, HealthLog, AuditLog, etc.
-- [ ] Add indexes and foreign keys where appropriate
+- [ ] Add tenantId column non-null to Booking, ServiceRequest (currently optional), Service (optional), WorkOrder (optional), Invoice (optional), Expense (optional), Attachment (optional), ScheduledReminder (optional), ChatMessage (optional), BookingSettings (optional unique), IdempotencyKey (optional)
+- [ ] Add foreign keys to Tenant(id) and relevant indexes (tenantId, composite uniques like @@unique([tenantId, slug]))
+- [ ] Tighten settings tables to require tenantId where unique constraints already imply single-tenant rows
+
+Implementation notes:
+- For settings tables already using @@unique([tenantId]), migrate tenantId from optional -> required with backfill
+- Booking.tenantId populated via joins on clientId -> User.tenantId or serviceRequest.tenantId
+- ServiceRequest.tenantId populated from clientId -> User.tenantId or service.tenantId
+- WorkOrder.tenantId populated via COALESCE over serviceRequest.tenantId, booking.tenantId, client.tenantId
+- Invoice/Expense.tenantId populated by booking/client/user relations
 
 **AI Agent Steps:**
 ```bash
