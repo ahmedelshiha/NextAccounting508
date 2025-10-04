@@ -45,7 +45,7 @@ P0 — Blockers / security
   - [x] Strip incoming x-tenant-id and x-tenant-slug from requests; set server-verified headers only.
   - [x] Issue and verify HMAC-signed tenant cookie (tenant_sig) using NEXTAUTH_SECRET; reject mismatches.
   - [x] Extend matcher to include /api/:path* and exclude only static assets.
-  - [ ] Log requestId, userId, tenantId for every request.
+  - [x] Log requestId, userId, tenantId for every request.
 - [x] Remove client-side tenant injection or restrict to development:
   - [x] Update src/lib/api.ts to stop setting x-tenant-id from cookie/LS in production.
   - [x] Replace TenantSwitcher with a secure tenant-switch endpoint that updates session (JWT) after membership validation.
@@ -324,7 +324,7 @@ Other server routes:
 - [ ] src/app/api/payments/checkout/route.ts
 - [ ] src/app/api/auth/register/register/route.ts
 - [ ] src/app/api/email/test/route.ts
-- [ ] src/app/api/users/me/route.ts
+- [x] src/app/api/users/me/route.ts
 - [ ] src/app/api/bookings/** (routes under /api/bookings)
 
 Notes:
