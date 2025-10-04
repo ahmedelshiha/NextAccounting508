@@ -285,17 +285,17 @@ logger.info('API Request', { tenantId, method, path, userId });
   - Testing gap: tenant-mismatch tests largely missing; add 8 integration tests.
 
 # New Analysis / Findings
-- Standardize “audit doc” reference to docs/tenant-system-audit.md (current canonical path); avoid creating duplicate filenames.
-- Establish a stateful workflow: every task starts by reloading these two docs and appending findings using the template below.
-- Cost control: batch file reads/writes and search operations; avoid re-auditing areas already documented unless deltas are detected.
-- Enforcement gaps to prioritize next: ESLint rule to forbid direct getServerSession in API routes; guard auto-injects tenant filters.
+- Standardize “audit doc” reference to docs/tenant-system-audit.md (canonical), and add alias at docs/Comprehensive Tenant System-audit.md.
+- Stateful workflow active: reload TODO + Audit, append entries with template; batch tool calls.
+- Added tenant-mismatch tests (8) covering invalid cookies, header forgery, portal/admin [id] access; fixed fallback leak in admin service-requests [id] GET.
+- Next: migrate remaining API routes to withTenantContext; consider Prisma auto-injection of tenant filters.
 
 # Planned Implementation
 - [x] Reloaded both docs and initialized stateful workflow log entry.
-- [ ] Add “AI Agent Stateful Workflow” section to todo with operating rules and checklist.
-- [ ] Propose/implement ESLint rule to block getServerSession in API routes and require withTenantContext.
-- [ ] Plan CI precheck ensuring both docs are present and non-empty.
-- [ ] Add 8 tenant-mismatch integration tests per Phase 12.
+- [x] Add “AI Agent Stateful Workflow” section to todo with operating rules and checklist.
+- [x] Implement ESLint rule to block getServerSession in API routes and require withTenantContext.
+- [x] CI precheck ensuring both docs are present and non-empty.
+- [x] Add 8 tenant-mismatch integration tests per Phase 12.
 
 # Notes
-- File mismatch: requested docs/Comprehensive Tenant System-audit.md does not exist; using docs/tenant-system-audit.md as the canonical audit doc. Confirm if we should rename or keep as-is.
+- Created docs/Comprehensive Tenant System-audit.md as an alias; canonical remains docs/tenant-system-audit.md.
