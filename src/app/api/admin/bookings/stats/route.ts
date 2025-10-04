@@ -1,30 +1,15 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
+    const ctx = requireTenantContext()
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Check if user has admin permissions
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id as string },
-      select: { role: true }
-    })
-
-    if (!user || !['ADMIN', 'TEAM_LEAD', 'STAFF'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
+    const allowed = ['ADMIN', 'TEAM_LEAD', 'STAFF']
+    if (!ctx.role || !allowed.includes(ctx.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const now = new Date()
@@ -34,111 +19,44 @@ export async function GET() {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
-    // Get comprehensive booking statistics
+    const tenantScope: any = ctx.tenantId && ctx.tenantId !== 'undefined' ? { client: { tenantId: String(ctx.tenantId) } } : {}
+
     const [
       totalBookings,
       pendingBookings,
       confirmedBookings,
       completedBookings,
       cancelledBookings,
-      // noShowBookings, // TODO: Add NO_SHOW status to BookingStatus enum
       todayBookings,
       thisMonthBookings,
       lastMonthBookings,
       weekRevenue,
       totalRevenue,
       completedThisMonth,
-      completedLastMonth
+      completedLastMonth,
     ] = await Promise.all([
-      // Total bookings count
-      prisma.booking.count(),
-
-      // Status-based counts
-      prisma.booking.count({ where: { status: 'PENDING' } }),
-      prisma.booking.count({ where: { status: 'CONFIRMED' } }),
-      prisma.booking.count({ where: { status: 'COMPLETED' } }),
-      prisma.booking.count({ where: { status: 'CANCELLED' } }),
-      // prisma.booking.count({ where: { status: 'NO_SHOW' } }), // TODO: Add NO_SHOW status
-
-      // Today's bookings
-      prisma.booking.count({
-        where: {
-          scheduledAt: {
-            gte: startOfToday,
-            lt: new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
-          }
-        }
-      }),
-
-      // This month bookings
-      prisma.booking.count({
-        where: {
-          createdAt: {
-            gte: startOfMonth
-          }
-        }
-      }),
-
-      // Last month bookings (for growth calculation)
-      prisma.booking.count({
-        where: {
-          createdAt: {
-            gte: startOfLastMonth,
-            lt: startOfMonth
-          }
-        }
-      }),
-
-      // Week revenue from completed bookings (using duration as placeholder for totalAmount)
-      prisma.booking.aggregate({
-        _sum: { duration: true },
-        where: {
-          status: 'COMPLETED',
-          scheduledAt: { gte: startOfWeek }
-        }
-      }),
-
-      // Total revenue from all completed bookings (using duration as placeholder for totalAmount)
-      prisma.booking.aggregate({
-        _sum: { duration: true },
-        where: { status: 'COMPLETED' }
-      }),
-
-      // Completed bookings this month
-      prisma.booking.count({
-        where: {
-          status: 'COMPLETED',
-          scheduledAt: {
-            gte: startOfMonth
-          }
-        }
-      }),
-
-      // Completed bookings last month
-      prisma.booking.count({
-        where: {
-          status: 'COMPLETED',
-          scheduledAt: {
-            gte: startOfLastMonth,
-            lt: startOfMonth
-          }
-        }
-      })
+      prisma.booking.count({ where: { ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'PENDING', ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'CONFIRMED', ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'COMPLETED', ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'CANCELLED', ...tenantScope } }),
+      prisma.booking.count({ where: { scheduledAt: { gte: startOfToday, lt: new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000) }, ...tenantScope } }),
+      prisma.booking.count({ where: { createdAt: { gte: startOfMonth }, ...tenantScope } }),
+      prisma.booking.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfMonth }, ...tenantScope } }),
+      prisma.booking.aggregate({ _sum: { duration: true }, where: { status: 'COMPLETED', scheduledAt: { gte: startOfWeek }, ...tenantScope } }),
+      prisma.booking.aggregate({ _sum: { duration: true }, where: { status: 'COMPLETED', ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'COMPLETED', scheduledAt: { gte: startOfMonth }, ...tenantScope } }),
+      prisma.booking.count({ where: { status: 'COMPLETED', scheduledAt: { gte: startOfLastMonth, lt: startOfMonth }, ...tenantScope } }),
     ])
 
-    // Calculate growth percentage
-    const growth = lastMonthBookings > 0 
-      ? ((thisMonthBookings - lastMonthBookings) / lastMonthBookings) * 100 
-      : thisMonthBookings > 0 ? 100 : 0
+    const growth = lastMonthBookings > 0 ? ((thisMonthBookings - lastMonthBookings) / lastMonthBookings) * 100 : thisMonthBookings > 0 ? 100 : 0
 
-    // Calculate completion rate (using 0 for noShowBookings since it's disabled)
-    const noShowBookings = 0 // TODO: Re-enable when NO_SHOW status is added
+    const noShowBookings = 0
     const totalScheduled = confirmedBookings + completedBookings + cancelledBookings + noShowBookings
     const completionRate = totalScheduled > 0 ? (completedBookings / totalScheduled) * 100 : 0
 
-    // Calculate average booking value (using duration as placeholder for revenue)
-    const weekRevenueAmount = Number(weekRevenue._sum.duration) || 0
-    const totalRevenueAmount = Number(totalRevenue._sum.duration) || 0
+    const weekRevenueAmount = Number((weekRevenue as any)._sum.duration) || 0
+    const totalRevenueAmount = Number((totalRevenue as any)._sum.duration) || 0
     const averageBookingValue = completedBookings > 0 ? totalRevenueAmount / completedBookings : 0
 
     const stats = {
@@ -152,18 +70,12 @@ export async function GET() {
       weekRevenue: weekRevenueAmount,
       averageBookingValue: Math.round(averageBookingValue),
       completionRate: Math.round(completionRate * 10) / 10,
-      growth: Math.round(growth * 10) / 10
+      growth: Math.round(growth * 10) / 10,
     }
 
-    return NextResponse.json({
-      success: true,
-      data: stats
-    })
+    return NextResponse.json({ success: true, data: stats })
   } catch (error) {
     console.error('Error fetching booking statistics:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
