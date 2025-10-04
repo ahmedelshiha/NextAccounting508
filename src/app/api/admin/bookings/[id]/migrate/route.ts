@@ -18,8 +18,6 @@ export const POST = withTenantContext(async (_request: NextRequest, context: { p
     // Create a ServiceRequest from booking data
     const title = `Appointment: ${booking.id}`
     const payload: any = {
-      clientId: (booking as any).clientId || undefined,
-      serviceId: (booking as any).serviceId || undefined,
       title,
       description: (booking as any).notes || undefined,
       priority: 'MEDIUM',
@@ -29,7 +27,12 @@ export const POST = withTenantContext(async (_request: NextRequest, context: { p
       requirements: { migratedFromBookingId: booking.id },
     }
 
-    const sr = await prisma.serviceRequest.create({ data: payload })
+    const sr = await prisma.serviceRequest.create({ data: {
+      client: { connect: { id: (booking as any).clientId } },
+      service: { connect: { id: (booking as any).serviceId } },
+      ...payload,
+      tenant: (ctx.tenantId ? { connect: { id: ctx.tenantId } } : undefined),
+    } })
 
     const updated = await prisma.booking.update({ where: { id }, data: { serviceRequest: { connect: { id: sr.id } } } })
 
