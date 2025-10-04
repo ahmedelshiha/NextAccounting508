@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server'
+import { queryTenantRaw } from '@/lib/db-raw'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getRealtimeMetrics } from '@/lib/realtime-enhanced'
 import { withTenantContext } from '@/lib/api-wrapper'
@@ -19,7 +20,7 @@ export const GET = withTenantContext(
       let db: { status: 'healthy' | 'degraded' | 'unavailable'; message?: string } = { status: 'unavailable' }
       try {
         if (process.env.NETLIFY_DATABASE_URL) {
-          await prisma.$queryRaw`SELECT 1`
+          await queryTenantRaw`SELECT 1`
           db = { status: 'healthy' }
         } else {
           db = { status: 'degraded', message: 'Database URL not set' }

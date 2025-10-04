@@ -774,3 +774,20 @@ Recent refactors:
 - [ ] Execute `pnpm tsx scripts/backfill-booking-tenantId.ts` then `pnpm tsx scripts/backfill-tenant-scoped-tables.ts`; remediate unresolved rows
 - [ ] Generate Prisma migration (enforce NOT NULL + FKs) and deploy to staging; verify with scripts/check_prisma_tenant_columns.js
 - [ ] Update RLS setup (scripts/setup-rls.ts) to drop NULL allowances post-enforcement
+
+---
+
+## ✅ Completed
+- [x] Added tenant-aware raw query helpers and refactored services fallback to use them
+  - **Why**: ensure raw SQL execution runs with tenant session context and avoids cross-tenant data exposure when Prisma models are unavailable
+  - **Impact**: raw helpers wrap queries in withTenantRLS, guard against unsafe parameter usage, and services fallback now scopes results by tenantId when Prisma findMany fails
+
+## ⚠️ Issues / Risks
+- Remaining direct prisma.$queryRaw usages (system health, AV callback) run outside tenant context; evaluate whether they should adopt the helper or remain system-scoped
+
+## 🚧 In Progress
+- [ ] Review other raw query sites (uploads AV callback, cron health checks) to confirm intentional system scope or migrate to tenant-aware helpers
+
+## 🔧 Next Steps
+- [ ] Add lint rule or codemod enforcement so future raw queries route through db-raw helpers by default
+- [ ] Document helper usage patterns in developer guide to reinforce tenant safety practices

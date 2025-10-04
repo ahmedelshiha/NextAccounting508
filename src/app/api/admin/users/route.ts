@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
+import { queryTenantRaw } from '@/lib/db-raw'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { createHash } from 'crypto'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
@@ -26,7 +27,7 @@ export const GET = withTenantContext(async (request: Request) => {
 
     let useFallback = false
     try {
-      await prisma.$queryRaw`SELECT 1`
+      await queryTenantRaw`SELECT 1`
     } catch (e: any) {
       const code = String(e?.code || '')
       if (code.startsWith('P10')) useFallback = true

@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { queryTenantRaw, queryTenantRawAs } from '@/lib/db-raw';
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
@@ -169,9 +170,16 @@ export class ServicesService {
       return result;
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
-      const all = await prisma.$queryRawUnsafe<any[]>(
-        'SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt" FROM "services"'
-      );
+      const all = tenantId
+        ? await queryTenantRawAs<any>(tenantId)`
+            SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
+            FROM "services"
+            WHERE "tenantId" = ${tenantId}
+          `
+        : await queryTenantRaw<any>`
+            SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
+            FROM "services"
+          `;
       let items = all.map(this.toType);
       // Apply basic filters client-side
       const basicFilters: any = { search, category, featured, status };
