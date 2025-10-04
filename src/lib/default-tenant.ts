@@ -1,5 +1,4 @@
 import { randomUUID } from 'crypto'
-import { TenantStatus } from '@prisma/client'
 import prisma from '@/lib/prisma'
 
 let cachedDefaultTenantId: string | null = null
