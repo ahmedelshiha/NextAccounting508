@@ -157,8 +157,8 @@ const steps: BackfillStep[] = [
 const remainingChecks: RemainingCheck[] = [
   { table: 'ServiceRequest', column: 'tenantId' },
   { table: 'WorkOrder', column: 'tenantId' },
-  { table: 'Invoice', column: 'tenantId' },
-  { table: 'Expense', column: 'tenantId' },
+  { table: 'invoices', column: 'tenantId' },
+  { table: 'expenses', column: 'tenantId' },
   { table: 'Attachment', column: 'tenantId' },
   { table: 'ScheduledReminder', column: 'tenantId' },
   { table: 'chat_messages', column: 'tenantId' },
