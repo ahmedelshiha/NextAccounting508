@@ -61,6 +61,21 @@ async function main() {
     console.error('Error while running inline backfill check:', String(e))
   }
 
+  // Ensure Tenant rows exist for any tenantId referenced in bookings
+  try {
+    const trows = await prisma.$queryRawUnsafe<{ tenantId: string | null }[]>(`SELECT DISTINCT "tenantId" FROM public.bookings WHERE "tenantId" IS NOT NULL`)
+    const tenantIds = Array.from(new Set(trows.map(r => r.tenantId).filter(Boolean))) as string[]
+    for (const tid of tenantIds) {
+      const existing = await prisma.$queryRawUnsafe<{ id: string }[]>(`SELECT id FROM "Tenant" WHERE id = $1`, tid)
+      if (!existing || existing.length === 0) {
+        console.log('Inserting missing Tenant row for id:', tid)
+        await prisma.$executeRawUnsafe(`INSERT INTO "Tenant" (id, slug, name) VALUES ($1, $2, $3)`, tid, tid, `Imported ${tid}`)
+      }
+    }
+  } catch (e) {
+    console.error('Failed to ensure tenant rows:', String(e))
+  }
+
   // Apply migration SQL file if present
   try {
     const path = 'prisma/migrations/20251004_add_booking_tenantid_not_null/migration.sql'
