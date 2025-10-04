@@ -57,6 +57,7 @@ model User {
   assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
   invoices Invoice[]
   expenses Expense[]
+  tenantMemberships TenantMembership[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -132,6 +133,7 @@ model Tenant {
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
+  tenantMemberships    TenantMembership[]
 
   @@index([status])
 }
