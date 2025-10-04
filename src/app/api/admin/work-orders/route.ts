@@ -125,7 +125,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   }
 
   try {
-    const data: Prisma.WorkOrderUncheckedCreateInput = {
+    const data = {
       title: parsed.data.title,
       description: parsed.data.description || null,
       status: (parsed.data.status ? (parsed.data.status.toUpperCase() as any as WorkOrderStatus) : undefined) as any,
@@ -142,12 +142,10 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       currency: parsed.data.currency || null,
       tags: parsed.data.tags || [],
       code: parsed.data.code || `WO-${Math.floor(Date.now() / 1000)}`,
-    }
+      tenant: { connect: { id: String(ctx.tenantId) } },
+    } as const
 
-    const tenantId = ctx.tenantId
-    if (isMultiTenancyEnabled() && tenantId) (data as any).tenantId = tenantId
-
-    const created = await prisma.workOrder.create({ data })
+    const created = await prisma.workOrder.create({ data: data as any })
     return NextResponse.json({ workOrder: created }, { status: 201 })
   } catch (e: any) {
     console.error('admin/work-orders POST error', e)
