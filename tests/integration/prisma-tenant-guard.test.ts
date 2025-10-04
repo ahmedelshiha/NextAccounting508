@@ -47,12 +47,22 @@ describe('Prisma tenant guard middleware', () => {
     expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked operation due to missing tenant context', expect.objectContaining({ model: 'User', action: 'create' }))
   })
 
-  it('blocks create without tenantId', () => {
+  it('auto injects tenantId on create when missing', () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     runWithContext(() => {
-      expect(() => enforceTenantGuard(params({ args: { data: { email: 'admin@example.com' } } }))).toThrowError(/tenantId/i)
+      const args = { data: { email: 'admin@example.com' } }
+      expect(() => enforceTenantGuard(params({ args }))).not.toThrow()
+      expect(args.data.tenantId).toBe('tenant-123')
     })
-    expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked create without tenantId', expect.objectContaining({ model: 'User', action: 'create' }))
+    expect(errorSpy).not.toHaveBeenCalled()
+  })
+
+  it('blocks create when tenantId mismatches context', () => {
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    runWithContext(() => {
+      expect(() => enforceTenantGuard(params({ args: { data: { email: 'admin@example.com', tenantId: 'tenant-999' } } }))).toThrowError(/tenantId mismatch/i)
+    })
+    expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked tenant mismatch on create', expect.objectContaining({ model: 'User', action: 'create', expectedTenantId: 'tenant-123' }))
   })
 
   it('allows create when tenantId matches context', () => {
