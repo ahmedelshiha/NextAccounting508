@@ -78,5 +78,5 @@ function setModelMethod(model: string, method: keyof ModelMock, impl: PrismaMode
   ;(mockPrisma as any)[model][method] = impl
 }
 
-export { mockPrisma, resetPrismaMock, setPrismaModelMethod }
+export { mockPrisma, resetPrismaMock, setModelMethod }
 export default mockPrisma
