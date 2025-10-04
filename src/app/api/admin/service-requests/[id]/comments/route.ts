@@ -1,6 +1,3 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { z } from 'zod'
@@ -9,28 +6,21 @@ import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
-import { NextRequest } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
-const CreateCommentSchema = z.object({
-  content: z.string().min(1),
-  attachments: z.any().optional(),
-})
+const CreateCommentSchema = z.object({ content: z.string().min(1), attachments: z.any().optional() })
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const GET = withTenantContext(async (req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
   }
 
-  const tenantId = getTenantFromRequest(req as any)
-  const sr = await prisma.serviceRequest.findUnique({ where: { id } })
+  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() } })
   if (!sr) return respond.notFound('Service request not found')
-  if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
-    return respond.notFound('Service request not found')
-  }
 
   const comments = await prisma.serviceRequestComment.findMany({
     where: { serviceRequestId: id },
@@ -39,13 +29,13 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   })
 
   return respond.ok(comments)
-}
+})
 
-export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const POST = withTenantContext(async (req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
     return respond.unauthorized()
   }
 
@@ -59,17 +49,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return respond.badRequest('Invalid payload', zodDetails(parsed.error))
   }
 
-  const tenantId = getTenantFromRequest(req as any)
-  const sr = await prisma.serviceRequest.findUnique({ where: { id } })
+  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() } })
   if (!sr) return respond.notFound('Service request not found')
-  if (isMultiTenancyEnabled() && tenantId && (sr as any).tenantId && (sr as any).tenantId !== tenantId) {
-    return respond.notFound('Service request not found')
-  }
 
   const created = await prisma.serviceRequestComment.create({
     data: {
       serviceRequestId: id,
-      authorId: (session.user as any).id ?? null,
+      authorId: ctx.userId ?? null,
       content: parsed.data.content,
       attachments: parsed.data.attachments ?? undefined,
     },
@@ -78,12 +64,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
 
   try { realtimeService.emitServiceRequestUpdate(id, { commentId: created.id, event: 'comment-created' }) } catch {}
   try {
-    const sr = await prisma.serviceRequest.findUnique({ where: { id: id }, select: { clientId: true } })
-    if (sr?.clientId) {
-      realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: id, commentId: created.id, event: 'comment-created' }, timestamp: new Date().toISOString() })
+    const srClient = await prisma.serviceRequest.findUnique({ where: { id }, select: { clientId: true } })
+    if (srClient?.clientId) {
+      const ts = new Date().toISOString()
+      realtimeService.broadcastToUser(String(srClient.clientId), { type: 'service-request-updated', data: { serviceRequestId: id, commentId: created.id, event: 'comment-created' }, timestamp: ts })
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:comment', actorId: (session.user as any).id ?? null, targetId: id, details: { commentId: created.id } }) } catch {}
+  try { await logAudit({ action: 'service-request:comment', actorId: ctx.userId ?? null, targetId: id, details: { commentId: created.id } }) } catch {}
   return respond.created(created)
-}
+})
