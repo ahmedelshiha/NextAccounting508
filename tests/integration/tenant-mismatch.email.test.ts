@@ -16,7 +16,8 @@ describe('Tenant mismatch — email test endpoints', () => {
     vi.doMock('next-auth/next', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN', tenantId: 't1', tenantRole: 'OWNER' } })) }))
 
     const mod: any = await import('@/app/api/email/test/route')
-    const req = new Request('https://test.local/api/email/test', { headers: { cookie: 'tenant_sig=invalid' } as any })
+    const req: any = new Request('https://test.local/api/email/test')
+    req.cookies = { get: (k: string) => (k === 'tenant_sig' ? { value: 'invalid' } : undefined) }
     const res: any = await mod.GET(req as any)
     expect(res.status).toBe(403)
   })
@@ -25,11 +26,12 @@ describe('Tenant mismatch — email test endpoints', () => {
     vi.doMock('next-auth/next', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN', tenantId: 't1', tenantRole: 'OWNER' } })) }))
 
     const mod: any = await import('@/app/api/email/test/route')
-    const req = new Request('https://test.local/api/email/test', {
+    const req: any = new Request('https://test.local/api/email/test', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', cookie: 'tenant_sig=invalid' } as any,
+      headers: { 'content-type': 'application/json' } as any,
       body: JSON.stringify({ type: 'basic', email: 'test@example.com' })
     })
+    req.cookies = { get: (k: string) => (k === 'tenant_sig' ? { value: 'invalid' } : undefined) }
     const res: any = await mod.POST(req as any)
     expect(res.status).toBe(403)
   })
