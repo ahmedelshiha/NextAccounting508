@@ -39,7 +39,7 @@ Risks
 - Minimal cookie sanity check exists in withTenantContext but not cryptographically verified.
 
 🔧 Next steps (actionable)
-P0 ��� Blockers / security
+P0 — Blockers / security
 - [x] Harden middleware:
   - [x] Strip incoming x-tenant-id and x-tenant-slug from requests; set server-verified headers only.
   - [x] Issue and verify HMAC-signed tenant cookie (tenant_sig) using NEXTAUTH_SECRET; reject mismatches.
@@ -237,7 +237,7 @@ Enforcement map (current)
 - Updated users/check-email route to resolve tenant and use `tenantId_email` for uniqueness checks.
 - Updated users/me PATCH to validate email uniqueness within the current user’s tenant.
 - Updated NextAuth credentials authorize to resolve tenant and query by `tenantId_email`.
-- Fixed booking availability to query OrganizationSettings with `tenantId: svc.tenantId \?\? undefined` and safely assign timezone.
+- Fixed booking availability to query OrganizationSettings with `tenantId: svc.tenantId ?? undefined` and safely assign timezone.
 ✅ Why it was done: Enhancement/refactor to align all user lookups with `@@unique([tenantId, email])`, prevent cross-tenant leakage, and satisfy Prisma types; availability fix removes nullable tenantId in filters to satisfy Prisma’s `StringFilter` type.
 ✅ Next steps:
 - Centralize tenant resolution and composite where builders in a shared util; refactor routes to use it.
@@ -269,45 +269,23 @@ Enforcement map (current)
 
 ---
 
-# Tenant System Audit TODO Update — Staged Plan
+# Tenant System Audit TODO Update — Stage 1 Completion
 
 ## ✅ Completed
-- [x] Agreed staged rollout plan for portal/public route migration and integration test design.
-  - **Why**: Reduce risk via small, verifiable batches.
-  - **Impact**: Clear checkpoints and faster feedback loops.
+- [x] Stage 1 (P1): Portal core endpoints → withTenantContext
+  - [x] src/app/api/portal/realtime/route.ts
+  - [x] src/app/api/portal/settings/booking-preferences/route.ts
+  - [x] src/app/api/portal/chat/route.ts
+  - **Why**: Eliminate header-based tenant trust and standardize tenant context across portal core APIs.
+  - **Impact**: Consistent auth/tenant enforcement, safer SSE and chat flows, user-scoped preferences without session re-resolution.
 
 ## ⚠️ Issues / Risks
-- Overlapping refactors across routes; sequence PRs by stage and gate with feature flags if necessary.
+- Chat userName relies on session for best-effort enrichment; falls back to userId. Consider exposing name in tenant context or fetching from DB if required.
 
 ## 🚧 In Progress
-- [ ] Stage 1 (P1): Portal core endpoints → withTenantContext
-  - [ ] src/app/api/portal/realtime/route.ts
-  - [ ] src/app/api/portal/settings/booking-preferences/route.ts
-  - [ ] src/app/api/portal/chat/route.ts
+- [ ] Stage 2 (P1): Portal service-requests foundation (routes listed previously)
 
 ## 🔧 Next Steps
-- [ ] Stage 2 (P1): Portal service-requests foundation
-  - [ ] src/app/api/portal/service-requests/route.ts
-  - [ ] src/app/api/portal/service-requests/availability/route.ts
-  - [ ] src/app/api/portal/service-requests/recurring/preview/route.ts
-  - [ ] src/app/api/portal/service-requests/export/route.ts
-- [ ] Stage 3 (P1): Portal service-requests item subroutes
-  - [ ] src/app/api/portal/service-requests/[id]/comments/route.ts
-  - [ ] src/app/api/portal/service-requests/[id]/confirm/route.ts
-  - [ ] src/app/api/portal/service-requests/[id]/reschedule/route.ts
-- [ ] Stage 4 (P1): Other server routes
-  - [ ] src/app/api/payments/checkout/route.ts
-  - [ ] src/app/api/auth/register/register/route.ts
-  - [ ] src/app/api/email/test/route.ts
-  - [ ] src/app/api/users/me/route.ts
-  - [ ] src/app/api/bookings/**
-- [ ] Tests (P1):
-  - [ ] 403 tenant mismatch: mismatched subdomain/header vs session returns 403 across refactored routes.
-  - [ ] Tenant-switch: JWT rotation updates active tenant; subsequent calls reflect new tenant and old token is rejected.
-  - [ ] Playwright: subdomain routing + portal flows remain tenant-isolated.
-- [ ] Middleware follow-ups (P0/P1):
-  - [ ] Confirm matcher includes /api/:path* and HMAC tenant_sig verification on every request path.
-  - [ ] Sample rate logs to control volume; keep requestId/userId/tenantId correlation.
-- [ ] CI & Linting (P1):
-  - [ ] Add CI job: pnpm db:generate && pnpm typecheck && pnpm test:integration.
-  - [ ] Lint rule/check to block new getServerSession in admin/portal routes; require withTenantContext.
+- [ ] Proceed with Stage 2: migrate service-requests portal routes to withTenantContext.
+- [ ] Add integration tests covering SSE connection/abort under tenant isolation and chat rate-limit per tenant.
+- [ ] Consider enriching tenant context with displayName/email to avoid extra session fetches in portal/chat.
