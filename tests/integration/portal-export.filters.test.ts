@@ -47,7 +47,7 @@ describe('Portal export filters', () => {
 
   it('filters by status and q; excludes other clients; returns CSV with one matching row', async () => {
     mockSession('client1')
-    mockPrisma()
+    mockPrismaWrapper()
 
     const { GET }: any = await import('@/app/api/portal/service-requests/export/route')
     const url = 'https://app.example.com/api/portal/service-requests/export?status=SUBMITTED&q=vat'
@@ -71,7 +71,7 @@ describe('Portal export filters', () => {
 
   it('type=appointments uses scheduledAt window and includes scheduledAt in CSV', async () => {
     mockSession('client1')
-    mockPrisma()
+    mockPrismaWrapper()
 
     const { GET }: any = await import('@/app/api/portal/service-requests/export/route')
     const url = 'https://app.example.com/api/portal/service-requests/export?type=appointments&dateFrom=2024-02-01&dateTo=2024-02-28'
