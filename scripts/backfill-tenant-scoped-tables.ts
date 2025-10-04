@@ -71,7 +71,7 @@ const steps: BackfillStep[] = [
         LEFT JOIN "users" u ON u."id" = e."userId"
         WHERE e."tenantId" IS NULL
       )
-      UPDATE "Expense" e
+      UPDATE "expenses" e
       SET "tenantId" = source.tenant_id
       FROM source
       WHERE e."id" = source."id" AND source.tenant_id IS NOT NULL;
