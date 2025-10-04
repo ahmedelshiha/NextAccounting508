@@ -710,6 +710,9 @@ Recent refactors:
 - [x] Reviewed existing tenant-related migrations and scripts to identify backfill coverage gaps
   - **Why**: ensure planned migrations account for current automation
   - **Impact**: validated absence of tenantId backfill scripts and limited CI checks, highlighting need for new tooling
+- [x] Added scripts/report-tenant-null-counts.ts to baseline tenantId NULL coverage
+  - **Why**: provide repeatable visibility into rows requiring backfill before enforcing NOT NULL constraints
+  - **Impact**: teams can run `pnpm tsx scripts/report-tenant-null-counts.ts` per environment to capture counts and track progress across migrations
 
 ## ⚠️ Issues / Risks
 - No automated tenantId backfill exists; enforcing NOT NULL prematurely would break existing rows until scripts land.
@@ -719,7 +722,7 @@ Recent refactors:
 - [ ] Author comprehensive Phase 2 migration execution plan (schema deltas, backfill steps, verification gates)
 
 ## 🔧 Next Steps
-- [ ] Draft SQL/Prisma queries to capture NULL tenantId counts for each Phase 2 table prior to migration.
+- [ ] Capture baseline metrics using `pnpm tsx scripts/report-tenant-null-counts.ts` and record results in migration log before schema changes.
 - [ ] Create Prisma migration adding tenantId column to Booking (nullable) with indexes and foreign key scaffolding.
 - [ ] Implement transactional backfill utility covering ServiceRequest, Booking, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
 - [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
