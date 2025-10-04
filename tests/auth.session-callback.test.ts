@@ -1,5 +1,32 @@
-import { describe, expect, it } from 'vitest'
-import { authOptions } from '@/lib/auth'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
+
+const prismaStub = new Proxy(
+  {},
+  {
+    get() {
+      throw new Error('prisma client stub accessed in tests')
+    },
+  }
+)
+
+vi.mock('@/lib/prisma', () => ({
+  __esModule: true,
+  default: prismaStub,
+}))
+
+let authOptions: Awaited<ReturnType<typeof importAuthOptions>>
+
+type AuthModule = typeof import('@/lib/auth')
+
+async function importAuthOptions(): Promise<AuthModule['authOptions']> {
+  const mod = await import('@/lib/auth')
+  return mod.authOptions
+}
+
+beforeAll(async () => {
+  process.env.NETLIFY_DATABASE_URL = ''
+  authOptions = await importAuthOptions()
+})
 
 describe('auth session callback', () => {
   it('populates session with tenant metadata and versions', async () => {
