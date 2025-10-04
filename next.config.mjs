@@ -102,4 +102,8 @@ const nextConfig = {
   },
 }
 
-export default withSentryConfig(nextConfig, { silent: true, tunnelRoute: '/monitoring' })
+const sentryPluginOptions = { silent: true, tunnelRoute: '/monitoring' }
+
+const configWithSentry = process.env.NODE_ENV === 'production' ? withSentryConfig(nextConfig, sentryPluginOptions) : nextConfig
+
+export default configWithSentry

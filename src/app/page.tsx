@@ -1,5 +1,5 @@
-import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
-import { HeroSection as HomeHeroSection } from '@/components/home/hero-section'
+import { HeroSection } from '@/components/home/hero-section'
+import { HeroSection } from '@/components/home/hero-section'
 import { CompactHero } from '@/components/home/compact-hero'
 import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
@@ -21,7 +21,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <main>
-      {useCompact ? <CompactHero /> : <HomeHeroSection />}
+      {useCompact ? <CompactHero /> : <HeroSection />}
       <ServicesSection />
       <TrustSection />
       <TestimonialsSection />
