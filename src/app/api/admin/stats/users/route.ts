@@ -1,27 +1,22 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 
-// GET /api/admin/stats/users - Get user statistics
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
+    if (!ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
-    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const tenantId = ctx.tenantId
     const rangeParam = (searchParams.get('range') || '').toLowerCase()
     const days = rangeParam === '7d' ? 7 : rangeParam === '30d' ? 30 : rangeParam === '90d' ? 90 : rangeParam === '1y' ? 365 : 0
 
@@ -30,10 +25,8 @@ export async function GET(request: Request) {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0)
 
-    // Get total users count
     const total = await prisma.user.count({ where: tenantFilter(tenantId) })
 
-    // Get users by role
     const [clients, teamMembers, teamLeads, admins] = await Promise.all([
       prisma.user.count({ where: { ...tenantFilter(tenantId), role: 'CLIENT' } }),
       prisma.user.count({ where: { ...tenantFilter(tenantId), role: 'TEAM_MEMBER' } }),
@@ -42,61 +35,27 @@ export async function GET(request: Request) {
     ])
     const staff = teamMembers + teamLeads
 
-    // Get new users this month
-    const newThisMonth = await prisma.user.count({
-      where: {
-        ...tenantFilter(tenantId),
-        createdAt: {
-          gte: startOfMonth
-        }
-      }
-    })
+    const newThisMonth = await prisma.user.count({ where: { ...tenantFilter(tenantId), createdAt: { gte: startOfMonth } } })
 
-    // Get new users last month for comparison
     const newLastMonth = await prisma.user.count({
-      where: {
-        ...tenantFilter(tenantId),
-        createdAt: {
-          gte: startOfLastMonth,
-          lte: endOfLastMonth
-        }
-      }
+      where: { ...tenantFilter(tenantId), createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } }
     })
 
-    // Calculate growth percentage
     const growth = newLastMonth > 0 ? ((newThisMonth - newLastMonth) / newLastMonth) * 100 : 0
 
-    // Get active users (users who have made bookings or logged in recently)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    
-    // Users with recent bookings
+
     const usersWithRecentBookings = await prisma.user.count({
-      where: {
-        ...tenantFilter(tenantId),
-        bookings: {
-          some: {
-            createdAt: {
-              gte: thirtyDaysAgo
-            }
-          }
-        }
-      }
+      where: { ...tenantFilter(tenantId), bookings: { some: { createdAt: { gte: thirtyDaysAgo } } } }
     })
 
-    // Get user registration trends (last 6 months)
-    const registrationTrends = []
+    const registrationTrends: Array<{ month: string; count: number }> = []
     for (let i = 5; i >= 0; i--) {
       const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
-      
+
       const count = await prisma.user.count({
-        where: {
-          ...tenantFilter(tenantId),
-          createdAt: {
-            gte: monthStart,
-            lte: monthEnd
-          }
-        }
+        where: { ...tenantFilter(tenantId), createdAt: { gte: monthStart, lte: monthEnd } }
       })
 
       registrationTrends.push({
@@ -105,24 +64,10 @@ export async function GET(request: Request) {
       })
     }
 
-    // Get users with most bookings
     const topUsers = (await prisma.user.findMany({
-      where: {
-        ...tenantFilter(tenantId),
-        role: 'CLIENT'
-      },
-      include: {
-        _count: {
-          select: {
-            bookings: true
-          }
-        }
-      },
-      orderBy: {
-        bookings: {
-          _count: 'desc'
-        }
-      },
+      where: { ...tenantFilter(tenantId), role: 'CLIENT' },
+      include: { _count: { select: { bookings: true } } },
+      orderBy: { bookings: { _count: 'desc' } },
       take: 5
     })) as Array<import('@prisma/client').User & { _count: { bookings: number } }>
 
@@ -157,7 +102,6 @@ export async function GET(request: Request) {
     })
   } catch (error) {
     console.error('Error fetching user statistics:', error)
-    // Graceful fallback to avoid admin UI failure when DB/schema not available
     return NextResponse.json({
       total: 0,
       clients: 0,
@@ -172,4 +116,4 @@ export async function GET(request: Request) {
       range: {}
     })
   }
-}
+})
