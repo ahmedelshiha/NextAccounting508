@@ -291,9 +291,9 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/stats/counts/route.ts
 - [x] src/app/api/admin/stats/bookings/route.ts
 - [x] src/app/api/admin/stats/users/route.ts
-- [ ] src/app/api/admin/integration-hub/test/route.ts
-- [ ] src/app/api/admin/realtime/route.ts
-- [ ] src/app/api/admin/system/health/route.ts
+- [x] src/app/api/admin/integration-hub/test/route.ts
+- [x] src/app/api/admin/realtime/route.ts
+- [x] src/app/api/admin/system/health/route.ts
 - [x] src/app/api/admin/services/stats/route.ts
 - [x] src/app/api/admin/services/export/route.ts
 - [x] src/app/api/admin/services/bulk/route.ts
@@ -301,13 +301,13 @@ Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/services/[id]/clone/route.ts
 - [x] src/app/api/admin/services/[id]/settings/route.ts
 - [x] src/app/api/admin/services/slug-check/[slug]/route.ts
-- [ ] src/app/api/admin/uploads/quarantine/route.ts
-- [ ] src/app/api/admin/service-requests/recurring/preview/route.ts
-- [ ] src/app/api/admin/service-requests/analytics/route.ts
-- [ ] src/app/api/admin/service-requests/export/route.ts
-- [ ] src/app/api/admin/service-requests/bulk/route.ts
-- [ ] src/app/api/admin/service-requests/availability/route.ts
-- [ ] src/app/api/admin/service-requests/[id]/route.ts (and subroutes)
+- [x] src/app/api/admin/uploads/quarantine/route.ts
+- [x] src/app/api/admin/service-requests/recurring/preview/route.ts
+- [x] src/app/api/admin/service-requests/analytics/route.ts
+- [x] src/app/api/admin/service-requests/export/route.ts
+- [x] src/app/api/admin/service-requests/bulk/route.ts
+- [x] src/app/api/admin/service-requests/availability/route.ts
+- [x] src/app/api/admin/service-requests/[id]/route.ts (and subroutes)
 
 Portal & public routes:
 - [ ] src/app/api/portal/realtime/route.ts
