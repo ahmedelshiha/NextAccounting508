@@ -1,7 +1,5 @@
 import prisma from '@/lib/prisma'
 
-import prisma from '@/lib/prisma'
-
 export type IdempotencyRecord = {
   id: number
   key: string
