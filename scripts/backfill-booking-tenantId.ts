@@ -5,12 +5,12 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Starting Booking.tenantId backfill...')
 
-  const batches = await prisma.$queryRaw<{ booking_id: string }[]>`
-    SELECT b."id" AS booking_id
-    FROM "Booking" b
-    WHERE b."tenantId" IS NULL
-    ORDER BY b."createdAt" ASC
-  `
+  const batchesRaw = await prisma.booking.findMany({
+    where: { tenantId: null },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true }
+  })
+  const batches = batchesRaw.map(b => ({ booking_id: b.id }))
 
   if (!batches.length) {
     console.log('No bookings require backfill. Exiting.')
