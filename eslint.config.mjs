@@ -69,7 +69,7 @@ const config = [
       "@typescript-eslint/triple-slash-reference": "off",
     },
   },
-,
+
   // Enforce withTenantContext in API routes
   {
     files: ["src/app/api/**/route.ts", "src/app/api/**/*.ts"],
