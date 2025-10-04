@@ -68,21 +68,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true, message: 'Already processed' })
     }
 
+    // Determine a tenant for idempotency records (fallback to primary tenant if available)
+    const defaultTenant = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+
     // Create or update idempotency key to mark as processing
-    await prisma.idempotencyKey.upsert({
-      where: { key: `stripe_webhook_${eventId}` },
-      create: {
-        key: `stripe_webhook_${eventId}`,
-        entityType: 'stripe_webhook',
-        entityId: eventId,
-        status: 'PROCESSING',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-      },
-      update: {
-        status: 'PROCESSING',
-        updatedAt: new Date()
-      }
-    })
+    if (defaultTenant?.id) {
+      await prisma.idempotencyKey.upsert({
+        where: { key: `stripe_webhook_${eventId}` },
+        create: {
+          key: `stripe_webhook_${eventId}`,
+          entityType: 'stripe_webhook',
+          entityId: eventId,
+          status: 'PROCESSING',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          tenant: { connect: { id: defaultTenant.id } },
+        },
+        update: {
+          status: 'PROCESSING',
+          updatedAt: new Date()
+        }
+      })
+    }
 
     // Process the webhook event
     await processStripeEvent(event)
