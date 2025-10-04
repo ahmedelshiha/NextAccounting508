@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 // POST /api/contact - Submit contact form
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
     const body = await request.json()
     
@@ -108,11 +110,16 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+}, { requireAuth: false })
 
 // GET /api/contact - Get contact submissions (admin only)
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
+    const ctx = requireTenantContext()
+    if ((ctx.role ?? '') !== 'ADMIN' && !ctx.isSuperAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const responded = searchParams.get('responded')
     const limit = searchParams.get('limit')
@@ -141,4 +148,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

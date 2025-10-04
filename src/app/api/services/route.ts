@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { tenantContext } from '@/lib/tenant-context'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-// GET /api/services - Get all active services
-export async function GET(request: NextRequest) {
+// GET /api/services - Get all active services (public, tenant-aware)
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     // Early fallback to avoid noisy errors when DB is not configured in dev
     if (!process.env.NETLIFY_DATABASE_URL) {
@@ -18,16 +21,24 @@ export async function GET(request: NextRequest) {
       ]
       return NextResponse.json(fallback)
     }
+
     const { searchParams } = new URL(request.url)
     const featured = searchParams.get('featured')
     const category = searchParams.get('category')
-    const tenantId = getTenantFromRequest(request as any)
+
+    // Use tenant context when available; otherwise derive hint from request
+    const ctxTenant = tenantContext.getContextOrNull()?.tenantId ?? null
+    const tenantId = ctxTenant || getTenantFromRequest(request as any)
 
     // Guard the import and DB call to avoid long blocking if Prisma/DB is cold or unreachable
+    const timeoutMs = Number(process.env.SERVICES_QUERY_TIMEOUT_MS ?? 2500)
     let prisma: any = null
     try {
       const importPromise = import('@/lib/prisma')
-      const imported = await Promise.race([importPromise, new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma import timeout')), Math.max(250, timeoutMs)))])
+      const imported = await Promise.race([
+        importPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Prisma import timeout')), Math.max(250, timeoutMs)))
+      ])
       prisma = (imported as any).default
     } catch (e) {
       console.error('Prisma import failed or timed out, falling back to static services list:', e)
@@ -51,7 +62,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Add a timeout guard to avoid hanging requests when DB is cold or unreachable
-    const timeoutMs = Number(process.env.SERVICES_QUERY_TIMEOUT_MS ?? 2500)
     const findPromise = prisma.service.findMany({
       where,
       orderBy: [
@@ -82,77 +92,30 @@ export async function GET(request: NextRequest) {
     const fallback = [
       { id: '1', name: 'Bookkeeping', slug: 'bookkeeping', shortDesc: 'Monthly bookkeeping and reconciliations', price: 299, featured: true },
       { id: '2', name: 'Tax Preparation', slug: 'tax-preparation', shortDesc: 'Personal and business tax filings', price: 450, featured: true },
-      { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Payroll processing and compliance', price: 199, featured: true },
+      { id: '3', name: 'Payroll Management', slug: 'payroll', shortDesc: 'Strategic financial guidance', price: 199, featured: true },
       { id: '4', name: 'CFO Advisory Services', slug: 'cfo-advisory', shortDesc: 'Strategic financial guidance', price: 1200, featured: true },
     ]
     return NextResponse.json(fallback)
   }
-}
+}, { requireAuth: false })
 
-// POST /api/services - Create a new service (admin only)
-export async function POST(request: NextRequest) {
-  try {
-    const { default: prisma } = await import('@/lib/prisma')
-
-    const body = await request.json()
-
-    const {
-      name,
-      slug,
-      description,
-      shortDesc,
-      features,
-      price,
-      duration,
-      category,
-      featured = false,
-      image
-    } = body
-
-    // Basic validation
-    if (!name || !slug || !description) {
-      return NextResponse.json(
-        { error: 'Name, slug, and description are required' },
-        { status: 400 }
-      )
-    }
-
-    // Check if slug already exists (tenant-scoped)
-    const tenantId = getTenantFromRequest(request as any)
-    const existingService = await prisma.service.findFirst({
-      where: { slug, ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}) }
-    })
-
-    if (existingService) {
-      return NextResponse.json(
-        { error: 'Service with this slug already exists' },
-        { status: 400 }
-      )
-    }
-
-    const service = await prisma.service.create({
-      data: {
-        name,
-        slug,
-        description,
-        shortDesc,
-        features: features || [],
-        price: price ? parseFloat(price) : null,
-        duration: duration ? parseInt(duration) : null,
-        category,
-        featured,
-        image,
-        active: true,
-        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
-      }
-    })
-
-    return NextResponse.json(service, { status: 201 })
-  } catch (error) {
-    console.error('Error creating service:', error)
-    return NextResponse.json(
-      { error: 'Failed to create service' },
-      { status: 500 }
-    )
+// POST /api/services - Create a new service (admin only); delegate to admin/services
+export const POST = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? ''
+  if (!['ADMIN', 'OWNER', 'TEAM_LEAD'].includes(role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-}
+
+  try {
+    // Delegate to the canonical admin endpoint to centralize validation and audit
+    const mod = await import('@/app/api/admin/services/route')
+    const res: Response = await mod.POST(request as any, {} as any)
+    // Pass-through response (status/body)
+    const body = await res.json().catch(() => null)
+    return NextResponse.json(body, { status: res.status })
+  } catch (error) {
+    console.error('Error creating service via delegation:', error)
+    return NextResponse.json({ error: 'Failed to create service' }, { status: 500 })
+  }
+})

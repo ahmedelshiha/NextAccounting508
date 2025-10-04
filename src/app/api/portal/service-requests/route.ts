@@ -234,7 +234,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     if (String(e?.code || '').startsWith('P20')) {
       try {
         const mod = await import('@/app/api/services/route')
-        const resp: any = await mod.GET(new Request('https://internal/api/services') as any)
+        const resp: any = await mod.GET(new Request('https://internal/api/services') as any, {} as any)
         const json = await resp.json().catch(() => null)
         const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : []
         svc = list.find((s: any) => s.id === (data as any).serviceId) || null
