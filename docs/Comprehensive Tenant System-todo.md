@@ -9,7 +9,7 @@
 ---
 
 ## CRITICAL METRICS
-- Tenant Isolation Incidents: 0/0 (—) ���
+- Tenant Isolation Incidents: 0/0 (—) ✅
 - Routes migrated to withTenantContext: 150/150 (100%) ✅
 - Prisma tenant-guard coverage (critical models): 100%/100% (100%) ✅
 - Tests covering tenant-mismatch cases: 10/10 (100%) ✅
@@ -598,9 +598,13 @@ Recent refactors:
 - [x] Configured Sentry to tag events with tenant context on server and edge
   - **Why**: observability enhancement
   - **Impact**: All server/edge Sentry events include tenantId, tenantSlug, requestId, role, tenantRole, and user identity fields for better debugging
+- [x] Verified Prisma tenant guard auto-injection coverage and updated Phase 8 status
+  - **Why**: ensure database access is consistently tenant-scoped by default
+  - **Impact**: Writes auto-inject tenantId when missing; reads/mutations auto-scope to current tenant unless superadmin. Missing-tenantId models require API/service enforcement.
 
 ## ⚠️ Issues / Risks
 - Edge/runtime environments without AsyncLocalStorage may rely on polyfill; tagging is best-effort there
+- Raw queries bypass Prisma middleware; limited use found (health checks, AV callback). AV callback is system-scoped; add lint rule and safe helper for any future raw queries.
 
 ## 🚧 In Progress
 - [ ] Create Sentry dashboards for cross-tenant attempts and RLS hits
@@ -608,3 +612,5 @@ Recent refactors:
 ## 🔧 Next Steps
 - [ ] Add a sanity integration test that triggers a server error and asserts tenant tags present via mock transport
 - [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
+- [ ] Introduce eslint rule to flag prisma.$queryRaw/$executeRaw in src/app/api/** except allowlist (db-check, system/health, uploads/av-callback)
+- [ ] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
