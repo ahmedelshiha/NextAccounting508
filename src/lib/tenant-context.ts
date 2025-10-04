@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Use AsyncLocalStorage only on Node.js server. Avoid static import of 'async_hooks' which breaks Turbopack/browser builds.
 let AsyncLocalStorageClass: any = undefined
 if (typeof window === 'undefined') {
