@@ -524,3 +524,24 @@ Version: 5.0  Last Updated: 2025-10-04
 
 # Notes
 - Confirm whether to rename docs/tenant-system-audit.md to the requested docs/Comprehensive Tenant System-audit.md; currently keeping the existing path as canonical to avoid duplication.
+
+---
+
+## ✅ Completed
+- [x] Refactored posts APIs to withTenantContext (GET/POST and [slug] GET/PUT/DELETE) with ALS-based role checks
+- [x] Refactored admin financial-settings (GET/PUT, export/import) to withTenantContext and ALS tenant resolution
+- [x] Refactored admin system-settings (GET/PUT) to withTenantContext
+- [x] Refactored admin org-settings (GET/PUT, export/import) to withTenantContext and explicit tenant scoping
+- [x] Refactored admin team-management (availability, skills, assignments, workload) to withTenantContext
+
+## ⚠️ Issues / Risks
+- Some admin routes still rely on header hints (communication-settings, invoices, bookings)
+- Need to add tenant-mismatch tests for refactored settings routes (export/import endpoints)
+
+## 🚧 In Progress
+- [ ] Batch 3: Refactor admin communication-settings and invoices to withTenantContext
+
+## 🔧 Next Steps
+- [ ] Refactor admin bookings (list/detail/stats) to withTenantContext
+- [ ] Add integration tests covering invalid tenant_sig on settings export/import
+- [ ] Ensure ESLint rule flags any remaining getServerSession in API routes
