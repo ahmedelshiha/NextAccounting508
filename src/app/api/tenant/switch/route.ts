@@ -1,63 +1,88 @@
-import { NextResponse } from 'next/server'
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { encode } from 'next-auth/jwt'
+
+import { withTenantContext } from '@/lib/api-wrapper'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { encode } from 'next-auth/jwt'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const COOKIE_NAME = '__Secure-next-auth.session-token'
+const SESSION_COOKIE_NAME = authOptions.cookies?.sessionToken?.name ?? '__Secure-next-auth.session-token'
 
-export async function POST(req: Request) {
+function createSessionCookie(value: string): string {
+  const attributes = [`${SESSION_COOKIE_NAME}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax']
+  const shouldSecure = process.env.NODE_ENV === 'production' || SESSION_COOKIE_NAME.startsWith('__Secure-')
+  if (shouldSecure) attributes.push('Secure')
+  return attributes.join('; ')
+}
+
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const body = await req.json().catch(() => ({}))
-    const tenantId = body?.tenantId as string | undefined
-    if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 })
-
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const userId = String(session.user.id)
-
-    // Verify membership
-    const membership = await prisma.tenantMembership.findFirst({ where: { userId, tenantId }, include: { tenant: true } })
-    if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
-    // Build token payload based on current session/user and include tenant metadata
-    const dbUser = await prisma.user.findUnique({ where: { id: userId } })
-
-    const tokenPayload: any = {
-      name: session.user.name ?? dbUser?.name ?? null,
-      email: session.user.email ?? dbUser?.email ?? null,
-      picture: session.user.image ?? dbUser?.image ?? null,
-      sub: userId,
-      role: session.user.role ?? dbUser?.role ?? null,
-      sessionVersion: dbUser?.sessionVersion ?? 0,
-      tenantId: membership.tenantId,
-      tenantSlug: membership.tenant?.slug ?? null,
-      tenantRole: membership.role,
-      iat: Math.floor(Date.now() / 1000)
+    const body = await request.json().catch(() => ({}))
+    const tenantId = typeof body?.tenantId === 'string' ? body.tenantId.trim() : ''
+    if (!tenantId) {
+      return NextResponse.json({ error: 'tenantId required' }, { status: 400 })
     }
 
-    // Include available tenants from DB
-    const memberships = await prisma.tenantMembership.findMany({ where: { userId }, include: { tenant: true } })
-    tokenPayload.availableTenants = memberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
+    const context = requireTenantContext()
+    const userId = context.userId ? String(context.userId) : null
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Encode token
+    const membership = await prisma.tenantMembership.findFirst({
+      where: { userId, tenantId },
+      include: { tenant: true },
+    })
+    if (!membership) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const dbUser = await prisma.user.findUnique({ where: { id: userId } })
+    if (!dbUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const memberships = await prisma.tenantMembership.findMany({
+      where: { userId },
+      include: { tenant: true },
+    })
+
     if (!process.env.NEXTAUTH_SECRET) {
       return NextResponse.json({ error: 'NEXTAUTH_SECRET not configured' }, { status: 500 })
     }
-    const encoded = await encode({ token: tokenPayload, secret: process.env.NEXTAUTH_SECRET })
-    if (!encoded) return NextResponse.json({ error: 'Failed to encode token' }, { status: 500 })
 
-    const cookie = `${COOKIE_NAME}=${encoded}; Path=/; HttpOnly; Secure; SameSite=Lax`
-    const res = NextResponse.json({ success: true })
-    res.headers.set('Set-Cookie', cookie)
-    return res
-  } catch (err) {
-    console.error('tenant switch error', err)
+    const tokenPayload: Record<string, any> = {
+      name: dbUser.name ?? null,
+      email: dbUser.email ?? null,
+      picture: dbUser.image ?? null,
+      sub: userId,
+      role: dbUser.role ?? context.role ?? null,
+      sessionVersion: dbUser.sessionVersion ?? 0,
+      tenantId: membership.tenantId,
+      tenantSlug: membership.tenant?.slug ?? null,
+      tenantRole: membership.role,
+      availableTenants: memberships.map((m) => ({
+        id: m.tenantId,
+        slug: m.tenant?.slug ?? null,
+        name: m.tenant?.name ?? null,
+        role: m.role,
+      })),
+      iat: Math.floor(Date.now() / 1000),
+    }
+
+    const encoded = await encode({ token: tokenPayload, secret: process.env.NEXTAUTH_SECRET })
+    if (!encoded) {
+      return NextResponse.json({ error: 'Failed to encode token' }, { status: 500 })
+    }
+
+    const response = NextResponse.json({ success: true })
+    response.headers.set('Set-Cookie', createSessionCookie(encoded))
+    return response
+  } catch (error) {
+    console.error('tenant switch error', error)
     return NextResponse.json({ error: 'internal' }, { status: 500 })
   }
-}
+})
