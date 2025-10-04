@@ -189,8 +189,22 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Time slot is already booked' }, { status: 409 })
     }
 
+    // Prefer nested connect for relations to satisfy typed create inputs. Fall back to unchecked fields when not available.
+    const createPayload: any = { ...bookingData }
+    if (bookingData.clientId) {
+      createPayload.client = { connect: { id: bookingData.clientId } }
+      delete createPayload.clientId
+    }
+    if ((bookingData as any).serviceId) {
+      createPayload.service = { connect: { id: (bookingData as any).serviceId } }
+      delete createPayload.serviceId
+    }
+    if (ctx.tenantId) {
+      createPayload.tenant = { connect: { id: String(ctx.tenantId) } }
+    }
+
     const booking = await prisma.booking.create({
-      data: bookingData as Prisma.BookingUncheckedCreateInput,
+      data: createPayload,
       include: {
         client: {
           select: { id: true, name: true, email: true, _count: { select: { bookings: true } } },
