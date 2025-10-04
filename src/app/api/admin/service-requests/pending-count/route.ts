@@ -1,51 +1,31 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
+    const ctx = requireTenantContext()
+    const role = ctx.role as string | undefined
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    if (!ctx.userId || !['ADMIN', 'TEAM_LEAD'].includes(role || '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Check if user has admin permissions
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id as string },
-      select: { role: true }
-    })
-
-    if (!user || !['ADMIN', 'TEAM_LEAD'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
+    const where = {
+      ...getTenantFilter(),
+      OR: [
+        { status: 'SUBMITTED' },
+        { status: 'APPROVED' }
+      ] as any,
     }
 
-    // Count pending service requests (using valid enum values)
-    const count = await prisma.serviceRequest.count({
-      where: {
-        OR: [
-          { status: 'SUBMITTED' },
-          { status: 'APPROVED' }
-        ]
-      }
-    })
+    const count = await prisma.serviceRequest.count({ where })
 
-    return NextResponse.json({
-      success: true,
-      count
-    })
+    return NextResponse.json({ success: true, count })
   } catch (error) {
     console.error('Error fetching pending service requests count:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
