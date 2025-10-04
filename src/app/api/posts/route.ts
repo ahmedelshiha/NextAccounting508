@@ -127,7 +127,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       seoDescription,
       tags,
       readTime: readTime ? parseInt(readTime) : null,
-      authorId: ctx.userId,
+      authorId: String(ctx.userId ?? ''),
       publishedAt: published || finalStatus === 'PUBLISHED' ? new Date() : null,
       status: finalStatus,
       archived,
