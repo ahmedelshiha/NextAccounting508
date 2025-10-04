@@ -73,7 +73,7 @@ function resetPrismaMock() {
   }
 }
 
-function setPrismaModelMethod(model: string, method: keyof ModelMock, impl: PrismaModelMethod) {
+function setModelMethod(model: string, method: keyof ModelMock, impl: PrismaModelMethod) {
   if (!(mockPrisma as any)[model]) (mockPrisma as any)[model] = createModelMock()
   ;(mockPrisma as any)[model][method] = impl
 }
