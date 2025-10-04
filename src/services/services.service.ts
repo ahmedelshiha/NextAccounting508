@@ -172,11 +172,11 @@ export class ServicesService {
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
       const all = tenantId
-        ? await queryTenantRawAs<any>(tenantId)`
+        ? await withTenantRLS(async (tx) => tx.$queryRaw<any>`
             SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
             FROM "services"
             WHERE "tenantId" = ${tenantId}
-          `
+          `, tenantId)
         : await queryTenantRaw<any>`
             SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
             FROM "services"
