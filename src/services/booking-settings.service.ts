@@ -21,10 +21,7 @@ import { Prisma } from '@prisma/client'
 // Return Prisma.DbNull sentinel used for nullable JSON fields.
 function getDbNull(): any {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const mod = require('@prisma/client')
-    const PrismaRuntime = mod && (mod.Prisma || mod.default?.Prisma || mod.default)
-    return (PrismaRuntime && (PrismaRuntime as any).DbNull) ?? (PrismaRuntime && (PrismaRuntime as any).NullTypes?.DbNull) ?? null
+    return (Prisma as any).DbNull ?? (Prisma as any).NullTypes?.DbNull ?? null
   } catch (e) {
     return null
   }
