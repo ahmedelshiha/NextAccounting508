@@ -239,9 +239,9 @@ export function registerTenantGuard(client: any): void {
   if (anyClient[flag as any]) return
   anyClient[flag as any] = true
 
-  const useMiddleware = (anyClient['$use'] as any)
-  if (typeof useMiddleware === 'function') {
-    useMiddleware(async (params: any, next: any) => {
+  const applyMiddleware = anyClient['$use'] as any
+  if (typeof applyMiddleware === 'function') {
+    applyMiddleware(async (params: any, next: any) => {
       enforceTenantGuard(params)
       return next(params)
     })
