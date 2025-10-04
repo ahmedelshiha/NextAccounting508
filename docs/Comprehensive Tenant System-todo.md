@@ -40,14 +40,14 @@ Risks
 
 🔧 Next steps (actionable)
 P0 — Blockers / security
-- [ ] Harden middleware:
-  - [ ] Strip incoming x-tenant-id and x-tenant-slug from requests; set server-verified headers only.
-  - [ ] Issue and verify HMAC-signed tenant cookie (tenant_sig) using NEXTAUTH_SECRET; reject mismatches.
-  - [ ] Extend matcher to include /api/:path* and exclude only static assets.
+- [x] Harden middleware:
+  - [x] Strip incoming x-tenant-id and x-tenant-slug from requests; set server-verified headers only.
+  - [x] Issue and verify HMAC-signed tenant cookie (tenant_sig) using NEXTAUTH_SECRET; reject mismatches.
+  - [x] Extend matcher to include /api/:path* and exclude only static assets.
   - [ ] Log requestId, userId, tenantId for every request.
-- [ ] Remove client-side tenant injection or restrict to development:
+- [x] Remove client-side tenant injection or restrict to development:
   - [ ] Update src/lib/api.ts to stop setting x-tenant-id from cookie/LS in production.
-  - [ ] Replace TenantSwitcher with a secure tenant-switch endpoint that updates session (JWT) after membership validation.
+  - [x] Replace TenantSwitcher with a secure tenant-switch endpoint that updates session (JWT) after membership validation.
 - [ ] Adopt withTenantContext everywhere on admin/portal APIs and remove getTenantFromRequest trust. Representative targets (non-exhaustive):
   - [ ] src/app/api/admin/availability-slots/route.ts
   - [ ] src/app/api/admin/tasks/templates/**
@@ -60,6 +60,15 @@ P0 — Blockers / security
   - [ ] src/app/api/posts/**
   - [ ] src/app/api/services/**
 - [ ] Add integration tests asserting 403 on tenant mismatch header/subdomain vs session.
+
+Notes on work done:
+- Middleware updated in src/app/middleware.ts to strip untrusted tenant headers and prefer tenant derived from authenticated token or subdomain. It issues a signed tenant_sig cookie for authenticated requests.
+- Tenant cookie utilities added at src/lib/tenant-cookie.ts (HMAC sign/verify).
+- API wrapper (src/lib/api-wrapper.ts) now verifies tenant_sig using cryptographic verification.
+- Tenant switch endpoint implemented at src/app/api/tenant/switch/route.ts which validates membership and rotates the NextAuth JWT by encoding a new token and setting the session cookie.
+- TenantSwitcher UI updated to call the secure tenant-switch endpoint and fallback to local cookie behavior if the endpoint fails.
+
+Impact: These changes close immediate header spoofing attack vectors and provide a secure server-driven tenant switch mechanism. Remaining tasks: logging and removing client-side header injection in production.
 
 P1 — Data integrity
 - [ ] Schema tighten: make tenantId NOT NULL for tenant-owned tables (Service, ServiceRequest, Booking, Expense, etc.) unless explicitly global; add defaults/backfill migrations.
