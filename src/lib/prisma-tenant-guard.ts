@@ -202,12 +202,23 @@ export function enforceTenantGuard(params: any): void {
 
   const action = params.action as GuardedAction
   const allowDifferentTenant = Boolean(context.isSuperAdmin)
+  const args = ensureArgsObject(params)
+
+  if (!allowDifferentTenant) {
+    if (WRITE_ACTIONS.has(action) && ensureTenantOnCreateData(args.data, config.field, context.tenantId)) {
+      logger.debug('Tenant guard auto-injected tenantId on create', { model, action, tenantId: context.tenantId })
+    }
+
+    if ((BULK_MUTATION_ACTIONS.has(action) || SINGLE_MUTATION_ACTIONS.has(action) || READ_ACTIONS.has(action)) && ensureTenantScopeOnWhere(args, config.field, context.tenantId)) {
+      logger.debug('Tenant guard auto-scoped operation to tenant', { model, action, tenantId: context.tenantId })
+    }
+  }
 
   if (WRITE_ACTIONS.has(action)) {
     assertTenantForCreate(
       model,
       action,
-      params.args?.data,
+      args?.data,
       config.field,
       context.tenantId,
       allowDifferentTenant,
@@ -216,21 +227,19 @@ export function enforceTenantGuard(params: any): void {
   }
 
   if (BULK_MUTATION_ACTIONS.has(action)) {
-    assertTenantForBulkWhere(model, action, params.args?.where, config.field, context.tenantId, allowDifferentTenant)
+    assertTenantForBulkWhere(model, action, args?.where, config.field, context.tenantId, allowDifferentTenant)
   }
 
   if (SINGLE_MUTATION_ACTIONS.has(action) && !allowDifferentTenant) {
-    const values = collectTenantValues(params.args?.where ?? {}, config.field)
-    if (!values.length) {
-      logger.warn('Tenant guard detected single-record mutation without tenant filter', { model, action, tenantId: context.tenantId })
-    } else if (values.some(value => value !== context.tenantId)) {
-      logger.error('Tenant guard blocked tenant mismatch on single mutation', { model, action, expectedTenantId: context.tenantId, providedTenantIds: values })
+    const values = collectTenantValues(args?.where ?? {}, config.field)
+    if (values.some(value => value !== context.tenantId)) {
+      logger.error('Tenant guard blocked tenant mismatch on mutation', { model, action, expectedTenantId: context.tenantId, providedTenantIds: values })
       throw new Error('Tenant guard: tenant mismatch on mutation')
     }
   }
 
   if (READ_ACTIONS.has(action)) {
-    logReadWithoutTenant(model, action, params.args?.where, config.field, context.tenantId)
+    logReadWithoutTenant(model, action, args?.where, config.field, context.tenantId)
   }
 }
 
