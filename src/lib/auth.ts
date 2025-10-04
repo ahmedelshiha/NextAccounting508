@@ -126,13 +126,45 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token) {
-        session.user.id = token.sub!
-        session.user.role = token.role as string
-        ;(session.user as any).tenantId = token.tenantId ?? null
-        ;(session.user as any).tenantSlug = token.tenantSlug ?? null
-        ;(session.user as any).tenantRole = token.tenantRole ?? null
-        ;(session.user as any).availableTenants = token.availableTenants ?? []
-        ;(session.user as any).tokenVersion = token.version ?? 0
+        const tenantId = (token as any).tenantId ?? null
+        const tenantSlug = (token as any).tenantSlug ?? null
+        const tenantRole = (token as any).tenantRole ?? null
+        const tenantList = Array.isArray((token as any).availableTenants)
+          ? ((token as any).availableTenants as Array<any>)
+              .map((tenant) => {
+                if (!tenant || tenant.id == null) return null
+                return {
+                  id: String(tenant.id),
+                  slug: tenant.slug ?? null,
+                  name: tenant.name ?? null,
+                  role: tenant.role ?? null,
+                }
+              })
+              .filter((tenant): tenant is { id: string; slug: string | null; name: string | null; role: string | null } => Boolean(tenant))
+          : []
+        const tokenVersion = typeof (token as any).version === 'number' ? (token as any).version : 0
+        const sessionVersion = typeof (token as any).sessionVersion === 'number' ? (token as any).sessionVersion : 0
+
+        if (token.sub) {
+          session.user.id = token.sub
+        }
+        if (token.role !== undefined) {
+          session.user.role = token.role as string
+        }
+
+        ;(session.user as any).tenantId = tenantId
+        ;(session.user as any).tenantSlug = tenantSlug
+        ;(session.user as any).tenantRole = tenantRole
+        ;(session.user as any).availableTenants = tenantList
+        ;(session.user as any).tokenVersion = tokenVersion
+        ;(session.user as any).sessionVersion = sessionVersion
+
+        ;(session as any).tenantId = tenantId
+        ;(session as any).tenantSlug = tenantSlug
+        ;(session as any).tenantRole = tenantRole
+        ;(session as any).availableTenants = tenantList
+        ;(session as any).tokenVersion = tokenVersion
+        ;(session as any).sessionVersion = sessionVersion
       }
       return session
     }
