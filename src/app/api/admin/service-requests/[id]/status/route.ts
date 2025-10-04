@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { z } from 'zod'
@@ -10,16 +8,16 @@ import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
-import { NextRequest } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const Schema = z.object({ status: z.enum(['DRAFT','SUBMITTED','IN_REVIEW','APPROVED','ASSIGNED','IN_PROGRESS','COMPLETED','CANCELLED']) })
 
-export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const PATCH = withTenantContext(async (req: Request, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
     return respond.unauthorized()
   }
 
@@ -27,27 +25,22 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   if (!rateLimit(`service-requests:status:${id}:${ip}`, 30, 60_000)) {
     return respond.tooMany()
   }
+
   const body = await req.json().catch(() => null)
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
 
-  const tenantId = getTenantFromRequest(req as any)
-  const canFind = typeof (prisma as any)?.serviceRequest?.findUnique === 'function'
-  const existing = canFind ? await prisma.serviceRequest.findUnique({ where: { id } }) : null
-  if (canFind && !existing) return respond.notFound('Service request not found')
-  if (canFind && isMultiTenancyEnabled() && tenantId && (existing as any)?.tenantId && (existing as any).tenantId !== tenantId) {
-    return respond.notFound('Service request not found')
-  }
+  const existing = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() } })
+  if (!existing) return respond.notFound('Service request not found')
 
   const updated = await prisma.serviceRequest.update({
-    where: { id: id },
+    where: { id },
     data: { status: parsed.data.status as any },
     include: { client: { select: { id: true, name: true, email: true } }, service: { select: { id: true, name: true } } }
   }) as any
 
   const safeUpdated: any = updated ?? { id, status: parsed.data.status, client: null, service: null }
 
-  // Realtime broadcast
   try { realtimeService.emitServiceRequestUpdate(safeUpdated.id, { status: safeUpdated.status }) } catch {}
   try { if (safeUpdated.client?.id) realtimeService.broadcastToUser(String(safeUpdated.client.id), { type: 'service-request-updated', data: { serviceRequestId: safeUpdated.id, status: safeUpdated.status }, timestamp: new Date().toISOString() }) } catch {}
   try {
@@ -59,7 +52,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
   } catch {}
 
-  // Email client on status changes (best-effort)
   try {
     const to = safeUpdated.client?.email
     if (to) {
@@ -80,6 +72,6 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     }
   } catch {}
 
-  try { await logAudit({ action: 'service-request:status', actorId: (session.user as any).id ?? null, targetId: id, details: { status: safeUpdated.status } }) } catch {}
+  try { await logAudit({ action: 'service-request:status', actorId: ctx.userId ?? null, targetId: id, details: { status: safeUpdated.status } }) } catch {}
   return NextResponse.json({ success: true, data: safeUpdated, ...safeUpdated }, { status: 200 })
-}
+}, { requireAuth: true })
