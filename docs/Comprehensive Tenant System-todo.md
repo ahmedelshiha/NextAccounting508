@@ -184,13 +184,14 @@ SUCCESS CRITERIA CHECKLIST
 **Status:** 30% | **Priority:** P1 | **Owner:** DB Team
 **Deadline:** 2025-11-15 | **Blocker:** Backfill plan and approval
 
-### Task 2.1: Add tenantId column and enforce NOT NULL (PLANNED)
-**Status:** NOT STARTED
+### Task 2.1: Add tenantId column and enforce NOT NULL (IN PROGRESS)
+**Status:** IN PROGRESS
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
-- [ ] Add tenantId column non-null to Booking, ServiceRequest (currently optional), Service (optional), WorkOrder (optional), Invoice (optional), Expense (optional), Attachment (optional), ScheduledReminder (optional), ChatMessage (optional), BookingSettings (optional unique), IdempotencyKey (optional)
-- [ ] Add foreign keys to Tenant(id) and relevant indexes (tenantId, composite uniques like @@unique([tenantId, slug]))
-- [ ] Tighten settings tables to require tenantId where unique constraints already imply single-tenant rows
+- [x] Created migration SQL files for Phase 2 models and committed to prisma/migrations (see Recent migration & backfill work)
+- [ ] Apply migration and enforce NOT NULL for: Booking, ServiceRequest, Service, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, BookingSettings, IdempotencyKey
+- [x] Add foreign keys to Tenant(id) and relevant indexes (tenantId, composite uniques like @@unique([tenantId, slug])) — migration SQL includes FK/index changes
+- [x] Tighten settings tables to require tenantId where unique constraints already imply single-tenant rows (migration files prepared)
 
 Implementation notes:
 - For settings tables already using @@unique([tenantId]), migrate tenantId from optional -> required with backfill
@@ -198,6 +199,12 @@ Implementation notes:
 - ServiceRequest.tenantId populated from clientId -> User.tenantId or service.tenantId
 - WorkOrder.tenantId populated via COALESCE over serviceRequest.tenantId, booking.tenantId, client.tenantId
 - Invoice/Expense.tenantId populated by booking/client/user relations
+
+**Recent actions:**
+- Created and committed the following migration SQL files under prisma/migrations/20251004_* for Phase 2 models.
+- Implemented scripts/apply-migration-file.ts to safely apply single SQL migration files.
+- Implemented and corrected backfill scripts (scripts/*backfill*.ts) and an assignment helper for orphan chat_messages (scripts/assign-chatmessages-tenant-primary.ts).
+- Applied chat_messages tenantId NOT NULL migration successfully after assigning orphan rows to tenant_primary.
 
 **AI Agent Steps:**
 ```bash
@@ -207,7 +214,7 @@ node scripts/check_prisma_tenant_columns.js
 ```
 
 SUCCESS CRITERIA CHECKLIST
-- tenantId present and non-null in designated tables
+- tenantId present and non-null in designated tables (in progress for non-chat tables)
 
 ---
 
