@@ -142,7 +142,7 @@ SUCCESS CRITERIA CHECKLIST
 - [x] src/app/api/auth/register/register/route.ts
 - [x] src/app/api/posts/**
 - [x] src/app/api/portal/** (chat/service-requests subroutes)
-- [ ] src/app/api/email/test/route.ts
+- [x] src/app/api/email/test/route.ts
 - [x] src/app/api/payments/**
 - [x] src/app/api/bookings/**
 - [x] src/app/api/admin/users/route.ts
@@ -530,3 +530,21 @@ Version: 5.0  Last Updated: 2025-10-04
 ## 🔧 Next Steps
 - [ ] Introduce a small proxy utility (routeDelegate(req, handler, ctx?)) to standardize delegation with default context
 - [ ] Add lint check to flag direct route-import calls without context
+
+---
+
+## ✅ Completed
+- [x] Verified src/app/api/email/test/route.ts uses withTenantContext and admin authorization
+  - **Why**: Ensure tenant context enforcement and align Phase 1.2 checklist with code reality
+  - **Impact**: Endpoint is tenant-scoped; unauthorized users receive 401/403; checklist updated
+
+## ⚠️ Issues / Risks
+- Multiple API routes still reference getServerSession directly (see grep list); requires phased refactor to withTenantContext
+
+## 🚧 In Progress
+- [ ] Audit and prioritize refactors for routes using getServerSession; prepare batch plan and ESLint guard
+
+## 🔧 Next Steps
+- [ ] Implement ESLint rule to forbid getServerSession usage in API route files
+- [ ] Start batch refactor of top-traffic endpoints to withTenantContext
+- [ ] Add integration tests for invalid/missing tenant_sig on representative routes
