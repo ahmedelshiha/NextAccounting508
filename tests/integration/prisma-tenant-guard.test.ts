@@ -47,12 +47,22 @@ describe('Prisma tenant guard middleware', () => {
     expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked operation due to missing tenant context', expect.objectContaining({ model: 'User', action: 'create' }))
   })
 
-  it('blocks create without tenantId', () => {
+  it('auto injects tenantId on create when missing', () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     runWithContext(() => {
-      expect(() => enforceTenantGuard(params({ args: { data: { email: 'admin@example.com' } } }))).toThrowError(/tenantId/i)
+      const args = { data: { email: 'admin@example.com' } }
+      expect(() => enforceTenantGuard(params({ args }))).not.toThrow()
+      expect(args.data.tenantId).toBe('tenant-123')
     })
-    expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked create without tenantId', expect.objectContaining({ model: 'User', action: 'create' }))
+    expect(errorSpy).not.toHaveBeenCalled()
+  })
+
+  it('blocks create when tenantId mismatches context', () => {
+    const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    runWithContext(() => {
+      expect(() => enforceTenantGuard(params({ args: { data: { email: 'admin@example.com', tenantId: 'tenant-999' } } }))).toThrowError(/tenantId mismatch/i)
+    })
+    expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked tenant mismatch on create', expect.objectContaining({ model: 'User', action: 'create', expectedTenantId: 'tenant-123' }))
   })
 
   it('allows create when tenantId matches context', () => {
@@ -63,28 +73,34 @@ describe('Prisma tenant guard middleware', () => {
     expect(errorSpy).not.toHaveBeenCalled()
   })
 
-  it('blocks bulk mutation without tenant filter', () => {
+  it('auto scopes bulk mutation without tenant filter', () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {})
     runWithContext(() => {
-      expect(() => enforceTenantGuard(params({ action: 'updateMany', args: { where: { role: 'ADMIN' }, data: { role: 'CLIENT' } } }))).toThrowError(/bulk mutations require tenant filter/i)
+      const args = { where: { role: 'ADMIN' }, data: { role: 'CLIENT' } }
+      expect(() => enforceTenantGuard(params({ action: 'updateMany', args }))).not.toThrow()
+      expect(args.where).toEqual({ AND: [{ role: 'ADMIN' }, { tenantId: 'tenant-123' }] })
     })
-    expect(errorSpy).toHaveBeenCalledWith('Tenant guard blocked bulk mutation without tenant scope', expect.objectContaining({ model: 'User', action: 'updateMany' }))
+    expect(errorSpy).not.toHaveBeenCalled()
   })
 
-  it('warns on single-record mutation without tenantId filter', () => {
+  it('auto scopes single-record mutation when tenant filter missing', () => {
     const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
     runWithContext(() => {
-      expect(() => enforceTenantGuard(params({ action: 'update', args: { where: { id: 'user-1' }, data: { name: 'Updated' } } }))).not.toThrow()
+      const args = { where: { id: 'user-1' }, data: { name: 'Updated' } }
+      expect(() => enforceTenantGuard(params({ action: 'update', args }))).not.toThrow()
+      expect(args.where).toEqual({ AND: [{ id: 'user-1' }, { tenantId: 'tenant-123' }] })
     })
-    expect(warnSpy).toHaveBeenCalledWith('Tenant guard detected single-record mutation without tenant filter', expect.objectContaining({ model: 'User', action: 'update', tenantId: 'tenant-123' }))
+    expect(warnSpy).not.toHaveBeenCalled()
   })
 
-  it('warns on read without tenant filter', () => {
+  it('auto scopes reads when tenant filter missing', () => {
     const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {})
     runWithContext(() => {
-      expect(() => enforceTenantGuard(params({ action: 'findMany', args: { where: { email: { contains: '@' } } } }))).not.toThrow()
+      const args = { where: { email: { contains: '@' } } }
+      expect(() => enforceTenantGuard(params({ action: 'findMany', args }))).not.toThrow()
+      expect(args.where).toEqual({ AND: [{ email: { contains: '@' } }, { tenantId: 'tenant-123' }] })
     })
-    expect(warnSpy).toHaveBeenCalledWith('Tenant guard detected read without tenant constraint', expect.objectContaining({ model: 'User', action: 'findMany', tenantId: 'tenant-123' }))
+    expect(warnSpy).not.toHaveBeenCalled()
   })
 
   it('allows super admin to target different tenant on bulk operations when scoped', () => {
