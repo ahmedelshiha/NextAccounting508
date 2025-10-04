@@ -69,6 +69,23 @@ const config = [
       "@typescript-eslint/triple-slash-reference": "off",
     },
   },
+,
+  // Enforce withTenantContext in API routes
+  {
+    files: ["src/app/api/**/route.ts", "src/app/api/**/*.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: [
+        { name: "next-auth", importNames: ["getServerSession"], message: "Use withTenantContext() and requireTenantContext() instead of getServerSession in API routes" },
+        { name: "next-auth/next", importNames: ["getServerSession"], message: "Use withTenantContext() and requireTenantContext() instead of getServerSession in API routes" }
+      ] }],
+      "no-restricted-syntax": ["error",
+        {
+          selector: "CallExpression[callee.name='getServerSession']",
+          message: "Use withTenantContext() and requireTenantContext() in API routes"
+        }
+      ]
+    },
+  },
 ];
 
 export default config;
