@@ -11,6 +11,21 @@ export async function middleware(req: NextServer.NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const isAuth = !!token
   const { pathname } = req.nextUrl
+  const method = req.method
+  const start = Date.now()
+  const isApiRequest = pathname === '/api' || pathname.startsWith('/api/')
+  const inboundRequestId = req.headers.get('x-request-id')?.trim()
+  const safeGenerateRequestId = () => {
+    if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
+      return globalThis.crypto.randomUUID()
+    }
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  }
+  const requestId =
+    inboundRequestId && inboundRequestId.length <= 128
+      ? inboundRequestId
+      : safeGenerateRequestId()
+  const userId = token ? String((token as any).userId ?? (token as any).sub ?? '') : ''
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isAdminPage = pathname.startsWith('/admin')
@@ -68,26 +83,62 @@ export async function middleware(req: NextServer.NextRequest) {
     } catch {}
   }
 
-  if (isPortalPage && !isAuth) {
-    return NextServer.NextResponse.redirect(new URL('/login', req.url))
-  }
-
-  // Build request headers while stripping any inbound tenant headers to prevent spoofing
   const requestHeaders = new Headers(req.headers)
   requestHeaders.delete('x-tenant-id')
   requestHeaders.delete('x-tenant-slug')
+  requestHeaders.delete('x-user-id')
+  requestHeaders.delete('x-request-id')
+  requestHeaders.set('x-request-id', requestId)
+
+  let resolvedTenantId: string | null = null
+  let resolvedTenantSlug: string | null = null
+  let apiEntryLogged = false
+
+  const baseLogContext: Record<string, unknown> = {
+    requestId,
+    method,
+    pathname,
+    userId: userId || null,
+  }
+
+  const logApiEntry = () => {
+    if (!isApiRequest || apiEntryLogged) return
+    logger.info('API request received', {
+      ...baseLogContext,
+      tenantId: resolvedTenantId,
+      tenantSlug: resolvedTenantSlug,
+    })
+    apiEntryLogged = true
+  }
+
+  const finalizeResponse = (response: NextServer.NextResponse) => {
+    response.headers.set('x-request-id', requestId)
+    if (resolvedTenantId) response.headers.set('x-tenant-id', resolvedTenantId)
+    if (resolvedTenantSlug) response.headers.set('x-tenant-slug', resolvedTenantSlug)
+    if (userId) response.headers.set('x-user-id', userId)
+
+    if (isApiRequest) {
+      const duration = Date.now() - start
+      logger.info('API request completed', {
+        ...baseLogContext,
+        tenantId: resolvedTenantId,
+        tenantSlug: resolvedTenantSlug,
+        status: response.status,
+        duration: `${duration}ms`,
+      })
+    }
+
+    return response
+  }
 
   try {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
-      // Prefer tenant from authenticated session token when available (trusted)
       const tenantIdFromToken = token ? (token as any).tenantId : null
       const tenantSlugFromToken = token ? (token as any).tenantSlug : null
-      let tenantToSet: string | null = null
-      let tenantSlugToSet: string | null = null
 
       if (tenantIdFromToken) {
-        tenantToSet = String(tenantIdFromToken)
-        tenantSlugToSet = tenantSlugFromToken ? String(tenantSlugFromToken) : null
+        resolvedTenantId = String(tenantIdFromToken)
+        resolvedTenantSlug = tenantSlugFromToken ? String(tenantSlugFromToken) : null
       } else {
         // Fallback to subdomain when unauthenticated
         const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
@@ -95,25 +146,18 @@ export async function middleware(req: NextServer.NextRequest) {
         const parts = host.split('.')
         let sub = parts.length >= 3 ? parts[0] : ''
         if (sub === 'www' && parts.length >= 4) sub = parts[1]
-        if (sub) tenantToSet = sub
+        if (sub) resolvedTenantId = sub
       }
 
-      if (tenantToSet) requestHeaders.set('x-tenant-id', tenantToSet)
-      if (tenantSlugToSet) requestHeaders.set('x-tenant-slug', tenantSlugToSet)
+      if (resolvedTenantId) requestHeaders.set('x-tenant-id', resolvedTenantId)
+      if (resolvedTenantSlug) requestHeaders.set('x-tenant-slug', resolvedTenantSlug)
 
       // If authenticated, issue a signed tenant cookie for subsequent verification
       if (isAuth) {
         try {
-          const userId = String((token as any).userId ?? (token as any).sub ?? '')
-          const signed = signTenantCookie(String(tenantToSet ?? ''), userId)
-          // We'll set the cookie on the response below
-
+          logApiEntry()
+          const signed = signTenantCookie(String(resolvedTenantId ?? ''), userId)
           const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
-
-          // Set verified tenant headers (server-side only)
-          if (tenantToSet) res.headers.set('x-tenant-id', tenantToSet)
-          if (tenantSlugToSet) res.headers.set('x-tenant-slug', tenantSlugToSet)
-          if (userId) res.headers.set('x-user-id', userId)
 
           // Attach signed tenant cookie
           res.cookies.set('tenant_sig', signed, {
@@ -132,21 +176,38 @@ export async function middleware(req: NextServer.NextRequest) {
 
           // Log request
           logger.info('Middleware: authenticated request processed', {
-            tenantId: tenantToSet,
-            userId,
+            tenantId: resolvedTenantId,
+            tenantSlug: resolvedTenantSlug,
+            userId: userId || null,
             pathname,
+            requestId,
           })
 
-          return res
+          return finalizeResponse(res)
         } catch (err) {
-          logger.error('Middleware: failed to sign tenant cookie', { error: err })
+          logger.error('Middleware: failed to sign tenant cookie', {
+            error: err,
+            requestId,
+            tenantId: resolvedTenantId,
+            tenantSlug: resolvedTenantSlug,
+            userId: userId || null,
+          })
         }
       }
     }
   } catch (err) {
-    logger.error('Middleware error while resolving tenant', { error: err })
+    logger.error('Middleware error while resolving tenant', {
+      error: err,
+      requestId,
+      method,
+      pathname,
+      userId: userId || null,
+      tenantId: resolvedTenantId,
+      tenantSlug: resolvedTenantSlug,
+    })
   }
 
+  if (isApiRequest) logApiEntry()
   const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
 
   // Prevent caching of sensitive pages
@@ -155,7 +216,7 @@ export async function middleware(req: NextServer.NextRequest) {
     res.headers.set('Pragma', 'no-cache')
   }
 
-  return res
+  return finalizeResponse(res)
 }
 
 export const config = {
