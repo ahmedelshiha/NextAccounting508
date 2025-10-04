@@ -272,11 +272,14 @@ Enforcement map (current)
 ## Next Implementation Tasks (actionable, prioritized)
 
 1) Refactor remaining admin routes to use withTenantContext (priority: P1)
-- [ ] Refactor `src/app/api/admin/integration-hub/**` (test, route) — ensures integration testing and admin-level ops are tenant-scoped.
-- [ ] Refactor `src/app/api/admin/client-settings/**` (import/export/route) — tenant-scoped settings management.
-- [ ] Refactor `src/app/api/admin/analytics-settings/**` (import/export/route) — analytics settings must be tenant-bound.
-- [ ] Refactor `src/app/api/admin/tasks/**` (templates, notifications, bulk endpoints) — complete task endpoints migration.
-- [ ] Refactor `src/app/api/admin/availability-slots/**` — ensure availability endpoints enforce tenant context.
+- [x] Refactor `src/app/api/admin/integration-hub/**` (test, route) — ensures integration testing and admin-level ops are tenant-scoped.
+- [x] Refactor `src/app/api/admin/client-settings/**` (import/export/route) — tenant-scoped settings management.
+- [x] Refactor `src/app/api/admin/analytics-settings/**` (import/export/route) — analytics settings must be tenant-bound.
+- [x] Refactor `src/app/api/admin/tasks/**` (templates, notifications, bulk endpoints) — complete task endpoints migration.
+- [x] Refactor `src/app/api/admin/availability-slots/**` — ensure availability endpoints enforce tenant context.
+- [x] Refactor `src/app/api/admin/export/route.ts` — tenant-scoped export endpoint updated.
+- [x] Refactor `src/app/api/admin/task-settings/**` — task settings routes updated.
+- [x] Refactor `src/app/api/admin/services/[id]/route.ts` — service item routes updated to use tenant context.
 
 2) Middleware & request hardening (priority: P0/P1)
 - [ ] Expand middleware matcher to include `/api/:path*` and strip/overwrite inbound `x-tenant-id` headers.
