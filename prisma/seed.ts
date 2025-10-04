@@ -372,8 +372,9 @@ Our consultation sessions are designed to provide you with actionable insights a
           update: {},
           create: {
             id: 'bk_demo_2',
-            clientId: client2.id,
-            serviceId: svcTax.id,
+            client: { connect: { id: client2.id } },
+            service: { connect: { id: svcTax.id } },
+            tenant: { connect: { id: defaultTenant.id } },
             status: 'CONFIRMED' as any,
             scheduledAt: start2,
             duration: svc2?.duration ?? 90,
