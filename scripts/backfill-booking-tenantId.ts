@@ -35,9 +35,7 @@ async function main() {
       continue
     }
 
-    if (booking.tenantId) continue
-
-    const tenantId = booking.serviceRequest?.tenantId || booking.client?.tenantId || null
+    const tenantId = booking.serviceRequest?.tenantId || booking.service?.tenantId || null
 
     if (!tenantId) {
       unresolved++
@@ -45,12 +43,12 @@ async function main() {
       continue
     }
 
-    await prisma.booking.update({
-      where: { id: booking.id },
+    const res = await prisma.booking.updateMany({
+      where: { id: booking.id, tenantId: null },
       data: { tenantId }
     })
 
-    updated++
+    if (res.count > 0) updated++
   }
 
   const remaining = await prisma.booking.count({ where: { tenantId: null } })
