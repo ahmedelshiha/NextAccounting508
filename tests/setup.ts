@@ -8,9 +8,12 @@ import { mockPrisma, resetPrismaMock } from '../__mocks__/prisma'
 
 // Reset mocks between tests when a test runner supports the setup file lifecycle
 export function setupTests() {
-  beforeEach(() => {
-    resetPrismaMock()
-  })
+  const globalAny = globalThis as any
+  if (typeof globalAny.beforeEach === 'function') {
+    globalAny.beforeEach(() => {
+      resetPrismaMock()
+    })
+  }
 }
 
 // Auto-run the setup for environments that import this file directly
