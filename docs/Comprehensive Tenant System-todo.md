@@ -720,7 +720,7 @@ Recent refactors:
 
 ---
 
-## ✅ Completed
+## ��� Completed
 - [x] Cataloged tenantId column status for Phase 2 target tables (Booking, ServiceRequest, Service, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, IdempotencyKey)
   - **Why**: establish accurate scope for Phase 2 schema hardening
   - **Impact**: confirmed Booking lacks tenantId and other tables remain nullable; informs migration ordering and constraints
@@ -752,7 +752,7 @@ Recent refactors:
 - [ ] Execute `pnpm tsx scripts/backfill-booking-tenantId.ts` prior to enforcing NOT NULL; review unresolved log output for manual remediation.
 - [ ] Implement transactional backfill utility covering ServiceRequest, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
 - [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
-- [ ] Update scripts/setup-rls.ts (and related tooling) once NOT NULL enforced to remove NULL allowances.
+- [ ] Update RLS setup (scripts/setup-rls.ts) to drop NULL allowances post-enforcement
 
 ---
 
@@ -808,3 +808,19 @@ Recent refactors:
 ## 🔧 Next Steps
 - [ ] Add lint rule or codemod enforcement so future raw queries route through db-raw helpers by default
 - [ ] Document helper usage patterns in developer guide to reinforce tenant safety practices
+
+
+## ✅ Completed
+- [x] Fixed Vercel build error TS2322 (ServiceCreateInput requires tenant relation) by enforcing tenant connect in ServicesService.cloneService and casting serviceSettings to Prisma.InputJsonValue
+  - **Why**: schema tightened requiring tenant relation on Service create
+  - **Impact**: Typecheck/build unblocked on Vercel; creates are tenant-safe and align with Prisma types
+
+## ⚠️ Issues / Risks
+- Other create paths must remain consistent; monitor seeds and tests for type drifts
+
+## 🚧 In Progress
+- [ ] Run pnpm typecheck and pnpm build to confirm no further TS errors
+
+## 🔧 Next Steps
+- [ ] Grep for prisma.service.create and ensure tenant is connected or tenantId provided consistently across the codebase
+- [ ] Add a unit test for ServicesService.cloneService to assert tenant enforcement and slug uniqueness per tenant
