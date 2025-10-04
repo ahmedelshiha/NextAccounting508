@@ -139,6 +139,9 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     }
 
     const tenantId = requireTenantContext().tenantId
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const { vendor, category, status, amountCents, currency, date, attachmentId } = parsed.data
 
     const expenseDate = date instanceof Date ? date : new Date(date)
@@ -156,7 +159,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         date: expenseDate,
         ...(attachmentId ? { attachment: { connect: { id: attachmentId } } } : {}),
         ...(requireTenantContext().userId ? { user: { connect: { id: requireTenantContext().userId! } } } : {}),
-        ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
+        tenant: { connect: { id: tenantId } },
       },
       include: {
         attachment: { select: { id: true, url: true, avStatus: true } },
