@@ -113,7 +113,7 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT c."id", u."tenantId" AS tenant_id
         FROM "chat_messages" c
-        LEFT JOIN "User" u ON u."id" = c."userId"
+        LEFT JOIN "users" u ON u."id" = c."userId"
         WHERE c."tenantId" IS NULL
       )
       UPDATE "chat_messages" c
