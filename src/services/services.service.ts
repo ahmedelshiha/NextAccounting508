@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { queryTenantRaw, queryTenantRawAs } from '@/lib/db-raw';
+import { queryTenantRaw } from '@/lib/db-raw';
+import { withTenantRLS } from '@/lib/prisma-rls';
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
@@ -27,7 +28,12 @@ export class ServicesService {
     const src = await prisma.service.findUnique({ where: { id: fromId } })
     if (!src) throw new Error('Source service not found')
 
-    const tenantId: string | null = (src as any).tenantId ?? null
+    let tenantId: string | null = (src as any).tenantId ?? null
+    if (!tenantId) {
+      const t = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+      tenantId = t?.id || null
+      if (!tenantId) throw new Error('Tenant context required to clone service')
+    }
     const baseSlug = generateSlug(name)
 
     // Ensure tenant-scoped slug uniqueness
@@ -56,7 +62,7 @@ export class ServicesService {
         status: 'DRAFT' as any,
         image: (src as any).image ?? null,
         serviceSettings: (src as any).serviceSettings ?? undefined,
-        ...(tenantId ? { tenantId } : {}),
+        ...(tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
       },
     })
 
@@ -152,7 +158,7 @@ export class ServicesService {
       ];
     }
 
-    const orderBy: Prisma.ServiceOrderByWithRelationInput = {};
+    const orderBy: any = {};
     if (sortBy === 'name') (orderBy as any).name = sortOrder;
     else if (sortBy === 'price') (orderBy as any).price = sortOrder;
     else if (sortBy === 'createdAt') (orderBy as any).createdAt = sortOrder;
@@ -171,11 +177,11 @@ export class ServicesService {
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
       const all = tenantId
-        ? await queryTenantRawAs<any>(tenantId)`
+        ? await withTenantRLS(async (tx) => tx.$queryRaw<any>`
             SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
             FROM "services"
             WHERE "tenantId" = ${tenantId}
-          `
+          `, tenantId)
         : await queryTenantRaw<any>`
             SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
             FROM "services"
@@ -222,7 +228,8 @@ export class ServicesService {
       (payload as any).serviceSettings = sanitized.serviceSettings as unknown as Prisma.InputJsonValue;
     }
 
-    const s = await prisma.service.create({ data: payload });
+    if (!tenantId) throw new Error('Tenant context required to create service')
+    const s = await prisma.service.create({ data: { ...payload, tenant: { connect: { id: tenantId } } } });
     await this.clearCaches(tenantId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}

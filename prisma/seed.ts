@@ -284,10 +284,9 @@ Our consultation sessions are designed to provide you with actionable insights a
   ]
 
   for (const service of services) {
-    // Prisma's composite unique where cannot accept null for optional fields; use findFirst instead
-    const exists = await prisma.service.findFirst({ where: { slug: service.slug, tenantId: null }, select: { id: true } })
+    const exists = await prisma.service.findFirst({ where: { slug: service.slug, tenantId: defaultTenant.id }, select: { id: true } })
     if (!exists) {
-      await prisma.service.create({ data: service as any })
+      await prisma.service.create({ data: { ...service, tenant: { connect: { id: defaultTenant.id } } } as any })
     }
   }
 
@@ -302,8 +301,9 @@ Our consultation sessions are designed to provide you with actionable insights a
       update: {},
       create: {
         id: 'sr_demo_1',
-        clientId: client1.id,
-        serviceId: svcBookkeeping.id,
+        client: { connect: { id: client1.id } },
+        service: { connect: { id: svcBookkeeping.id } },
+        tenant: { connect: { id: defaultTenant.id } },
         title: `${svcBookkeeping.name} request — ${client1.name}`,
         description: 'Initial bookkeeping setup and monthly processing.',
         priority: 'MEDIUM',
@@ -319,8 +319,9 @@ Our consultation sessions are designed to provide you with actionable insights a
       update: {},
       create: {
         id: 'sr_demo_2',
-        clientId: client2.id,
-        serviceId: svcTax.id,
+        client: { connect: { id: client2.id } },
+        service: { connect: { id: svcTax.id } },
+        tenant: { connect: { id: defaultTenant.id } },
         title: `${svcTax.name} request — ${client2.name}`,
         description: 'Corporate tax return preparation with multi-state filing.',
         priority: 'HIGH',
