@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NextRequest, NextResponse } from 'next/server'
 import { queryTenantRaw } from '@/lib/db-raw'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { getRealtimeMetrics } from '@/lib/realtime-enhanced'
