@@ -53,7 +53,7 @@ const steps: BackfillStep[] = [
         SELECT i."id", COALESCE(b."tenantId", u."tenantId") AS tenant_id
         FROM "invoices" i
         LEFT JOIN "bookings" b ON b."id" = i."bookingId"
-        LEFT JOIN "User" u ON u."id" = i."clientId"
+        LEFT JOIN "users" u ON u."id" = i."clientId"
         WHERE i."tenantId" IS NULL
       )
       UPDATE "Invoice" i
