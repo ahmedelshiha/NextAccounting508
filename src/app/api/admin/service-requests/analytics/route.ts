@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET(request: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+export const GET = withTenantContext(async (_request: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
   const where = tenantFilter(tenantId) as any
 
   try {
@@ -48,7 +48,6 @@ export async function GET(request: Request) {
       }
     })
   } catch (e: any) {
-    // Fallback for environments without DB or Prisma errors
     try {
       const { getAllRequests } = await import('@/lib/dev-fallbacks')
       const list = getAllRequests()
@@ -92,4 +91,4 @@ export async function GET(request: Request) {
       } })
     }
   }
-}
+})
