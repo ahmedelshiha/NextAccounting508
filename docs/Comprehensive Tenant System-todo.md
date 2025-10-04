@@ -283,7 +283,7 @@ Enforcement map (current)
 
 Pending refactor: admin & portal routes (to update to withTenantContext)
 - [x] src/app/api/admin/task-settings/export/route.ts
-- [ ] src/app/api/admin/task-settings/import/route.ts
+- [x] src/app/api/admin/task-settings/import/route.ts
 - [ ] src/app/api/admin/security-settings/route.ts
 - [ ] src/app/api/admin/analytics/route.ts
 - [ ] src/app/api/admin/stats/clients/route.ts
