@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 // POST /api/contact - Submit contact form
 export async function POST(request: NextRequest) {
