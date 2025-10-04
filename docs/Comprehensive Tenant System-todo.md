@@ -140,7 +140,7 @@ SUCCESS CRITERIA CHECKLIST
 - [ ] src/app/api/admin/settings/services/route.ts
 - [ ] src/app/api/admin/bookings/**
 - [ ] src/app/api/auth/register/register/route.ts
-- [ ] src/app/api/posts/**
+- [x] src/app/api/posts/**
 - [x] src/app/api/portal/** (chat/service-requests subroutes)
 - [ ] src/app/api/email/test/route.ts
 - [x] src/app/api/payments/**
