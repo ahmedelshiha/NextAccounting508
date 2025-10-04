@@ -511,5 +511,5 @@ Version: 5.0  Last Updated: 2025-10-04
 ## 🔧 Next Steps
 - [ ] Run pnpm lint and pnpm typecheck to catch residual issues
 - [ ] Refactor src/app/api/admin/users to withTenantContext
-- [ ] Add tenant-mismatch tests for bookings endpoints (403 on cross-tenant access)
+- [x] Add tenant-mismatch tests for bookings endpoints (403 on cross-tenant access)
 - [ ] Plan Booking.tenantId migration and backfill to replace relation-based scoping
