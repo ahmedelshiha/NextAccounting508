@@ -275,7 +275,7 @@ SUCCESS CRITERIA CHECKLIST
 **Subtasks:**
 - [x] Ensure JWT/session carries tenantId and tenantSlug
 - [x] Add TenantMembership table (present in schema)
-- [ ] Update callbacks to embed tenant metadata and session version
+- [x] Update callbacks to embed tenant metadata and session version
 - [x] Implement tenant switch endpoint that validates membership
 
 **Files:** src/app/api/tenant/switch/route.ts, NextAuth callbacks
