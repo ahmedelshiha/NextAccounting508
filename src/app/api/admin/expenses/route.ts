@@ -122,10 +122,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating expense:', error)
     return NextResponse.json({ error: 'Failed to create expense' }, { status: 500 })
   }
-}
+})
 
 export async function DELETE(request: NextRequest) {
   try {
