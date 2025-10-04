@@ -125,26 +125,26 @@ SUCCESS CRITERIA CHECKLIST
 **Priority:** P0 | **Effort:** 5d | **Deadline:** 2025-10-15
 
 **Remaining routes to refactor (checklist)**
-- [ ] src/app/api/tenant/switch/route.ts
-- [ ] src/app/api/admin/team-members/route.ts
-- [ ] src/app/api/admin/team-members/[id]/route.ts
+- [x] src/app/api/tenant/switch/route.ts
+- [x] src/app/api/admin/team-members/route.ts
+- [x] src/app/api/admin/team-members/[id]/route.ts
 - [ ] src/app/api/admin/expenses/route.ts
 - [ ] src/app/api/admin/chat/route.ts
-- [ ] src/app/api/admin/auth/logout/route.ts
+- [x] src/app/api/admin/auth/logout/route.ts
 - [ ] src/app/api/admin/calendar/route.ts
 - [ ] src/app/api/admin/communication-settings/**
 - [ ] src/app/api/admin/invoices/**
 - [ ] src/app/api/admin/team-management/**
 - [ ] src/app/api/admin/thresholds/route.ts
-- [ ] src/app/api/admin/permissions/**
+- [x] src/app/api/admin/permissions/**
 - [ ] src/app/api/admin/settings/services/route.ts
 - [ ] src/app/api/admin/bookings/**
 - [ ] src/app/api/auth/register/register/route.ts
 - [ ] src/app/api/posts/**
-- [ ] src/app/api/portal/** (chat/service-requests subroutes)
+- [x] src/app/api/portal/** (chat/service-requests subroutes)
 - [ ] src/app/api/email/test/route.ts
-- [ ] src/app/api/payments/**
-- [ ] src/app/api/bookings/**
+- [x] src/app/api/payments/**
+- [x] src/app/api/bookings/**
 - [ ] src/app/api/admin/users/route.ts
 
 **AI Agent Steps:**
