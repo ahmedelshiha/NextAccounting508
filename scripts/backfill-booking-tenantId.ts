@@ -5,12 +5,12 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Starting Booking.tenantId backfill...')
 
-  const batches = await prisma.$queryRaw<{ booking_id: string }[]>`
-    SELECT b."id" AS booking_id
-    FROM "Booking" b
-    WHERE b."tenantId" IS NULL
-    ORDER BY b."createdAt" ASC
-  `
+  const batchesRaw = await prisma.booking.findMany({
+    where: { tenantId: null },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true }
+  })
+  const batches = batchesRaw.map(b => ({ booking_id: b.id }))
 
   if (!batches.length) {
     console.log('No bookings require backfill. Exiting.')
@@ -25,9 +25,8 @@ async function main() {
       where: { id: record.booking_id },
       select: {
         id: true,
-        tenantId: true,
         serviceRequest: { select: { tenantId: true } },
-        client: { select: { tenantId: true } }
+        service: { select: { tenantId: true } }
       }
     })
 
@@ -36,9 +35,7 @@ async function main() {
       continue
     }
 
-    if (booking.tenantId) continue
-
-    const tenantId = booking.serviceRequest?.tenantId || booking.client?.tenantId || null
+    const tenantId = booking.serviceRequest?.tenantId || booking.service?.tenantId || null
 
     if (!tenantId) {
       unresolved++
@@ -46,12 +43,12 @@ async function main() {
       continue
     }
 
-    await prisma.booking.update({
-      where: { id: booking.id },
+    const res = await prisma.booking.updateMany({
+      where: { id: booking.id, tenantId: null },
       data: { tenantId }
     })
 
-    updated++
+    if (res.count > 0) updated++
   }
 
   const remaining = await prisma.booking.count({ where: { tenantId: null } })

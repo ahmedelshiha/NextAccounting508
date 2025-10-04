@@ -753,3 +753,24 @@ Recent refactors:
 ## 🔧 Next Steps
 - [ ] Run pnpm lint to confirm admin routes compile after import adjustments
 - [ ] Expand audit to portal routes to ensure consistent NextResponse imports across the tenancy surface area
+
+---
+
+## ✅ Completed
+- [x] Task 2.1 (schema update stage): Made tenantId required and added Tenant foreign keys in Prisma for Service, Booking, ServiceRequest, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey
+  - **Why**: schema hardening to enforce per-tenant data integrity at the model level
+  - **Impact**: future migrations will enforce DB-level NOT NULL + FKs; Prisma types now require tenantId, aligning with guard auto-injection and reducing developer error
+
+## ⚠️ Issues / Risks
+- Backfill must run before deploying migrations to avoid constraint failures (see scripts/backfill-tenant-scoped-tables.ts and scripts/backfill-booking-tenantId.ts)
+- IdempotencyKey now tenant-scoped; verify callers pass/auto-inject tenantId to avoid global dedupe conflicts
+- onDelete set to Cascade for new FKs; validate against business rules for tenant deletion flows
+
+## 🚧 In Progress
+- [ ] Prepare migration SQL and staging rollout plan to apply NOT NULL constraints safely after backfill
+
+## 🔧 Next Steps
+- [ ] Run `pnpm tsx scripts/report-tenant-null-counts.ts` and record baselines before backfill
+- [ ] Execute `pnpm tsx scripts/backfill-booking-tenantId.ts` then `pnpm tsx scripts/backfill-tenant-scoped-tables.ts`; remediate unresolved rows
+- [ ] Generate Prisma migration (enforce NOT NULL + FKs) and deploy to staging; verify with scripts/check_prisma_tenant_columns.js
+- [ ] Update RLS setup (scripts/setup-rls.ts) to drop NULL allowances post-enforcement

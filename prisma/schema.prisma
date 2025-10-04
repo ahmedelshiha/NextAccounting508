@@ -126,9 +126,20 @@ model Tenant {
   updatedAt            DateTime              @updatedAt
 
   users                User[]
+  services             Service[]
+  bookings             Booking[]
+  serviceRequests      ServiceRequest[]
+  workOrders           WorkOrder[]
+  attachments          Attachment[]
+  scheduledReminders   ScheduledReminder[]
+  invoices             Invoice[]
+  expenses             Expense[]
+  chatMessages         ChatMessage[]
+  idempotencyKeys      IdempotencyKey[]
   tasks                Task[]
   complianceRecords    ComplianceRecord[]
   healthLogs           HealthLog[]
+  bookingSettings      BookingSettings?
   organizationSettings OrganizationSettings?
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
@@ -244,7 +255,9 @@ model Service {
   estimatedDurationHours Int?
   requiredSkills String[]
   status        ServiceStatus @default(ACTIVE)
-  tenantId     String?
+  tenantId     String
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   // Booking enhancements
   bookingEnabled      Boolean  @default(true)
@@ -550,7 +563,9 @@ model ServiceRequest {
   clientApprovalAt      DateTime?
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  tenantId              String?
+  tenantId              String
+
+  tenant                Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   client                User            @relation("ServiceRequestClient", fields: [clientId], references: [id], onDelete: Cascade)
   service               Service         @relation(fields: [serviceId], references: [id], onDelete: Restrict)
@@ -710,7 +725,9 @@ model ScheduledReminder {
   channel          String   @default("EMAIL")
   sent             Boolean  @default(false)
   createdAt        DateTime @default(now())
-  tenantId         String?
+  tenantId         String
+
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
 
@@ -740,6 +757,8 @@ model Attachment {
   serviceRequestId String?
   tenantId      String?
 
+  tenant        Tenant?    @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
   expenses       Expense[]
@@ -751,7 +770,9 @@ model Attachment {
 // Work orders for operational execution and tracking
 model WorkOrder {
   id              String           @id @default(cuid())
-  tenantId        String?
+  tenantId        String
+
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   title           String
   description     String?
   status          WorkOrderStatus  @default(OPEN)
@@ -795,7 +816,9 @@ model WorkOrder {
 // Booking Settings models
 model BookingSettings {
   id                         String   @id @default(cuid())
-  tenantId                   String?
+  tenantId                   String
+
+  tenant                     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   // General
   bookingEnabled             Boolean  @default(true)
   requireApproval            Boolean  @default(false)
@@ -965,7 +988,9 @@ enum InvoiceStatus {
 
 model Invoice {
   id          String         @id @default(cuid())
-  tenantId    String?
+  tenantId    String
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   bookingId   String?
   clientId    String?
   number      String?        @unique
@@ -1002,7 +1027,9 @@ model InvoiceItem {
 
 model Expense {
   id           String   @id @default(cuid())
-  tenantId     String?
+  tenantId     String
+
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   vendor       String
   category     String?
   status       String    @default("PENDING")
@@ -1028,7 +1055,9 @@ model Expense {
 
 model ChatMessage {
   id        String   @id @default(cuid())
-  tenantId  String?
+  tenantId  String
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   room      String?
   userId    String
   userName  String
@@ -1045,7 +1074,9 @@ model IdempotencyKey {
   id         Int      @id @default(autoincrement())
   key        String   @unique
   userId     String?
-  tenantId   String?
+  tenantId   String
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   entityType String?
   entityId   String?
   status     String   @default("RESERVED")
