@@ -25,7 +25,7 @@ function quoteIdentifier(identifier: string): string {
 const targets: TargetTable[] = [
   { table: 'services', column: 'tenantId', expected: 'present', description: 'Service catalog entries' },
   { table: 'ServiceRequest', column: 'tenantId', expected: 'present', description: 'Client service requests' },
-  { table: 'Booking', column: 'tenantId', expected: 'missing', description: 'Bookings (Phase 2 will add tenantId)' },
+  { table: 'Booking', column: 'tenantId', expected: 'present', description: 'Bookings (Phase 2 column added, pending backfill)' },
   { table: 'WorkOrder', column: 'tenantId', expected: 'present', description: 'Operational work orders' },
   { table: 'invoices', column: 'tenantId', expected: 'present', description: 'Invoices' },
   { table: 'expenses', column: 'tenantId', expected: 'present', description: 'Expenses' },
