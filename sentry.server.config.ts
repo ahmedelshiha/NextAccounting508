@@ -11,7 +11,7 @@ Sentry.init({
 })
 
 // Attach tenant context to all server-side Sentry events
-Sentry.addGlobalEventProcessor((event) => {
+Sentry.addEventProcessor((event) => {
   try {
     const ctx = tenantContext.getContextOrNull?.()
     if (ctx) {
