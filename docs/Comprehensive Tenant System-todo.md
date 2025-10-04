@@ -65,4 +65,39 @@ Status Icons: ❌ (Critical), ⚠️ (Warning), ✅ (Complete)
 
 ---
 
-(End of appended Batch A summary)
+## AI Agent Update — Batch B Completed (2025-10-04)
+
+## ✅ Completed
+- [x] Batch B migrations applied to the codebase (admin directory)
+  - Files updated:
+    - src/app/api/admin/team-members/route.ts
+    - src/app/api/admin/team-members/[id]/route.ts
+    - src/app/api/admin/permissions/route.ts
+    - src/app/api/admin/permissions/[userId]/route.ts
+    - src/app/api/admin/invoices/route.ts
+    - src/app/api/admin/currencies/route.ts
+    - src/app/api/admin/currencies/refresh/route.ts
+    - src/app/api/admin/currencies/overrides/route.ts
+    - src/app/api/admin/currencies/export/route.ts
+    - src/app/api/admin/currencies/[code]/route.ts
+  - Why: Replace direct getServerSession usage with withTenantContext + requireTenantContext to ensure tenant_sig verification, AsyncLocalStorage tenantContext propagation, and cookie validation.
+  - Impact: Admin endpoints now run inside tenantContext and validate RBAC using tenant-bound context; audit entries use ctx.userId for actor attribution.
+
+## ⚠️ Issues / Risks
+- Integration tests for Batch B not yet executed. Recommended tests:
+  - Verify 403 on invalid tenant_sig for key admin endpoints
+  - Verify tenant-scoped listings do not leak across tenants
+- CI must run lint/typecheck; potential type errors if any handler relied on session.* fields not present on ctx — monitor for missing ctx.userName/email and adapt as needed.
+
+## 🚧 In Progress
+- [ ] Add integration tests asserting 403 on invalid tenant_sig for Batch B endpoints
+- [ ] Run targeted integration tests and CI checks
+
+## 🔧 Next Steps
+- [ ] Run pnpm lint && pnpm typecheck && pnpm test:integration -- --grep tenant-mismatch
+- [ ] Open PR with changelog and Batch A/B summary
+- [ ] Proceed with Batch C (bookings/*, portal/service-requests/[id]) after CI green
+
+---
+
+(End of appended Batch B summary)
