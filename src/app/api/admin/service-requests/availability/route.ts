@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
 import { getAvailabilityForService } from '@/lib/booking/availability'
 import { z } from 'zod'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const QuerySchema = z.object({
   serviceId: z.string().min(1),
@@ -32,14 +32,10 @@ function generateSlots(start: Date, end: Date, minutes: number): { start: Date; 
   return slots
 }
 
-function isOverlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
-  return aStart < bEnd && bStart < aEnd
-}
-
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role as string | undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
     return respond.unauthorized()
   }
 
@@ -64,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     if (includePrice) {
       const { calculateServicePrice } = await import('@/lib/booking/pricing')
-      const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+      const svc = await prisma.service.findFirst({ where: { id: serviceId, ...getTenantFilter() } })
       const slotMinutes = duration ?? Math.max(15, svc?.duration ?? 60)
       const enriched = await Promise.all(slots.map(async (s) => {
         const breakdown = await calculateServicePrice({ serviceId, scheduledAt: new Date(s.start), durationMinutes: slotMinutes, options: { currency } })
@@ -99,4 +95,4 @@ export async function GET(request: NextRequest) {
     }
     return respond.serverError('Failed to compute availability', { code, message: msg })
   }
-}
+})
