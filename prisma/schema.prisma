@@ -315,7 +315,7 @@ model Booking {
   adminNotes  String?       @db.Text
   confirmed   Boolean       @default(false)
   reminderSent Boolean      @default(false)
-  tenantId    String
+  tenantId    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -329,7 +329,7 @@ model Booking {
   // Relations
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
   service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant  Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   workOrders WorkOrder[]
   invoices Invoice[]
 
@@ -755,9 +755,9 @@ model Attachment {
   uploadedAt    DateTime @default(now())
   uploaderId    String?
   serviceRequestId String?
-  tenantId      String
+  tenantId      String?
 
-  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant?    @relation(fields: [tenantId], references: [id], onDelete: SetNull)
 
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
