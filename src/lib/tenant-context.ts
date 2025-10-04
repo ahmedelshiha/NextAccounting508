@@ -2,7 +2,8 @@
 let AsyncLocalStorageClass: any = undefined
 if (typeof window === 'undefined') {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // Allow runtime require here because async_hooks is Node-only and static import breaks Turbopack
     AsyncLocalStorageClass = require('async_hooks').AsyncLocalStorage
   } catch (err) {
     AsyncLocalStorageClass = undefined
