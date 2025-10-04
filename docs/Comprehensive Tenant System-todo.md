@@ -399,6 +399,34 @@ SUCCESS CRITERIA CHECKLIST
 **Deadline:** 2025-10-10 | **Blocker:** Final audits
 
 ### Task 7.1: Middleware matcher and header handling (COMPLETE)
+
+---
+
+## RECENT WORK (AUTO-LOG)
+
+## ✅ Completed - [x] Fix idempotency typings and booking creation shape
+- **Why**: Build and type-check failed due to TypeScript mismatches and runtime import patterns; addressed to restore CI builds.
+- **Impact**: Resolved ESLint require() violation in booking-settings.service.ts, corrected idempotency function signatures/types to match Prisma schema, and adjusted Booking creation sites to use nested connect for relations in seed and convert-to-booking flow.
+
+## ⚠️ Issues / Risks
+- Type-checking in CI previously surfaced multiple Booking create type errors — seed and API routes used direct foreign key fields (clientId/serviceId) incompatible with strict Prisma input types in checked create mode. Fixed primary occurrences, but other locations may still use direct id fields in create payloads.
+- Build environments may still surface timing or generation ordering issues; running `pnpm db:generate && pnpm typecheck` locally or in CI is recommended to validate.
+- Some files previously used runtime `require()` to import @prisma/client lazily (prisma wrapper). ESLint rules forbidding require() were addressed in service file, but other intentional lazy requires remain (src/lib/prisma.ts) and are exempt by comment — ensure maintainers accept that pattern.
+
+## 🚧 In Progress - [ ] Validate full typecheck and CI build
+- [ ] Run `pnpm db:generate && pnpm typecheck` locally in CI-sized environment and fix any remaining type errors
+- [ ] Re-run lint and build on Vercel/Netlify preview
+
+## 🔧 Next Steps - [ ] Actionable tasks with prerequisites
+- [ ] Run full typecheck (prisma generate + tsc) in CI to ensure no remaining TS errors. Prerequisite: npm/pnpm environment with prisma client generation allowed.
+- [ ] Sweep codebase for other `clientId` / `serviceId` usage in create()/upsert() payloads and replace with nested `{ connect: { id } }` where appropriate. (Search: `clientId:` in src/ and adjust create payloads.)
+- [ ] Confirm idempotency.ts no longer defines duplicate identifiers and that runtime behavior is unchanged.
+- [ ] Trigger a fresh Vercel build (or Netlify) and monitor logs for seed/type errors.
+
+---
+
+*Auto-log time:* 2025-10-04T00:00:00Z
+*Author:* Autonomous Dev Assistant
 **Status:** COMPLETE
 **Priority:** P0 | **Effort:** 1d | **Deadline:** 2025-09-18
 **Subtasks:**

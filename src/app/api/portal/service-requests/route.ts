@@ -352,9 +352,17 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         teamMemberId: null,
       })
 
+      const parentPayload = { ...dataObj }
+      delete (parentPayload as any).clientId
+      delete (parentPayload as any).serviceId
+      delete (parentPayload as any).tenantId
+
       const parent = await prisma.serviceRequest.create({
         data: {
-          ...dataObj,
+          client: { connect: { id: String(ctx.userId ?? '') } },
+          service: { connect: { id: (data as any).serviceId } },
+          ...(ctx.tenantId ? { tenant: { connect: { id: String(ctx.tenantId) } } } : {}),
+          ...parentPayload,
           isBooking: true,
           duration: durationMinutes,
           bookingType: 'RECURRING' as any,
@@ -367,24 +375,28 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       const skipped: any[] = []
       for (const item of plan.plan) {
         if (item.conflict) { skipped.push(item); continue }
+        const childPayload: any = {
+          title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
+          description: (data as any).description ?? null,
+          priority: (data as any).priority as any,
+          budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
+          budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
+          requirements: ((data as any).requirements as any) ?? undefined,
+          attachments: ((data as any).attachments as any) ?? undefined,
+          status: 'SUBMITTED',
+          isBooking: true,
+          scheduledAt: item.start,
+          duration: durationMinutes,
+          bookingType: 'RECURRING' as any,
+          parentBookingId: parent.id,
+          tenantId: ctx.tenantId,
+        }
+
         const child = await prisma.serviceRequest.create({
           data: {
-            clientId: String(ctx.userId ?? ''),
-            serviceId: (data as any).serviceId,
-            title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
-            description: (data as any).description ?? null,
-            priority: (data as any).priority as any,
-            budgetMin: (data as any).budgetMin != null ? (data as any).budgetMin : null,
-            budgetMax: (data as any).budgetMax != null ? (data as any).budgetMax : null,
-            requirements: ((data as any).requirements as any) ?? undefined,
-            attachments: ((data as any).attachments as any) ?? undefined,
-            status: 'SUBMITTED',
-            isBooking: true,
-            scheduledAt: item.start,
-            duration: durationMinutes,
-            bookingType: 'RECURRING' as any,
-            parentBookingId: parent.id,
-            tenantId: ctx.tenantId,
+            client: { connect: { id: String(ctx.userId ?? '') } },
+            service: { connect: { id: (data as any).serviceId } },
+            ...childPayload,
           },
           include: { service: { select: { id: true, name: true, slug: true, category: true } } },
         })
@@ -407,8 +419,16 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       return respond.created({ parent, childrenCreated, skipped })
     }
 
+    const finalPayload = { ...dataObj }
+    delete (finalPayload as any).clientId
+    delete (finalPayload as any).serviceId
+
     const created = await prisma.serviceRequest.create({
-      data: dataObj,
+      data: {
+        client: { connect: { id: String(ctx.userId ?? '') } },
+        service: { connect: { id: (data as any).serviceId } },
+        ...finalPayload,
+      },
       include: {
         service: { select: { id: true, name: true, slug: true, category: true } },
       },
