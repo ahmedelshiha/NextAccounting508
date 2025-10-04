@@ -113,8 +113,13 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 }, { requireAuth: false })
 
 // GET /api/contact - Get contact submissions (admin only)
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
+    const ctx = requireTenantContext()
+    if ((ctx.role ?? '') !== 'ADMIN' && !ctx.isSuperAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const responded = searchParams.get('responded')
     const limit = searchParams.get('limit')
@@ -143,4 +148,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
