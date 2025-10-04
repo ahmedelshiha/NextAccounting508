@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export const runtime = 'nodejs'
 
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
+
+export const POST = withTenantContext(async (_req: NextRequest) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
@@ -21,4 +22,4 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     return NextResponse.json({ error: 'Failed to trigger reminders' }, { status: 500 })
   }
-}
+})

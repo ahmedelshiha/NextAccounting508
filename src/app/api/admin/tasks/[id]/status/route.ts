@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 function mapStatusToDb(s: string): any {
   const v = String(s || '').toUpperCase()
@@ -12,12 +12,12 @@ function mapStatusToDb(s: string): any {
   return 'OPEN'
 }
 
-export async function PATCH(request: Request, context: any) {
+export const PATCH = withTenantContext(async (request: Request, context: any) => {
   const params = context?.params || context
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -28,11 +28,11 @@ export async function PATCH(request: Request, context: any) {
     const updated = await prisma.task.update({ where: { id }, data: { status }, include: { assignee: { select: { id: true, name: true, email: true } } } })
     try {
       const { broadcast } = await import('@/lib/realtime')
-      broadcast({ type: 'task.updated', payload: updated })
+      ;(broadcast as any)({ type: 'task.updated', payload: updated })
     } catch (e) {}
     return NextResponse.json(updated)
   } catch (err) {
     console.error('PATCH /api/admin/tasks/[id]/status error', err)
     return NextResponse.json({ error: 'Failed to update status' }, { status: 500 })
   }
-}
+})

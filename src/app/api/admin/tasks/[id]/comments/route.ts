@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-// Fallback file helpers (used only when DB is not configured)
 function commentsPath(taskId: string) {
   return path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'comments', `${taskId}.json`)
 }
@@ -23,10 +22,11 @@ function writeComments(taskId: string, comments: any[]) {
 }
 function makeId() { return 'c_' + Math.random().toString(36).slice(2, 9) }
 
-export async function GET(_request: Request, context: any) {
+export const GET = withTenantContext(async (_request: Request, context: any) => {
   const params = context?.params || context
   const { id } = params
   try {
+    const _ctx = requireTenantContext()
     if (!hasDb) {
       const comments = readComments(id)
       return NextResponse.json(comments)
@@ -52,12 +52,13 @@ export async function GET(_request: Request, context: any) {
     console.error('GET comments error', err)
     return NextResponse.json({ error: 'Failed to load comments' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: Request, context: any) {
+export const POST = withTenantContext(async (request: Request, context: any) => {
   const params = context?.params || context
   const { id } = params
   try {
+    const ctx = requireTenantContext()
     const body = await request.json().catch(() => null)
     if (!body || !body.content) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
@@ -80,13 +81,10 @@ export async function POST(request: Request, context: any) {
       return NextResponse.json(comment, { status: 201 })
     }
 
-    const session = await getServerSession(authOptions)
-    const authorId = session?.user?.id || null
-
     const created = await prisma.taskComment.create({
       data: {
         taskId: id,
-        authorId,
+        authorId: ctx.userId || null,
         content: String(body.content),
         parentId: body.parentId || null,
         attachments: Array.isArray(body.attachments) ? body.attachments : [],
@@ -111,4 +109,4 @@ export async function POST(request: Request, context: any) {
     console.error('POST comments error', err)
     return NextResponse.json({ error: 'Failed to add comment' }, { status: 500 })
   }
-}
+})

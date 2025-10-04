@@ -1,33 +1,24 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest } from '@/lib/tenant'
 import * as Sentry from '@sentry/nextjs'
-import { validateImportWithSchema } from '@/lib/settings/export'
-import { TeamSettingsSchema } from '@/schemas/settings/team-management'
 import teamService from '@/services/team-settings.service'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
-import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TEAM_SETTINGS_EDIT)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_EDIT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const tenantId = getTenantFromRequest(req as any)
-    const ip = getClientIp(req)
-    const key = `team-settings:import:${tenantId}:${ip}`
-    if (!rateLimit(key, 3, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
-
+    const tenantId = ctx.tenantId
     const body = await req.json().catch(() => ({}))
-    const data = validateImportWithSchema(body, TeamSettingsSchema)
-    const updated = await teamService.upsert(tenantId, data)
-    try { await logAudit({ action: 'team-settings:import', actorId: (session.user as any).id, details: { tenantId } }) } catch {}
+    if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+
+    const updated = await teamService.upsert(tenantId, body as any)
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to import team settings' }, { status: 500 })
   }
-}
+})

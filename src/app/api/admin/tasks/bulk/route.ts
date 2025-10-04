@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 function mapStatusToDb(s?: string): any {
   if (!s) return undefined
@@ -20,11 +20,11 @@ const BulkSchema = z.object({
   updates: z.object({ status: z.string().optional(), assigneeId: z.string().nullable().optional() }).optional()
 })
 
-export async function POST(request: Request) {
+export const POST = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -53,4 +53,4 @@ export async function POST(request: Request) {
     console.error('POST /api/admin/tasks/bulk error', err)
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
-}
+})

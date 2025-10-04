@@ -1,52 +1,34 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import fs from 'fs'
-import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
-const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
-function readTemplates() {
-  try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
-}
 
-export async function GET(request?: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+export const GET = withTenantContext(async (request?: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    let categories: string[] = []
     if (!hasDb) {
-      const templates = readTemplates()
-      const set = new Set<string>()
-      for (const t of templates) {
-        if (t.category) set.add(String(t.category))
-      }
-      categories = Array.from(set).sort()
-      return NextResponse.json({ data: categories })
+      const categories = ['General','Onboarding','Compliance','Accounting']
+      return NextResponse.json(categories)
     }
 
-    // If schema has category, return distinct values; else return []
-    try {
-      const tenantId = getTenantFromRequest(request as any)
-      const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), select: { category: true } as any })
-      const set = new Set<string>()
-      for (const r of rows as any[]) {
-        if (r.category) set.add(String(r.category))
-      }
-      categories = Array.from(set).sort()
-    } catch {
-      categories = []
-    }
-
-    return NextResponse.json({ data: categories })
+    const tenantId = ctx.tenantId
+    const rows = await prisma.taskTemplate.findMany({
+      where: tenantFilter(tenantId),
+      select: { category: true },
+      distinct: ['category']
+    })
+    const categories = Array.from(new Set(rows.map(r => (r as any).category).filter(Boolean)))
+    return NextResponse.json(categories)
   } catch (e) {
-    console.error('Template categories error', e)
-    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
+    console.error('GET template categories error', e)
+    return NextResponse.json({ error: 'Failed to load template categories' }, { status: 500 })
   }
-}
+})

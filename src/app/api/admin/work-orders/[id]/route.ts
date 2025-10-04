@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { z } from 'zod'
 import type { Prisma, RequestPriority, WorkOrderStatus } from '@prisma/client'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 
@@ -30,22 +30,22 @@ const UpdateSchema = z.object({
   code: z.string().optional().nullable(),
 })
 
-export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
+export const GET = withTenantContext(async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
 
   const canReadAll = hasPermission(role, PERMISSIONS.TASKS_READ_ALL)
   const canReadAssigned = hasPermission(role, PERMISSIONS.TASKS_READ_ASSIGNED)
-  if (!session?.user || (!canReadAll && !canReadAssigned)) {
+  if (!ctx.userId || (!canReadAll && !canReadAssigned)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await context.params
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   const where: Prisma.WorkOrderWhereInput = { id }
   if (isMultiTenancyEnabled() && tenantId) Object.assign(where, tenantFilter(tenantId))
-  if (!canReadAll && canReadAssigned && session?.user?.id) (where as any).assigneeId = session.user.id
+  if (!canReadAll && canReadAssigned && ctx.userId) (where as any).assigneeId = ctx.userId
 
   const row = await prisma.workOrder.findFirst({ where, include: {
     client: { select: { id: true, name: true, email: true } },
@@ -54,12 +54,12 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   } })
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ workOrder: row })
-}
+})
 
-export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
+export const PUT = withTenantContext(async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -70,11 +70,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.issues }, { status: 400 })
   }
 
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   const where: Prisma.WorkOrderWhereUniqueInput = { id }
   if (isMultiTenancyEnabled() && tenantId) {
-    // validate tenant ownership
     const exists = await prisma.workOrder.count({ where: { id, ...(tenantFilter(tenantId) as any) } })
     if (!exists) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
@@ -107,17 +106,17 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
   } })
 
   return NextResponse.json({ workOrder: updated })
-}
+})
 
-export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
+export const DELETE = withTenantContext(async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { id } = await context.params
-  const tenantId = getTenantFromRequest(request as any)
+  const tenantId = ctx.tenantId
 
   if (isMultiTenancyEnabled() && tenantId) {
     const exists = await prisma.workOrder.count({ where: { id, ...(tenantFilter(tenantId) as any) } })
@@ -126,4 +125,4 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 
   await prisma.workOrder.delete({ where: { id } })
   return NextResponse.json({ success: true })
-}
+})
