@@ -90,6 +90,8 @@ export function withTenantContext(
         tenantId: String(user.tenantId),
         tenantSlug: user.tenantSlug ?? null,
         userId: String(user.id),
+        userName: (user.name as string | undefined) ?? null,
+        userEmail: (user.email as string | undefined) ?? null,
         role: user.role ?? null,
         tenantRole: user.tenantRole ?? null,
         isSuperAdmin: user.role === 'SUPER_ADMIN',
