@@ -259,7 +259,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     }
 
     const dataObj: any = {
-      clientId: ctx.userId,
+      clientId: String(ctx.userId ?? ''),
       serviceId: (data as any).serviceId,
       title: titleToUse,
       description: (data as any).description ?? null,
