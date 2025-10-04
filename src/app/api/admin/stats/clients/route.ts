@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
@@ -40,10 +41,10 @@ export const GET = withTenantContext(async () => {
       prisma.user.count({ where: { role: 'CLIENT', tenantId, createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth } } }),
 
       // Booking statistics
-      prisma.booking.aggregate({ _count: true, where: { tenantId, /* client: { role: 'CLIENT' } */ } }),
+      prisma.booking.aggregate({ _count: true, where: { client: { tenantId } } }),
 
       // Revenue statistics (using duration as placeholder for totalAmount)
-      prisma.booking.aggregate({ _sum: { duration: true }, where: { tenantId, status: 'COMPLETED' } })
+      prisma.booking.aggregate({ _sum: { duration: true }, where: { client: { tenantId }, status: 'COMPLETED' } })
     ])
 
     // Calculate growth percentage
