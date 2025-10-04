@@ -90,7 +90,7 @@ const config = [
   // Forbid raw prisma queries in API routes (allowlist exceptions)
   {
     files: ["src/app/api/**/route.ts", "src/app/api/**/*.ts"],
-    excludedFiles: [
+    ignores: [
       "src/app/api/db-check/route.ts",
       "src/app/api/admin/system/health/route.ts",
       "src/app/api/uploads/av-callback/route.ts"
