@@ -700,3 +700,27 @@ Recent refactors:
 - [ ] Evaluate adding minimal client-side tagging only if safe and privacy-compliant
 - [x] Introduce eslint rule to flag prisma.$queryRaw/$executeRaw in src/app/api/** except allowlist (db-check, system/health, uploads/av-callback)
 - [x] Provide db.raw helper that requires explicit tenantId or explicit opt-out comment
+
+---
+
+## ✅ Completed
+- [x] Cataloged tenantId column status for Phase 2 target tables (Booking, ServiceRequest, Service, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, IdempotencyKey)
+  - **Why**: establish accurate scope for Phase 2 schema hardening
+  - **Impact**: confirmed Booking lacks tenantId and other tables remain nullable; informs migration ordering and constraints
+- [x] Reviewed existing tenant-related migrations and scripts to identify backfill coverage gaps
+  - **Why**: ensure planned migrations account for current automation
+  - **Impact**: validated absence of tenantId backfill scripts and limited CI checks, highlighting need for new tooling
+
+## ⚠️ Issues / Risks
+- No automated tenantId backfill exists; enforcing NOT NULL prematurely would break existing rows until scripts land.
+- RLS policy currently allows NULL tenantId; policy tightening must be sequenced with schema changes to avoid blocking legitimate global records.
+
+## 🚧 In Progress
+- [ ] Author comprehensive Phase 2 migration execution plan (schema deltas, backfill steps, verification gates)
+
+## 🔧 Next Steps
+- [ ] Draft SQL/Prisma queries to capture NULL tenantId counts for each Phase 2 table prior to migration.
+- [ ] Create Prisma migration adding tenantId column to Booking (nullable) with indexes and foreign key scaffolding.
+- [ ] Implement transactional backfill utility covering ServiceRequest, Booking, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
+- [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
+- [ ] Update check_prisma_tenant_columns.js and scripts/setup-rls.ts to align with new tenantId requirements.
