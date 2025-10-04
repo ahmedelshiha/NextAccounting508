@@ -70,7 +70,7 @@ SUCCESS CRITERIA CHECKLIST
 
 ---
 
-### ✅ Task 0.3: Catalog tenant-owned models and singletons (COMPLETE)
+### �� Task 0.3: Catalog tenant-owned models and singletons (COMPLETE)
 **Status:** COMPLETE
 **Priority:** P0 | **Effort:** 2d | **Deadline:** 2025-09-12
 **Subtasks:**
@@ -537,6 +537,12 @@ Version: 5.0  Last Updated: 2025-10-04
 - [x] Verified src/app/api/email/test/route.ts uses withTenantContext and admin authorization
   - **Why**: Ensure tenant context enforcement and align Phase 1.2 checklist with code reality
   - **Impact**: Endpoint is tenant-scoped; unauthorized users receive 401/403; checklist updated
+- [x] ESLint guard added to forbid getServerSession in API route files (eslint.config.mjs overrides for src/app/api/**)
+  - **Why**: Prevent regressions and enforce withTenantContext usage
+  - **Impact**: CI will fail if API routes import/call getServerSession directly
+- [x] Added integration tests for invalid tenant_sig on email test endpoint (GET/POST)
+  - **Why**: Expand tenant-mismatch coverage to communication endpoints
+  - **Impact**: Security regression tests now cover admin email test route
 
 ## ⚠️ Issues / Risks
 - Multiple API routes still reference getServerSession directly (see grep list); requires phased refactor to withTenantContext
@@ -545,6 +551,5 @@ Version: 5.0  Last Updated: 2025-10-04
 - [ ] Audit and prioritize refactors for routes using getServerSession; prepare batch plan and ESLint guard
 
 ## 🔧 Next Steps
-- [ ] Implement ESLint rule to forbid getServerSession usage in API route files
 - [ ] Start batch refactor of top-traffic endpoints to withTenantContext
-- [ ] Add integration tests for invalid/missing tenant_sig on representative routes
+- [ ] Add integration tests for invalid/missing tenant_sig on remaining representative routes
