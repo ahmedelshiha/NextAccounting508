@@ -1,8 +1,6 @@
-type PrismaModelMethod = (...args: any[]) => Promise<any>
-
 declare const vi: any
 
-type PrismaModelMethod = any
+type PrismaModelMethod = (...args: any[]) => Promise<any>
 
 type ModelMock = {
   findUnique: PrismaModelMethod
@@ -21,8 +19,7 @@ type ModelMock = {
 
 type PrismaMock = Record<string, ModelMock>
 
-function createMockMethod(defaultReturn: any) {
-  // Support vitest's vi.fn mock in test environment, otherwise provide a compatible function
+function createMockMethod(defaultReturn: any): PrismaModelMethod {
   if (typeof vi !== 'undefined' && typeof vi.fn === 'function') {
     return vi.fn(async () => defaultReturn)
   }
@@ -38,7 +35,6 @@ function createMockMethod(defaultReturn: any) {
 
   fn.mockResolvedValue = (v: any) => { resolved = v; return fn }
   fn.mockResolvedValueOnce = (v: any) => { onceQueue.push(v); return fn }
-  fn.mockResolvedValueOnceReset = () => { onceQueue = [] }
 
   return fn
 }
