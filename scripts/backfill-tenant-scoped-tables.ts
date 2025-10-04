@@ -19,8 +19,8 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT sr."id", COALESCE(u."tenantId", s."tenantId") AS tenant_id
         FROM "ServiceRequest" sr
-        LEFT JOIN "User" u ON u."id" = sr."clientId"
-        LEFT JOIN "Service" s ON s."id" = sr."serviceId"
+        LEFT JOIN "users" u ON u."id" = sr."clientId"
+        LEFT JOIN "services" s ON s."id" = sr."serviceId"
         WHERE sr."tenantId" IS NULL
       )
       UPDATE "ServiceRequest" sr
@@ -36,8 +36,8 @@ const steps: BackfillStep[] = [
         SELECT w."id", COALESCE(sr."tenantId", b."tenantId", uc."tenantId") AS tenant_id
         FROM "WorkOrder" w
         LEFT JOIN "ServiceRequest" sr ON sr."id" = w."serviceRequestId"
-        LEFT JOIN "Booking" b ON b."id" = w."bookingId"
-        LEFT JOIN "User" uc ON uc."id" = w."clientId"
+        LEFT JOIN "bookings" b ON b."id" = w."bookingId"
+        LEFT JOIN "users" uc ON uc."id" = w."clientId"
         WHERE w."tenantId" IS NULL
       )
       UPDATE "WorkOrder" w
@@ -51,12 +51,12 @@ const steps: BackfillStep[] = [
     sql: `
       WITH source AS (
         SELECT i."id", COALESCE(b."tenantId", u."tenantId") AS tenant_id
-        FROM "Invoice" i
-        LEFT JOIN "Booking" b ON b."id" = i."bookingId"
-        LEFT JOIN "User" u ON u."id" = i."clientId"
+        FROM "invoices" i
+        LEFT JOIN "bookings" b ON b."id" = i."bookingId"
+        LEFT JOIN "users" u ON u."id" = i."clientId"
         WHERE i."tenantId" IS NULL
       )
-      UPDATE "Invoice" i
+      UPDATE "invoices" i
       SET "tenantId" = source.tenant_id
       FROM source
       WHERE i."id" = source."id" AND source.tenant_id IS NOT NULL;
@@ -67,11 +67,11 @@ const steps: BackfillStep[] = [
     sql: `
       WITH source AS (
         SELECT e."id", u."tenantId" AS tenant_id
-        FROM "Expense" e
-        LEFT JOIN "User" u ON u."id" = e."userId"
+        FROM "expenses" e
+        LEFT JOIN "users" u ON u."id" = e."userId"
         WHERE e."tenantId" IS NULL
       )
-      UPDATE "Expense" e
+      UPDATE "expenses" e
       SET "tenantId" = source.tenant_id
       FROM source
       WHERE e."id" = source."id" AND source.tenant_id IS NOT NULL;
@@ -113,7 +113,7 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT c."id", u."tenantId" AS tenant_id
         FROM "chat_messages" c
-        LEFT JOIN "User" u ON u."id" = c."userId"
+        LEFT JOIN "users" u ON u."id" = c."userId"
         WHERE c."tenantId" IS NULL
       )
       UPDATE "chat_messages" c
@@ -143,7 +143,7 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT ik."id", u."tenantId" AS tenant_id
         FROM "IdempotencyKey" ik
-        LEFT JOIN "User" u ON u."id" = ik."userId"
+        LEFT JOIN "users" u ON u."id" = ik."userId"
         WHERE ik."tenantId" IS NULL
       )
       UPDATE "IdempotencyKey" ik
@@ -157,8 +157,8 @@ const steps: BackfillStep[] = [
 const remainingChecks: RemainingCheck[] = [
   { table: 'ServiceRequest', column: 'tenantId' },
   { table: 'WorkOrder', column: 'tenantId' },
-  { table: 'Invoice', column: 'tenantId' },
-  { table: 'Expense', column: 'tenantId' },
+  { table: 'invoices', column: 'tenantId' },
+  { table: 'expenses', column: 'tenantId' },
   { table: 'Attachment', column: 'tenantId' },
   { table: 'ScheduledReminder', column: 'tenantId' },
   { table: 'chat_messages', column: 'tenantId' },
