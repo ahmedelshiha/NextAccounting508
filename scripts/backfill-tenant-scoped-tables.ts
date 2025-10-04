@@ -36,7 +36,7 @@ const steps: BackfillStep[] = [
         SELECT w."id", COALESCE(sr."tenantId", b."tenantId", uc."tenantId") AS tenant_id
         FROM "WorkOrder" w
         LEFT JOIN "ServiceRequest" sr ON sr."id" = w."serviceRequestId"
-        LEFT JOIN "Booking" b ON b."id" = w."bookingId"
+        LEFT JOIN "bookings" b ON b."id" = w."bookingId"
         LEFT JOIN "User" uc ON uc."id" = w."clientId"
         WHERE w."tenantId" IS NULL
       )
