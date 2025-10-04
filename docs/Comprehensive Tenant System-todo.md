@@ -282,7 +282,7 @@ Enforcement map (current)
 - [x] Refactor `src/app/api/admin/services/[id]/route.ts` — service item routes updated to use tenant context.
 
 Pending refactor: admin & portal routes (to update to withTenantContext)
-- [ ] src/app/api/admin/task-settings/export/route.ts
+- [x] src/app/api/admin/task-settings/export/route.ts
 - [ ] src/app/api/admin/task-settings/import/route.ts
 - [ ] src/app/api/admin/security-settings/route.ts
 - [ ] src/app/api/admin/analytics/route.ts
