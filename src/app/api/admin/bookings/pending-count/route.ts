@@ -1,48 +1,27 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
+    const ctx = requireTenantContext()
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const allowed = ['ADMIN', 'TEAM_LEAD']
+    if (!ctx.role || !allowed.includes(ctx.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Check if user has admin permissions
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id as string },
-      select: { role: true }
-    })
-
-    if (!user || !['ADMIN', 'TEAM_LEAD'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
+    const where: any = { status: 'PENDING' }
+    if (ctx.tenantId && ctx.tenantId !== 'undefined') {
+      where.client = { tenantId: String(ctx.tenantId) }
     }
 
-    // Count pending bookings
-    const count = await prisma.booking.count({
-      where: {
-        status: 'PENDING'
-      }
-    })
+    const count = await prisma.booking.count({ where })
 
-    return NextResponse.json({
-      success: true,
-      count
-    })
+    return NextResponse.json({ success: true, count })
   } catch (error) {
     console.error('Error fetching pending bookings count:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})

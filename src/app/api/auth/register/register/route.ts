@@ -2,17 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { logAudit } from '@/lib/audit'
 import { getResolvedTenantId, userByTenantEmail, withTenant } from '@/lib/tenant'
-
 import { registerSchema } from '@/schemas/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
     const body = await request.json()
-    
+
     // Validate input
     const validatedData = registerSchema.parse(body)
     const { name, email, password } = validatedData
@@ -53,8 +52,9 @@ export async function POST(request: NextRequest) {
     })
 
     try {
-      const session = await getServerSession(authOptions)
-      await logAudit({ action: 'admin:client:create', actorId: session?.user?.id ?? null, targetId: user.id, details: { email: user.email, name: user.name } })
+      // audit using tenant context if available
+      const ctx = requireTenantContext()
+      await logAudit({ action: 'admin:client:create', actorId: ctx.userId ?? null, targetId: user.id, details: { email: user.email, name: user.name } })
     } catch {}
 
     return NextResponse.json(
@@ -78,4 +78,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

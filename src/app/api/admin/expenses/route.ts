@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { parseListQuery } from '@/schemas/list-query'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 
 const EXPENSE_STATUSES = ['PENDING', 'APPROVED', 'REIMBURSED', 'REJECTED'] as const
 
@@ -41,10 +41,10 @@ function parseDate(value: string | null): Date | undefined {
   return Number.isFinite(d.getTime()) ? d : undefined
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.ANALYTICS_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx?.userId || !hasPermission(ctx.role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -62,10 +62,10 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const dateFrom = parseDate(searchParams.get('dateFrom'))
     const dateTo = parseDate(searchParams.get('dateTo'))
-    const tenantId = requireTenantContext().tenantId
+    const tenantId = ctx.tenantId
 
     const where: Prisma.ExpenseWhereInput = {
-      ...(tenantFilter(tenantId) as Prisma.ExpenseWhereInput),
+      ...(isMultiTenancyEnabled() && tenantId ? tenantFilter(tenantId) as Prisma.ExpenseWhereInput : {}),
     }
 
     if (status && status !== 'all') {
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching expenses:', error)
     return NextResponse.json({ error: 'Failed to fetch expenses' }, { status: 500 })
   }
-}
+})
 
 export const POST = withTenantContext(async (request: NextRequest) => {
   try {
@@ -171,10 +171,10 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   }
 })
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx?.userId || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -187,13 +187,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const tenantId = requireTenantContext().tenantId
-  const where: Prisma.ExpenseWhereInput = {
+    const tenantId = ctx.tenantId
+    const where: Prisma.ExpenseWhereInput = {
       id: { in: parsed.data.expenseIds },
     }
 
     if (isMultiTenancyEnabled() && tenantId) {
-      Object.assign(where, getTenantFilter() as any)
+      Object.assign(where, getTenantFilter())
     }
 
     const result = await prisma.expense.deleteMany({ where })
@@ -202,4 +202,4 @@ export async function DELETE(request: NextRequest) {
     console.error('Error deleting expenses:', error)
     return NextResponse.json({ error: 'Failed to delete expenses' }, { status: 500 })
   }
-}
+})

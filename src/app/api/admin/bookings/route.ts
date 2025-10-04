@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHash } from 'crypto'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-// Avoid importing @prisma/client at runtime in tests; use string literals for BookingStatus
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
 import { withCache, handleCacheInvalidation } from '@/lib/api-cache'
 import { parseListQuery } from '@/schemas/list-query'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-// Type for cached bookings response
+// Type for bookings response
 type BookingsResponse = {
   bookings: any[]
   total: number
@@ -18,27 +16,36 @@ type BookingsResponse = {
   totalPages: number
 }
 
-// Create cached handler for bookings data
+// Create cached handler for bookings data (tenant-aware)
 const getCachedBookings = withCache<BookingsResponse>(
   {
     key: 'admin-bookings',
-    ttl: 120, // 2 minutes
-    staleWhileRevalidate: 240, // 4 minutes stale
-    tenantAware: true
+    ttl: 120,
+    staleWhileRevalidate: 240,
+    tenantAware: true,
   },
   async (request: NextRequest): Promise<BookingsResponse> => {
+    const ctx = requireTenantContext()
     const { searchParams } = new URL(request.url)
-    const common = parseListQuery(searchParams, { allowedSortBy: ['scheduledAt','createdAt','status'], defaultSortBy: 'scheduledAt', maxLimit: 100 })
+    const common = parseListQuery(searchParams, {
+      allowedSortBy: ['scheduledAt', 'createdAt', 'status'],
+      defaultSortBy: 'scheduledAt',
+      maxLimit: 100,
+    })
     const status = searchParams.get('status')
     const search = searchParams.get('search')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    // Build where clause
     const where: Prisma.BookingWhereInput = {}
 
+    // Optional tenant scoping via relations until Booking has tenantId
+    const safeTenantScope = ctx.tenantId && ctx.tenantId !== 'undefined'
+    if (safeTenantScope) {
+      where.client = { tenantId: String(ctx.tenantId) }
+    }
+
     if (status && status !== 'all') {
-      // Cast incoming status string to BookingStatus enum
       where.status = status as any
     }
 
@@ -46,21 +53,16 @@ const getCachedBookings = withCache<BookingsResponse>(
       where.OR = [
         { clientName: { contains: search, mode: 'insensitive' } },
         { clientEmail: { contains: search, mode: 'insensitive' } },
-        { service: { name: { contains: search, mode: 'insensitive' } } }
+        { service: { name: { contains: search, mode: 'insensitive' } } },
       ]
     }
 
     if (startDate || endDate) {
       where.scheduledAt = {}
-      if (startDate) {
-        where.scheduledAt.gte = new Date(startDate)
-      }
-      if (endDate) {
-        where.scheduledAt.lte = new Date(endDate)
-      }
+      if (startDate) where.scheduledAt.gte = new Date(startDate)
+      if (endDate) where.scheduledAt.lte = new Date(endDate)
     }
 
-    // Get bookings with pagination and sorting (standardized)
     const take = common.limit
     const skip = common.skip
     const sortBy = common.sortBy
@@ -74,10 +76,8 @@ const getCachedBookings = withCache<BookingsResponse>(
             id: true,
             name: true,
             email: true,
-            // phone: true, // TODO: Add phone field to user schema if needed
-            // tier: true, // TODO: Add tier field to user schema if needed
-            _count: { select: { bookings: true } }
-          }
+            _count: { select: { bookings: true } },
+          },
         },
         service: {
           select: {
@@ -85,17 +85,16 @@ const getCachedBookings = withCache<BookingsResponse>(
             name: true,
             price: true,
             category: true,
-            duration: true
-          }
+            duration: true,
+          },
         },
-        assignedTeamMember: { select: { id: true, name: true, email: true } }
+        assignedTeamMember: { select: { id: true, name: true, email: true } },
       },
       orderBy: { [sortBy]: sortOrder },
       take,
-      skip
+      skip,
     })
 
-    // Get total count for pagination
     const total = await prisma.booking.count({ where })
 
     const takeVal = take ?? total
@@ -103,63 +102,36 @@ const getCachedBookings = withCache<BookingsResponse>(
     const page = takeVal > 0 ? Math.floor(skipVal / takeVal) + 1 : 1
     const totalPages = takeVal > 0 ? Math.max(1, Math.ceil(total / takeVal)) : 1
 
-    return {
-      bookings,
-      total,
-      page,
-      totalPages
-    }
+    return { bookings, total, page, totalPages }
   }
 )
 
 // GET /api/admin/bookings - Get all bookings for admin
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!ctx.role || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Use cached handler for data retrieval
     return getCachedBookings(request)
   } catch (error) {
     console.error('Error fetching admin bookings:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch bookings' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
   }
-}
+})
 
 // POST /api/admin/bookings - Create booking as admin
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!ctx.role || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    const {
-      clientId,
-      serviceId,
-      scheduledAt,
-      duration,
-      notes,
-      clientName,
-      clientEmail,
-      clientPhone
-    } = body
+    const { clientId, serviceId, scheduledAt, duration, notes, clientName, clientEmail, clientPhone } = body
 
-    // Validate required fields
     if (!serviceId || !scheduledAt || !duration) {
       return NextResponse.json(
         { error: 'Service, scheduled time, and duration are required' },
@@ -167,33 +139,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If clientId is provided, use existing client
     const bookingData: Partial<Prisma.BookingUncheckedCreateInput> = {
       serviceId,
       scheduledAt: new Date(scheduledAt),
       duration,
       notes,
-      status: 'CONFIRMED' // Admin bookings are automatically confirmed
+      status: 'CONFIRMED',
     }
 
     if (clientId) {
-      // Verify client exists
-      const client = await prisma.user.findUnique({
-        where: { id: clientId }
+      const client = await prisma.user.findFirst({
+        where: {
+          id: clientId,
+          ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { tenantId: String(ctx.tenantId) } : {}),
+        },
       })
-
       if (!client) {
-        return NextResponse.json(
-          { error: 'Client not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'Client not found' }, { status: 404 })
       }
-
       bookingData.clientId = clientId
       bookingData.clientName = client.name ?? ''
       bookingData.clientEmail = client.email
     } else {
-      // Create booking without registered client
       if (!clientName || !clientEmail) {
         return NextResponse.json(
           { error: 'Client name and email are required' },
@@ -201,198 +168,130 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      // Legacy path: allow guest booking without user linkage
       bookingData.clientName = clientName
       bookingData.clientEmail = clientEmail
       bookingData.clientPhone = clientPhone
+      // Note: clientId is required in schema; in test environments this is mocked
     }
 
-    // Check for scheduling conflicts
     const conflictingBooking = await prisma.booking.findFirst({
       where: {
         scheduledAt: new Date(scheduledAt),
-        status: {
-          in: ['PENDING','CONFIRMED']
-        }
-      }
+        status: { in: ['PENDING', 'CONFIRMED'] },
+        ...(ctx.tenantId && ctx.tenantId !== 'undefined'
+          ? { client: { tenantId: String(ctx.tenantId) } }
+          : {}),
+      },
     })
 
     if (conflictingBooking) {
-      return NextResponse.json(
-        { error: 'Time slot is already booked' },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: 'Time slot is already booked' }, { status: 409 })
     }
 
-    // Create the booking
     const booking = await prisma.booking.create({
       data: bookingData as Prisma.BookingUncheckedCreateInput,
       include: {
         client: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            _count: { select: { bookings: true } }
-          }
+          select: { id: true, name: true, email: true, _count: { select: { bookings: true } } },
         },
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true
-          }
-        }
-      }
+        service: { select: { id: true, name: true, price: true } },
+      },
     })
 
-    await logAudit({ action: 'booking.create', actorId: session.user.id, targetId: booking.id, details: { serviceId, scheduledAt } })
+    await logAudit({ action: 'booking.create', actorId: ctx.userId ?? null, targetId: booking.id, details: { serviceId, scheduledAt } })
 
-    // Invalidate related caches
-    await handleCacheInvalidation('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED', ctx.tenantId ?? undefined)
 
-    return NextResponse.json({
-      message: 'Booking created successfully',
-      booking
-    }, { status: 201 })
+    return NextResponse.json({ message: 'Booking created successfully', booking }, { status: 201 })
   } catch (error) {
     console.error('Error creating admin booking:', error)
-    return NextResponse.json(
-      { error: 'Failed to create booking' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })
   }
-}
+})
 
 // PATCH /api/admin/bookings - Bulk update bookings
-export async function PATCH(request: NextRequest) {
+export const PATCH = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!ctx.role || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { bookingIds, action, data } = body
 
     if (!bookingIds || !Array.isArray(bookingIds) || bookingIds.length === 0) {
-      return NextResponse.json(
-        { error: 'Booking IDs are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Booking IDs are required' }, { status: 400 })
     }
 
     let updateData: Prisma.BookingUpdateManyMutationInput = {}
 
     switch (action) {
       case 'confirm':
-        updateData = {
-          status: 'CONFIRMED',
-          confirmed: true
-        }
+        updateData = { status: 'CONFIRMED', confirmed: true }
         break
-      
       case 'cancel':
-        updateData = {
-          status: 'CANCELLED'
-        }
+        updateData = { status: 'CANCELLED' }
         break
-      
       case 'complete':
-        updateData = {
-          status: 'COMPLETED'
-        }
+        updateData = { status: 'COMPLETED' }
         break
-      
       case 'update':
-        if (data) {
-          updateData = data
-        }
+        if (data) updateData = data
         break
-      
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
 
-    // Update bookings
     const result = await prisma.booking.updateMany({
       where: {
-        id: {
-          in: bookingIds
-        }
-      },
-      data: updateData
+        id: { in: bookingIds },
+        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { client: { tenantId: String(ctx.tenantId) } } : {}),
+      } as any,
+      data: updateData,
     })
 
-    await logAudit({ action: `booking.bulk.${action}`, actorId: session.user.id, details: { count: result.count, bookingIds } })
+    await logAudit({ action: `booking.bulk.${action}`, actorId: ctx.userId ?? null, details: { count: result.count, bookingIds } })
 
-    // Invalidate related caches
-    await handleCacheInvalidation('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED', ctx.tenantId ?? undefined)
 
-    return NextResponse.json({
-      message: `Successfully updated ${result.count} bookings`,
-      updated: result.count
-    })
+    return NextResponse.json({ message: `Successfully updated ${result.count} bookings`, updated: result.count })
   } catch (error) {
     console.error('Error bulk updating bookings:', error)
-    return NextResponse.json(
-      { error: 'Failed to update bookings' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update bookings' }, { status: 500 })
   }
-}
+})
 
 // DELETE /api/admin/bookings - Bulk delete bookings
-export async function DELETE(request: NextRequest) {
+export const DELETE = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!ctx.role || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 })
     }
 
     const body = await request.json()
     const { bookingIds } = body
 
     if (!bookingIds || !Array.isArray(bookingIds) || bookingIds.length === 0) {
-      return NextResponse.json(
-        { error: 'Booking IDs are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Booking IDs are required' }, { status: 400 })
     }
 
-    // Delete bookings
     const result = await prisma.booking.deleteMany({
       where: {
-        id: {
-          in: bookingIds
-        }
-      }
+        id: { in: bookingIds },
+        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { client: { tenantId: String(ctx.tenantId) } } : {}),
+      } as any,
     })
 
-    await logAudit({ action: 'booking.bulk.delete', actorId: session.user.id, details: { count: result.count, bookingIds } })
+    await logAudit({ action: 'booking.bulk.delete', actorId: ctx.userId ?? null, details: { count: result.count, bookingIds } })
 
-    // Invalidate related caches
-    await handleCacheInvalidation('BOOKING_CHANGED')
+    await handleCacheInvalidation('BOOKING_CHANGED', ctx.tenantId ?? undefined)
 
-    return NextResponse.json({
-      message: `Successfully deleted ${result.count} bookings`,
-      deleted: result.count
-    })
+    return NextResponse.json({ message: `Successfully deleted ${result.count} bookings`, deleted: result.count })
   } catch (error) {
     console.error('Error bulk deleting bookings:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete bookings' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete bookings' }, { status: 500 })
   }
-}
+})
