@@ -139,6 +139,7 @@ model Tenant {
   tasks                Task[]
   complianceRecords    ComplianceRecord[]
   healthLogs           HealthLog[]
+  bookingSettings      BookingSettings?
   organizationSettings OrganizationSettings?
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
