@@ -143,7 +143,7 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT ik."id", u."tenantId" AS tenant_id
         FROM "IdempotencyKey" ik
-        LEFT JOIN "User" u ON u."id" = ik."userId"
+        LEFT JOIN "users" u ON u."id" = ik."userId"
         WHERE ik."tenantId" IS NULL
       )
       UPDATE "IdempotencyKey" ik
