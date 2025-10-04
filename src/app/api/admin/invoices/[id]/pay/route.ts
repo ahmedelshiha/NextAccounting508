@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
+import { tenantFilter } from '@/lib/tenant'
 
-export async function POST(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export const POST = withTenantContext(async (_request: NextRequest, context: { params: Promise<{ id: string }> }) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -16,7 +17,7 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
 
     const { id } = await context.params
-    const existing = await prisma.invoice.findUnique({ where: { id } })
+    const existing = await prisma.invoice.findFirst({ where: { id, ...tenantFilter(ctx.tenantId) } })
     if (!existing) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
 
     if ((existing as any).status === 'PAID') {
@@ -24,11 +25,11 @@ export async function POST(_request: NextRequest, context: { params: Promise<{ i
     }
 
     const updated = await prisma.invoice.update({ where: { id }, data: { status: 'PAID' as any, paidAt: new Date() } })
-    await logAudit({ action: 'invoice.pay', actorId: session.user.id, targetId: id })
+    await logAudit({ action: 'invoice.pay', actorId: ctx.userId ?? null, targetId: id })
 
     return NextResponse.json({ message: 'Invoice marked as paid', invoice: updated })
   } catch (error) {
     console.error('Error marking invoice paid:', error)
     return NextResponse.json({ error: 'Failed to mark invoice as paid' }, { status: 500 })
   }
-}
+})

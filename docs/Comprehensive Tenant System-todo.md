@@ -132,8 +132,8 @@ SUCCESS CRITERIA CHECKLIST
 - [ ] src/app/api/admin/chat/route.ts
 - [x] src/app/api/admin/auth/logout/route.ts
 - [ ] src/app/api/admin/calendar/route.ts
-- [ ] src/app/api/admin/communication-settings/**
-- [ ] src/app/api/admin/invoices/**
+- [x] src/app/api/admin/communication-settings/**
+- [x] src/app/api/admin/invoices/**
 - [x] src/app/api/admin/team-management/**
 - [ ] src/app/api/admin/thresholds/route.ts
 - [x] src/app/api/admin/permissions/**
