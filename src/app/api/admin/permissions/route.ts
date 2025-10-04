@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { PERMISSIONS, ROLE_PERMISSIONS, hasPermission } from '@/lib/permissions'
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+export const GET = withTenantContext(async () => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -21,4 +21,4 @@ export async function GET() {
       rolePermissions: ROLE_PERMISSIONS,
     },
   })
-}
+})

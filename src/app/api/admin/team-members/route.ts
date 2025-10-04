@@ -1,21 +1,23 @@
 import prisma from '@/lib/prisma'
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
     const rows = await prisma.teamMember.findMany({
       orderBy: { name: 'asc' },
-      include: { user: { select: { id: true, name: true, email: true, role: true } } }
+      include: { user: { select: { id: true, name: true, email: true, role: true } } },
     })
-    let teamMembers = rows.map(r => ({
+
+    let teamMembers = rows.map((r) => ({
       id: r.id,
       userId: r.userId || r.user?.id || null,
       name: r.name,
@@ -32,11 +34,11 @@ export async function GET() {
     if (!teamMembers.length) {
       try {
         const users = await prisma.user.findMany({
-          where: { role: { in: ['ADMIN','TEAM_MEMBER','TEAM_LEAD'] as any } },
+          where: { role: { in: ['ADMIN', 'TEAM_MEMBER', 'TEAM_LEAD'] as any } },
           orderBy: { createdAt: 'desc' },
-          select: { id: true, name: true, email: true, role: true }
+          select: { id: true, name: true, email: true, role: true },
         })
-        teamMembers = users.map(u => ({
+        teamMembers = users.map((u) => ({
           id: `user_${u.id}`,
           userId: u.id,
           name: u.name || u.email || 'User',
@@ -57,13 +59,13 @@ export async function GET() {
     console.error('GET /api/admin/team-members error', err)
     return NextResponse.json({ error: 'Failed to list team members' }, { status: 500 })
   }
-}
+})
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await req.json().catch(() => ({}))
@@ -75,4 +77,4 @@ export async function POST(req: Request) {
     console.error('POST /api/admin/team-members error', err)
     return NextResponse.json({ error: 'Failed to create team member' }, { status: 500 })
   }
-}
+})

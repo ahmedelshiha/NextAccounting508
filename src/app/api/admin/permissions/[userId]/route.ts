@@ -1,13 +1,13 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { ROLE_PERMISSIONS, PERMISSIONS, hasPermission } from '@/lib/permissions'
-import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(_req: NextRequest, context: { params: Promise<{ userId: string }> }) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+export const GET = withTenantContext(async (_req: Request, context: { params: Promise<{ userId: string }> }) => {
+  const ctx = requireTenantContext()
+  const roleCheck = ctx.role ?? undefined
+  if (!hasPermission(roleCheck, PERMISSIONS.ANALYTICS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -18,20 +18,19 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ userId
 
     let user: any = null
     if (isMe) {
-      const sUser = session.user as any
-      user = { id: String(sUser.id ?? ''), role: sUser.role ?? 'CLIENT', name: sUser.name ?? null, email: sUser.email ?? null }
+      const sUserId = ctx.userId ?? ''
+      user = { id: String(sUserId), role: ctx.role ?? 'CLIENT', name: ctx.userName ?? null, email: ctx.userEmail ?? null }
     } else {
-      const id = BigInt(idStr)
-      const dbUser = await prisma.user.findUnique({ where: { id } as any, select: { id: true, role: true, name: true, email: true } })
+      const dbUser = await prisma.user.findUnique({ where: { id: BigInt(idStr) } as any, select: { id: true, role: true, name: true, email: true } })
       if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
       user = { ...dbUser, id: dbUser.id.toString() }
     }
 
-    const role = user.role as keyof typeof ROLE_PERMISSIONS
-    const permissions = ROLE_PERMISSIONS[role] ?? []
+    const roleKey = user.role as keyof typeof ROLE_PERMISSIONS
+    const permissions = ROLE_PERMISSIONS[roleKey] ?? []
 
     return NextResponse.json({ success: true, data: { user, permissions } })
   } catch (error) {
     return NextResponse.json({ error: 'Failed to load permissions' }, { status: 500 })
   }
-}
+})

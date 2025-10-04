@@ -1,88 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import type { BookingStatus } from '@prisma/client'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { sendBookingConfirmation } from '@/lib/email'
 
 // POST /api/bookings/[id]/confirm - Confirm booking and send email
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export const POST = withTenantContext(async (request: NextRequest, context: { params: Promise<{ id: string }> }) => {
   try {
     const { id } = await context.params
-    const session = await getServerSession(authOptions)
+    const ctx = requireTenantContext()
+    if (!ctx.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    if (!['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'STAFF'].includes(ctx.role ?? '')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Only admin/team roles can confirm bookings
-    if (!['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'STAFF'].includes(session.user?.role ?? '')) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
-    }
+    const booking = await prisma.booking.findUnique({ where: { id }, include: { client: { select: { id: true, name: true, email: true } }, service: { select: { id: true, name: true, price: true } } } })
 
-    // Get booking with related data
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        client: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true
-          }
-        }
-      }
-    })
+    if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      )
-    }
+    const updatedBooking = await prisma.booking.update({ where: { id }, data: { status: 'CONFIRMED', confirmed: true }, include: { client: { select: { id: true, name: true, email: true } }, service: { select: { id: true, name: true, price: true } } } })
 
-    // Update booking status to confirmed
-    const updatedBooking = await prisma.booking.update({
-      where: { id },
-      data: {
-        status: 'CONFIRMED',
-        confirmed: true
-      },
-      include: {
-        client: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true
-          }
-        }
-      }
-    })
-
-    // Send confirmation email
     try {
       await sendBookingConfirmation({
         id: updatedBooking.id,
@@ -90,24 +29,15 @@ export async function POST(
         duration: updatedBooking.duration,
         clientName: updatedBooking.clientName,
         clientEmail: updatedBooking.clientEmail,
-        service: {
-          name: updatedBooking.service.name,
-          price: updatedBooking.service.price ? Number(updatedBooking.service.price) : 0
-        }
+        service: { name: updatedBooking.service.name, price: updatedBooking.service.price ? Number(updatedBooking.service.price) : 0 },
       })
     } catch (emailError) {
       console.error('Failed to send confirmation email:', emailError)
     }
 
-    return NextResponse.json({
-      message: 'Booking confirmed successfully',
-      booking: updatedBooking
-    })
+    return NextResponse.json({ message: 'Booking confirmed successfully', booking: updatedBooking })
   } catch (error) {
     console.error('Error confirming booking:', error)
-    return NextResponse.json(
-      { error: 'Failed to confirm booking' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to confirm booking' }, { status: 500 })
   }
-}
+})

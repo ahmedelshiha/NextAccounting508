@@ -1,33 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { sendEmail, sendBookingConfirmation, sendBookingReminder } from '@/lib/email'
 
 // POST /api/email/test - Test email functionality (admin only)
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    
-    // Only allow admins to test emails
-    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if ((ctx.role ?? '') !== 'ADMIN' && !ctx.isSuperAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { type, email, ...params } = body
+    const body = await request.json().catch(() => ({}))
+    const { type, email, ...params } = body as any
 
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email address is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email address is required' }, { status: 400 })
     }
 
-    let result
-    
+    let result: any
+
     switch (type) {
       case 'basic':
         result = await sendEmail({
@@ -47,26 +39,21 @@ export async function POST(request: NextRequest) {
       case 'booking_confirmation':
         result = await sendBookingConfirmation({
           id: 'test-booking-id',
-          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           duration: 60,
           clientName: params.clientName || 'Test Client',
           clientEmail: email,
-          service: {
-            name: params.serviceName || 'Test Service',
-            price: params.price || 150
-          }
+          service: { name: params.serviceName || 'Test Service', price: params.price || 150 }
         })
         break
 
       case 'booking_reminder':
         result = await sendBookingReminder({
           id: 'test-booking-id',
-          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           clientName: params.clientName || 'Test Client',
           clientEmail: email,
-          service: {
-            name: params.serviceName || 'Test Service'
-          }
+          service: { name: params.serviceName || 'Test Service' }
         })
         break
 
@@ -105,80 +92,39 @@ export async function POST(request: NextRequest) {
         break
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid email type. Supported types: basic, booking_confirmation, booking_reminder, contact_confirmation, newsletter_welcome' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Invalid email type. Supported types: basic, booking_confirmation, booking_reminder, contact_confirmation, newsletter_welcome' }, { status: 400 })
     }
 
     const mockFlag = !!(result && typeof result === 'object' && 'mock' in (result as Record<string, unknown>) && (result as Record<string, unknown>).mock)
-    return NextResponse.json({
-      message: `Test email sent successfully to ${email}`,
-      type,
-      result: mockFlag ? 'Email logged to console (no SendGrid configured)' : 'Email sent via SendGrid'
-    })
+    return NextResponse.json({ message: `Test email sent successfully to ${email}`, type, result: mockFlag ? 'Email logged to console (no SendGrid configured)' : 'Email sent via SendGrid' })
   } catch (error) {
     console.error('Test email error:', error)
-    return NextResponse.json(
-      { error: 'Failed to send test email', details: (error as Error).message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to send test email', details: (error as Error).message }, { status: 500 })
   }
-}
+})
 
 // GET /api/email/test - Get email test options
-export async function GET(request: NextRequest) {
-  void request
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+export const GET = withTenantContext(async (request: NextRequest) => {
+  const ctx = requireTenantContext()
+  if ((ctx.role ?? '') !== 'ADMIN' && !ctx.isSuperAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
+  try {
     return NextResponse.json({
       message: 'Email testing endpoint',
       types: [
-        {
-          type: 'basic',
-          description: 'Basic test email',
-          required_params: ['email']
-        },
-        {
-          type: 'booking_confirmation',
-          description: 'Booking confirmation email with calendar attachment',
-          required_params: ['email'],
-          optional_params: ['clientName', 'serviceName', 'price']
-        },
-        {
-          type: 'booking_reminder',
-          description: 'Booking reminder email',
-          required_params: ['email'],
-          optional_params: ['clientName', 'serviceName']
-        },
-        {
-          type: 'contact_confirmation',
-          description: 'Contact form confirmation email',
-          required_params: ['email'],
-          optional_params: ['name', 'message']
-        },
-        {
-          type: 'newsletter_welcome',
-          description: 'Newsletter welcome email',
-          required_params: ['email']
-        }
+        { type: 'basic', description: 'Basic test email', required_params: ['email'] },
+        { type: 'booking_confirmation', description: 'Booking confirmation email with calendar attachment', required_params: ['email'], optional_params: ['clientName', 'serviceName', 'price'] },
+        { type: 'booking_reminder', description: 'Booking reminder email', required_params: ['email'], optional_params: ['clientName', 'serviceName'] },
+        { type: 'contact_confirmation', description: 'Contact form confirmation email', required_params: ['email'], optional_params: ['name', 'message'] },
+        { type: 'newsletter_welcome', description: 'Newsletter welcome email', required_params: ['email'] },
       ],
       sendgrid_configured: !!process.env.SENDGRID_API_KEY,
       from_email: process.env.FROM_EMAIL || 'noreply@accountingfirm.com'
     })
   } catch (error) {
     console.error('Email test info error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get email test info' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to get email test info' }, { status: 500 })
   }
-}
+})

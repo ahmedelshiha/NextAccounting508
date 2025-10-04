@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
 // GET /api/admin/activity?type=AUDIT&status=INFO&q=text&page=1&limit=20
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ANALYTICS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const tenantId = getTenantFromRequest(request as unknown as Request)
+    const tenantId = ctx.tenantId ?? null
     const limitParam = searchParams.get('limit')
     const pageParam = searchParams.get('page')
     const statusParam = searchParams.get('status')
@@ -30,7 +29,6 @@ export async function GET(request: NextRequest) {
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
 
-    // Fallback (no DB): return a small, filtered, paginated demo set
     if (!hasDb) {
       const all = [
         { id: 'a1', checkedAt: new Date().toISOString(), service: type, status: 'INFO', message: JSON.stringify({ action: 'demo.action', details: {} }) },
@@ -62,18 +60,10 @@ export async function GET(request: NextRequest) {
       prisma.healthLog.findMany({ where, orderBy: { checkedAt: 'desc' }, skip, take }),
     ])
 
-    return NextResponse.json({
-      data: logs,
-      pagination: {
-        page,
-        limit: take,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / take)),
-      },
-    })
+    return NextResponse.json({ data: logs, pagination: { page, limit: take, total, totalPages: Math.max(1, Math.ceil(total / take)) } })
   } catch (error) {
     try { const { captureError } = await import('@/lib/observability'); await captureError(error, { tags: { route: 'admin/activity' } }) } catch {}
     console.error('Activity API error:', error)
     return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 })
   }
-}
+})

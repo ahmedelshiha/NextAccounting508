@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
@@ -12,10 +12,11 @@ function parseDate(value: string | null): Date | undefined {
   return Number.isFinite(d.getTime()) ? d : undefined
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_VIEW)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -66,12 +67,13 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching invoices:', error)
     return NextResponse.json({ error: 'Failed to fetch invoices' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -116,22 +118,23 @@ export async function POST(request: NextRequest) {
         status: 'UNPAID' as any,
         items: itemRows.length ? { create: itemRows } : undefined,
       },
-      include: { items: true }
+      include: { items: true },
     })
 
-    await logAudit({ action: 'invoice.create', actorId: (session.user as any).id, targetId: invoice.id, details: { bookingId, totalCents } })
+    await logAudit({ action: 'invoice.create', actorId: ctx.userId ?? null, targetId: invoice.id, details: { bookingId, totalCents } })
 
     return NextResponse.json({ message: 'Invoice created', invoice }, { status: 201 })
   } catch (error) {
     console.error('Error creating invoice:', error)
     return NextResponse.json({ error: 'Failed to create invoice' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -145,10 +148,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     const result = await prisma.invoice.deleteMany({ where: { id: { in: invoiceIds } } })
-    await logAudit({ action: 'invoice.bulk.delete', actorId: (session.user as any).id, details: { count: result.count } })
+    await logAudit({ action: 'invoice.bulk.delete', actorId: ctx.userId ?? null, details: { count: result.count } })
     return NextResponse.json({ message: `Deleted ${result.count} invoices`, deleted: result.count })
   } catch (error) {
     console.error('Error deleting invoices:', error)
     return NextResponse.json({ error: 'Failed to delete invoices' }, { status: 500 })
   }
-}
+})
