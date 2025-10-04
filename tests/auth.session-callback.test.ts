@@ -9,6 +9,10 @@ const prismaStub = new Proxy(
   }
 )
 
+vi.mock('@next-auth/prisma-adapter', () => ({
+  PrismaAdapter: vi.fn(() => ({})),
+}))
+
 vi.mock('@/lib/prisma', () => ({
   __esModule: true,
   default: prismaStub,
