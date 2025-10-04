@@ -102,7 +102,7 @@ export default function StandardPage({
 
   return (
     <div className="-mt-4 -mx-6 px-6">
-      <PageHeader title={title} subtitle={subtitle} primaryAction={primaryAction} secondaryActions={secondaryActions} />
+      <PageHeader title={title} subtitle={subtitle} primaryAction={primaryActionSanitized} secondaryActions={safeSecondaryActions} />
 
       {primaryTabs.length > 0 && onPrimaryTabChange && (
         <PrimaryTabs tabs={primaryTabs} active={activePrimaryTab} onChange={onPrimaryTabChange} />
