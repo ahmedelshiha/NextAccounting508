@@ -6,7 +6,7 @@ let capturedProcessor: ((event: any) => any) | null = null
 vi.mock('@sentry/nextjs', () => {
   return {
     init: vi.fn(),
-    addGlobalEventProcessor: vi.fn((cb: any) => { capturedProcessor = cb }),
+    addEventProcessor: vi.fn((cb: any) => { capturedProcessor = cb }),
     // no-ops for other APIs that could be referenced
     withScope: (fn: any) => fn({ setTag: () => {}, setUser: () => {} }),
   }
