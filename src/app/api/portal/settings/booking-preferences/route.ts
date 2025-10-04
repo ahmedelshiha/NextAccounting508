@@ -1,19 +1,18 @@
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { respond, zodDetails } from '@/lib/api-response'
 import { logAuditSafe } from '@/lib/observability-helpers'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 export const runtime = 'nodejs'
 
 // GET current user's booking preferences or sensible defaults
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return respond.unauthorized()
+export const GET = withTenantContext(async () => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return respond.unauthorized()
 
-  const userId = (session.user as any).id as string
+  const userId = ctx.userId
 
   try {
     // Try DB-backed preferences
@@ -42,7 +41,7 @@ export async function GET() {
     timeZone: 'UTC',
     preferredLanguage: 'en',
   })
-}
+})
 
 export const UpdateSchema = z.object({
   emailConfirmation: z.boolean().optional(),
@@ -57,10 +56,10 @@ export const UpdateSchema = z.object({
 })
 
 // PUT upserts booking preferences for the current user
-export async function PUT(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return respond.unauthorized()
-  const userId = (session.user as any).id as string
+export const PUT = withTenantContext(async (req: Request) => {
+  const ctx = requireTenantContext()
+  if (!ctx.userId) return respond.unauthorized()
+  const userId = ctx.userId
 
   const body = await req.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
@@ -73,7 +72,9 @@ export async function PUT(req: Request) {
       create: { userId, ...data },
       update: { ...data },
     })
-    try { await logAuditSafe({ action: 'preferences:update', actorId: userId, targetId: userId, details: { type: 'booking', fields: Object.keys(data) } }) } catch {}
+    try {
+      await logAuditSafe({ action: 'preferences:update', actorId: userId, targetId: userId, details: { type: 'booking', fields: Object.keys(data) } })
+    } catch {}
     return respond.ok(updated)
   } catch (e: any) {
     const msg = String((e as any)?.message || '')
@@ -82,7 +83,7 @@ export async function PUT(req: Request) {
     }
     return respond.serverError('Failed to update preferences', { message: msg })
   }
-}
+})
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: { Allow: 'GET,PUT,OPTIONS' } })
