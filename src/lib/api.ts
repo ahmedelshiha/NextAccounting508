@@ -22,7 +22,9 @@ export async function apiFetch(path: RequestInfo | string, options?: RequestInit
     // Merge and augment headers with tenant when available
     const hdrs = new Headers((defaultOpts.headers as any) || {})
     try {
-      if (!hdrs.has('x-tenant-id') && typeof window !== 'undefined') {
+      // Only allow client-side tenant injection in non-production builds or when explicitly enabled
+      const allowClientInjection = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') || (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_ALLOW_INSECURE_TENANT_INJECTION === '1')
+      if (!hdrs.has('x-tenant-id') && typeof window !== 'undefined' && allowClientInjection) {
         const cookieTenant = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith('tenant='))?.split('=')[1]
         const lsTenant = (window.localStorage && window.localStorage.getItem('adminTenant')) || ''
         const tenant = cookieTenant || lsTenant
