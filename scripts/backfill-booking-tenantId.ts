@@ -25,7 +25,6 @@ async function main() {
       where: { id: record.booking_id },
       select: {
         id: true,
-        tenantId: true,
         serviceRequest: { select: { tenantId: true } },
         service: { select: { tenantId: true } }
       }
