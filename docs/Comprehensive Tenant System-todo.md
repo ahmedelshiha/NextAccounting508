@@ -70,7 +70,7 @@ SUCCESS CRITERIA CHECKLIST
 
 ---
 
-### �� Task 0.3: Catalog tenant-owned models and singletons (COMPLETE)
+### ✅ Task 0.3: Catalog tenant-owned models and singletons (COMPLETE)
 **Status:** COMPLETE
 **Priority:** P0 | **Effort:** 2d | **Deadline:** 2025-09-12
 **Subtasks:**
@@ -553,3 +553,6 @@ Version: 5.0  Last Updated: 2025-10-04
 ## 🔧 Next Steps
 - [ ] Start batch refactor of top-traffic endpoints to withTenantContext
 - [ ] Add integration tests for invalid/missing tenant_sig on remaining representative routes
+
+Validation notes:
+- Ran targeted tests: vitest run tests/integration/tenant-mismatch.email.test.ts — passed (2)
