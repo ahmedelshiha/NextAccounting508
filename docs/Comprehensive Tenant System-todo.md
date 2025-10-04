@@ -120,7 +120,7 @@ SUCCESS CRITERIA CHECKLIST
 
 ---
 
-### ⚠️ Task 1.2: Apply withTenantContext wrapper across admin and portal API routes (IN PROGRESS)
+### ⚠��� Task 1.2: Apply withTenantContext wrapper across admin and portal API routes (IN PROGRESS)
 **Status:** IN PROGRESS
 **Priority:** P0 | **Effort:** 5d | **Deadline:** 2025-10-15
 
@@ -138,7 +138,7 @@ SUCCESS CRITERIA CHECKLIST
 - [ ] src/app/api/admin/thresholds/route.ts
 - [x] src/app/api/admin/permissions/**
 - [ ] src/app/api/admin/settings/services/route.ts
-- [ ] src/app/api/admin/bookings/**
+- [x] src/app/api/admin/bookings/**
 - [ ] src/app/api/auth/register/register/route.ts
 - [x] src/app/api/posts/**
 - [x] src/app/api/portal/** (chat/service-requests subroutes)
