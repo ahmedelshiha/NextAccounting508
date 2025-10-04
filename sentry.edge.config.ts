@@ -9,7 +9,7 @@ Sentry.init({
 })
 
 // Best-effort tagging for Edge (AsyncLocalStorage may be polyfilled)
-Sentry.addGlobalEventProcessor((event) => {
+Sentry.addEventProcessor((event) => {
   try {
     const ctx = tenantContext.getContextOrNull?.()
     if (ctx) {
