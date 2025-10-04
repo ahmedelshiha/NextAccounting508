@@ -154,9 +154,9 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         amountCents: Math.max(0, Math.round(amountCents)),
         currency: (currency || 'USD').toUpperCase(),
         date: expenseDate,
-        attachmentId: attachmentId ?? null,
-        userId: requireTenantContext().userId ?? null,
-        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+        ...(attachmentId ? { attachment: { connect: { id: attachmentId } } } : {}),
+        ...(requireTenantContext().userId ? { user: { connect: { id: requireTenantContext().userId! } } } : {}),
+        ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
       },
       include: {
         attachment: { select: { id: true, url: true, avStatus: true } },
