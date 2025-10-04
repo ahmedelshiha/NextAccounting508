@@ -34,12 +34,12 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     const role = ctx.role ?? undefined
     if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
       const mod = await import('@/app/api/admin/service-requests/route')
-      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any)
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any, {} as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     } else {
       const mod = await import('@/app/api/portal/service-requests/route')
-      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any)
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any, {} as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
@@ -93,12 +93,12 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       basePayload.clientId = legacy?.clientId || ctx.userId
       if (legacy?.assignedTeamMemberId) (basePayload as any).assignedTeamMemberId = legacy.assignedTeamMemberId
       const mod = await import('@/app/api/admin/service-requests/route')
-      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any)
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any, {} as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     } else {
       const mod = await import('@/app/api/portal/service-requests/route')
-      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any)
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any, {} as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
