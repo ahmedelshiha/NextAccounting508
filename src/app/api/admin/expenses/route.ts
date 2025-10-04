@@ -193,7 +193,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (isMultiTenancyEnabled() && tenantId) {
-      Object.assign(where, tenantFilter(tenantId) as Prisma.ExpenseWhereInput)
+      Object.assign(where, getTenantFilter() as any)
     }
 
     const result = await prisma.expense.deleteMany({ where })
