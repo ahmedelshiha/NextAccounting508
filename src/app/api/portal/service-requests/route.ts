@@ -417,8 +417,16 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       return respond.created({ parent, childrenCreated, skipped })
     }
 
+    const finalPayload = { ...dataObj }
+    delete (finalPayload as any).clientId
+    delete (finalPayload as any).serviceId
+
     const created = await prisma.serviceRequest.create({
-      data: dataObj,
+      data: {
+        client: { connect: { id: String(ctx.userId ?? '') } },
+        service: { connect: { id: (data as any).serviceId } },
+        ...finalPayload,
+      },
       include: {
         service: { select: { id: true, name: true, slug: true, category: true } },
       },
