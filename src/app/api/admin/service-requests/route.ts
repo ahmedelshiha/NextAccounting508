@@ -359,8 +359,8 @@ export const POST = withTenantContext(async (request: Request) => {
       // Create parent request capturing the pattern for auditability
       const parent = await prisma.serviceRequest.create({
         data: {
-          clientId: (data as any).clientId,
-          serviceId: (data as any).serviceId,
+          client: { connect: { id: String((data as any).clientId) } },
+          service: { connect: { id: String((data as any).serviceId) } },
           title: titleToUse,
           description: (data as any).description ?? null,
           priority: (data as any).priority as any,
@@ -376,7 +376,7 @@ export const POST = withTenantContext(async (request: Request) => {
           clientPhone: (data as any).clientPhone ?? null,
           bookingType: 'RECURRING' as any,
           recurringPattern: normalized as any,
-          ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+          ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
         },
         include: {
           client: { select: { id: true, name: true, email: true } },
@@ -393,8 +393,8 @@ export const POST = withTenantContext(async (request: Request) => {
         }
         const child = await prisma.serviceRequest.create({
           data: {
-            clientId: (data as any).clientId,
-            serviceId: (data as any).serviceId,
+            client: { connect: { id: String((data as any).clientId) } },
+            service: { connect: { id: String((data as any).serviceId) } },
             title: `${titleToUse} — ${item.start.toISOString().slice(0,10)}`,
             description: (data as any).description ?? null,
             priority: (data as any).priority as any,
@@ -410,7 +410,7 @@ export const POST = withTenantContext(async (request: Request) => {
             clientPhone: (data as any).clientPhone ?? null,
             bookingType: 'RECURRING' as any,
             parentBookingId: parent.id,
-            ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+            ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
           },
         })
         childrenCreated.push(child)
@@ -451,8 +451,8 @@ export const POST = withTenantContext(async (request: Request) => {
 
     const created = await prisma.serviceRequest.create({
       data: {
-        clientId: (data as any).clientId,
-        serviceId: (data as any).serviceId,
+        client: { connect: { id: String((data as any).clientId) } },
+        service: { connect: { id: String((data as any).serviceId) } },
         title: titleToUse,
         description: (data as any).description ?? null,
         priority: (data as any).priority as any,
@@ -470,7 +470,7 @@ export const POST = withTenantContext(async (request: Request) => {
           clientPhone: (data as any).clientPhone ?? null,
           bookingType: (data as any).bookingType ?? null,
         } : {}),
-        ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+        ...(isMultiTenancyEnabled() && tenantId ? { tenant: { connect: { id: String(tenantId) } } } : {}),
       },
       include: {
         client: { select: { id: true, name: true, email: true } },
