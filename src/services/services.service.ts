@@ -61,8 +61,8 @@ export class ServicesService {
         active: false,
         status: 'DRAFT' as any,
         image: (src as any).image ?? null,
-        serviceSettings: (src as any).serviceSettings ?? undefined,
-        ...(tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
+        serviceSettings: ((src as any).serviceSettings ?? undefined) as Prisma.InputJsonValue,
+        tenant: { connect: { id: tenantId! } },
       },
     })
 
