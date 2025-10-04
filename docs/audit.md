@@ -14,7 +14,7 @@
 - [ ] Middleware logging: add requestId, userId, tenantId logs and propagate x-request-id across the stack
 
 ## 🔧 Next Steps
-- [ ] Refactor: src/app/api/admin/integration-hub/test/route.ts to withTenantContext
+- [x] Refactor: src/app/api/admin/integration-hub/test/route.ts to withTenantContext
 - [ ] Refactor: src/app/api/admin/realtime/route.ts to withTenantContext
 - [ ] Refactor: src/app/api/admin/system/health/route.ts to withTenantContext
 - [ ] Refactor: src/app/api/admin/uploads/quarantine/route.ts to withTenantContext
