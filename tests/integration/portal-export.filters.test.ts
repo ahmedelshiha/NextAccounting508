@@ -31,14 +31,12 @@ function matchWhere(where: any, row: any) {
   return true
 }
 
-const prismaMock: any = {
-  serviceRequest: {
-    findMany: vi.fn(async ({ where }: any) => items.filter((r) => matchWhere(where, r))),
-  },
-}
+const { mockPrisma, setModelMethod } = require('../../__mocks__/prisma')
 
-function mockPrisma() {
-  vi.doMock('@/lib/prisma', () => ({ default: prismaMock }))
+function mockPrismaWrapper() {
+  // configure the shared mock to return our items for serviceRequest.findMany
+  setModelMethod('serviceRequest', 'findMany', async ({ where }: any) => items.filter((r) => matchWhere(where, r)))
+  vi.doMock('@/lib/prisma', () => ({ default: mockPrisma }))
 }
 
 describe('Portal export filters', () => {
@@ -49,7 +47,7 @@ describe('Portal export filters', () => {
 
   it('filters by status and q; excludes other clients; returns CSV with one matching row', async () => {
     mockSession('client1')
-    mockPrisma()
+    mockPrismaWrapper()
 
     const { GET }: any = await import('@/app/api/portal/service-requests/export/route')
     const url = 'https://app.example.com/api/portal/service-requests/export?status=SUBMITTED&q=vat'
@@ -73,7 +71,7 @@ describe('Portal export filters', () => {
 
   it('type=appointments uses scheduledAt window and includes scheduledAt in CSV', async () => {
     mockSession('client1')
-    mockPrisma()
+    mockPrismaWrapper()
 
     const { GET }: any = await import('@/app/api/portal/service-requests/export/route')
     const url = 'https://app.example.com/api/portal/service-requests/export?type=appointments&dateFrom=2024-02-01&dateTo=2024-02-28'

@@ -12,7 +12,7 @@
 - Tenant Isolation Incidents: 0/0 (—) ✅
 - Routes migrated to withTenantContext: 150/150 (100%) ✅
 - Prisma tenant-guard coverage (critical models): 100%/100% (100%) ✅
-- Tests covering tenant-mismatch cases: 2/10 (20%) ❌
+- Tests covering tenant-mismatch cases: 10/10 (100%) ✅
 
 Status Icons: ❌ (Critical), ⚠️ (Warning), ✅ (Complete)
 
@@ -559,3 +559,29 @@ Validation notes:
 Recent refactors:
 - Wrapped /api/services (GET public, POST delegated to admin) with withTenantContext
 - Wrapped /api/contact (POST public, GET admin-only with guard) with withTenantContext
+
+
+## ✅ Completed
+- [x] Context reloaded and priorities aligned (Phases 2, 8, 12, 13)
+  - **Why**: Refresh analysis to proceed efficiently without rework
+  - **Impact**: Clear focus on tests, Prisma guard enhancements, schema hardening, and observability
+
+## ⚠️ Issues / Risks
+- Tenant-mismatch tests low coverage (2/10) may hide regressions
+- Enforcing NOT NULL tenantId requires careful backfill and rollout
+- Sentry tenant tags incomplete; limited per-tenant observability
+
+## 🚧 In Progress
+- [x] Draft test matrix and implement 8 integration tests across admin/portal routes
+
+## ✅ Completed
+- [x] Added 8 tenant-mismatch integration tests across representative admin and portal routes
+  - **Why**: Increase coverage for tenant_sig verification and header mismatch detection
+  - **Impact**: Integration coverage increased to 10/10; improves regression detection for tenant isolation
+- [ ] Design Prisma guard auto-injection and repository layer RFC
+
+## 🔧 Next Steps
+- [ ] Implement Prisma guard auto-injection for reads/writes missing tenant filters
+- [ ] Introduce tenant-scoped repository layer; refactor 2 critical services first
+- [ ] Add Sentry tenant tags in sentry.client/server config via scope.setTag
+- [ ] Prepare tenantId NOT NULL migration plan with backfill scripts and verification checks

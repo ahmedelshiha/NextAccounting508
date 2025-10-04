@@ -5,6 +5,36 @@ import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
 import { verifyTenantCookie } from '@/lib/tenant-cookie'
 
+export function getCookie(req: any, name: string): string | null {
+  if (!req) return null
+  const cookies = (req as any).cookies
+  try {
+    // NextRequest cookie store
+    if (cookies && typeof cookies.get === 'function') {
+      const c = cookies.get(name)
+      return (c && typeof c === 'object' && 'value' in c) ? c.value : (c ?? null)
+    }
+    // Plain object or map-like
+    if (cookies && typeof cookies === 'object') {
+      const v = (cookies as any)[name]
+      if (v !== undefined) return (v && typeof v === 'object' && 'value' in v) ? v.value : v
+    }
+    // Fallback to Cookie header parsing
+    const header = req && req.headers && typeof req.headers.get === 'function' ? req.headers.get('cookie') : (req && req.headers && (req.headers as any).cookie)
+    if (header && typeof header === 'string') {
+      const parts = header.split(';').map(p => p.trim())
+      for (const part of parts) {
+        const [k, ...rest] = part.split('=')
+        if (k === name) return rest.join('=')
+      }
+    }
+  } catch (e) {
+    // Defensive: any unexpected shape -> null
+    return null
+  }
+  return null
+}
+
 export type ApiHandler = (
   request: NextRequest,
   context: { params: any }
@@ -67,7 +97,7 @@ export function withTenantContext(
 
       // Tenant cookie check: cryptographically verify tenant_sig and ensure it matches session
       try {
-        const tenantCookie = request.cookies.get('tenant_sig')?.value
+        const tenantCookie = getCookie(request, 'tenant_sig')
         if (tenantCookie) {
           const ok = verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
           if (!ok) {
