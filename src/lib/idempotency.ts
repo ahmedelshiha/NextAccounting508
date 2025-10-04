@@ -15,7 +15,7 @@ export type IdempotencyRecord = {
   expiresAt?: Date | null
 }
 
-export async function reserveIdempotencyKey(key: string, userId?: string | null, tenantId: string) {
+export async function reserveIdempotencyKey(key: string, userId?: string | null, tenantId?: string) {
   try {
     const rec = await prisma.idempotencyKey.create({ data: { key, userId: userId || undefined, tenantId: tenantId, status: 'RESERVED' as any } })
     return rec as unknown as IdempotencyRecord
