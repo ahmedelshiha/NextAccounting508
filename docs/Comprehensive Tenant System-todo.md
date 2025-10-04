@@ -486,15 +486,20 @@ Version: 5.0  Last Updated: 2025-10-04
 - [x] Fixed 500 error by removing duplicate HeroSection import in src/app/page.tsx
   - **Why**: bug fix (runtime ModuleParseError due to redeclaration)
   - **Impact**: Dev server recovers; homepage renders without 500s
+- [x] Migrated admin bookings API to withTenantContext with tenant-aware scoping
+  - **Why**: harden multi-tenant isolation on legacy bookings endpoints
+  - **Impact**: Admin bookings, stats, pending-count, and migrate routes now enforce tenant context; caching remains tenant-aware
 
 ## ⚠️ Issues / Risks
 - Additional runtime issues may surface; monitor Fast Refresh logs
 - Ensure no other duplicate imports or circular dependencies exist on home sections
+- Booking model lacks tenantId; scoping currently applied via related client. Add tenantId in Phase 2 to strengthen guarantees.
 
 ## 🚧 In Progress
-- [ ] Batch 3: Refactor admin bookings routes to withTenantContext and tenant scoping
+- [ ] Batch 3: Continue refactor for remaining admin routes (thresholds, calendar, services settings, users)
 
 ## 🔧 Next Steps
 - [ ] Run pnpm lint and pnpm typecheck to catch residual issues
-- [ ] Add tenant-mismatch tests for settings/invoices export/import
-- [ ] Continue Phase 1 checklist: admin bookings, thresholds, calendar, services settings, email test, users
+- [ ] Refactor src/app/api/admin/settings/services/route.ts and admin/users to withTenantContext
+- [ ] Add tenant-mismatch tests for bookings endpoints (403 on cross-tenant access)
+- [ ] Plan Booking.tenantId migration and backfill to replace relation-based scoping
