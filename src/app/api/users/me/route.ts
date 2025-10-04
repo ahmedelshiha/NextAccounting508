@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 const patchSchema = z.object({
   name: z.string().min(2).optional(),
@@ -13,12 +13,14 @@ const patchSchema = z.object({
   currentPassword: z.string().optional()
 })
 
-export async function GET(_request: NextRequest) {
+export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const ctx = requireTenantContext()
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, name: true, email: true, role: true } })
+    const user = await prisma.user.findUnique({
+      where: { id: ctx.userId as string },
+      select: { id: true, name: true, email: true, role: true }
+    })
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     return NextResponse.json({ user })
@@ -26,12 +28,11 @@ export async function GET(_request: NextRequest) {
     console.error('GET /api/users/me error', err)
     return NextResponse.json({ error: 'Failed' }, { status: 500 })
   }
-}
+})
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const ctx = requireTenantContext()
 
     const json = await request.json().catch(() => ({}))
     const parsed = patchSchema.safeParse(json)
@@ -46,7 +47,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Current password is required to change email or password' }, { status: 400 })
     }
 
-    const currentUser = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true, email: true, tenantId: true } })
+    const currentUser = await prisma.user.findUnique({
+      where: { id: ctx.userId as string },
+      select: { id: true, password: true, email: true, tenantId: true }
+    })
     if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     if ((changingEmail || changingPassword)) {
@@ -64,8 +68,10 @@ export async function PATCH(request: NextRequest) {
     if (parsed.data.name) updates.name = parsed.data.name
     if (changingEmail) {
       // check uniqueness within tenant
-      const exists = await prisma.user.findUnique({ where: { tenantId_email: { tenantId: currentUser.tenantId as string, email: parsed.data.email as string } } })
-      if (exists && exists.id !== session.user.id) {
+      const exists = await prisma.user.findUnique({
+        where: { tenantId_email: { tenantId: currentUser.tenantId as string, email: parsed.data.email as string } }
+      })
+      if (exists && exists.id !== ctx.userId) {
         return NextResponse.json({ error: 'Email already in use' }, { status: 400 })
       }
       updates.email = parsed.data.email
@@ -81,35 +87,38 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Increment sessionVersion to invalidate existing JWTs
-    const updated = await prisma.user.update({ where: { id: session.user.id }, data: { ...updates, sessionVersion: { increment: 1 } }, select: { id: true, name: true, email: true, sessionVersion: true } })
+    const updated = await prisma.user.update({
+      where: { id: ctx.userId as string },
+      data: { ...updates, sessionVersion: { increment: 1 } },
+      select: { id: true, name: true, email: true, sessionVersion: true }
+    })
 
-    await logAudit({ action: 'user.profile.update', actorId: session.user.id, targetId: updated.id, details: { updatedFields: Object.keys(updates) } })
+    await logAudit({ action: 'user.profile.update', actorId: ctx.userId as string, targetId: updated.id, details: { updatedFields: Object.keys(updates) } })
 
     return NextResponse.json({ user: updated })
   } catch (err) {
     console.error('PATCH /api/users/me error', err)
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const ctx = requireTenantContext()
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 501 })
     }
 
-    const body = await request.json().catch(() => ({})) as { password?: string }
+    const body = (await request.json().catch(() => ({}))) as { password?: string }
     const password = body.password
     if (!password) {
       return NextResponse.json({ error: 'Password is required' }, { status: 400 })
     }
 
     // Fetch user including password hash
-    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, password: true } })
+    const user = await prisma.user.findUnique({ where: { id: ctx.userId as string }, select: { id: true, password: true } })
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     if (!user.password) {
@@ -122,7 +131,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
     }
 
-    const userId = session.user.id
+    const userId = ctx.userId as string
 
     // Delete the user. Cascades will remove related accounts, sessions, bookings, etc.
     await prisma.user.delete({ where: { id: userId } })
@@ -134,4 +143,4 @@ export async function DELETE(request: NextRequest) {
     console.error('DELETE /api/users/me error', err)
     return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
   }
-}
+})
