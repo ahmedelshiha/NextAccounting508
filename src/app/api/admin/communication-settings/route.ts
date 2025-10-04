@@ -1,57 +1,43 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest } from '@/lib/tenant'
 import communicationSettingsService from '@/services/communication-settings.service'
 import { CommunicationSettingsPatchSchema } from '@/schemas/settings/communication'
 import * as Sentry from '@sentry/nextjs'
 
 const patchSchema = CommunicationSettingsPatchSchema
-// Validate partial updates from the settings UI before persisting them.
 
-export async function GET(req: Request) {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role || undefined, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const tenantId = getTenantFromRequest(req as any)
-    const settings = await communicationSettingsService.get(tenantId)
-
+    const settings = await communicationSettingsService.get(ctx.tenantId)
     return NextResponse.json(settings)
   } catch (e) {
-    try {
-      Sentry.captureException(e as any)
-    } catch {}
+    try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to load communication settings' }, { status: 500 })
   }
-}
+})
 
-export async function PUT(req: Request) {
+export const PUT = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.COMMUNICATION_SETTINGS_EDIT)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role || undefined, PERMISSIONS.COMMUNICATION_SETTINGS_EDIT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const tenantId = getTenantFromRequest(req as any)
     const body = await req.json().catch(() => ({}))
     const parsed = patchSchema.safeParse(body)
     if (!parsed.success) {
-      try {
-        Sentry.captureMessage('communication-settings:validation_failed', { level: 'warning' } as any)
-      } catch {}
+      try { Sentry.captureMessage('communication-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
-
-    const updated = await communicationSettingsService.upsert(tenantId, parsed.data)
+    const updated = await communicationSettingsService.upsert(ctx.tenantId, parsed.data)
     return NextResponse.json(updated)
   } catch (e) {
-    try {
-      Sentry.captureException(e as any)
-    } catch {}
+    try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to update communication settings' }, { status: 500 })
   }
-}
+})

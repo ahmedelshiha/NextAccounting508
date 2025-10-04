@@ -1,19 +1,17 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-export async function GET(req: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  const tenantId = getTenantFromRequest(req)
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
+export const GET = withTenantContext(async () => {
+  const ctx = requireTenantContext()
+  if (!hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -23,7 +21,7 @@ export async function GET(req: Request) {
 
   try {
     const members = await prisma.teamMember.findMany({
-      where: tenantFilter(tenantId),
+      where: tenantFilter(ctx.tenantId),
       select: {
         id: true,
         name: true,
@@ -33,23 +31,21 @@ export async function GET(req: Request) {
         department: true,
         title: true,
         hourlyRate: true,
-      }
+      },
     })
 
-    // Count active assignments (ASSIGNED, IN_PROGRESS)
     const assignments = await prisma.serviceRequest.groupBy({
       by: ['assignedTeamMemberId'],
-      where: { ...tenantFilter(tenantId), status: { in: ['ASSIGNED','IN_PROGRESS'] as any } },
-      _count: { _all: true }
+      where: { ...tenantFilter(ctx.tenantId), status: { in: ['ASSIGNED', 'IN_PROGRESS'] as any } },
+      _count: { _all: true },
     })
     const countByMember: Record<string, number> = {}
     for (const row of assignments) {
       if (row.assignedTeamMemberId) countByMember[String(row.assignedTeamMemberId)] = Number(row._count._all)
     }
 
-    const data = members.map((m) => {
+    const data = members.map(m => {
       const active = countByMember[m.id] || 0
-      // If we had maxConcurrentProjects on user/team, fall back to 3
       const maxConcurrent = 3
       const availableSlots = Math.max(0, maxConcurrent - active)
       const availabilityPercentage = Math.round((availableSlots / maxConcurrent) * 100)
@@ -72,4 +68,4 @@ export async function GET(req: Request) {
     console.error('Team availability error', e)
     return NextResponse.json({ error: 'Failed to compute availability' }, { status: 500 })
   }
-}
+})

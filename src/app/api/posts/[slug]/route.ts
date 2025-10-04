@@ -1,73 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { tenantContext } from '@/lib/tenant-context'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 
 // GET /api/posts/[slug] - Get post by slug
-export async function GET(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export const GET = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   try {
     const { slug } = await context.params
-    const session = await getServerSession(authOptions)
 
     const tenantId = getTenantFromRequest(request as any)
     const where: Prisma.PostWhereInput = { slug, ...(tenantFilter(tenantId) as any) }
 
-    // Only show published posts for non-admin users
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    const role = tenantContext.getContextOrNull()?.role ?? null
+    if (!role || !['ADMIN', 'STAFF'].includes(role)) {
       where.published = true
     }
 
     const post = await prisma.post.findFirst({
       where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
-        }
-      }
+      include: { author: { select: { id: true, name: true, image: true } } },
     })
 
     if (!post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
-    // Increment view count
     await prisma.post.update({
       where: { id: post.id },
-      data: { views: { increment: 1 } }
+      data: { views: { increment: 1 } },
     })
 
     return NextResponse.json(post)
   } catch (error) {
     console.error('Error fetching post:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch post' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 })
   }
-}
+}, { requireAuth: false })
 
 // PUT /api/posts/[slug] - Update post (admin/staff only)
-export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export const PUT = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   try {
-    const { slug } = await context.params
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!['ADMIN', 'STAFF'].includes(String(ctx.role || ''))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { slug } = await context.params
     const body = await request.json()
 
     const {
@@ -81,7 +62,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       seoDescription,
       tags,
       readTime,
-      // Advanced fields
       status,
       archived,
       scheduledAt,
@@ -92,20 +72,15 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       approvedBy,
       version,
       shares,
-      comments
+      comments,
     } = body
 
-    // Check if post exists
     const tenantId = getTenantFromRequest(request as any)
     const existingPost = await prisma.post.findFirst({ where: { slug, ...(tenantFilter(tenantId) as any) } })
     if (!existingPost) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
     }
 
-    // Prepare update data
     const updateData: Prisma.PostUpdateInput = {} as Prisma.PostUpdateInput
 
     if (title !== undefined) updateData.title = title
@@ -124,7 +99,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     if (tags !== undefined) updateData.tags = tags
     if (readTime !== undefined) updateData.readTime = readTime ? parseInt(readTime) : null
 
-    // Advanced updates
     if (status !== undefined) updateData.status = (typeof status === 'string' ? (status.toUpperCase() as PostStatus) : (status as PostStatus))
     if (archived !== undefined) updateData.archived = archived
     if (scheduledAt !== undefined) updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null
@@ -137,7 +111,6 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     if (shares !== undefined) updateData.shares = shares
     if (comments !== undefined) updateData.comments = comments
 
-    // Keep publishedAt consistent with status change
     const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : status
     if (normalizedStatus === 'PUBLISHED' && !existingPost.publishedAt) {
       updateData.publishedAt = new Date()
@@ -147,45 +120,33 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
     const post = await prisma.post.update({
       where: { id: existingPost.id },
       data: updateData,
-      include: { author: { select: { id: true, name: true, image: true } } }
+      include: { author: { select: { id: true, name: true, image: true } } },
     })
 
     return NextResponse.json(post)
   } catch (error) {
     console.error('Error updating post:', error)
-    return NextResponse.json(
-      { error: 'Failed to update post' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to update post' }, { status: 500 })
   }
-}
+}, { allowedRoles: ['ADMIN', 'STAFF'] })
 
 // DELETE /api/posts/[slug] - Delete post (admin only)
-export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export const DELETE = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   try {
-    const { slug } = await context.params
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user || (session.user?.role ?? '') !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (String(ctx.role || '') !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { slug } = await context.params
     const tenantId = getTenantFromRequest(request as any)
     const existing = await prisma.post.findFirst({ where: { slug, ...(tenantFilter(tenantId) as any) } })
     if (!existing) return NextResponse.json({ error: 'Post not found' }, { status: 404 })
-    await prisma.post.delete({
-      where: { id: existing.id }
-    })
 
+    await prisma.post.delete({ where: { id: existing.id } })
     return NextResponse.json({ message: 'Post deleted successfully' })
   } catch (error) {
     console.error('Error deleting post:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete post' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 })
   }
-}
+}, { allowedRoles: ['ADMIN'] })

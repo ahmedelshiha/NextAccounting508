@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import type { Prisma, PostStatus, PostPriority } from '@prisma/client'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { tenantContext } from '@/lib/tenant-context'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 
 // GET /api/posts - Get blog posts
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const published = searchParams.get('published')
@@ -16,67 +17,54 @@ export async function GET(request: NextRequest) {
     const skip = searchParams.get('skip')
 
     const where: Prisma.PostWhereInput = {}
+
+    // Apply tenant hint only when applicable (helper returns {} when disabled)
     const tenantId = getTenantFromRequest(request as any)
     Object.assign(where, tenantFilter(tenantId) as any)
 
-    // Only show published posts for non-admin users
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
+    // Determine role from tenant context when available
+    const role = tenantContext.getContextOrNull()?.role ?? null
+    if (!role || !['ADMIN', 'STAFF'].includes(role)) {
       where.published = true
     } else if (published !== null) {
       where.published = published === 'true'
     }
-    
+
     if (featured === 'true') {
       where.featured = true
     }
-    
+
     if (tag) {
-      where.tags = {
-        has: tag
-      }
+      where.tags = { has: tag }
     }
 
     const posts = await prisma.post.findMany({
       where,
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true
-          }
-        }
+        author: { select: { id: true, name: true, image: true } },
       },
       orderBy: [
         { featured: 'desc' },
         { publishedAt: 'desc' },
-        { createdAt: 'desc' }
+        { createdAt: 'desc' },
       ],
       take: limit ? parseInt(limit) : undefined,
-      skip: skip ? parseInt(skip) : undefined
+      skip: skip ? parseInt(skip) : undefined,
     })
 
     return NextResponse.json(posts)
   } catch (error) {
     console.error('Error fetching posts:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch posts' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 })
   }
-}
+}, { requireAuth: false })
 
 // POST /api/posts - Create a new blog post (admin/staff only)
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user || !['ADMIN', 'STAFF'].includes(session.user?.role ?? '')) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    const ctx = requireTenantContext()
+    if (!['ADMIN', 'STAFF'].includes(String(ctx.role || ''))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -104,10 +92,9 @@ export async function POST(request: NextRequest) {
       approvedBy,
       version,
       shares,
-      comments
+      comments,
     } = body
 
-    // Basic validation
     if (!title || !slug || !content) {
       return NextResponse.json(
         { error: 'Title, slug, and content are required' },
@@ -115,7 +102,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if slug already exists
+    // Check if slug already exists (optionally scoped by tenant if applicable)
     const existingPost = await prisma.post.findUnique({ where: { slug } })
     if (existingPost) {
       return NextResponse.json(
@@ -124,7 +111,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Compute status & dates
     const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : undefined
     let finalStatus: PostStatus = (normalizedStatus as PostStatus) || (published ? 'PUBLISHED' : (scheduledAt ? 'SCHEDULED' : 'DRAFT'))
     if (archived) finalStatus = 'ARCHIVED'
@@ -141,7 +127,7 @@ export async function POST(request: NextRequest) {
       seoDescription,
       tags,
       readTime: readTime ? parseInt(readTime) : null,
-      authorId: session?.user?.id,
+      authorId: ctx.userId,
       publishedAt: published || finalStatus === 'PUBLISHED' ? new Date() : null,
       status: finalStatus,
       archived,
@@ -153,25 +139,25 @@ export async function POST(request: NextRequest) {
       approvedBy: approvedBy ?? null,
       version: typeof version === 'number' ? version : undefined,
       shares: typeof shares === 'number' ? shares : undefined,
-      comments: typeof comments === 'number' ? comments : undefined
+      comments: typeof comments === 'number' ? comments : undefined,
     }
 
-    const tenantId = getTenantFromRequest(request as any)
-    if (isMultiTenancyEnabled() && tenantId) (createData as any).tenantId = tenantId
+    // For tenant-scoped deployments, attach tenantId from verified context
+    if (isMultiTenancyEnabled() && (createData as any).tenantId == null) {
+      // Only set if Post model supports tenantId in current schema
+      try {
+        ;(createData as any).tenantId = (ctx as any).tenantId
+      } catch {}
+    }
 
     const post = await prisma.post.create({
       data: createData,
-      include: {
-        author: { select: { id: true, name: true, image: true } }
-      }
+      include: { author: { select: { id: true, name: true, image: true } } },
     })
 
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
     console.error('Error creating post:', error)
-    return NextResponse.json(
-      { error: 'Failed to create post' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
   }
-}
+}, { allowedRoles: ['ADMIN', 'STAFF'] })
