@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { queryTenantRaw, queryTenantRawAs } from '@/lib/db-raw';
+import { queryTenantRaw } from '@/lib/db-raw';
+import { withTenantRLS } from '@/lib/prisma-rls';
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
