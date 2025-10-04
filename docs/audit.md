@@ -18,6 +18,6 @@
 - [x] Refactor: src/app/api/admin/realtime/route.ts to withTenantContext
 - [x] Refactor: src/app/api/admin/system/health/route.ts to withTenantContext
 - [x] Refactor: src/app/api/admin/uploads/quarantine/route.ts to withTenantContext
-- [ ] Refactor: src/app/api/admin/service-requests/** to withTenantContext (including subroutes)
+- [x] Refactor: src/app/api/admin/service-requests/** to withTenantContext (including subroutes)
 - [ ] Tests: add 403 on tenant mismatch for a high-risk admin route
 - [ ] Verify middleware matcher includes /api/:path* and excludes only static assets
