@@ -1,5 +1,7 @@
 import * as NextServer from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { signTenantCookie } from '@/lib/tenant-cookie'
+import { logger } from '@/lib/logger'
 
 function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
@@ -70,25 +72,80 @@ export async function middleware(req: NextServer.NextRequest) {
     return NextServer.NextResponse.redirect(new URL('/login', req.url))
   }
 
-  // Forward tenant header when multi-tenancy is enabled
+  // Build request headers while stripping any inbound tenant headers to prevent spoofing
   const requestHeaders = new Headers(req.headers)
+  requestHeaders.delete('x-tenant-id')
+  requestHeaders.delete('x-tenant-slug')
+
   try {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
-      // Prefer explicit cookie if present
-      const cookieHeader = req.headers.get('cookie') || ''
-      const cookieTenant = cookieHeader.split(';').map((s: string) => s.trim()).find((s: string) => s.startsWith('tenant='))?.split('=')[1]
-      if (cookieTenant) {
-        requestHeaders.set('x-tenant-id', cookieTenant)
+      // Prefer tenant from authenticated session token when available (trusted)
+      const tenantIdFromToken = token ? (token as any).tenantId : null
+      const tenantSlugFromToken = token ? (token as any).tenantSlug : null
+      let tenantToSet: string | null = null
+      let tenantSlugToSet: string | null = null
+
+      if (tenantIdFromToken) {
+        tenantToSet = String(tenantIdFromToken)
+        tenantSlugToSet = tenantSlugFromToken ? String(tenantSlugFromToken) : null
       } else {
+        // Fallback to subdomain when unauthenticated
         const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
         const host = String(hostname).split(':')[0]
         const parts = host.split('.')
         let sub = parts.length >= 3 ? parts[0] : ''
         if (sub === 'www' && parts.length >= 4) sub = parts[1]
-        if (sub) requestHeaders.set('x-tenant-id', sub)
+        if (sub) tenantToSet = sub
+      }
+
+      if (tenantToSet) requestHeaders.set('x-tenant-id', tenantToSet)
+      if (tenantSlugToSet) requestHeaders.set('x-tenant-slug', tenantSlugToSet)
+
+      // If authenticated, issue a signed tenant cookie for subsequent verification
+      if (isAuth) {
+        try {
+          const userId = String((token as any).userId ?? (token as any).sub ?? '')
+          const signed = signTenantCookie(String(tenantToSet ?? ''), userId)
+          // We'll set the cookie on the response below
+
+          const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
+
+          // Set verified tenant headers (server-side only)
+          if (tenantToSet) res.headers.set('x-tenant-id', tenantToSet)
+          if (tenantSlugToSet) res.headers.set('x-tenant-slug', tenantSlugToSet)
+          if (userId) res.headers.set('x-user-id', userId)
+
+          // Attach signed tenant cookie
+          res.cookies.set('tenant_sig', signed, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 60 * 60 * 24, // 24 hours
+            path: '/',
+          })
+
+          // Prevent caching of sensitive pages
+          if (isAdminPage || isPortalPage) {
+            res.headers.set('Cache-Control', 'no-store')
+            res.headers.set('Pragma', 'no-cache')
+          }
+
+          // Log request
+          logger.info('Middleware: authenticated request processed', {
+            tenantId: tenantToSet,
+            userId,
+            pathname,
+          })
+
+          return res
+        } catch (err) {
+          logger.error('Middleware: failed to sign tenant cookie', { error: err })
+        }
       }
     }
-  } catch {}
+  } catch (err) {
+    logger.error('Middleware error while resolving tenant', { error: err })
+  }
 
   const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
 
@@ -102,5 +159,5 @@ export async function middleware(req: NextServer.NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/portal/:path*', '/login', '/register'],
+  matcher: ['/admin/:path*', '/portal/:path*', '/api/:path*', '/login', '/register'],
 }
