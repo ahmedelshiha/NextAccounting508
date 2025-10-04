@@ -349,8 +349,9 @@ Our consultation sessions are designed to provide you with actionable insights a
           update: {},
           create: {
             id: 'bk_demo_1',
-            clientId: client1.id,
-            serviceId: svcBookkeeping.id,
+            client: { connect: { id: client1.id } },
+            service: { connect: { id: svcBookkeeping.id } },
+            tenant: { connect: { id: defaultTenant.id } },
             status: 'PENDING' as any,
             scheduledAt: start1,
             duration: svc1?.duration ?? 60,
