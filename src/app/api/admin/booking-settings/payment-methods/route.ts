@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import service from '@/services/booking-settings.service'
-import prisma from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
