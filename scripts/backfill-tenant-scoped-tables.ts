@@ -37,7 +37,7 @@ const steps: BackfillStep[] = [
         FROM "WorkOrder" w
         LEFT JOIN "ServiceRequest" sr ON sr."id" = w."serviceRequestId"
         LEFT JOIN "bookings" b ON b."id" = w."bookingId"
-        LEFT JOIN "User" uc ON uc."id" = w."clientId"
+        LEFT JOIN "users" uc ON uc."id" = w."clientId"
         WHERE w."tenantId" IS NULL
       )
       UPDATE "WorkOrder" w
