@@ -380,8 +380,8 @@ Our consultation sessions are designed to provide you with actionable insights a
             duration: svc2?.duration ?? 90,
             clientName: client2.name || 'Client Two',
             clientEmail: client2.email,
-            assignedTeamMemberId: tmLead.id,
-            serviceRequestId: sr2.id,
+            assignedTeamMember: { connect: { id: tmLead.id } },
+            serviceRequest: { connect: { id: sr2.id } },
             confirmed: true,
           },
         })
