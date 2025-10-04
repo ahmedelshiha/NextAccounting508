@@ -719,6 +719,9 @@ Recent refactors:
 - [x] Updated tenant diagnostics (report-tenant-null-counts.ts, check_prisma_tenant_columns.js) to include Booking
   - **Why**: ensure CI and preflight tooling validate tenant coverage consistently after schema change
   - **Impact**: scripts now flag missing Booking.tenantId and report NULL counts for backfill tracking
+- [x] Added scripts/backfill-booking-tenantId.ts for pre-migration tenant assignment
+  - **Why**: populate new Booking.tenantId column from service request or client tenancy before enforcing NOT NULL
+  - **Impact**: provides repeatable tooling with post-run counts (updated, unresolved, remaining nulls) to drive remediation
 
 ## ⚠️ Issues / Risks
 - No automated tenantId backfill exists; enforcing NOT NULL prematurely would break existing rows until scripts land.
@@ -729,6 +732,7 @@ Recent refactors:
 
 ## 🔧 Next Steps
 - [ ] Capture baseline metrics using `pnpm tsx scripts/report-tenant-null-counts.ts` and record results in migration log before tightening constraints.
-- [ ] Implement transactional backfill utility covering ServiceRequest, Booking, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
+- [ ] Execute `pnpm tsx scripts/backfill-booking-tenantId.ts` prior to enforcing NOT NULL; review unresolved log output for manual remediation.
+- [ ] Implement transactional backfill utility covering ServiceRequest, WorkOrder, Invoice, Expense, Attachment, ScheduledReminder, ChatMessage, BookingSettings, and IdempotencyKey using existing relations.
 - [ ] Apply NOT NULL constraints, foreign keys, and composite uniques post-backfill with verification queries and rollback plan.
 - [ ] Update scripts/setup-rls.ts (and related tooling) once NOT NULL enforced to remove NULL allowances.
