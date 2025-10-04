@@ -559,3 +559,24 @@ Validation notes:
 Recent refactors:
 - Wrapped /api/services (GET public, POST delegated to admin) with withTenantContext
 - Wrapped /api/contact (POST public, GET admin-only with guard) with withTenantContext
+
+
+## ✅ Completed
+- [x] Context reloaded and priorities aligned (Phases 2, 8, 12, 13)
+  - **Why**: Refresh analysis to proceed efficiently without rework
+  - **Impact**: Clear focus on tests, Prisma guard enhancements, schema hardening, and observability
+
+## ⚠️ Issues / Risks
+- Tenant-mismatch tests low coverage (2/10) may hide regressions
+- Enforcing NOT NULL tenantId requires careful backfill and rollout
+- Sentry tenant tags incomplete; limited per-tenant observability
+
+## 🚧 In Progress
+- [ ] Draft test matrix and implement 8 integration tests across admin/portal routes
+- [ ] Design Prisma guard auto-injection and repository layer RFC
+
+## 🔧 Next Steps
+- [ ] Implement Prisma guard auto-injection for reads/writes missing tenant filters
+- [ ] Introduce tenant-scoped repository layer; refactor 2 critical services first
+- [ ] Add Sentry tenant tags in sentry.client/server config via scope.setTag
+- [ ] Prepare tenantId NOT NULL migration plan with backfill scripts and verification checks
