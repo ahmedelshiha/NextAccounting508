@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
-export async function GET(_request: NextRequest) {
+export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -24,13 +24,13 @@ export async function GET(_request: NextRequest) {
     console.error('Thresholds GET error', err)
     return NextResponse.json({ error: 'Failed to read thresholds' }, { status: 500 })
   }
-}
+})
 
-export async function POST(_request: NextRequest) {
+export const POST = withTenantContext(async (_request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -53,4 +53,4 @@ export async function POST(_request: NextRequest) {
     console.error('Thresholds POST error', err)
     return NextResponse.json({ error: 'Failed to save thresholds' }, { status: 500 })
   }
-}
+})
