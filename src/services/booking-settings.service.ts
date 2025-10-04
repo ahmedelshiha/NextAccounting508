@@ -16,7 +16,9 @@ import type {
 } from '@/types/booking-settings.types'
 
 
-// Return Prisma.DbNull sentinel used for nullable JSON fields. Lazily require to avoid hard failure when client isn't generated.
+import { Prisma } from '@prisma/client'
+
+// Return Prisma.DbNull sentinel used for nullable JSON fields.
 function getDbNull(): any {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
