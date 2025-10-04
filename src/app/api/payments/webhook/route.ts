@@ -93,14 +93,16 @@ export async function POST(request: NextRequest) {
     // Process the webhook event
     await processStripeEvent(event)
 
-    // Mark as successfully processed
-    await prisma.idempotencyKey.update({
-      where: { key: `stripe_webhook_${eventId}` },
-      data: { 
-        status: 'PROCESSED',
-        updatedAt: new Date()
-      }
-    })
+    // Mark as successfully processed (best-effort)
+    try {
+      await prisma.idempotencyKey.update({
+        where: { key: `stripe_webhook_${eventId}` },
+        data: {
+          status: 'PROCESSED',
+          updatedAt: new Date()
+        }
+      })
+    } catch {}
 
     console.log(`Stripe webhook: Successfully processed event ${eventId} of type ${event.type}`)
     return NextResponse.json({ received: true })
