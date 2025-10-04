@@ -57,6 +57,7 @@ model User {
   assignedWorkOrders WorkOrder[] @relation("WorkOrderAssignee")
   invoices Invoice[]
   expenses Expense[]
+  tenantMemberships TenantMembership[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -132,8 +133,26 @@ model Tenant {
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
+  tenantMemberships    TenantMembership[]
 
   @@index([status])
+}
+
+model TenantMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  role      UserRole @default(CLIENT)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("tenant_memberships")
 }
 
 // Blog posts model

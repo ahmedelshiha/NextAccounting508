@@ -50,8 +50,8 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       const users = await prisma.user.findMany({ where: { tenantId }, select: { id: true, name: true, email: true, role: true, createdAt: true } })
       rows = users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt.toISOString() }))
     } else if (entity === 'bookings') {
-      const bookings = await prisma.booking.findMany({ where: { tenantId }, include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
-      rows = bookings.map(b => ({ id: b.id, clientName: b.client?.name, clientEmail: b.client?.email, service: b.service?.name, status: b.status, scheduledAt: b.scheduledAt.toISOString(), duration: b.duration }))
+      const bookings = await prisma.booking.findMany({ where: { client: { tenantId } }, include: { service: { select: { name: true } }, client: { select: { name: true, email: true } } } })
+      rows = (bookings as any[]).map(b => ({ id: b.id, clientName: b.client?.name ?? b.clientName ?? '', clientEmail: b.client?.email ?? b.clientEmail ?? '', service: b.service?.name ?? '', status: b.status, scheduledAt: b.scheduledAt.toISOString(), duration: b.duration }))
     } else if (entity === 'services') {
       const services = await prisma.service.findMany({ where: { tenantId }, select: { id: true, name: true, slug: true, price: true, active: true, category: true } })
       rows = services.map(s => {

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { requireTenantContext } from '@/lib/tenant-utils'

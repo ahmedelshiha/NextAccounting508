@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
     const role = (session.user as any)?.role as string | undefined
     if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
       const mod = await import('@/app/api/admin/service-requests/route')
-      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url))
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     } else {
       const mod = await import('@/app/api/portal/service-requests/route')
-      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url))
+      const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
@@ -101,12 +101,12 @@ export async function POST(request: NextRequest) {
       basePayload.clientId = legacy?.clientId || (session.user as any).id
       if (legacy?.assignedTeamMemberId) (basePayload as any).assignedTeamMemberId = legacy.assignedTeamMemberId
       const mod = await import('@/app/api/admin/service-requests/route')
-      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST'))
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     } else {
       const mod = await import('@/app/api/portal/service-requests/route')
-      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST'))
+      const resp: Response = await mod.POST(cloneRequestWithUrl(request, url, basePayload, 'POST') as any)
       const data = await resp.json().catch(() => null)
       return NextResponse.json(data, withDeprecationHeaders({ status: resp.status }))
     }
