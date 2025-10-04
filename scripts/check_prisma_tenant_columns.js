@@ -12,7 +12,15 @@ const expected = [
   { table: 'services', column: 'tenantId' },
   { table: 'ServiceRequest', column: 'tenantId' },
   { table: 'Attachment', column: 'tenantId' },
-  { table: 'Booking', column: 'tenantId' },
+  // Booking is mapped to lowercase table name 'bookings' in Prisma
+  { table: 'bookings', column: 'tenantId' },
+  { table: 'WorkOrder', column: 'tenantId' },
+  { table: 'invoices', column: 'tenantId' },
+  { table: 'expenses', column: 'tenantId' },
+  { table: 'ScheduledReminder', column: 'tenantId' },
+  { table: 'chat_messages', column: 'tenantId' },
+  { table: 'booking_settings', column: 'tenantId' },
+  { table: 'IdempotencyKey', column: 'tenantId' },
 ]
 
 async function main(){
