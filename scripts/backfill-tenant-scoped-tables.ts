@@ -68,7 +68,7 @@ const steps: BackfillStep[] = [
       WITH source AS (
         SELECT e."id", u."tenantId" AS tenant_id
         FROM "expenses" e
-        LEFT JOIN "User" u ON u."id" = e."userId"
+        LEFT JOIN "users" u ON u."id" = e."userId"
         WHERE e."tenantId" IS NULL
       )
       UPDATE "Expense" e
