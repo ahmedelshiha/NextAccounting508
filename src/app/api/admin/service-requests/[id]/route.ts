@@ -50,8 +50,13 @@ export const GET = withTenantContext(async (_req: NextRequest, context: { params
     if (code.startsWith('P10') || /Database is not configured/i.test(msg)) {
       try {
         const { getRequest } = await import('@/lib/dev-fallbacks')
+        const ctx2 = requireTenantContext()
         const item = getRequest(id)
         if (!item) return respond.notFound('Service request not found')
+        // Enforce tenant match in fallback mode as well
+        if (item && ctx2?.tenantId && (item as any).tenantId && String((item as any).tenantId) !== String(ctx2.tenantId)) {
+          return respond.notFound('Service request not found')
+        }
         return respond.ok(item)
       } catch {
         return respond.serverError()

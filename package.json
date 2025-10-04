@@ -33,7 +33,8 @@
     "vercel:build": "pnpm db:generate && pnpm lint && pnpm typecheck && pnpm build",
     "monitoring:setup": "node scripts/production-monitoring.js",
     "monitoring:health": "node scripts/health-check.js",
-    "production:deploy": "pnpm monitoring:setup && pnpm vercel:build"
+    "production:deploy": "pnpm monitoring:setup && pnpm vercel:build",
+    "validate:stateful-docs": "node scripts/verify_stateful_docs.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

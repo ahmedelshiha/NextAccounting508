@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const dateFrom = parseDate(searchParams.get('dateFrom'))
     const dateTo = parseDate(searchParams.get('dateTo'))
-    const tenantId = getTenantFromRequest(request)
+    const tenantId = requireTenantContext().tenantId
 
     const where: Prisma.ExpenseWhereInput = {
       ...(tenantFilter(tenantId) as Prisma.ExpenseWhereInput),
@@ -122,10 +122,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission(session.user?.role, PERMISSIONS.TEAM_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const tenantId = getTenantFromRequest(request)
+    const tenantId = requireTenantContext().tenantId
     const { vendor, category, status, amountCents, currency, date, attachmentId } = parsed.data
 
     const expenseDate = date instanceof Date ? date : new Date(date)
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
         currency: (currency || 'USD').toUpperCase(),
         date: expenseDate,
         attachmentId: attachmentId ?? null,
-        userId: (session.user as any).id,
+        userId: requireTenantContext().userId ?? null,
         ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
       },
       include: {
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating expense:', error)
     return NextResponse.json({ error: 'Failed to create expense' }, { status: 500 })
   }
-}
+})
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -187,13 +187,13 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const tenantId = getTenantFromRequest(request)
-    const where: Prisma.ExpenseWhereInput = {
+    const tenantId = requireTenantContext().tenantId
+  const where: Prisma.ExpenseWhereInput = {
       id: { in: parsed.data.expenseIds },
     }
 
     if (isMultiTenancyEnabled() && tenantId) {
-      Object.assign(where, tenantFilter(tenantId) as Prisma.ExpenseWhereInput)
+      Object.assign(where, getTenantFilter() as any)
     }
 
     const result = await prisma.expense.deleteMany({ where })

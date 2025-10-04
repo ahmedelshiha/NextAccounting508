@@ -465,7 +465,7 @@ SUCCESS CRITERIA CHECKLIST
 ## PROGRESS SUMMARY
 - Version: 5.0 | Last Updated: 2025-10-04
 - Summary: Comprehensive coverage of Phase 0 through Phase 14 now present
-- Tasks: ✅ Complete: 70 | 🔥 In Progress: 24 | ❌ Not Started: 46 | 🔒 Blocked: 0
+- Tasks: ✅ Complete: 71 | 🔥 In Progress: 24 | ❌ Not Started: 46 | 🔒 Blocked: 0
 
 ---
 
@@ -479,3 +479,48 @@ Below is the original Comprehensive Tenant System todo content included verbatim
 
 END OF AI AGENT TODO SYSTEM  
 Version: 5.0  Last Updated: 2025-10-04
+
+---
+
+## AI Agent Stateful Workflow — 2025-10-04
+
+# Context Reload Summary
+- Source: docs/Comprehensive Tenant System-todo.md and docs/tenant-system-audit.md
+- Key Points Reused:
+  - ESLint rule to block getServerSession in API routes added
+  - CI precheck added (validate:stateful-docs)
+  - withTenantContext adoption list for remaining routes
+
+# New Analysis / Findings
+- Added initial tenant-mismatch tests: invalid cookie (403) and header-forgery ignored by context fallback.
+- Created canonical audit doc at docs/Comprehensive Tenant System-audit.md to mirror existing audit.
+
+# Planned Implementation
+- [x] ESLint guard
+- [x] CI precheck for docs
+- [x] Initial 2 tenant-mismatch tests
+- [ ] Add remaining 6 tests (portal + bookings variants, comments subroutes, SSE)
+
+# Notes
+- Tests use fallback data store; MULTI_TENANCY_ENABLED=true in test scope.
+
+# Context Reload Summary
+- Source: docs/Comprehensive Tenant System-todo.md and docs/tenant-system-audit.md
+- Key Points Reused:
+  - Remaining API route migrations list (Phase 1) and priority on tenant-mismatch tests.
+  - DB/schema risks and roadmap for tenantId enforcement and partial uniques.
+  - Middleware/ALS approach and session-bound tenant verification requirements.
+
+# New Analysis / Findings
+- We will operate statefully: every implementation begins with a quick reload of TODO + Audit, then we append new findings using this template.
+- Cost controls: batch independent tool calls; prefer project grep/read over web; avoid redundant audits by referencing existing sections.
+- Naming: Canonical audit doc path is docs/tenant-system-audit.md; do not create duplicate filenames.
+
+# Planned Implementation
+- [x] Initialize stateful workflow and append operating rules to both docs.
+- [ ] Add ESLint guard forbidding direct getServerSession usage in API routes; require withTenantContext.
+- [ ] Add CI precheck ensuring both docs exist and contain a recent “AI Agent Context/Workflow” entry.
+- [ ] Implement remaining 8 tenant-mismatch integration tests (Phase 12).
+
+# Notes
+- Confirm whether to rename docs/tenant-system-audit.md to the requested docs/Comprehensive Tenant System-audit.md; currently keeping the existing path as canonical to avoid duplication.
