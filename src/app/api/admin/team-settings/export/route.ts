@@ -1,20 +1,19 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest } from '@/lib/tenant'
 import * as Sentry from '@sentry/nextjs'
 import { buildExportBundle } from '@/lib/settings/export'
 import teamService from '@/services/team-settings.service'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET(req: Request) {
+export const GET = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions as any)
-    if (!session?.user || !hasPermission(session.user.role, PERMISSIONS.TEAM_SETTINGS_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const tenantId = getTenantFromRequest(req as any)
+    const tenantId = ctx.tenantId
     const ip = getClientIp(req)
     const key = `team-settings:export:${tenantId}:${ip}`
     if (!rateLimit(key, 10, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
@@ -25,4 +24,4 @@ export async function GET(req: Request) {
     try { Sentry.captureException(e as any) } catch {}
     return NextResponse.json({ error: 'Failed to export team settings' }, { status: 500 })
   }
-}
+})

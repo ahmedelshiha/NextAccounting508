@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import fs from 'fs'
 import path from 'path'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
-// Fallback file paths (only used when DB is not configured)
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'templates.json')
 function readTemplates() {
   try { const raw = fs.readFileSync(DATA_PATH, 'utf-8'); return JSON.parse(raw) } catch { return [] }
@@ -18,10 +17,10 @@ function writeTemplates(tmpls: any[]) {
   try { fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true }); fs.writeFileSync(DATA_PATH, JSON.stringify(tmpls, null, 2), 'utf-8'); return true } catch (e) { console.error('Failed to write templates', e); return false }
 }
 
-export async function GET(request?: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+export const GET = withTenantContext(async (request?: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
@@ -30,7 +29,7 @@ export async function GET(request?: Request) {
       return NextResponse.json(templates)
     }
 
-    const tenantId = getTenantFromRequest(request as any)
+    const tenantId = ctx.tenantId
     const rows = await prisma.taskTemplate.findMany({ where: tenantFilter(tenantId), orderBy: { createdAt: 'desc' } })
     const mapped = rows.map(t => ({
       id: t.id,
@@ -52,13 +51,13 @@ export async function GET(request?: Request) {
     console.error('GET templates error', e)
     return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: Request) {
+export const POST = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await request.json().catch(() => ({}))
@@ -87,7 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json(t, { status: 201 })
     }
 
-    const tenantId = getTenantFromRequest(request as any)
+    const tenantId = ctx.tenantId
     const created = await prisma.taskTemplate.create({
       data: {
         name: String(body.name || 'Template'),
@@ -100,7 +99,7 @@ export async function POST(request: Request) {
         checklistItems: Array.isArray(body.checklistItems) ? body.checklistItems : [],
         requiredSkills: Array.isArray(body.requiredSkills) ? body.requiredSkills : [],
         defaultAssigneeRole: body.defaultAssigneeRole ?? null,
-        createdById: session.user.id as string | undefined,
+        createdById: ctx.userId as string | undefined,
         ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {})
       } as any
     })
@@ -124,13 +123,13 @@ export async function POST(request: Request) {
     console.error('Create template error', e)
     return NextResponse.json({ error: 'Failed to create template' }, { status: 500 })
   }
-}
+})
 
-export async function PATCH(request: Request) {
+export const PATCH = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await request.json().catch(() => ({}))
@@ -192,13 +191,13 @@ export async function PATCH(request: Request) {
     console.error('Update template error', e)
     return NextResponse.json({ error: 'Failed to update template' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(request: Request) {
+export const DELETE = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const url = new URL(request.url)
@@ -218,4 +217,4 @@ export async function DELETE(request: Request) {
     console.error('Delete template error', e)
     return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 })
   }
-}
+})

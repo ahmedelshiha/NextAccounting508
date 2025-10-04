@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { subscribe } from '@/lib/realtime'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+export const GET = withTenantContext(async () => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -19,10 +19,8 @@ export async function GET() {
         try { controller.enqueue(`data: ${JSON.stringify(obj)}\n\n`) } catch (e) { /* ignore */ }
       }
 
-      // Subscribe to in-process broadcaster
       unsub = subscribe((ev) => send(ev))
 
-      // Heartbeat
       h = setInterval(() => send({ type: 'ping', t: Date.now() }), 15000)
     },
     cancel() {
@@ -39,4 +37,4 @@ export async function GET() {
       Connection: 'keep-alive',
     }
   })
-}
+})

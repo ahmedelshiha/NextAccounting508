@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {
@@ -19,11 +19,11 @@ function toCSV(rows: any[], headers: string[]) {
   return head + '\n' + body
 }
 
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     const status = url.searchParams.getAll('status')
     const priority = url.searchParams.getAll('priority')
 
-    const tenantId = getTenantFromRequest(request as any)
+    const tenantId = ctx.tenantId
 
     const where: any = { ...(tenantFilter(tenantId) as any) }
     if (status.length) where.status = { in: status.map(s => s.toUpperCase()) }
@@ -72,4 +72,4 @@ export async function GET(request: Request) {
     console.error('Export error', err)
     return new NextResponse(JSON.stringify({ error: 'Failed to export tasks' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
-}
+})

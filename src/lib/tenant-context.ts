@@ -4,6 +4,8 @@ export interface TenantContext {
   tenantId: string
   tenantSlug?: string | null
   userId?: string | null
+  userName?: string | null
+  userEmail?: string | null
   role?: string | null
   tenantRole?: string | null
   isSuperAdmin?: boolean

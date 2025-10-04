@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
-import { getTenantFromRequest, tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 const DATA_PATH = path.join(process.cwd(), 'src', 'app', 'admin', 'tasks', 'data', 'notifications.json')
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
@@ -30,15 +30,15 @@ function writeSettings(s: any) {
   }
 }
 
-export async function GET(request?: Request) {
-  const session = await getServerSession(authOptions)
-  const role = (session?.user as any)?.role as string | undefined
-  if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+export const GET = withTenantContext(async (request?: Request) => {
+  const ctx = requireTenantContext()
+  const role = ctx.role ?? undefined
+  if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   if (hasDb) {
     try {
-      const tenantId = getTenantFromRequest(request as any)
+      const tenantId = ctx.tenantId
       const row = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
       if (row) {
         return NextResponse.json({
@@ -55,20 +55,20 @@ export async function GET(request?: Request) {
     }
   }
   return NextResponse.json(readSettings())
-}
+})
 
-export async function PATCH(request: Request) {
+export const PATCH = withTenantContext(async (request: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    const role = (session?.user as any)?.role as string | undefined
-    if (!session?.user || !hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
+    const ctx = requireTenantContext()
+    const role = ctx.role ?? undefined
+    if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const body = await request.json().catch(() => ({}))
 
     if (hasDb) {
       try {
-        const tenantId = getTenantFromRequest(request as any)
+        const tenantId = ctx.tenantId
         const existing = await prisma.notificationSettings.findFirst({ where: tenantFilter(tenantId) })
         const payload = {
           emailEnabled: !!body.emailEnabled,
@@ -100,4 +100,4 @@ export async function PATCH(request: Request) {
     console.error('Update notifications error', e)
     return NextResponse.json({ error: 'Failed to update notifications' }, { status: 500 })
   }
-}
+})
