@@ -490,6 +490,10 @@ Version: 5.0  Last Updated: 2025-10-04
   - **Why**: harden multi-tenant isolation on legacy bookings endpoints
   - **Impact**: Admin bookings, stats, pending-count, and migrate routes now enforce tenant context; caching remains tenant-aware
 
+- [x] Migrated admin settings/services API to withTenantContext and tenant-scoped persistence
+  - **Why**: ensure settings read/write are scoped per-tenant and authorized
+  - **Impact**: GET/POST on admin settings/services now require tenant context, enforce permissions and persist tenant-specific settings
+
 ## ⚠️ Issues / Risks
 - Additional runtime issues may surface; monitor Fast Refresh logs
 - Ensure no other duplicate imports or circular dependencies exist on home sections
@@ -500,6 +504,6 @@ Version: 5.0  Last Updated: 2025-10-04
 
 ## 🔧 Next Steps
 - [ ] Run pnpm lint and pnpm typecheck to catch residual issues
-- [ ] Refactor src/app/api/admin/settings/services/route.ts and admin/users to withTenantContext
+- [ ] Refactor src/app/api/admin/users to withTenantContext
 - [ ] Add tenant-mismatch tests for bookings endpoints (403 on cross-tenant access)
 - [ ] Plan Booking.tenantId migration and backfill to replace relation-based scoping
