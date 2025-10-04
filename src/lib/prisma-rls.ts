@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { tenantContext } from '@/lib/tenant-context'
 
 /**
