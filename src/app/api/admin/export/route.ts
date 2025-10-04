@@ -126,7 +126,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     }
 
     const csv = toCsv(rows)
-    try { await logAudit({ action: `admin:export:${entity}`, actorId: (session?.user as any)?.id ?? null, targetId: tenantId ?? null, details: Object.fromEntries(searchParams.entries()) }) } catch {}
+    try { await logAudit({ action: `admin:export:${entity}`, actorId: ctx.userId ?? null, targetId: tenantId ?? null, details: Object.fromEntries(searchParams.entries()) }) } catch {}
     return new NextResponse(csv, {
       status: 200,
       headers: {
