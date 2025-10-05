@@ -36,6 +36,43 @@ export const authOptions: NextAuthOptions = {
         }
 
         const tenantId = await getResolvedTenantId((req as any)?.request ?? (req as any))
+
+        // Preview fallback: allow login using PREVIEW_ADMIN_EMAIL/PASSWORD and auto-provision the user in the default tenant
+        const previewEmail = (process.env.PREVIEW_ADMIN_EMAIL || '').toLowerCase()
+        const previewPassword = process.env.PREVIEW_ADMIN_PASSWORD || ''
+        const inputEmail = String(credentials.email).toLowerCase()
+        const inputPassword = String(credentials.password)
+        if (previewEmail && previewPassword && inputEmail === previewEmail && inputPassword === previewPassword) {
+          // Upsert preview admin user in DB to ensure downstream APIs work
+          const hashed = await bcrypt.hash(previewPassword, 12)
+          const user = await prisma.user.upsert({
+            where: userByTenantEmail(tenantId, inputEmail),
+            update: { password: hashed, role: 'ADMIN' as any, name: 'Preview Admin' },
+            create: { tenantId, email: inputEmail, name: 'Preview Admin', password: hashed, role: 'ADMIN' as any }
+          })
+          // Ensure tenant membership exists
+          await prisma.tenantMembership.upsert({
+            where: { userId_tenantId: { userId: user.id, tenantId } },
+            update: { role: 'ADMIN' as any, isDefault: true },
+            create: { userId: user.id, tenantId, role: 'ADMIN' as any, isDefault: true }
+          }).catch(() => {})
+
+          const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])
+          const activeMembership = tenantMemberships.find(m => m.tenantId === tenantId) || tenantMemberships[0] || null
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            image: user.image,
+            tenantId: activeMembership ? activeMembership.tenantId : tenantId,
+            tenantSlug: activeMembership?.tenant?.slug ?? null,
+            tenantRole: activeMembership ? activeMembership.role : null,
+            availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
+          }
+        }
+
         const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, credentials.email as string) })
         if (!user || !user.password) return null
 
