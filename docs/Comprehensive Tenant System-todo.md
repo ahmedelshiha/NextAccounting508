@@ -190,7 +190,7 @@ Recent progress (2025-10-05):
 - Added SQL migrations under prisma/migrations to enforce tenantId NOT NULL with FKs and indexes for:
   - bookings, ServiceRequest, services, WorkOrder, invoices, expenses, ScheduledReminder, booking_settings, IdempotencyKey
 - Each migration adds column if missing, backfills where derivable, adds FK to Tenant(id) ON DELETE CASCADE, creates indexes, then sets NOT NULL.
-- Deferred Attachment.tenantId NOT NULL to a follow-up (uploader flow still conditionally sets tenantId).
+- Enforced Attachment.tenantId NOT NULL and added FK + backfill; uploads API now requires tenant context and persists tenant relation.
 
 Apply order (recommended):
 1) services
