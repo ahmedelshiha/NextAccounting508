@@ -19,9 +19,12 @@ A full-stack, multi-tenant Next.js platform tailored for accounting firms. It un
 - [Available Scripts](#available-scripts)
 - [Testing & Quality](#testing--quality)
 - [Integrations & Services](#integrations--services)
+- [API Overview](#api-overview)
 - [Deployment](#deployment)
 - [Monitoring & Operations](#monitoring--operations)
 - [Security & Compliance](#security--compliance)
+- [Audit Summary](#audit-summary)
+- [Recommended Improvements](#recommended-improvements)
 - [Additional Documentation](#additional-documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -129,6 +132,8 @@ Run the validator when variables change:
 pnpm check:env
 ```
 
+Note: Prisma `datasource db` uses `NETLIFY_DATABASE_URL` by default. On non-Netlify environments, set `DATABASE_URL` and map it to `NETLIFY_DATABASE_URL` in your process manager or provide `NETLIFY_DATABASE_URL` directly.
+
 ### Database Setup
 ```bash
 pnpm db:generate
@@ -151,25 +156,41 @@ Visit http://localhost:3000 to access the web application.
 |---------|-------------|
 | `pnpm dev` | Start the Next.js development server |
 | `pnpm build` | Validate env vars, generate Prisma client, and build using Turbopack |
+| `pnpm build:skip-env` | Skip strict env validation during build |
 | `pnpm start` | Run the production server |
 | `pnpm lint` | ESLint across the repo with autofix |
 | `pnpm typecheck` | TypeScript project references build (`tsconfig.build.json`) |
 | `pnpm test` | Run the Vitest suite |
 | `pnpm test:integration` | Execute integration tests serially |
-| `pnpm test:tenant`, `pnpm test:thresholds` | Specialized regression suites |
-| `pnpm test:e2e` | Playwright end-to-end tests (requires env configuration) |
-| `pnpm monitoring:setup`, `pnpm monitoring:health` | Production monitoring checks |
-| `pnpm db:*` | Database utilities (generate, migrate deploy, seed, reset, studio) |
+| `pnpm test:integration:serial` | Same as above (alias) |
+| `pnpm test:e2e` | Playwright end-to-end tests |
+| `pnpm e2e:ci` | CI-friendly E2E runner via Netlify plugin |
+| `pnpm test:tenant` | Tenant filter regression suite |
+| `pnpm test:thresholds` | Performance thresholds (LCP/CLS) |
+| `pnpm db:generate` | Generate Prisma client |
+| `pnpm db:push` | Push Prisma schema to DB |
+| `pnpm db:migrate` | Deploy migrations |
+| `pnpm db:seed` | Seed database |
+| `pnpm db:studio` | Open Prisma Studio |
+| `pnpm db:reset` | Reset database with migrations |
+| `pnpm db:rls:enable` | Enable Row-Level Security helpers |
+| `pnpm check:env` | Validate required env vars |
+| `pnpm check:rbac` / `pnpm audit:rbac` | RBAC verifiers/auditors |
+| `pnpm vercel:build` | Vercel build pipeline wrapper |
+| `pnpm monitoring:setup` | Prepare prod monitoring artifacts |
+| `pnpm monitoring:health` | Run health checks |
+| `pnpm production:deploy` | Setup monitoring then run vercel build |
+| `pnpm validate:stateful-docs` | Verify stateful docs consistency |
 
 ## Testing & Quality
 - **Unit & Integration:** Vitest with mocks in `__mocks__/` and `tests/`.
-- **End-to-End:** Playwright specs in `e2e/tests/`; configurable base URL and credentials.
+- **End-to-End:** Playwright specs in `e2e/tests/`; configurable base URL and credentials (Chromium-only on Netlify via plugin).
 - **Performance Budgets:** `tests/thresholds.test.ts` enforces LCP/CLS targets.
-- **Accessibility & Layout:** Multiple admin layout tests ensure SSR safety and environment-specific behavior.
+- **Accessibility & Layout:** Admin layout tests ensure SSR safety and environment-specific behavior.
 - **CI Recommendations:** Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and targeted suites before deploys.
 
 ## Integrations & Services
-- **Authentication:** NextAuth.js with Prisma adapter and role-based access control.
+- **Authentication:** NextAuth.js (`src/app/api/auth/[...nextauth]/route.ts`) with Prisma adapter and role-based access control.
 - **Payments:** Stripe endpoints under `src/app/api/payments` and invoice helpers.
 - **Email:** SendGrid via `@sendgrid/mail` with fallbacks when not configured.
 - **Uploads:** Netlify Blobs provider support plus antivirus scanning pipeline.
@@ -177,10 +198,21 @@ Visit http://localhost:3000 to access the web application.
 - **Scheduling:** Netlify cron functions (`netlify/functions/cron-*`) and `/api/cron/*` routes.
 - **Analytics & Monitoring:** Sentry configs (`sentry.*.config.ts`) and dashboards under `monitoring/`.
 
+## API Overview
+Key groups (see `src/app/api` for handlers):
+- Public content and utilities: `/api/posts`, `/api/pricing`, `/api/currencies`, `/api/tools/*`.
+- Auth & user: `/api/auth/[...nextauth]`, `/api/users/*`, `/api/dev-login`, `/api/_dev/login`.
+- Bookings: `/api/bookings/*`, `/api/bookings/[id]/*`, `/api/ws/bookings`.
+- Admin: `/api/admin/*` including analytics, bookings, services, tasks, stats, settings, permissions, team, uploads quarantine.
+- Portal: `/api/portal/*` for client-facing bookings and service requests.
+- Payments & invoices: `/api/payments/*`, `/api/admin/invoices/*`.
+- Cron & monitoring: `/api/cron/*`, `/api/monitoring`, `/api/security/*`, `/api/admin/system/health`.
+- OpenAPI: `/api/openapi/admin-services` exposes admin-services schema.
+
 ## Deployment
-- **Vercel:** Default target. Build with `pnpm build`. Configure environment variables and run Prisma migrations post-deploy (`pnpm db:push`, `pnpm db:seed`).
-- **Netlify:** Uses `@netlify/plugin-nextjs` and custom functions. Ensure `NETLIFY_DATABASE_URL` or `DATABASE_URL` is set and configure cron secrets.
-- **Docker / ECS:** Reference `DEPLOYMENT.md` for multi-stage Dockerfile and Compose setup. Prisma generation runs during build stage.
+- **Vercel:** Default target. Use `pnpm vercel:build`. Configure environment variables and run Prisma migrations post-deploy (`pnpm db:push`, `pnpm db:seed`).
+- **Netlify:** `netlify.toml` sets build and enables `@netlify/plugin-nextjs` and a custom E2E plugin. Set `NETLIFY_DATABASE_URL` (or alias from `DATABASE_URL`), optional `RUN_DB_MIGRATIONS=true` to auto-migrate/seed.
+- **Docker / ECS:** See `DEPLOYMENT.md`. Ensure Prisma client generation occurs in build stage and that migrations run with sufficient advisory lock timeouts.
 - **Self-Hosted:** Provision Node.js 18+, PostgreSQL, and optional Redis/Sentry. Use `scripts/setup-rls.ts` and other scripts for database hardening.
 
 ## Monitoring & Operations
@@ -194,8 +226,21 @@ Visit http://localhost:3000 to access the web application.
 - **Uploads Safety:** ClamAV microservice, quarantine management UI, and provider abstraction for blob storage.
 - **Secrets & Transport:** Cron secrets, Stripe webhook validation, Sentry DSN configuration, and optional Redis/Upstash tokens are all environment driven.
 
+## Audit Summary
+- Codebase is modular and follows feature-based boundaries; APIs are comprehensive and colocated under `src/app/api`.
+- Env validation is robust (`scripts/check-required-envs.sh`), with Netlify-aware defaults and CI branches.
+- Testing stack covers unit/integration and E2E; performance thresholds are enforced.
+- Deployment targets (Vercel/Netlify) are configured with sensible defaults and optional E2E in production context.
+
+## Recommended Improvements
+- Adopt a single source of truth for DB URL (introduce `DATABASE_URL` in Prisma `datasource` with conditional mapping in runtime config) to reduce confusion outside Netlify.
+- Add a LICENSE file or clarify licensing policy referenced in this README.
+- Expand OpenAPI coverage (beyond admin-services) and publish schema artifacts for client SDK generation.
+- Introduce a security scan step (Semgrep or similar) in CI and document remediation workflow in `docs/`.
+- Add a developer "quickstart" seed that provisions a demo tenant, services, and sample data for faster onboarding.
+
 ## Additional Documentation
-- `PROJECT_SUMMARY.md` — up-to-date platform audit and ownership notes.
+- `PROJECT_SUMMARY.md` — platform audit and ownership notes.
 - `docs/` — tenant system plans, enhancement guides, and operational playbooks.
 - `ARCHIVE-*.md` — legacy references for decommissioned templates.
 - `netlify/` — platform-specific configuration and custom plugins.
@@ -206,4 +251,4 @@ Visit http://localhost:3000 to access the web application.
 3. Open a pull request with a summary of changes and testing notes.
 
 ## License
-Licensed under the MIT License. See [LICENSE](LICENSE) for full terms.
+MIT
