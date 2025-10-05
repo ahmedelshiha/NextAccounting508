@@ -426,6 +426,10 @@ Testing:
   - **Why**: Establish baseline state and avoid duplicative analysis
   - **Impact**: Ensures continuity with Phase 1 work and accurate planning for RLS + migrations
 
+- [x] RLS-safeguard: disabled cross-tenant fallback scan in uploads AV callback (src/app/api/uploads/av-callback/route.ts)
+  - **Why**: Prevent cross-tenant data access and ensure compatibility with database RLS
+  - **Impact**: Legacy JSON attachment updates are skipped when no Attachment record is found; audit event recorded for manual follow-up
+
 ## ⚠️ Issues / Risks
 - NETLIFY_DATABASE_URL must be present for Prisma and RLS tooling; missing env will halt scripts/setup-rls.ts
 - Current RLS policy allows tenantId IS NULL; tighten after NOT NULL migrations to eliminate global rows

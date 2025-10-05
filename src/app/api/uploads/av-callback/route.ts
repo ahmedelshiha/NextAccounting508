@@ -39,37 +39,8 @@ export async function POST(req: Request) {
         } })
         try { await logAuditSafe({ action: 'upload:av_update', details: { key, attachmentId: attach.id, avStatus: clean ? 'clean' : 'infected' } }) } catch {}
       } else {
-        // Fallback: try text-search on service_requests.attachments JSON
-        const rows: any[] = await prisma.$queryRaw`
-          SELECT id, attachments FROM service_requests WHERE attachments IS NOT NULL AND attachments::text LIKE ${'%' + key + '%'} LIMIT 50
-        `
-        for (const row of rows) {
-          try {
-            const attachments = Array.isArray(row.attachments) ? row.attachments : JSON.parse(row.attachments || '[]')
-            let modified = false
-            const updated = attachments.map((a: any) => {
-              const matches = (a.key === key) || (a.url && String(a.url).includes(key)) || (a.name && String(a.name).includes(key))
-              if (matches) {
-                modified = true
-                return {
-                  ...a,
-                  avStatus: clean ? 'clean' : 'infected',
-                  avDetails: result,
-                  avScanAt: new Date().toISOString(),
-                  avThreatName: result?.threat_name || result?.threatName || null,
-                  avScanTime: typeof result?.scan_time === 'number' ? result.scan_time : (typeof result?.scanTime === 'number' ? result.scanTime : null)
-                }
-              }
-              return a
-            })
-            if (modified) {
-              await prisma.serviceRequest.update({ where: { id: row.id }, data: { attachments: updated } })
-              try { await logAuditSafe({ action: 'upload:av_update', details: { key, serviceRequestId: row.id, avStatus: clean ? 'clean' : 'infected' } }) } catch {}
-            }
-          } catch (e) {
-            await captureErrorIfAvailable(e, { route: 'av-callback', step: 'persist-attachments', key })
-          }
-        }
+        // Legacy fallback disabled for RLS safety: avoid cross-tenant scans of JSON attachments
+        try { await logAuditSafe({ action: 'upload:av_skip_fallback', details: { key, reason: 'no_attachment_record_found' } }) } catch {}
       }
     } catch (e) {
       await captureErrorIfAvailable(e, { route: 'av-callback', step: 'find-requests' })
