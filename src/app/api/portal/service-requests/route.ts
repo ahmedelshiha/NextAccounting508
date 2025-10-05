@@ -434,7 +434,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       },
     })
 
-    try { if (typeof idemKey === 'string' && idemKey) { const { finalizeIdempotencyKey } = await import('@/lib/idempotency'); await finalizeIdempotencyKey(idemKey, 'ServiceRequest', created.id) } } catch {}
+    try { if (typeof idemKey === 'string' && idemKey) { const { finalizeIdempotencyKey } = await import('@/lib/idempotency'); await finalizeIdempotencyKey(idemKey, 'ServiceRequest', created.id, String(ctx.tenantId)) } } catch {}
     try { realtimeService.broadcastToUser(String(ctx.userId), { type: 'service-request-updated', data: { serviceRequestId: created.id, action: 'created' }, timestamp: new Date().toISOString() }) } catch {}
 
     // Auto-assign if team autoAssign is enabled (prefer team-based autoAssign flag)

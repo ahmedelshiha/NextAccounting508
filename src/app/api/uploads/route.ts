@@ -115,6 +115,9 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
         try {
           const { default: prisma } = await import('@/lib/prisma')
           const tenantId = getTenantFromRequest(request)
+          if (isMultiTenancyEnabled() && !tenantId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+          }
 
           const avData = (avScanResult || avScanError) ? (() => {
             if (avScanResult) {
@@ -142,7 +145,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
               size: buf.length,
               contentType: detectedMime || undefined,
               provider: 'netlify',
-              ...(isMultiTenancyEnabled() && tenantId ? { tenantId } : {}),
+              ...(isMultiTenancyEnabled() ? { tenant: { connect: { id: String(tenantId) } } } : {}),
               ...avData
             }
           })

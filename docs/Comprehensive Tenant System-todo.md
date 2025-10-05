@@ -185,6 +185,40 @@ SUCCESS CRITERIA CHECKLIST
 **Deadline:** 2025-11-15 | **Blocker:** Backfill plan and approval
 
 ### Task 2.1: Add tenantId column and enforce NOT NULL (IN PROGRESS)
+
+Recent progress (2025-10-05):
+- Added SQL migrations under prisma/migrations to enforce tenantId NOT NULL with FKs and indexes for:
+  - bookings, ServiceRequest, services, WorkOrder, invoices, expenses, ScheduledReminder, booking_settings, IdempotencyKey
+- Each migration adds column if missing, backfills where derivable, adds FK to Tenant(id) ON DELETE CASCADE, creates indexes, then sets NOT NULL.
+- Enforced Attachment.tenantId NOT NULL and added FK + backfill; uploads API now requires tenant context and persists tenant relation.
+
+Apply order (recommended):
+1) services
+2) ServiceRequest
+3) bookings
+4) WorkOrder
+5) invoices
+6) expenses
+7) ScheduledReminder
+8) booking_settings
+9) IdempotencyKey
+
+Backfill notes:
+- Bookings: COALESCE(user.tenantId, serviceRequest.tenantId, service.tenantId)
+- ServiceRequest: COALESCE(user.tenantId, service.tenantId)
+- WorkOrder: COALESCE(serviceRequest.tenantId, booking.tenantId, user.tenantId, service.tenantId)
+- Invoices: COALESCE(booking.tenantId, user.tenantId)
+- Expenses: user.tenantId
+- ScheduledReminder: serviceRequest.tenantId
+
+Execution (operator-run):
+- Take DB backup. Then apply in order with:
+  pnpm tsx scripts/apply-migration-file.ts prisma/migrations/20251005_add_service_tenantid_not_null/migration.sql
+  ... (continue in the order above)
+
+Risks:
+- Existing rows without derivable tenantId will block NOT NULL. Inspect with scripts/report-tenant-null-counts.ts and remediate.
+- Attachment NOT NULL deferred; will be addressed after uploads API always sets tenantId via tenant context.
 **Status:** IN PROGRESS
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
@@ -218,7 +252,16 @@ SUCCESS CRITERIA CHECKLIST
 
 ---
 
-### Task 2.2: Normalize nullable tenant columns and add compound unique constraints (PLANNED)
+### Task 2.2: Normalize nullable tenant columns and add compound unique constraints (IN PROGRESS)
+
+Recent progress (2025-10-05):
+- Changed IdempotencyKey uniqueness to composite (tenantId, key) in prisma/schema.prisma
+- Added migration prisma/migrations/20251005_update_idempotencykey_unique/migration.sql to drop global unique and add composite unique
+- Refactored idempotency helpers and Stripe webhook to use tenant-scoped lookups and updates
+
+Next:
+- Sweep for any remaining usages of prisma.idempotencyKey.{findUnique,update,upsert} by key and scope by tenant
+- Consider adding unique constraints for other keys where applicable (e.g., logs/metrics)
 **Status:** NOT STARTED
 **Priority:** P1 | **Effort:** 4d | **Deadline:** 2025-11-08
 **Subtasks:**
@@ -403,6 +446,10 @@ SUCCESS CRITERIA CHECKLIST
 ---
 
 ## RECENT WORK (AUTO-LOG)
+
+## ✅ Completed - [x] Fix Vercel build error: add tenant to booking fixture and use nested connects
+- **Why**: Typecheck failed (TS2741) because BookingUncheckedCreateInput required tenantId in tests/fixtures/userAndBookingFixtures.ts.
+- **Impact**: CI build unblocked; fixtures now align with strict Prisma schema; safer relational create pattern.
 
 ## ✅ Completed - [x] Restore public service request creation typing and tenant-safe idempotency guard
 - **Why**: Vercel build failed because the public service-request create payload leaked `tenantId` and duplicate prisma imports triggered TS2322/TS2300 errors.

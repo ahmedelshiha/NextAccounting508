@@ -1,5 +1,4 @@
 import prisma from '@/lib/prisma'
-import { v4 as uuidv4 } from 'uuid'
 import { resolveTenantId } from '@/lib/default-tenant'
 
 export async function seedUser(opts: { email?: string; name?: string; tenantId?: string }) {
@@ -24,9 +23,11 @@ export async function cleanupUserByEmail(email: string) {
 export async function seedBooking(opts: { serviceId: string; clientId?: string; scheduledAt: Date; duration?: number; tenantId?: string }) {
   const { serviceId, clientId, scheduledAt, duration = 60, tenantId } = opts
   const client = clientId ? null : await seedUser({})
+  const resolvedTenant = await resolveTenantId(tenantId ?? null)
   const booking = await prisma.booking.create({ data: {
-    clientId: clientId ?? client!.id,
-    serviceId,
+    client: { connect: { id: clientId ?? client!.id } },
+    service: { connect: { id: serviceId } },
+    tenant: { connect: { id: resolvedTenant } },
     status: 'PENDING',
     scheduledAt,
     duration,

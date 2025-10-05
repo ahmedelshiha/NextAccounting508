@@ -755,9 +755,9 @@ model Attachment {
   uploadedAt    DateTime @default(now())
   uploaderId    String?
   serviceRequestId String?
-  tenantId      String?
+  tenantId      String
 
-  tenant        Tenant?    @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   uploader      User?        @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
@@ -1072,7 +1072,7 @@ model ChatMessage {
 // Enums and other models
 model IdempotencyKey {
   id         Int      @id @default(autoincrement())
-  key        String   @unique
+  key        String
   userId     String?
   tenantId   String
 
@@ -1085,6 +1085,7 @@ model IdempotencyKey {
   expiresAt  DateTime?
 
   @@index([tenantId])
+  @@unique([tenantId, key])
 }
 
 enum ExpertiseLevel {
