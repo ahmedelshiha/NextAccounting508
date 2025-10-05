@@ -404,6 +404,10 @@ SUCCESS CRITERIA CHECKLIST
 
 ## RECENT WORK (AUTO-LOG)
 
+## ✅ Completed - [x] Fix Vercel build error: add tenant to booking fixture and use nested connects
+- **Why**: Typecheck failed (TS2741) because BookingUncheckedCreateInput required tenantId in tests/fixtures/userAndBookingFixtures.ts.
+- **Impact**: CI build unblocked; fixtures now align with strict Prisma schema; safer relational create pattern.
+
 ## ✅ Completed - [x] Restore public service request creation typing and tenant-safe idempotency guard
 - **Why**: Vercel build failed because the public service-request create payload leaked `tenantId` and duplicate prisma imports triggered TS2322/TS2300 errors.
 - **Impact**: Shifted to rest destructuring so Prisma create inputs rely on nested connects, now always connect the tenant relation required by Prisma, added tenant mismatch protection in idempotency.ts, and removed redundant prisma import to unblock typecheck.
