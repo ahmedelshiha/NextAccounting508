@@ -447,6 +447,17 @@ SUCCESS CRITERIA CHECKLIST
 
 ## RECENT WORK (AUTO-LOG)
 
+## ✅ Completed - [x] Unblock Netlify build: harden 20250214_tenant_settings_not_null
+- **Why**: Migration failed (FK) due to orphan tenantIds in settings tables; Netlify DB had rows with tenantId not in Tenant.
+- **Changes**: Updated migration to coerce NULL/orphan tenantIds to default tenant before adding FKs; updated prisma-deploy-retry.sh to resolve failed state for this migration.
+- **Impact**: prisma migrate deploy should succeed on Netlify; seed will run; build continues.
+
+## ⚠️ Issues / Risks
+- Duplicate rows for the default tenant in *_settings may cause unique(tenantId) conflicts; if encountered, deduplicate by keeping the most recent row.
+
+## 🚧 In Progress
+- [ ] Trigger a new production build on Netlify and verify migrations apply without errors.
+
 ## ✅ Completed - [x] Fix Vercel build error: add tenant to booking fixture and use nested connects
 - **Why**: Typecheck failed (TS2741) because BookingUncheckedCreateInput required tenantId in tests/fixtures/userAndBookingFixtures.ts.
 - **Impact**: CI build unblocked; fixtures now align with strict Prisma schema; safer relational create pattern.
