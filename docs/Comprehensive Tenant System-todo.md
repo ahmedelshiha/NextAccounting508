@@ -447,6 +447,20 @@ SUCCESS CRITERIA CHECKLIST
 
 ## RECENT WORK (AUTO-LOG)
 
+## ✅ Completed - [x] Stabilize tenant settings migration by consolidating orphan rows
+- **Why**: Netlify build failed because the migration reassigned orphan security_settings rows to the default tenant, colliding with the unique constraint on tenantId.
+- **Impact**: Migration now merges orphan and NULL rows into a single canonical record per settings table before setting tenantId NOT NULL, preventing duplicate tenantId conflicts while preserving data.
+
+## ⚠️ Issues / Risks
+- Validate in production that removing orphan settings rows does not drop needed configuration; we retain the most recently updated row per table when consolidating.
+
+## 🚧 In Progress
+- [ ] Trigger a Netlify production build to confirm prisma migrate deploy succeeds end-to-end.
+
+## 🔧 Next Steps
+- [ ] Capture before/after row counts for each *_settings table during rollout to document consolidation outcomes.
+- [ ] Review other singleton tables for similar orphan patterns before tightening constraints further.
+
 ## ✅ Completed - [x] Unblock Netlify build: harden 20250214_tenant_settings_not_null
 - **Why**: Migration failed (FK) due to orphan tenantIds in settings tables; Netlify DB had rows with tenantId not in Tenant.
 - **Changes**: Updated migration to coerce NULL/orphan tenantIds to default tenant before adding FKs; updated prisma-deploy-retry.sh to resolve failed state for this migration.
