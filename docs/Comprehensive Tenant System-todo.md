@@ -205,6 +205,9 @@ await withTenantRLS(async (tx) => {
 ```
 - Rollout notes:
   - Current policy allows tenantId IS NULL (global rows). After Phase 2 NOT NULL migrations, tighten to strict equality.
+  - Configure via env flags when running scripts/setup-rls.ts:
+    - RLS_ALLOW_NULL_GLOBAL=true|false (default true)
+    - RLS_FORCE=true to FORCE ROW LEVEL SECURITY
   - Consider FORCE ROW LEVEL SECURITY after stabilization.
 
 #### Task 5.1: Extend NextAuth to include tenant membership (COMPLETE)
