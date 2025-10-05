@@ -1072,7 +1072,7 @@ model ChatMessage {
 // Enums and other models
 model IdempotencyKey {
   id         Int      @id @default(autoincrement())
-  key        String   @unique
+  key        String
   userId     String?
   tenantId   String
 
@@ -1085,6 +1085,7 @@ model IdempotencyKey {
   expiresAt  DateTime?
 
   @@index([tenantId])
+  @@unique([tenantId, key])
 }
 
 enum ExpertiseLevel {
