@@ -437,6 +437,7 @@ Testing:
 ## ⚠️ Issues / Risks
 - NETLIFY_DATABASE_URL must be present for Prisma and RLS tooling; missing env will halt scripts/setup-rls.ts
 - Current RLS policy allows tenantId IS NULL; tighten after NOT NULL migrations to eliminate global rows
+- ACL: Shell commands (pnpm db:rls:enable, db:migrate, tests) cannot be executed from this environment. Manual/CI execution required.
 
 ## 🚧 In Progress
 - [ ] Plan and verify rollout for Task 4.1 (RLS enablement and policy verification)
