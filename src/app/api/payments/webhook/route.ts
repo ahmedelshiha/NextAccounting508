@@ -57,22 +57,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing event ID' }, { status: 400 })
   }
 
+  let defaultTenant: { id: string } | null = null
+
   try {
-    // Check if we've already processed this event
-    const existingKey = defaultTenant?.id ? await prisma.idempotencyKey.findFirst({
-      where: { key: `stripe_webhook_${eventId}`, tenantId: defaultTenant.id }
-    }) : null
-
-    if (existingKey && existingKey.status === 'PROCESSED') {
-      console.log(`Stripe webhook: Event ${eventId} already processed, returning success`)
-      return NextResponse.json({ received: true, message: 'Already processed' })
-    }
-
     // Determine a tenant for idempotency records (fallback to primary tenant if available)
-    const defaultTenant = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+    defaultTenant = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
 
-    // Create or update idempotency key to mark as processing
     if (defaultTenant?.id) {
+      const existingKey = await prisma.idempotencyKey.findFirst({
+        where: { key: `stripe_webhook_${eventId}`, tenantId: defaultTenant.id }
+      })
+
+      if (existingKey?.status === 'PROCESSED') {
+        console.log(`Stripe webhook: Event ${eventId} already processed, returning success`)
+        return NextResponse.json({ received: true, message: 'Already processed' })
+      }
+
       await prisma.idempotencyKey.upsert({
         where: { tenantId_key: { tenantId: defaultTenant.id, key: `stripe_webhook_${eventId}` } },
         create: {
@@ -93,16 +93,18 @@ export async function POST(request: NextRequest) {
     // Process the webhook event
     await processStripeEvent(event)
 
-    // Mark as successfully processed (best-effort)
-    try {
-      await prisma.idempotencyKey.update({
-        where: { tenantId_key: { tenantId: defaultTenant!.id, key: `stripe_webhook_${eventId}` } },
-        data: {
-          status: 'PROCESSED',
-          updatedAt: new Date()
-        }
-      })
-    } catch {}
+    if (defaultTenant?.id) {
+      // Mark as successfully processed (best-effort)
+      try {
+        await prisma.idempotencyKey.update({
+          where: { tenantId_key: { tenantId: defaultTenant.id, key: `stripe_webhook_${eventId}` } },
+          data: {
+            status: 'PROCESSED',
+            updatedAt: new Date()
+          }
+        })
+      } catch {}
+    }
 
     console.log(`Stripe webhook: Successfully processed event ${eventId} of type ${event.type}`)
     return NextResponse.json({ received: true })
