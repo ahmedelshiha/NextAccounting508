@@ -1,14 +1,44 @@
--- Migration: Add NOT NULL constraint and FK with ON DELETE CASCADE for bookings.tenantId
--- IMPORTANT: Run backfill scripts BEFORE applying this migration: `pnpm tsx scripts/backfill-booking-tenantId.ts`
+-- Draft migration: add tenantId to bookings and make NOT NULL when backfilled
 
-BEGIN;
+-- Add column if missing (both common table name variants)
+ALTER TABLE IF EXISTS "Booking" ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
+ALTER TABLE IF EXISTS "bookings" ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
 
--- Ensure the column exists (schema already has tenantId). Backfill script must populate NULLs prior to this.
--- Add / update foreign key constraint
-ALTER TABLE IF EXISTS "bookings" DROP CONSTRAINT IF EXISTS "bookings_tenantId_fkey";
-ALTER TABLE IF EXISTS "bookings" ADD CONSTRAINT "bookings_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE;
+-- Create index if missing
+CREATE INDEX IF NOT EXISTS idx_booking_tenantid ON "Booking"("tenantId");
+CREATE INDEX IF NOT EXISTS idx_bookings_tenantid ON "bookings"("tenantId");
 
--- Make tenantId NOT NULL (only safe after backfill)
-ALTER TABLE IF EXISTS "bookings" ALTER COLUMN "tenantId" SET NOT NULL;
+-- Add foreign key constraint if not present
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='Booking') THEN
+    BEGIN
+      ALTER TABLE "Booking" ADD CONSTRAINT IF NOT EXISTS fk_booking_tenant FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE;
+    EXCEPTION WHEN undefined_table THEN NULL; END;
+  END IF;
 
-COMMIT;
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='bookings') THEN
+    BEGIN
+      ALTER TABLE "bookings" ADD CONSTRAINT IF NOT EXISTS fk_bookings_tenant FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE;
+    EXCEPTION WHEN undefined_table THEN NULL; END;
+  END IF;
+END$$;
+
+-- Set NOT NULL only if there are no NULL tenantId rows
+DO $$
+DECLARE cnt BIGINT;
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='Booking') THEN
+    EXECUTE 'SELECT COUNT(*)::bigint FROM "Booking" WHERE "tenantId" IS NULL' INTO cnt;
+    IF cnt = 0 THEN
+      EXECUTE 'ALTER TABLE "Booking" ALTER COLUMN "tenantId" SET NOT NULL';
+    END IF;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='bookings') THEN
+    EXECUTE 'SELECT COUNT(*)::bigint FROM "bookings" WHERE "tenantId" IS NULL' INTO cnt;
+    IF cnt = 0 THEN
+      EXECUTE 'ALTER TABLE "bookings" ALTER COLUMN "tenantId" SET NOT NULL';
+    END IF;
+  END IF;
+END$$;
