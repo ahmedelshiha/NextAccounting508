@@ -6,6 +6,7 @@ A full-stack, multi-tenant Next.js platform tailored for accounting firms. It un
 - [Overview](#overview)
 - [Architecture Highlights](#architecture-highlights)
 - [Key Features](#key-features)
+- [Feature Modules & Domains](#feature-modules--domains)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
@@ -20,6 +21,7 @@ A full-stack, multi-tenant Next.js platform tailored for accounting firms. It un
 - [Integrations & Services](#integrations--services)
 - [Deployment](#deployment)
 - [Monitoring & Operations](#monitoring--operations)
+- [Security & Compliance](#security--compliance)
 - [Additional Documentation](#additional-documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -46,6 +48,15 @@ A full-stack, multi-tenant Next.js platform tailored for accounting firms. It un
 - Client self-service portal for bookings, expenses, secure uploads, and live chat.
 - Internationalization (English, Arabic RTL, Hindi) with extensible locale registry.
 - Scheduled processes for reminders, telemetry, and data hygiene via cron routes and Netlify functions.
+
+## Feature Modules & Domains
+- **Admin Operations:** `src/app/admin` offers analytics, reports, bookings, services, service-request dashboards, invoicing, payments, expenses, posts, newsletter, permissions, roles, integrations, cron telemetry, and performance metrics.
+- **Task Workspace:** Boards, calendars, tables, list, and Gantt views powered by providers, filters, analytics, and extensive components in `src/app/admin/tasks`.
+- **Booking Lifecycle:** Public booking wizard, admin availability management, automation rules, exports, and reminders across `src/app/booking`, `src/app/admin/booking*`, and API routes.
+- **Client Portal:** Bookings, service requests, expenses scanning, secure uploads, realtime chat, and settings within `src/app/portal` plus supporting components.
+- **Communications & Notifications:** Admin chat console, message center, newsletters, reminders, and notification providers located in `src/components/communication`, `src/app/admin/chat`, and cron endpoints.
+- **Financial & Analytics Tools:** Revenue time series, ROI/tax calculators, reports, invoices, payments, expenses ingestion, and dashboards under `src/components/admin`, `src/app/admin/reports`, `src/app/api/payments`, and `src/app/api/invoices`.
+- **Content & Marketing:** Blog, posts, landing variants, SEO schema, and localization resources through `src/app/blog`, `src/components/home`, and `src/locales`.
 
 ## Tech Stack
 - **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui, Radix UI, Framer Motion.
@@ -176,10 +187,15 @@ Visit http://localhost:3000 to access the web application.
 - **Sentry:** Client, server, and edge configs ready for DSN wiring.
 - **Health Checks:** `netlify/functions/health-monitor.ts` and `scripts/monitoring` assets for uptime alerts (Slack/email).
 - **Cron & Automation:** `scripts/production-monitoring.js`, `scripts/health-check.js`, and `/api/cron/*` endpoints cover reminders, telemetry, and cleanups.
-- **Security:** Prisma guardrails, tenant-filter middleware, Stripe webhook validation, and antivirus scanning for uploads.
+
+## Security & Compliance
+- **Access Control:** Role-based guard rails, tenant scoping, and admin layout stores ensure principle-of-least-privilege across app and API layers.
+- **Data Protection:** Prisma tenant filter utilities, Zod validation, and multi-tenancy flags protect database reads/writes.
+- **Uploads Safety:** ClamAV microservice, quarantine management UI, and provider abstraction for blob storage.
+- **Secrets & Transport:** Cron secrets, Stripe webhook validation, Sentry DSN configuration, and optional Redis/Upstash tokens are all environment driven.
 
 ## Additional Documentation
-- `PROJECT_SUMMARY.md` — migration roadmap and ownership notes.
+- `PROJECT_SUMMARY.md` — up-to-date platform audit and ownership notes.
 - `docs/` — tenant system plans, enhancement guides, and operational playbooks.
 - `ARCHIVE-*.md` — legacy references for decommissioned templates.
 - `netlify/` — platform-specific configuration and custom plugins.
