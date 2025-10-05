@@ -90,9 +90,13 @@ export class BookingSettingsService {
 
   /** Create default settings for a tenant with sensible defaults. */
   async createDefaultSettings(tenantId: string | null): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to create booking settings')
+    }
+
     await prisma.$transaction(async (tx) => {
       const settings = await tx.bookingSettings.create({
-        data: { tenantId: tenantId ?? null },
+        data: { tenant: { connect: { id: tenantId } } },
       })
 
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
@@ -103,7 +107,7 @@ export class BookingSettingsService {
 
     await this.invalidateByTenant(tenantId)
     const full = await prisma.bookingSettings.findFirst({
-      where: { tenantId: tenantId ?? undefined },
+      where: { tenantId },
       include: {
         steps: { orderBy: { stepOrder: 'asc' } },
         businessHoursConfig: { orderBy: { dayOfWeek: 'asc' } },
@@ -116,16 +120,20 @@ export class BookingSettingsService {
 
   /** Validate and update settings; returns updated settings. */
   async updateBookingSettings(tenantId: string | null, updates: BookingSettingsUpdateRequest): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to update booking settings')
+    }
+
     const validation = await this.validateSettingsUpdate(tenantId, updates)
     if (!validation.isValid) {
       const msg = validation.errors.map((e) => e.message).join(', ')
       throw new Error(`Settings validation failed: ${msg}`)
     }
 
-    let target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+    let target = await prisma.bookingSettings.findFirst({ where: { tenantId } })
     if (!target) {
       await this.createDefaultSettings(tenantId)
-      target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      target = await prisma.bookingSettings.findFirst({ where: { tenantId } })
     }
 
     const data: Record<string, unknown> = {
@@ -332,9 +340,13 @@ export class BookingSettingsService {
     if (!data?.version || data.version !== '1.0.0') throw new Error('Unsupported settings version')
 
     await prisma.$transaction(async (tx) => {
-      let settings = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      if (!tenantId) {
+        throw new Error('tenantId is required to import booking settings')
+      }
+
+      let settings = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (!settings) {
-        settings = await tx.bookingSettings.create({ data: { tenantId: tenantId ?? null } })
+        settings = await tx.bookingSettings.create({ data: { tenant: { connect: { id: tenantId } } } })
       }
 
       if (overwriteExisting && selectedSections.includes('settings')) {
@@ -346,7 +358,7 @@ export class BookingSettingsService {
         settingsData.reminderHours = toNullableJson(settingsData.reminderHours)
         await tx.bookingSettings.update({
           where: { id: settings.id },
-          data: { ...settingsData, id: undefined as any, tenantId: tenantId ?? null },
+          data: { ...settingsData, id: undefined as any },
         })
       }
 
@@ -418,8 +430,12 @@ export class BookingSettingsService {
 
   /** Reset settings by deleting and recreating defaults. */
   async resetToDefaults(tenantId: string | null): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to reset booking settings')
+    }
+
     await prisma.$transaction(async (tx) => {
-      const existing = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      const existing = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (existing) {
         await tx.bookingStepConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
         await tx.businessHoursConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
