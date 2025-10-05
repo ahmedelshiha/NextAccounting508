@@ -207,17 +207,14 @@ await withTenantRLS(async (tx) => {
   - Current policy allows tenantId IS NULL (global rows). After Phase 2 NOT NULL migrations, tighten to strict equality.
   - Consider FORCE ROW LEVEL SECURITY after stabilization.
 
-#### Task 5.1: Extend NextAuth to include tenant membership (IN PROGRESS)
+#### Task 5.1: Extend NextAuth to include tenant membership (COMPLETE)
 - Priority: P1 | Effort: 3d | Deadline: 2025-10-25
-- Dependencies:
-  - Stable TenantMembership model
-  - /api/tenant/switch membership validation
+- Outcome:
+  - Session/JWT now include tenantId, tenantSlug, tenantRole, availableTenants (src/lib/auth.ts)
+  - Tenant switch endpoint issues updated session token (src/app/api/tenant/switch/route.ts)
 - Validation script:
 ```bash
-# Ensure session contains tenant metadata
-rg "availableTenants|tenantRole|tenantSlug" -n src/app/api src/lib | sort
-# Exercise endpoint
-curl -sS -X POST http://localhost:3000/api/tenant/switch -H 'Content-Type: application/json' -d '{"tenantId":"<id>"}' -b cookiejar -c cookiejar | jq .
+rg "availableTenants|tenantRole|tenantSlug" -n src/lib/auth.ts src/app/api/tenant/switch/route.ts
 ```
 
 #### Task 9.1: Create tenant-scoped repositories and refactor services (PLANNED)
