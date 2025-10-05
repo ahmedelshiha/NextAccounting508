@@ -455,6 +455,16 @@ SUCCESS CRITERIA CHECKLIST
 ## ⚠️ Issues / Risks
 - Duplicate rows for the default tenant in *_settings may cause unique(tenantId) conflicts; if encountered, deduplicate by keeping the most recent row.
 
+## ✅ Completed - [x] Fix login 401 by adding preview credentials fallback and auto-provisioning
+- **Why**: Netlify had DB configured but no seeded users due to migration failure; credentials login always returned 401.
+- **Changes**: In src/lib/auth.ts, if PREVIEW_ADMIN_EMAIL/PASSWORD match, upsert a preview admin user in the default tenant and allow sign-in; preserves DB-backed flows.
+- **Impact**: You can sign in using preview creds even when seed didn’t run; downstream APIs work since a real DB user is created.
+
+## ✅ Completed - [x] Add Forgot Password page to avoid 404
+- **Why**: /forgot-password returned 404 causing console errors.
+- **Changes**: Added src/app/forgot-password/page.tsx with consistent styling; submit disabled (feature coming soon) and links to Contact.
+- **Impact**: No more 404; clearer UX.
+
 ## 🚧 In Progress
 - [ ] Trigger a new production build on Netlify and verify migrations apply without errors.
 
