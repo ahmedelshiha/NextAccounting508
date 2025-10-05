@@ -24,15 +24,34 @@ export default function ForgotPasswordPage() {
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Reset password</CardTitle>
-            <CardDescription className="text-center">Password reset via email is coming soon.</CardDescription>
+            <CardDescription className="text-center">Well email you a secure link to reset your password.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={async (e) => {
+              e.preventDefault()
+              const form = e.currentTarget as HTMLFormElement
+              const fd = new FormData(form)
+              const email = String(fd.get('email') || '')
+              const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null
+              if (btn) btn.disabled = true
+              try {
+                const res = await fetch('/api/auth/password/forgot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
+                if (res.ok) {
+                  alert('If an account exists for that email, a reset link has been sent.')
+                } else {
+                  alert('Please try again later.')
+                }
+              } catch {
+                alert('Please try again later.')
+              } finally {
+                if (btn) btn.disabled = false
+              }
+            }}>
               <div>
                 <Label htmlFor="email">Email address</Label>
                 <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
               </div>
-              <Button type="submit" className="w-full" disabled>
+              <Button type="submit" className="w-full">
                 Send reset link
               </Button>
             </form>

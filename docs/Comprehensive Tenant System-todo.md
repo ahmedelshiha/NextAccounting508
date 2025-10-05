@@ -465,6 +465,11 @@ SUCCESS CRITERIA CHECKLIST
 - **Changes**: Added src/app/forgot-password/page.tsx with consistent styling; submit disabled (feature coming soon) and links to Contact.
 - **Impact**: No more 404; clearer UX.
 
+## ✅ Completed - [x] Implement professional password reset flow (tenant-aware)
+- **Why**: Replace placeholder page; align with SendGrid, rate-limits, and tenant isolation.
+- **Changes**: Added POST /api/auth/password/forgot (rate-limited, email link via sendEmail), POST /api/auth/password/reset (token verify, bcrypt, sessionVersion++). UI pages: /forgot-password, /reset-password with matching styling.
+- **Security**: No user enumeration, tokens hashed (sha256) in VerificationToken, 1h expiry, IP rate limits.
+
 ## 🚧 In Progress
 - [ ] Trigger a new production build on Netlify and verify migrations apply without errors.
 
