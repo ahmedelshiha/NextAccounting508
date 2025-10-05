@@ -107,7 +107,7 @@ export class BookingSettingsService {
 
     await this.invalidateByTenant(tenantId)
     const full = await prisma.bookingSettings.findFirst({
-      where: { tenantId: tenantId ?? undefined },
+      where: { tenantId },
       include: {
         steps: { orderBy: { stepOrder: 'asc' } },
         businessHoursConfig: { orderBy: { dayOfWeek: 'asc' } },
@@ -344,7 +344,7 @@ export class BookingSettingsService {
         throw new Error('tenantId is required to import booking settings')
       }
 
-      let settings = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      let settings = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (!settings) {
         settings = await tx.bookingSettings.create({ data: { tenant: { connect: { id: tenantId } } } })
       }
@@ -435,7 +435,7 @@ export class BookingSettingsService {
     }
 
     await prisma.$transaction(async (tx) => {
-      const existing = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      const existing = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (existing) {
         await tx.bookingStepConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
         await tx.businessHoursConfig.deleteMany({ where: { bookingSettingsId: existing.id } })
