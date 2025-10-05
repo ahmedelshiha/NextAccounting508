@@ -111,18 +111,20 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error(`Stripe webhook processing error for event ${eventId}:`, error)
-    
+
     // Mark as failed for potential retry
-    try {
-      await prisma.idempotencyKey.update({
-        where: { tenantId_key: { tenantId: defaultTenant!.id, key: `stripe_webhook_${eventId}` } },
-        data: {
-          status: 'FAILED',
-          updatedAt: new Date()
-        }
-      })
-    } catch (dbError) {
-      console.error('Failed to update idempotency key status:', dbError)
+    if (defaultTenant?.id) {
+      try {
+        await prisma.idempotencyKey.update({
+          where: { tenantId_key: { tenantId: defaultTenant.id, key: `stripe_webhook_${eventId}` } },
+          data: {
+            status: 'FAILED',
+            updatedAt: new Date()
+          }
+        })
+      } catch (dbError) {
+        console.error('Failed to update idempotency key status:', dbError)
+      }
     }
 
     return NextResponse.json({ 
