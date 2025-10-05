@@ -115,10 +115,11 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
         // Persist Attachment record in DB (best-effort)
         try {
           const { default: prisma } = await import('@/lib/prisma')
-          const tenantId = getTenantFromRequest(request)
-          if (isMultiTenancyEnabled() && !tenantId) {
+          const tenantHint = getTenantFromRequest(request)
+          if (isMultiTenancyEnabled() && !tenantHint) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
           }
+          const resolvedTenantId = await resolveTenantId(tenantHint)
 
           const avData = (avScanResult || avScanError) ? (() => {
             if (avScanResult) {
@@ -146,7 +147,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
               size: buf.length,
               contentType: detectedMime || undefined,
               provider: 'netlify',
-              ...(isMultiTenancyEnabled() ? { tenant: { connect: { id: String(tenantId) } } } : {}),
+              tenant: { connect: { id: resolvedTenantId } },
               ...avData
             }
           })
