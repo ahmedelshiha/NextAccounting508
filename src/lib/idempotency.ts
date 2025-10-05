@@ -30,8 +30,8 @@ export async function reserveIdempotencyKey(key: string, userId?: string | null,
     return rec as unknown as IdempotencyRecord
   } catch (e: any) {
     if (String(e?.code) === 'P2002') {
-      const existing = await prisma.idempotencyKey.findUnique({ where: { key } })
-      if (existing && existing.tenantId !== tenantId) {
+      const existing = await prisma.idempotencyKey.findFirst({ where: { key, tenantId } })
+      if (!existing) {
         throw new Error('Idempotency key belongs to a different tenant')
       }
       return existing as unknown as IdempotencyRecord
@@ -40,9 +40,9 @@ export async function reserveIdempotencyKey(key: string, userId?: string | null,
   }
 }
 
-export async function finalizeIdempotencyKey(key: string, entityType: string, entityId: string) {
+export async function finalizeIdempotencyKey(key: string, entityType: string, entityId: string, tenantId: string) {
   try {
-    const rec = await prisma.idempotencyKey.update({ where: { key }, data: { entityType, entityId, status: 'COMPLETED' as any } })
+    const rec = await prisma.idempotencyKey.update({ where: { tenantId_key: { tenantId, key } }, data: { entityType, entityId, status: 'COMPLETED' as any } })
     return rec as unknown as IdempotencyRecord
   } catch (e) {
     // swallow
@@ -51,7 +51,7 @@ export async function finalizeIdempotencyKey(key: string, entityType: string, en
 }
 
 export async function findIdempotentResult(key: string, tenantId?: string) {
-  const rec = await prisma.idempotencyKey.findUnique({ where: { key } })
+  const rec = await prisma.idempotencyKey.findFirst({ where: { key, ...(tenantId ? { tenantId } : {}) } })
   if (!rec) {
     return null
   }
