@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
 import { logAuditSafe } from '@/lib/observability-helpers'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 import { scanBuffer } from '@/lib/clamav'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
