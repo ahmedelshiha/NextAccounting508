@@ -447,6 +447,37 @@ SUCCESS CRITERIA CHECKLIST
 
 ## RECENT WORK (AUTO-LOG)
 
+## ✅ Completed - [x] Unblock Netlify build: harden 20250214_tenant_settings_not_null
+- **Why**: Migration failed (FK) due to orphan tenantIds in settings tables; Netlify DB had rows with tenantId not in Tenant.
+- **Changes**: Updated migration to coerce NULL/orphan tenantIds to default tenant before adding FKs; updated prisma-deploy-retry.sh to resolve failed state for this migration.
+- **Impact**: prisma migrate deploy should succeed on Netlify; seed will run; build continues.
+
+## ⚠️ Issues / Risks
+- Duplicate rows for the default tenant in *_settings may cause unique(tenantId) conflicts; if encountered, deduplicate by keeping the most recent row.
+
+## ✅ Completed - [x] Fix login 401 by adding preview credentials fallback and auto-provisioning
+- **Why**: Netlify had DB configured but no seeded users due to migration failure; credentials login always returned 401.
+- **Changes**: In src/lib/auth.ts, if PREVIEW_ADMIN_EMAIL/PASSWORD match, upsert a preview admin user in the default tenant and allow sign-in; preserves DB-backed flows.
+- **Impact**: You can sign in using preview creds even when seed didn’t run; downstream APIs work since a real DB user is created.
+
+## ✅ Completed - [x] Add Forgot Password page to avoid 404
+- **Why**: /forgot-password returned 404 causing console errors.
+- **Changes**: Added src/app/forgot-password/page.tsx with consistent styling; submit disabled (feature coming soon) and links to Contact.
+- **Impact**: No more 404; clearer UX.
+
+## ✅ Completed - [x] Implement professional password reset flow (tenant-aware)
+- **Why**: Replace placeholder page; align with SendGrid, rate-limits, and tenant isolation.
+- **Changes**: Added POST /api/auth/password/forgot (rate-limited, email link via sendEmail), POST /api/auth/password/reset (token verify, bcrypt, sessionVersion++). UI pages: /forgot-password, /reset-password with matching styling.
+- **Security**: No user enumeration, tokens hashed (sha256) in VerificationToken, 1h expiry, IP rate limits.
+
+## ✅ Completed - [x] Upgrade login to align with tenant context, security, and auditing
+- **Why**: Harden credentials flow and align with admin dashboard and settings.
+- **Changes**: Rate limit credentials login by IP and tenant+email; audit success/failure via logAudit; stronger session settings (maxAge/updateAge). Preview creds path remains for bootstrap.
+- **Impact**: Reduced brute-force risk, better observability, consistent tenant metadata in session for downstream admin panels. Admin TenantSwitcher now uses session.availableTenants and secure /api/tenant/switch.
+
+## 🚧 In Progress
+- [ ] Trigger a new production build on Netlify and verify migrations apply without errors.
+
 ## ✅ Completed - [x] Fix Vercel build error: add tenant to booking fixture and use nested connects
 - **Why**: Typecheck failed (TS2741) because BookingUncheckedCreateInput required tenantId in tests/fixtures/userAndBookingFixtures.ts.
 - **Impact**: CI build unblocked; fixtures now align with strict Prisma schema; safer relational create pattern.

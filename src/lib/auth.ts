@@ -4,6 +4,8 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 
 const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
 
@@ -35,12 +37,63 @@ export const authOptions: NextAuthOptions = {
           return { id: u.id, email: u.email, name: u.name, role: u.role }
         }
 
-        const tenantId = await getResolvedTenantId((req as any)?.request ?? (req as any))
+        const requestLike = ((req as any)?.request ?? (req as any)) as unknown as Request
+        const tenantId = await getResolvedTenantId(requestLike)
+        try {
+          const ip = getClientIp(requestLike)
+          if (!rateLimit(`auth:login:ip:${ip}`, 20, 60_000)) return null
+          const emailKey = String(credentials.email || '').toLowerCase()
+          if (!rateLimit(`auth:login:${tenantId}:${emailKey}`, 10, 60_000)) return null
+        } catch {}
+
+        // Preview fallback: allow login using PREVIEW_ADMIN_EMAIL/PASSWORD and auto-provision the user in the default tenant
+        const previewEmail = (process.env.PREVIEW_ADMIN_EMAIL || '').toLowerCase()
+        const previewPassword = process.env.PREVIEW_ADMIN_PASSWORD || ''
+        const inputEmail = String(credentials.email).toLowerCase()
+        const inputPassword = String(credentials.password)
+        if (previewEmail && previewPassword && inputEmail === previewEmail && inputPassword === previewPassword) {
+          // Upsert preview admin user in DB to ensure downstream APIs work
+          const hashed = await bcrypt.hash(previewPassword, 12)
+          const user = await prisma.user.upsert({
+            where: userByTenantEmail(tenantId, inputEmail),
+            update: { password: hashed, role: 'ADMIN' as any, name: 'Preview Admin' },
+            create: { tenantId, email: inputEmail, name: 'Preview Admin', password: hashed, role: 'ADMIN' as any }
+          })
+          // Ensure tenant membership exists
+          await prisma.tenantMembership.upsert({
+            where: { userId_tenantId: { userId: user.id, tenantId } },
+            update: { role: 'ADMIN' as any, isDefault: true },
+            create: { userId: user.id, tenantId, role: 'ADMIN' as any, isDefault: true }
+          }).catch(() => {})
+
+          const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])
+          const activeMembership = tenantMemberships.find(m => m.tenantId === tenantId) || tenantMemberships[0] || null
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            image: user.image,
+            tenantId: activeMembership ? activeMembership.tenantId : tenantId,
+            tenantSlug: activeMembership?.tenant?.slug ?? null,
+            tenantRole: activeMembership ? activeMembership.role : null,
+            availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
+          }
+        }
+
         const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, credentials.email as string) })
-        if (!user || !user.password) return null
+        if (!user || !user.password) {
+          // Audit failed attempt without user enumeration
+          logAudit({ action: 'auth.login.failed', actorId: null, targetId: null, details: { tenantId, email: String(credentials.email || '').toLowerCase() } }).catch(() => {})
+          return null
+        }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isPasswordValid) return null
+        if (!isPasswordValid) {
+          logAudit({ action: 'auth.login.failed', actorId: user.id, targetId: user.id, details: { tenantId } }).catch(() => {})
+          return null
+        }
 
         // Fetch tenant memberships for the user to populate available tenants
         const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])
@@ -62,7 +115,15 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 7, updateAge: 60 * 60 },
+  events: {
+    async signIn({ user }) {
+      try { await logAudit({ action: 'auth.signin', actorId: (user as any)?.id, targetId: (user as any)?.id }) } catch {}
+    },
+    async signOut({ session }) {
+      try { await logAudit({ action: 'auth.signout', actorId: (session as any)?.user?.id || null, targetId: null }) } catch {}
+    }
+  },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
       // On sign in, attach role, sessionVersion and tenant metadata
