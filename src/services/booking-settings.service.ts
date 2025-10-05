@@ -130,10 +130,10 @@ export class BookingSettingsService {
       throw new Error(`Settings validation failed: ${msg}`)
     }
 
-    let target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+    let target = await prisma.bookingSettings.findFirst({ where: { tenantId } })
     if (!target) {
       await this.createDefaultSettings(tenantId)
-      target = await prisma.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
+      target = await prisma.bookingSettings.findFirst({ where: { tenantId } })
     }
 
     const data: Record<string, unknown> = {
