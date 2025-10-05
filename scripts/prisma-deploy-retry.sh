@@ -27,6 +27,7 @@ echo "[prisma-deploy-retry] Pre-clearing failed state (if any) for migrations"
 # Resolve known problematic migrations idempotently if previously marked as failed
 (pnpm prisma migrate resolve --rolled-back 20250926_add_service_settings_views_and_service_views) || true
 (pnpm prisma migrate resolve --rolled-back add_performance_indexes) || true
+(pnpm prisma migrate resolve --rolled-back 20251001_add_legal_links_columns) || true
 
 attempt=1
 until [ $attempt -gt "$MAX_ATTEMPTS" ]; do
