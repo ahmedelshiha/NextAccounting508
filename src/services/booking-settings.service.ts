@@ -90,9 +90,13 @@ export class BookingSettingsService {
 
   /** Create default settings for a tenant with sensible defaults. */
   async createDefaultSettings(tenantId: string | null): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to create booking settings')
+    }
+
     await prisma.$transaction(async (tx) => {
       const settings = await tx.bookingSettings.create({
-        data: { tenantId: tenantId ?? null },
+        data: { tenant: { connect: { id: tenantId } } },
       })
 
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
@@ -332,9 +336,13 @@ export class BookingSettingsService {
     if (!data?.version || data.version !== '1.0.0') throw new Error('Unsupported settings version')
 
     await prisma.$transaction(async (tx) => {
+      if (!tenantId) {
+        throw new Error('tenantId is required to import booking settings')
+      }
+
       let settings = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
       if (!settings) {
-        settings = await tx.bookingSettings.create({ data: { tenantId: tenantId ?? null } })
+        settings = await tx.bookingSettings.create({ data: { tenant: { connect: { id: tenantId } } } })
       }
 
       if (overwriteExisting && selectedSections.includes('settings')) {
@@ -346,7 +354,7 @@ export class BookingSettingsService {
         settingsData.reminderHours = toNullableJson(settingsData.reminderHours)
         await tx.bookingSettings.update({
           where: { id: settings.id },
-          data: { ...settingsData, id: undefined as any, tenantId: tenantId ?? null },
+          data: { ...settingsData, id: undefined as any },
         })
       }
 
