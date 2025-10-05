@@ -78,14 +78,14 @@ export async function POST(request: NextRequest) {
       status: 'SUBMITTED' as any,
     }, tenantId)
 
-    const { clientId: _clientId, serviceId: _serviceId, tenantId: _tenantId, ...payload } = createData
+    const { clientId: _clientId, serviceId: _serviceId, tenantId: tenantForCreate, ...payload } = createData
     // use nested connect for relations instead of direct foreign keys
 
     const created = await prisma.serviceRequest.create({
       data: {
         client: { connect: { id: user.id } },
         service: { connect: { id: data.serviceId } },
-        ...(tenantId ? { tenant: { connect: { id: tenantId } } } : {}),
+        tenant: { connect: { id: tenantForCreate } },
         ...payload,
       },
       include: { service: { select: { id: true, name: true, slug: true, category: true } } },
