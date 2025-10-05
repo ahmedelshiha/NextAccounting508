@@ -419,3 +419,22 @@ Testing:
 ## PROGRESS SUMMARY
 - Tasks: ✅ Complete: 71 | 🔥 In Progress: 24 | ❌ Not Started: 46 | 🔒 Blocked: 0
 
+
+
+## ✅ Completed
+- [x] Context reload from docs/Comprehensive Tenant System-todo.md, prisma/schema.prisma, and scripts/setup-rls.ts
+  - **Why**: Establish baseline state and avoid duplicative analysis
+  - **Impact**: Ensures continuity with Phase 1 work and accurate planning for RLS + migrations
+
+## ⚠️ Issues / Risks
+- NETLIFY_DATABASE_URL must be present for Prisma and RLS tooling; missing env will halt scripts/setup-rls.ts
+- Current RLS policy allows tenantId IS NULL; tighten after NOT NULL migrations to eliminate global rows
+
+## 🚧 In Progress
+- [ ] Plan and verify rollout for Task 4.1 (RLS enablement and policy verification)
+
+## 🔧 Next Steps
+- [ ] Execute pnpm db:rls:enable in staging; verify policies on public.services
+- [ ] Apply NOT NULL tenantId migrations for remaining 9 models in the recommended order
+- [ ] Add tenant-mismatch integration tests for cookie/header and subdomain flows (Task 12.1)
+- [ ] Extend NextAuth session to include tenant membership metadata (Task 5.1)
