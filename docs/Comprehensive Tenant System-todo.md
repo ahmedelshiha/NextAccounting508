@@ -10,7 +10,7 @@
 
 ## CRITICAL METRICS
 - Tenant Isolation Incidents: 0/0 (—) ✅
-- Routes migrated to withTenantContext: 150/150 (100%) ✅
+- Routes migrated to withTenantContext: 150/150 (100%) ���
 - Prisma tenant-guard coverage (critical models): 100%/100% (100%) ✅
 - Tests covering tenant-mismatch cases: 10/10 (100%) ✅
 
@@ -470,6 +470,11 @@ SUCCESS CRITERIA CHECKLIST
 - **Changes**: Added POST /api/auth/password/forgot (rate-limited, email link via sendEmail), POST /api/auth/password/reset (token verify, bcrypt, sessionVersion++). UI pages: /forgot-password, /reset-password with matching styling.
 - **Security**: No user enumeration, tokens hashed (sha256) in VerificationToken, 1h expiry, IP rate limits.
 
+## ✅ Completed - [x] Upgrade login to align with tenant context, security, and auditing
+- **Why**: Harden credentials flow and align with admin dashboard and settings.
+- **Changes**: Rate limit credentials login by IP and tenant+email; audit success/failure via logAudit; stronger session settings (maxAge/updateAge). Preview creds path remains for bootstrap.
+- **Impact**: Reduced brute-force risk, better observability, consistent tenant metadata in session for downstream admin panels.
+
 ## 🚧 In Progress
 - [ ] Trigger a new production build on Netlify and verify migrations apply without errors.
 
@@ -685,7 +690,7 @@ SUCCESS CRITERIA CHECKLIST
 ## PROGRESS SUMMARY
 - Version: 5.0 | Last Updated: 2025-10-04
 - Summary: Comprehensive coverage of Phase 0 through Phase 14 now present
-- Tasks: ✅ Complete: 71 | 🔥 In Progress: 24 | ❌ Not Started: 46 | 🔒 Blocked: 0
+- Tasks: ✅ Complete: 71 | �� In Progress: 24 | ❌ Not Started: 46 | 🔒 Blocked: 0
 
 ---
 
