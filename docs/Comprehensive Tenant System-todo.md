@@ -441,3 +441,29 @@ Testing:
 - [ ] Task 5.1: Finalize NextAuth tenant membership/session metadata; validate session fields and exercise /api/tenant/switch.
 - [ ] Task 12.1: Ensure tenant-mismatch tests cover cookie/header/subdomain flows; run tests/integration with grep and address failures.
 - [ ] Task 9.1: Establish tenant-scoped repositories and refactor initial services; inventory Prisma call sites in src/services.
+
+---
+
+## AI Agent Findings (2025-10-05 - repo scan)
+
+- Confirmed present scripts:
+  - scripts/backfill-tenant-scoped-tables.ts
+  - scripts/report-tenant-null-counts.ts
+  - scripts/setup-rls.ts
+  - scripts/apply-migration-file.ts
+  - scripts/run-backfill-and-apply.sh
+
+- Not found: migration SQL files under prisma/migrations/20251004_* are not present in this repository snapshot.
+  - Impact: run-backfill-and-apply.sh will skip or report missing migration files when executed locally. We cannot apply the NOT NULL migrations until migration SQL files are added.
+
+- Recommended next actions:
+  1) Locate migration SQL artifacts in remote storage or another branch; if available, add them under prisma/migrations/ with the expected names.
+  2) If migrations are not available, generate SQL via prisma migrate diff or draft SQL based on prisma/schema.prisma changes and place them under prisma/migrations/20251004_*.
+  3) After adding migration files, re-run scripts/run-backfill-and-apply.sh with DATABASE_URL and FORCE_APPLY=1 in a safe environment after taking a DB snapshot.
+
+- Do you want me to:
+  - [A] Search the repo for alternative migration files or different timestamps?  
+  - [B] Generate migration SQL drafts from the current prisma/schema.prisma and create the migration files under prisma/migrations/ (I will only create files, not run them).  
+  - [C] Pause and wait for you to supply the migration SQL artifacts? 
+
+Please reply with A, B, or C.
