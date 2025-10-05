@@ -427,6 +427,10 @@ Testing:
   - **Why**: Prevent cross-tenant data access and ensure compatibility with database RLS
   - **Impact**: Legacy JSON attachment updates are skipped when no Attachment record is found; audit event recorded for manual follow-up
 
+- [x] NextAuth tenant membership session metadata and tenant switch endpoint
+  - **Why**: Ensure session carries active tenant context and supports secure tenant switching
+  - **Impact**: Reduced cross-tenant risk; consistent tenant-aware behavior across APIs
+
 ## ⚠️ Issues / Risks
 - NETLIFY_DATABASE_URL must be present for Prisma and RLS tooling; missing env will halt scripts/setup-rls.ts
 - Current RLS policy allows tenantId IS NULL; tighten after NOT NULL migrations to eliminate global rows
