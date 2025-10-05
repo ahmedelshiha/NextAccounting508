@@ -720,3 +720,45 @@ Version: 5.0  Last Updated: 2025-10-04
 - [ ] Run `pnpm test:integration -- --grep tenant-mismatch` in CI to validate recent hardening.
 - [ ] Add Grafana/Sentry dashboards (queries for "Invalid tenant signature" and RLS policy stats).
 - [ ] Proceed with Phase 2 migrations as per order; verify counts between each step.
+
+---
+
+## ✅ Completed
+- [x] Monitoring Dashboards Proposal (cross-tenant attempts & RLS hits)
+  - **Why**: Provide actionable visibility into tenant security enforcement and policy effectiveness.
+  - **Impact**: Enables rapid detection of cross-tenant attempts, invalid tenant cookie signatures, and RLS policy denials.
+
+### Dashboards
+- Sentry (Server):
+  - Saved Search: Invalid tenant signature
+    - Query: `message:"Invalid tenant cookie signature" OR message:"Invalid tenant signature" has:tags tag:tenantId:*`
+  - Saved Search: Tenant guard blocks
+    - Query: `message:"Tenant guard blocked" has:tags tag:tenantId:*`
+  - Saved Search: RLS policy denials (app logs forwarded to Sentry)
+    - Query: `message:"RLS" OR message:"current_tenant_id" level:error`
+  - Widget: Events by tenantId (top 10) filtered to above queries
+- Logs (Netlify/Hosted Logs):
+  - Chart: Cross-tenant attempt rate per hour
+    - Filter: `"tenant ownership violation" OR "tenant mismatch"`
+    - Group by: tenantId, route
+  - Chart: Invalid cookie signatures
+    - Filter: `"Invalid tenant signature"`
+    - Group by: route
+  - Table: Prisma tenant guard rejections
+    - Filter: `"Tenant guard blocked"`
+    - Columns: time, model, action, expectedTenantId, providedTenantId
+- Database (optional Grafana w/ Postgres):
+  - Panel: RLS policy hits (requires pg_stat_policy or log_line_prefix parsing)
+  - Panel: per-tenant error rate overlay with request volume (join Sentry/log export)
+
+### Rollout Steps
+- Ensure logger forwarding to Sentry or centralized logs with JSON context (already logging requestId/tenantId).
+- Create Sentry saved searches and dashboard with widgets above.
+- Add alerts:
+  - Spike in "Invalid tenant signature" (>20 in 10m)
+  - Any "Tenant guard blocked tenant mismatch" in production
+  - RLS denial pattern increase (>5 in 10m)
+
+### Validation
+- Trigger a known-invalid cookie in staging and verify Sentry widget increments.
+- Run tests/integration/*tenant-mismatch* and confirm no unexpected spikes.
