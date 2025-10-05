@@ -1,504 +1,193 @@
-# Accounting Firm - Professional Business Management Platform
+# Accounting Firm Platform
 
-A comprehensive, full-stack Next.js application designed for accounting firms to manage client relationships, bookings, services, and content. Built with modern technologies and best practices for scalability, security, and user experience.
+A full-stack, multi-tenant Next.js platform tailored for accounting firms. It unifies client portals, administrative workflows, analytics, and automation across web, API, scheduled workers, and supporting services.
 
-## 🚀 Features
+## Table of Contents
+- [Overview](#overview)
+- [Architecture Highlights](#architecture-highlights)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+  - [Install Dependencies](#install-dependencies)
+  - [Environment Configuration](#environment-configuration)
+  - [Database Setup](#database-setup)
+  - [Seed Data](#seed-data)
+  - [Run the App](#run-the-app)
+- [Available Scripts](#available-scripts)
+- [Testing & Quality](#testing--quality)
+- [Integrations & Services](#integrations--services)
+- [Deployment](#deployment)
+- [Monitoring & Operations](#monitoring--operations)
+- [Additional Documentation](#additional-documentation)
+- [Contributing](#contributing)
+- [License](#license)
 
-### Core Functionality
-- **Client Portal**: Secure dashboard for clients to manage appointments and view services
-- **Booking System**: Complete appointment scheduling with calendar integration
-- **Service Management**: Dynamic service catalog with pricing and descriptions
-- **Blog Platform**: Content management system with SEO optimization
-- **Contact System**: Professional contact forms with email notifications
-- **Newsletter**: Subscription management with automated email campaigns
+## Overview
+- Admin workspace provides analytics, task management, service configuration, and compliance tooling.
+- Client portal supports bookings, service requests, document uploads, and financial dashboards.
+- API layer exposes server actions and REST endpoints for web, cron, and third-party integrations.
 
-### Administrative Features
-- **Admin Dashboard**: Comprehensive analytics and system overview
-- **User Management**: Role-based access control (Admin, Staff, Client)
-- **Booking Management**: Full CRUD operations with bulk actions
-- **Content Management**: Blog post creation and management
-- **Email System**: Automated notifications and reminders
-- **Analytics**: Revenue tracking, user statistics, and growth metrics
+## Architecture Highlights
+- **Next.js App Router (src/app)** for server components, routing, and API endpoints.
+- **Modular feature folders** (`admin`, `portal`, `booking`, `services`, `tasks`, etc.) with colocated hooks, providers, and tests.
+- **Netlify Functions** for scheduled jobs (cron reminders, telemetry, health monitoring) with shared scripts in `scripts/`.
+- **ClamAV sidecar service** (`clamav-service/`) for antivirus scanning of uploaded documents.
+- **Monitoring assets** in `monitoring/` and Sentry instrumentation for observability.
+- **Extensive automation scripts** in `scripts/` covering migrations, RLS setup, backfills, and maintenance.
 
-### Technical Features
-- **Internationalization**: Multi-language support (English, Arabic RTL, Hindi)
-- **Authentication**: Secure NextAuth.js implementation with role-based access
-- **Database**: PostgreSQL with Prisma ORM for type-safe database operations
-- **Email Integration**: SendGrid integration with fallback logging
-- **Responsive Design**: Mobile-first design with Tailwind CSS
-- **API Architecture**: RESTful APIs with comprehensive error handling
-- **Scheduled Tasks**: Automated reminders and maintenance operations
+## Key Features
+- Comprehensive admin dashboards with performance metrics, KPIs, and realtime panels.
+- End-to-end booking management, including availability planning, reminders, invoicing, and analytics.
+- Advanced task workspace featuring board, calendar, table, list, and Gantt views plus bulk operations.
+- Multi-channel communications: chat console, notifications, newsletters, and automated email flows.
+- Service request triage with workload, distribution charts, and SLA tracking.
+- Client self-service portal for bookings, expenses, secure uploads, and live chat.
+- Internationalization (English, Arabic RTL, Hindi) with extensible locale registry.
+- Scheduled processes for reminders, telemetry, and data hygiene via cron routes and Netlify functions.
 
-## 🛠 Tech Stack
+## Tech Stack
+- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui, Radix UI, Framer Motion.
+- **Backend:** Next.js API routes, Prisma ORM, PostgreSQL (Supabase or Neon compatible), NextAuth.js, Stripe SDK.
+- **Tooling:** pnpm, ESLint 9, TypeScript 5, Vitest, Playwright, Prisma, Sentry, Redis (Upstash compatible).
+- **Automation & Integrations:** SendGrid, Netlify scheduled functions, Cron endpoint runners, ClamAV service, Chart.js.
 
-### Frontend
-- **Next.js 14**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **shadcn/ui**: Modern component library
-- **Lucide Icons**: Beautiful icon library
-
-### Backend
-- **Next.js API Routes**: Serverless API endpoints
-- **Prisma**: Type-safe database ORM
-- **PostgreSQL**: Robust relational database
-- **NextAuth.js**: Authentication and session management
-- **bcryptjs**: Password hashing and security
-
-### Services & Integrations
-- **SendGrid**: Email delivery service
-- **Vercel**: Deployment and hosting platform
-- **Supabase**: Database hosting (alternative to PostgreSQL)
-
-## 📋 Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Node.js** (version 18.0 or higher)
-- **npm** or **yarn** package manager
-- **PostgreSQL** database (local or hosted)
-- **Git** for version control
-
-## 🔧 Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-cd accounting-firm
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-# or
-yarn install
-```
-
-### 3. Environment Configuration
-
-Create a `.env.local` file in the root directory with the following variables:
-
-```env
-# Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/accounting_firm"
-
-# NextAuth Configuration
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-nextauth-secret-key-here"
-
-# Email Configuration (SendGrid)
-SENDGRID_API_KEY="your-sendgrid-api-key"
-FROM_EMAIL="noreply@yourdomain.com"
-
-# Cron Job Security
-CRON_SECRET="your-cron-secret-key"
-
-# Optional: Supabase (alternative to PostgreSQL)
-# DATABASE_URL="postgresql://postgres:password@db.supabase.co:5432/postgres"
-```
-
-### 4. Database Setup
-
-#### Option A: Local PostgreSQL
-
-1. Install PostgreSQL on your system
-2. Create a new database named `accounting_firm`
-3. Update the `DATABASE_URL` in your `.env.local` file
-
-#### Option B: Supabase (Recommended for deployment)
-
-1. Create a free account at [Supabase](https://supabase.com)
-2. Create a new project
-3. Copy the database URL from your project settings
-4. Update the `DATABASE_URL` in your `.env.local` file
-
-### 5. Database Migration and Seeding
-
-```bash
-# Generate Prisma client
-npx prisma generate
-
-# Run database migrations
-npx prisma db push
-
-# Seed the database with sample data
-npm run db:seed
-```
-
-### 6. Start Development Server
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## 🔐 Default Accounts
-
-The seeding process creates the following demo accounts for testing:
-
-### Admin Account
-- **Email**: admin@accountingfirm.com
-- **Password**: admin123
-- **Role**: ADMIN
-
-### Staff Account
-- **Email**: staff@accountingfirm.com
-- **Password**: staff123
-- **Role**: STAFF
-
-### Client Account
-- **Email**: client@example.com
-- **Password**: client123
-- **Role**: CLIENT
-
-## 📁 Project Structure
-
+## Project Structure
 ```
 accounting-firm/
 ├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── admin/             # Admin panel pages
-│   │   ├── api/               # API routes
-│   │   ├── blog/              # Blog pages
-│   │   ├── booking/           # Booking system
-│   │   ├── contact/           # Contact page
-│   │   ├── login/             # Authentication pages
-│   │   ├── portal/            # Client portal
-│   │   └── services/          # Services pages
-│   ├── components/            # Reusable React components
-│   │   ├── home/              # Home page components
-│   │   ├── providers/         # Context providers
-│   │   └── ui/                # UI components (shadcn/ui)
-│   ├── lib/                   # Utility libraries
-│   │   ├── auth.ts            # NextAuth configuration
-│   │   ├── email.ts           # Email utilities
-│   │   ├── i18n.ts            # Internationalization
-│   │   └── prisma.ts          # Database client
-│   ├── locales/               # Translation files
-│   └── types/                 # TypeScript type definitions
-├── prisma/
-│   ├── schema.prisma          # Database schema
-│   └── seed.ts                # Database seeding script
-├── public/                    # Static assets
-└── package.json               # Project dependencies
+│   ├── app/                  # App Router routes and API endpoints
+│   ├── components/           # Reusable UI, admin, portal, and feature widgets
+│   ├── hooks/, stores/, lib/ # Shared logic, services, adapters, caching
+│   ├── schemas/, services/   # Validation schemas and business services
+│   └── utils/, contexts/     # Cross-cutting concerns and providers
+├── prisma/                   # Prisma schema, migrations, seeds
+├── netlify/functions/        # Scheduled Netlify function handlers
+├── scripts/                  # Operational scripts (migrations, audits, maintenance)
+├── monitoring/               # Performance dashboards and configuration
+├── clamav-service/           # Python AV microservice for uploads scanning
+├── docs/                     # Additional project documentation
+└── tests/, e2e/              # Vitest unit/integration and Playwright suites
 ```
 
-## 🌐 Deployment
+## Prerequisites
+- Node.js 18 or newer.
+- pnpm 10 (project uses the pnpm workspace lockfile and scripts).
+- PostgreSQL 15+ (Supabase or Neon works out of the box).
+- Optional: Redis or Upstash for realtime/pub-sub adapters.
+- Optional: SendGrid, Stripe, Sentry, Netlify, and Slack credentials for extended features.
 
-### Vercel Deployment (Recommended)
+## Getting Started
 
-1. **Prepare for Deployment**
-   ```bash
-   npm run build
-   ```
-
-2. **Deploy to Vercel**
-   ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-   
-   # Deploy
-   vercel
-   ```
-
-3. **Configure Environment Variables**
-   
-   In your Vercel dashboard, add the following environment variables:
-   
-   ```
-   DATABASE_URL=your-production-database-url
-   NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=your-production-secret
-   SENDGRID_API_KEY=your-sendgrid-api-key
-   FROM_EMAIL=noreply@yourdomain.com
-   CRON_SECRET=your-production-cron-secret
-   ```
-
-4. **Database Migration**
-   
-   After deployment, run the database migration:
-   ```bash
-   npx prisma db push
-   npx prisma db seed
-   ```
-
-### Manual Deployment
-
-For other hosting providers:
-
-1. **Build the Application**
-   ```bash
-   npm run build
-   ```
-
-2. **Set Environment Variables**
-   Configure all required environment variables on your hosting platform
-
-3. **Deploy Static Files**
-   Upload the `.next` folder and other necessary files to your hosting provider
-
-4. **Configure Database**
-   Ensure your production database is accessible and run migrations
-
-## 📧 Email Configuration
-
-### SendGrid Setup
-
-1. **Create SendGrid Account**
-   - Sign up at [SendGrid](https://sendgrid.com)
-   - Verify your account and domain
-
-2. **Generate API Key**
-   - Go to Settings > API Keys
-   - Create a new API key with full access
-   - Copy the API key to your environment variables
-
-3. **Configure Sender Identity**
-   - Set up sender authentication
-   - Verify your sending domain or email address
-
-### Email Features
-
-The application includes the following email functionalities:
-
-- **Booking Confirmations**: Automatic emails with calendar attachments
-- **Booking Reminders**: 24-hour advance reminders
-- **Newsletter Subscriptions**: Welcome emails and unsubscribe handling
-- **Contact Form**: Confirmation and notification emails
-- **Admin Notifications**: System alerts and reports
-
-## 🔄 Scheduled Tasks
-
-The application includes automated tasks for maintenance and user engagement:
-
-### Cron Jobs
-
-Set up the following cron jobs on your hosting platform:
-
+### Install Dependencies
 ```bash
-# Daily at 9 AM - Send booking reminders
-0 9 * * * curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron -d '{"task":"booking-reminders"}'
-
-# Daily at midnight - Update booking statuses
-0 0 * * * curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron -d '{"task":"booking-statuses"}'
-
-# Weekly on Sundays - Cleanup old data
-0 0 * * 0 curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron -d '{"task":"cleanup"}'
-
-# Monthly on 1st - Generate reports
-0 0 1 * * curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://your-domain.com/api/cron -d '{"task":"monthly-report"}'
+pnpm install
 ```
 
-### Vercel Cron Jobs
+### Environment Configuration
+Create a `.env.local` file (or configure environment variables through your platform). Minimum required variables align with `scripts/check-required-envs.sh`:
 
-For Vercel deployments, you can use Vercel Cron Jobs:
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` or `NETLIFY_DATABASE_URL` | PostgreSQL connection string |
+| `FROM_EMAIL` | Default outbound sender address |
+| `NEXTAUTH_SECRET` | NextAuth signing secret |
+| `NEXTAUTH_URL` | Base URL for generating callbacks |
 
-Create `vercel.json`:
-```json
-{
-  "crons": [
-    {
-      "path": "/api/cron",
-      "schedule": "0 9 * * *"
-    }
-  ]
-}
-```
+Common optional variables:
 
-## 🌍 Internationalization
+| Variable | Purpose |
+|----------|---------|
+| `SENDGRID_API_KEY` | Production email delivery |
+| `CRON_SECRET` | Auth token for cron endpoints and functions |
+| `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Payment flows |
+| `REDIS_URL` or `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` | Caching and realtime adapters |
+| `UPLOADS_PROVIDER`, `NETLIFY_BLOBS_TOKEN` | File storage provider selection |
+| `UPLOADS_AV_SCAN_URL` | External antivirus scan endpoint |
+| `REALTIME_PG_URL`, `REALTIME_PG_CHANNEL`, `REALTIME_TRANSPORT` | Realtime event propagation |
+| `MULTI_TENANCY_ENABLED` | Guard rails for tenant scoping |
+| `SENTRY_DSN`, `SENTRY_TRACES_SAMPLE_RATE` | Error and performance telemetry |
+| `NEXT_PUBLIC_DEBUG_FETCH`, `NEXT_PUBLIC_FETCH_TIMEOUT`, `NEXT_PUBLIC_API_BASE` | Client networking debug knobs |
+| `PERF_BUDGET_LCP_MS`, `PERF_BUDGET_CLS` | Performance budget thresholds in tests |
+| `PREVIEW_URL`, `PREVIEW_SESSION_COOKIE`, `PREVIEW_ADMIN_EMAIL`, `PREVIEW_ADMIN_PASSWORD` | Preview environment smoke testing |
+| `E2E_BASE_URL`, `ADMIN_AUTH_TOKEN`, `E2E_SERVICE_ID` | Playwright end-to-end suite configuration |
 
-The application supports multiple languages with proper RTL support:
-
-### Supported Languages
-- **English** (en) - Default language
-- **Arabic** (ar) - Right-to-left support
-- **Hindi** (hi) - Devanagari script support
-
-### Adding New Languages
-
-1. **Create Translation File**
-   ```bash
-   # Create new locale file
-   touch src/locales/fr.json
-   ```
-
-2. **Add Translations**
-   Copy the structure from `en.json` and translate all keys
-
-3. **Update Configuration**
-   Add the new locale to `src/lib/i18n.ts`:
-   ```typescript
-   export const locales = ['en', 'ar', 'hi', 'fr'] as const
-   ```
-
-4. **Configure Locale Settings**
-   Add locale configuration in the `localeConfig` object
-
-## 🔒 Security Features
-
-### Authentication & Authorization
-- **Role-based Access Control**: Admin, Staff, and Client roles
-- **Secure Password Hashing**: bcrypt implementation
-- **Session Management**: NextAuth.js with secure cookies
-- **Protected Routes**: Middleware-based route protection
-
-### Data Security
-- **Input Validation**: Zod schema validation
-- **SQL Injection Prevention**: Prisma ORM protection
-- **CSRF Protection**: Built-in Next.js protection
-- **Environment Variables**: Secure configuration management
-
-### API Security
-- **Rate Limiting**: Built-in protection against abuse
-- **CORS Configuration**: Proper cross-origin resource sharing
-- **Error Handling**: Secure error messages without data leakage
-- **Authentication Tokens**: Secure API access control
-
-## 🧪 Testing
-
-### Running Tests
-
+Run the validator when variables change:
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
+pnpm check:env
 ```
 
-### Test Structure
-
-```
-tests/
-├── __mocks__/             # Mock implementations
-├── api/                   # API endpoint tests
-├── components/            # Component tests
-├── pages/                 # Page tests
-└── utils/                 # Utility function tests
-```
-
-## 📊 Monitoring & Analytics
-
-### Built-in Analytics
-- **User Registration Trends**: Track new user signups
-- **Booking Analytics**: Revenue and appointment metrics
-- **Content Performance**: Blog post engagement
-- **System Health**: Database and service monitoring
-
-### External Integrations
-- **Google Analytics**: Add GA4 tracking code
-- **Sentry**: Error monitoring and performance tracking
-- **Vercel Analytics**: Built-in performance monitoring
-
-## 🔧 Customization
-
-### Branding
-1. **Logo**: Replace logo files in `public/` directory
-2. **Colors**: Update Tailwind configuration in `tailwind.config.js`
-3. **Typography**: Modify font settings in the configuration
-4. **Content**: Update text content in translation files
-
-### Services
-1. **Add New Services**: Use the admin panel or directly modify the database
-2. **Pricing**: Configure service pricing through the admin interface
-3. **Categories**: Extend the service model to include categories
-
-### Email Templates
-1. **Customize Templates**: Modify email templates in `src/lib/email.ts`
-2. **Branding**: Add your company branding to email templates
-3. **Content**: Update email content for your business needs
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Database Connection Issues
+### Database Setup
 ```bash
-# Check database connection
-npx prisma db pull
-
-# Reset database
-npx prisma migrate reset
+pnpm db:generate
+pnpm db:push
 ```
 
-#### Build Errors
+### Seed Data
 ```bash
-# Clear Next.js cache
-rm -rf .next
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
+pnpm db:seed
 ```
 
-#### Email Not Sending
-1. Verify SendGrid API key is correct
-2. Check sender authentication setup
-3. Review email logs in the application
+### Run the App
+```bash
+pnpm dev
+```
+Visit http://localhost:3000 to access the web application.
 
-#### Authentication Issues
-1. Verify NEXTAUTH_SECRET is set
-2. Check NEXTAUTH_URL matches your domain
-3. Clear browser cookies and try again
+## Available Scripts
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start the Next.js development server |
+| `pnpm build` | Validate env vars, generate Prisma client, and build using Turbopack |
+| `pnpm start` | Run the production server |
+| `pnpm lint` | ESLint across the repo with autofix |
+| `pnpm typecheck` | TypeScript project references build (`tsconfig.build.json`) |
+| `pnpm test` | Run the Vitest suite |
+| `pnpm test:integration` | Execute integration tests serially |
+| `pnpm test:tenant`, `pnpm test:thresholds` | Specialized regression suites |
+| `pnpm test:e2e` | Playwright end-to-end tests (requires env configuration) |
+| `pnpm monitoring:setup`, `pnpm monitoring:health` | Production monitoring checks |
+| `pnpm db:*` | Database utilities (generate, migrate deploy, seed, reset, studio) |
 
-### Getting Help
+## Testing & Quality
+- **Unit & Integration:** Vitest with mocks in `__mocks__/` and `tests/`.
+- **End-to-End:** Playwright specs in `e2e/tests/`; configurable base URL and credentials.
+- **Performance Budgets:** `tests/thresholds.test.ts` enforces LCP/CLS targets.
+- **Accessibility & Layout:** Multiple admin layout tests ensure SSR safety and environment-specific behavior.
+- **CI Recommendations:** Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and targeted suites before deploys.
 
-1. **Documentation**: Check this README and inline code comments
-2. **Issues**: Create an issue in the repository
-3. **Community**: Join our Discord community for support
-4. **Professional Support**: Contact us for enterprise support
+## Integrations & Services
+- **Authentication:** NextAuth.js with Prisma adapter and role-based access control.
+- **Payments:** Stripe endpoints under `src/app/api/payments` and invoice helpers.
+- **Email:** SendGrid via `@sendgrid/mail` with fallbacks when not configured.
+- **Uploads:** Netlify Blobs provider support plus antivirus scanning pipeline.
+- **Realtime:** Optional Redis/Upstash-backed adapters in `src/lib/realtime-enhanced.ts`.
+- **Scheduling:** Netlify cron functions (`netlify/functions/cron-*`) and `/api/cron/*` routes.
+- **Analytics & Monitoring:** Sentry configs (`sentry.*.config.ts`) and dashboards under `monitoring/`.
 
-## 🗺️ Admin Dashboard – Future Enhancements (Checklist)
+## Deployment
+- **Vercel:** Default target. Build with `pnpm build`. Configure environment variables and run Prisma migrations post-deploy (`pnpm db:push`, `pnpm db:seed`).
+- **Netlify:** Uses `@netlify/plugin-nextjs` and custom functions. Ensure `NETLIFY_DATABASE_URL` or `DATABASE_URL` is set and configure cron secrets.
+- **Docker / ECS:** Reference `DEPLOYMENT.md` for multi-stage Dockerfile and Compose setup. Prisma generation runs during build stage.
+- **Self-Hosted:** Provision Node.js 18+, PostgreSQL, and optional Redis/Sentry. Use `scripts/setup-rls.ts` and other scripts for database hardening.
 
-See the detailed plan in [Doc/professional-dashboard-documentation.md#future-enhancements](Doc/professional-dashboard-documentation.md#future-enhancements).
+## Monitoring & Operations
+- **Sentry:** Client, server, and edge configs ready for DSN wiring.
+- **Health Checks:** `netlify/functions/health-monitor.ts` and `scripts/monitoring` assets for uptime alerts (Slack/email).
+- **Cron & Automation:** `scripts/production-monitoring.js`, `scripts/health-check.js`, and `/api/cron/*` endpoints cover reminders, telemetry, and cleanups.
+- **Security:** Prisma guardrails, tenant-filter middleware, Stripe webhook validation, and antivirus scanning for uploads.
 
-- [ ] Data fetching and cache: integrate React Query/SWR; wire Manual Refresh; make Auto-refresh toggle control polling; per-section loading/error states.
-- [ ] Real-time updates: SSE/WebSocket for bookings, tasks, system alerts; optimistic UI for mutations.
-- [ ] Drill-down & actions: router navigation from KPIs; notifications actionUrl; “Mark all as read”.
-- [ ] Analytics: revenue trends, service breakdown, satisfaction charts; KPI sparklines.
-- [ ] System health: configurable thresholds, weighted health score, historical charts.
-- [ ] Exporting: CSV/JSON endpoints and client download with timestamped filenames.
-- [ ] RBAC: gate /admin in middleware; permission-based section rendering.
-- [ ] Accessibility: ARIA roles, keyboard navigation, focus management, color contrast.
-- [ ] Performance: memoization, virtualization, debounced filters, lazy-load charts.
-- [ ] Observability & QA: Sentry error/perf monitoring; unit/integration tests for dashboard hooks/components.
-- [ ] UX polish: show 0% KPI progress; clearer auto-refresh iconography; persist “Customize View”.
+## Additional Documentation
+- `PROJECT_SUMMARY.md` — migration roadmap and ownership notes.
+- `docs/` — tenant system plans, enhancement guides, and operational playbooks.
+- `ARCHIVE-*.md` — legacy references for decommissioned templates.
+- `netlify/` — platform-specific configuration and custom plugins.
 
-## 📝 License
+## Contributing
+1. Create a feature branch from `main`.
+2. Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and relevant integration/e2e suites.
+3. Open a pull request with a summary of changes and testing notes.
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
-
-### Development Workflow
-
-1. **Fork the Repository**
-2. **Create Feature Branch**: `git checkout -b feature/amazing-feature`
-3. **Commit Changes**: `git commit -m 'Add amazing feature'`
-4. **Push to Branch**: `git push origin feature/amazing-feature`
-5. **Open Pull Request**
-
-## 📞 Support
-
-For support and questions:
-
-- **Email**: support@accountingfirm.com
-- **Documentation**: [docs.accountingfirm.com](https://docs.accountingfirm.com)
-- **Community**: [Discord Server](https://discord.gg/accountingfirm)
-- **Issues**: [GitHub Issues](https://github.com/your-repo/accounting-firm/issues)
-
----
-
-**Built with ❤️ by the Accounting Firm Team**
-
-*Professional accounting software for modern businesses*
+## License
+Licensed under the MIT License. See [LICENSE](LICENSE) for full terms.
