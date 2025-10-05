@@ -185,6 +185,40 @@ SUCCESS CRITERIA CHECKLIST
 **Deadline:** 2025-11-15 | **Blocker:** Backfill plan and approval
 
 ### Task 2.1: Add tenantId column and enforce NOT NULL (IN PROGRESS)
+
+Recent progress (2025-10-05):
+- Added SQL migrations under prisma/migrations to enforce tenantId NOT NULL with FKs and indexes for:
+  - bookings, ServiceRequest, services, WorkOrder, invoices, expenses, ScheduledReminder, booking_settings, IdempotencyKey
+- Each migration adds column if missing, backfills where derivable, adds FK to Tenant(id) ON DELETE CASCADE, creates indexes, then sets NOT NULL.
+- Deferred Attachment.tenantId NOT NULL to a follow-up (uploader flow still conditionally sets tenantId).
+
+Apply order (recommended):
+1) services
+2) ServiceRequest
+3) bookings
+4) WorkOrder
+5) invoices
+6) expenses
+7) ScheduledReminder
+8) booking_settings
+9) IdempotencyKey
+
+Backfill notes:
+- Bookings: COALESCE(user.tenantId, serviceRequest.tenantId, service.tenantId)
+- ServiceRequest: COALESCE(user.tenantId, service.tenantId)
+- WorkOrder: COALESCE(serviceRequest.tenantId, booking.tenantId, user.tenantId, service.tenantId)
+- Invoices: COALESCE(booking.tenantId, user.tenantId)
+- Expenses: user.tenantId
+- ScheduledReminder: serviceRequest.tenantId
+
+Execution (operator-run):
+- Take DB backup. Then apply in order with:
+  pnpm tsx scripts/apply-migration-file.ts prisma/migrations/20251005_add_service_tenantid_not_null/migration.sql
+  ... (continue in the order above)
+
+Risks:
+- Existing rows without derivable tenantId will block NOT NULL. Inspect with scripts/report-tenant-null-counts.ts and remediate.
+- Attachment NOT NULL deferred; will be addressed after uploads API always sets tenantId via tenant context.
 **Status:** IN PROGRESS
 **Priority:** P1 | **Effort:** 5d | **Deadline:** 2025-11-01
 **Subtasks:**
