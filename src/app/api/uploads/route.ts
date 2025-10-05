@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
 import { logAuditSafe } from '@/lib/observability-helpers'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
+import { resolveTenantId } from '@/lib/default-tenant'
 import { scanBuffer } from '@/lib/clamav'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -114,10 +115,11 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
         // Persist Attachment record in DB (best-effort)
         try {
           const { default: prisma } = await import('@/lib/prisma')
-          const tenantId = getTenantFromRequest(request)
-          if (isMultiTenancyEnabled() && !tenantId) {
+          const tenantHint = getTenantFromRequest(request)
+          if (isMultiTenancyEnabled() && !tenantHint) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
           }
+          const resolvedTenantId = await resolveTenantId(tenantHint)
 
           const avData = (avScanResult || avScanError) ? (() => {
             if (avScanResult) {
@@ -145,7 +147,7 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
               size: buf.length,
               contentType: detectedMime || undefined,
               provider: 'netlify',
-              ...(isMultiTenancyEnabled() ? { tenant: { connect: { id: String(tenantId) } } } : {}),
+              tenant: { connect: { id: resolvedTenantId } },
               ...avData
             }
           })
