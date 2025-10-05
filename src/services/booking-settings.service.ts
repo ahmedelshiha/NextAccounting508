@@ -120,6 +120,10 @@ export class BookingSettingsService {
 
   /** Validate and update settings; returns updated settings. */
   async updateBookingSettings(tenantId: string | null, updates: BookingSettingsUpdateRequest): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to update booking settings')
+    }
+
     const validation = await this.validateSettingsUpdate(tenantId, updates)
     if (!validation.isValid) {
       const msg = validation.errors.map((e) => e.message).join(', ')
@@ -426,6 +430,10 @@ export class BookingSettingsService {
 
   /** Reset settings by deleting and recreating defaults. */
   async resetToDefaults(tenantId: string | null): Promise<BookingSettings> {
+    if (!tenantId) {
+      throw new Error('tenantId is required to reset booking settings')
+    }
+
     await prisma.$transaction(async (tx) => {
       const existing = await tx.bookingSettings.findFirst({ where: { tenantId: tenantId ?? undefined } })
       if (existing) {
