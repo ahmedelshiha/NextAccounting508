@@ -177,7 +177,8 @@ async function runBackfill(client: Client) {
   for (const step of BACKFILL_STEPS) {
     try {
       const res = await client.query(step.sql)
-      results.push({ name: step.name, rowCount: (res?.rowCount ?? 0) })
+      const rowCount = (res as any).rowCount ?? ((res as any).rows ? (res as any).rows.length : 0)
+      results.push({ name: step.name, rowCount })
     } catch (err:any) {
       results.push({ name: step.name, error: String(err) })
       // continue to next step
