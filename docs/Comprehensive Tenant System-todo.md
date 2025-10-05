@@ -441,6 +441,9 @@ Testing:
 
 ## 🚧 In Progress
 - [ ] Plan and verify rollout for Task 4.1 (RLS enablement and policy verification)
+- [x] Set NETLIFY_DATABASE_URL for Neon database (staging/prod) via environment
+  - **Why**: Required for Prisma and RLS tooling
+  - **Impact**: DB-connected scripts will use Neon connection
 
 ## 🔧 Next Steps
 - [ ] Execute pnpm db:rls:enable in staging; verify policies on public.services
