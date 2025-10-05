@@ -59,9 +59,9 @@ export async function POST(request: NextRequest) {
 
   try {
     // Check if we've already processed this event
-    const existingKey = await prisma.idempotencyKey.findUnique({
-      where: { key: `stripe_webhook_${eventId}` }
-    })
+    const existingKey = defaultTenant?.id ? await prisma.idempotencyKey.findFirst({
+      where: { key: `stripe_webhook_${eventId}`, tenantId: defaultTenant.id }
+    }) : null
 
     if (existingKey && existingKey.status === 'PROCESSED') {
       console.log(`Stripe webhook: Event ${eventId} already processed, returning success`)
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Create or update idempotency key to mark as processing
     if (defaultTenant?.id) {
       await prisma.idempotencyKey.upsert({
-        where: { key: `stripe_webhook_${eventId}` },
+        where: { tenantId_key: { tenantId: defaultTenant.id, key: `stripe_webhook_${eventId}` } },
         create: {
           key: `stripe_webhook_${eventId}`,
           entityType: 'stripe_webhook',
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     // Mark as successfully processed (best-effort)
     try {
       await prisma.idempotencyKey.update({
-        where: { key: `stripe_webhook_${eventId}` },
+        where: { tenantId_key: { tenantId: defaultTenant!.id, key: `stripe_webhook_${eventId}` } },
         data: {
           status: 'PROCESSED',
           updatedAt: new Date()
@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
     // Mark as failed for potential retry
     try {
       await prisma.idempotencyKey.update({
-        where: { key: `stripe_webhook_${eventId}` },
-        data: { 
+        where: { tenantId_key: { tenantId: defaultTenant!.id, key: `stripe_webhook_${eventId}` } },
+        data: {
           status: 'FAILED',
           updatedAt: new Date()
         }
