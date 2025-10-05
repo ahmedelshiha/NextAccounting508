@@ -29,6 +29,7 @@ echo "[prisma-deploy-retry] Pre-clearing failed state (if any) for migrations"
 (pnpm prisma migrate resolve --rolled-back add_performance_indexes) || true
 (pnpm prisma migrate resolve --rolled-back 20251001_add_legal_links_columns) || true
 (pnpm prisma migrate resolve --rolled-back 20250214_tenant_settings_not_null) || true
+(pnpm prisma migrate resolve --rolled-back 20251004_add_bookingsettings_tenantid_not_null) || true
 
 attempt=1
 until [ $attempt -gt "$MAX_ATTEMPTS" ]; do
@@ -46,6 +47,7 @@ until [ $attempt -gt "$MAX_ATTEMPTS" ]; do
 (pnpm prisma migrate resolve --rolled-back add_performance_indexes) || true
 (pnpm prisma migrate resolve --rolled-back 20251001_add_legal_links_columns) || true
 (pnpm prisma migrate resolve --rolled-back 20250214_tenant_settings_not_null) || true
+(pnpm prisma migrate resolve --rolled-back 20251004_add_bookingsettings_tenantid_not_null) || true
 
     # If last attempt, break and return failure
     if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then

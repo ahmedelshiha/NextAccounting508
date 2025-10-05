@@ -9,6 +9,7 @@
   SENTRY_SKIP_OPEN_TELEMETRY_INSTRUMENTATION = "1"
   PNPM_FLAGS = "--no-frozen-lockfile"
   NPM_FLAGS = "--no-frozen-lockfile"
+  RUN_DB_MIGRATIONS = "false"
   RUN_E2E = "false"
 
 [context.deploy-preview]
