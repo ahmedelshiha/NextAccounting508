@@ -252,7 +252,16 @@ SUCCESS CRITERIA CHECKLIST
 
 ---
 
-### Task 2.2: Normalize nullable tenant columns and add compound unique constraints (PLANNED)
+### Task 2.2: Normalize nullable tenant columns and add compound unique constraints (IN PROGRESS)
+
+Recent progress (2025-10-05):
+- Changed IdempotencyKey uniqueness to composite (tenantId, key) in prisma/schema.prisma
+- Added migration prisma/migrations/20251005_update_idempotencykey_unique/migration.sql to drop global unique and add composite unique
+- Refactored idempotency helpers and Stripe webhook to use tenant-scoped lookups and updates
+
+Next:
+- Sweep for any remaining usages of prisma.idempotencyKey.{findUnique,update,upsert} by key and scope by tenant
+- Consider adding unique constraints for other keys where applicable (e.g., logs/metrics)
 **Status:** NOT STARTED
 **Priority:** P1 | **Effort:** 4d | **Deadline:** 2025-11-08
 **Subtasks:**
