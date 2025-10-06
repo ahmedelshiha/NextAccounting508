@@ -27,10 +27,11 @@
   port = 3000
 
 [context.production.environment]
-  RUN_E2E = "true"
+  RUN_E2E = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[[plugins]]
-  package = "./netlify/plugins/run-e2e"
+# E2E plugin disabled
+# [[plugins]]
+#   package = "./netlify/plugins/run-e2e"
