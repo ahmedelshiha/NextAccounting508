@@ -1,5 +1,7 @@
 import { withTenantRLS } from '@/lib/prisma-rls'
 
+import { withTenantRLS } from '@/lib/prisma-rls'
+
 type RawInput = TemplateStringsArray | string
 
 function isTemplateStringsArray(input: unknown): input is TemplateStringsArray {

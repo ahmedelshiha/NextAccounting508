@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "bash scripts/check-required-envs.sh && prisma generate && next build --turbopack",
+    "build": "bash scripts/check-required-envs.sh && prisma generate && pnpm lint && pnpm typecheck && next build --turbopack",
     "build:skip-env": "SKIP_ENV_VALIDATION=true bash scripts/check-required-envs.sh && prisma generate && next build --turbopack",
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
     "start": "next build && next start",
@@ -25,6 +25,7 @@
     "db:reset": "prisma migrate reset",
     "db:migrate:legalLinks": "tsx scripts/migrate-legal-links-to-columns.ts",
     "db:rls:enable": "tsx scripts/setup-rls.ts",
+    "db:rls:auto": "tsx scripts/rls-rollout.ts --phase auto --verify",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
     "test:tenant": "vitest run tests/tenant-filter.test.ts",
     "test:integration": "vitest --run --reporter dot --threads false tests/integration",

@@ -36,12 +36,12 @@ async function main() {
 
     if (!tenantId) {
       unresolved++
-      console.warn('Unable to resolve tenantId for booking', { bookingId: booking.id })
+      console.warn('Unable to resolve tenantId for booking', { bookingId: record.booking_id })
       continue
     }
 
     const res = await prisma.booking.updateMany({
-      where: { id: booking.id, tenantId: null },
+      where: { id: record.booking_id, tenantId: null },
       data: { tenantId }
     })
 

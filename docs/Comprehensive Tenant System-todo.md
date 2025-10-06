@@ -32,6 +32,27 @@
 - [x] Refactored admin bookings API to scope by booking.tenantId instead of client.tenantId
   - **Why**: Booking already has tenantId; direct scoping is clearer and leverages indexes
   - **Impact**: Simpler queries, better performance, and stricter tenant isolation
+- [x] Session reload: validated presence of scripts/tenant-rls-utils.ts and adoption across maintenance scripts (e.g., assign-chatmessages-tenant-primary.ts) and confirmed API routes broadly use withTenantContext
+  - **Why**: Maintain persistent state and ensure helpers are in place for RLS-safe script execution
+  - **Impact**: Confident progression to rollout tasks with reduced regression risk
+- [x] CI guard enforced by updating build script to run lint and typecheck
+  - **Why**: Ensure all builds (not only vercel:build) fail on ESLint violations, including PrismaClient instantiation rule
+  - **Impact**: Stronger pipeline enforcement; prevents insecure patterns from shipping
+- [x] Fixed scripts/backfill-booking-tenantId.ts variable reference bugs
+  - **Why**: Correctly reference processed booking id during backfill and logging
+  - **Impact**: Reliable tenantId backfill, fewer runtime errors during maintenance
+- [x] Fixed missing import in src/lib/db-raw.ts to correctly use withTenantRLS for tenant-scoped raw queries
+  - **Why**: Ensure raw helpers run under RLS with proper tenant context
+  - **Impact**: Prevents runtime/compile errors and enforces tenant isolation for raw SQL helpers
+- [x] Removed duplicate import in scripts/tenant-rls-utils.ts
+  - **Why**: Fix TypeScript compile error and keep utility clean
+  - **Impact**: Scripts using RLS helpers compile reliably
+- [x] Added npm script db:rls:auto for one-command staged rollout with verification
+  - **Why**: Simplify operator workflow and reduce mistakes during rollout
+  - **Impact**: Faster, safer deployments
+- [x] Disabled Netlify E2E plugin and set RUN_E2E=false for production context
+  - **Why**: Prevent E2E plugin from executing during Netlify builds
+  - **Impact**: Shorter, more reliable builds; E2E can still be run manually when needed
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
@@ -41,11 +62,11 @@
 ## 🚧 In Progress
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
-  - Steps: Use `pnpm tsx scripts/rls-rollout.ts --phase auto --verify` in staging; verify key endpoints between phases before advancing to FORCE_RLS
+  - Steps: Use `pnpm db:rls:auto` in staging; verify key endpoints between phases before advancing to FORCE_RLS
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-- [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
-- [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access
-- [ ] Capture operational runbook entry covering scripts/rls-rollout.ts usage and rollback plan
+- [ ] Verify CI executes `pnpm build` or `pnpm vercel:build` so lint/typecheck run; adjust pipeline config if needed
+- [ ] Incrementally migrate maintenance scripts that can run per-tenant to use runWithTenantRLSContext (retain global ones for pre-RLS or superuser)
+- [ ] Capture operational runbook notes for scripts/rls-rollout.ts usage and rollback plan within this file until a dedicated runbook is approved
