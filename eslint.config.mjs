@@ -112,6 +112,16 @@ const config = [
         { selector: "NewExpression[callee.name='PrismaClient']", message: "Use the shared prisma client from '@/lib/prisma' instead of instantiating PrismaClient directly." }
       ]
     }
+  },
+  // Forbid direct Prisma client instantiation in the repo (use shared client)
+  {
+    files: ["**/*.ts", "**/*.tsx", "**/*.js"],
+    ignores: ["src/lib/prisma.ts"],
+    rules: {
+      "no-restricted-syntax": ["error",
+        { selector: "NewExpression[callee.name='PrismaClient']", message: "Use the shared prisma client from '@/lib/prisma' instead of instantiating PrismaClient directly." }
+      ]
+    }
   }
 ];
 
