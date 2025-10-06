@@ -1,4 +1,7 @@
 ## ✅ Completed
+- [x] Introduced scripts/rls-rollout.ts orchestrator leveraging reusable setupTenantRLS to automate prepare/tighten/enforce phases with audits and safeguards
+  - **Why**: Provide a single CLI to manage RLS rollout toggles safely, preventing accidental FORCE_RLS before data is clean
+  - **Impact**: Streamlines staged rollout in staging/production, ensuring audits run before tightening policies
 - [x] Added tenant-focused script utilities and enforced RLS context in critical maintenance flows (seed-tenant-defaults, chat message assignment, booking backfill)
   - **Why**: Ensure operational scripts and Netlify functions operate under explicit tenant scopes once RLS is forced
   - **Impact**: Prevents cross-tenant leakage during automation, keeps seeding and backfill jobs functional under strict RLS policies
@@ -38,11 +41,11 @@
 ## 🚧 In Progress
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
-  - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then set RLS_ALLOW_NULL_TENANT=false and re-run; finally enable FORCE_RLS=true and re-verify
+  - Steps: Use `pnpm tsx scripts/rls-rollout.ts --phase auto --verify` in staging; verify key endpoints between phases before advancing to FORCE_RLS
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
 - [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
 - [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access
-- [ ] Design staged RLS rollout automation/CLI to sequence FORCE_RLS and RLS_ALLOW_NULL toggles safely
+- [ ] Capture operational runbook entry covering scripts/rls-rollout.ts usage and rollback plan
