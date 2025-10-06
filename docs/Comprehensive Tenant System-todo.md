@@ -29,6 +29,12 @@
 - For each flagged global unique (Invoice.number, WorkOrder.code, Attachment.key, Newsletter.email, User.employeeId): confirm intended uniqueness scope with product/ops. If per-tenant uniqueness is desired, prepare non-destructive migration SQL to add tenant-scoped unique constraints and drop global ones after verification.
 - Add unit/regression tests verifying that tenant-scoped unique constraints behave correctly and that tenant-guard prevents cross-tenant mutation/reads.
 
+## ✅ Completed (code)
+- [x] Introduced optional strict tenant resolution mode
+  - **Why**: Allow enforcing that tenant must be explicitly resolved when multi-tenancy is enabled to avoid silent defaulting to a 'primary' tenant in production.
+  - **How**: Added MULTI_TENANCY_STRICT env var. When MULTI_TENANCY_ENABLED=true and MULTI_TENANCY_STRICT=true, resolveTenantId() throws when no tenant hint is provided. Default behavior remains backwards-compatible (legacy default tenant creation) when MULTI_TENANCY_STRICT is unset or false.
+  - **Files changed**: src/lib/default-tenant.ts
+
 ## 🚧 In Progress
 - [ ] Validate middleware tenant resolution paths (token vs subdomain), signed cookie issuance, and header propagation; define edge-case handling
 
@@ -37,4 +43,4 @@
 - [ ] Audit API routes/services for tenantFilter/getResolvedTenantId usage; list and fix gaps with targeted PRs
 - [ ] Add regression tests for: tenant header propagation, guard enforcement, and RLS via withTenantRLS
 - [ ] Backfill/migration validation: run scripts against current schema and wire CI checks (non-destructive by default)
-- [ ] Introduce strict mode when MULTI_TENANCY_ENABLED=true: error if tenant cannot be resolved instead of silently defaulting
+- [ ] When ready, enable MULTI_TENANCY_STRICT=true in staging to validate behavior before enabling in production
