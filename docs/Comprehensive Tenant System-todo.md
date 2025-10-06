@@ -58,6 +58,13 @@
   - **Why**: Fix TypeScript duplicate identifier to unblock build
   - **Impact**: Build succeeds through typecheck; raw helpers remain tenant-scoped
 
+## 📘 RLS Rollout Runbook (summary)
+- Prepare: pnpm db:rls:auto --phase prepare --verify
+- Tighten (after backfills and verification): RLS_ALLOW_NULL_TENANT=false pnpm db:rls:auto --phase tighten --verify
+- Enforce (final): FORCE_RLS=true pnpm db:rls:auto --phase enforce --verify
+- Rollback: Re-run previous phase with prior env flags (e.g., set RLS_ALLOW_NULL_TENANT=true to relax). Always take DB snapshots before phase changes.
+- Verification checklist: admin APIs for bookings, services, tasks; portal SR flows; uploads AV callback; stats endpoints.
+
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
 - Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
