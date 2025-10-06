@@ -70,6 +70,10 @@
   - **Why**: Provide clear operational steps for prepare/tighten/enforce and rollback
   - **Impact**: Safer rollouts; faster recoverability
 
+- [x] Updated scripts/inspect-bookings.ts to optionally run tenant-scoped under RLS via runWithTenantRLSContext
+  - **Why**: Allow safe per-tenant inspection under enforced RLS while retaining pre-RLS null-audit behavior
+  - **Impact**: Flexible diagnostics in both pre- and post-RLS phases without cross-tenant leakage
+
 ## 📘 RLS Rollout Runbook (summary)
 - Prepare: pnpm db:rls:auto --phase prepare --verify
 - Tighten (after backfills and verification): RLS_ALLOW_NULL_TENANT=false pnpm db:rls:auto --phase tighten --verify
