@@ -50,6 +50,9 @@
 - [x] Added npm script db:rls:auto for one-command staged rollout with verification
   - **Why**: Simplify operator workflow and reduce mistakes during rollout
   - **Impact**: Faster, safer deployments
+- [x] Disabled Netlify E2E plugin and set RUN_E2E=false for production context
+  - **Why**: Prevent E2E plugin from executing during Netlify builds
+  - **Impact**: Shorter, more reliable builds; E2E can still be run manually when needed
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
