@@ -31,8 +31,21 @@ async function ensureDefaultTenant(): Promise<string> {
   return created.id
 }
 
+/**
+ * Resolve a tenant id with optional strict mode.
+ * When MULTI_TENANCY_ENABLED=true and MULTI_TENANCY_STRICT=true, fail fast when tenant cannot be resolved.
+ * Otherwise fall back to creating/returning a default tenant (legacy behavior).
+ */
 export async function resolveTenantId(tenantId: string | null | undefined): Promise<string> {
   if (tenantId && tenantId.trim().length > 0) return tenantId
+
+  const multiEnabled = String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true'
+  const strict = multiEnabled && String(process.env.MULTI_TENANCY_STRICT).toLowerCase() === 'true'
+
+  if (strict) {
+    throw new Error('Tenant resolution failed: MULTI_TENANCY_STRICT is enabled and no tenant hint was provided')
+  }
+
   return ensureDefaultTenant()
 }
 

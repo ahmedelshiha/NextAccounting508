@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 import fs from 'fs'
-const prisma = new PrismaClient()
 
 async function main() {
   const tenantId = 'tenant_primary'

@@ -207,6 +207,11 @@ export async function middleware(req: NextServer.NextRequest) {
     })
   }
 
+  // If multi-tenancy is enabled but we could not resolve a tenant, warn so operators notice missing hints.
+  if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true' && !resolvedTenantId) {
+    logger.warn('Middleware: tenant could not be resolved for incoming request', { requestId, pathname, userId })
+  }
+
   if (isApiRequest) logApiEntry()
   const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
 
