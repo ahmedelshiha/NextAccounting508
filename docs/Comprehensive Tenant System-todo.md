@@ -2,8 +2,8 @@
 - [x] Context reloaded from docs/Comprehensive Tenant System-todo.md and repository; verified prisma-tenant-guard, middleware, RLS helpers, and API wrappers are implemented and consistent
   - **Why**: Establish accurate state and avoid re-analysis; ensure enforcement layers align
   - **Impact**: Safer autonomous execution and fewer regressions
-- [x] Enforced shared Prisma client usage via ESLint rule to forbid direct PrismaClient instantiation in src (except src/lib/prisma.ts)
-  - **Why**: Ensure tenant guard middleware is always applied and cannot be bypassed
+- [x] Enforced shared Prisma client usage via ESLint rule to forbid direct PrismaClient instantiation (globally, excluding src/lib/prisma.ts)
+  - **Why**: Ensure tenant guard middleware is always applied and cannot be bypassed across the codebase
   - **Impact**: Prevents accidental cross-tenant access via ad-hoc clients; improves maintainability
 - [x] Migrated create_jwt_session to TypeScript using shared prisma and tenant-aware token fields
   - **Why**: Prevent bypassing tenant guard and produce dev JWTs compatible with middleware expectations
@@ -17,24 +17,24 @@
 - [x] Enabled MULTI_TENANCY_ENABLED=true in local dev environment
   - **Why**: Exercise tenant guard and middleware paths locally
   - **Impact**: Early detection of missing tenant context in development
+- [x] Added RLS strict toggle to scripts/setup-rls.ts via RLS_ALLOW_NULL_TENANT=false to remove NULL allowance in policies
+  - **Why**: Facilitate staged rollout from permissive to strict RLS
+  - **Impact**: Safer migration path; easy switch to enforce full isolation once backfills complete
 
 ## ⚠️ Issues / Risks
-- Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" in non-scripts folders if needed.
-- Some RLS policies in scripts/setup-rls.ts allow tenantId IS NULL for transitional safety. Plan a follow-up tightening pass after all backfills enforce NOT NULL where intended.
+- Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
+- Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
 
 ## 🚧 In Progress
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
-  - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then enable FORCE_RLS=true in staging and re-verify
+  - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then set RLS_ALLOW_NULL_TENANT=false and re-run; finally enable FORCE_RLS=true and re-verify
 - [ ] Audit raw SQL and transactions
   - Scope: netlify/functions/** and scripts/** using $queryRaw/$executeRaw
   - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate (API routes already enforced by ESLint)
 
 ## 🔧 Next Steps
-- [ ] Tighten RLS policies by removing "OR tenantId IS NULL" once all backfills are complete and affected tables enforce NOT NULL
-  - Dep: Complete data backfills (scripts/backfill-tenant-scoped-tables.ts et al.)
+- [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-  - Dep: Observability dashboards available (monitoring/)
-- [ ] Add CI guard to fail on new PrismaClient instantiation in src (grep + eslint)
-  - Dep: CI config picks up eslint errors
+- [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
 - [ ] Review remaining scripts for direct PrismaClient usage and convert to shared client or TS runner where feasible
