@@ -35,6 +35,8 @@ async function main() {
     // Ensure extension for good measure (optional; safe if exists)
     // await client.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm`)
 
+    const allowNull = String(process.env.RLS_ALLOW_NULL_TENANT ?? 'true').toLowerCase() !== 'false'
+
     for (const { table_schema, table_name } of rows) {
       const fq = `"${table_schema}"."${table_name}"`
       console.log(`Configuring RLS for ${fq}`)
@@ -46,11 +48,15 @@ async function main() {
       // Allow rows with NULL tenantId for global rows until Phase 2 enforces NOT NULL.
       // When Phase 2 completes, re-run this script to tighten policy if desired.
       await client.query(`DROP POLICY IF EXISTS rls_tenant_isolation ON ${fq}`)
-      await client.query(
-        `CREATE POLICY rls_tenant_isolation ON ${fq}
-         USING ("tenantId" = current_setting('app.current_tenant_id', true) OR "tenantId" IS NULL)
-         WITH CHECK ("tenantId" = current_setting('app.current_tenant_id', true) OR "tenantId" IS NULL)`
-      )
+      const policySQL = allowNull
+        ? `CREATE POLICY rls_tenant_isolation ON ${fq}
+           USING ("tenantId" = current_setting('app.current_tenant_id', true) OR "tenantId" IS NULL)
+           WITH CHECK ("tenantId" = current_setting('app.current_tenant_id', true) OR "tenantId" IS NULL)`
+        : `CREATE POLICY rls_tenant_isolation ON ${fq}
+           USING ("tenantId" = current_setting('app.current_tenant_id', true))
+           WITH CHECK ("tenantId" = current_setting('app.current_tenant_id', true))`
+
+      await client.query(policySQL)
 
       // Optionally force RLS to apply to table owners too, controlled via env FORCE_RLS=true
       if (String(process.env.FORCE_RLS || '').toLowerCase() === 'true') {
