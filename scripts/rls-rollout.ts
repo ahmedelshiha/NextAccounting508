@@ -1,4 +1,5 @@
 import { Client } from 'pg'
+import { pathToFileURL } from 'url'
 import { normalizeDatabaseUrl, setupTenantRLS } from './setup-rls'
 
 type Phase = 'prepare' | 'tighten' | 'enforce'
@@ -188,9 +189,12 @@ async function main() {
   console.log('\nRLS rollout sequence completed successfully.')
 }
 
-if (process.argv[1] === __filename) {
-  main().catch((err) => {
-    console.error('RLS rollout script failed:', err)
-    process.exit(1)
-  })
+if (process.argv[1]) {
+  const executedDirectly = import.meta.url === pathToFileURL(process.argv[1]).href
+  if (executedDirectly) {
+    main().catch((err) => {
+      console.error('RLS rollout script failed:', err)
+      process.exit(1)
+    })
+  }
 }
