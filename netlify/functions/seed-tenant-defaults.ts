@@ -37,13 +37,15 @@ export const handler: Handler = async (event) => {
     await client.connect()
 
     try {
-      // Verify tenant exists
+      await client.query('BEGIN')
+      await client.query(`SELECT set_config('app.current_tenant_id', $1, true)`, [tenantId])
+
       const tenantRes = await client.query(`SELECT id FROM "Tenant" WHERE id = $1`, [tenantId])
       if (!tenantRes.rows.length) {
+        await client.query('ROLLBACK')
         return { statusCode: 404, body: JSON.stringify({ error: 'Tenant not found' }) }
       }
 
-      // Seed OrganizationSettings if missing
       await client.query(
         `INSERT INTO public.organization_settings (
           id, "tenantId", name, "createdAt", "updatedAt"
@@ -55,7 +57,6 @@ export const handler: Handler = async (event) => {
         [tenantId, orgName || tenantSlug || null]
       )
 
-      // Seed SecuritySettings if missing
       await client.query(
         `INSERT INTO public.security_settings (
           id, "tenantId", "passwordPolicy", "sessionSecurity", "twoFactor", "network", "dataProtection", "compliance", "createdAt", "updatedAt"
@@ -74,11 +75,17 @@ export const handler: Handler = async (event) => {
         [tenantId]
       )
 
-      await client.end()
+      await client.query('COMMIT')
       return { statusCode: 200, body: JSON.stringify({ ok: true, tenantId }) }
     } catch (err: any) {
-      try { await client.end() } catch {}
+      try {
+        await client.query('ROLLBACK')
+      } catch {}
       return { statusCode: 500, body: JSON.stringify({ error: String(err) }) }
+    } finally {
+      try {
+        await client.end()
+      } catch {}
     }
   } catch (err: any) {
     return { statusCode: 500, body: JSON.stringify({ error: String(err) }) }
