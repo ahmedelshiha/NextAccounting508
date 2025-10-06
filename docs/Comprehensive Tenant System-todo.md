@@ -81,6 +81,10 @@
 - Rollback: Re-run previous phase with prior env flags (e.g., set RLS_ALLOW_NULL_TENANT=true to relax). Always take DB snapshots before phase changes.
 - Verification checklist: admin APIs for bookings, services, tasks; portal SR flows; uploads AV callback; stats endpoints.
 
+- [x] Fixed tenant resolution to accept slug or id and fallback safely in src/lib/default-tenant.ts
+  - **Why**: After enabling tenant context, login failed because subdomain/header hints didn’t map to a real tenant id
+  - **Impact**: Credentials login works on apex domains and unknown subdomains; strict mode still enforced when enabled
+
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
 - Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
