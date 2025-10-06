@@ -102,7 +102,18 @@ const nextConfig = {
   },
 }
 
-const sentryPluginOptions = { silent: true, tunnelRoute: '/monitoring' }
+const disableSourcemapsOnNetlify = !!process.env.NETLIFY
+
+const sentryPluginOptions = {
+  silent: true,
+  tunnelRoute: '/monitoring',
+  sourcemaps: {
+    disable: disableSourcemapsOnNetlify,
+    deleteSourcemapsAfterUpload: true,
+  },
+  disableServerWebpackPlugin: disableSourcemapsOnNetlify,
+  disableClientWebpackPlugin: disableSourcemapsOnNetlify,
+}
 
 const configWithSentry = process.env.NODE_ENV === 'production' ? withSentryConfig(nextConfig, sentryPluginOptions) : nextConfig
 
