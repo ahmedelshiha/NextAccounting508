@@ -102,7 +102,6 @@ const config = [
       ]
     }
   },
-  ,
   // Forbid direct Prisma client instantiation in src (use shared client)
   {
     files: ["src/**/*.ts", "src/**/*.tsx"],
