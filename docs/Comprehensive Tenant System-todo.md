@@ -54,6 +54,10 @@
   - **Why**: Prevent E2E plugin from executing during Netlify builds
   - **Impact**: Shorter, more reliable builds; E2E can still be run manually when needed
 
+- [x] Resolved duplicate 'withTenantRLS' import in src/lib/db-raw.ts causing TS2300 at lines 1 and 3
+  - **Why**: Fix TypeScript duplicate identifier to unblock build
+  - **Impact**: Build succeeds through typecheck; raw helpers remain tenant-scoped
+
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
 - Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
