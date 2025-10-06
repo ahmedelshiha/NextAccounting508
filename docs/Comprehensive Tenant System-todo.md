@@ -32,6 +32,9 @@
 - [x] Refactored admin bookings API to scope by booking.tenantId instead of client.tenantId
   - **Why**: Booking already has tenantId; direct scoping is clearer and leverages indexes
   - **Impact**: Simpler queries, better performance, and stricter tenant isolation
+- [x] Session reload: validated presence of scripts/tenant-rls-utils.ts and adoption across maintenance scripts (e.g., assign-chatmessages-tenant-primary.ts) and confirmed API routes broadly use withTenantContext
+  - **Why**: Maintain persistent state and ensure helpers are in place for RLS-safe script execution
+  - **Impact**: Confident progression to rollout tasks with reduced regression risk
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
@@ -42,10 +45,13 @@
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
   - Steps: Use `pnpm tsx scripts/rls-rollout.ts --phase auto --verify` in staging; verify key endpoints between phases before advancing to FORCE_RLS
+- [ ] CI guard enforcement
+  - Prereq: CI must run lint
+  - Steps: Prefer `pnpm vercel:build` (runs lint, typecheck, build). If CI uses `pnpm build`, ensure lint is invoked in pipeline to enforce the PrismaClient instantiation rule.
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-- [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
-- [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access
-- [ ] Capture operational runbook entry covering scripts/rls-rollout.ts usage and rollback plan
+- [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added); verify pipeline runs lint on PRs and merges
+- [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access (audit and migrate candidates incrementally)
+- [ ] Capture operational runbook notes for scripts/rls-rollout.ts usage and rollback plan within this file until a dedicated runbook is approved
