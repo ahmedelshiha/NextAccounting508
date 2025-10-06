@@ -69,8 +69,31 @@ export function withTenantContext(
         )
       }
 
-      // If unauthenticated requests are allowed, invoke handler without tenant context
-      if (!session?.user) return handler(request, routeContext)
+      // If unauthenticated requests are allowed, try to derive tenant from headers and run within context
+      if (!session?.user) {
+        try {
+          const headerTenant = (request && (request as any).headers && typeof (request as any).headers.get === 'function')
+            ? (request as any).headers.get('x-tenant-id')
+            : null
+          const tenantId = headerTenant ? String(headerTenant) : null
+          if (tenantId) {
+            const context: TenantContext = {
+              tenantId,
+              tenantSlug: (request as any).headers?.get?.('x-tenant-slug') || null,
+              userId: null,
+              userName: null,
+              userEmail: null,
+              role: null,
+              tenantRole: null,
+              isSuperAdmin: false,
+              requestId: (request as any).headers?.get?.('x-request-id') || null,
+              timestamp: new Date(),
+            }
+            return tenantContext.run(context, () => handler(request, routeContext))
+          }
+        } catch {}
+        return handler(request, routeContext)
+      }
 
       const user = session.user as any
 

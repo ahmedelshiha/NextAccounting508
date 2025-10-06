@@ -52,8 +52,10 @@ async function main() {
          WITH CHECK ("tenantId" = current_setting('app.current_tenant_id', true) OR "tenantId" IS NULL)`
       )
 
-      // Optionally force RLS to apply to table owners too (commented until rollout approved)
-      // await client.query(`ALTER TABLE ${fq} FORCE ROW LEVEL SECURITY`)
+      // Optionally force RLS to apply to table owners too, controlled via env FORCE_RLS=true
+      if (String(process.env.FORCE_RLS || '').toLowerCase() === 'true') {
+        await client.query(`ALTER TABLE ${fq} FORCE ROW LEVEL SECURITY`)
+      }
     }
 
     console.log('RLS setup completed for tables with tenantId column.')
