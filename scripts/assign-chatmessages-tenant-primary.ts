@@ -1,4 +1,4 @@
-import { disconnectPrisma, prisma, resolveTenantId, runWithTenantRLSContext } from './tenant-rls-utils'
+import { disconnectPrisma, resolveTenantId, runWithTenantRLSContext } from './tenant-rls-utils'
 
 async function main() {
   const tenantId = resolveTenantId({ defaultValue: 'tenant_primary' })
