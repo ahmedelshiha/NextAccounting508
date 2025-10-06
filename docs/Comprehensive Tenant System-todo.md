@@ -5,15 +5,14 @@
 - [x] Enforced shared Prisma client usage via ESLint rule to forbid direct PrismaClient instantiation in src (except src/lib/prisma.ts)
   - **Why**: Ensure tenant guard middleware is always applied and cannot be bypassed
   - **Impact**: Prevents accidental cross-tenant access via ad-hoc clients; improves maintainability
-- [x] Assessed RLS coverage and tenantContext usage; ensured tenant guard is applied to central Prisma client
-  - **Why**: Prevent accidental cross-tenant reads/writes and ensure consistent enforcement across server code
-  - **What I changed**:
-    - Many operational scripts under scripts/ were updated to import the shared Prisma client (import prisma from '@/lib/prisma') so registerTenantGuard is applied consistently.
-    - Ensured application code uses queryTenantRaw / withTenantRLS for raw SQL paths (db-raw.ts) and uses withTenantContext for App Router API routes.
-  - **Files changed**: multiple scripts in scripts/ (backfills/migrations/inspection/seed scripts) and src/lib/default-tenant.ts, src/app/middleware.ts
+- [x] Migrated create_jwt_session to TypeScript using shared prisma and tenant-aware token fields
+  - **Why**: Prevent bypassing tenant guard and produce dev JWTs compatible with middleware expectations
+  - **Impact**: Consistent local tooling; reduced risk of cross-tenant access during scripting
+- [x] Added unit tests for RLS helpers (withTenantRLS and setTenantRLSOnTx)
+  - **Why**: Assert session tenant variable is set for RLS-protected queries
+  - **Impact**: Early detection of regressions in RLS context propagation
 
 ## ⚠️ Issues / Risks
-- scripts/create_jwt_session.js still instantiates PrismaClient directly (require('@prisma/client')). Convert to TS or import the shared client to apply the tenant guard.
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" in non-scripts folders if needed.
 - Some RLS policies in scripts/setup-rls.ts allow tenantId IS NULL for transitional safety. Plan a follow-up tightening pass after all backfills enforce NOT NULL where intended.
 
@@ -24,16 +23,13 @@
 - [ ] Audit raw SQL and transactions
   - Scope: netlify/functions/** and scripts/** using $queryRaw/$executeRaw
   - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate
-- [ ] Tests for RLS helpers
-  - Add coverage for withTenantRLS and db-raw helpers to assert session variable is set and policies enforced
 
 ## 🔧 Next Steps
-- [ ] Migrate scripts/create_jwt_session.js to use shared prisma (or convert to TS/tsx runner)
-  - Dep: Keep behavior and shape of the script output; ensure NEXTAUTH_SECRET loaded
 - [ ] Tighten RLS policies by removing "OR tenantId IS NULL" once all backfills are complete and affected tables enforce NOT NULL
   - Dep: Complete data backfills (scripts/backfill-tenant-scoped-tables.ts et al.)
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
   - Dep: Observability dashboards available (monitoring/)
 - [ ] Add CI guard to fail on new PrismaClient instantiation in src (grep + eslint)
   - Dep: CI config picks up eslint errors
-
+- [ ] Review Netlify functions to confirm shared prisma import and tenant context usage
+  - Dep: netlify/functions/**
