@@ -74,6 +74,10 @@
   - **Why**: Allow safe per-tenant inspection under enforced RLS while retaining pre-RLS null-audit behavior
   - **Impact**: Flexible diagnostics in both pre- and post-RLS phases without cross-tenant leakage
 
+- [x] Improved tenant hint extraction to ignore apex on known hosting (netlify.app/vercel.app/fly.dev)
+  - **Why**: Prevent treating project name as tenant slug, which broke login on credentials callback
+  - **Impact**: 401 on /api/auth/callback/credentials resolved on apex domains; true subdomains still map to tenants
+
 ## 📘 RLS Rollout Runbook (summary)
 - Prepare: pnpm db:rls:auto --phase prepare --verify
 - Tighten (after backfills and verification): RLS_ALLOW_NULL_TENANT=false pnpm db:rls:auto --phase tighten --verify
