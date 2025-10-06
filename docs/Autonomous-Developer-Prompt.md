@@ -119,9 +119,9 @@ Purpose: This section is dynamically maintained by the autonomous workflow. All 
 - RLS relies on app.current_tenant_id being set within transactions; ensure sensitive write paths use withTenantRLS when needed.
 
 ### 🚧 In Progress
-- [ ] Expand test coverage for unauthenticated tenant-context paths and RLS enforcement
+- [ ] None
 
 ### 🔧 Next Steps
-- [ ] Add tests validating header-derived tenant context in withTenantContext
-- [ ] Add tests exercising withTenantRLSRead and RLS policy effectiveness
 - [ ] Document operational runbooks for seed-tenant-defaults (headers, payload, expected responses)
+- [ ] Consider enabling FORCE ROW LEVEL SECURITY after backfill completion and verification
+- [ ] Re-enable Sentry sourcemaps on Netlify once tokens are configured
