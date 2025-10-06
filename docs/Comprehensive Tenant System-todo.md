@@ -1,4 +1,7 @@
 ## ✅ Completed
+- [x] Added tenant-focused script utilities and enforced RLS context in critical maintenance flows (seed-tenant-defaults, chat message assignment, booking backfill)
+  - **Why**: Ensure operational scripts and Netlify functions operate under explicit tenant scopes once RLS is forced
+  - **Impact**: Prevents cross-tenant leakage during automation, keeps seeding and backfill jobs functional under strict RLS policies
 - [x] Resolved ESLint flat config undefined entry causing Vercel build failures by removing stray array element in eslint.config.mjs
   - **Why**: Restore lint step reliability so automated builds complete without configuration errors
   - **Impact**: Lint and build pipelines run to completion, preventing deployment blockers
@@ -30,17 +33,16 @@
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
 - Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
+- Remaining one-off maintenance scripts that update data across multiple tenants still depend on running before FORCE_RLS=true; migrate them to the new helper or execute under superuser credentials.
 
 ## 🚧 In Progress
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
   - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then set RLS_ALLOW_NULL_TENANT=false and re-run; finally enable FORCE_RLS=true and re-verify
-- [ ] Audit raw SQL and transactions
-  - Scope: netlify/functions/** and scripts/** using $queryRaw/$executeRaw
-  - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate (API routes already enforced by ESLint)
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
 - [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
-- [ ] Review remaining scripts for direct PrismaClient usage and convert to shared client or TS runner where feasible
+- [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access
+- [ ] Design staged RLS rollout automation/CLI to sequence FORCE_RLS and RLS_ALLOW_NULL toggles safely
