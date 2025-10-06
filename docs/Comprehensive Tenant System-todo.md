@@ -17,9 +17,12 @@
 - [x] Enabled MULTI_TENANCY_ENABLED=true in local dev environment
   - **Why**: Exercise tenant guard and middleware paths locally
   - **Impact**: Early detection of missing tenant context in development
-- [x] Added RLS strict toggle to scripts/setup-rls.ts via RLS_ALLOW_NULL_TENANT=false to remove NULL allowance in policies
+- [x] Added RLS strict toggle to scripts/setup-rls.ts via RLS_ALLOW_NULL_TENANT=false to remove NULL allowance when desired
   - **Why**: Facilitate staged rollout from permissive to strict RLS
   - **Impact**: Safer migration path; easy switch to enforce full isolation once backfills complete
+- [x] Refactored admin bookings API to scope by booking.tenantId instead of client.tenantId
+  - **Why**: Booking already has tenantId; direct scoping is clearer and leverages indexes
+  - **Impact**: Simpler queries, better performance, and stricter tenant isolation
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
