@@ -36,7 +36,10 @@
   - **Files changed**: src/lib/default-tenant.ts
 
 ## 🚧 In Progress
-- [ ] Validate middleware tenant resolution paths (token vs subdomain), signed cookie issuance, and header propagation; define edge-case handling
+- [x] Validate middleware tenant resolution paths (token vs subdomain), signed cookie issuance, and header propagation; define edge-case handling
+  - **Change made**: Middleware now emits a warning when MULTI_TENANCY_ENABLED=true and tenant cannot be resolved to surface routing/hostname issues to operators.
+  - **Files changed**: src/app/middleware.ts
+  - **Rationale**: Surfacing missing tenant hints reduces silent misrouting; combined with MULTI_TENANCY_STRICT this enables safe fail-fast behavior in staging.
 
 ## 🔧 Next Steps
 - [ ] Assess RLS coverage and tenantContext usage across services; ensure registerTenantGuard applies globally
