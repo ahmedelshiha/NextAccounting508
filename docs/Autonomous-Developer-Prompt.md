@@ -107,15 +107,21 @@ Purpose: This section is dynamically maintained by the autonomous workflow. All 
 - [x] Improved environment fallback for Prisma by mapping DATABASE_URL -> NETLIFY_DATABASE_URL in prisma.config.ts
   - Why: Make Prisma generate/migrate work locally and in CI without duplicating env vars
   - Impact: Fewer env-related failures; consistent URL normalization
+- [x] Added read-optimized RLS helper withTenantRLSRead for heavy read paths
+  - Why: Simplify consistent RLS application on large read flows with configurable timeouts
+  - Impact: Better ergonomics; clearer intent at call sites
+- [x] Implemented Netlify Function netlify/functions/seed-tenant-defaults.ts to seed OrganizationSettings/SecuritySettings
+  - Why: One-click tenant provisioning with secure header auth
+  - Impact: Faster tenant onboarding; idempotent seeding
 
 ### ⚠️ Issues / Risks
 - Sentry source map uploads are disabled on Netlify until SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT are configured; re-enable when secrets are available.
 - RLS relies on app.current_tenant_id being set within transactions; ensure sensitive write paths use withTenantRLS when needed.
 
 ### 🚧 In Progress
-- [ ] None
+- [ ] Expand test coverage for unauthenticated tenant-context paths and RLS enforcement
 
 ### 🔧 Next Steps
-- [ ] Add optional wrapper utilities to run read-heavy queries under withTenantRLS when MULTI_TENANCY_ENABLED is true
-- [ ] Provide a Netlify Function to seed per-tenant defaults (OrganizationSettings/SecuritySettings) on new tenant creation
-- [ ] Expand test coverage for unauthenticated tenant-context paths and RLS enforcement
+- [ ] Add tests validating header-derived tenant context in withTenantContext
+- [ ] Add tests exercising withTenantRLSRead and RLS policy effectiveness
+- [ ] Document operational runbooks for seed-tenant-defaults (headers, payload, expected responses)
