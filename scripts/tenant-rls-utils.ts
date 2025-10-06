@@ -1,4 +1,5 @@
 import prisma from '../src/lib/prisma'
+import prisma from '../src/lib/prisma'
 import { setTenantRLSOnTx } from '../src/lib/prisma-rls'
 
 type ResolveTenantOptions = {
