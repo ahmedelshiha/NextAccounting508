@@ -95,16 +95,27 @@ Purpose: This section is dynamically maintained by the autonomous workflow. All 
 - [x] Created /docs/Autonomous-Developer-Prompt.md and initialized persistent context/state sections
   - Why: Establish a single source of truth for autonomous workflow and state
   - Impact: Enables deterministic, append-only tracking of architectural decisions and tasks
+- [x] Audited Prisma schema and RLS setup; confirmed tenantId coverage and RLS script applies policies to all tenant-scoped tables
+  - Why: Ensure database-level tenant isolation is enforceable via Postgres RLS
+  - Impact: Strengthened defense-in-depth; validated scripts/setup-rls.ts coverage
+- [x] Enhanced tenant guard/context for unauthenticated routes using header-derived tenantId in withTenantContext
+  - Why: Allow readonly endpoints and portal views to run under a tenant context even without auth
+  - Impact: Consistent tenant scoping and logging across requests; reduces cross-tenant risk on public flows
+- [x] Verified migration runner exists (netlify/functions/run-tenant-migrations.ts) and performs backfill + migration application
+  - Why: Provide operational path to tighten NOT NULL and backfill tenantId for legacy rows
+  - Impact: Safer rollouts; idempotent operations with verification metrics
+- [x] Improved environment fallback for Prisma by mapping DATABASE_URL -> NETLIFY_DATABASE_URL in prisma.config.ts
+  - Why: Make Prisma generate/migrate work locally and in CI without duplicating env vars
+  - Impact: Fewer env-related failures; consistent URL normalization
 
 ### ⚠️ Issues / Risks
 - Sentry source map uploads are disabled on Netlify until SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT are configured; re-enable when secrets are available.
-- Multi-tenant RLS posture requires verification across Prisma schema and API routes to ensure strict tenant isolation under all code paths.
+- RLS relies on app.current_tenant_id being set within transactions; ensure sensitive write paths use withTenantRLS when needed.
 
 ### 🚧 In Progress
-- [ ] None (queue prepared; prioritize Next Steps below)
+- [ ] None
 
 ### 🔧 Next Steps
-- [ ] Review Prisma schema for multi-tenant RLS compatibility
-- [ ] Implement tenant guard refactor to ensure context isolation
-- [ ] Add migration runner function for new tenant creation flow
-- [ ] Validate environment variable handling for dynamic tenant database access
+- [ ] Add optional wrapper utilities to run read-heavy queries under withTenantRLS when MULTI_TENANCY_ENABLED is true
+- [ ] Provide a Netlify Function to seed per-tenant defaults (OrganizationSettings/SecuritySettings) on new tenant creation
+- [ ] Expand test coverage for unauthenticated tenant-context paths and RLS enforcement
