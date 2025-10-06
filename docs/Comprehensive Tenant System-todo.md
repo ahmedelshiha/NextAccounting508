@@ -41,6 +41,9 @@
 - [x] Fixed scripts/backfill-booking-tenantId.ts variable reference bugs
   - **Why**: Correctly reference processed booking id during backfill and logging
   - **Impact**: Reliable tenantId backfill, fewer runtime errors during maintenance
+- [x] Fixed missing import in src/lib/db-raw.ts to correctly use withTenantRLS for tenant-scoped raw queries
+  - **Why**: Ensure raw helpers run under RLS with proper tenant context
+  - **Impact**: Prevents runtime/compile errors and enforces tenant isolation for raw SQL helpers
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
@@ -56,5 +59,5 @@
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
 - [ ] Verify CI executes `pnpm build` or `pnpm vercel:build` so lint/typecheck run; adjust pipeline config if needed
-- [ ] Roll new tenant RLS script helper across remaining data repair scripts that still rely on unrestricted Prisma access (audit and migrate candidates incrementally)
+- [ ] Incrementally migrate maintenance scripts that can run per-tenant to use runWithTenantRLSContext (retain global ones for pre-RLS or superuser)
 - [ ] Capture operational runbook notes for scripts/rls-rollout.ts usage and rollback plan within this file until a dedicated runbook is approved
