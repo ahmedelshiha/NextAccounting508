@@ -122,6 +122,6 @@ Purpose: This section is dynamically maintained by the autonomous workflow. All 
 - [ ] None
 
 ### 🔧 Next Steps
-- [ ] Document operational runbooks for seed-tenant-defaults (headers, payload, expected responses)
-- [ ] Consider enabling FORCE ROW LEVEL SECURITY after backfill completion and verification
 - [ ] Re-enable Sentry sourcemaps on Netlify once tokens are configured
+- [ ] Operate with FORCE_RLS=true after data validation in production (toggle added in scripts/setup-rls.ts)
+- [ ] Review runbooks coverage and add one for RLS operations (enable/disable, audit)
