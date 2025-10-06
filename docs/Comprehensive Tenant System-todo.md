@@ -90,6 +90,5 @@
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-- [ ] Verify CI executes `pnpm build` or `pnpm vercel:build` so lint/typecheck run; adjust pipeline config if needed
-- [ ] Incrementally migrate maintenance scripts that can run per-tenant to use runWithTenantRLSContext (retain global ones for pre-RLS or superuser)
-- [ ] Capture operational runbook notes for scripts/rls-rollout.ts usage and rollback plan within this file until a dedicated runbook is approved
+- [ ] Migrate additional per-tenant scripts (e.g., inspect-bookings.ts, report-tenant-null-counts.ts) to require tenant and use runWithTenantRLSContext where feasible
+- [ ] Expand CI to include selected integration tests with PR label (optional)
