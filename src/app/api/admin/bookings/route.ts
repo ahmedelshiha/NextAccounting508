@@ -39,10 +39,10 @@ const getCachedBookings = withCache<BookingsResponse>(
 
     const where: Prisma.BookingWhereInput = {}
 
-    // Optional tenant scoping via relations until Booking has tenantId
+    // Tenant scoping using Booking.tenantId
     const safeTenantScope = ctx.tenantId && ctx.tenantId !== 'undefined'
     if (safeTenantScope) {
-      where.client = { tenantId: String(ctx.tenantId) }
+      (where as any).tenantId = String(ctx.tenantId)
     }
 
     if (status && status !== 'all') {
@@ -180,7 +180,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
         scheduledAt: new Date(scheduledAt),
         status: { in: ['PENDING', 'CONFIRMED'] },
         ...(ctx.tenantId && ctx.tenantId !== 'undefined'
-          ? { client: { tenantId: String(ctx.tenantId) } }
+          ? { tenantId: String(ctx.tenantId) }
           : {}),
       },
     })
@@ -261,8 +261,8 @@ export const PATCH = withTenantContext(async (request: NextRequest) => {
     const result = await prisma.booking.updateMany({
       where: {
         id: { in: bookingIds },
-        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { client: { tenantId: String(ctx.tenantId) } } : {}),
-      } as any,
+        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { tenantId: String(ctx.tenantId) } : {}),
+      },
       data: updateData,
     })
 
@@ -295,8 +295,8 @@ export const DELETE = withTenantContext(async (request: NextRequest) => {
     const result = await prisma.booking.deleteMany({
       where: {
         id: { in: bookingIds },
-        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { client: { tenantId: String(ctx.tenantId) } } : {}),
-      } as any,
+        ...(ctx.tenantId && ctx.tenantId !== 'undefined' ? { tenantId: String(ctx.tenantId) } : {}),
+      },
     })
 
     await logAudit({ action: 'booking.bulk.delete', actorId: ctx.userId ?? null, details: { count: result.count, bookingIds } })
