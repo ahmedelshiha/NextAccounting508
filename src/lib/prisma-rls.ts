@@ -26,3 +26,18 @@ export async function withTenantRLS<T>(fn: (tx: any) => Promise<T>, tenantId?: s
     return fn(tx)
   })
 }
+
+// Read-optimized helper: applies RLS and allows transaction tuning for heavy read workloads
+export async function withTenantRLSRead<T>(
+  fn: (tx: any) => Promise<T>,
+  options?: { maxWaitMs?: number; timeoutMs?: number; tenantId?: string }
+): Promise<T> {
+  const ctxTenant = options?.tenantId || tenantContext.getContextOrNull()?.tenantId || null
+  if (!ctxTenant) throw new Error('withTenantRLSRead: tenantId missing and no tenant context available')
+  const maxWait = options?.maxWaitMs ?? 5000
+  const timeout = options?.timeoutMs ?? 15000
+  return prisma.$transaction(async (tx: any) => {
+    await setTenantRLSOnTx(tx, ctxTenant)
+    return fn(tx)
+  }, { maxWait, timeout } as any)
+}
