@@ -14,7 +14,7 @@ export const GET = withTenantContext(async () => {
 
     const where: any = { status: 'PENDING' }
     if (ctx.tenantId && ctx.tenantId !== 'undefined') {
-      where.client = { tenantId: String(ctx.tenantId) }
+      where.tenantId = String(ctx.tenantId)
     }
 
     const count = await prisma.booking.count({ where })

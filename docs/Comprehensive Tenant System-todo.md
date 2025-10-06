@@ -1,43 +1,43 @@
-
-
 ## ✅ Completed
-- [x] Assessed RLS coverage and tenantContext usage; ensured tenant guard is applied to central Prisma client
-  - **Why**: Prevent accidental cross-tenant reads/writes and ensure consistent enforcement across server code
-  - **What I changed**:
-    - Many operational scripts under scripts/ were updated to import the shared Prisma client (import prisma from '@/lib/prisma') so registerTenantGuard is applied consistently.
-    - Ensured application code uses queryTenantRaw / withTenantRLS for raw SQL paths (db-raw.ts) and uses withTenantContext for App Router API routes.
-  - **Files changed**: multiple scripts in scripts/ (backfills/migrations/inspection/seed scripts) and src/lib/default-tenant.ts, src/app/middleware.ts
+- [x] Context reloaded from docs/Comprehensive Tenant System-todo.md and repository; verified prisma-tenant-guard, middleware, RLS helpers, and API wrappers are implemented and consistent
+  - **Why**: Establish accurate state and avoid re-analysis; ensure enforcement layers align
+  - **Impact**: Safer autonomous execution and fewer regressions
+- [x] Enforced shared Prisma client usage via ESLint rule to forbid direct PrismaClient instantiation (globally, excluding src/lib/prisma.ts)
+  - **Why**: Ensure tenant guard middleware is always applied and cannot be bypassed across the codebase
+  - **Impact**: Prevents accidental cross-tenant access via ad-hoc clients; improves maintainability
+- [x] Migrated create_jwt_session to TypeScript using shared prisma and tenant-aware token fields
+  - **Why**: Prevent bypassing tenant guard and produce dev JWTs compatible with middleware expectations
+  - **Impact**: Consistent local tooling; reduced risk of cross-tenant access during scripting
+- [x] Added unit tests for RLS helpers (withTenantRLS and setTenantRLSOnTx)
+  - **Why**: Assert session tenant variable is set for RLS-protected queries
+  - **Impact**: Early detection of regressions in RLS context propagation
+- [x] Reviewed Netlify functions for shared prisma and raw SQL usage
+  - **What**: cron-payments-reconcile uses shared prisma; cron-reminders and health-monitor use fetch; run-tenant-migrations and seed-tenant-defaults use pg Client by design
+  - **Impact**: Confirms tenant guard coverage where Prisma is used; migrations/seeds are isolated
+- [x] Enabled MULTI_TENANCY_ENABLED=true in local dev environment
+  - **Why**: Exercise tenant guard and middleware paths locally
+  - **Impact**: Early detection of missing tenant context in development
+- [x] Added RLS strict toggle to scripts/setup-rls.ts via RLS_ALLOW_NULL_TENANT=false to remove NULL allowance when desired
+  - **Why**: Facilitate staged rollout from permissive to strict RLS
+  - **Impact**: Safer migration path; easy switch to enforce full isolation once backfills complete
+- [x] Refactored admin bookings API to scope by booking.tenantId instead of client.tenantId
+  - **Why**: Booking already has tenantId; direct scoping is clearer and leverages indexes
+  - **Impact**: Simpler queries, better performance, and stricter tenant isolation
 
-## ⚠️ Remaining manual review items
-- scripts/create_jwt_session.js still instantiates PrismaClient directly via require('@prisma/client'). It's a small utility script; consider migrating to shared prisma import when executing via tsx/tsx-compatible runner or convert to .ts.
-- Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; run a grep for "new PrismaClient" in non-scripts folders if needed.
+## ⚠️ Issues / Risks
+- Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
+- Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
 
-## 🚧 In Progress / Next steps
-- [ ] Add regression tests asserting tenant-guard blocks cross-tenant operations and RLS enforcement for db-raw paths
-- [ ] Run scripts in a staging preview to validate scripts now operate correctly with shared client
-- [ ] Consider adding lint rule or developer guidance to always import shared prisma from '@/lib/prisma' to prevent future direct instantiations
+## 🚧 In Progress
+- [ ] Stage RLS rollout
+  - Prereq: Valid staging database snapshot/backups
+  - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then set RLS_ALLOW_NULL_TENANT=false and re-run; finally enable FORCE_RLS=true and re-verify
+- [ ] Audit raw SQL and transactions
+  - Scope: netlify/functions/** and scripts/** using $queryRaw/$executeRaw
+  - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate (API routes already enforced by ESLint)
 
-## ⏸️ Paused / Pending (to execute later)
-- Paused on: 2025-10-06T00:00:00Z
-- Reason: Operator requested to pause code changes and collect pending tasks for later execution.
-
-Pending tasks (will be executed later):
-- [ ] Add regression tests for tenant header propagation, guard enforcement, and RLS (withTenantRLS + queryTenantRaw)
-  - Location: tests/integration/ and tests/unit/
-  - Notes: include both positive (scoped access) and negative (cross-tenant blocked) cases; mock prisma as needed for unit tests.
-- [ ] Audit API routes and services for missing tenantFilter/getResolvedTenantId usage
-  - Location: src/app/api/** and src/services/**
-  - Notes: prioritize endpoints that handle raw SQL or operate outside withTenantContext.
-- [ ] Backfill/migration validation run against staging DB (non-destructive checks)
-  - Location: scripts/backfill-*.ts and scripts/run-tenant-migrations.sh
-  - Notes: perform dry-run where possible; snapshot DB before DDL/DML.
-- [ ] Migrate or update remaining scripts creating new PrismaClient instances to use shared prisma client
-  - Location: scripts/* (scripts/create_jwt_session.js is priority)
-  - Notes: update Node-only scripts to import '@/lib/prisma' or convert to TS and run via tsx.
-- [ ] Add lint rule / developer guideline to enforce importing shared prisma (e.g., ESLint rule or code-review checklist)
-- [ ] Enable MULTI_TENANCY_STRICT in staging and monitor logs for middleware warnings before enabling in production
-  - Files: .env.staging, CI settings
-
-## 🔁 How to resume
-- When ready, unpause by removing this PAUSED section or marking individual tasks as [x] when completed.
-- I will continue executing items from top to bottom when resumed automatically.
+## 🔧 Next Steps
+- [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
+- [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
+- [ ] Add CI guard to fail on new PrismaClient instantiation (eslint already added; ensure CI runs lint)
+- [ ] Review remaining scripts for direct PrismaClient usage and convert to shared client or TS runner where feasible
