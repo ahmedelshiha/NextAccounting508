@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma'
 
 async function main(){
   const rows = await prisma.$queryRaw<any>`SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name`;
