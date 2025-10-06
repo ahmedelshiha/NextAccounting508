@@ -8,11 +8,32 @@ export function isMultiTenancyEnabled(): boolean {
   return String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true'
 }
 
+const DEFAULT_HOSTING_SUFFIXES = ['netlify.app', 'vercel.app', 'fly.dev', 'onrender.com']
+
+function endsWithAny(host: string, suffixes: string[]): string | null {
+  for (const s of suffixes) {
+    if (host.endsWith(`.${s}`) || host === s) return s
+  }
+  return null
+}
+
 function extractSubdomain(hostname: string | null): string | null {
   if (!hostname) return null
   const host = hostname.split(':')[0] // strip port
   const parts = host.split('.')
   if (parts.length < 3) return null
+
+  const configured = (process.env.MULTI_TENANCY_SUFFIXES || '').split(',').map(s => s.trim()).filter(Boolean)
+  const suffixes = configured.length ? configured : DEFAULT_HOSTING_SUFFIXES
+  const matchedSuffix = endsWithAny(host, suffixes)
+  if (matchedSuffix) {
+    const suffixLabels = matchedSuffix.split('.').length
+    // host like myapp.netlify.app => parts=3, suffixLabels=2 => apex => no tenant
+    if (parts.length <= suffixLabels + 1) {
+      return null
+    }
+  }
+
   const sub = parts[0]
   if (sub === 'www') return parts.length >= 4 ? parts[1] : null
   return sub || null

@@ -54,6 +54,41 @@
   - **Why**: Prevent E2E plugin from executing during Netlify builds
   - **Impact**: Shorter, more reliable builds; E2E can still be run manually when needed
 
+- [x] Resolved duplicate 'withTenantRLS' import in src/lib/db-raw.ts causing TS2300 at lines 1 and 3
+  - **Why**: Fix TypeScript duplicate identifier to unblock build
+  - **Impact**: Build succeeds through typecheck; raw helpers remain tenant-scoped
+
+- [x] Added GitHub Actions CI to run lint, typecheck, and build:skip-env on push/PR
+  - **Why**: Ensure CI always runs the same checks as local/Vercel, without requiring secrets
+  - **Impact**: Earlier failure detection; consistent quality gates across PRs and main
+
+- [x] Migrated scripts/list_posts.ts to require tenant scope and run under runWithTenantRLSContext
+  - **Why**: Make maintenance scripts safe under strict RLS and avoid cross-tenant reads
+  - **Impact**: Scripts behave consistently when RLS is enforced; reduces leakage risk
+
+- [x] RLS rollout runbook notes added (usage & rollback) to guide operators
+  - **Why**: Provide clear operational steps for prepare/tighten/enforce and rollback
+  - **Impact**: Safer rollouts; faster recoverability
+
+- [x] Updated scripts/inspect-bookings.ts to optionally run tenant-scoped under RLS via runWithTenantRLSContext
+  - **Why**: Allow safe per-tenant inspection under enforced RLS while retaining pre-RLS null-audit behavior
+  - **Impact**: Flexible diagnostics in both pre- and post-RLS phases without cross-tenant leakage
+
+- [x] Improved tenant hint extraction to ignore apex on known hosting (netlify.app/vercel.app/fly.dev)
+  - **Why**: Prevent treating project name as tenant slug, which broke login on credentials callback
+  - **Impact**: 401 on /api/auth/callback/credentials resolved on apex domains; true subdomains still map to tenants
+
+## 📘 RLS Rollout Runbook (summary)
+- Prepare: pnpm db:rls:auto --phase prepare --verify
+- Tighten (after backfills and verification): RLS_ALLOW_NULL_TENANT=false pnpm db:rls:auto --phase tighten --verify
+- Enforce (final): FORCE_RLS=true pnpm db:rls:auto --phase enforce --verify
+- Rollback: Re-run previous phase with prior env flags (e.g., set RLS_ALLOW_NULL_TENANT=true to relax). Always take DB snapshots before phase changes.
+- Verification checklist: admin APIs for bookings, services, tasks; portal SR flows; uploads AV callback; stats endpoints.
+
+- [x] Fixed tenant resolution to accept slug or id and fallback safely in src/lib/default-tenant.ts
+  - **Why**: After enabling tenant context, login failed because subdomain/header hints didn’t map to a real tenant id
+  - **Impact**: Credentials login works on apex domains and unknown subdomains; strict mode still enforced when enabled
+
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
 - Some RLS policies in setup may still allow NULL when RLS_ALLOW_NULL_TENANT is left as default (true). Ensure to set to false after backfills.
@@ -67,6 +102,5 @@
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-- [ ] Verify CI executes `pnpm build` or `pnpm vercel:build` so lint/typecheck run; adjust pipeline config if needed
-- [ ] Incrementally migrate maintenance scripts that can run per-tenant to use runWithTenantRLSContext (retain global ones for pre-RLS or superuser)
-- [ ] Capture operational runbook notes for scripts/rls-rollout.ts usage and rollback plan within this file until a dedicated runbook is approved
+- [ ] Migrate additional per-tenant scripts (e.g., report-tenant-null-counts.ts) to require tenant and use runWithTenantRLSContext where feasible
+- [ ] Expand CI to include selected integration tests with PR label (optional)
