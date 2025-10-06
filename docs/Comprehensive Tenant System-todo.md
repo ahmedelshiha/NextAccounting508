@@ -90,5 +90,5 @@
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
-- [ ] Migrate additional per-tenant scripts (e.g., inspect-bookings.ts, report-tenant-null-counts.ts) to require tenant and use runWithTenantRLSContext where feasible
+- [ ] Migrate additional per-tenant scripts (e.g., report-tenant-null-counts.ts) to require tenant and use runWithTenantRLSContext where feasible
 - [ ] Expand CI to include selected integration tests with PR label (optional)
