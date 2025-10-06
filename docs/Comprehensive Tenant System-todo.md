@@ -58,6 +58,18 @@
   - **Why**: Fix TypeScript duplicate identifier to unblock build
   - **Impact**: Build succeeds through typecheck; raw helpers remain tenant-scoped
 
+- [x] Added GitHub Actions CI to run lint, typecheck, and build:skip-env on push/PR
+  - **Why**: Ensure CI always runs the same checks as local/Vercel, without requiring secrets
+  - **Impact**: Earlier failure detection; consistent quality gates across PRs and main
+
+- [x] Migrated scripts/list_posts.ts to require tenant scope and run under runWithTenantRLSContext
+  - **Why**: Make maintenance scripts safe under strict RLS and avoid cross-tenant reads
+  - **Impact**: Scripts behave consistently when RLS is enforced; reduces leakage risk
+
+- [x] RLS rollout runbook notes added (usage & rollback) to guide operators
+  - **Why**: Provide clear operational steps for prepare/tighten/enforce and rollback
+  - **Impact**: Safer rollouts; faster recoverability
+
 ## 📘 RLS Rollout Runbook (summary)
 - Prepare: pnpm db:rls:auto --phase prepare --verify
 - Tighten (after backfills and verification): RLS_ALLOW_NULL_TENANT=false pnpm db:rls:auto --phase tighten --verify
