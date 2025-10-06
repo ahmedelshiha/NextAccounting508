@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma'
 
 async function main() {
   const rows = await prisma.$queryRaw<any>`SELECT id, "clientId", "serviceId", "serviceRequestId", "tenantId", "createdAt" FROM public.bookings WHERE "tenantId" IS NULL`;
