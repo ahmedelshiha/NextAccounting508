@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma'
 
 async function applyMigration(path: string) {
   if (!fs.existsSync(path)) {
