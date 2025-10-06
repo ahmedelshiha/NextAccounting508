@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 
 async function main(){
-  const prisma = new PrismaClient()
   try{
     const count = await prisma.$queryRaw`SELECT COUNT(*)::int as count FROM public.security_settings`
     console.log('rowCount:', (count as any)[0]?.count ?? 0)
