@@ -44,6 +44,12 @@
 - [x] Fixed missing import in src/lib/db-raw.ts to correctly use withTenantRLS for tenant-scoped raw queries
   - **Why**: Ensure raw helpers run under RLS with proper tenant context
   - **Impact**: Prevents runtime/compile errors and enforces tenant isolation for raw SQL helpers
+- [x] Removed duplicate import in scripts/tenant-rls-utils.ts
+  - **Why**: Fix TypeScript compile error and keep utility clean
+  - **Impact**: Scripts using RLS helpers compile reliably
+- [x] Added npm script db:rls:auto for one-command staged rollout with verification
+  - **Why**: Simplify operator workflow and reduce mistakes during rollout
+  - **Impact**: Faster, safer deployments
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" if build starts failing due to ESLint rule.
@@ -53,7 +59,7 @@
 ## 🚧 In Progress
 - [ ] Stage RLS rollout
   - Prereq: Valid staging database snapshot/backups
-  - Steps: Use `pnpm tsx scripts/rls-rollout.ts --phase auto --verify` in staging; verify key endpoints between phases before advancing to FORCE_RLS
+  - Steps: Use `pnpm db:rls:auto` in staging; verify key endpoints between phases before advancing to FORCE_RLS
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by setting RLS_ALLOW_NULL_TENANT=false in staging once backfills are complete, then re-run scripts/setup-rls.ts

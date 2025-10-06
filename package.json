@@ -25,6 +25,7 @@
     "db:reset": "prisma migrate reset",
     "db:migrate:legalLinks": "tsx scripts/migrate-legal-links-to-columns.ts",
     "db:rls:enable": "tsx scripts/setup-rls.ts",
+    "db:rls:auto": "tsx scripts/rls-rollout.ts --phase auto --verify",
     "test:thresholds": "vitest run tests/thresholds.test.ts",
     "test:tenant": "vitest run tests/tenant-filter.test.ts",
     "test:integration": "vitest --run --reporter dot --threads false tests/integration",
