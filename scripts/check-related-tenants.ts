@@ -1,6 +1,5 @@
-import Prisma from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
-const { Prisma: PrismaNamespace } = Prisma as any
 
 async function main(){
   const serviceIds = ['cmf8xwt4x0005pomfjp0fnrpa','cmf8xwt460004pomf7snvogkj'];
