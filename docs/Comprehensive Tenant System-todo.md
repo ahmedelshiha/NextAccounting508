@@ -11,6 +11,12 @@
 - [x] Added unit tests for RLS helpers (withTenantRLS and setTenantRLSOnTx)
   - **Why**: Assert session tenant variable is set for RLS-protected queries
   - **Impact**: Early detection of regressions in RLS context propagation
+- [x] Reviewed Netlify functions for shared prisma and raw SQL usage
+  - **What**: cron-payments-reconcile uses shared prisma; cron-reminders and health-monitor use fetch; run-tenant-migrations and seed-tenant-defaults use pg Client by design
+  - **Impact**: Confirms tenant guard coverage where Prisma is used; migrations/seeds are isolated
+- [x] Enabled MULTI_TENANCY_ENABLED=true in local dev environment
+  - **Why**: Exercise tenant guard and middleware paths locally
+  - **Impact**: Early detection of missing tenant context in development
 
 ## ⚠️ Issues / Risks
 - Any external Netlify functions or serverless contexts that create PrismaClient separately should be reviewed; grep for "new PrismaClient" in non-scripts folders if needed.
@@ -22,7 +28,7 @@
   - Steps: Run scripts/setup-rls.ts with FORCE_RLS=false; verify key endpoints; then enable FORCE_RLS=true in staging and re-verify
 - [ ] Audit raw SQL and transactions
   - Scope: netlify/functions/** and scripts/** using $queryRaw/$executeRaw
-  - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate
+  - Action: Ensure withTenantRLS or setTenantRLSOnTx is applied where appropriate (API routes already enforced by ESLint)
 
 ## 🔧 Next Steps
 - [ ] Tighten RLS policies by removing "OR tenantId IS NULL" once all backfills are complete and affected tables enforce NOT NULL
@@ -31,5 +37,4 @@
   - Dep: Observability dashboards available (monitoring/)
 - [ ] Add CI guard to fail on new PrismaClient instantiation in src (grep + eslint)
   - Dep: CI config picks up eslint errors
-- [ ] Review Netlify functions to confirm shared prisma import and tenant context usage
-  - Dep: netlify/functions/**
+- [ ] Review remaining scripts for direct PrismaClient usage and convert to shared client or TS runner where feasible
