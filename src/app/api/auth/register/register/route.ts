@@ -20,7 +20,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     const tenantId = await getResolvedTenantId(request)
 
     const existingUser = await prisma.user.findUnique({
-      where: userByTenantEmail(tenantId, email)
+      where: userByTenantEmail(tenantId, String(email).toLowerCase())
     })
 
     if (existingUser) {
@@ -37,7 +37,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     const user = await prisma.user.create({
       data: withTenant({
         name,
-        email,
+        email: String(email).toLowerCase(),
         password: hashedPassword,
         role: 'CLIENT',
         emailVerified: new Date(),
