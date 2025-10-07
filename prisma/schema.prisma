@@ -58,6 +58,7 @@ model User {
   invoices Invoice[]
   expenses Expense[]
   tenantMemberships TenantMembership[]
+  auditLogs AuditLog[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -145,6 +146,7 @@ model Tenant {
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
   tenantMemberships    TenantMembership[]
+  auditLogs            AuditLog[]
 
   @@index([status])
 }
@@ -164,6 +166,27 @@ model TenantMembership {
   @@index([tenantId])
   @@index([userId])
   @@map("tenant_memberships")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  action    String
+  resource  String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([userId, createdAt])
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
 }
 
 // Blog posts model
@@ -1201,6 +1224,7 @@ enum UserRole {
   STAFF
   TEAM_LEAD
   ADMIN
+  SUPER_ADMIN
 }
 
 // Organization settings persisted per-tenant
