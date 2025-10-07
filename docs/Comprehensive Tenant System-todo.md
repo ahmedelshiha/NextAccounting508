@@ -197,3 +197,39 @@ Safety checklist before proceeding:
 
 ---
 
+## ⏸️ PAUSED — High Priority Pending Tasks
+The migration and tenant audit work is paused now. The tasks below are recorded and marked HIGH PRIORITY to start when you unpause the effort. Each item should be executed in a maintenance window after taking a full DB snapshot/backup.
+
+High priority pending tasks (resume in this order):
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_attachment_tenantid_not_null — ensure dollar-quoting and backfill SQL are safe and idempotent
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_chatmessage_tenantid_not_null — add orphan-check before FK/NOT NULL and safe backfill
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_expense_tenantid_not_null — idempotent backfill and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_idempotencykey_tenantid_not_null — backfill and NOT NULL guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null — safe backfill and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_service_tenantid_not_null — guard FK creation versus orphan tenant ids
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_servicerequest_tenantid_not_null — correlated backfill and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_workorder_tenantid_not_null — safe backfill and NOT NULL guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_bookingsettings_tenantid_not_null — guard FK and unique index creation
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_attachment_tenantid_not_null — ensure idempotent DO blocks and index creation
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_booking_tenantid_not_null — convert to correlated subqueries and avoid FROM-alias misuse
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_bookingsettings_tenantid_not_null — ensure no orphan tenantIds before adding FK
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_expense_tenantid_not_null — idempotent guards and NOT NULL check
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_idempotencykey_tenantid_not_null — idempotent guards
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_invoice_tenantid_not_null — backfill with correlated subqueries and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_scheduledreminder_tenantid_not_null — safe apply steps
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_service_tenantid_not_null — guard FK vs orphan tenant ids
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_servicerequest_tenantid_not_null — guard FK vs orphan tenant ids
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_workorder_tenantid_not_null — correlated subqueries and NOT NULL guard
+- [ ] HIGH: Review and fix prisma/migrations/20251005_update_idempotencykey_unique — validate index change and safe apply
+
+Operational next steps to resume work (required before applying migrations):
+1. Take a full DB snapshot/backup.
+2. Run scripts/backfill-tenant-scoped-tables.ts (or run-tenant-migrations) on a copy or staging DB to fill tenantId values.
+3. Verify remaining NULL counts and orphan tenant IDs.
+4. Decide orphan handling: insert missing Tenant rows OR map/normalize values OR assign to default tenant.
+5. Re-run prisma migrate deploy (verify in staging first). If a migration fails, mark it rolled back, fix the SQL, then re-run deploy.
+6. Run smoke tests (signup/login, admin flows) and then tighten RLS.
+
+To unpause and start work, confirm: (a) a DB snapshot exists, (b) a maintenance window, and (c) whether orphan tenant IDs should be inserted or normalized. Reply with your choice and I will proceed.
+
