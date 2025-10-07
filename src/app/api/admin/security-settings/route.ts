@@ -4,12 +4,18 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import service from '@/services/security-settings.service'
 import { SecurityComplianceSettingsSchema } from '@/schemas/settings/security-compliance'
+import { NextRequest } from 'next/server'
+import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
 
-export const GET = withTenantContext(async (request: Request) => {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (ctx.isSuperAdmin) {
+      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''))
+      if (!ok) return stepUpChallenge()
     }
     const tenantId = ctx.tenantId
     const settings = await service.get(tenantId)
@@ -19,11 +25,15 @@ export const GET = withTenantContext(async (request: Request) => {
   }
 })
 
-export const PUT = withTenantContext(async (request: Request) => {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (ctx.isSuperAdmin) {
+      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''))
+      if (!ok) return stepUpChallenge()
     }
     const tenantId = ctx.tenantId
     const body = await request.json().catch(() => ({}))
