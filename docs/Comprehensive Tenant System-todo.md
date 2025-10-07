@@ -104,3 +104,38 @@
 - [ ] Enable MULTI_TENANCY_ENABLED in staging and monitor middleware logs for unresolved tenants or mismatches
 - [ ] Migrate additional per-tenant scripts (e.g., report-tenant-null-counts.ts) to require tenant and use runWithTenantRLSContext where feasible
 - [ ] Expand CI to include selected integration tests with PR label (optional)
+
+
+## ✅ Completed (Recent Auth/Tenancy Updates)
+- [x] Email normalization for tenant-scoped auth
+  - Changed login lookup to use lowercase email in src/lib/auth.ts
+  - Registration endpoints now store and check lowercase email in:
+    - src/app/api/auth/register/route.ts
+    - src/app/api/auth/register/register/route.ts
+  - Impact: new users can sign in reliably regardless of email casing; prevents false 401 in multi-tenant contexts
+- [x] Demo users aligned for no-DB mode
+  - Added client1@example.com and client2@example.com demo accounts in src/lib/auth.ts demoUsers
+  - Impact: UI demo credentials match backend, avoiding 401 in preview/no-DB deployments
+- [x] Auth bypass for environment testing
+  - New AUTH_DISABLED env flag to temporarily bypass auth in selected env
+  - Implemented:
+    - Early middleware bypass in src/app/middleware.ts
+    - API helper requireAuth returns mock session when AUTH_DISABLED in src/lib/auth-middleware.ts
+    - New getSessionOrBypass helper in src/lib/auth.ts
+    - Admin surfaces switched to getSessionOrBypass:
+      - src/app/admin/page.tsx
+      - src/app/admin/layout.tsx
+      - src/app/admin/layout-nuclear.tsx
+      - src/app/admin/analytics/page.tsx
+      - src/app/admin/reminders/page.tsx
+  - Impact: allows testing one deployment (e.g., Netlify or Vercel) without credentials while keeping the other secured
+- [x] Tenant guidance clarified
+  - STRICT=false: default to “primary” when no subdomain/X-Tenant-Id
+  - STRICT=true: require subdomain or X-Tenant-Id for tenant resolution
+  - Impact: predictable behavior across apex domains and multi-tenant subdomains
+
+## ▶ Operational Notes
+- To disable auth in exactly one environment, set AUTH_DISABLED=true only on that env and redeploy; remove to re-enable auth
+- Prefer PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD for safer preview logins when possible
+- Ensure NEXTAUTH_URL and NEXTAUTH_SECRET are set for both deployments
+- For strict multi-tenant previews, send X-Tenant-Id from edge/proxy or use tenant subdomains

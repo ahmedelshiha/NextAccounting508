@@ -8,6 +8,12 @@ import { authOptions } from '@/lib/auth'
  * - On success, returns the session object.
  */
 export async function requireAuth(roles: string[] = []) {
+  if (String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true') {
+    // Return a permissive mock session in disabled mode
+    return {
+      user: { id: 'public', role: 'ADMIN', name: 'Preview Admin', email: 'preview@local' }
+    } as any
+  }
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

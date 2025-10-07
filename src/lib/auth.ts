@@ -1,4 +1,5 @@
 import type { NextAuthOptions, User, Session } from 'next-auth'
+import { getServerSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
@@ -14,7 +15,8 @@ const demoUsers = [
   { id: 'demo-admin', name: 'Admin User', email: 'admin@accountingfirm.com', password: 'admin123', role: 'ADMIN' },
   { id: 'demo-lead', name: 'Team Lead', email: 'lead@accountingfirm.com', password: 'lead123', role: 'TEAM_LEAD' },
   { id: 'demo-staff', name: 'Team Member', email: 'staff@accountingfirm.com', password: 'staff123', role: 'TEAM_MEMBER' },
-  { id: 'demo-client', name: 'John Smith', email: 'john@example.com', password: 'client123', role: 'CLIENT' },
+  { id: 'demo-client1', name: 'Client One', email: 'client1@example.com', password: 'client123', role: 'CLIENT' },
+  { id: 'demo-client2', name: 'Client Two', email: 'client2@example.com', password: 'client123', role: 'CLIENT' },
 ]
 
 export const authOptions: NextAuthOptions = {
@@ -82,7 +84,7 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, credentials.email as string) })
+        const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, String(credentials.email as string).toLowerCase()) })
         if (!user || !user.password) {
           // Audit failed attempt without user enumeration
           logAudit({ action: 'auth.login.failed', actorId: null, targetId: null, details: { tenantId, email: String(credentials.email || '').toLowerCase() } }).catch(() => {})
@@ -231,4 +233,31 @@ export const authOptions: NextAuthOptions = {
     }
   },
   pages: { signIn: '/login' }
+}
+
+export async function getSessionOrBypass(): Promise<Session | null> {
+  if (String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true') {
+    try {
+      const tenantId = await getResolvedTenantId(null as any).catch(() => null)
+      return {
+        user: {
+          id: 'public',
+          name: 'Preview Admin',
+          email: 'preview@local',
+          role: 'ADMIN',
+          ...(tenantId ? { tenantId } : {}),
+        } as any,
+      } as unknown as Session
+    } catch {
+      return {
+        user: {
+          id: 'public',
+          name: 'Preview Admin',
+          email: 'preview@local',
+          role: 'ADMIN',
+        } as any,
+      } as unknown as Session
+    }
+  }
+  return getServerSession(authOptions) as unknown as Promise<Session | null>
 }
