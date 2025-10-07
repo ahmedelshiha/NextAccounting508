@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
@@ -63,7 +63,8 @@ export const POST = withTenantContext(async (req: NextRequest, context: { params
   }
 
   const ip = getClientIp(req as any)
-  if (!rateLimit(`portal:service-requests:comment:${ip}`, 10, 60_000)) {
+  const commentLimit = await applyRateLimit(`portal:service-requests:comment:${ip}`, 10, 60_000)
+  if (!commentLimit.allowed) {
     return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
