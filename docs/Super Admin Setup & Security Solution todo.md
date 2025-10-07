@@ -79,23 +79,25 @@ This file is the central state for all Super Admin setup and security work. Appe
   - Verification: non-super admins cannot open the modal nor read tenant-level superAdmin fields
   - Files changed: src/app/admin/settings/security/page.tsx, src/components/admin/settings/SuperAdminSecurityModal.tsx
 
-- [ ] Add IPv6-focused unit tests for ip-allowlist edge cases (zone identifiers, compression, ::ffff: mapped addresses) and add tests for matched rule resolution.
+- [x] Add IPv6-focused unit tests for ip-allowlist edge cases (zone identifiers, compression, ::ffff: mapped addresses) and add tests for matched rule resolution.
   - Owner: Test maintainer
   - Verification: tests in tests/security/ip-allowlist.test.ts
+  - Files changed: tests/security/ip-allowlist.test.ts
 
 - [x] Add a server-side enforcement audit to log when `network.enableIpRestrictions` denies access to an admin route. Implemented tenant-aware policy resolution, matched-rule detection, and inclusion of tenantId in audit details.
   - Owner: Backend
   - Verification: audit entries `security.ip.block` include tenantId, userId, ip, policySource, and matchedRule
   - Files changed: src/app/middleware.ts
 
-- [ ] Add help text and contextual tooltips to the Super Admin Controls modal explaining env vs tenant precedence, and operational impact.
+- [x] Add help text and contextual tooltips to the Super Admin Controls modal explaining env vs tenant precedence, and operational impact.
   - Owner: UX/Frontend
   - Verification: tooltips present and link to runbook
+  - Files changed: src/components/admin/settings/SuperAdminSecurityModal.tsx
 
 - [x] Consider making verifySuperAdminStepUp accept tenantId to consult that tenant's settings explicitly rather than the current `get(null)` fallback. Implemented: helper now accepts optional tenantId and route callers pass tenantId when available.
-    - Owner: Backend
-    - Verification: updated helper signature and route callers pass tenantId where available
-    - Files changed: src/lib/security/step-up.ts, src/app/api/admin/security-settings/route.ts, src/app/api/admin/permissions/*, src/app/api/admin/audit-logs/route.ts
+  - Owner: Backend
+  - Verification: updated helper signature and route callers pass tenantId where available
+  - Files changed: src/lib/security/step-up.ts, src/app/api/admin/security-settings/route.ts, src/app/api/admin/permissions/*, src/app/api/admin/audit-logs/route.ts
 
 - [x] Add unit tests that call verifySuperAdminStepUp with tenantId to validate tenant-scoped behavior
   - Files: tests/security/step-up-tenantid.test.ts
