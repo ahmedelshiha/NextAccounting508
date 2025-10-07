@@ -68,9 +68,11 @@ This file is the central state for all Super Admin setup and security work. Appe
 
 ## 🔧 Next Steps (recommended and actionable)
 
-- [ ] Add audit event when `superAdmin.logAdminAccess` is toggled (more granular than current security-settings:update event). This should produce a clear audit entry indicating who changed logging policy and previous/new value.
+- [x] Add audit event when `superAdmin.logAdminAccess` is toggled (more granular than current security-settings:update event). This produces a clear audit entry indicating who changed logging policy and previous/new value.
   - Owner: Security Engineer
   - Verification: new entry in audit logs with action `security.superadmin.logAdminAccess.toggled`
+  - Files changed: src/services/security-settings.service.ts
+  - Note: Service now emits `security.superadmin.logAdminAccess.toggled` with details { tenantId, previous, current } when toggled.
 
 - [ ] Make Super Admin Controls modal visibility explicit to SUPER_ADMIN users only (UI guard). Currently PermissionGate controls access to the Security Settings page; consider an extra guard so only SUPER_ADMINs see/modify superAdmin.* toggles.
   - Owner: Frontend
