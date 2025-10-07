@@ -7,8 +7,7 @@
  */
 
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AdminAnalyticsPageClient from '@/components/admin/analytics/AdminAnalyticsPageClient'
 
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminAnalyticsPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSessionOrBypass()
   if (!session?.user) {
     redirect('/login')
   }
