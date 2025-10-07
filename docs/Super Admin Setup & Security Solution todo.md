@@ -29,13 +29,21 @@
   - **Why**: operational readiness
   - **Impact**: produces JSON/CSV inventories of admin contacts for compliance reviews
 
+---
+
+## ✅ Completed
+- [x] Enforced admin IP allowlist in middleware for /admin pages and /api/admin endpoints
+  - **Why**: security hardening
+  - **Impact**: blocks untrusted networks from sensitive surfaces; optional access logs via env flag
+
 ## ⚠️ Issues / Risks
-- Production snapshot confirmation is still pending, preventing execution of the roster export against authoritative data.
-- Database migration SQL needs to be generated and deployed to materialize the new `AuditLog` table and enum update in production.
+- Requires `ENABLE_IP_RESTRICTIONS=true` and `ADMIN_IP_WHITELIST` (comma-separated) to be set; otherwise enforcement is skipped by design.
+- Exact IP matching only (no CIDR ranges yet).
 
 ## 🚧 In Progress
-- [ ] Coordinate with operations to confirm production snapshot currency and schedule roster export execution.
+- [ ] Plan Redis/Upstash-backed rate limiter upgrade with transparent fallback to in-memory to keep current route imports intact.
 
 ## 🔧 Next Steps
-- [ ] Prepare migration SQL (or run `prisma migrate diff`) to deploy `AuditLog` table and enum changes.
-- [ ] Execute the roster export script once snapshot confirmation is received and distribute outputs securely.
+- [ ] Implement Redis/Upstash-backed rate limiting inside `src/lib/rate-limit.ts` using `RedisCache` when configured; preserve API signature.
+- [ ] Emit audit events on IP policy blocks via `logAudit` with IP and route metadata.
+- [ ] Add MFA enrollment/verification endpoints and enforce MFA in NextAuth callbacks for super admins.
