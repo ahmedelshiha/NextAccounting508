@@ -10,12 +10,21 @@ BEGIN
 END$$;
 
 -- Backfill from related entities
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'WorkOrder') THEN
-    EXECUTE 'UPDATE public."WorkOrder" SET "tenantId" = COALESCE((SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public."WorkOrder"."serviceRequestId"), (SELECT b."tenantId" FROM public.bookings b WHERE b.id = public."WorkOrder"."bookingId"), (SELECT u."tenantId" FROM public.users u WHERE u.id = public."WorkOrder"."clientId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public."WorkOrder"."serviceId")) WHERE public."WorkOrder"."tenantId" IS NULL';
+    EXECUTE $sql$
+      UPDATE public."WorkOrder"
+      SET "tenantId" = COALESCE(
+        (SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public."WorkOrder"."serviceRequestId"),
+        (SELECT b."tenantId" FROM public.bookings b WHERE b.id = public."WorkOrder"."bookingId"),
+        (SELECT u."tenantId" FROM public.users u WHERE u.id = public."WorkOrder"."clientId"),
+        (SELECT s."tenantId" FROM public.services s WHERE s.id = public."WorkOrder"."serviceId")
+      )
+      WHERE public."WorkOrder"."tenantId" IS NULL
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN
