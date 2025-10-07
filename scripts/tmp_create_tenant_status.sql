@@ -1,0 +1,6 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'TenantStatus') THEN
+    CREATE TYPE "TenantStatus" AS ENUM ('ACTIVE', 'SUSPENDED', 'DECOMMISSIONED');
+  END IF;
+END $$;
