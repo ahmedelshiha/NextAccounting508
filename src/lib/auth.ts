@@ -253,6 +253,13 @@ export const authOptions: NextAuthOptions = {
           session.user.role = token.role as string
         }
 
+        const sessionIpHash = typeof (token as any).sessionIpHash === 'string' ? (token as any).sessionIpHash : null
+        const sessionIssuedAtValue = typeof (token as any).sessionIssuedAt === 'number' ? (token as any).sessionIssuedAt : null
+        ;(session.user as any).sessionIpHash = sessionIpHash
+        ;(session.user as any).sessionIssuedAt = sessionIssuedAtValue
+        ;(session as any).sessionIpHash = sessionIpHash
+        ;(session as any).sessionIssuedAt = sessionIssuedAtValue
+
         ;(session.user as any).tenantId = tenantId
         ;(session.user as any).tenantSlug = tenantSlug
         ;(session.user as any).tenantRole = tenantRole
