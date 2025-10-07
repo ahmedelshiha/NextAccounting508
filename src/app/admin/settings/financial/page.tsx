@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
-export default function FinancialSettingsPage() {
+function FinancialSettingsContent() {
   const [active, setActive] = useState('invoicing')
   const searchParams = useSearchParams()
   const [settings, setSettings] = useState<any>({})
@@ -144,6 +146,28 @@ export default function FinancialSettingsPage() {
         </PermissionGate>
       )}
     </div>
+  )
+}
+
+export default function FinancialSettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <FinancialSettingsContent />
+    </Suspense>
   )
 }
 

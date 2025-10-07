@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import React, { useEffect, useMemo, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import ListPage from '@/components/dashboard/templates/ListPage'
@@ -58,7 +60,7 @@ function mapInvoiceStatusToPaymentStatus(s: string): string | undefined {
   return undefined
 }
 
-export default function AdminInvoicesPage() {
+function AdminInvoicesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -211,5 +213,27 @@ export default function AdminInvoicesPage() {
         onPageChange={setPage}
       />
     </PermissionGate>
+  )
+}
+
+export default function AdminInvoicesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            <div className="grid grid-cols-1 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <AdminInvoicesContent />
+    </Suspense>
   )
 }
