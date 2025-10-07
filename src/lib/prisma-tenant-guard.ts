@@ -27,6 +27,7 @@ const WRITE_ACTIONS: ReadonlySet<GuardedAction> = new Set(['create', 'createMany
 const BULK_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['updateMany', 'deleteMany'])
 const SINGLE_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['update', 'delete'])
 const READ_ACTIONS: ReadonlySet<GuardedAction> = new Set(['findFirst', 'findUnique', 'findMany', 'aggregate', 'count', 'groupBy'])
+const AUTH_MODEL_NAMES: ReadonlySet<string> = new Set(['User', 'Account', 'Session', 'VerificationToken'])
 
 let tenantModelConfigs: ReadonlyMap<string, TenantModelConfig> | null = null
 
