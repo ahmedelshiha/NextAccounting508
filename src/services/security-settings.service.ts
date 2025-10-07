@@ -27,6 +27,7 @@ export class SecuritySettingsService {
       network: row.network ?? {},
       dataProtection: row.dataProtection ?? {},
       compliance: row.compliance ?? {},
+      superAdmin: row.superAdmin ?? {},
     } : defaults()
 
     await cache.set(cacheKey, value, 300)
@@ -52,6 +53,7 @@ export class SecuritySettingsService {
       network: parsed.network ?? undefined,
       dataProtection: parsed.dataProtection ?? undefined,
       compliance: parsed.compliance ?? undefined,
+      superAdmin: parsed.superAdmin ?? undefined,
       updatedAt: new Date(),
     }
 
