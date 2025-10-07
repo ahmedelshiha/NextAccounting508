@@ -107,8 +107,8 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
               <section className="space-y-3">
                 <h4 className="text-sm font-medium">Network & IP Controls</h4>
                 <Toggle label="Enable IP Restrictions" value={pending.network?.enableIpRestrictions ?? settings.network?.enableIpRestrictions} onChange={(v)=>update('network.enableIpRestrictions', v)} />
-                <TextField label="Admin IP Whitelist (comma-separated CIDR/addresses)" value={(pending.network?.ipAllowlist ?? settings.network?.ipAllowlist || []).join(', ')} onChange={(v)=>update('network.ipAllowlist', v.split(',').map((x:any)=>x.trim()).filter(Boolean))} />
-                <TextField label="IP Blocklist (comma-separated)" value={(pending.network?.ipBlocklist ?? settings.network?.ipBlocklist || []).join(', ')} onChange={(v)=>update('network.ipBlocklist', v.split(',').map((x:any)=>x.trim()).filter(Boolean))} />
+                <TextField label="Admin IP Whitelist (comma-separated CIDR/addresses)" value={(pending.network?.ipAllowlist ?? (settings.network?.ipAllowlist || [])).join(', ')} onChange={(v)=>update('network.ipAllowlist', v.split(',').map((x:any)=>x.trim()).filter(Boolean))} />
+                <TextField label="IP Blocklist (comma-separated)" value={(pending.network?.ipBlocklist ?? (settings.network?.ipBlocklist || [])).join(', ')} onChange={(v)=>update('network.ipBlocklist', v.split(',').map((x:any)=>x.trim()).filter(Boolean))} />
                 <div className="pt-2">
                   <AdminIpHelper />
                 </div>
