@@ -110,3 +110,31 @@ This file is the central state for all Super Admin setup and security work. Appe
 ---
 
 Append further entries here in chronological order when new work begins or completes.
+
+## ⏸ Paused
+
+- [ ] Paused: Remote DB connection and migration application — waiting for ops approval/credentials.
+  - **Why**: CI environment blocked external DB access from automation; local/ops run required to apply DB migration that adds `superAdmin` JSON column to `security_settings` and seed defaults.
+  - **Impact**: Tenant-level superAdmin overrides cannot be persisted until migration/seed complete. Some API behaviors (tenant-level step-up MFA) will fall back to environment flag.
+
+## 🔜 Next Task (owner: Ops/Backend)
+
+- [ ] Apply schema migration and seed to add `superAdmin` to security_settings
+  - **Steps**:
+    1. Ensure DATABASE_URL points to target Neon DB (ops):
+       export DATABASE_URL="postgresql://..."
+    2. Run migrations in the deployment environment or locally with access:
+       - pnpm db:migrate  # (or: npx prisma migrate deploy)
+    3. Regenerate Prisma client:
+       - pnpm db:generate
+    4. Run seed script to ensure defaults:
+       - pnpm db:seed
+    5. Verify column and values:
+       - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings';
+       - SELECT superAdmin FROM public.security_settings LIMIT 5;
+  - **Verification**: security_settings contains `superAdmin` JSON with keys `stepUpMfa` and `logAdminAccess`; tests for tenant override pass locally/CI.
+  - **Risks/Notes**: Running migrations in production must be coordinated; backups recommended. If you want, I can prepare a PR with the migration and seed changes (already added) and instructions for ops to run.
+
+---
+
+(Entry added automatically.)
