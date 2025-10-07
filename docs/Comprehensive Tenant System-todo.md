@@ -9,12 +9,12 @@
   - **Why**: Ensure schema changes applied and tenantId nulls resolved for operational tables
   - **Actions**:
     - Applied prisma migrate deploy against provided NETLIFY_DATABASE_URL (no pending migrations)
-    - Ensured Booking.tenantId column exists (added lower/upper-case variants and created public."Booking" view pointing to public.bookings)
-    - Ensured attachments tenantId column (created view public.attachments -> public."Attachment" when needed)
-    - Backfilled bookings.tenantId from users/ServiceRequest/services
+    - Hardened and applied migration 20251006_fix_table_casing to drop temporary views and rename capitalized tables to lowercase ("Attachment" -> attachments)
+    - Ensured Booking.tenantId column exists and backfilled bookings.tenantId from users/ServiceRequest/services
+    - Ensured attachments tenantId column and backfilled attachment tenantIds
     - Backfilled services.tenantId by assigning orphan services to first Tenant (tenant_primary) to remove NULLs
     - Created helper scripts: scripts/ensure-tenant-columns-and-backfill.js and scripts/backfill-services-tenantid.js
-  - **Impact**: All tenant-scoped tables report zero NULL tenantId counts (report script: scripts/report-tenant-null-counts.ts) — services/bookings/attachments fixed
+  - **Impact**: All tenant-scoped tables report zero NULL tenantId counts (report script: scripts/report-tenant-null-counts.ts) — services/bookings/attachments fixed; temporary views removed via migration
   - **Impact**: Reduces migration parse errors, increases idempotency, and aligns SQL with safest DO block tagging
 - [x] Introduced scripts/rls-rollout.ts orchestrator leveraging reusable setupTenantRLS to automate prepare/tighten/enforce phases with audits and safeguards
   - **Why**: Provide a single CLI to manage RLS rollout toggles safely, preventing accidental FORCE_RLS before data is clean
@@ -228,7 +228,7 @@ High priority tasks (execution order):
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_attachment_tenantid_not_null — ensure idempotent DO blocks and index creation
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_booking_tenantid_not_null — convert to correlated subqueries and avoid FROM-alias misuse
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_bookingsettings_tenantid_not_null — ensure no orphan tenantIds before adding FK
-- [ ] HIGH: Review and fix prisma/migrations/20251005_add_expense_tenantid_not_null — idempotent guards and NOT NULL check
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_expense_tenantid_not_null �� idempotent guards and NOT NULL check
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_idempotencykey_tenantid_not_null — idempotent guards
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_invoice_tenantid_not_null — backfill with correlated subqueries and FK guard
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_scheduledreminder_tenantid_not_null — safe apply steps
