@@ -1,6 +1,6 @@
 ## 🚧 Tasks
-- [ ] Capture current admin and super admin roster, exporting contact info for owners and staff (Prerequisite: confirm latest production database snapshot is complete).
-- [ ] Verify `prisma/schema.prisma` defines the `SUPER_ADMIN` role and required audit log models, adding a migration if any fields are missing (Depends on: roster capture).
+- [ ] Verify `prisma/schema.prisma` defines the `SUPER_ADMIN` role and required audit log models, adding a migration if any fields are missing.
+- [ ] Capture current admin and super admin roster, exporting contact info for owners and staff (Depends on: schema verification and confirmation of latest production database snapshot).
 - [ ] Regenerate Prisma client and adjust TypeScript role typings so `SUPER_ADMIN` is recognized across services and NextAuth session payloads (Depends on: schema validation).
 - [ ] Implement `scripts/admin-setup/create-super-admin.ts` to provision the new super admin with a random strong password and enforced MFA enrollment (Depends on: Prisma client regeneration).
 - [ ] Retire the legacy admin account by deactivating login access while preserving ownership references and audit history (Depends on: super admin provisioning).
@@ -24,10 +24,10 @@
   - **Impact**: ensures subsequent tasks reference up-to-date objectives
 
 ## ⚠️ Issues / Risks
-- None logged; awaiting implementation kickoff to surface blockers.
+- Prisma schema currently lacks the `SUPER_ADMIN` enum value and dedicated audit logging tables, forcing brittle type assertions if left unresolved.
 
 ## 🚧 In Progress
-- [ ] Planning workstream pending — roster capture task queued once production snapshot confirmation is available.
+- [ ] Schema verification and migration planning to introduce `SUPER_ADMIN` role support and audit log persistence.
 
 ## 🔧 Next Steps
-- [ ] Capture current admin and super admin roster, exporting contact info for owners and staff (Prerequisite: confirm latest production database snapshot is complete).
+- [ ] Draft Prisma migration to add `SUPER_ADMIN` role support and baseline audit logging models ahead of roster export.
