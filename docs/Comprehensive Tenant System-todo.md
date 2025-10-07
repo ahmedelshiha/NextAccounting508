@@ -2,6 +2,10 @@
 - [x] Hardened migration 20251004_add_idempotencykey_tenantid_not_null with safe backfill and guarded NOT NULL
   - **Why**: Ensure idempotent backfill from users.userId and avoid parser issues by using a unique dollar tag in DO blocks
   - **Impact**: Migration applies cleanly before FK/index enforcement; prevents NOT NULL failures; aligns with 20251005 composite unique
+- [x] Hardened multiple tenantId migrations (20251005_* and related 20251004_*) to use dollar-quoted DO blocks and safe dollar-quoted EXECUTE statements for backfills and updates
+  - **Why**: Avoid nested dollar-quoting parsing issues and make dynamic SQL idempotent and robust across Postgres versions
+  - **Files updated**: 20251005_add_booking_tenantid_not_null, 20251005_add_attachment_tenantid_not_null, 20251005_add_expense_tenantid_not_null, 20251005_add_workorder_tenantid_not_null, 20251005_add_scheduledreminder_tenantid_not_null, 20251005_add_invoice_tenantid_not_null, 20251005_add_servicerequest_tenantid_not_null, 20251005_add_service_tenantid_not_null, and others
+  - **Impact**: Reduces migration parse errors, increases idempotency, and aligns SQL with safest DO block tagging
 - [x] Introduced scripts/rls-rollout.ts orchestrator leveraging reusable setupTenantRLS to automate prepare/tighten/enforce phases with audits and safeguards
   - **Why**: Provide a single CLI to manage RLS rollout toggles safely, preventing accidental FORCE_RLS before data is clean
   - **Impact**: Streamlines staged rollout in staging/production, ensuring audits run before tightening policies
