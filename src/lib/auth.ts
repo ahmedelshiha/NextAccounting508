@@ -177,6 +177,9 @@ export const authOptions: NextAuthOptions = {
           token.sessionVersion = 0
         }
 
+        token.sessionIpHash = typeof (user as any).sessionIpHash === 'string' ? (user as any).sessionIpHash : null
+        token.sessionIssuedAt = typeof (user as any).sessionIssuedAt === 'number' ? (user as any).sessionIssuedAt : Date.now()
+
         // Attach tenant metadata if provided by authorize
         if ((user as any).tenantId) token.tenantId = (user as any).tenantId
         if ((user as any).tenantSlug) token.tenantSlug = (user as any).tenantSlug
