@@ -24,6 +24,11 @@ export default function AdminAuditsPage() {
   const [total, setTotal] = useState(0)
 
   const { data: session } = useSession()
+  const [otpRequired, setOtpRequired] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [otpError, setOtpError] = useState('')
+  const [pendingPath, setPendingPath] = useState('')
+  const [pendingParams, setPendingParams] = useState('')
 
   async function load() {
     setLoading(true)
@@ -37,18 +42,44 @@ export default function AdminAuditsPage() {
         if (status) params.set('status', status)
       }
       const path = isSuper ? '/api/admin/audit-logs' : '/api/admin/activity'
-      const res = await apiFetch(`${path}?${params.toString()}`)
+      const url = `${path}?${params.toString()}`
+      setPendingPath(path)
+      setPendingParams(params.toString())
+      const res = await apiFetch(url)
       if (res.ok) {
         const json = await res.json()
         const data = Array.isArray(json) ? json : json.data
         setLogs(Array.isArray(data) ? data : [])
         const meta = (json && json.pagination) ? json.pagination : { total: Array.isArray(data) ? data.length : 0 }
         setTotal(meta.total || 0)
+      } else if (res.status === 401 && res.headers.get('x-step-up-required')) {
+        setOtpRequired(true)
       } else {
         setLogs([])
         setTotal(0)
       }
     } finally { setLoading(false) }
+  }
+
+  async function submitOtp() {
+    setOtpError('')
+    try {
+      const headers: Record<string, string> = { 'x-mfa-otp': otp }
+      const res = await apiFetch(`${pendingPath}?${pendingParams}`, { headers })
+      if (res.ok) {
+        const json = await res.json()
+        const data = Array.isArray(json) ? json : json.data
+        setLogs(Array.isArray(data) ? data : [])
+        const meta = (json && json.pagination) ? json.pagination : { total: Array.isArray(data) ? data.length : 0 }
+        setTotal(meta.total || 0)
+        setOtp('')
+        setOtpRequired(false)
+      } else {
+        setOtpError('Invalid code, please try again')
+      }
+    } catch {
+      setOtpError('Submission failed, try again')
+    }
   }
 
   useEffect(() => { load() }, [type, page, (session?.user as any)?.role])
@@ -101,6 +132,35 @@ export default function AdminAuditsPage() {
         emptyMessage="No audits found."
         selectable={false}
       />
+
+      {otpRequired && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-4">
+            <div className="mb-3">
+              <div className="text-lg font-medium text-gray-900">Step-up verification</div>
+              <div className="text-sm text-gray-600">Enter your 6-digit code to view sensitive audit logs.</div>
+            </div>
+            <div className="space-y-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={10}
+                value={otp}
+                onChange={(e)=>setOtp(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="123456"
+                aria-label="One-time code"
+              />
+              {otpError && <div className="text-sm text-red-600">{otpError}</div>}
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button onClick={()=>{ setOtp(''); setOtpError(''); setOtpRequired(false) }} className="px-3 py-2 text-sm text-gray-700 border border-gray-300 rounded-md bg-white hover:bg-gray-50">Cancel</button>
+                <button onClick={submitOtp} className="px-3 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-md">Verify</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PermissionGate>
   )
 }

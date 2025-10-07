@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
+import { logAudit } from '@/lib/audit'
 
 function getPagination(url: URL) {
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10))
@@ -15,6 +17,14 @@ export async function GET(req: NextRequest) {
   const role = (session?.user as any)?.role as string | undefined
   if (!session || role !== 'SUPER_ADMIN') {
     return NextResponse.json({ error: 'Super admin access required' }, { status: 403 })
+  }
+
+  // Optional step-up MFA for sensitive super admin endpoints
+  const userId = String((session.user as any)?.id || '')
+  const stepOk = await verifySuperAdminStepUp(req, userId)
+  if (!stepOk) {
+    try { await logAudit({ action: 'auth.mfa.stepup.denied', actorId: userId, targetId: userId }) } catch {}
+    return stepUpChallenge()
   }
 
   const url = new URL(req.url)

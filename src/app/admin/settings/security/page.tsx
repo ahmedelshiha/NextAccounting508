@@ -31,7 +31,13 @@ export default function SecurityComplianceSettingsPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { (async () => {
-    const r = await fetch('/api/admin/security-settings', { cache: 'no-store' })
+    let r = await fetch('/api/admin/security-settings', { cache: 'no-store' })
+    if (r.status === 401 && r.headers.get('x-step-up-required')) {
+      const code = typeof window !== 'undefined' ? window.prompt('Step-up verification required. Enter your 6-digit code:') : ''
+      if (code) {
+        r = await fetch('/api/admin/security-settings', { cache: 'no-store', headers: { 'x-mfa-otp': code } })
+      }
+    }
     if (r.ok) { const j = await r.json(); setSettings(j) }
   })() }, [])
 
@@ -43,7 +49,13 @@ export default function SecurityComplianceSettingsPage() {
     if (!Object.keys(pending).length) return
     setSaving(true)
     try {
-      const r = await fetch('/api/admin/security-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending) })
+      let r = await fetch('/api/admin/security-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending) })
+      if (r.status === 401 && r.headers.get('x-step-up-required')) {
+        const code = typeof window !== 'undefined' ? window.prompt('Enter your 6-digit code to save changes:') : ''
+        if (code) {
+          r = await fetch('/api/admin/security-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-mfa-otp': code }, body: JSON.stringify(pending) })
+        }
+      }
       if (r.ok) { const j = await r.json(); setSettings(j); setPending({}) }
     } finally { setSaving(false) }
   }
