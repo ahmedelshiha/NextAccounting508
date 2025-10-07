@@ -78,4 +78,4 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       { status: 500 }
     )
   }
-})
+}, { requireAuth: false })
