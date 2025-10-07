@@ -83,9 +83,10 @@ This file is the central state for all Super Admin setup and security work. Appe
   - Owner: Test maintainer
   - Verification: tests in tests/security/ip-allowlist.test.ts
 
-- [ ] Add a server-side enforcement audit to log when `network.enableIpRestrictions` denies access to an admin route (already partially implemented; ensure it captures matched rule and tenantId).
+- [x] Add a server-side enforcement audit to log when `network.enableIpRestrictions` denies access to an admin route. Implemented tenant-aware policy resolution, matched-rule detection, and inclusion of tenantId in audit details.
   - Owner: Backend
-  - Verification: audit entries `security.ip.block` include tenantId, userId, ip, and matchedRule
+  - Verification: audit entries `security.ip.block` include tenantId, userId, ip, policySource, and matchedRule
+  - Files changed: src/app/middleware.ts
 
 - [ ] Add help text and contextual tooltips to the Super Admin Controls modal explaining env vs tenant precedence, and operational impact.
   - Owner: UX/Frontend
