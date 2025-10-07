@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
@@ -40,8 +40,13 @@ export const POST = withTenantContext(async (req: Request, context: { params: Pr
   }
 
   const ip = getClientIp(req)
-  if (!rateLimit(`service-requests:comment:${id}:${ip}`, 30, 60_000)) {
-    return respond.tooMany()
+  {
+    const key = `service-requests:comment:${id}:${ip}`
+    const rl = await applyRateLimit(key, 30, 60_000)
+    if (!rl.allowed) {
+      try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL((req as any).url).pathname } }) } catch {}
+      return respond.tooMany()
+    }
   }
   const body = await req.json().catch(() => null)
   const parsed = CreateCommentSchema.safeParse(body)
