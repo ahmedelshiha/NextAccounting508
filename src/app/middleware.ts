@@ -8,6 +8,9 @@ function isStaffRole(role: string | undefined | null) {
 }
 
 export async function middleware(req: NextServer.NextRequest) {
+  if (String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true') {
+    return NextServer.NextResponse.next()
+  }
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const isAuth = !!token
   const { pathname } = req.nextUrl
