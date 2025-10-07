@@ -1,8 +1,8 @@
-"use client"
-
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import React, { useCallback, useEffect, useMemo, useState, Suspense } from 'react'
 import useSWR from 'swr'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
@@ -55,7 +55,7 @@ function computeDateRange(range: string): { from?: string; to?: string } {
   return { from: start ? iso(start) : undefined, to: iso(end) }
 }
 
-export default function AdminExpensesPage() {
+function AdminExpensesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<string>('all')
@@ -279,5 +279,27 @@ export default function AdminExpensesPage() {
         onPageChange={setPage}
       />
     </PermissionGate>
+  )
+}
+
+export default function AdminExpensesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            <div className="grid grid-cols-1 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <AdminExpensesContent />
+    </Suspense>
   )
 }

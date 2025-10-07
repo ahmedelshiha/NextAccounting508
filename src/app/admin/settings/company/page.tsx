@@ -1,19 +1,22 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
+
 import SettingsShell from '@/components/admin/settings/SettingsShell'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Tabs from '@/components/admin/settings/Tabs'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 
-const GeneralTab = dynamic(() => import('@/components/admin/settings/groups/Organization/GeneralTab'))
-const ContactTab = dynamic(() => import('@/components/admin/settings/groups/Organization/ContactTab'))
-const LocalizationTab = dynamic(() => import('@/components/admin/settings/groups/Organization/LocalizationTab'))
-const BrandingTab = dynamic(() => import('@/components/admin/settings/groups/Organization/BrandingTab'))
-const LegalTab = dynamic(() => import('@/components/admin/settings/groups/Organization/LegalTab'))
+const GeneralTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/GeneralTab'))
+const ContactTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/ContactTab'))
+const LocalizationTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/LocalizationTab'))
+const BrandingTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/BrandingTab'))
+const LegalTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/LegalTab'))
 
-export default function Page(){
+function CompanySettingsContent(){
   const tabList = [
     { key: 'general', label: 'General' },
     { key: 'contact', label: 'Contact' },
@@ -95,5 +98,26 @@ export default function Page(){
         </PermissionGate>
       )}
     </SettingsShell>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="h-32 bg-gray-200 rounded"></div>
+              <div className="h-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <CompanySettingsContent />
+    </Suspense>
   )
 }

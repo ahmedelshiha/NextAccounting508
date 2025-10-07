@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, Suspense } from 'react'
 import useSWR from 'swr'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
@@ -8,6 +8,9 @@ import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
 import { apiFetch } from '@/lib/api'
 import { Download } from 'lucide-react'
 import { downloadExport } from '@/lib/admin-export'
+
+// Mark this page as dynamic since it uses useSearchParams
+export const dynamic = 'force-dynamic'
 
 interface ClientRow {
   id: string | number
@@ -40,7 +43,7 @@ function buildQuery(params: Record<string, string | undefined>) {
   return s ? `?${s}` : ''
 }
 
-export default function ClientsProfilesAdminPage() {
+function ClientsProfilesContent() {
   const router = useRouter()
   const qs = useSearchParams()
 
@@ -177,5 +180,19 @@ export default function ClientsProfilesAdminPage() {
       emptyMessage={search ? 'No clients match your search' : 'No clients found'}
       secondaryActions={[{ label: 'Export Clients', icon: Download, onClick: exportClients }]}
     />
+  )
+}
+
+function ClientsProfilesLoading() {
+  return (
+    <div className="px-6 py-8 text-sm text-muted-foreground">Loading client profiles...</div>
+  )
+}
+
+export default function ClientsProfilesAdminPage() {
+  return (
+    <Suspense fallback={<ClientsProfilesLoading />}>
+      <ClientsProfilesContent />
+    </Suspense>
   )
 }
