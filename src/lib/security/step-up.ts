@@ -18,7 +18,20 @@ function readOtpFromHeaders(req: NextRequest): string | null {
 }
 
 export async function verifySuperAdminStepUp(req: NextRequest, userId: string): Promise<boolean> {
-  const enabled = String(process.env.SUPERADMIN_STEPUP_MFA || '').toLowerCase() === 'true'
+  // Prefer tenant-level override (security settings) if available; fall back to env flag.
+  let enabled = false
+  try {
+    const svc = await import('@/services/security-settings.service')
+    const settings = await svc.default.get(null).catch(() => null)
+    if (settings && typeof (settings as any).superAdmin?.stepUpMfa === 'boolean') {
+      enabled = Boolean((settings as any).superAdmin.stepUpMfa)
+    } else {
+      enabled = String(process.env.SUPERADMIN_STEPUP_MFA || '').toLowerCase() === 'true'
+    }
+  } catch {
+    enabled = String(process.env.SUPERADMIN_STEPUP_MFA || '').toLowerCase() === 'true'
+  }
+
   if (!enabled) return true
   try {
     const otp = readOtpFromHeaders(req)
