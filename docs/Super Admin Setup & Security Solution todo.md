@@ -97,6 +97,10 @@ This file is the central state for all Super Admin setup and security work. Appe
     - Verification: updated helper signature and route callers pass tenantId where available
     - Files changed: src/lib/security/step-up.ts, src/app/api/admin/security-settings/route.ts, src/app/api/admin/permissions/*, src/app/api/admin/audit-logs/route.ts
 
+- [x] Add unit tests that call verifySuperAdminStepUp with tenantId to validate tenant-scoped behavior
+  - Files: tests/security/step-up-tenantid.test.ts
+  - Verification: tests cover tenant-level true/false behavior and env fallback
+
 ## ✅ Completed (most recent)
 - [x] Admin IP helper UI + API
 - [x] Unit test for tenant-level step-up override
