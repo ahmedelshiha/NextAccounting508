@@ -156,3 +156,16 @@ Append further entries here in chronological order when new work begins or compl
 
 - [ ] Emit `security.ratelimit.block` audit entries (with tenantId, userId, key, ip) whenever a privileged route returns 429 due to rate limiting, enabling responders to trace abuse patterns.
 
+---
+
+## ✅ Completed
+- [x] Migrated remaining synchronous rate limiters to distributed applyRateLimit on admin users list, service request assign, and admin chat endpoints; added security.ratelimit.block audits on 429.
+  - **Why**: security patch and consistency
+  - **Impact**: cross-instance rate limiting and better abuse traceability
+
+- [x] Fixed dev server startup by bypassing Doppler in dev command (npm run next-dev).
+  - **Why**: restore local development environment
+  - **Impact**: enabled continued implementation and testing
+
+## 🚧 In Progress
+- [ ] Audit remaining endpoints to ensure applyRateLimit is used exclusively and all 429s emit security.ratelimit.block; migrate any stragglers.
