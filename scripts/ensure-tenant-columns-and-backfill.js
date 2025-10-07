@@ -45,6 +45,12 @@ async function run() {
       await client.query(`CREATE INDEX IF NOT EXISTS "Booking_tenantId_idx" ON public."Booking"("tenantId")`)
     }
 
+    // Create a Booking view if only lowercase bookings exists so report checks pass
+    if (!bookingsUpperExists && bookingsLowerExists) {
+      console.log('Creating view public."Booking" -> public.bookings to satisfy tooling')
+      await client.query(`CREATE OR REPLACE VIEW public."Booking" AS SELECT * FROM public.bookings`)
+    }
+
     console.log('Ensuring attachments.tenantId column (both attachments and "Attachment")')
     await client.query(`ALTER TABLE IF EXISTS public.attachments ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
     await client.query(`ALTER TABLE IF EXISTS public."Attachment" ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
