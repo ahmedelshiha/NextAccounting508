@@ -1,0 +1,20 @@
+# Doppler configuration mapping
+# Project: next-accounting
+
+project: next-accounting
+environments:
+  local:
+    config: local
+  netlify:
+    config: netlify
+  vercel:
+    config: vercel
+
+# Local setup:
+#   npm install -g doppler
+#   doppler login
+#   doppler setup --project next-accounting --config local
+# Usage:
+#   doppler run --config local -- pnpm run dev
+#   doppler run --config netlify -- pnpm run build
+#   doppler run --config vercel -- pnpm run build

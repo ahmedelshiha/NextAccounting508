@@ -6,7 +6,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "doppler run --config local -- pnpm run next-dev",
+    "next-dev": "next dev",
     "build": "bash scripts/check-required-envs.sh && prisma generate && pnpm lint && pnpm typecheck && next build --turbopack",
     "build:skip-env": "SKIP_ENV_VALIDATION=true bash scripts/check-required-envs.sh && prisma generate && next build --turbopack",
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
@@ -36,6 +37,8 @@
     "monitoring:setup": "node scripts/production-monitoring.js",
     "monitoring:health": "node scripts/health-check.js",
     "production:deploy": "pnpm monitoring:setup && pnpm vercel:build",
+    "deploy:netlify": "doppler run --config netlify -- netlify deploy --prod",
+    "deploy:vercel": "doppler run --config vercel -- vercel --prod",
     "validate:stateful-docs": "node scripts/verify_stateful_docs.js"
   },
   "dependencies": {
@@ -94,6 +97,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.14",
+    "doppler": "^3.69.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "tailwindcss": "^4",
