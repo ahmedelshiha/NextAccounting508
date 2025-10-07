@@ -65,9 +65,10 @@
 | Variable | Description |
 |----------|-------------|
 | `ENABLE_IP_RESTRICTIONS` | When `true`, middleware enforces IP allowlist for `/admin` and `/api/admin` |
-| `ADMIN_IP_WHITELIST` | Comma-separated list of allowed admin IPs (exact match) |
+| `ADMIN_IP_WHITELIST` | Comma-separated list of allowed admin IPs (exact match or CIDR entries) |
 | `LOG_ADMIN_ACCESS` | When `true`, logs allow/deny events for admin access attempts |
 | `ENFORCE_ORG_2FA` | When `true`, route helpers can enforce two-factor for admin roles |
+| `SUPERADMIN_STEPUP_MFA` | When `true`, global environment-level toggle to require step-up MFA for SUPER_ADMIN on high-risk admin operations. If a tenant-level override exists (security settings: `superAdmin.stepUpMfa`), the tenant-level boolean takes precedence over this environment variable. Default: `false`. |
 
 ## Testing & Tooling
 | Variable | Description |
@@ -81,3 +82,5 @@
 - Run `pnpm check:env` to validate required variables before builds.
 - Prefer platform secret managers (Vercel/Netlify/CI vaults) instead of `.env` commits.
 - Document any new variable additions in this file and update `scripts/check-required-envs.sh` accordingly.
+- SUPERADMIN_STEPUP_MFA precedence: the system first consults tenant-level security settings (if present) at `securitySettings.superAdmin.stepUpMfa`. If a tenant-level explicit boolean is set, it overrides the environment flag. If tenant settings are missing or the value is not set, the environment variable `SUPERADMIN_STEPUP_MFA` is used as a fallback.
+- Security note: header-based OTP transports must only be sent over HTTPS and must not be logged at the edge/proxy or in request logs.

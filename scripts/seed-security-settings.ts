@@ -42,6 +42,10 @@ const defaultSettings = {
     soc2Enabled: false,
     requireDpa: false,
   },
+  superAdmin: {
+    stepUpMfa: false,
+    logAdminAccess: true,
+  },
 }
 
 async function upsertDefaults() {

@@ -11,6 +11,8 @@ function ensureRedis() {
     const hasUpstash = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     const hasRedis = Boolean(process.env.REDIS_URL)
     if (!hasUpstash && !hasRedis) { redisReady = true; return }
+    // Use require here intentionally to avoid async import in sync path
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { default: RedisCache } = require('@/lib/cache/redis')
     const url = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL
     redisCache = new RedisCache(url)
@@ -80,7 +82,7 @@ export async function rateLimitAsync(key: string, limit = 20, windowMs = 60_000)
     const now = Date.now()
     const redisKey = `ratelimit:${key}`
     type Entry = { count: number; resetAt: number }
-    const existing = (await redisCache.get<Entry>(redisKey))
+    const existing = (await redisCache.get(redisKey)) as Entry | null
     if (!existing) {
       const entry: Entry = { count: 1, resetAt: now + windowMs }
       await redisCache.set(redisKey, entry, Math.ceil(windowMs / 1000))

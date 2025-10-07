@@ -14,7 +14,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     if (ctx.isSuperAdmin) {
-      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''))
+      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''), ctx.tenantId)
       if (!ok) return stepUpChallenge()
     }
     const tenantId = ctx.tenantId
@@ -32,7 +32,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     if (ctx.isSuperAdmin) {
-      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''))
+      const ok = await verifySuperAdminStepUp(request, String(ctx.userId || ''), ctx.tenantId)
       if (!ok) return stepUpChallenge()
     }
     const tenantId = ctx.tenantId

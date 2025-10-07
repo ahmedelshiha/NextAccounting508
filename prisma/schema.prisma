@@ -1317,6 +1317,7 @@ model SecuritySettings {
   network         Json?
   dataProtection  Json?
   compliance      Json?
+  superAdmin      Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

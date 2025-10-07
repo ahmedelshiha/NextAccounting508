@@ -1,6 +1,8 @@
 "use client"
 
+'use client'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -23,6 +25,8 @@ const tabs = [
   { key: 'dataProtection', label: 'Data Protection' },
   { key: 'compliance', label: 'Compliance' },
 ]
+
+import SuperAdminSecurityModal from '@/components/admin/settings/SuperAdminSecurityModal'
 
 export default function SecurityComplianceSettingsPage() {
   const [active, setActive] = useState<string>('passwordPolicy')
@@ -118,9 +122,14 @@ export default function SecurityComplianceSettingsPage() {
     }
   }, [active, pending, settings])
 
+  const [openModal, setOpenModal] = useState(false)
+
+  const { data: session } = useSession()
+  const isSuper = (session?.user as any)?.role === 'SUPER_ADMIN'
+
   return (
     <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Security & Compliance Settings.</div>}>
-      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate></div>)}>
+      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}>{isSuper ? <button onClick={()=>setOpenModal(true)} className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-gray-100 hover:bg-gray-200">Super Admin Controls</button> : <button disabled className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-400 bg-gray-100" title="Super Admins only">Super Admin Controls</button>}</PermissionGate></div>)}>
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -147,6 +156,7 @@ export default function SecurityComplianceSettingsPage() {
           </div>
         </div>
       </SettingsShell>
+      <SuperAdminSecurityModal open={openModal} onClose={()=>setOpenModal(false)} onSaved={(s)=>{ setSettings(s); setPending({}) }} />
     </PermissionGate>
   )
 }

@@ -12,7 +12,7 @@ export const GET = withTenantContext(async (req: NextRequest) => {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   if (ctx.isSuperAdmin) {
-    const ok = await verifySuperAdminStepUp(req, String(ctx.userId || ''))
+    const ok = await verifySuperAdminStepUp(req, String(ctx.userId || ''), ctx.tenantId)
     if (!ok) return stepUpChallenge()
   }
 

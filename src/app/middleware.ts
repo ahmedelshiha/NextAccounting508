@@ -119,31 +119,80 @@ export async function middleware(req: NextServer.NextRequest) {
     userId: userId || null,
   }
 
-  // Admin IP allowlist enforcement (env-controlled)
+  // Resolve tenant early (used for tenant-level network policies)
   try {
-    const ipRestrictionsEnabled = String(process.env.ENABLE_IP_RESTRICTIONS || '').toLowerCase() === 'true'
-    if (ipRestrictionsEnabled) {
-      const ip = clientIp
-      const rawAllow = String(process.env.ADMIN_IP_WHITELIST || '').trim()
-      const allow = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
-      const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
-      const isAdminSurface = isAdminPage || isAdminApi
-      const allowed = isIpAllowed(ip, allow)
+    if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
+      const tenantIdFromToken = token ? (token as any).tenantId : null
+      const tenantSlugFromToken = token ? (token as any).tenantSlug : null
+      if (tenantIdFromToken) {
+        resolvedTenantId = String(tenantIdFromToken)
+        resolvedTenantSlug = tenantSlugFromToken ? String(tenantSlugFromToken) : null
+      } else {
+        const hostname = req.nextUrl?.hostname || req.headers.get('host') || ''
+        const host = String(hostname).split(':')[0]
+        const parts = host.split('.')
+        let sub = parts.length >= 3 ? parts[0] : ''
+        if (sub === 'www' && parts.length >= 4) sub = parts[1]
+        if (sub) resolvedTenantId = sub
+      }
+    }
+  } catch {}
 
-      if (isAdminSurface && !allowed) {
+  // Admin IP allowlist enforcement (env-controlled or tenant-level)
+  try {
+    const ip = clientIp
+    const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
+    const isAdminSurface = isAdminPage || isAdminApi
+
+    // Determine source of policy: tenant if tenant-level enabled, otherwise env
+    let policySource: 'tenant' | 'env' | null = null
+    let allowList: string[] = []
+
+    try {
+      // Attempt tenant-level policy if tenant resolved
+      if (resolvedTenantId) {
+        const securityService = await import('@/services/security-settings.service')
+        const tsettings = await securityService.default.get(resolvedTenantId).catch(() => null)
+        if (tsettings && tsettings.network && tsettings.network.enableIpRestrictions) {
+          policySource = 'tenant'
+          allowList = Array.isArray(tsettings.network.ipAllowlist) ? tsettings.network.ipAllowlist : []
+        }
+      }
+    } catch {}
+
+    // Fallback to env-level policy
+    if (!policySource) {
+      const ipRestrictionsEnabled = String(process.env.ENABLE_IP_RESTRICTIONS || '').toLowerCase() === 'true'
+      if (ipRestrictionsEnabled) {
+        policySource = 'env'
+        const rawAllow = String(process.env.ADMIN_IP_WHITELIST || '').trim()
+        allowList = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
+      }
+    }
+
+    if (policySource && isAdminSurface) {
+      const allowed = isIpAllowed(ip, allowList)
+      // determine matched rule if any
+      let matchedRule: string | null = null
+      for (const entry of allowList) {
+        if (!entry) continue
+        if (isIpAllowed(ip, [entry])) { matchedRule = entry; break }
+      }
+
+      if (!allowed) {
         if (String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
-          logger.warn('Admin access blocked by IP policy', { ...baseLogContext, ip })
+          logger.warn('Admin access blocked by IP policy', { ...baseLogContext, ip, tenantId: resolvedTenantId ?? null, policySource, matchedRule })
         }
         try {
           const { logAudit } = await import('@/lib/audit')
-          await logAudit({ action: 'security.ip.block', details: { ip, pathname } })
+          await logAudit({ action: 'security.ip.block', details: { ip, pathname, tenantId: resolvedTenantId ?? null, policySource, matchedRule } })
         } catch {}
         const denied = isApiRequest
           ? NextServer.NextResponse.json({ error: 'Access restricted by IP policy' }, { status: 403 })
           : new NextServer.NextResponse('Access restricted by IP policy', { status: 403 })
         return denied
-      } else if (isAdminSurface && String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
-        logger.info('Admin access allowed', { ...baseLogContext, ip })
+      } else if (String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
+        logger.info('Admin access allowed', { ...baseLogContext, ip, tenantId: resolvedTenantId ?? null, policySource, matchedRule })
       }
     }
   } catch {}
