@@ -67,6 +67,7 @@
 | `ENABLE_IP_RESTRICTIONS` | When `true`, middleware enforces IP allowlist for `/admin` and `/api/admin` |
 | `ADMIN_IP_WHITELIST` | Comma-separated list of allowed admin IPs (exact match) |
 | `LOG_ADMIN_ACCESS` | When `true`, logs allow/deny events for admin access attempts |
+| `ENFORCE_ORG_2FA` | When `true`, route helpers can enforce two-factor for admin roles |
 
 ## Testing & Tooling
 | Variable | Description |
