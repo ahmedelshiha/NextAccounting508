@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { logAudit } from '@/lib/audit'
 import { planRecurringBookings } from '@/lib/booking/recurring'
@@ -205,7 +205,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     } catch {}
   }
   const ip = getClientIp(request as any)
-  if (!rateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)) {
+  const createLimit = await applyRateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)
+  if (!createLimit.allowed) {
     return respond.tooMany()
   }
   const body = await request.json().catch(() => null)
