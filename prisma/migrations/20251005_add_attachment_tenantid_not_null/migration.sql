@@ -10,12 +10,19 @@ BEGIN
 END$$;
 
 -- Backfill from ServiceRequest, Uploader(User), or Expense
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attachments') THEN
-    EXECUTE 'UPDATE public.attachments a SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId") FROM public."ServiceRequest" sr LEFT JOIN public.users u ON u.id = a."uploaderId" LEFT JOIN public.expenses e ON e."attachmentId" = a.id WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)';
+    EXECUTE $sql$
+      UPDATE public.attachments a
+      SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
+      FROM public."ServiceRequest" sr
+      LEFT JOIN public.users u ON u.id = a."uploaderId"
+      LEFT JOIN public.expenses e ON e."attachmentId" = a.id
+      WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN
