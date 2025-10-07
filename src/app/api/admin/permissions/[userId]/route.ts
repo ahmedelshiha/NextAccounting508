@@ -1,14 +1,19 @@
 import prisma from '@/lib/prisma'
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { ROLE_PERMISSIONS, PERMISSIONS, hasPermission } from '@/lib/permissions'
+import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
 
-export const GET = withTenantContext(async (_req: Request, context: { params: Promise<{ userId: string }> }) => {
+export const GET = withTenantContext(async (req: NextRequest, context: { params: Promise<{ userId: string }> }) => {
   const ctx = requireTenantContext()
   const roleCheck = ctx.role ?? undefined
   if (!hasPermission(roleCheck, PERMISSIONS.ANALYTICS_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (ctx.isSuperAdmin) {
+    const ok = await verifySuperAdminStepUp(req, String(ctx.userId || ''))
+    if (!ok) return stepUpChallenge()
   }
 
   try {
