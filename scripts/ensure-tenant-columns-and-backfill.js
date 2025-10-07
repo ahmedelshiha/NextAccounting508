@@ -45,10 +45,9 @@ async function run() {
       await client.query(`CREATE INDEX IF NOT EXISTS "Booking_tenantId_idx" ON public."Booking"("tenantId")`)
     }
 
-    // Create a Booking view if only lowercase bookings exists so report checks pass
+    // Do not create temporary views; rely on proper tables existing in the DB
     if (!bookingsUpperExists && bookingsLowerExists) {
-      console.log('Creating view public."Booking" -> public.bookings to satisfy tooling')
-      await client.query(`CREATE OR REPLACE VIEW public."Booking" AS SELECT * FROM public.bookings`)
+      console.log('Note: bookings table present, no view will be created')
     }
 
     console.log('Ensuring attachments.tenantId column (both attachments and "Attachment")')
@@ -58,9 +57,9 @@ async function run() {
     // Create a lowercase attachments view if only capitalized table exists so report checks pass
     const attachmentsLowerExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attachments')`)).rows[0].exists
     const attachmentsUpperExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Attachment')`)).rows[0].exists
+    // Do not create temporary views for attachments; expect proper tables to exist
     if (!attachmentsLowerExists && attachmentsUpperExists) {
-      console.log('Creating view public.attachments -> public."Attachment" to satisfy tooling')
-      await client.query(`CREATE OR REPLACE VIEW public.attachments AS SELECT * FROM public."Attachment"`)
+      console.log('Note: Attachment table present with capitalized name; will not create view')
     }
 
     if (attachmentsLowerExists) {
