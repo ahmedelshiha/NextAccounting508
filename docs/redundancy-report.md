@@ -6,7 +6,8 @@ Repository: accounting-firm
 ## Executive Summary
 This report catalogs duplicate, overlapping, or drift-prone code paths and configurations. It provides concrete consolidation recommendations, an implementation plan, and acceptance criteria to reduce maintenance burden and production risk.
 
-Key actions:
+**Key actions:**
+
 - Remove duplicate API routes and consolidate paths.
 - Unify duplicated components and hooks to a single canonical implementation.
 - Extract shared logic for health checks and cron jobs into reusable modules.
@@ -24,7 +25,7 @@ Key actions:
 | F3 | Health Checks | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts` | High | Extract shared health module (e.g., `src/lib/health.ts`) and call from all entry points. |
 | F4 | Hook Duplication | `src/hooks/admin/usePerformanceMonitoring.ts`, `src/hooks/admin/usePerformanceMonitoring.tsx` | High | Merge into one file (no JSX ⇒ `.ts`). Update imports repo-wide. |
 | F5 | Component Duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Consolidate to a single canonical component. Provide barrel re-export to preserve import paths during transition. |
-| F6 | Playwright Config | `e2e/playwright.config.ts` | Medium | Duplicate import line detected. Remove redundancy. |
+| F6 ✅ | Playwright Config | `e2e/playwright.config.ts` | Medium | ✅ Duplicate import line removed. |
 | F7 | RBAC Scripts | `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js` | Medium | Combine or keep one entry with flags; document usage. |
 | F8 | Prisma Env Var Drift | `prisma/schema.prisma` (uses `NETLIFY_DATABASE_URL`) vs `scripts/check-required-envs.sh` (accepts `DATABASE_URL|NETLIFY_DATABASE_URL`) | Medium | Standardize on one var (recommend `DATABASE_URL`). Map alternatives in env or wrapper. Update docs. |
 | F9 | Admin Layout Variants | `src/app/admin/layout-nuclear.tsx`, `src/app/admin/page-nuclear.tsx`, `src/app/admin/page-simple.tsx` | Low | If experimental, gate behind flag or move to `archive/`. Keep only the active variant in default flow. |
@@ -42,9 +43,9 @@ Key actions:
 - Risk: Confusing API surface; potential drift or conflicting behavior.
 - Recommendation: Keep `auth/register`. Remove nested `register/register` or convert to redirect handler to preserve old clients.
 - Steps:
-  1) Remove nested file.
-  2) If needed, implement redirect from `/api/auth/register/register` to `/api/auth/register`.
-  3) Update tests and API docs.
+  1. Remove nested file.
+  2. If needed, implement redirect from `/api/auth/register/register` to `/api/auth/register`.
+  3. Update tests and API docs.
 - Acceptance: Single handler serves register; no 404s for legacy path if redirect is required.
 
 ### F2. Duplicate Dev Login Routes
@@ -82,10 +83,10 @@ Key actions:
 - Recommendation: Unify logic in one component. Provide `src/components/admin/settings/index.ts` to re-export for both import styles temporarily.
 - Acceptance: Single source; snapshot tests stable.
 
-### F6. Playwright Config Redundancy
+### F6. Playwright Config Redundancy ✅ FIXED
 - Path: `e2e/playwright.config.ts`
 - Issue: Duplicate `import { defineConfig, devices } from '@playwright/test'` line.
-- Action: Remove redundant import.
+- Action: ✅ Removed redundant import.
 - Acceptance: Tests run identically; no duplicate declaration warnings.
 
 ### F7. RBAC Scripts Overlap
@@ -98,7 +99,7 @@ Key actions:
 - Paths:
   - `prisma/schema.prisma` → `datasource db { url = env("NETLIFY_DATABASE_URL") }`
   - `scripts/check-required-envs.sh` → accepts `DATABASE_URL|NETLIFY_DATABASE_URL`
-- Recommendation: Standardize on `DATABASE_URL` in schema; during Netlify deploy set `DATABASE_URL=$NETLIFY_DATABASE_URL` in env, or change env validator to enforce one canonical var.
+- **Recommendation:** Standardize on `DATABASE_URL` in schema; during Netlify deploy set `DATABASE_URL=$NETLIFY_DATABASE_URL` in env, or change env validator to enforce one canonical var.
 - Acceptance: One canonical var documented and used by Prisma; builds and local dev align with docs.
 
 ### F9. Admin Layout Variants
@@ -117,22 +118,26 @@ Key actions:
 
 ## Implementation Plan (Phased)
 
-1) High-Impact Cleanup (Day 0–1)
+### Phase 1: High-Impact Cleanup (Day 0–1)
+
 - Remove `auth/register/register` route; add redirect if needed.
 - Choose one dev login path; enforce gating.
 - Merge `usePerformanceMonitoring` into a single file.
 - Consolidate `SettingsNavigation` to one source; add temporary re-export.
 
-2) Shared Logic Extraction (Day 1–2)
+### Phase 2: Shared Logic Extraction (Day 1–2)
+
 - Create `src/lib/health.ts`; refactor health endpoints and Netlify function.
 - Create `src/lib/cron/` module; refactor cron routes and Netlify cron functions.
 
-3) Config and Tooling (Day 2)
-- Fix Playwright duplicate import.
+### Phase 3: Config and Tooling (Day 2)
+
+- ✅ Fix Playwright duplicate import (COMPLETED).
 - Align Prisma datasource env var; update `docs/ENVIRONMENT_VARIABLES_REFERENCE.md` and `scripts/check-required-envs.sh` if needed.
 - Unify RBAC scripts or document single entry.
 
-4) Guardrails (Day 2–3)
+### Phase 4: Guardrails (Day 2–3)
+
 - Add CI checks: ESLint rule for duplicate imports, custom script to detect duplicate file basenames in same folder, Semgrep rules for dev-only routes exposure.
 - Add unit tests for health module and one cron job.
 
@@ -142,7 +147,7 @@ Key actions:
 - No duplicate routes for register/dev-login; legacy paths handled by redirect if required.
 - Health endpoints and Netlify function share a single implementation.
 - Only one `usePerformanceMonitoring` and `SettingsNavigation` source exists.
-- Playwright config import unique; tests pass.
+- ✅ Playwright config import unique; tests pass.
 - Prisma datasource env var consistent with docs and validator.
 - CI guardrails in place to prevent regressions.
 
