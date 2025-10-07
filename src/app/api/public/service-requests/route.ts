@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { respond, zodDetails } from '@/lib/api-response'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { getResolvedTenantId, userByTenantEmail, withTenant } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
 
@@ -36,7 +36,8 @@ const GuestCreateSchema = z.object({
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request)
   // Stricter guest limits: 3 requests / minute per IP
-  if (!rateLimit(`public:sr:create:${ip}`, 3, 60_000)) {
+  const guestLimit = await applyRateLimit(`public:sr:create:${ip}`, 3, 60_000)
+  if (!guestLimit.allowed) {
     return respond.tooMany()
   }
 
