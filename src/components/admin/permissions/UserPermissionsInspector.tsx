@@ -17,7 +17,11 @@ export default function UserPermissionsInspector() {
     if (!query) return
     setLoading(true); setError(null)
     try {
-      const res = await fetch(`/api/admin/permissions/${encodeURIComponent(query)}`)
+      let res = await fetch(`/api/admin/permissions/${encodeURIComponent(query)}`)
+      if (res.status === 401 && res.headers.get('x-step-up-required')) {
+        const code = typeof window !== 'undefined' ? window.prompt('Enter your 6-digit code to view permissions:') : ''
+        if (code) res = await fetch(`/api/admin/permissions/${encodeURIComponent(query)}`, { headers: { 'x-mfa-otp': code } })
+      }
       const json: ApiResponse<UserPerms> = await res.json()
       if (!res.ok || !json?.data) throw new Error(json.error || 'Lookup failed')
       setData(json.data)
