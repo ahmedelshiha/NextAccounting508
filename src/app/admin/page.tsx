@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AdminOverview from '@/components/admin/dashboard/AdminOverview'
 
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminOverviewPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSessionOrBypass()
   if (!session?.user) redirect('/login')
 
   const role = (session.user as any)?.role as string | undefined
