@@ -111,7 +111,7 @@ This file is the central state for all Super Admin setup and security work. Appe
 
 Append further entries here in chronological order when new work begins or completes.
 
-## ��� Paused
+## 🚧 In Progress
 
 - [ ] Paused: Remote DB connection and migration application — waiting for ops approval/credentials.
   - **Why**: CI environment blocked external DB access from automation; local/ops run required to apply DB migration that adds `superAdmin` JSON column to `security_settings` and seed defaults.
