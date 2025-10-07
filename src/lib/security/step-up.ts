@@ -17,12 +17,13 @@ function readOtpFromHeaders(req: NextRequest): string | null {
   return null
 }
 
-export async function verifySuperAdminStepUp(req: NextRequest, userId: string): Promise<boolean> {
-  // Prefer tenant-level override (security settings) if available; fall back to env flag.
+export async function verifySuperAdminStepUp(req: NextRequest, userId: string, tenantId?: string | null): Promise<boolean> {
+  // Prefer tenant-level override (security settings) for the given tenantId if available; fall back to env flag.
   let enabled = false
   try {
     const svc = await import('@/services/security-settings.service')
-    const settings = await svc.default.get(null).catch(() => null)
+    // If tenantId provided, consult that tenant explicitly; otherwise try default (null) as fallback
+    const settings = tenantId ? await svc.default.get(tenantId).catch(() => null) : await svc.default.get(null).catch(() => null)
     if (settings && typeof (settings as any).superAdmin?.stepUpMfa === 'boolean') {
       enabled = Boolean((settings as any).superAdmin.stepUpMfa)
     } else {
