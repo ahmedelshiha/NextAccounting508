@@ -13,7 +13,7 @@ END$$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'bookings') THEN
-    EXECUTE 'UPDATE public.bookings SET "tenantId" = COALESCE(u."tenantId", sr."tenantId", s."tenantId") FROM public.users u LEFT JOIN public."ServiceRequest" sr ON sr.id = public.bookings."serviceRequestId" LEFT JOIN public.services s ON s.id = public.bookings."serviceId" WHERE public.bookings."clientId" = u.id AND public.bookings."tenantId" IS NULL';
+    EXECUTE 'UPDATE public.bookings SET "tenantId" = COALESCE((SELECT u."tenantId" FROM public.users u WHERE u.id = public.bookings."clientId"), (SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public.bookings."serviceRequestId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public.bookings."serviceId")) WHERE public.bookings."tenantId" IS NULL';
   END IF;
 END$$;
 
