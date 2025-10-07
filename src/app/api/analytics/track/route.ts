@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
 const eventSchema = z.object({
@@ -12,7 +12,8 @@ const eventSchema = z.object({
 export async function POST(req: NextRequest) {
   // Public endpoint; protect via strict rate limiting per IP
   const ip = getClientIp(req as unknown as Request)
-  if (!rateLimit(`analytics:track:${ip}`, 100, 60_000)) {
+  const trackLimit = await applyRateLimit(`analytics:track:${ip}`, 100, 60_000)
+  if (!trackLimit.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 
