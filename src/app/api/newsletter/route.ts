@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { z } from 'zod'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 import { requireAuth, isResponse } from '@/lib/auth-middleware'
 
 const subscribeSchema = z.object({
@@ -135,8 +136,10 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   // Admin-only access with IP-based rate limiting
   const ip = getClientIp(request as unknown as Request)
-  const listLimit = await applyRateLimit(`newsletter:list:${ip}`, 60, 60_000)
+  const key = `newsletter:list:${ip}`
+  const listLimit = await applyRateLimit(key, 60, 60_000)
   if (!listLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
   const sessionOrResponse = await requireAuth(['ADMIN', 'STAFF'])
