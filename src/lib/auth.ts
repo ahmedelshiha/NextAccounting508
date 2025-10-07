@@ -38,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         try {
           clientIp = getClientIp(requestLike)
         } catch {}
-        const sessionIpHash = createHash('sha256').update(clientIp).digest('hex')
+        const sessionIpHash = await computeIpHash(clientIp)
         const sessionIssuedAt = Date.now()
 
         if (!hasDb) {
