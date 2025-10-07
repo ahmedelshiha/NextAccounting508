@@ -156,3 +156,48 @@ Append further entries here in chronological order when new work begins or compl
 
 - [ ] Emit `security.ratelimit.block` audit entries (with tenantId, userId, key, ip) whenever a privileged route returns 429 due to rate limiting, enabling responders to trace abuse patterns.
 
+---
+
+## ✅ Completed
+- [x] Migrated remaining synchronous rate limiters to distributed applyRateLimit on admin users list, service request assign, and admin chat endpoints; added security.ratelimit.block audits on 429.
+  - **Why**: security patch and consistency
+  - **Impact**: cross-instance rate limiting and better abuse traceability
+
+- [x] Fixed dev server startup by bypassing Doppler in dev command (npm run next-dev).
+  - **Why**: restore local development environment
+  - **Impact**: enabled continued implementation and testing
+
+## 🚧 In Progress
+- [ ] Audit remaining endpoints to ensure applyRateLimit is used exclusively and all 429s emit security.ratelimit.block; migrate any stragglers.
+
+---
+## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for admin newsletter list endpoint and auth password flows (forgot/reset) when rate limits trigger.
+  - **Why**: improve visibility into abuse and throttling on privileged/admin-related surfaces
+  - **Impact**: responders can trace 429s with IP and key context; no user-facing leakage
+
+## 🚧 In Progress
+- [ ] Continue auditing endpoints using applyRateLimit to ensure all privileged/admin routes emit `security.ratelimit.block` on 429; portal/public routes to be reviewed with privacy considerations.
+
+---
+## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for portal and public endpoints on 429:
+  - portal chat POST, portal service-requests (create, update, export, comments), public service-requests create, analytics track
+  - **Why**: comprehensive visibility into abuse across user-facing surfaces
+  - **Impact**: consistent incident traceability; minimal PII, tenant-scoped when available
+
+## 🚧 In Progress
+- [ ] Final sweep: verify all 429 paths for privileged and user-facing endpoints emit audits; document exclusions if any (e.g., extremely high-volume public endpoints if noise becomes an issue).
+
+---
+## ✅ Completed
+- [x] Emit `security.ratelimit.block` on newsletter subscribe 429 with minimal details (ip, key, route).
+  - **Why**: consistent visibility for public-facing throttles
+  - **Impact**: incident traceability without storing content/PII
+
+- [x] Emit `security.ratelimit.block` on login throttles (per-IP and per-email) in authorize() flow.
+  - **Why**: detect credential stuffing and abusive login attempts
+  - **Impact**: improved SOC telemetry; no user enumeration in responses
+
+## 🚧 In Progress
+- [ ] Final sweep for any other 429 paths; document any intentional exclusions due to volume/noise.

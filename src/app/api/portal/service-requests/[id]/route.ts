@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server'
 import { isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 
@@ -53,8 +54,9 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
   if (!ctx.userId) return respond.unauthorized()
 
   const ip = getClientIp(req)
-  const updateLimit = await applyRateLimit(`portal:service-requests:update:${ip}`, 10, 60_000)
-  if (!updateLimit.allowed) return respond.tooMany()
+  const key = `portal:service-requests:update:${ip}`
+  const updateLimit = await applyRateLimit(key, 10, 60_000)
+  if (!updateLimit.allowed) { try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL((req as any).url).pathname } }) } catch {} ; return respond.tooMany() }
   const body = await req.json().catch(() => ({} as any))
   const allowed: any = {}
   if (typeof body.description === 'string') allowed.description = body.description

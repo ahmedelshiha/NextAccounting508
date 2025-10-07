@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
+import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 import { toCsvCell, streamCsv } from '@/lib/csv-export'
@@ -19,8 +20,10 @@ export const GET = withTenantContext(async (req: NextRequest) => {
   const userId = String(ctx.userId)
 
   const ip = getClientIp(req as any)
-  const exportLimit = await applyRateLimit(`portal:service-requests:export:${ip}`, 3, 60_000)
+  const key = `portal:service-requests:export:${ip}`
+  const exportLimit = await applyRateLimit(key, 3, 60_000)
   if (!exportLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(req.url).pathname } }) } catch {}
     return new NextResponse('Too many requests', { status: 429 })
     }
 

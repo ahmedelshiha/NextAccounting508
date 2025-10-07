@@ -205,8 +205,10 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     } catch {}
   }
   const ip = getClientIp(request as any)
-  const createLimit = await applyRateLimit(`portal:service-requests:create:${ip}`, 5, 60_000)
+  const key = `portal:service-requests:create:${ip}`
+  const createLimit = await applyRateLimit(key, 5, 60_000)
   if (!createLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
     return respond.tooMany()
   }
   const body = await request.json().catch(() => null)

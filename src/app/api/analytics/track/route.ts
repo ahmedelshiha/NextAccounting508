@@ -12,8 +12,10 @@ const eventSchema = z.object({
 export async function POST(req: NextRequest) {
   // Public endpoint; protect via strict rate limiting per IP
   const ip = getClientIp(req as unknown as Request)
-  const trackLimit = await applyRateLimit(`analytics:track:${ip}`, 100, 60_000)
+  const key = `analytics:track:${ip}`
+  const trackLimit = await applyRateLimit(key, 100, 60_000)
   if (!trackLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(req.url).pathname } }) } catch {}
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
 

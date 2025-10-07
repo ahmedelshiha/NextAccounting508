@@ -36,8 +36,10 @@ const GuestCreateSchema = z.object({
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request)
   // Stricter guest limits: 3 requests / minute per IP
-  const guestLimit = await applyRateLimit(`public:sr:create:${ip}`, 3, 60_000)
+  const key = `public:sr:create:${ip}`
+  const guestLimit = await applyRateLimit(key, 3, 60_000)
   if (!guestLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
     return respond.tooMany()
   }
 
