@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { realtimeService } from '@/lib/realtime-enhanced'
@@ -279,8 +279,13 @@ export const POST = withTenantContext(async (request: Request) => {
   const tenantId = ctx.tenantId
   if (!tenantId) return respond.badRequest('Tenant context missing')
   const ip = getClientIp(request)
-  if (!rateLimit(`service-requests:create:${ip}`, 10, 60_000)) {
-    return respond.tooMany()
+  {
+    const key = `service-requests:create:${ip}`
+    const rl = await applyRateLimit(key, 10, 60_000)
+    if (!rl.allowed) {
+      try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: tenantId, ip, key, route: new URL((request as any).url).pathname } }) } catch {}
+      return respond.tooMany()
+    }
   }
   const body = await request.json().catch(() => null)
   const parsed = CreateSchema.safeParse(body)
