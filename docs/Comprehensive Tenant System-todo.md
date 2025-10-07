@@ -163,8 +163,8 @@ Pending/Problematic migrations (examples found in prisma/migrations):
 - 20251005_add_scheduledreminder_tenantid_not_null
 - 20251005_add_service_tenantid_not_null
 - 20251005_add_servicerequest_tenantid_not_null
-- 20251005_add_workorder_tenantid_not_null
-- 20251005_update_idempotencykey_unique
+- 20251005_add_workorder_tenantid_not_null  ✅ (fixed: converted backfill to correlated subqueries and added guards)
+- 20251005_update_idempotencykey_unique  ✅ (applied)
 
 Why these failed (observed patterns):
 - Some migration SQL used EXECUTE with dollar quoting ($$) in a DO block and nested $$ which caused parsing errors. Fixed by using unique dollar tags or separate DO blocks.
