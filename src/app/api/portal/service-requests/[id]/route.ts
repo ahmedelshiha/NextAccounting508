@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { respond } from '@/lib/api-response'
 import { NextRequest } from 'next/server'
 import { isMultiTenancyEnabled } from '@/lib/tenant'
@@ -53,7 +53,8 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
   if (!ctx.userId) return respond.unauthorized()
 
   const ip = getClientIp(req)
-  if (!rateLimit(`portal:service-requests:update:${ip}`, 10, 60_000)) return respond.tooMany()
+  const updateLimit = await applyRateLimit(`portal:service-requests:update:${ip}`, 10, 60_000)
+  if (!updateLimit.allowed) return respond.tooMany()
   const body = await req.json().catch(() => ({} as any))
   const allowed: any = {}
   if (typeof body.description === 'string') allowed.description = body.description

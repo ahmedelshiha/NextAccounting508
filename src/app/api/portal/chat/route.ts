@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -12,7 +12,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   if (!ctx.userId) return new NextResponse('Unauthorized', { status: 401 })
 
   const ip = getClientIp(request as unknown as Request)
-  if (!rateLimit(`chat:post:${ip}`, 10, 10_000)) {
+  const chatLimit = await applyRateLimit(`chat:post:${ip}`, 10, 10_000)
+  if (!chatLimit.allowed) {
     return new NextResponse('Too Many Requests', { status: 429 })
   }
 
