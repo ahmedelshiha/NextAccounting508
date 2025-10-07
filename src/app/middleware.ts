@@ -42,6 +42,7 @@ export async function middleware(req: NextServer.NextRequest) {
       ? inboundRequestId
       : safeGenerateRequestId()
   const userId = token ? String((token as any).userId ?? (token as any).sub ?? '') : ''
+  const clientIp = getClientIp(req as unknown as Request)
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isAdminPage = pathname.startsWith('/admin')
