@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
@@ -20,7 +19,7 @@ interface Props { children: React.ReactNode }
  */
 export default async function NuclearAdminLayout({ children }: Props) {
   // Server-side auth guard: require an authenticated session
-  const session = await getServerSession(authOptions)
+  const session = await getSessionOrBypass()
   if (!session?.user) {
     redirect('/login')
   }
