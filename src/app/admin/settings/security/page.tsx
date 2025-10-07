@@ -120,7 +120,7 @@ export default function SecurityComplianceSettingsPage() {
 
   return (
     <PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW} fallback={<div className="p-6">You do not have access to Security & Compliance Settings.</div>}>
-      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate></div>)}>
+      <SettingsShell title="Security & Compliance" description="Policies for authentication, sessions, network, data protection, and compliance" actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button></PermissionGate><PermissionGate permission={PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_EDIT}><button onClick={()=>setOpenModal(true)} className="inline-flex items-center px-3 py-2 rounded-md text-sm text-gray-700 bg-gray-100 hover:bg-gray-200">Super Admin Controls</button></PermissionGate></div>)}>
         <div className="px-4">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
