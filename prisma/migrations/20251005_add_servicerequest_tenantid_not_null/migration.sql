@@ -20,7 +20,11 @@ DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'servicerequest_tenantId_fkey') THEN
-      EXECUTE 'ALTER TABLE public."ServiceRequest" ADD CONSTRAINT servicerequest_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE';
+      -- Only add FK if there are no orphan tenantIds in ServiceRequest
+      PERFORM 1 FROM (SELECT 1 FROM (SELECT DISTINCT "tenantId" FROM public."ServiceRequest" WHERE "tenantId" IS NOT NULL EXCEPT SELECT id FROM public."Tenant") AS orphans LIMIT 1);
+      IF NOT FOUND THEN
+        EXECUTE 'ALTER TABLE public."ServiceRequest" ADD CONSTRAINT servicerequest_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE';
+      END IF;
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'servicerequest_tenantId_idx') THEN
       EXECUTE 'CREATE INDEX servicerequest_tenantId_idx ON public."ServiceRequest"("tenantId")';
