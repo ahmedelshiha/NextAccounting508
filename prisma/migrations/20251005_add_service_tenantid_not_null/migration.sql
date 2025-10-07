@@ -10,11 +10,11 @@ BEGIN
 END$$;
 
 -- Backfill (noop placeholder if specific logic not present)
-DO $$
+DO $mig$
 BEGIN
   -- Intentionally left as a safe no-op; backfill handled by separate scripts if required
   NULL;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN
