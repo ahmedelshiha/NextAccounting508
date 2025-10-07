@@ -4,7 +4,7 @@ import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { BulkActionSchema } from '@/schemas/services'
 import { logAudit } from '@/lib/audit'
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 
@@ -20,7 +20,10 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
     const ip = getClientIp(request as any)
     const tenantKey = ctx.tenantId || 'global'
-    if (!rateLimit(`bulk:${tenantKey}:${ip}`, 10, 60_000)) {
+    const key = `bulk:${tenantKey}:${ip}`
+    const rl = await applyRateLimit(key, 10, 60_000)
+    if (!rl.allowed) {
+      try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 
