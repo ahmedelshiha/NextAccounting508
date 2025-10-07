@@ -5,6 +5,16 @@
 - [x] Hardened multiple tenantId migrations (20251005_* and related 20251004_*) to use dollar-quoted DO blocks and safe dollar-quoted EXECUTE statements for backfills and updates
   - **Why**: Avoid nested dollar-quoting parsing issues and make dynamic SQL idempotent and robust across Postgres versions
   - **Files updated**: 20251005_add_booking_tenantid_not_null, 20251005_add_attachment_tenantid_not_null, 20251005_add_expense_tenantid_not_null, 20251005_add_workorder_tenantid_not_null, 20251005_add_scheduledreminder_tenantid_not_null, 20251005_add_invoice_tenantid_not_null, 20251005_add_servicerequest_tenantid_not_null, 20251005_add_service_tenantid_not_null, and others
+- [x] Deployed migrations to Neon DB (prisma migrate deploy) and ran targeted DB fixes/backfills
+  - **Why**: Ensure schema changes applied and tenantId nulls resolved for operational tables
+  - **Actions**:
+    - Applied prisma migrate deploy against provided NETLIFY_DATABASE_URL (no pending migrations)
+    - Ensured Booking.tenantId column exists (added lower/upper-case variants and created public."Booking" view pointing to public.bookings)
+    - Ensured attachments tenantId column (created view public.attachments -> public."Attachment" when needed)
+    - Backfilled bookings.tenantId from users/ServiceRequest/services
+    - Backfilled services.tenantId by assigning orphan services to first Tenant (tenant_primary) to remove NULLs
+    - Created helper scripts: scripts/ensure-tenant-columns-and-backfill.js and scripts/backfill-services-tenantid.js
+  - **Impact**: All tenant-scoped tables report zero NULL tenantId counts (report script: scripts/report-tenant-null-counts.ts) — services/bookings/attachments fixed
   - **Impact**: Reduces migration parse errors, increases idempotency, and aligns SQL with safest DO block tagging
 - [x] Introduced scripts/rls-rollout.ts orchestrator leveraging reusable setupTenantRLS to automate prepare/tighten/enforce phases with audits and safeguards
   - **Why**: Provide a single CLI to manage RLS rollout toggles safely, preventing accidental FORCE_RLS before data is clean
