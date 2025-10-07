@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
+import { logAudit } from '@/lib/audit'
 
 function getPagination(url: URL) {
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10))
