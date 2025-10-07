@@ -5,6 +5,7 @@ import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { respond, zodDetails } from '@/lib/api-response'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { logAudit } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 
@@ -63,8 +64,10 @@ export const POST = withTenantContext(async (req: NextRequest, context: { params
   }
 
   const ip = getClientIp(req as any)
-  const commentLimit = await applyRateLimit(`portal:service-requests:comment:${ip}`, 10, 60_000)
+  const key = `portal:service-requests:comment:${ip}`
+  const commentLimit = await applyRateLimit(key, 10, 60_000)
   if (!commentLimit.allowed) {
+    try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL((req as any).url).pathname } }) } catch {}
     return respond.tooMany()
   }
   const body = await req.json().catch(() => null)
