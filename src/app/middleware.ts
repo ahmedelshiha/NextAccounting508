@@ -177,6 +177,26 @@ export async function middleware(req: NextServer.NextRequest) {
     return response
   }
 
+  const enforceSuperAdminIpBinding = String(process.env.SUPERADMIN_STRICT_IP_ENFORCEMENT || '').toLowerCase() === 'true'
+  if (enforceSuperAdminIpBinding && token) {
+    const role = (token as unknown as { role?: string } | null)?.role
+    const sessionIpHash = typeof (token as any)?.sessionIpHash === 'string' ? (token as any).sessionIpHash : null
+    if (role === 'SUPER_ADMIN') {
+      const currentIpHash = await computeIpHash(clientIp)
+      if (!sessionIpHash || currentIpHash !== sessionIpHash) {
+        if (isApiRequest) logApiEntry()
+        const destination = new URL('/login?reason=ip-mismatch', req.url)
+        const response = isApiRequest
+          ? NextServer.NextResponse.json({ error: 'Session locked. Please sign in again.' }, { status: 401 })
+          : NextServer.NextResponse.redirect(destination)
+        response.cookies.delete('next-auth.session-token')
+        response.cookies.delete('__Secure-next-auth.session-token')
+        response.cookies.delete('next-auth.callback-url')
+        return finalizeResponse(response)
+      }
+    }
+  }
+
   try {
     if (String(process.env.MULTI_TENANCY_ENABLED).toLowerCase() === 'true') {
       const tenantIdFromToken = token ? (token as any).tenantId : null
