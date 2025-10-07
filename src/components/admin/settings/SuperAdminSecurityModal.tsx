@@ -115,7 +115,11 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
 
               <section className="space-y-3">
                 <h4 className="text-sm font-medium">Audit & Logging</h4>
-                <Toggle label="Log Admin Access" value={pending.superAdmin?.logAdminAccess ?? settings.superAdmin?.logAdminAccess} onChange={(v)=>update('superAdmin.logAdminAccess', v)} />
+                {isSuper ? (
+                  <Toggle label="Log Admin Access" value={pending.superAdmin?.logAdminAccess ?? settings.superAdmin?.logAdminAccess} onChange={(v)=>update('superAdmin.logAdminAccess', v)} />
+                ) : (
+                  <div className="text-sm text-gray-600">Admin access logging toggle is visible to SUPER_ADMIN users only.</div>
+                )}
                 <NumberField label="Audit Log Retention (days)" value={pending.dataProtection?.auditLogRetentionDays ?? settings.dataProtection?.auditLogRetentionDays} onChange={(v)=>update('dataProtection.auditLogRetentionDays', v)} />
               </section>
 
