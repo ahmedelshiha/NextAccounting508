@@ -3,6 +3,7 @@ import { getToken } from 'next-auth/jwt'
 import { signTenantCookie } from '@/lib/tenant-cookie'
 import { logger } from '@/lib/logger'
 import { getClientIp } from '@/lib/rate-limit'
+import { computeIpHash } from '@/lib/security/ip-hash'
 
 function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
