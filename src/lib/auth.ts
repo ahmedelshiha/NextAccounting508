@@ -8,7 +8,7 @@ import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
-const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
+const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
 
 // Lightweight fallback demo users when no DB is configured
 const demoUsers = [
