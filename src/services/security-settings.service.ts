@@ -55,10 +55,24 @@ export class SecuritySettingsService {
       updatedAt: new Date(),
     }
 
+    // Persist update
     await anyPrisma.securitySettings?.update?.({ where: { id: existing.id }, data })
 
+    // Invalidate cache and reload
     await cache.delete(keyFor(tenantId))
     const updated = await this.get(tenantId)
+
+    // If the request explicitly toggled superAdmin.logAdminAccess, record a specific audit event
+    try {
+      const prevLog = existing?.superAdmin?.logAdminAccess ?? null
+      const nextLog = (parsed as any).superAdmin?.logAdminAccess ?? prevLog
+      const toggled = ((parsed as any).superAdmin && typeof (parsed as any).superAdmin?.logAdminAccess !== 'undefined') && prevLog !== nextLog
+      if (toggled) {
+        try { await logAudit({ action: 'security.superadmin.logAdminAccess.toggled', details: { tenantId, previous: prevLog, current: nextLog } }) } catch {}
+      }
+    } catch {}
+
+    // Generic update audit
     await logAudit({ action: 'security-settings:update', details: { tenantId, sections: Object.keys(parsed) } })
     return updated
   }
