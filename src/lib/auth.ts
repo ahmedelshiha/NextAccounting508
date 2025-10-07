@@ -14,7 +14,8 @@ const demoUsers = [
   { id: 'demo-admin', name: 'Admin User', email: 'admin@accountingfirm.com', password: 'admin123', role: 'ADMIN' },
   { id: 'demo-lead', name: 'Team Lead', email: 'lead@accountingfirm.com', password: 'lead123', role: 'TEAM_LEAD' },
   { id: 'demo-staff', name: 'Team Member', email: 'staff@accountingfirm.com', password: 'staff123', role: 'TEAM_MEMBER' },
-  { id: 'demo-client', name: 'John Smith', email: 'john@example.com', password: 'client123', role: 'CLIENT' },
+  { id: 'demo-client1', name: 'Client One', email: 'client1@example.com', password: 'client123', role: 'CLIENT' },
+  { id: 'demo-client2', name: 'Client Two', email: 'client2@example.com', password: 'client123', role: 'CLIENT' },
 ]
 
 export const authOptions: NextAuthOptions = {
