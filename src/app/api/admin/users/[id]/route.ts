@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { logAudit } from '@/lib/audit'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { tenantFilter } from '@/lib/tenant'
 import { realtimeService } from '@/lib/realtime-enhanced'
 import { withTenantContext } from '@/lib/api-wrapper'
@@ -32,8 +32,13 @@ export const PATCH = withTenantContext(async (request: NextRequest, context: { p
     }
 
     const ip = getClientIp(request as unknown as Request)
-    if (!rateLimit(`role:${ip}`, 20, 60_000)) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    {
+      const key = `role:${ip}`
+      const rl = await applyRateLimit(key, 20, 60_000)
+      if (!rl.allowed) {
+        try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+      }
     }
 
     const json = await request.json().catch(() => ({}))

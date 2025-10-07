@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { ServicesService } from '@/services/services.service'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { ServiceFiltersSchema, ServiceSchema } from '@/schemas/services'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { createHash } from 'crypto'
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses'
@@ -46,7 +46,14 @@ const getCachedServices = withCache<any>(
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ip = getClientIp(request as any)
-    if (!rateLimit(`services-list:${ip}`, 100, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    {
+      const key = `services-list:${ip}`
+      const rl = await applyRateLimit(key, 100, 60_000)
+      if (!rl.allowed) {
+        try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
+        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+      }
+    }
 
     const ctx = requireTenantContext()
     if (!ctx || !hasPermission(ctx.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -85,7 +92,14 @@ export const HEAD = withTenantContext(async (request: NextRequest) => {
 export const POST = withTenantContext(async (request: NextRequest) => {
   try {
     const ip = getClientIp(request as any)
-    if (!rateLimit(`services-create:${ip}`, 10, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    {
+      const key = `services-create:${ip}`
+      const rl = await applyRateLimit(key, 10, 60_000)
+      if (!rl.allowed) {
+        try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
+        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+      }
+    }
 
     const ctx = requireTenantContext()
     if (!ctx || !hasPermission(ctx.role, PERMISSIONS.SERVICES_CREATE)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

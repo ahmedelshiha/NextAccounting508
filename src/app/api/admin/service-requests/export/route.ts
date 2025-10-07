@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 import type { Prisma } from '@prisma/client'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { tenantFilter } from '@/lib/tenant'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 
@@ -22,8 +22,13 @@ export const GET = withTenantContext(async (request: Request) => {
   if (!ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) return new NextResponse('Unauthorized', { status: 401 })
 
   const ip = getClientIp(request)
-  if (!rateLimit(`admin:service-requests:export:${ip}`, 3, 60_000)) {
-    return new NextResponse('Too Many Requests', { status: 429 })
+  {
+    const key = `admin:service-requests:export:${ip}`
+    const rl = await applyRateLimit(key, 3, 60_000)
+    if (!rl.allowed) {
+      try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
+      return new NextResponse('Too Many Requests', { status: 429 })
+    }
   }
 
   const { searchParams } = new URL(request.url)

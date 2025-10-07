@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/nextjs'
 import { validateImportWithSchema } from '@/lib/settings/export'
 import { CommunicationSettingsSchema } from '@/schemas/settings/communication'
 import communicationService from '@/services/communication-settings.service'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
 export const POST = withTenantContext(async (req: Request) => {
@@ -17,7 +17,11 @@ export const POST = withTenantContext(async (req: Request) => {
     }
     const ip = getClientIp(req)
     const key = `communication-settings:import:${ctx.tenantId}:${ip}`
-    if (!rateLimit(key, 3, 60_000)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    const rl = await applyRateLimit(key, 3, 60_000)
+    if (!rl.allowed) {
+      try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL((req as any).url).pathname } }) } catch {}
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    }
 
     const body = await req.json().catch(() => ({}))
     const data = validateImportWithSchema(body, CommunicationSettingsSchema)

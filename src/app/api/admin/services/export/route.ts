@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ServicesService } from '@/services/services.service'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { makeErrorBody, mapPrismaError, mapZodError, isApiError } from '@/lib/api/error-responses'
-import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 
@@ -18,7 +18,10 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     const ip = getClientIp(request as any)
     const tenantKey = ctx.tenantId || 'global'
-    if (!rateLimit(`export:${tenantKey}:${ip}`, 5, 60_000)) {
+    const key = `export:${tenantKey}:${ip}`
+    const rl = await applyRateLimit(key, 5, 60_000)
+    if (!rl.allowed) {
+      try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 export const runtime = 'nodejs'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { sendEmail } from '@/lib/email'
 import { realtimeService } from '@/lib/realtime-enhanced'
@@ -22,8 +22,13 @@ export const PATCH = withTenantContext(async (req: Request, context: { params: P
   }
 
   const ip = getClientIp(req)
-  if (!rateLimit(`service-requests:status:${id}:${ip}`, 30, 60_000)) {
-    return respond.tooMany()
+  {
+    const key = `service-requests:status:${id}:${ip}`
+    const rl = await applyRateLimit(key, 30, 60_000)
+    if (!rl.allowed) {
+      try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL((req as any).url).pathname } }) } catch {}
+      return respond.tooMany()
+    }
   }
 
   const body = await req.json().catch(() => null)
