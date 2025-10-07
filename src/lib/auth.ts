@@ -234,3 +234,30 @@ export const authOptions: NextAuthOptions = {
   },
   pages: { signIn: '/login' }
 }
+
+export async function getSessionOrBypass(): Promise<Session | null> {
+  if (String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true') {
+    try {
+      const tenantId = await getResolvedTenantId(null as any).catch(() => null)
+      return {
+        user: {
+          id: 'public',
+          name: 'Preview Admin',
+          email: 'preview@local',
+          role: 'ADMIN',
+          ...(tenantId ? { tenantId } : {}),
+        } as any,
+      } as unknown as Session
+    } catch {
+      return {
+        user: {
+          id: 'public',
+          name: 'Preview Admin',
+          email: 'preview@local',
+          role: 'ADMIN',
+        } as any,
+      } as unknown as Session
+    }
+  }
+  return getServerSession(authOptions) as unknown as Promise<Session | null>
+}
