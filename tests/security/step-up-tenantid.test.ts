@@ -10,7 +10,7 @@ vi.mock('@/lib/mfa', () => ({
 describe('verifySuperAdminStepUp with tenantId', () => {
   beforeEach(() => {
     delete (process.env as any).SUPERADMIN_STEPUP_MFA
-n  })
+  })
 
   it('uses tenant-level setting when present and requires OTP', async () => {
     vi.mocked(await import('@/services/security-settings.service')).default.get = vi.fn(async (tenantId: string) => ({ superAdmin: { stepUpMfa: true } }))
