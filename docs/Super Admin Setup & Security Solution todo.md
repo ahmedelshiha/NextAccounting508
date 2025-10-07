@@ -25,3 +25,18 @@
 ## 🔧 Next Steps
 - [ ] Plan staged rollout for SUPERADMIN_STRICT_IP_ENFORCEMENT (staging → production) and monitor audit noise.
 - [ ] Evaluate introducing step-up MFA prompts for super admin critical workflows post-IP validation.
+
+## ✅ Completed
+- [x] Enhanced admin IP allowlist to support CIDR ranges and wildcard entries (*) via src/lib/security/ip-allowlist.ts and middleware integration.
+  - **Why**: allow secure office network ranges and reduce maintenance overhead.
+  - **Impact**: flexible, stricter IP enforcement for /admin and /api/admin without breaking existing exact-match configs.
+
+## ⚠️ Issues / Risks
+- IPv6 CIDR is not yet supported; IPv6 is matched by exact address only. Plan follow-up with safe parser and tests.
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Add IPv6 CIDR support and comprehensive unit tests for ip-allowlist matcher (IPv4/IPv6, edge cases, ::ffff: mappings).
+- [ ] Add an Admin Security UI helper to display current client IP and whether it matches the allowlist, for safer rollouts.
