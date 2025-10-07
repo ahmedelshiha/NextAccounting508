@@ -192,6 +192,14 @@ export function enforceTenantGuard(params: any): void {
   const model = params.model
   if (!model) return
 
+  if (AUTH_MODEL_NAMES.has(model)) return
+
+  const requestUrl =
+    typeof params?.args?.context?.req?.url === 'string'
+      ? params.args.context.req.url
+      : null
+  if (requestUrl && requestUrl.includes('/api/auth')) return
+
   const config = tenantModelConfigs?.get(model)
   if (!config) return
 
