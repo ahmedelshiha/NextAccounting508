@@ -4,6 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
+import { downloadExport } from '@/lib/admin-export'
 
 interface PaymentItem {
   id: string
@@ -13,10 +16,6 @@ interface PaymentItem {
   status: 'pending' | 'completed' | 'failed' | 'refunded'
   amount: number
 }
-
-import PermissionGate from '@/components/PermissionGate'
-import { PERMISSIONS } from '@/lib/permissions'
-import { downloadExport } from '@/lib/admin-export'
 
 export default function AdminPaymentsPage() {
   return (
