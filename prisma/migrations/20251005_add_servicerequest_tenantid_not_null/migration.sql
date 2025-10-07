@@ -12,7 +12,7 @@ END$$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
-    EXECUTE 'UPDATE public."ServiceRequest" sr SET "tenantId" = COALESCE(u."tenantId", s."tenantId") FROM public.users u LEFT JOIN public.services s ON s.id = sr."serviceId" WHERE sr."clientId" = u.id AND sr."tenantId" IS NULL';
+    EXECUTE 'UPDATE public."ServiceRequest" SET "tenantId" = COALESCE((SELECT u."tenantId" FROM public.users u WHERE u.id = public."ServiceRequest"."clientId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public."ServiceRequest"."serviceId")) WHERE public."ServiceRequest"."tenantId" IS NULL';
   END IF;
 END$$;
 
