@@ -139,3 +139,61 @@
 - Prefer PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD for safer preview logins when possible
 - Ensure NEXTAUTH_URL and NEXTAUTH_SECRET are set for both deployments
 - For strict multi-tenant previews, send X-Tenant-Id from edge/proxy or use tenant subdomains
+
+## 🔔 Pending Migrations & Fix Plan
+The following migrations had issues when applying to the Neon DB; we updated several migration files to add guards and make backfills safer, but additional review and execution steps remain.
+
+Pending/Problematic migrations (examples found in prisma/migrations):
+- 20251004_add_attachment_tenantid_not_null
+- 20251004_add_chatmessage_tenantid_not_null
+- 20251004_add_expense_tenantid_not_null
+- 20251004_add_idempotencykey_tenantid_not_null
+- 20251004_add_invoice_tenantid_not_null
+- 20251004_add_scheduledreminder_tenantid_not_null
+- 20251004_add_service_tenantid_not_null
+- 20251004_add_servicerequest_tenantid_not_null
+- 20251004_add_workorder_tenantid_not_null
+- 20251004_add_bookingsettings_tenantid_not_null
+- 20251005_add_attachment_tenantid_not_null
+- 20251005_add_booking_tenantid_not_null
+- 20251005_add_bookingsettings_tenantid_not_null
+- 20251005_add_expense_tenantid_not_null
+- 20251005_add_idempotencykey_tenantid_not_null
+- 20251005_add_invoice_tenantid_not_null
+- 20251005_add_scheduledreminder_tenantid_not_null
+- 20251005_add_service_tenantid_not_null
+- 20251005_add_servicerequest_tenantid_not_null
+- 20251005_add_workorder_tenantid_not_null
+- 20251005_update_idempotencykey_unique
+
+Why these failed (observed patterns):
+- Some migration SQL used EXECUTE with dollar quoting ($$) in a DO block and nested $$ which caused parsing errors. Fixed by using unique dollar tags or separate DO blocks.
+- Several UPDATE ... FROM statements referenced the target table alias within JOIN conditions which is invalid in some PostgreSQL contexts when executed via EXECUTE. Switched to correlated subqueries or rewrote the update to avoid referencing the target alias inside JOIN ON expressions.
+- Foreign key (FK) additions failed due to orphan tenant IDs (tenant values in affected tables not present in Tenant table). We updated migrations to check for orphan tenant IDs before adding FKs, and to only enforce NOT NULL when there are zero NULLs.
+- Some CREATE CONSTRAINT IF NOT EXISTS statements are not supported in all PG versions; replaced with guarded DO blocks that check information_schema first and then EXECUTE.
+
+Recommended step-by-step plan (safest order):
+1. Take a full DB snapshot/backup (required). Do not proceed without this.
+2. Run scripts/backfill-tenant-scoped-tables.ts locally against a copy or via the run-tenant-migrations Netlify function to backfill tenantId values for Attachment, ServiceRequest, Booking, Invoice, Expense, ScheduledReminder, ChatMessage, IdempotencyKey, BookingSettings and others.
+3. After backfill, run queries to verify remaining NULL counts, e.g.:
+   - SELECT COUNT(*) FROM public.services WHERE "tenantId" IS NULL;
+   - SELECT DISTINCT "tenantId" FROM public.booking_settings WHERE "tenantId" IS NOT NULL EXCEPT SELECT id FROM public."Tenant";
+4. For any orphan tenant IDs found (tenantId values that are slugs or external host names like deploy-preview-*), decide whether to:
+   - Insert a matching Tenant row (safe if these represent valid tenants), or
+   - Normalize tenantId values to the canonical Tenant.id (preferred if mapping is known), or
+   - Set tenantId to the default tenant via scripts/default-tenant resolution when appropriate.
+5. Re-run prisma migrate deploy. If a migration fails on deploy, use prisma migrate resolve to mark the failing migration rolled back, fix the SQL, then re-run deploy. Avoid mass-resolving as 'applied' — prefer to fix SQL and apply.
+6. After successful migration deploy, run application smoke tests (signup/login flows, admin APIs). Verify NextAuth registration inserts User records and sessions work.
+7. When all migrations applied and smoke tests pass, tighten RLS (RLS_ALLOW_NULL_TENANT=false) in a staging environment and run pnpm db:rls:auto --phase tighten --verify.
+
+Notes:
+- I have already updated several migration files in-place to make them idempotent and guard FK/NOT NULL changes. Additional manual review is still recommended for each migration listed above.
+- If you want, I can continue and systematically fix each migration file, run the backfill scripts, and re-run migrate deploy — confirm and I will proceed in that order.
+
+Safety checklist before proceeding:
+- [ ] Confirm DB snapshot/backups are taken
+- [ ] Confirm a maintenance window for production deploys
+- [ ] Confirm which orphan tenantIds to map (if any), or that inserting missing Tenant rows is acceptable
+
+---
+
