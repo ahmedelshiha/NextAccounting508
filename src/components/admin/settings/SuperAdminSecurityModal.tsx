@@ -90,6 +90,7 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
         </div>
 
         <div className="mt-4 space-y-4">
+          <div className="text-sm text-gray-600">Manage tenant-level overrides for Super Admin security. For operational guidance see the runbook and environment docs: <a href="/docs/runbooks/superadmin-stepup-runbook.md" className="text-blue-600 underline">Runbook</a> · <a href="/docs/ENVIRONMENT_VARIABLES_REFERENCE.md" className="text-blue-600 underline">ENV Vars</a></div>
           {loading && <div className="text-gray-600">Loading...</div>}
           {!loading && settings && (
             <>
