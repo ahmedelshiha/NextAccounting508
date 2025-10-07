@@ -151,6 +151,7 @@ export default function SecurityComplianceSettingsPage() {
           </div>
         </div>
       </SettingsShell>
+      <SuperAdminSecurityModal open={openModal} onClose={()=>setOpenModal(false)} onSaved={(s)=>{ setSettings(s); setPending({}) }} />
     </PermissionGate>
   )
 }
