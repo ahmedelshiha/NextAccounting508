@@ -7,7 +7,7 @@ BEGIN
       EXECUTE 'ALTER TABLE public.services ADD COLUMN "tenantId" TEXT';
     END IF;
   END IF;
-END$$;
+END$mig$;
 
 -- Backfill (noop placeholder if specific logic not present)
 DO $mig$
@@ -30,7 +30,7 @@ BEGIN
       EXECUTE 'CREATE INDEX services_tenantId_idx ON public.services("tenantId")';
     END IF;
   END IF;
-END$$;
+END$mig$;
 
 DO $mig$
 DECLARE cnt BIGINT;
@@ -41,4 +41,4 @@ BEGIN
       EXECUTE 'ALTER TABLE public.services ALTER COLUMN "tenantId" SET NOT NULL';
     END IF;
   END IF;
-END$$;
+END$mig$;
