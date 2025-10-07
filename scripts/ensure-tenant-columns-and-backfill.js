@@ -43,13 +43,15 @@ async function run() {
     }
 
     console.log('\nPost-backfill counts:')
-    const res = await client.query(`SELECT
-      (SELECT COUNT(*) FROM public.bookings) AS bookings_total,
-      (SELECT COUNT(*) FROM public.bookings WHERE "tenantId" IS NULL) AS bookings_null,
-      (SELECT COUNT(*) FROM public.attachments) AS attachments_total,
-      (SELECT COUNT(*) FROM public.attachments WHERE "tenantId" IS NULL) AS attachments_null
-    `)
-    console.table(res.rows[0])
+    const bookingsRes = await client.query(`SELECT COUNT(*)::text AS total, (SELECT COUNT(*)::text FROM public.bookings WHERE "tenantId" IS NULL) AS nulls FROM public.bookings LIMIT 1`).catch(() => ({ rows: [{ total: '0', nulls: '0' }] }))
+    let attachmentsRes = { rows: [{ total: '0', nulls: '0' }] }
+    const attachmentsExists2 = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attachments')`)).rows[0].exists
+    if (attachmentsExists2) {
+      attachmentsRes = await client.query(`SELECT COUNT(*)::text AS total, (SELECT COUNT(*)::text FROM public.attachments WHERE "tenantId" IS NULL) AS nulls FROM public.attachments LIMIT 1`)
+    }
+
+    console.log('bookings_total:', bookingsRes.rows[0].total, 'bookings_null:', bookingsRes.rows[0].nulls)
+    console.log('attachments_total:', attachmentsRes.rows[0].total, 'attachments_null:', attachmentsRes.rows[0].nulls)
     console.log('Done')
   } catch (err) {
     console.error('Error ensuring/backfilling tenantId columns:', err)
