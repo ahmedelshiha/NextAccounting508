@@ -19,6 +19,9 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
 
+  const { data: session } = useSession()
+  const isSuper = (session?.user as any)?.role === 'SUPER_ADMIN'
+
   useEffect(() => {
     if (!open) return
     setLoading(true)
