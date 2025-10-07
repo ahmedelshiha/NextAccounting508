@@ -92,9 +92,10 @@ This file is the central state for all Super Admin setup and security work. Appe
   - Owner: UX/Frontend
   - Verification: tooltips present and link to runbook
 
-- [ ] Consider making verifySuperAdminStepUp accept tenantId to consult that tenant's settings explicitly rather than the current `get(null)` fallback. This prevents ambiguity in multi-tenant contexts.
-  - Owner: Backend
-  - Verification: updated helper signature and route callers pass tenantId where available
+- [x] Consider making verifySuperAdminStepUp accept tenantId to consult that tenant's settings explicitly rather than the current `get(null)` fallback. Implemented: helper now accepts optional tenantId and route callers pass tenantId when available.
+    - Owner: Backend
+    - Verification: updated helper signature and route callers pass tenantId where available
+    - Files changed: src/lib/security/step-up.ts, src/app/api/admin/security-settings/route.ts, src/app/api/admin/permissions/*, src/app/api/admin/audit-logs/route.ts
 
 ## ✅ Completed (most recent)
 - [x] Admin IP helper UI + API
