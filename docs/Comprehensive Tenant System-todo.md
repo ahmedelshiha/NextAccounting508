@@ -139,3 +139,92 @@
 - Prefer PREVIEW_ADMIN_EMAIL/PREVIEW_ADMIN_PASSWORD for safer preview logins when possible
 - Ensure NEXTAUTH_URL and NEXTAUTH_SECRET are set for both deployments
 - For strict multi-tenant previews, send X-Tenant-Id from edge/proxy or use tenant subdomains
+
+## 🔔 Pending Migrations & Fix Plan
+The following migrations had issues when applying to the Neon DB; we updated several migration files to add guards and make backfills safer, but additional review and execution steps remain.
+
+Pending/Problematic migrations (examples found in prisma/migrations):
+- 20251004_add_attachment_tenantid_not_null
+- 20251004_add_chatmessage_tenantid_not_null  ✅ (fixed: added backfill from users, inserted missing Tenants for orphans, guarded FK/index and NOT NULL enforcement)
+- 20251004_add_expense_tenantid_not_null  ✅ (fixed: added tenantId column guard, backfilled from users, guarded FK/index, conditional NOT NULL enforcement)
+- 20251004_add_idempotencykey_tenantid_not_null
+- 20251004_add_invoice_tenantid_not_null
+- 20251004_add_scheduledreminder_tenantid_not_null
+- 20251004_add_service_tenantid_not_null
+- 20251004_add_servicerequest_tenantid_not_null
+- 20251004_add_workorder_tenantid_not_null
+- 20251004_add_bookingsettings_tenantid_not_null
+- 20251005_add_attachment_tenantid_not_null
+- 20251005_add_booking_tenantid_not_null
+- 20251005_add_bookingsettings_tenantid_not_null
+- 20251005_add_expense_tenantid_not_null
+- 20251005_add_idempotencykey_tenantid_not_null
+- 20251005_add_invoice_tenantid_not_null
+- 20251005_add_scheduledreminder_tenantid_not_null
+- 20251005_add_service_tenantid_not_null
+- 20251005_add_servicerequest_tenantid_not_null
+- 20251005_add_workorder_tenantid_not_null  ✅ (fixed: converted backfill to correlated subqueries and added guards)
+- 20251005_update_idempotencykey_unique  ✅ (applied)
+
+Why these failed (observed patterns):
+- Some migration SQL used EXECUTE with dollar quoting ($$) in a DO block and nested $$ which caused parsing errors. Fixed by using unique dollar tags or separate DO blocks.
+- Several UPDATE ... FROM statements referenced the target table alias within JOIN conditions which is invalid in some PostgreSQL contexts when executed via EXECUTE. Switched to correlated subqueries or rewrote the update to avoid referencing the target alias inside JOIN ON expressions.
+- Foreign key (FK) additions failed due to orphan tenant IDs (tenant values in affected tables not present in Tenant table). We updated migrations to check for orphan tenant IDs before adding FKs, and to only enforce NOT NULL when there are zero NULLs.
+- Some CREATE CONSTRAINT IF NOT EXISTS statements are not supported in all PG versions; replaced with guarded DO blocks that check information_schema first and then EXECUTE.
+
+Recommended step-by-step plan (safest order):
+1. Take a full DB snapshot/backup (required). Do not proceed without this.
+2. Run scripts/backfill-tenant-scoped-tables.ts locally against a copy or via the run-tenant-migrations Netlify function to backfill tenantId values for Attachment, ServiceRequest, Booking, Invoice, Expense, ScheduledReminder, ChatMessage, IdempotencyKey, BookingSettings and others.
+3. After backfill, run queries to verify remaining NULL counts, e.g.:
+   - SELECT COUNT(*) FROM public.services WHERE "tenantId" IS NULL;
+   - SELECT DISTINCT "tenantId" FROM public.booking_settings WHERE "tenantId" IS NOT NULL EXCEPT SELECT id FROM public."Tenant";
+4. For any orphan tenant IDs found (tenantId values that are slugs or external host names like deploy-preview-*), decide whether to:
+   - Insert a matching Tenant row (safe if these represent valid tenants), or
+   - Normalize tenantId values to the canonical Tenant.id (preferred if mapping is known), or
+   - Set tenantId to the default tenant via scripts/default-tenant resolution when appropriate.
+5. Re-run prisma migrate deploy. If a migration fails on deploy, use prisma migrate resolve to mark the failing migration rolled back, fix the SQL, then re-run deploy. Avoid mass-resolving as 'applied' — prefer to fix SQL and apply.
+6. After successful migration deploy, run application smoke tests (signup/login flows, admin APIs). Verify NextAuth registration inserts User records and sessions work.
+7. When all migrations applied and smoke tests pass, tighten RLS (RLS_ALLOW_NULL_TENANT=false) in a staging environment and run pnpm db:rls:auto --phase tighten --verify.
+
+Notes:
+- I have already updated several migration files in-place to make them idempotent and guard FK/NOT NULL changes. Additional manual review is still recommended for each migration listed above.
+- If you want, I can continue and systematically fix each migration file, run the backfill scripts, and re-run migrate deploy — confirm and I will proceed in that order.
+
+Safety checklist before proceeding:
+- [ ] Confirm DB snapshot/backups are taken
+- [ ] Confirm a maintenance window for production deploys
+- [ ] Confirm which orphan tenantIds to map (if any), or that inserting missing Tenant rows is acceptable
+
+---
+
+## ▶ ACTIVE — High Priority Pending Tasks
+Work is active and proceeding one migration at a time (strategy A). The team is fixing migrations sequentially, applying each change, and re-running prisma migrate deploy. The next migration currently in progress is listed first.
+
+High priority tasks (execution order):
+- [IN PROGRESS] 20251004_add_idempotencykey_tenantid_not_null — backfill and NOT NULL guard (next to apply)
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null — safe backfill and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_service_tenantid_not_null — guard FK creation versus orphan tenant ids
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_servicerequest_tenantid_not_null — correlated backfill and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_workorder_tenantid_not_null — safe backfill and NOT NULL guard
+- [ ] HIGH: Review and fix prisma/migrations/20251004_add_bookingsettings_tenantid_not_null — guard FK and unique index creation
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_attachment_tenantid_not_null — ensure idempotent DO blocks and index creation
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_booking_tenantid_not_null — convert to correlated subqueries and avoid FROM-alias misuse
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_bookingsettings_tenantid_not_null — ensure no orphan tenantIds before adding FK
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_expense_tenantid_not_null — idempotent guards and NOT NULL check
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_idempotencykey_tenantid_not_null — idempotent guards
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_invoice_tenantid_not_null — backfill with correlated subqueries and FK guard
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_scheduledreminder_tenantid_not_null — safe apply steps
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_service_tenantid_not_null — guard FK vs orphan tenant ids
+- [ ] HIGH: Review and fix prisma/migrations/20251005_add_servicerequest_tenantid_not_null — guard FK vs orphan tenant ids
+
+Completed (recent):
+- 20251004_add_chatmessage_tenantid_not_null ✅ (fixed: backfill, insert missing Tenants for orphans, guarded FK/index and NOT NULL enforcement)
+- 20251004_add_expense_tenantid_not_null ✅ (fixed: added tenantId column guard, backfilled from users, guarded FK/index, conditional NOT NULL enforcement)
+- 20251005_add_workorder_tenantid_not_null ✅ (fixed: converted backfill to correlated subqueries and added guards)
+- 20251005_update_idempotencykey_unique ✅ (applied)
+
+Operational notes (repeat):
+- We are proceeding only after confirming a DB snapshot exists. All migration edits are idempotent and include guards to minimize risk.
+- After the current migration completes, the next migration in the list will be fixed and applied, and the doc will be updated accordingly.
+

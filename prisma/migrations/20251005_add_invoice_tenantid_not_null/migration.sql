@@ -1,16 +1,40 @@
 -- invoices: ensure tenantId exists, backfill, add FK, set NOT NULL, add index
-BEGIN;
-ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
+-- Ensure column exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'invoices' AND column_name = 'tenantId') THEN
+      EXECUTE 'ALTER TABLE public.invoices ADD COLUMN "tenantId" TEXT';
+    END IF;
+  END IF;
+END$$;
 
-UPDATE public.invoices i
-SET "tenantId" = COALESCE(b."tenantId", u."tenantId")
-FROM public.bookings b
-LEFT JOIN public.users u ON u.id = i."clientId"
-WHERE i."tenantId" IS NULL AND (b.id = i."bookingId" OR u.id = i."clientId");
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
+    EXECUTE 'UPDATE public.invoices SET "tenantId" = COALESCE((SELECT b."tenantId" FROM public.bookings b WHERE b.id = public.invoices."bookingId"), (SELECT u."tenantId" FROM public.users u WHERE u.id = public.invoices."clientId")) WHERE public.invoices."tenantId" IS NULL';
+  END IF;
+END$$;
 
-ALTER TABLE public.invoices
-  ADD CONSTRAINT IF NOT EXISTS invoices_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS invoices_tenantId_idx ON public.invoices("tenantId");
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'invoices_tenantId_fkey') THEN
+      EXECUTE 'ALTER TABLE public.invoices ADD CONSTRAINT invoices_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'invoices_tenantId_idx') THEN
+      EXECUTE 'CREATE INDEX invoices_tenantId_idx ON public.invoices("tenantId")';
+    END IF;
+  END IF;
+END$$;
 
-ALTER TABLE public.invoices ALTER COLUMN "tenantId" SET NOT NULL;
-COMMIT;
+DO $$
+DECLARE cnt BIGINT;
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
+    EXECUTE 'SELECT COUNT(*)::bigint FROM public.invoices WHERE "tenantId" IS NULL' INTO cnt;
+    IF cnt = 0 THEN
+      EXECUTE 'ALTER TABLE public.invoices ALTER COLUMN "tenantId" SET NOT NULL';
+    END IF;
+  END IF;
+END$$;

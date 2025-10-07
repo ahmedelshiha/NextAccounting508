@@ -10,20 +10,20 @@ BEGIN
   END IF;
 
   -- Backfill from ServiceRequest when available
-  EXECUTE $$
+  EXECUTE $sql$
     UPDATE public."Attachment" a
     SET "tenantId" = sr."tenantId"
     FROM public."ServiceRequest" sr
     WHERE a."serviceRequestId" = sr."id" AND a."tenantId" IS NULL;
-  $$;
+  $sql$;
 
   -- Backfill from uploader User if available
-  EXECUTE $$
+  EXECUTE $sql$
     UPDATE public."Attachment" a
     SET "tenantId" = u."tenantId"
     FROM public.users u
     WHERE a."uploaderId" = u."id" AND a."tenantId" IS NULL;
-  $$;
+  $sql$;
 
   -- Add FK constraint if not exists
   IF NOT EXISTS (

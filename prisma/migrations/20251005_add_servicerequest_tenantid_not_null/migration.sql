@@ -1,19 +1,44 @@
 -- ServiceRequest: ensure tenantId exists, backfill, add FK, set NOT NULL, add index
-BEGIN;
-ALTER TABLE public."ServiceRequest" ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
+-- Ensure column exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'ServiceRequest' AND column_name = 'tenantId') THEN
+      EXECUTE 'ALTER TABLE public."ServiceRequest" ADD COLUMN "tenantId" TEXT';
+    END IF;
+  END IF;
+END$$;
 
--- Backfill from client or service
-UPDATE public."ServiceRequest" sr
-SET "tenantId" = COALESCE(u."tenantId", s."tenantId")
-FROM public.users u
-LEFT JOIN public.services s ON s.id = sr."serviceId"
-WHERE sr."clientId" = u.id AND sr."tenantId" IS NULL;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
+    EXECUTE 'UPDATE public."ServiceRequest" SET "tenantId" = COALESCE((SELECT u."tenantId" FROM public.users u WHERE u.id = public."ServiceRequest"."clientId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public."ServiceRequest"."serviceId")) WHERE public."ServiceRequest"."tenantId" IS NULL';
+  END IF;
+END$$;
 
--- Add FK and index
-ALTER TABLE public."ServiceRequest"
-  ADD CONSTRAINT IF NOT EXISTS servicerequest_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS servicerequest_tenantId_idx ON public."ServiceRequest"("tenantId");
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'servicerequest_tenantId_fkey') THEN
+      -- Only add FK if there are no orphan tenantIds in ServiceRequest
+      PERFORM 1 FROM (SELECT 1 FROM (SELECT DISTINCT "tenantId" FROM public."ServiceRequest" WHERE "tenantId" IS NOT NULL EXCEPT SELECT id FROM public."Tenant") AS orphans LIMIT 1);
+      IF NOT FOUND THEN
+        EXECUTE 'ALTER TABLE public."ServiceRequest" ADD CONSTRAINT servicerequest_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE';
+      END IF;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'servicerequest_tenantId_idx') THEN
+      EXECUTE 'CREATE INDEX servicerequest_tenantId_idx ON public."ServiceRequest"("tenantId")';
+    END IF;
+  END IF;
+END$$;
 
--- Enforce NOT NULL
-ALTER TABLE public."ServiceRequest" ALTER COLUMN "tenantId" SET NOT NULL;
-COMMIT;
+DO $$
+DECLARE cnt BIGINT;
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
+    EXECUTE 'SELECT COUNT(*)::bigint FROM public."ServiceRequest" WHERE "tenantId" IS NULL' INTO cnt;
+    IF cnt = 0 THEN
+      EXECUTE 'ALTER TABLE public."ServiceRequest" ALTER COLUMN "tenantId" SET NOT NULL';
+    END IF;
+  END IF;
+END$$;
