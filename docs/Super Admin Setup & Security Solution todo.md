@@ -67,13 +67,6 @@
   - **Why**: unblock SUPER_ADMIN UX when challenged
   - **Impact**: seamless verification flow using x-mfa-otp header
 
-## 🚧 In Progress
-- [ ] None
-
-## 🔧 Next Steps
-- [ ] Add unit tests for verifySuperAdminStepUp and updated routes.
-- [ ] Consider adding the same OTP UI helper to Security Settings page and Permissions viewers for consistency.
-
 ## ✅ Completed
 - [x] Added unit tests for CIDR IP allowlist, step-up verification helper, and route enforcement (audit-logs, permissions roles).
   - Files: tests/security/ip-allowlist.test.ts, tests/security/step-up.test.ts, tests/admin-stepup.route.test.ts
@@ -87,4 +80,13 @@
 
 ## 🔧 Next Steps
 - [ ] Extend route tests to cover /api/admin/security-settings PUT with step-up and negative flows.
-- [ ] Document SUPERADMIN_STEPUP_MFA behavior in docs/ENVIRONMENT_VARIABLES_REFERENCE.md and ops runbook.
+- [ ] Document SUPERADMIN_STEPUP_MFA behavior in docs/ENVIRONMENT_VARIABLES_REFERENCE.md and ops runbook
+
+## ✅ Completed (NEW)
+- [x] Implemented IPv6 CIDR support in src/lib/security/ip-allowlist.ts and added comprehensive unit tests
+  - **Why**: allow network policies to include IPv6 ranges and support mixed IPv4/IPv6 deployments.
+  - **Impact**: improves security posture for environments using IPv6, ensures consistent allowlist behavior across IP families.
+
+## 🔧 Next Steps (after IPv6 support)
+- [ ] Add IPv6-focused unit tests for edge cases (zone identifiers, unusual compression patterns)
+- [ ] Add Admin UI helper showing IP family and matched rule
