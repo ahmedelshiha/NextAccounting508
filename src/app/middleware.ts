@@ -131,6 +131,10 @@ export async function middleware(req: NextServer.NextRequest) {
         if (String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
           logger.warn('Admin access blocked by IP policy', { ...baseLogContext, ip })
         }
+        try {
+          const { logAudit } = await import('@/lib/audit')
+          await logAudit({ action: 'security.ip.block', details: { ip, pathname } })
+        } catch {}
         const denied = isApiRequest
           ? NextServer.NextResponse.json({ error: 'Access restricted by IP policy' }, { status: 403 })
           : new NextServer.NextResponse('Access restricted by IP policy', { status: 403 })
