@@ -1,5 +1,5 @@
 ## 🚧 Tasks
-- [ ] Verify `prisma/schema.prisma` defines the `SUPER_ADMIN` role and required audit log models, adding a migration if any fields are missing.
+- [x] Verify `prisma/schema.prisma` defines the `SUPER_ADMIN` role and required audit log models, adding a migration if any fields are missing. (Completed via schema update and migration notes in `prisma/migrations/20250214_super_admin_audit_logs/`.)
 - [ ] Capture current admin and super admin roster, exporting contact info for owners and staff (Depends on: schema verification and confirmation of latest production database snapshot).
 - [ ] Regenerate Prisma client and adjust TypeScript role typings so `SUPER_ADMIN` is recognized across services and NextAuth session payloads (Depends on: schema validation).
 - [ ] Implement `scripts/admin-setup/create-super-admin.ts` to provision the new super admin with a random strong password and enforced MFA enrollment (Depends on: Prisma client regeneration).
@@ -22,12 +22,20 @@
 - [x] Context review and synchronization with existing super admin security roadmap
   - **Why**: planning alignment
   - **Impact**: ensures subsequent tasks reference up-to-date objectives
+- [x] Prisma schema updated with `SUPER_ADMIN` role support and foundational `AuditLog` model
+  - **Why**: security foundation
+  - **Impact**: enables type-safe super admin flows and audit persistence across services
+- [x] Added `scripts/admin-setup/export-admin-roster.ts` for automated admin roster exports
+  - **Why**: operational readiness
+  - **Impact**: produces JSON/CSV inventories of admin contacts for compliance reviews
 
 ## ⚠️ Issues / Risks
-- Prisma schema currently lacks the `SUPER_ADMIN` enum value and dedicated audit logging tables, forcing brittle type assertions if left unresolved.
+- Production snapshot confirmation is still pending, preventing execution of the roster export against authoritative data.
+- Database migration SQL needs to be generated and deployed to materialize the new `AuditLog` table and enum update in production.
 
 ## 🚧 In Progress
-- [ ] Schema verification and migration planning to introduce `SUPER_ADMIN` role support and audit log persistence.
+- [ ] Coordinate with operations to confirm production snapshot currency and schedule roster export execution.
 
 ## 🔧 Next Steps
-- [ ] Draft Prisma migration to add `SUPER_ADMIN` role support and baseline audit logging models ahead of roster export.
+- [ ] Prepare migration SQL (or run `prisma migrate diff`) to deploy `AuditLog` table and enum changes.
+- [ ] Execute the roster export script once snapshot confirmation is received and distribute outputs securely.
