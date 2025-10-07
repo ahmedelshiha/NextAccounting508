@@ -13,7 +13,7 @@ END$$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'WorkOrder') THEN
-    EXECUTE 'UPDATE public."WorkOrder" w SET "tenantId" = COALESCE(sr."tenantId", b."tenantId", u."tenantId", s."tenantId") FROM public."ServiceRequest" sr LEFT JOIN public.bookings b ON b.id = w."bookingId" LEFT JOIN public.users u ON u.id = w."clientId" LEFT JOIN public.services s ON s.id = w."serviceId" WHERE w."tenantId" IS NULL AND (sr.id = w."serviceRequestId" OR b.id = w."bookingId" OR u.id = w."clientId" OR s.id = w."serviceId")';
+    EXECUTE 'UPDATE public."WorkOrder" SET "tenantId" = COALESCE((SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public."WorkOrder"."serviceRequestId"), (SELECT b."tenantId" FROM public.bookings b WHERE b.id = public."WorkOrder"."bookingId"), (SELECT u."tenantId" FROM public.users u WHERE u.id = public."WorkOrder"."clientId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public."WorkOrder"."serviceId")) WHERE public."WorkOrder"."tenantId" IS NULL';
   END IF;
 END$$;
 
