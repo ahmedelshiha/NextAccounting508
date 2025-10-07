@@ -122,7 +122,7 @@ export async function middleware(req: NextServer.NextRequest) {
   try {
     const ipRestrictionsEnabled = String(process.env.ENABLE_IP_RESTRICTIONS || '').toLowerCase() === 'true'
     if (ipRestrictionsEnabled) {
-      const ip = getClientIp(req as unknown as Request)
+      const ip = clientIp
       const rawAllow = String(process.env.ADMIN_IP_WHITELIST || '').trim()
       const allow = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
       const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
