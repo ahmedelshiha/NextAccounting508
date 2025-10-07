@@ -111,7 +111,7 @@ This file is the central state for all Super Admin setup and security work. Appe
 
 Append further entries here in chronological order when new work begins or completes.
 
-## ⏸ Paused
+## ��� Paused
 
 - [ ] Paused: Remote DB connection and migration application — waiting for ops approval/credentials.
   - **Why**: CI environment blocked external DB access from automation; local/ops run required to apply DB migration that adds `superAdmin` JSON column to `security_settings` and seed defaults.
@@ -201,3 +201,19 @@ Append further entries here in chronological order when new work begins or compl
 
 ## 🚧 In Progress
 - [ ] Final sweep for any other 429 paths; document any intentional exclusions due to volume/noise.
+
+---
+## ✅ Completed
+- [x] Audited applyRateLimit and rateLimitAsync usage to confirm `security.ratelimit.block` audit logging on all 429 response paths.
+  - **Why**: final sweep to verify telemetry coverage for throttled requests
+  - **Impact**: ensures incident responders receive consistent audit data across admin, portal, and public endpoints
+
+## ⚠️ Issues / Risks
+- Legacy `rateLimit()` helper remains exported; future code should prefer `applyRateLimit` or add explicit audits to avoid regressions.
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Evaluate deprecating or wrapping legacy `rateLimit()` helper with audit logging to enforce consistency.
+
