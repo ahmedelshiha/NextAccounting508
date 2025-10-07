@@ -11,9 +11,20 @@ export async function middleware(req: NextServer.NextRequest) {
   if (String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true') {
     return NextServer.NextResponse.next()
   }
+  const { pathname } = req.nextUrl
+
+  if (
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/static') ||
+    pathname === '/favicon.ico'
+  ) {
+    return NextServer.NextResponse.next()
+  }
+
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const isAuth = !!token
-  const { pathname } = req.nextUrl
   const method = req.method
   const start = Date.now()
   const isApiRequest = pathname === '/api' || pathname.startsWith('/api/')

@@ -27,6 +27,7 @@ const WRITE_ACTIONS: ReadonlySet<GuardedAction> = new Set(['create', 'createMany
 const BULK_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['updateMany', 'deleteMany'])
 const SINGLE_MUTATION_ACTIONS: ReadonlySet<GuardedAction> = new Set(['update', 'delete'])
 const READ_ACTIONS: ReadonlySet<GuardedAction> = new Set(['findFirst', 'findUnique', 'findMany', 'aggregate', 'count', 'groupBy'])
+const AUTH_MODEL_NAMES: ReadonlySet<string> = new Set(['User', 'Account', 'Session', 'VerificationToken'])
 
 let tenantModelConfigs: ReadonlyMap<string, TenantModelConfig> | null = null
 
@@ -190,6 +191,14 @@ export function enforceTenantGuard(params: any): void {
   if (!isMultiTenancyEnabled()) return
   const model = params.model
   if (!model) return
+
+  if (AUTH_MODEL_NAMES.has(model)) return
+
+  const requestUrl =
+    typeof params?.args?.context?.req?.url === 'string'
+      ? params.args.context.req.url
+      : null
+  if (requestUrl && requestUrl.includes('/api/auth')) return
 
   const config = tenantModelConfigs?.get(model)
   if (!config) return
