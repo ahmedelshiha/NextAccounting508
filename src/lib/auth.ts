@@ -4,9 +4,9 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { createHash } from 'node:crypto'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
 import { getClientIp, rateLimitAsync } from '@/lib/rate-limit'
+import { computeIpHash } from '@/lib/security/ip-hash'
 import { logAudit } from '@/lib/audit'
 
 const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
