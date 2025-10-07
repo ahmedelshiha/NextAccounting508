@@ -83,7 +83,7 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, credentials.email as string) })
+        const user = await prisma.user.findUnique({ where: userByTenantEmail(tenantId, String(credentials.email as string).toLowerCase()) })
         if (!user || !user.password) {
           // Audit failed attempt without user enumeration
           logAudit({ action: 'auth.login.failed', actorId: null, targetId: null, details: { tenantId, email: String(credentials.email || '').toLowerCase() } }).catch(() => {})
