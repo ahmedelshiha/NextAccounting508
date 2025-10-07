@@ -42,8 +42,8 @@
 ## Realtime & Cache
 | Variable | Description |
 |----------|-------------|
-| `REDIS_URL` | Redis connection string for realtime/cache |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Upstash REST credentials |
+| `REDIS_URL` | Redis connection string for realtime/cache and rate limiting |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Upstash REST credentials (used by Redis-backed cache and rate limiting) |
 | `REALTIME_TRANSPORT` | Transport type (`memory`, `redis`, `postgres`) |
 | `REALTIME_PG_URL`, `REALTIME_PG_CHANNEL` | Postgres logical decoding configuration |
 
@@ -60,6 +60,13 @@
 | `SENTRY_DSN` | Sentry project DSN |
 | `SENTRY_TRACES_SAMPLE_RATE` | Trace sampling rate |
 | `VERCEL_ENV` | Vercel environment indicator |
+
+## Admin Surface Security
+| Variable | Description |
+|----------|-------------|
+| `ENABLE_IP_RESTRICTIONS` | When `true`, middleware enforces IP allowlist for `/admin` and `/api/admin` |
+| `ADMIN_IP_WHITELIST` | Comma-separated list of allowed admin IPs (exact match) |
+| `LOG_ADMIN_ACCESS` | When `true`, logs allow/deny events for admin access attempts |
 
 ## Testing & Tooling
 | Variable | Description |

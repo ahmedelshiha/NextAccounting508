@@ -10,9 +10,9 @@
 - [ ] Wire existing admin mutations and NextAuth callbacks to emit structured audit log entries with metadata (Depends on: audit logging service).
 - [ ] Create `src/app/api/admin/audit-logs/route.ts` endpoint with date/action filters restricted to `SUPER_ADMIN` sessions (Depends on: audit logging service).
 - [ ] Build the `AuditLogViewer` client component inside the admin area with filtering, empty states, and loading states (Depends on: audit logs endpoint).
-- [ ] Harden `src/middleware.ts` with IP whitelist enforcement, rate limiting, and admin access logging toggled by env flags (Depends on: environment variable plan).
-- [ ] Implement Upstash-backed rate limiter in `src/lib/rate-limiter.ts` and fall back to in-memory for local development (Depends on: middleware hardening).
-- [ ] Define and document new environment variables (`ENABLE_IP_RESTRICTIONS`, `ADMIN_IP_WHITELIST`, `LOG_ADMIN_ACCESS`, Upstash credentials, `CRON_SECRET`) in env reference files (Depends on: middleware hardening).
+- [x] Harden `src/middleware.ts` with IP whitelist enforcement, rate limiting, and admin access logging toggled by env flags (Depends on: environment variable plan).
+- [ ] Implement Upstash-backed rate limiter in `src/lib/rate-limit.ts` and fall back to in-memory for local development (Depends on: middleware hardening).
+- [x] Define and document new environment variables (`ENABLE_IP_RESTRICTIONS`, `ADMIN_IP_WHITELIST`, `LOG_ADMIN_ACCESS`, Upstash credentials, `CRON_SECRET`) in env reference files (Depends on: middleware hardening).
 - [ ] Ship operational scripts for emergency password reset, MFA disable, and database integrity verification under `scripts/admin-setup/` (Depends on: Prisma client regeneration).
 - [ ] Update admin documentation/runbooks with daily and weekly security checklists referencing audit logs and monitoring scripts (Depends on: AuditLogViewer availability).
 - [ ] Configure alerts or dashboards that surface repeated IP blocks, rate limit hits, and failed MFA attempts via existing monitoring tools (Depends on: middleware hardening and audit logging).
@@ -28,22 +28,21 @@
 - [x] Added `scripts/admin-setup/export-admin-roster.ts` for automated admin roster exports
   - **Why**: operational readiness
   - **Impact**: produces JSON/CSV inventories of admin contacts for compliance reviews
-
----
-
-## ✅ Completed
 - [x] Enforced admin IP allowlist in middleware for /admin pages and /api/admin endpoints
   - **Why**: security hardening
   - **Impact**: blocks untrusted networks from sensitive surfaces; optional access logs via env flag
+- [x] Documented admin IP policy variables and Redis/Upstash usage in env references
+  - **Why**: operability
+  - **Impact**: clear rollout and configuration guidance across environments
 
 ## ⚠️ Issues / Risks
-- Requires `ENABLE_IP_RESTRICTIONS=true` and `ADMIN_IP_WHITELIST` (comma-separated) to be set; otherwise enforcement is skipped by design.
-- Exact IP matching only (no CIDR ranges yet).
+- Edge runtime constraints discourage Prisma usage in middleware; audit events for IP blocks are logged via logger for now.
+- Redis-based rate limiter uses best-effort atomicity; Upstash REST lacks INCR in our wrapper; using JSON with TTL. Acceptable for basic abuse prevention.
 
 ## 🚧 In Progress
-- [ ] Plan Redis/Upstash-backed rate limiter upgrade with transparent fallback to in-memory to keep current route imports intact.
+- [ ] Wire routes that can await to use `rateLimitAsync` when Redis is configured for stronger cross-instance enforcement.
 
 ## 🔧 Next Steps
-- [ ] Implement Redis/Upstash-backed rate limiting inside `src/lib/rate-limit.ts` using `RedisCache` when configured; preserve API signature.
-- [ ] Emit audit events on IP policy blocks via `logAudit` with IP and route metadata.
-- [ ] Add MFA enrollment/verification endpoints and enforce MFA in NextAuth callbacks for super admins.
+- [ ] Implement MFA enrollment/verification endpoints and enforce MFA in NextAuth callbacks for super admins.
+- [ ] Add admin audit endpoint and UI for viewing access-denied events.
+- [ ] Provide emergency scripts for MFA disable and password reset under scripts/admin-setup/.
