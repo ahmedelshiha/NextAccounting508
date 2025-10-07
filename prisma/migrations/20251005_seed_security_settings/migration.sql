@@ -4,7 +4,7 @@ DO $$
 BEGIN
   -- Global defaults (tenantId null)
   IF NOT EXISTS (SELECT 1 FROM public.security_settings WHERE "tenantId" IS NULL) THEN
-    INSERT INTO public.security_settings (id, "tenantId", "passwordPolicy", "sessionSecurity", "twoFactor", "network", "dataProtection", "compliance", "createdAt", "updatedAt")
+    INSERT INTO public.security_settings (id, "tenantId", "passwordPolicy", "sessionSecurity", "twoFactor", "network", "dataProtection", "compliance", "superAdmin", "createdAt", "updatedAt")
     VALUES (
       'sec_default',
       NULL,
@@ -14,6 +14,7 @@ BEGIN
       ('{"ipAllowlist":[],"ipBlocklist":[],"blockTorExitNodes":false,"geoRestrictions":[]}'::jsonb),
       ('{"auditLogRetentionDays":365,"piiRedactionEnabled":true,"exportRequestsEnabled":true,"legalHoldEnabled":false,"documentRetentionDays":730}'::jsonb),
       ('{"gdprEnabled":true,"hipaaEnabled":false,"soc2Enabled":false,"requireDpa":false}'::jsonb),
+      ('{"stepUpMfa":false,"logAdminAccess":true}'::jsonb),
       now(), now()
     );
   END IF;
