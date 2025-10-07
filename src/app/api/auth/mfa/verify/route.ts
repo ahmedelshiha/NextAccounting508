@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server'
-import { NextResponse, NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { getUserMfaSecret, verifyTotp } from '@/lib/mfa'
