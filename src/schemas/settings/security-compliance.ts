@@ -24,6 +24,7 @@ export const TwoFactorSchema = z.object({
 })
 
 export const NetworkPolicySchema = z.object({
+  enableIpRestrictions: z.boolean().default(false),
   ipAllowlist: z.array(z.string().min(3)).max(200).default([]),
   ipBlocklist: z.array(z.string().min(3)).max(200).default([]),
   blockTorExitNodes: z.boolean().default(false),
@@ -43,6 +44,13 @@ export const ComplianceSchema = z.object({
   hipaaEnabled: z.boolean().default(false),
   soc2Enabled: z.boolean().default(false),
   requireDpa: z.boolean().default(false),
+})
+
+export const SuperAdminSchema = z.object({
+  // Tenant-level override to require step-up MFA for super admin sensitive ops
+  stepUpMfa: z.boolean().default(false),
+  // Whether to persist/log admin access events to DB/audit logs
+  logAdminAccess: z.boolean().default(true),
 })
 
 export const SecurityComplianceSettingsSchema = z.object({
@@ -67,6 +75,7 @@ export const SecurityComplianceSettingsSchema = z.object({
     backupCodes: 5,
   }),
   network: NetworkPolicySchema.default({
+    enableIpRestrictions: false,
     ipAllowlist: [],
     ipBlocklist: [],
     blockTorExitNodes: false,
@@ -84,6 +93,10 @@ export const SecurityComplianceSettingsSchema = z.object({
     hipaaEnabled: false,
     soc2Enabled: false,
     requireDpa: false,
+  }),
+  superAdmin: SuperAdminSchema.default({
+    stepUpMfa: false,
+    logAdminAccess: true,
   }),
 })
 
