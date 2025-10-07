@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { sendEmail } from '@/lib/email'
 import { z } from 'zod'
 import { createHash, randomBytes } from 'crypto'
@@ -11,7 +11,8 @@ const schema = z.object({ email: z.string().email() })
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req as unknown as Request)
-    if (!rateLimit(`auth:forgot:${ip}`, 5, 60_000)) {
+    const forgotLimit = await applyRateLimit(`auth:forgot:${ip}`, 5, 60_000)
+    if (!forgotLimit.allowed) {
       return NextResponse.json({ ok: true })
     }
 
