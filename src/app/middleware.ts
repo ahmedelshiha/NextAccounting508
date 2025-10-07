@@ -4,6 +4,7 @@ import { signTenantCookie } from '@/lib/tenant-cookie'
 import { logger } from '@/lib/logger'
 import { getClientIp } from '@/lib/rate-limit'
 import { computeIpHash } from '@/lib/security/ip-hash'
+import { isIpAllowed } from '@/lib/security/ip-allowlist'
 
 function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
@@ -127,9 +128,9 @@ export async function middleware(req: NextServer.NextRequest) {
       const allow = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
       const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
       const isAdminSurface = isAdminPage || isAdminApi
-      const ipAllowed = allow.length === 0 || allow.includes(ip)
+      const allowed = isIpAllowed(ip, allow)
 
-      if (isAdminSurface && !ipAllowed) {
+      if (isAdminSurface && !allowed) {
         if (String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
           logger.warn('Admin access blocked by IP policy', { ...baseLogContext, ip })
         }
