@@ -82,7 +82,7 @@ export async function rateLimitAsync(key: string, limit = 20, windowMs = 60_000)
     const now = Date.now()
     const redisKey = `ratelimit:${key}`
     type Entry = { count: number; resetAt: number }
-    const existing = (await redisCache.get<Entry>(redisKey))
+    const existing = (await redisCache.get(redisKey)) as Entry | null
     if (!existing) {
       const entry: Entry = { count: 1, resetAt: now + windowMs }
       await redisCache.set(redisKey, entry, Math.ceil(windowMs / 1000))
