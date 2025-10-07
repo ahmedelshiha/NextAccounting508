@@ -22,7 +22,11 @@ export default function RolePermissionsViewer() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch('/api/admin/permissions/roles', { cache: 'no-store' })
+        let res = await fetch('/api/admin/permissions/roles', { cache: 'no-store' })
+        if (res.status === 401 && res.headers.get('x-step-up-required')) {
+          const code = typeof window !== 'undefined' ? window.prompt('Enter your 6-digit code to view roles:') : ''
+          if (code) res = await fetch('/api/admin/permissions/roles', { cache: 'no-store', headers: { 'x-mfa-otp': code } })
+        }
         const json: ApiResponse = await res.json()
         if (!res.ok || !json.success || !json.data) throw new Error(json.error || 'Failed to load roles')
         if (!cancelled) {
