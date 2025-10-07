@@ -58,3 +58,18 @@
 - [ ] Gate /api/admin/permissions and /api/admin/settings/security with step-up MFA when SUPERADMIN_STEPUP_MFA=true.
 - [ ] Add UI affordance in Admin Audits page to enter OTP when challenged (handles 401 with x-step-up-required header).
 - [ ] Add unit tests for verifySuperAdminStepUp and route challenge behavior.
+
+## ✅ Completed
+- [x] Gated /api/admin/permissions (index, roles, [userId]) and /api/admin/security-settings (GET, PUT) with step-up MFA for SUPER_ADMIN when SUPERADMIN_STEPUP_MFA=true.
+  - **Why**: extend proof-of-presence to role/permission and security configuration surfaces
+  - **Impact**: superfine-grained protection without affecting non-super admins
+- [x] Added OTP prompt UI to Admin Audits page to handle step-up challenge and retry with headers.
+  - **Why**: unblock SUPER_ADMIN UX when challenged
+  - **Impact**: seamless verification flow using x-mfa-otp header
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Add unit tests for verifySuperAdminStepUp and updated routes.
+- [ ] Consider adding the same OTP UI helper to Security Settings page and Permissions viewers for consistency.
