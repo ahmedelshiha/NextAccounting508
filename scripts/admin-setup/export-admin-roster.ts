@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
-import { PrismaClient, UserRole } from '@prisma/client'
+import prisma from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
 import { promises as fs } from 'fs'
 import path from 'path'
 
