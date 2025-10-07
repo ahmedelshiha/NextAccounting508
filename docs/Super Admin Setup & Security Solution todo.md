@@ -1,4 +1,47 @@
 ## ✅ Completed
+- [x] Wired AdminAuditsPage to use /api/admin/audit-logs for SUPER_ADMIN; legacy activity endpoint remains for others.
+  - **Why**: correct data source based on privileges
+  - **Impact**: SUPER_ADMINs see full audit logs; others see activity view
+- [x] Added IP policy block audit in middleware (action: security.ip.block) with graceful edge fallback.
+  - **Why**: traceability of access denials
+  - **Impact**: improved incident visibility
+- [x] Shipped emergency scripts: scripts/admin-setup/reset-password.ts and scripts/admin-setup/disable-mfa.ts
+  - **Why**: recovery procedures
+  - **Impact**: rapid response for lockouts and MFA issues
+- [x] Enforced super admin session IP binding with configurable toggle (SUPERADMIN_STRICT_IP_ENFORCEMENT).
+  - **Why**: protects privileged sessions from network hijacking or replay
+  - **Impact**: super admin sessions require consistent network origin before accessing admin surfaces
+- [x] Added audit telemetry and logging for super admin IP mismatch enforcement.
+  - **Why**: ensures forced reauthentication events are discoverable
+  - **Impact**: incident responders can rapidly trace unauthorized network shifts
+
+## ⚠️ Issues / Risks
+- Enabling SUPERADMIN_STRICT_IP_ENFORCEMENT immediately invalidates existing super admin sessions; coordinate rollout windows to avoid disruption.
+- IP binding depends on accurate upstream client IP headers; verify proxy configuration before enabling in production environments.
+
+## 🚧 In Progress
+- [ ] None – ready for next super admin security hardening task
+
+## 🔧 Next Steps
+- [ ] Plan staged rollout for SUPERADMIN_STRICT_IP_ENFORCEMENT (staging → production) and monitor audit noise.
+- [ ] Evaluate introducing step-up MFA prompts for super admin critical workflows post-IP validation.
+
+## ✅ Completed
+- [x] Enhanced admin IP allowlist to support CIDR ranges and wildcard entries (*) via src/lib/security/ip-allowlist.ts and middleware integration.
+  - **Why**: allow secure office network ranges and reduce maintenance overhead.
+  - **Impact**: flexible, stricter IP enforcement for /admin and /api/admin without breaking existing exact-match configs.
+
+## ⚠️ Issues / Risks
+- IPv6 CIDR is not yet supported; IPv6 is matched by exact address only. Plan follow-up with safe parser and tests.
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Add IPv6 CIDR support and comprehensive unit tests for ip-allowlist matcher (IPv4/IPv6, edge cases, ::ffff: mappings).
+- [ ] Add an Admin Security UI helper to display current client IP and whether it matches the allowlist, for safer rollouts.
+
+## ✅ Completed
 - [x] Implemented step-up MFA for SUPER_ADMIN on sensitive endpoint /api/admin/audit-logs (env: SUPERADMIN_STEPUP_MFA=true).
   - Files: src/lib/security/step-up.ts, src/app/api/admin/audit-logs/route.ts
   - **Why**: protects high-risk operations with fresh proof-of-presence
