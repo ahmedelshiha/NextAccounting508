@@ -146,7 +146,7 @@ The following migrations had issues when applying to the Neon DB; we updated sev
 Pending/Problematic migrations (examples found in prisma/migrations):
 - 20251004_add_attachment_tenantid_not_null
 - 20251004_add_chatmessage_tenantid_not_null  ✅ (fixed: added backfill from users, inserted missing Tenants for orphans, guarded FK/index and NOT NULL enforcement)
-- 20251004_add_expense_tenantid_not_null
+- 20251004_add_expense_tenantid_not_null  ✅ (fixed: added tenantId column guard, backfilled from users, guarded FK/index, conditional NOT NULL enforcement)
 - 20251004_add_idempotencykey_tenantid_not_null
 - 20251004_add_invoice_tenantid_not_null
 - 20251004_add_scheduledreminder_tenantid_not_null
