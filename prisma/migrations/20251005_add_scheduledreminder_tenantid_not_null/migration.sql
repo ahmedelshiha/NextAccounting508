@@ -9,12 +9,17 @@ BEGIN
   END IF;
 END$$;
 
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ScheduledReminder') THEN
-    EXECUTE 'UPDATE public."ScheduledReminder" r SET "tenantId" = sr."tenantId" FROM public."ServiceRequest" sr WHERE r."tenantId" IS NULL AND r."serviceRequestId" = sr.id';
+    EXECUTE $sql$
+      UPDATE public."ScheduledReminder" r
+      SET "tenantId" = sr."tenantId"
+      FROM public."ServiceRequest" sr
+      WHERE r."tenantId" IS NULL AND r."serviceRequestId" = sr.id
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN

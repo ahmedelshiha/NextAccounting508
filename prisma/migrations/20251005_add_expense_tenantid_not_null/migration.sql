@@ -9,12 +9,17 @@ BEGIN
   END IF;
 END$$;
 
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'expenses') THEN
-    EXECUTE 'UPDATE public.expenses e SET "tenantId" = u."tenantId" FROM public.users u WHERE e."tenantId" IS NULL AND e."userId" = u.id';
+    EXECUTE $sql$
+      UPDATE public.expenses e
+      SET "tenantId" = u."tenantId"
+      FROM public.users u
+      WHERE e."tenantId" IS NULL AND e."userId" = u.id
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN

@@ -1,22 +1,22 @@
 -- services: ensure tenantId exists, add FK, set NOT NULL, add index
 -- Ensure column exists
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'services' AND column_name = 'tenantId') THEN
       EXECUTE 'ALTER TABLE public.services ADD COLUMN "tenantId" TEXT';
     END IF;
   END IF;
-END$$;
+END$mig$;
 
 -- Backfill (noop placeholder if specific logic not present)
-DO $$
+DO $mig$
 BEGIN
   -- Intentionally left as a safe no-op; backfill handled by separate scripts if required
   NULL;
-END$$;
+END$mig$;
 
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
     IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'services_tenantId_fkey') THEN
@@ -30,9 +30,9 @@ BEGIN
       EXECUTE 'CREATE INDEX services_tenantId_idx ON public.services("tenantId")';
     END IF;
   END IF;
-END$$;
+END$mig$;
 
-DO $$
+DO $mig$
 DECLARE cnt BIGINT;
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
@@ -41,4 +41,4 @@ BEGIN
       EXECUTE 'ALTER TABLE public.services ALTER COLUMN "tenantId" SET NOT NULL';
     END IF;
   END IF;
-END$$;
+END$mig$;

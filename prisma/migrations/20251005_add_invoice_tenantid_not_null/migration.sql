@@ -9,12 +9,19 @@ BEGIN
   END IF;
 END$$;
 
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
-    EXECUTE 'UPDATE public.invoices SET "tenantId" = COALESCE((SELECT b."tenantId" FROM public.bookings b WHERE b.id = public.invoices."bookingId"), (SELECT u."tenantId" FROM public.users u WHERE u.id = public.invoices."clientId")) WHERE public.invoices."tenantId" IS NULL';
+    EXECUTE $sql$
+      UPDATE public.invoices
+      SET "tenantId" = COALESCE(
+        (SELECT b."tenantId" FROM public.bookings b WHERE b.id = public.invoices."bookingId"),
+        (SELECT u."tenantId" FROM public.users u WHERE u.id = public.invoices."clientId")
+      )
+      WHERE public.invoices."tenantId" IS NULL
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN

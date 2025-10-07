@@ -9,12 +9,19 @@ BEGIN
   END IF;
 END$$;
 
-DO $$
+DO $mig$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ServiceRequest') THEN
-    EXECUTE 'UPDATE public."ServiceRequest" SET "tenantId" = COALESCE((SELECT u."tenantId" FROM public.users u WHERE u.id = public."ServiceRequest"."clientId"), (SELECT s."tenantId" FROM public.services s WHERE s.id = public."ServiceRequest"."serviceId")) WHERE public."ServiceRequest"."tenantId" IS NULL';
+    EXECUTE $sql$
+      UPDATE public."ServiceRequest"
+      SET "tenantId" = COALESCE(
+        (SELECT u."tenantId" FROM public.users u WHERE u.id = public."ServiceRequest"."clientId"),
+        (SELECT s."tenantId" FROM public.services s WHERE s.id = public."ServiceRequest"."serviceId")
+      )
+      WHERE public."ServiceRequest"."tenantId" IS NULL
+    $sql$;
   END IF;
-END$$;
+END$mig$;
 
 DO $$
 BEGIN
