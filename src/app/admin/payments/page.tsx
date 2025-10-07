@@ -1,9 +1,12 @@
-"use client"
+'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import ListPage from '@/components/dashboard/templates/ListPage'
 import type { Column, FilterConfig, RowAction } from '@/types/dashboard'
+import PermissionGate from '@/components/PermissionGate'
+import { PERMISSIONS } from '@/lib/permissions'
+import { downloadExport } from '@/lib/admin-export'
 
 interface PaymentItem {
   id: string
@@ -14,11 +17,15 @@ interface PaymentItem {
   amount: number
 }
 
-import PermissionGate from '@/components/PermissionGate'
-import { PERMISSIONS } from '@/lib/permissions'
-import { downloadExport } from '@/lib/admin-export'
-
 export default function AdminPaymentsPage() {
+  return (
+    <Suspense fallback={<PaymentsLoading />}>
+      <PaymentsContent />
+    </Suspense>
+  )
+}
+
+function PaymentsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -26,26 +33,31 @@ export default function AdminPaymentsPage() {
   const [method, setMethod] = useState<string>('all')
   const [range, setRange] = useState<string>('last_30')
 
-  // Initialize from URL
   useEffect(() => {
     if (!searchParams) return
-    const get = (k: string) => searchParams.get(k) || ''
-    const s = get('status'); if (s) setStatus(s)
-    const m = get('method'); if (m) setMethod(m)
-    const r = get('range'); if (r) setRange(r)
-   
-  }, [])
 
-  // Keep URL in sync
+    const nextStatus = searchParams.get('status') ?? 'all'
+    const nextMethod = searchParams.get('method') ?? 'all'
+    const nextRange = searchParams.get('range') ?? 'last_30'
+
+    setStatus((prev) => (prev === nextStatus ? prev : nextStatus))
+    setMethod((prev) => (prev === nextMethod ? prev : nextMethod))
+    setRange((prev) => (prev === nextRange ? prev : nextRange))
+  }, [searchParams])
+
   useEffect(() => {
     const params = new URLSearchParams()
     if (status && status !== 'all') params.set('status', status)
     if (method && method !== 'all') params.set('method', method)
     if (range && range !== 'last_30') params.set('range', range)
+
     const qs = params.toString()
+    const currentQs = searchParams?.toString() ?? ''
+    if (qs === currentQs) return
+
     const href = qs ? `/admin/payments?${qs}` : '/admin/payments'
     router.replace(href)
-  }, [status, method, range, router])
+  }, [status, method, range, router, searchParams])
 
   const filters: FilterConfig[] = [
     { key: 'status', label: 'Status', value: status, options: [
@@ -114,5 +126,11 @@ export default function AdminPaymentsPage() {
         selectable={false}
       />
     </PermissionGate>
+  )
+}
+
+function PaymentsLoading() {
+  return (
+    <div className="px-6 py-8 text-sm text-muted-foreground">Loading payments...</div>
   )
 }
