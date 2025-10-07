@@ -1,10 +1,11 @@
 
 ## ✅ Completed
-- [x] Implemented /api/admin/audit-logs endpoint restricted to SUPER_ADMIN with filters and pagination.
-  - **Why**: observability & compliance
-  - **Impact**: enables secure access to audit records for platform owners
-
-## 🔧 Next Steps
-- [ ] Wire AdminAuditsPage to use /api/admin/audit-logs when SUPER_ADMIN; keep existing activity fallback for others.
-- [ ] Add IP policy block auditing in middleware using logAudit with action: 'security.ip.block'.
-- [ ] Add emergency scripts: scripts/admin-setup/reset-password.ts and disable-mfa.ts.
+- [x] Wired AdminAuditsPage to use /api/admin/audit-logs for SUPER_ADMIN; legacy activity endpoint remains for others.
+  - **Why**: correct data source based on privileges
+  - **Impact**: SUPER_ADMINs see full audit logs; others see activity view
+- [x] Added IP policy block audit in middleware (action: security.ip.block) with graceful edge fallback.
+  - **Why**: traceability of access denials
+  - **Impact**: improved incident visibility
+- [x] Shipped emergency scripts: scripts/admin-setup/reset-password.ts and scripts/admin-setup/disable-mfa.ts
+  - **Why**: recovery procedures
+  - **Impact**: rapid response for lockouts and MFA issues
