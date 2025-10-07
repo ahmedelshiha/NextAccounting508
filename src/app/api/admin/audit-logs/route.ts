@@ -19,6 +19,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Super admin access required' }, { status: 403 })
   }
 
+  // Optional step-up MFA for sensitive super admin endpoints
+  const userId = String((session.user as any)?.id || '')
+  const stepOk = await verifySuperAdminStepUp(req, userId)
+  if (!stepOk) {
+    try { await logAudit({ action: 'auth.mfa.stepup.denied', actorId: userId, targetId: userId }) } catch {}
+    return stepUpChallenge()
+  }
+
   const url = new URL(req.url)
   const { page, limit, skip } = getPagination(url)
   const action = url.searchParams.get('action') || undefined
