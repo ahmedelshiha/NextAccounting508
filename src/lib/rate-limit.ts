@@ -11,6 +11,8 @@ function ensureRedis() {
     const hasUpstash = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
     const hasRedis = Boolean(process.env.REDIS_URL)
     if (!hasUpstash && !hasRedis) { redisReady = true; return }
+    // Use require here intentionally to avoid async import in sync path
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { default: RedisCache } = require('@/lib/cache/redis')
     const url = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL
     redisCache = new RedisCache(url)
