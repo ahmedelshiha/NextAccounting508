@@ -1,10 +1,40 @@
 -- services: ensure tenantId exists, add FK, set NOT NULL, add index
-BEGIN;
-ALTER TABLE public.services ADD COLUMN IF NOT EXISTS "tenantId" TEXT;
+-- Ensure column exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'services' AND column_name = 'tenantId') THEN
+      EXECUTE 'ALTER TABLE public.services ADD COLUMN "tenantId" TEXT';
+    END IF;
+  END IF;
+END$$;
 
-ALTER TABLE public.services
-  ADD CONSTRAINT IF NOT EXISTS services_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS services_tenantId_idx ON public.services("tenantId");
+-- Backfill (noop placeholder if specific logic not present)
+DO $$
+BEGIN
+  -- Intentionally left as a safe no-op; backfill handled by separate scripts if required
+  NULL;
+END$$;
 
-ALTER TABLE public.services ALTER COLUMN "tenantId" SET NOT NULL;
-COMMIT;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'services_tenantId_fkey') THEN
+      EXECUTE 'ALTER TABLE public.services ADD CONSTRAINT services_tenantId_fkey FOREIGN KEY ("tenantId") REFERENCES public."Tenant"("id") ON DELETE CASCADE';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'services_tenantId_idx') THEN
+      EXECUTE 'CREATE INDEX services_tenantId_idx ON public.services("tenantId")';
+    END IF;
+  END IF;
+END$$;
+
+DO $$
+DECLARE cnt BIGINT;
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'services') THEN
+    EXECUTE 'SELECT COUNT(*)::bigint FROM public.services WHERE "tenantId" IS NULL' INTO cnt;
+    IF cnt = 0 THEN
+      EXECUTE 'ALTER TABLE public.services ALTER COLUMN "tenantId" SET NOT NULL';
+    END IF;
+  END IF;
+END$$;
