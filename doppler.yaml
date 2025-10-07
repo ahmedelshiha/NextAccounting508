@@ -1,0 +1,8 @@
+project: next-accounting
+environments:
+  local:
+    config: local
+  netlify:
+    config: netlify
+  vercel:
+    config: vercel
