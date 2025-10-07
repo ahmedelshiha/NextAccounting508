@@ -25,16 +25,22 @@ async function run() {
 
     console.log('Ensuring attachments.tenantId column')
     await client.query(`ALTER TABLE IF EXISTS public.attachments ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
-    console.log('Backfilling attachments.tenantId')
-    await client.query(`
-      UPDATE public.attachments a
-      SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
-      FROM public."ServiceRequest" sr
-      LEFT JOIN public.users u ON u.id = a."uploaderId"
-      LEFT JOIN public.expenses e ON e."attachmentId" = a.id
-      WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
-    `)
-    await client.query(`CREATE INDEX IF NOT EXISTS attachments_tenantId_idx ON public.attachments("tenantId")`)
+    // Only backfill if table exists
+    const attachmentsExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attachments')`)).rows[0].exists
+    if (attachmentsExists) {
+      console.log('Backfilling attachments.tenantId')
+      await client.query(`
+        UPDATE public.attachments a
+        SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
+        FROM public."ServiceRequest" sr
+        LEFT JOIN public.users u ON u.id = a."uploaderId"
+        LEFT JOIN public.expenses e ON e."attachmentId" = a.id
+        WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
+      `)
+      await client.query(`CREATE INDEX IF NOT EXISTS attachments_tenantId_idx ON public.attachments("tenantId")`)
+    } else {
+      console.log('attachments table not present; skipping attachments backfill')
+    }
 
     console.log('\nPost-backfill counts:')
     const res = await client.query(`SELECT
