@@ -174,6 +174,7 @@ async function loadRoster(): Promise<{ records: RosterRecord[]; tenants: TenantC
       role: true,
       department: true,
       position: true,
+      createdAt: true,
       tenantMemberships: {
         select: {
           role: true,
@@ -212,7 +213,7 @@ async function loadRoster(): Promise<{ records: RosterRecord[]; tenants: TenantC
       department: user.department ?? null,
       position: user.position ?? null,
       phone: null,
-      createdAt: new Date().toISOString(),
+      createdAt: user.createdAt.toISOString(),
       tenantMemberships: memberships
     }
   })
