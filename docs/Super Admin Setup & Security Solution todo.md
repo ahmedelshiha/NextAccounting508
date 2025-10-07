@@ -138,3 +138,21 @@ Append further entries here in chronological order when new work begins or compl
 ---
 
 (Entry added automatically.)
+
+---
+## ✅ Completed
+
+- _No new completions in this update_
+
+## ⚠️ Issues / Risks
+
+- Current rate limiting relies on per-process token buckets when Redis is available, because synchronous callers cannot await the distributed backend. In multi-instance or serverless deployments this permits bypassing limits by rotating instances, weakening brute-force and abuse defenses.
+
+## 🚧 In Progress
+
+- [ ] Implement distributed rate limiting via Redis-backed async helper and update admin, portal, and auth endpoints to await the shared limiter so quotas apply cross-instance.
+
+## 🔧 Next Steps
+
+- [ ] Emit `security.ratelimit.block` audit entries (with tenantId, userId, key, ip) whenever a privileged route returns 429 due to rate limiting, enabling responders to trace abuse patterns.
+
