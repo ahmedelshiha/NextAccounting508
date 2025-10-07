@@ -24,6 +24,8 @@ const tabs = [
   { key: 'compliance', label: 'Compliance' },
 ]
 
+import SuperAdminSecurityModal from '@/components/admin/settings/SuperAdminSecurityModal'
+
 export default function SecurityComplianceSettingsPage() {
   const [active, setActive] = useState<string>('passwordPolicy')
   const [settings, setSettings] = useState<SecuritySettings | null>(null)
