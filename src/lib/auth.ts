@@ -57,9 +57,15 @@ export const authOptions: NextAuthOptions = {
 
         const tenantId = await getResolvedTenantId(requestLike)
         try {
-          if (!(await rateLimitAsync(`auth:login:ip:${clientIp}`, 20, 60_000))) return null
+          if (!(await rateLimitAsync(`auth:login:ip:${clientIp}`, 20, 60_000))) {
+            try { await logAudit({ action: 'security.ratelimit.block', details: { ip: clientIp, key: `auth:login:ip:${clientIp}` } }) } catch {}
+            return null
+          }
           const emailKey = String(credentials.email || '').toLowerCase()
-          if (!(await rateLimitAsync(`auth:login:${tenantId}:${emailKey}`, 10, 60_000))) return null
+          if (!(await rateLimitAsync(`auth:login:${tenantId}:${emailKey}`, 10, 60_000))) {
+            try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId, key: `auth:login:${tenantId}:${emailKey}` } }) } catch {}
+            return null
+          }
         } catch {}
 
         // Preview fallback: allow login using PREVIEW_ADMIN_EMAIL/PASSWORD and auto-provision the user in the default tenant
