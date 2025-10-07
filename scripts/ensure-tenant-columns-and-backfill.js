@@ -55,12 +55,18 @@ async function run() {
     if (attachmentsLowerExists) {
       console.log('Backfilling public.attachments.tenantId')
       await client.query(`
-        UPDATE public.attachments a
-        SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
-        FROM public."ServiceRequest" sr
-        LEFT JOIN public.users u ON u.id = a."uploaderId"
-        LEFT JOIN public.expenses e ON e."attachmentId" = a.id
-        WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
+        WITH source AS (
+          SELECT a.id, COALESCE(sr."tenantId", u."tenantId", e."tenantId") AS tenant_id
+          FROM public.attachments a
+          LEFT JOIN public."ServiceRequest" sr ON sr.id = a."serviceRequestId"
+          LEFT JOIN public.users u ON u.id = a."uploaderId"
+          LEFT JOIN public.expenses e ON e."attachmentId" = a.id
+          WHERE a."tenantId" IS NULL
+        )
+        UPDATE public.attachments t
+        SET "tenantId" = source.tenant_id
+        FROM source
+        WHERE t.id = source.id AND source.tenant_id IS NOT NULL
       `)
       await client.query(`CREATE INDEX IF NOT EXISTS attachments_tenantId_idx ON public.attachments("tenantId")`)
     }
@@ -68,12 +74,18 @@ async function run() {
     if (attachmentsUpperExists) {
       console.log('Backfilling public."Attachment".tenantId')
       await client.query(`
-        UPDATE public."Attachment" a
-        SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
-        FROM public."ServiceRequest" sr
-        LEFT JOIN public.users u ON u.id = a."uploaderId"
-        LEFT JOIN public.expenses e ON e."attachmentId" = a.id
-        WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
+        WITH source AS (
+          SELECT a.id, COALESCE(sr."tenantId", u."tenantId", e."tenantId") AS tenant_id
+          FROM public."Attachment" a
+          LEFT JOIN public."ServiceRequest" sr ON sr.id = a."serviceRequestId"
+          LEFT JOIN public.users u ON u.id = a."uploaderId"
+          LEFT JOIN public.expenses e ON e."attachmentId" = a.id
+          WHERE a."tenantId" IS NULL
+        )
+        UPDATE public."Attachment" t
+        SET "tenantId" = source.tenant_id
+        FROM source
+        WHERE t.id = source.id AND source.tenant_id IS NOT NULL
       `)
       await client.query(`CREATE INDEX IF NOT EXISTS "Attachment_tenantId_idx" ON public."Attachment"("tenantId")`)
     }
