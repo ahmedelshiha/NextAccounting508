@@ -1,11 +1,10 @@
-## ✅ Completed
-- [x] Added TOTP-based MFA utilities using VerificationToken storage; endpoints for enroll and verify at /api/auth/mfa/{enroll,verify}; enforced MFA for ADMIN/SUPER_ADMIN during login when enrolled; upgraded auth login to use Redis/Upstash-backed rateLimitAsync.
-  - **Why**: security hardening
-  - **Impact**: cross-instance rate limiting for login; MFA enrollment and enforcement without new schema migration
 
-## 🚧 In Progress
-- [ ] Rollout plan: enhance admin UI to surface MFA enrollment and backup code download; add admin-only page for MFA management.
+## ✅ Completed
+- [x] Implemented /api/admin/audit-logs endpoint restricted to SUPER_ADMIN with filters and pagination.
+  - **Why**: observability & compliance
+  - **Impact**: enables secure access to audit records for platform owners
 
 ## 🔧 Next Steps
-- [ ] Extend route-level guards to check ENFORCE_ORG_2FA and session flags where applicable.
-- [ ] Add audit log viewer and admin audit endpoint.
+- [ ] Wire AdminAuditsPage to use /api/admin/audit-logs when SUPER_ADMIN; keep existing activity fallback for others.
+- [ ] Add IP policy block auditing in middleware using logAudit with action: 'security.ip.block'.
+- [ ] Add emergency scripts: scripts/admin-setup/reset-password.ts and disable-mfa.ts.
