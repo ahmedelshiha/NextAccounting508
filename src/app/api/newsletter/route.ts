@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { z } from 'zod'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { requireAuth, isResponse } from '@/lib/auth-middleware'
 
 const subscribeSchema = z.object({
@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
   try {
     // Basic IP rate limiting for subscribe to prevent abuse: 10 requests / minute per IP
     const ip = getClientIp(request as unknown as Request)
-    if (!rateLimit(`newsletter:subscribe:${ip}`, 10, 60_000)) {
+    const subscribeLimit = await applyRateLimit(`newsletter:subscribe:${ip}`, 10, 60_000)
+    if (!subscribeLimit.allowed) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
     const body = await request.json()
@@ -134,7 +135,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   // Admin-only access with IP-based rate limiting
   const ip = getClientIp(request as unknown as Request)
-  if (!rateLimit(`newsletter:list:${ip}`, 60, 60_000)) {
+  const listLimit = await applyRateLimit(`newsletter:list:${ip}`, 60, 60_000)
+  if (!listLimit.allowed) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
   const sessionOrResponse = await requireAuth(['ADMIN', 'STAFF'])
