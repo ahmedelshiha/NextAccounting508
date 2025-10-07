@@ -3,6 +3,7 @@ import { getToken } from 'next-auth/jwt'
 import { signTenantCookie } from '@/lib/tenant-cookie'
 import { logger } from '@/lib/logger'
 import { getClientIp } from '@/lib/rate-limit'
+import { computeIpHash } from '@/lib/security/ip-hash'
 
 function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
@@ -41,6 +42,7 @@ export async function middleware(req: NextServer.NextRequest) {
       ? inboundRequestId
       : safeGenerateRequestId()
   const userId = token ? String((token as any).userId ?? (token as any).sub ?? '') : ''
+  const clientIp = getClientIp(req as unknown as Request)
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isAdminPage = pathname.startsWith('/admin')
@@ -120,7 +122,7 @@ export async function middleware(req: NextServer.NextRequest) {
   try {
     const ipRestrictionsEnabled = String(process.env.ENABLE_IP_RESTRICTIONS || '').toLowerCase() === 'true'
     if (ipRestrictionsEnabled) {
-      const ip = getClientIp(req as unknown as Request)
+      const ip = clientIp
       const rawAllow = String(process.env.ADMIN_IP_WHITELIST || '').trim()
       const allow = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
       const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
@@ -173,6 +175,50 @@ export async function middleware(req: NextServer.NextRequest) {
     }
 
     return response
+  }
+
+  const enforceSuperAdminIpBinding = String(process.env.SUPERADMIN_STRICT_IP_ENFORCEMENT || '').toLowerCase() === 'true'
+  if (enforceSuperAdminIpBinding && token) {
+    const role = (token as unknown as { role?: string } | null)?.role
+    const sessionIpHash = typeof (token as any)?.sessionIpHash === 'string' ? (token as any).sessionIpHash : null
+    if (role === 'SUPER_ADMIN') {
+      const currentIpHash = await computeIpHash(clientIp)
+      if (!sessionIpHash || currentIpHash !== sessionIpHash) {
+        const mismatchReason = sessionIpHash ? 'mismatch' : 'missing'
+        logger.warn('Super admin session rejected due to IP constraint', {
+          ...baseLogContext,
+          ip: clientIp,
+          sessionIpHash,
+          currentIpHash,
+          mismatchReason,
+        })
+        try {
+          const { logAudit } = await import('@/lib/audit')
+          await logAudit({
+            action: 'security.superadmin.ip_mismatch',
+            actorId: userId || null,
+            targetId: userId || null,
+            details: {
+              ip: clientIp,
+              mismatchReason,
+              expectedHash: sessionIpHash,
+              providedHash: currentIpHash,
+              pathname,
+              requestId,
+            },
+          })
+        } catch {}
+        if (isApiRequest) logApiEntry()
+        const destination = new URL('/login?reason=ip-mismatch', req.url)
+        const response = isApiRequest
+          ? NextServer.NextResponse.json({ error: 'Session locked. Please sign in again.' }, { status: 401 })
+          : NextServer.NextResponse.redirect(destination)
+        response.cookies.delete('next-auth.session-token')
+        response.cookies.delete('__Secure-next-auth.session-token')
+        response.cookies.delete('next-auth.callback-url')
+        return finalizeResponse(response)
+      }
+    }
   }
 
   try {

@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
 import { getClientIp, rateLimitAsync } from '@/lib/rate-limit'
+import { computeIpHash } from '@/lib/security/ip-hash'
 import { logAudit } from '@/lib/audit'
 
 const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
@@ -32,18 +33,31 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
 
+        const requestLike = ((req as any)?.request ?? (req as any)) as unknown as Request
+        let clientIp = 'anonymous'
+        try {
+          clientIp = getClientIp(requestLike)
+        } catch {}
+        const sessionIpHash = await computeIpHash(clientIp)
+        const sessionIssuedAt = Date.now()
+
         if (!hasDb) {
           const u = demoUsers.find((x) => x.email.toLowerCase() === credentials.email.toLowerCase())
           if (!u) return null
           if (credentials.password !== u.password) return null
-          return { id: u.id, email: u.email, name: u.name, role: u.role }
+          return {
+            id: u.id,
+            email: u.email,
+            name: u.name,
+            role: u.role,
+            sessionIpHash,
+            sessionIssuedAt,
+          }
         }
 
-        const requestLike = ((req as any)?.request ?? (req as any)) as unknown as Request
         const tenantId = await getResolvedTenantId(requestLike)
         try {
-          const ip = getClientIp(requestLike)
-          if (!(await rateLimitAsync(`auth:login:ip:${ip}`, 20, 60_000))) return null
+          if (!(await rateLimitAsync(`auth:login:ip:${clientIp}`, 20, 60_000))) return null
           const emailKey = String(credentials.email || '').toLowerCase()
           if (!(await rateLimitAsync(`auth:login:${tenantId}:${emailKey}`, 10, 60_000))) return null
         } catch {}
@@ -80,7 +94,9 @@ export const authOptions: NextAuthOptions = {
             tenantId: activeMembership ? activeMembership.tenantId : tenantId,
             tenantSlug: activeMembership?.tenant?.slug ?? null,
             tenantRole: activeMembership ? activeMembership.role : null,
-            availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
+            availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role })),
+            sessionIpHash,
+            sessionIssuedAt,
           }
         }
 
@@ -129,7 +145,9 @@ export const authOptions: NextAuthOptions = {
           tenantId: activeMembership ? activeMembership.tenantId : tenantId,
           tenantSlug: activeMembership?.tenant?.slug ?? null,
           tenantRole: activeMembership ? activeMembership.role : null,
-          availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role }))
+          availableTenants: tenantMemberships.map(m => ({ id: m.tenantId, slug: m.tenant?.slug, name: m.tenant?.name, role: m.role })),
+          sessionIpHash,
+          sessionIssuedAt,
         }
       }
     })
@@ -158,6 +176,9 @@ export const authOptions: NextAuthOptions = {
         } else {
           token.sessionVersion = 0
         }
+
+        token.sessionIpHash = typeof (user as any).sessionIpHash === 'string' ? (user as any).sessionIpHash : null
+        token.sessionIssuedAt = typeof (user as any).sessionIssuedAt === 'number' ? (user as any).sessionIssuedAt : Date.now()
 
         // Attach tenant metadata if provided by authorize
         if ((user as any).tenantId) token.tenantId = (user as any).tenantId
@@ -231,6 +252,13 @@ export const authOptions: NextAuthOptions = {
         if (token.role !== undefined) {
           session.user.role = token.role as string
         }
+
+        const sessionIpHash = typeof (token as any).sessionIpHash === 'string' ? (token as any).sessionIpHash : null
+        const sessionIssuedAtValue = typeof (token as any).sessionIssuedAt === 'number' ? (token as any).sessionIssuedAt : null
+        ;(session.user as any).sessionIpHash = sessionIpHash
+        ;(session.user as any).sessionIssuedAt = sessionIssuedAtValue
+        ;(session as any).sessionIpHash = sessionIpHash
+        ;(session as any).sessionIssuedAt = sessionIssuedAtValue
 
         ;(session.user as any).tenantId = tenantId
         ;(session.user as any).tenantSlug = tenantSlug
