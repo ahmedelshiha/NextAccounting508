@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
 
   // Optional step-up MFA for sensitive super admin endpoints
   const userId = String((session.user as any)?.id || '')
-  const stepOk = await verifySuperAdminStepUp(req, userId)
+  const tenantId = String((session.user as any)?.tenantId || '') || null
+  const stepOk = await verifySuperAdminStepUp(req, userId, tenantId)
   if (!stepOk) {
     try { await logAudit({ action: 'auth.mfa.stepup.denied', actorId: userId, targetId: userId }) } catch {}
     return stepUpChallenge()
