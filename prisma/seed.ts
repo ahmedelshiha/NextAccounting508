@@ -30,6 +30,38 @@ async function main() {
     },
   })
 
+  // Ensure tenant SecuritySettings with superAdmin defaults
+  try {
+    const existingSec = await prisma.securitySettings.findUnique({ where: { tenantId: defaultTenant.id } })
+    if (!existingSec) {
+      await prisma.securitySettings.create({
+        data: {
+          tenantId: defaultTenant.id,
+          passwordPolicy: {},
+          sessionSecurity: {},
+          twoFactor: {},
+          network: {},
+          dataProtection: {},
+          compliance: {},
+          superAdmin: { stepUpMfa: false, logAdminAccess: true },
+        },
+      })
+    } else {
+      const prev: any = (existingSec as any).superAdmin || {}
+      await prisma.securitySettings.update({
+        where: { id: existingSec.id },
+        data: {
+          superAdmin: {
+            stepUpMfa: typeof prev.stepUpMfa === 'boolean' ? prev.stepUpMfa : false,
+            logAdminAccess: typeof prev.logAdminAccess === 'boolean' ? prev.logAdminAccess : true,
+          },
+        },
+      })
+    }
+  } catch (e) {
+    console.warn('Skipping SecuritySettings seed (may run only after migrations):', (e as any)?.message)
+  }
+
   // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
   await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
