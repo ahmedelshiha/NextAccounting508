@@ -1,7 +1,10 @@
 ## ✅ Completed
-- [x] Hardened migration 20251004_add_idempotencykey_tenantid_not_null with safe backfill and guarded NOT NULL
-  - **Why**: Ensure idempotent backfill from users.userId and avoid parser issues by using a unique dollar tag in DO blocks
-  - **Impact**: Migration applies cleanly before FK/index enforcement; prevents NOT NULL failures; aligns with 20251005 composite unique
+- [x] Hardened migration 20251004_add_idempotencykey_tenantid_not_null with correlated backfill, orphan guard, and conditional NOT NULL enforcement
+  - **Why**: Ensure tenantId derives safely from users, avoid dynamic SQL parser issues, and skip NOT NULL when orphan tenant references remain
+  - **Impact**: Migration applies cleanly before FK/index enforcement, surfaces orphan rows via NOTICE, and keeps deployments resilient across Postgres versions
+- [x] Hardened migration 20251005_add_idempotencykey_tenantid_not_null with orphan detection and conditional FK/index enforcement
+  - **Why**: Only create constraints when tenant data is clean and avoid deploy failures caused by orphaned rows
+  - **Impact**: Repeated deploys remain idempotent, and operators receive NOTICE logs when cleanup is required before enforcing constraints
 - [x] Hardened multiple tenantId migrations (20251005_* and related 20251004_*) to use dollar-quoted DO blocks and safe dollar-quoted EXECUTE statements for backfills and updates
   - **Why**: Avoid nested dollar-quoting parsing issues and make dynamic SQL idempotent and robust across Postgres versions
   - **Files updated**: 20251005_add_booking_tenantid_not_null, 20251005_add_attachment_tenantid_not_null, 20251005_add_expense_tenantid_not_null, 20251005_add_workorder_tenantid_not_null, 20251005_add_scheduledreminder_tenantid_not_null, 20251005_add_invoice_tenantid_not_null, 20251005_add_servicerequest_tenantid_not_null, 20251005_add_service_tenantid_not_null, and others
@@ -219,6 +222,7 @@ Work is active and proceeding one migration at a time (strategy A). The team is 
 
 High priority tasks (execution order):
 - [ ] HIGH: Apply updated 20251004_add_idempotencykey_tenantid_not_null in staging; verify zero NULLs, then run 20251005_add_idempotencykey_tenantid_not_null
+  - File updated with correlated update and orphan guard; ready for staging apply
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null — safe backfill and FK guard
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_service_tenantid_not_null — guard FK creation versus orphan tenant ids
@@ -229,7 +233,8 @@ High priority tasks (execution order):
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_booking_tenantid_not_null — convert to correlated subqueries and avoid FROM-alias misuse
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_bookingsettings_tenantid_not_null — ensure no orphan tenantIds before adding FK
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_expense_tenantid_not_null �� idempotent guards and NOT NULL check
-- [ ] HIGH: Review and fix prisma/migrations/20251005_add_idempotencykey_tenantid_not_null — idempotent guards
+- [x] HIGH: Review and fix prisma/migrations/20251005_add_idempotencykey_tenantid_not_null — idempotent guards
+  - Hardened with orphan tenant validation, conditional FK/NOT NULL enforcement, and schema-qualified existence checks
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_invoice_tenantid_not_null — backfill with correlated subqueries and FK guard
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_scheduledreminder_tenantid_not_null — safe apply steps
 - [ ] HIGH: Review and fix prisma/migrations/20251005_add_service_tenantid_not_null — guard FK vs orphan tenant ids
