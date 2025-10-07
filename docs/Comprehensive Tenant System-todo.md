@@ -1,4 +1,7 @@
 ## ✅ Completed
+- [x] Hardened migration 20251004_add_idempotencykey_tenantid_not_null with safe backfill and guarded NOT NULL
+  - **Why**: Ensure idempotent backfill from users.userId and avoid parser issues by using a unique dollar tag in DO blocks
+  - **Impact**: Migration applies cleanly before FK/index enforcement; prevents NOT NULL failures; aligns with 20251005 composite unique
 - [x] Introduced scripts/rls-rollout.ts orchestrator leveraging reusable setupTenantRLS to automate prepare/tighten/enforce phases with audits and safeguards
   - **Why**: Provide a single CLI to manage RLS rollout toggles safely, preventing accidental FORCE_RLS before data is clean
   - **Impact**: Streamlines staged rollout in staging/production, ensuring audits run before tightening policies
@@ -201,7 +204,7 @@ Safety checklist before proceeding:
 Work is active and proceeding one migration at a time (strategy A). The team is fixing migrations sequentially, applying each change, and re-running prisma migrate deploy. The next migration currently in progress is listed first.
 
 High priority tasks (execution order):
-- [IN PROGRESS] 20251004_add_idempotencykey_tenantid_not_null — backfill and NOT NULL guard (next to apply)
+- [ ] HIGH: Apply updated 20251004_add_idempotencykey_tenantid_not_null in staging; verify zero NULLs, then run 20251005_add_idempotencykey_tenantid_not_null
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null — safe backfill and FK guard
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_service_tenantid_not_null — guard FK creation versus orphan tenant ids
