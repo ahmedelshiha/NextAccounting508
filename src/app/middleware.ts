@@ -184,6 +184,30 @@ export async function middleware(req: NextServer.NextRequest) {
     if (role === 'SUPER_ADMIN') {
       const currentIpHash = await computeIpHash(clientIp)
       if (!sessionIpHash || currentIpHash !== sessionIpHash) {
+        const mismatchReason = sessionIpHash ? 'mismatch' : 'missing'
+        logger.warn('Super admin session rejected due to IP constraint', {
+          ...baseLogContext,
+          ip: clientIp,
+          sessionIpHash,
+          currentIpHash,
+          mismatchReason,
+        })
+        try {
+          const { logAudit } = await import('@/lib/audit')
+          await logAudit({
+            action: 'security.superadmin.ip_mismatch',
+            actorId: userId || null,
+            targetId: userId || null,
+            details: {
+              ip: clientIp,
+              mismatchReason,
+              expectedHash: sessionIpHash,
+              providedHash: currentIpHash,
+              pathname,
+              requestId,
+            },
+          })
+        } catch {}
         if (isApiRequest) logApiEntry()
         const destination = new URL('/login?reason=ip-mismatch', req.url)
         const response = isApiRequest
