@@ -74,9 +74,10 @@ This file is the central state for all Super Admin setup and security work. Appe
   - Files changed: src/services/security-settings.service.ts
   - Note: Service now emits `security.superadmin.logAdminAccess.toggled` with details { tenantId, previous, current } when toggled.
 
-- [ ] Make Super Admin Controls modal visibility explicit to SUPER_ADMIN users only (UI guard). Currently PermissionGate controls access to the Security Settings page; consider an extra guard so only SUPER_ADMINs see/modify superAdmin.* toggles.
+- [x] Make Super Admin Controls modal visibility explicit to SUPER_ADMIN users only (UI guard). Currently PermissionGate controls access to the Security Settings page; added an extra client-side guard so only SUPER_ADMINs can open the modal and superAdmin.* toggles are hidden for others.
   - Owner: Frontend
   - Verification: non-super admins cannot open the modal nor read tenant-level superAdmin fields
+  - Files changed: src/app/admin/settings/security/page.tsx, src/components/admin/settings/SuperAdminSecurityModal.tsx
 
 - [ ] Add IPv6-focused unit tests for ip-allowlist edge cases (zone identifiers, compression, ::ffff: mapped addresses) and add tests for matched rule resolution.
   - Owner: Test maintainer
