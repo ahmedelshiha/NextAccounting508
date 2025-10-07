@@ -46,7 +46,6 @@ interface TenantContactSummary {
   }>
 }
 
-const prisma = new PrismaClient()
 
 function parseArgs(): CliOptions {
   const args = process.argv.slice(2)
