@@ -1,6 +1,8 @@
 "use client"
 
+'use client'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { PERMISSIONS } from '@/lib/permissions'
