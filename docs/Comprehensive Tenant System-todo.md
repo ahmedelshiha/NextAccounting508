@@ -5,6 +5,9 @@
 - [x] Hardened migration 20251005_add_idempotencykey_tenantid_not_null with orphan detection and conditional FK/index enforcement
   - **Why**: Only create constraints when tenant data is clean and avoid deploy failures caused by orphaned rows
   - **Impact**: Repeated deploys remain idempotent, and operators receive NOTICE logs when cleanup is required before enforcing constraints
+- [x] Hardened migration 20251004_add_invoice_tenantid_not_null with booking/client correlated backfill and guarded FK/NOT NULL enforcement
+  - **Why**: Ensure invoices inherit tenant scope from bookings or client ownership and skip constraint enforcement when data cleanup is still required
+  - **Impact**: Backfills tenantId via correlated lookups, creates the tenant index safely, and surfaces orphans through NOTICE logs before enforcing constraints
 - [x] Hardened multiple tenantId migrations (20251005_* and related 20251004_*) to use dollar-quoted DO blocks and safe dollar-quoted EXECUTE statements for backfills and updates
   - **Why**: Avoid nested dollar-quoting parsing issues and make dynamic SQL idempotent and robust across Postgres versions
   - **Files updated**: 20251005_add_booking_tenantid_not_null, 20251005_add_attachment_tenantid_not_null, 20251005_add_expense_tenantid_not_null, 20251005_add_workorder_tenantid_not_null, 20251005_add_scheduledreminder_tenantid_not_null, 20251005_add_invoice_tenantid_not_null, 20251005_add_servicerequest_tenantid_not_null, 20251005_add_service_tenantid_not_null, and others
@@ -223,7 +226,8 @@ Work is active and proceeding one migration at a time (strategy A). The team is 
 High priority tasks (execution order):
 - [ ] HIGH: Apply updated 20251004_add_idempotencykey_tenantid_not_null in staging; verify zero NULLs, then run 20251005_add_idempotencykey_tenantid_not_null
   - File updated with correlated update and orphan guard; ready for staging apply
-- [ ] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
+- [x] HIGH: Review and fix prisma/migrations/20251004_add_invoice_tenantid_not_null — convert joins to correlated subqueries and guard FK
+  - Hardened with booking/client correlated backfill, orphan detection, conditional FK/index creation, and safe NOT NULL enforcement
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_scheduledreminder_tenantid_not_null — safe backfill and FK guard
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_service_tenantid_not_null — guard FK creation versus orphan tenant ids
 - [ ] HIGH: Review and fix prisma/migrations/20251004_add_servicerequest_tenantid_not_null — correlated backfill and FK guard
