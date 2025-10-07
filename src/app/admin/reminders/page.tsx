@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 import RunRemindersButton from '@/components/admin/RunRemindersButton'
@@ -12,7 +12,7 @@ import StandardPage from '@/components/dashboard/templates/StandardPage'
  * - Adds accessible table markup while keeping original styling conventions
  */
 export default async function AdminRemindersPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getSessionOrBypass()
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
     return (
