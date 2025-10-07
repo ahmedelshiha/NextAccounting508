@@ -13,6 +13,9 @@ Doppler centralizes environment variables for this Next.js + Prisma project, rep
 | `NEXTAUTH_URL` | Canonical URL for authentication callbacks. | Matches the active deployment domain. |
 | `MULTI_TENANCY_ENABLED` | Enables tenant filtering logic. | `true` by default. |
 | `MULTI_TENANCY_STRICT` | Enforces strict tenant-scoped access checks. | Defaults to `false`; enable for production hardening. |
+| `ENABLE_IP_RESTRICTIONS` | Enforces IP allowlist for all admin surfaces when `true`. | Pair with `ADMIN_IP_WHITELIST`. |
+| `ADMIN_IP_WHITELIST` | Comma-separated list of admin-allowed IPs. | Exact matches; CIDR not yet supported. |
+| `LOG_ADMIN_ACCESS` | Logs allow/deny decisions for admin access. | Useful during rollout and auditing. |
 | `AUTH_DISABLED` | Bypasses authentication for preview/testing flows. | Leave empty except during controlled previews. |
 | `PREVIEW_ADMIN_EMAIL` | Email used by preview auth bypass. | Pair with `PREVIEW_ADMIN_PASSWORD` when `AUTH_DISABLED` is set. |
 | `PREVIEW_ADMIN_PASSWORD` | Password used by preview auth bypass. | Store only in Doppler preview configs. |
@@ -37,7 +40,7 @@ Doppler centralizes environment variables for this Next.js + Prisma project, rep
 | `SENTRY_ORG` | Sentry organization slug. | Required for CLI uploads. |
 | `SENTRY_PROJECT` | Sentry project slug. | Powers release upload steps. |
 | `SENTRY_AUTH_TOKEN` | Auth token for Sentry CLI operations. | Scope to release creation only. |
-| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint used for caching. | Combine with `UPSTASH_REDIS_REST_TOKEN`. |
+| `UPSTASH_REDIS_REST_URL` | Upstash REST endpoint used for caching and rate limiting. | Combine with `UPSTASH_REDIS_REST_TOKEN`. |
 | `UPSTASH_REDIS_REST_TOKEN` | Token for authenticated Upstash REST access. | Rotate via Upstash dashboard. |
 | `NETLIFY_SITE_ID` | Site ID used by Netlify deploy hooks. | Required for CLI deployments. |
 | `NETLIFY_AUTH_TOKEN` | Personal access token for Netlify deploys. | Store only in the `netlify` config. |

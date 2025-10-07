@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useMemo, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { apiFetch } from '@/lib/api'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
@@ -22,13 +23,21 @@ export default function AdminAuditsPage() {
   const [limit] = useState(20)
   const [total, setTotal] = useState(0)
 
+  const { data: session } = useSession()
+
   async function load() {
     setLoading(true)
     try {
-      const params = new URLSearchParams({ type, page: String(page), limit: String(limit) })
+      const role = (session?.user as any)?.role as string | undefined
+      const isSuper = role === 'SUPER_ADMIN'
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) })
       if (q) params.set('q', q)
-      if (status) params.set('status', status)
-      const res = await apiFetch(`/api/admin/activity?${params.toString()}`)
+      if (!isSuper) {
+        params.set('type', type)
+        if (status) params.set('status', status)
+      }
+      const path = isSuper ? '/api/admin/audit-logs' : '/api/admin/activity'
+      const res = await apiFetch(`${path}?${params.toString()}`)
       if (res.ok) {
         const json = await res.json()
         const data = Array.isArray(json) ? json : json.data
@@ -42,7 +51,7 @@ export default function AdminAuditsPage() {
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { load() }, [type, page])
+  useEffect(() => { load() }, [type, page, (session?.user as any)?.role])
 
   const filters: FilterConfig[] = [
     { key: 'type', label: 'Type', value: type, options: [{ value: 'AUDIT', label: 'AUDIT' }, { value: 'SYSTEM', label: 'SYSTEM' }, { value: 'EMAIL', label: 'EMAIL' }, { value: 'TASKS', label: 'TASKS' }, { value: 'REALTIME', label: 'REALTIME' }] },

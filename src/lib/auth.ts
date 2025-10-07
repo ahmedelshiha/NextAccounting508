@@ -5,7 +5,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { getClientIp, rateLimitAsync } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
 const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
@@ -43,9 +43,9 @@ export const authOptions: NextAuthOptions = {
         const tenantId = await getResolvedTenantId(requestLike)
         try {
           const ip = getClientIp(requestLike)
-          if (!rateLimit(`auth:login:ip:${ip}`, 20, 60_000)) return null
+          if (!(await rateLimitAsync(`auth:login:ip:${ip}`, 20, 60_000))) return null
           const emailKey = String(credentials.email || '').toLowerCase()
-          if (!rateLimit(`auth:login:${tenantId}:${emailKey}`, 10, 60_000)) return null
+          if (!(await rateLimitAsync(`auth:login:${tenantId}:${emailKey}`, 10, 60_000))) return null
         } catch {}
 
         // Preview fallback: allow login using PREVIEW_ADMIN_EMAIL/PASSWORD and auto-provision the user in the default tenant
@@ -96,6 +96,23 @@ export const authOptions: NextAuthOptions = {
           logAudit({ action: 'auth.login.failed', actorId: user.id, targetId: user.id, details: { tenantId } }).catch(() => {})
           return null
         }
+
+        // MFA enforcement for admin/super admin
+        try {
+          const role = String(user.role || '').toUpperCase()
+          if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+            const { getUserMfaSecret, verifyTotp, consumeBackupCode } = await import('@/lib/mfa')
+            const secret = await getUserMfaSecret(user.id)
+            if (secret) {
+              const otp = (credentials as any)?.mfa || (credentials as any)?.otp || (credentials as any)?.code || ''
+              const isValid = verifyTotp(secret, String(otp || '')) || (await consumeBackupCode(user.id, String(otp || '')))
+              if (!isValid) {
+                await logAudit({ action: 'auth.mfa.required', actorId: user.id, targetId: user.id, details: { tenantId } })
+                return null
+              }
+            }
+          }
+        } catch {}
 
         // Fetch tenant memberships for the user to populate available tenants
         const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])

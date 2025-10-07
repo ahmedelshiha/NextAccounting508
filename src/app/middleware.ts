@@ -2,6 +2,7 @@ import * as NextServer from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { signTenantCookie } from '@/lib/tenant-cookie'
 import { logger } from '@/lib/logger'
+import { getClientIp } from '@/lib/rate-limit'
 
 function isStaffRole(role: string | undefined | null) {
   return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
@@ -114,6 +115,35 @@ export async function middleware(req: NextServer.NextRequest) {
     pathname,
     userId: userId || null,
   }
+
+  // Admin IP allowlist enforcement (env-controlled)
+  try {
+    const ipRestrictionsEnabled = String(process.env.ENABLE_IP_RESTRICTIONS || '').toLowerCase() === 'true'
+    if (ipRestrictionsEnabled) {
+      const ip = getClientIp(req as unknown as Request)
+      const rawAllow = String(process.env.ADMIN_IP_WHITELIST || '').trim()
+      const allow = rawAllow ? rawAllow.split(',').map(s => s.trim()).filter(Boolean) : []
+      const isAdminApi = isApiRequest && pathname.startsWith('/api/admin')
+      const isAdminSurface = isAdminPage || isAdminApi
+      const ipAllowed = allow.length === 0 || allow.includes(ip)
+
+      if (isAdminSurface && !ipAllowed) {
+        if (String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
+          logger.warn('Admin access blocked by IP policy', { ...baseLogContext, ip })
+        }
+        try {
+          const { logAudit } = await import('@/lib/audit')
+          await logAudit({ action: 'security.ip.block', details: { ip, pathname } })
+        } catch {}
+        const denied = isApiRequest
+          ? NextServer.NextResponse.json({ error: 'Access restricted by IP policy' }, { status: 403 })
+          : new NextServer.NextResponse('Access restricted by IP policy', { status: 403 })
+        return denied
+      } else if (isAdminSurface && String(process.env.LOG_ADMIN_ACCESS || '').toLowerCase() === 'true') {
+        logger.info('Admin access allowed', { ...baseLogContext, ip })
+      }
+    }
+  } catch {}
 
   const logApiEntry = () => {
     if (!isApiRequest || apiEntryLogged) return
