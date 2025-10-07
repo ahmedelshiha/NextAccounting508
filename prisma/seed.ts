@@ -740,6 +740,12 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('✅ Currencies & baseline exchange rates created')
 
   // Create sample tasks with compliance requirements
+  let __canSeedTasks = false
+  try {
+    const __rows = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name='Task' AND column_name='tenantId'`
+    __canSeedTasks = Array.isArray(__rows) && (__rows as any).length > 0
+  } catch {}
+  if (__canSeedTasks) {
   const now = new Date()
   const past = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10) // 10 days ago
   const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7) // in 7 days
@@ -881,6 +887,9 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   } catch {}
 
   console.log('✅ Sample tasks and compliance records created')
+  } else {
+    console.warn('Skipping Task/Compliance seed: DB schema missing Task.tenantId')
+  }
 
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
