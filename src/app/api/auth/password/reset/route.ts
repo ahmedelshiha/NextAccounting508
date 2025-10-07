@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
-import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { createHash } from 'crypto'
 import bcrypt from 'bcryptjs'
@@ -11,7 +11,8 @@ const schema = z.object({ token: z.string().min(32), password: z.string().min(8)
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req as unknown as Request)
-    if (!rateLimit(`auth:reset:${ip}`, 5, 60_000)) {
+    const resetLimit = await applyRateLimit(`auth:reset:${ip}`, 5, 60_000)
+    if (!resetLimit.allowed) {
       return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
     }
 
