@@ -9,26 +9,51 @@ async function run() {
   const client = new Client({ connectionString })
   await client.connect()
   try {
-    console.log('Ensuring Booking.tenantId column')
+    console.log('Ensuring Booking.tenantId column (both bookings and "Booking" variants)')
     await client.query(`ALTER TABLE IF EXISTS public.bookings ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
-    console.log('Backfilling bookings.tenantId')
-    await client.query(`
-      UPDATE public.bookings
-      SET "tenantId" = COALESCE(
-        (SELECT u."tenantId" FROM public.users u WHERE u.id = public.bookings."clientId"),
-        (SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public.bookings."serviceRequestId"),
-        (SELECT s."tenantId" FROM public.services s WHERE s.id = public.bookings."serviceId")
-      )
-      WHERE public.bookings."tenantId" IS NULL
-    `)
-    await client.query(`CREATE INDEX IF NOT EXISTS bookings_tenantId_idx ON public.bookings("tenantId")`)
+    await client.query(`ALTER TABLE IF EXISTS public."Booking" ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
 
-    console.log('Ensuring attachments.tenantId column')
+    // Backfill whichever table exists
+    const bookingsLowerExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bookings')`)).rows[0].exists
+    const bookingsUpperExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Booking')`)).rows[0].exists
+
+    if (bookingsLowerExists) {
+      console.log('Backfilling public.bookings.tenantId')
+      await client.query(`
+        UPDATE public.bookings
+        SET "tenantId" = COALESCE(
+          (SELECT u."tenantId" FROM public.users u WHERE u.id = public.bookings."clientId"),
+          (SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public.bookings."serviceRequestId"),
+          (SELECT s."tenantId" FROM public.services s WHERE s.id = public.bookings."serviceId")
+        )
+        WHERE public.bookings."tenantId" IS NULL
+      `)
+      await client.query(`CREATE INDEX IF NOT EXISTS bookings_tenantId_idx ON public.bookings("tenantId")`)
+    }
+
+    if (bookingsUpperExists) {
+      console.log('Backfilling public."Booking".tenantId')
+      await client.query(`
+        UPDATE public."Booking"
+        SET "tenantId" = COALESCE(
+          (SELECT u."tenantId" FROM public.users u WHERE u.id = public."Booking"."clientId"),
+          (SELECT sr."tenantId" FROM public."ServiceRequest" sr WHERE sr.id = public."Booking"."serviceRequestId"),
+          (SELECT s."tenantId" FROM public.services s WHERE s.id = public."Booking"."serviceId")
+        )
+        WHERE public."Booking"."tenantId" IS NULL
+      `)
+      await client.query(`CREATE INDEX IF NOT EXISTS "Booking_tenantId_idx" ON public."Booking"("tenantId")`)
+    }
+
+    console.log('Ensuring attachments.tenantId column (both attachments and "Attachment")')
     await client.query(`ALTER TABLE IF EXISTS public.attachments ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
-    // Only backfill if table exists
-    const attachmentsExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attachments')`)).rows[0].exists
-    if (attachmentsExists) {
-      console.log('Backfilling attachments.tenantId')
+    await client.query(`ALTER TABLE IF EXISTS public."Attachment" ADD COLUMN IF NOT EXISTS "tenantId" TEXT`)
+
+    const attachmentsLowerExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attachments')`)).rows[0].exists
+    const attachmentsUpperExists = (await client.query(`SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Attachment')`)).rows[0].exists
+
+    if (attachmentsLowerExists) {
+      console.log('Backfilling public.attachments.tenantId')
       await client.query(`
         UPDATE public.attachments a
         SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
@@ -38,8 +63,19 @@ async function run() {
         WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
       `)
       await client.query(`CREATE INDEX IF NOT EXISTS attachments_tenantId_idx ON public.attachments("tenantId")`)
-    } else {
-      console.log('attachments table not present; skipping attachments backfill')
+    }
+
+    if (attachmentsUpperExists) {
+      console.log('Backfilling public."Attachment".tenantId')
+      await client.query(`
+        UPDATE public."Attachment" a
+        SET "tenantId" = COALESCE(sr."tenantId", u."tenantId", e."tenantId")
+        FROM public."ServiceRequest" sr
+        LEFT JOIN public.users u ON u.id = a."uploaderId"
+        LEFT JOIN public.expenses e ON e."attachmentId" = a.id
+        WHERE a."tenantId" IS NULL AND (sr.id = a."serviceRequestId" OR a."uploaderId" = u.id OR e."attachmentId" = a.id)
+      `)
+      await client.query(`CREATE INDEX IF NOT EXISTS "Attachment_tenantId_idx" ON public."Attachment"("tenantId")`)
     }
 
     console.log('\nPost-backfill counts:')
