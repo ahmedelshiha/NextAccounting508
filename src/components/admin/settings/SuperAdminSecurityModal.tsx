@@ -96,7 +96,11 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
               <section className="space-y-3">
                 <h4 className="text-sm font-medium">Authentication & MFA</h4>
                 <Toggle label="Require 2FA for Admins (tenant override)" value={pending.twoFactor?.requiredForAdmins ?? settings.twoFactor?.requiredForAdmins} onChange={(v)=>update('twoFactor.requiredForAdmins', v)} />
-                <Toggle label="Super Admin Step-up MFA (tenant override)" value={pending.superAdmin?.stepUpMfa ?? settings.superAdmin?.stepUpMfa} onChange={(v)=>update('superAdmin.stepUpMfa', v)} />
+                {isSuper ? (
+                  <Toggle label="Super Admin Step-up MFA (tenant override)" value={pending.superAdmin?.stepUpMfa ?? settings.superAdmin?.stepUpMfa} onChange={(v)=>update('superAdmin.stepUpMfa', v)} />
+                ) : (
+                  <div className="text-sm text-gray-600">Super Admin step-up controls are visible to SUPER_ADMIN users only.</div>
+                )}
               </section>
 
               <section className="space-y-3">
