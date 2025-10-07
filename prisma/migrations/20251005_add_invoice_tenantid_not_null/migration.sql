@@ -12,7 +12,7 @@ END$$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN
-    EXECUTE 'UPDATE public.invoices i SET "tenantId" = COALESCE(b."tenantId", u."tenantId") FROM public.bookings b LEFT JOIN public.users u ON u.id = i."clientId" WHERE i."tenantId" IS NULL AND (b.id = i."bookingId" OR u.id = i."clientId")';
+    EXECUTE 'UPDATE public.invoices SET "tenantId" = COALESCE((SELECT b."tenantId" FROM public.bookings b WHERE b.id = public.invoices."bookingId"), (SELECT u."tenantId" FROM public.users u WHERE u.id = public.invoices."clientId")) WHERE public.invoices."tenantId" IS NULL';
   END IF;
 END$$;
 
