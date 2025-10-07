@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [mfa, setMfa] = useState('')
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,6 +28,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email,
         password,
+        mfa,
         redirect: false,
       })
 
@@ -151,6 +153,22 @@ export default function LoginPage() {
                     Forgot your password?
                   </Link>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="mfa">MFA Code (if prompted)</Label>
+                <Input
+                  id="mfa"
+                  name="mfa"
+                  type="text"
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="mt-1"
+                  placeholder="123456"
+                  value={mfa}
+                  onChange={(e) => setMfa(e.target.value)}
+                />
               </div>
 
               <Button
