@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import ClientOnlyAdminLayout from '@/components/admin/layout/ClientOnlyAdminLayout'
 
@@ -25,7 +24,7 @@ interface Props {
  */
 export default async function AdminLayout({ children }: Props) {
   // Server-side authentication guard
-  const session = await getServerSession(authOptions)
+  const session = await getSessionOrBypass()
   if (!session?.user) {
     redirect('/login')
   }
