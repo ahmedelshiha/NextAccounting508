@@ -245,3 +245,54 @@ Operational notes (repeat):
 - We are proceeding only after confirming a DB snapshot exists. All migration edits are idempotent and include guards to minimize risk.
 - After the current migration completes, the next migration in the list will be fixed and applied, and the doc will be updated accordingly.
 
+## ✅ Completed (DB & Smoke Test Updates)
+- [x] Applied and hardened additional migrations and performed DB cleanup
+  - **Files/migrations applied**: prisma/migrations/20251006_fix_table_casing (dropped temp views, renamed capitalized tables), prisma/migrations/20251007_add_tenant_primaryDomain, prisma/migrations/20251007_ensure_tenant_columns
+  - **Why**: Ensure DB schema matches Prisma schema and remove temporary view artifacts created during backfill
+  - **Impact**: Removes fragile view-based workarounds and ensures Tenant table has expected columns (primaryDomain, featureFlags, metadata, timestamps)
+- [x] Generated Prisma client (prisma generate) and ensured @prisma/client is available to the app
+  - **Why**: Next.js server code requires generated client; prior runtime errors (Cannot find module '.prisma/client/default') blocked API routes
+  - **Impact**: Resolves require-time errors and allows server-side Prisma usage
+- [x] Created helper scripts and ran targeted backfills
+  - **Scripts added**: scripts/ensure-tenant-columns-and-backfill.js, scripts/backfill-services-tenantid.js, scripts/create_service_request_raw.js
+  - **Actions performed**: ensured Booking.tenantId exists and backfilled; backfilled services.tenantId (assigned orphan services to tenant_primary); ensured attachments/bookings casing and backfilled where needed
+  - **Impact**: scripts/report-tenant-null-counts.ts now reports zero NULL tenantId counts for monitored tables
+- [x] Removed temporary views and replaced with migrations that rename tables where necessary
+  - **Why**: Temporary views were only a short-term workaround; persisted schema changes are safer and permanent
+  - **Impact**: Cleaner schema and fewer surprises during future migrations or production deploys
+- [x] Smoke test run (partial): signup, DB insertion and raw SR creation succeeded; automated smoke runner results:
+  - Signup: POST /api/auth/register/register → 201 Created (user id cmggf27ul0001rhsr04x7b4jr)
+  - Raw DB insert: scripts/create_service_request_raw.js inserted SR id sr_tvzd3zdgke
+  - Dev login + smoke runner: dev-login returned a token and smoke runner executed, but portal API calls initially returned 401 Unauthorized in automated flow (see below)
+- [x] Debugged auth/runtime issues (summary)
+  - Observed errors: Missing generated Prisma client caused module-not-found errors — resolved by running prisma generate
+  - Observed missing Tenant columns (primaryDomain, featureFlags, metadata) — added guarded migrations and applied them
+  - After fixes, dev-login encoded a token but the portal endpoints returned 401 in some flows. Current root causes likely involve NextAuth cookie/session handling (cookie presence/format/secure flags) or getServerSession not reading the JWT in the test requests. More investigation required.
+
+## ⚠️ Smoke test findings / outstanding issues
+- Auth/session: dev-login returns an encoded session token but getServerSession(authOptions) sometimes returns null during API requests, leading to 401 responses for authenticated endpoints.
+  - Logs show NextAuth warnings (NEXTAUTH_URL) and earlier NO_SECRET warnings before NEXTAUTH_SECRET was set. NEXTAUTH_SECRET was set and dev server restarted.
+  - Reproduced sequence: generated token, then curl or smoke runner used cookie header; server still returned 401. This indicates either cookie parsing (name/path/domain/secure) mismatch or session decoding/validation failing.
+- InvariantError observed earlier from Next.js when certain assets/manifests were not available during hot-reload. Resolved by regenerating Prisma client and restarting dev server; monitor for intermittent dev-only warnings.
+
+## 🔧 Next Steps / Recommendations (actionable)
+- [ ] Investigate and fix NextAuth session recognition for dev-login tokens (priority)
+  - Verify dev-login sets cookie exactly as used by NextAuth (cookie name __Secure-next-auth.session-token, path=/, HttpOnly, Secure). Test with curl including that Set-Cookie value to confirm server reads it.
+  - Check getServerSession(authOptions) behavior in App Router for server functions — ensure authOptions are configured correctly and NEXTAUTH_URL/NEXTAUTH_SECRET are present in env for server process
+  - Reproduce end-to-end with a browser-like request (same cookie header) and with the smoke runner; capture request/response headers and Next.js logs for JWT decode errors
+- [ ] Add integration test that covers sign up → login → create ServiceRequest (run in CI or locally against a staging DB snapshot)
+- [ ] Harden NextAuth dev-login flow to return an HTTP-only cookie in responses and return the encoded token in JSON for test runners
+- [ ] Remove helper scripts and temporary artifacts when satisfied (scripts/ensure-tenant-columns-and-backfill.js, scripts/backfill-services-tenantid.js, create_service_request_raw.js) — keep them in a safe branch or archive if needed
+- [ ] Add a small e2e smoke CI job (disabled on production) to run scripts/run_dev_login_and_smoke.js against a staging environment with a fresh DB snapshot
+- [ ] Schedule a maintenance window and take a full DB snapshot before any further schema changes or rolling FORCE_RLS toggles
+- [ ] Optional: Add monitoring/alerts for P2022/P20* Prisma errors in production to catch schema drift early
+
+## 🔁 Status updates to perform next
+- [ ] Reproduce auth 401: capture request/response headers for dev-login and portal API calls (cookie present, same domain, secure flags). Attach logs to this todo.
+- [ ] Implement and run integration test after auth fix and report results here
+- [ ] After tests pass, remove temporary helper scripts or move them to archive/migrations-tools/
+
+
+---
+
+Please let me know if you want me to: (A) Immediately debug the dev-login / NextAuth cookie handling end-to-end, (B) temporarily enable AUTH_DISABLED=true for smoke CI while we investigate, or (C) archive the helper scripts and proceed to next migration fixes.
