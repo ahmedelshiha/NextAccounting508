@@ -155,6 +155,34 @@ Key actions:
 
 ---
 
+## Update Log (2025-10-08)
+
+- R1 (Resolved): Duplicate import in cron module
+  - File: `src/lib/cron.ts`
+  - Change: Removed duplicate `import prisma` and unused `date-fns` imports to fix TS2300 Duplicate identifier errors during typecheck/build.
+  - Impact: Build stability restored; eliminates redundant imports.
+
+- R2 (Resolved): Redundant auth session resolution and implicit bypass
+  - File: `src/lib/api-wrapper.ts`
+  - Change: Removed fallback to `next-auth` and the implicit preview auth bypass from the wrapper. Wrapper now resolves session via `next-auth/next` only; any preview bypass must be explicitly invoked by routes and is disabled during tests.
+  - Impact: Deterministic 401 for unauthenticated access (e.g., `/api/admin/thresholds`), test suite passes; reduces drift between environments.
+
+- R3 (Resolved): Edge-incompatible Node crypto import
+  - File: `src/lib/default-tenant.ts`
+  - Change: Replaced `crypto.randomUUID` (Node import) with `safeRandomUUID` that prefers Web Crypto (`globalThis.crypto.randomUUID` / `getRandomValues`) and falls back to a deterministic UUID-like string without `require()`.
+  - Impact: Removes Edge-runtime warning and ESLint `@typescript-eslint/no-require-imports` violation; unified runtime-safe implementation.
+
+- F11 (In Progress): Cron entrypoint consolidation
+  - Status: Shared job logic exists under `src/lib/cron/*`. Netlify cron and API cron routes should continue to call shared modules to avoid drift. Further audit recommended to ensure all cron routes reference shared library.
+
+- Open Findings: F1, F2, F5, F6, F7, F8, F9, F10 remain per prior plan; prioritize F1/F2/F8 next.
+
+Guardrails added/affirmed:
+- Enforce no `require()` in TS via ESLint; prefer Web Crypto or conditional dynamic imports only where allowed.
+- Avoid multiple auth session resolution paths in shared wrappers; keep a single canonical flow.
+
+---
+
 ## Appendix: Discovery Methods
 - File scans: globbed `src/app/api/**/route.ts` to enumerate endpoints.
 - Targeted checks for duplicates: `SettingsNavigation`, `usePerformanceMonitoring`, dev-login, register routes, health/cron.
