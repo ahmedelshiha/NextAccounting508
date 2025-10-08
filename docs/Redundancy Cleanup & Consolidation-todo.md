@@ -1,6 +1,29 @@
-## ✅ Actions taken
-- [x] Removed static import of getSessionOrBypass from src/lib/api-wrapper.ts to avoid static resolution issues with test mocks. Now auth helpers are dynamically imported at runtime, making tests that vi.mock('@/lib/auth') or vi.mock('next-auth') work consistently.
+## ✅ Completed
+- [x] F1: Consolidated auth register routes; legacy /api/auth/register/register now redirects to canonical /api/auth/register
+  - Why: remove duplicate route surface
+  - Impact: single source of registration logic; legacy clients supported via 307 redirect
+- [x] F2: Unified dev login to /api/_dev/login; /api/dev-login redirects
+  - Why: prevent ambiguous dev entrypoints
+  - Impact: safer gating; single path in tests and docs
+- [x] F3: Extracted shared health module at src/lib/health.ts and refactored routes to use it
+  - Why: avoid drift across health endpoints/functions
+  - Impact: consistent health payloads
+- [x] F4: De-duplicated usePerformanceMonitoring; only src/hooks/usePerformanceMonitoring.ts remains
+  - Why: remove import ambiguity
+  - Impact: stable imports
+- [x] F5: Consolidated SettingsNavigation to src/components/admin/settings/SettingsNavigation.tsx with barrel re-export at src/components/admin/SettingsNavigation.tsx
+  - Why: avoid UI drift
+  - Impact: single source, backward-compatible imports
+- [x] F6: Fixed duplicate import in e2e/playwright.config.ts
+  - Why: cleanup redundancy
+  - Impact: cleaner config, no duplication warnings
+- [x] F8: Standardized Prisma datasource to DATABASE_URL; prisma.config.ts mirrors NETLIFY_DATABASE_URL→DATABASE_URL. Set DATABASE_URL from env.
+  - Why: eliminate env drift
+  - Impact: consistent DB connection locally and on Netlify/Vercel
 
-## 🔧 Next verification
-- Re-run tenant/context focused tests: tests/integration/tenant-mismatch.security.test.ts
-- If additional failures due to mocks persist, adapt vitest.setup.ts to provide comprehensive default mocks.
+## 🚧 In Progress
+- [ ] Guardrails: additional CI lint/semgrep for duplicate routes/imports
+
+## 🔧 Next Steps
+- [ ] Add unit tests for health module and a cron job function
+- [ ] Review RBAC scripts overlap (check_admin_rbac.js vs audit-admin-rbac.js)

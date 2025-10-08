@@ -64,11 +64,11 @@ export function withTenantContext(
       let session: any = null
       try {
         const authMod = await import('@/lib/auth')
-        if (authMod && typeof authMod.getSessionOrBypass === 'function') {
-          session = await authMod.getSessionOrBypass()
-        } else if (authMod && typeof authMod.getServerSession === 'function') {
+        if (authMod && typeof (authMod as any).getSessionOrBypass === 'function') {
+          session = await (authMod as any).getSessionOrBypass()
+        } else if (authMod && typeof (authMod as any).getServerSession === 'function') {
           // Some tests may mock auth module to expose getServerSession directly
-          session = await authMod.getServerSession(authMod.authOptions)
+          session = await (authMod as any).getServerSession((authMod as any).authOptions)
         } else {
           try {
             // Some tests mock 'next-auth' module directly using vi.doMock('next-auth', ...)
@@ -89,10 +89,10 @@ export function withTenantContext(
               // Debug log to trace why test-local next-auth mocks may not be returning session
               try {
                 // eslint-disable-next-line no-console
-                console.log('[api-wrapper] calling getServerSession with authFallback.authOptions:', authFallback && authFallback.authOptions)
+                console.log('[api-wrapper] calling getServerSession with authFallback.authOptions:', (authFallback as any)?.authOptions)
               } catch {}
               try {
-                session = await getServerSession(authFallback.authOptions)
+                session = await getServerSession((authFallback as any)?.authOptions)
                 // eslint-disable-next-line no-console
                 console.log('[api-wrapper] getServerSession returned:', session)
               } catch (err) {
@@ -144,7 +144,7 @@ export function withTenantContext(
         return handler(request, routeContext)
       }
 
-      const user = session.user as any
+      const user = (session as any).user as any
 
       if (requireSuperAdmin && user.role !== 'SUPER_ADMIN') {
         return NextResponse.json(
