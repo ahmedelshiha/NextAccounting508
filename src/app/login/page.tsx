@@ -50,12 +50,12 @@ export default function LoginPage() {
               router.push('/portal')
             }
           } else {
-            // Fallback if session endpoint failed
-            router.push('/portal')
+            // Fallback if session endpoint failed: navigate to /admin and let middleware enforce RBAC
+            router.push('/admin')
           }
         } catch (err) {
           console.error('Failed to resolve session after sign in', err)
-          router.push('/portal')
+          router.push('/admin')
         }
       }
     } catch {
