@@ -85,7 +85,24 @@ export function withTenantContext(
               } catch {}
             }
             const authFallback = await import('@/lib/auth').catch(() => ({}))
-            session = await (typeof getServerSession === 'function' ? getServerSession(authFallback.authOptions) : null)
+            if (typeof getServerSession === 'function') {
+              // Debug log to trace why test-local next-auth mocks may not be returning session
+              try {
+                // eslint-disable-next-line no-console
+                console.debug('[api-wrapper] calling getServerSession with authFallback.authOptions:', authFallback && authFallback.authOptions)
+              } catch {}
+              try {
+                session = await getServerSession(authFallback.authOptions)
+                // eslint-disable-next-line no-console
+                console.debug('[api-wrapper] getServerSession returned:', session)
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.debug('[api-wrapper] getServerSession threw', err && (err as any).message)
+                session = null
+              }
+            } else {
+              session = null
+            }
           } catch (err) {
             session = null
           }
