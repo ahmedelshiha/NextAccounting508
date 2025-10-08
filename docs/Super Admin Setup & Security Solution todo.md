@@ -265,3 +265,66 @@ Append further entries here in chronological order when new work begins or compl
   - Owner: Ops/Backend
   - Status: Rolling out and validating; ensure defaults persist and APIs reflect tenant-level overrides
   - Verification: `security_settings.superAdmin` JSON contains `stepUpMfa`, `logAdminAccess`; seed idempotent across runs
+
+---
+
+## ✅ Completed
+- [x] Context reloaded; verified SUPER_ADMIN step-up integration and IP allowlist utilities across key admin routes; RBAC audit scripts present.
+  - **Why**: establish accurate baseline before further hardening
+  - **Impact**: avoids redundant work; confirms current security posture
+
+## ⚠️ Issues / Risks
+- This log contains older conflicting status entries (e.g., migration both pending and completed). We will keep append-only updates that clarify current state to prevent ambiguity.
+
+## 🚧 In Progress
+- [ ] Plan final sweep for SUPER_ADMIN step-up coverage on high-risk admin endpoints and UI actions; identify any gaps.
+
+## 🔧 Next Steps
+- [ ] Add scripts/check_admin_rbac.js to CI to fail builds when guards are missing.
+- [ ] Centralize SUPER_ADMIN step-up checks for privileged mutations to reduce duplication while preserving per-route control.
+- [ ] Document CI addition and operational guidance in this log and docs/ENVIRONMENT_VARIABLES_REFERENCE.md.
+
+---
+
+## ✅ Completed
+- [x] Remote DB: ensured security_settings.superAdmin column and seeded defaults via surgical SQL scripts (no destructive drift push).
+  - **Why**: prisma db push detected non-trivial drift (required tenantId on existing tables) and would require data-destructive reset; we applied a safe, targeted change instead to unblock SUPER_ADMIN overrides.
+  - **Impact**: superAdmin JSON column exists; defaults ensured for existing rows; no data loss and no unrelated schema changes.
+  - **Files**: scripts/admin-setup/add-superadmin-column.ts, scripts/admin-setup/seed-superadmin-defaults.ts
+
+## ⚠️ Issues / Risks
+- Prisma db push surfaced drift on ComplianceRecord, HealthLog, and Task tenantId requirements; avoid force-reset in shared environments. Coordinate a dedicated migration plan for multi-tenant columns.
+
+## 🚧 In Progress
+- [ ] Plan and stage proper migrations for tenantId backfills on affected tables (with online backfill and defaults), then finalize constraints.
+
+## 🔧 Next Steps
+- [ ] Add CI job to run scripts/check_admin_rbac.js and fail builds on missing guards.
+- [ ] Create migration plan for tenantId backfill: additive nullable columns, background backfill, then set NOT NULL with FK; avoid downtime.
+- [ ] Verify via SQL:
+  - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superadmin';
+  - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+---
+
+## ✅ Completed
+- [x] Verified superAdmin column and defaults present in remote DB.
+  - **Why**: confirm rollout success and idempotent seed behavior
+  - **Impact**: tenant-level overrides active; APIs can consult persisted settings
+  - **Verification Output**:
+    - Column exists count: 1
+    - Sample row: { tenantId: "tenant_primary", superAdmin: { stepUpMfa: false, logAdminAccess: true } }
+    - Rows missing defaults: 0
+  - **Files**: scripts/admin-setup/verify-superadmin-column.ts
+
+---
+
+## ✅ Completed
+- [x] Created SUPER_ADMIN user and ensured credentials; handled enum drift and schema gaps safely.
+  - **Why**: enable platform-level super admin operations immediately
+  - **Impact**: SUPER_ADMIN user present; membership sync skipped if table absent; no downtime
+  - **Ops Output**:
+    - Enum UserRole updated to include SUPER_ADMIN (idempotent)
+    - User email: superadmin@accountingfirm.com
+    - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
+  - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
