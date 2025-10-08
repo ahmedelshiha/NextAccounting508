@@ -24,7 +24,7 @@ Key actions:
 | F3 | Health Checks (divergent) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts` | High | Resolved | Shared health module implemented at `src/lib/health.ts`; callers refactored to reuse it. |
 | F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Canonical component consolidated at `src/components/admin/settings/SettingsNavigation.tsx`; barrel re-export exists at `src/components/admin/SettingsNavigation.tsx` to preserve imports. |
 | F5 | Cron entrypoint duplication | `netlify/functions/cron-reminders.ts` and `/api/cron/reminders/route.ts` (and similar cron routes) | Medium | In Progress | Keep shared job logic in `src/lib/cron/*` and call from both contexts to avoid drift. Verify all cron routes are refactored. |
-| F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep one canonical test path; deprecate the other with redirect. |
+| F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Resolved | Canonicalized to `src/app/api/sentry-check/route.ts`; legacy `sentry-example` now redirects to canonical. |
 | F7 | RBAC scripts overlap | `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js` | Medium | Open | Combine or keep one entry with flags; document usage. |
 | F8 | Edge runtime incompatibility (fixed) | `src/lib/default-tenant.ts` | Medium | Resolved | Replaced Node crypto usage with `safeRandomUUID` (Web Crypto first; no `require()`). |
 | F9 | API wrapper implicit bypass (fixed) | `src/lib/api-wrapper.ts` | High | Resolved | Removed implicit preview bypass and extra fallback; use one session resolution path only. |
@@ -85,7 +85,9 @@ Notes:
 
 ### F6. Sentry Test Endpoints
 - Paths: `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts`; page: `src/app/sentry-example-page/page.tsx`
-- Recommendation: Keep one canonical Sentry test endpoint (`sentry-check`). Remove or redirect the other; keep example page if needed, pointed at the canonical route.
+- Status: Resolved
+- Change: Kept `sentry-check` as the canonical, non-destructive health/check endpoint. The legacy `sentry-example` route now redirects (307) to `sentry-check`. The example UI page was updated to call the canonical endpoint to avoid duplicate test handlers.
+- Acceptance: Single canonical test endpoint; example page uses canonical route; no destructive test handlers remain exposed.
 
 ### F7. RBAC Scripts Overlap
 - Paths: `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js`
@@ -193,7 +195,7 @@ Notes:
 - [x] [F3] Extract shared health module — create src/lib/health.ts (collectHealth); refactor /api/security/health, /api/admin/system/health, and netlify/functions/health-monitor.ts to reuse.
 - [x] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
 - [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
-- [ ] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
+- [x] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
 - [ ] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
 - [ ] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
 - [ ] [F9] Auth wrapper guardrails — add unit tests ensuring unauthenticated admin routes return 401; add semgrep rule to forbid implicit auth bypass patterns in wrappers.
