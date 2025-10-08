@@ -74,8 +74,16 @@ vi.mock('@/lib/auth', async () => {
     // Ensure getSessionOrBypass exists and delegates to next-auth mock when present
     getSessionOrBypass: async () => {
       try {
-        const mod = await import('next-auth/next')
-        if (mod && typeof mod.getServerSession === 'function') return mod.getServerSession()
+        // Prefer 'next-auth' mock when tests call vi.doMock('next-auth')
+        try {
+          const modA = await import('next-auth')
+          if (modA && typeof modA.getServerSession === 'function') return modA.getServerSession()
+        } catch {}
+        // Some tests or code import 'next-auth/next'
+        try {
+          const modB = await import('next-auth/next')
+          if (modB && typeof modB.getServerSession === 'function') return modB.getServerSession()
+        } catch {}
       } catch {}
       return null
     },
