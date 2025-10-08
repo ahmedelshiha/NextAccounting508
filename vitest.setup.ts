@@ -81,12 +81,12 @@ vi.mock('@/lib/auth', async () => {
             const res = await modA.getServerSession()
             // Debug output to diagnose why some tests see no session
             // eslint-disable-next-line no-console
-            console.debug('[vitest.setup] getSessionOrBypass -> next-auth.getServerSession returned:', res)
+            console.log('[vitest.setup] getSessionOrBypass -> next-auth.getServerSession returned:', res)
             return res
           }
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.debug('[vitest.setup] import next-auth failed', err && (err as any).message)
+          console.log('[vitest.setup] import next-auth failed', err && (err as any).message)
         }
         // Some tests or code import 'next-auth/next'
         try {
@@ -94,16 +94,16 @@ vi.mock('@/lib/auth', async () => {
           if (modB && typeof modB.getServerSession === 'function') {
             const res = await modB.getServerSession()
             // eslint-disable-next-line no-console
-            console.debug('[vitest.setup] getSessionOrBypass -> next-auth/next.getServerSession returned:', res)
+            console.log('[vitest.setup] getSessionOrBypass -> next-auth/next.getServerSession returned:', res)
             return res
           }
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.debug('[vitest.setup] import next-auth/next failed', err && (err as any).message)
+          console.log('[vitest.setup] import next-auth/next failed', err && (err as any).message)
         }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.debug('[vitest.setup] getSessionOrBypass unexpected error', err && (err as any).message)
+        console.log('[vitest.setup] getSessionOrBypass unexpected error', err && (err as any).message)
       }
       return null
     },
