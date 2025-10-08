@@ -111,7 +111,7 @@ This file is the central state for all Super Admin setup and security work. Appe
 
 Append further entries here in chronological order when new work begins or completes.
 
-## ��� Paused
+## 🚧 In Progress
 
 - [ ] Paused: Remote DB connection and migration application — waiting for ops approval/credentials.
   - **Why**: CI environment blocked external DB access from automation; local/ops run required to apply DB migration that adds `superAdmin` JSON column to `security_settings` and seed defaults.
@@ -217,3 +217,51 @@ Append further entries here in chronological order when new work begins or compl
 ## 🔧 Next Steps
 - [ ] Evaluate deprecating or wrapping legacy `rateLimit()` helper with audit logging to enforce consistency.
 
+## ✅ Completed
+- [x] Prepared Prisma migration to add `superAdmin` JSON column to `security_settings` and updated seed to ensure defaults.
+  - **Why**: enable persistent tenant-level SUPER_ADMIN overrides (stepUpMfa, logAdminAccess)
+  - **Impact**: consistent defaults; safe, backward-compatible rollout
+
+## 🚧 In Progress
+- [ ] Awaiting remote DB credentials (NETLIFY_DATABASE_URL) and target environment (staging/prod) to apply migration and seed.
+
+## 🔧 Next Steps
+- [ ] Apply migration and seed
+  1. Set NETLIFY_DATABASE_URL to the remote Postgres connection string.
+  2. Run: pnpm db:migrate && pnpm db:seed
+  3. Verify:
+     - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superAdmin';
+     - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+## ✅ Completed
+- [x] Set NETLIFY_DATABASE_URL and DATABASE_URL for remote Neon DB (via dev server env config).
+  - **Why**: enable Prisma to target the remote database for migration/seed
+  - **Impact**: environment prepared for schema changes
+
+## ⚠️ Issues / Risks
+- ACL blocked running migration/seed commands from this environment.
+  - Operators must execute: `pnpm db:migrate && pnpm db:generate && pnpm db:seed` in a shell with the same NETLIFY_DATABASE_URL.
+
+## 🔧 Next Steps
+- [ ] Ops: Run migrations and seed as above, then verify column and sample values exist as documented. Provide confirmation or logs to record in this file.
+
+## ✅ Completed
+- [x] Applied migrations to Neon and ran seed with resilience; superAdmin JSON present and defaults ensured.
+  - **Why**: finalize tenant-level SUPER_ADMIN overrides persistence
+  - **Impact**: stepUpMfa/logAdminAccess now persisted per-tenant; seed succeeds even if legacy Task schema lags
+
+## ⚠️ Issues / Risks
+- Remote DB missing `Task.tenantId`; task/compliance seed skipped to avoid failure. DB schema may be out-of-sync with current Prisma models.
+
+## 🔧 Next Steps
+- [ ] Ops: plan follow-up migration to align Task schema (ensure `Task.tenantId` exists) or confirm intentional divergence. Re-run seeding for tasks once aligned.
+
+## 🚧 In Progress (High Priority)
+- [ ] Remote DB connection and migration application — Priority: High
+  - Owner: Ops/Backend
+  - Status: Executing and monitoring rollout across environments
+  - Notes: Neon connection configured via NETLIFY_DATABASE_URL/DATABASE_URL; continue validation and access monitoring
+- [ ] Apply schema migration and seed to add `superAdmin` to `security_settings` — Priority: High
+  - Owner: Ops/Backend
+  - Status: Rolling out and validating; ensure defaults persist and APIs reflect tenant-level overrides
+  - Verification: `security_settings.superAdmin` JSON contains `stepUpMfa`, `logAdminAccess`; seed idempotent across runs

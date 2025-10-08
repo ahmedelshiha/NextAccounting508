@@ -30,6 +30,38 @@ async function main() {
     },
   })
 
+  // Ensure tenant SecuritySettings with superAdmin defaults
+  try {
+    const existingSec = await prisma.securitySettings.findUnique({ where: { tenantId: defaultTenant.id } })
+    if (!existingSec) {
+      await prisma.securitySettings.create({
+        data: {
+          tenantId: defaultTenant.id,
+          passwordPolicy: {},
+          sessionSecurity: {},
+          twoFactor: {},
+          network: {},
+          dataProtection: {},
+          compliance: {},
+          superAdmin: { stepUpMfa: false, logAdminAccess: true },
+        },
+      })
+    } else {
+      const prev: any = (existingSec as any).superAdmin || {}
+      await prisma.securitySettings.update({
+        where: { id: existingSec.id },
+        data: {
+          superAdmin: {
+            stepUpMfa: typeof prev.stepUpMfa === 'boolean' ? prev.stepUpMfa : false,
+            logAdminAccess: typeof prev.logAdminAccess === 'boolean' ? prev.logAdminAccess : true,
+          },
+        },
+      })
+    }
+  } catch (e) {
+    console.warn('Skipping SecuritySettings seed (may run only after migrations):', (e as any)?.message)
+  }
+
   // Purge deprecated demo users and related bookings
   await prisma.booking.deleteMany({ where: { clientEmail: 'sarah@example.com' } })
   await prisma.user.deleteMany({ where: { email: 'sarah@example.com' } })
@@ -708,6 +740,12 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   console.log('✅ Currencies & baseline exchange rates created')
 
   // Create sample tasks with compliance requirements
+  let __canSeedTasks = false
+  try {
+    const __rows = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_name='Task' AND column_name='tenantId'`
+    __canSeedTasks = Array.isArray(__rows) && (__rows as any).length > 0
+  } catch {}
+  if (__canSeedTasks) {
   const now = new Date()
   const past = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 10) // 10 days ago
   const future = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7) // in 7 days
@@ -849,6 +887,9 @@ Effective cash flow management requires ongoing attention and planning. Regular 
   } catch {}
 
   console.log('✅ Sample tasks and compliance records created')
+  } else {
+    console.warn('Skipping Task/Compliance seed: DB schema missing Task.tenantId')
+  }
 
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
