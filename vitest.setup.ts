@@ -2,6 +2,9 @@ import { vi } from 'vitest'
 import * as React from 'react'
 import fs from 'fs'
 
+// Ensure NEXTAUTH_SECRET for tenant cookie signing in tests
+if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = 'test-secret'
+
 // Expose React globally for tests that perform SSR renders and rely on React being available
 ;(globalThis as any).React = React
 
