@@ -18,7 +18,7 @@ async function main() {
     )
     console.log('Column superAdmin exists count:', exists.rows[0]?.c)
 
-    const rows = await client.query(`SELECT tenantId, "superAdmin" FROM public.security_settings ORDER BY tenantId LIMIT 5`)
+    const rows = await client.query(`SELECT "tenantId", "superAdmin" FROM public.security_settings ORDER BY "tenantId" LIMIT 5`)
     console.log('Sample rows:', JSON.stringify(rows.rows, null, 2))
 
     const missingDefaults = await client.query(
