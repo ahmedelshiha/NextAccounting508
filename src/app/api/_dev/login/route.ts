@@ -80,11 +80,13 @@ export async function POST(request: NextRequest) {
     const tenantId = tenant?.id ?? null
     const tenantSlugResolved = tenant?.slug ?? null
 
-    const user = tenantId
-      ? await prisma.user.findUnique({
-          where: { tenantId_email: { tenantId, email } },
-        })
-      : await prisma.user.findFirst({ where: { email } })
+    const user =
+      (tenantId
+        ? await prisma.user.findUnique({
+            where: { tenantId_email: { tenantId, email } },
+          })
+        : null) ??
+      (await prisma.user.findFirst({ where: { email } }))
 
     if (!user) {
       return NextResponse.json(
