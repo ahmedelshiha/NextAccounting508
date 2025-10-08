@@ -2,6 +2,17 @@
 
 This file is the central state for all Super Admin setup and security work. Append-only style — new entries are added to the bottom.
 
+## 🚧 In Progress (Prioritized)
+- [ ] SUPER_ADMIN step-up coverage — final sweep across high‑risk admin endpoints and UI actions; centralize step-up checks while preserving per-route control; document behavior and precedence.
+- [ ] CI hardening — add `scripts/check_admin_rbac.js` to CI; document in this log and `docs/ENVIRONMENT_VARIABLES_REFERENCE.md`; deprecate/wrap legacy `rateLimit()` to avoid regressions.
+- [ ] Multi‑tenant schema alignment — plan and stage tenantId backfills with online backfill and constraints; re-run seeding for tasks once aligned.
+- [ ] Build hygiene — monitor next CI/Vercel build; prune legacy direct PrismaClient instantiations after successful pass.
+- [ ] SUPER_ADMIN role audit — verify remaining role checks grant full admin capabilities across hooks and UI guards.
+
+Verified complete (moved to Completed):
+- Remote DB migration/seed for `security_settings.superAdmin` (column present; defaults seeded; verified).
+- Rate limiting rollout and 429 audit logging coverage (final sweep completed).
+
 ## ✅ Completed
 
 - [x] Wired AdminAuditsPage to use /api/admin/audit-logs for SUPER_ADMIN; legacy activity endpoint remains for others.
@@ -119,7 +130,7 @@ Append further entries here in chronological order when new work begins or compl
 
 ## 🔜 Next Task (owner: Ops/Backend)
 
-- [ ] Apply schema migration and seed to add `superAdmin` to security_settings
+- [ ] Apply schema migration and seed to add `superAdmin` to `security_settings`
   - **Steps**:
     1. Ensure DATABASE_URL points to target Neon DB (ops):
        export DATABASE_URL="postgresql://..."
@@ -137,9 +148,6 @@ Append further entries here in chronological order when new work begins or compl
 
 ---
 
-(Entry added automatically.)
-
----
 ## ✅ Completed
 
 - _No new completions in this update_

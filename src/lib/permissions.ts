@@ -153,6 +153,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ADMIN: [
     ...Object.values(PERMISSIONS),
   ],
+  SUPER_ADMIN: [
+    ...Object.values(PERMISSIONS),
+  ],
 }
 
 export function hasPermission(userRole: string | undefined | null, permission: Permission): boolean {
