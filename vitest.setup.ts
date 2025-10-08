@@ -45,6 +45,22 @@ vi.mock('next-auth/jwt', () => {
   }
 })
 
+// Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
+vi.mock('@/lib/auth', () => ({
+  getSessionOrBypass: async () => {
+    const mod = await import('next-auth/next')
+    if (mod && typeof mod.getServerSession === 'function') return mod.getServerSession()
+    return null
+  },
+  authOptions: {},
+}))
+
+// Ensure permissions module exports exist for tests that partially mock it
+vi.mock('@/lib/permissions', async () => {
+  const actual = await vi.importActual('@/lib/permissions')
+  return { ...actual }
+})
+
 // Polyfill Web File in Node test env
 if (typeof (globalThis as any).File === 'undefined') {
   class NodeFile extends Blob {
