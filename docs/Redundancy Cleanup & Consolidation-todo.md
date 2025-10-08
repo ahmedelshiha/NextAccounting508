@@ -57,3 +57,18 @@
 ## 🔧 Next Steps
 - [ ] Audit telemetry around legacy dev login redirect usage before final removal.
 - [ ] Prepare consolidation plan for `usePerformanceMonitoring` hook variants.
+
+
+## ✅ Completed
+- [x] Fixed build: derive tenantRole in dev login from TenantMembership instead of user.tenantRole
+  - **Why**: refactor to remove non-existent field usage; align with membership-based tenant roles
+  - **Impact**: Typecheck passes for dev login route; consistent JWT claims across flows
+
+## ⚠️ Issues / Risks
+- `redundancy-report.md` missing; proceeding using existing todo state and repository code until report is restored
+
+## 🚧 In Progress
+- [ ] Merge `usePerformanceMonitoring` variants into a single hook (pending)
+
+## 🔧 Next Steps
+- [ ] Standardize Prisma datasource to env('DATABASE_URL') with compatibility for Netlify
