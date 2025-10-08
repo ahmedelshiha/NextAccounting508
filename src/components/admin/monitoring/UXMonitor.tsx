@@ -16,7 +16,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
+import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
 import { logger } from '@/lib/logger'
 
 interface UXMetrics {
