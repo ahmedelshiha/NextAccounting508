@@ -9,6 +9,9 @@ set -e
 echo "🔍 Checking required environment variables..."
 
 # Define required environment variables with Netlify alternatives
+# NOTE: DATABASE_URL is the canonical datasource connection string. On Netlify the platform
+# may expose NETLIFY_DATABASE_URL; this script accepts either and the application
+# (src/lib/prisma.ts) prefers NETLIFY_DATABASE_URL when present as a convenient fallback.
 CORE_VARS=(
   "DATABASE_URL|NETLIFY_DATABASE_URL"
   "FROM_EMAIL"
