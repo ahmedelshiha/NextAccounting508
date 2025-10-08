@@ -95,13 +95,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const membership =
+      tenantId ? await prisma.tenantMembership.findFirst({ where: { userId: user.id, tenantId } }) : null
+
     const tokenPayload = {
       name: user.name,
       email: user.email,
       picture: user.image ?? null,
       sub: user.id,
       role: user.role,
-      tenantRole: user.tenantRole ?? null,
+      tenantRole: membership?.role ?? null,
       sessionVersion: user.sessionVersion ?? 0,
       tenantId,
       tenantSlug: tenantSlugResolved,
