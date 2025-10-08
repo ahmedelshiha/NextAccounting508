@@ -21,9 +21,3 @@
   - Why: eliminate env drift
   - Impact: consistent DB connection locally and on Netlify/Vercel
 
-## 🚧 In Progress
-- [ ] Guardrails: additional CI lint/semgrep for duplicate routes/imports
-
-## 🔧 Next Steps
-- [ ] Add unit tests for health module and a cron job function
-- [ ] Review RBAC scripts overlap (check_admin_rbac.js vs audit-admin-rbac.js)

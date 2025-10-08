@@ -1,72 +1,16 @@
 import prisma from '@/lib/prisma'
-import { sendBookingReminder } from '@/lib/email'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
 // Avoid importing @prisma/client at runtime in tests; use string literals for BookingStatus
 
-// Send booking reminders for appointments tomorrow
+// Send booking reminders via shared scheduler logic to avoid duplication
 export async function sendBookingReminders() {
   try {
-    const tomorrow = addDays(new Date(), 1)
-    const startOfTomorrow = startOfDay(tomorrow)
-    const endOfTomorrow = endOfDay(tomorrow)
-
-    // Get all confirmed bookings for tomorrow
-    const bookings = await prisma.booking.findMany({
-      where: {
-        scheduledAt: {
-          gte: startOfTomorrow,
-          lte: endOfTomorrow
-        },
-        status: 'CONFIRMED',
-        reminderSent: false
-      },
-      include: {
-        service: {
-          select: {
-            name: true
-          }
-        }
-      }
-    })
-
-    console.log(`Found ${bookings.length} bookings for reminder emails`)
-
-    let successCount = 0
-    let errorCount = 0
-
-    for (const booking of bookings) {
-      try {
-        await sendBookingReminder({
-          id: booking.id,
-          scheduledAt: booking.scheduledAt,
-          clientName: booking.clientName,
-          clientEmail: booking.clientEmail,
-          service: {
-            name: booking.service.name
-          }
-        })
-
-        // Mark reminder as sent
-        await prisma.booking.update({
-          where: { id: booking.id },
-          data: { reminderSent: true }
-        })
-
-        successCount++
-        console.log(`Reminder sent for booking ${booking.id}`)
-      } catch (error) {
-        errorCount++
-        console.error(`Failed to send reminder for booking ${booking.id}:`, error)
-      }
-    }
-
-    console.log(`Booking reminders completed: ${successCount} sent, ${errorCount} failed`)
-    
-    return {
-      total: bookings.length,
-      sent: successCount,
-      failed: errorCount
-    }
+    const { processBookingReminders } = await import('@/lib/cron/reminders')
+    const res = await processBookingReminders()
+    const total = Object.values(res.tenantStats || {}).reduce((s, t: any) => s + Number((t as any).total || 0), 0)
+    const sent = Object.values(res.tenantStats || {}).reduce((s, t: any) => s + Number((t as any).sent || 0), 0)
+    const failed = Object.values(res.tenantStats || {}).reduce((s, t: any) => s + Number((t as any).failed || 0), 0)
+    return { total, sent, failed, durationMs: res.durationMs, errorRate: res.errorRate }
   } catch (error) {
     console.error('Error in sendBookingReminders:', error)
     throw error

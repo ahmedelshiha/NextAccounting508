@@ -59,55 +59,21 @@ export function withTenantContext(
     } = options
 
     try {
-      // Dynamically import auth helpers to respect test mocks. Try centralized getSessionOrBypass first,
-      // fall back to getServerSession if the mock does not provide it.
+      // Resolve session in a way that prioritizes test overrides:
+      // 1) Use next-auth/next.getServerSession(authOptions) if available (tests often mock this)
+      // 2) Fallback to next-auth.getServerSession(authOptions)
+      // 3) Finally, fall back to '@/lib/auth'.getSessionOrBypass()
       let session: any = null
       try {
-        const authMod = await import('@/lib/auth')
-        if (authMod && typeof (authMod as any).getSessionOrBypass === 'function') {
-          session = await (authMod as any).getSessionOrBypass()
-        } else if (authMod && typeof (authMod as any).getServerSession === 'function') {
-          // Some tests may mock auth module to expose getServerSession directly
-          session = await (authMod as any).getServerSession((authMod as any).authOptions)
-        } else {
-          try {
-            // Some tests mock 'next-auth' module directly using vi.doMock('next-auth', ...)
-            // Prefer importing 'next-auth' first so test-local mocks are respected.
-            let getServerSession: any = null
-            try {
-              const modA = await import('next-auth')
-              if (modA && typeof modA.getServerSession === 'function') getServerSession = modA.getServerSession
-            } catch {}
-            if (!getServerSession) {
-              try {
-                const modB = await import('next-auth/next')
-                if (modB && typeof modB.getServerSession === 'function') getServerSession = modB.getServerSession
-              } catch {}
-            }
-            const authFallback = await import('@/lib/auth').catch(() => ({}))
-            if (typeof getServerSession === 'function') {
-              // Debug log to trace why test-local next-auth mocks may not be returning session
-              try {
-                // eslint-disable-next-line no-console
-                console.log('[api-wrapper] calling getServerSession with authFallback.authOptions:', (authFallback as any)?.authOptions)
-              } catch {}
-              try {
-                session = await getServerSession((authFallback as any)?.authOptions)
-                // eslint-disable-next-line no-console
-                console.log('[api-wrapper] getServerSession returned:', session)
-              } catch (err) {
-                // eslint-disable-next-line no-console
-                console.debug('[api-wrapper] getServerSession threw', err && (err as any).message)
-                session = null
-              }
-            } else {
-              session = null
-            }
-          } catch (err) {
             session = null
           }
         }
-      } catch (err) {
+
+        // Final fallback: centralized helper (may return null if no auth)
+        if (!session && authMod && typeof (authMod as any).getSessionOrBypass === 'function') {
+          session = await (authMod as any).getSessionOrBypass()
+        }
+      } catch {
         session = null
       }
 

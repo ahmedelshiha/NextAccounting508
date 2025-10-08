@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runScheduledTasks, sendBookingReminders, updateBookingStatuses, cleanupOldData, generateMonthlyReports } from '@/lib/cron'
+import { processBookingReminders } from '@/lib/cron/reminders'
 
 // POST /api/cron - Run scheduled tasks
 export async function POST(request: NextRequest) {
@@ -22,7 +23,8 @@ export async function POST(request: NextRequest) {
 
     switch (task) {
       case 'booking-reminders':
-        result = await sendBookingReminders()
+        // Delegate to shared reminders scheduler to avoid duplicate logic
+        result = await processBookingReminders()
         break
       
       case 'booking-statuses':
