@@ -328,3 +328,11 @@ Append further entries here in chronological order when new work begins or compl
     - User email: superadmin@accountingfirm.com
     - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
   - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
+
+---
+
+## 🚧 In Progress
+- [ ] Address lint failure on scripts/check-superadmin-defaults.ts triggered by direct PrismaClient instantiation.
+  - **Why**: Vercel build halts during `pnpm lint` due to rule requiring the shared Prisma client from `@/lib/prisma`.
+  - **Impact**: Production build blocked; super admin verification script violates security tooling conventions.
+  - **Next Steps**: Refactor script to import the shared Prisma client helper and confirm lint passes.
