@@ -114,11 +114,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const response = NextResponse.json({ success: true, token: encoded })
-    response.headers.set(
-      'Set-Cookie',
-      `${COOKIE_NAME}=${encoded}; Path=/; HttpOnly; Secure; SameSite=Lax`,
-    )
+    const cookie = `${COOKIE_NAME}=${encoded}; Path=/; HttpOnly; Secure; SameSite=Lax`
+    const response = NextResponse.json({ success: true, token: encoded, cookie })
+    response.headers.set('Set-Cookie', cookie)
     return response
   } catch (error) {
     console.error('dev login error', error)
