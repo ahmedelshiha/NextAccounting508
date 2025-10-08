@@ -179,3 +179,20 @@ Notes:
 - File scans: enumerated `src/app/api/**/route.ts` to list endpoints.
 - Targeted checks for duplicates: register/dev-login, health, cron, Sentry test routes, `SettingsNavigation`.
 - Config review: `e2e/playwright.config.ts`, `prisma/schema.prisma`, `netlify/functions/*`, `scripts/check-required-envs.sh`.
+
+---
+
+## Task Tracker
+
+- [ ] [F1] Consolidate auth register routes — remove src/app/api/auth/register/register/route.ts; add redirect to /api/auth/register if needed; update tests and API docs.
+- [ ] [F2] Unify dev login endpoint — keep /api/_dev/login with strict gating (env + IP/secret); remove or redirect /api/dev-login; update docs.
+- [ ] [F3] Extract shared health module — create src/lib/health.ts (collectHealth); refactor /api/security/health, /api/admin/system/health, and netlify/functions/health-monitor.ts to reuse.
+- [ ] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
+- [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
+- [ ] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
+- [ ] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
+- [ ] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
+- [ ] [F9] Auth wrapper guardrails — add unit tests ensuring unauthenticated admin routes return 401; add semgrep rule to forbid implicit auth bypass patterns in wrappers.
+- [ ] [F11] Datasource env coherence — document DATABASE_URL as canonical; confirm prisma.ts continues to accept NETLIFY_DATABASE_URL fallback; update docs/env-reference and scripts/check-required-envs.sh notes.
+- [ ] Repo hygiene — add CI job to detect duplicate route paths and duplicate component basenames in critical areas (e.g., SettingsNavigation).
+- [ ] Docs — update docs/redundancy-report.md and related docs after each fix; include redirects and deprecation notes.
