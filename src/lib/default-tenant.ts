@@ -2,14 +2,18 @@ import prisma from '@/lib/prisma'
 
 function safeRandomUUID(): string {
   try {
-    if (typeof globalThis !== 'undefined' && typeof (globalThis as any).crypto !== 'undefined' && typeof (globalThis as any).crypto.randomUUID === 'function') {
-      return (globalThis as any).crypto.randomUUID()
+    const g: any = globalThis as any
+    if (g && g.crypto && typeof g.crypto.randomUUID === 'function') {
+      return g.crypto.randomUUID()
     }
-  } catch {}
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { randomUUID } = require('node:crypto')
-    return randomUUID()
+    if (g && g.crypto && typeof g.crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16)
+      g.crypto.getRandomValues(bytes)
+      bytes[6] = (bytes[6] & 0x0f) | 0x40
+      bytes[8] = (bytes[8] & 0x3f) | 0x80
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+    }
   } catch {}
   const rand = Math.random().toString(36).slice(2, 10)
   return `${Date.now().toString(36)}-${rand}`
