@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionOrBypass } from '@/lib/auth'
+// Import auth helpers dynamically inside handlers to respect test mocks and runtime environments
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
 import { verifyTenantCookie } from '@/lib/tenant-cookie'
