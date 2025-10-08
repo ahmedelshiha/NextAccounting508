@@ -78,14 +78,8 @@ export function withTenantContext(
         if (naNext?.getServerSession) {
           session = await naNext.getServerSession((authMod as any).authOptions)
         }
-        // Fallback to next-auth (pages compat)
-        if (!session) {
-          const na = await import('next-auth').catch(() => null as any)
-          if (na?.getServerSession) {
-            session = await na.getServerSession((authMod as any).authOptions)
-          }
-        }
-        // No implicit auth bypass here. Routes that need preview bypass should call getSessionOrBypass explicitly, not via wrapper.
+        // NOTE: No fallback to 'next-auth' here to keep behavior deterministic in tests.
+        // Routes needing broader compatibility should resolve sessions explicitly.
       } catch {
         session = null
       }
