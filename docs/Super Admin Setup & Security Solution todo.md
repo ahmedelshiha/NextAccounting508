@@ -76,6 +76,11 @@ Verified complete (moved to Completed):
   - **Why**: ensure SUPER_ADMIN logins require step-up MFA per tenant or environment toggle and accept OTP supplied via credentials or headers
   - **Impact**: SUPER_ADMIN login now enforces tenant/env step-up policy: if enabled, login requires a valid TOTP or backup code (from credentials.mfa or request headers). Invalid or missing OTPs produce audit events and block sign-in.
 
+- [x] Integrated IP restriction middleware into Next.js routes (matcher: /admin, /portal, /api, /login, /register)
+  - **Files**: src/app/middleware.ts, src/lib/security/ip-allowlist.ts
+  - **Why**: enforce tenant-aware IP allowlist and block unauthorized network origins for admin and sensitive API routes
+  - **Impact**: requests to admin and admin API routes are evaluated against tenant/network allowlists; denials emit `security.ip.block` audit events and return 403 (for API) or redirect to login.
+
 ## ⚠️ Issues / Risks
 
 - Tenant-level step-up override currently resolves via security-settings.service.get(null) when called from generic helpers. This is deliberate to reduce coupling in the step-up helper; in future we may want to pass tenantId into helper functions to consult the exact tenant settings.
@@ -128,6 +133,7 @@ Verified complete (moved to Completed):
 - [x] Admin IP helper UI + API
 - [x] Unit test for tenant-level step-up override
 - [x] Implemented tenant-aware step-up MFA enforcement for SUPER_ADMIN during credentials login.
+- [x] Integrated IP restriction middleware into Next.js routes (matcher: /admin, /portal, /api, /login, /register)
 
 ---
 
@@ -227,29 +233,4 @@ Verified complete (moved to Completed):
 - [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
   - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
   - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
-
-## ⚠️ Issues / Risks
-- Portal-first fallback in login page persists if /api/users/me fails; may revisit to derive role from session directly.
-
-## 🚧 In Progress
-- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
-
-## 🔧 Next Steps
-- [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
-- [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
-
----
-
-## ✅ Completed
-- [x] Added `security.ratelimit.block` audit logging for admin newsletter list endpoint and auth password flows (forgot/reset) when rate limits trigger.
-  - **Why**: improve visibility into abuse and throttling on privileged/admin-related surfaces
-  - **Impact**: responders can trace 429s with IP and key context; no user-facing leakage
-
----
-
-## ✅ Completed
-- [x] Implemented tenant-aware step-up MFA enforcement for SUPER_ADMIN during credentials login.
-  - **Files**: src/lib/auth.ts
-  - **Why**: ensure SUPER_ADMIN logins require step-up MFA per tenant or environment toggle and accept OTP supplied via credentials or headers
-  - **Impact**: SUPER_ADMIN login now enforces tenant/env step-up policy: if enabled, login requires a valid TOTP or backup code (from credentials.mfa or request headers). Invalid or missing OTPs produce audit events and block sign-in.
 
