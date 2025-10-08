@@ -5,8 +5,6 @@ export const config = { schedule: '*/15 * * * *' }
 // Uses x-cron-secret header if configured to protect the internal route
 import { sendBookingReminders } from '@/lib/cron'
 
-export const config = { schedule: '*/15 * * * *' }
-
 async function handler() {
   const origin = process.env.URL || process.env.SITE_URL
   const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
