@@ -26,7 +26,7 @@ Key actions:
 | F5 | Cron entrypoint duplication | `netlify/functions/cron-reminders.ts` and `/api/cron/reminders/route.ts` (and similar cron routes) | Medium | In Progress | Keep shared job logic in `src/lib/cron/*` and call from both contexts to avoid drift. Verify all cron routes are refactored. |
 | F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Resolved | Canonicalized to `src/app/api/sentry-check/route.ts`; legacy `sentry-example` now redirects to canonical. |
 | F7 | RBAC scripts overlap | `scripts/rbac.js` | Medium | Resolved | Unified RBAC utility implemented at `scripts/rbac.js` with `--check` and `--audit` modes; package scripts updated. |
-| F8 | Edge runtime incompatibility (fixed) | `src/lib/default-tenant.ts` | Medium | Resolved | Replaced Node crypto usage with `safeRandomUUID` (Web Crypto first; no `require()`). |
+| F8 | Edge runtime guardrails | `semgrep/edge-node-imports.yml`, `.github/workflows/semgrep-edge-guard.yml` | Medium | Resolved | Added semgrep rules to detect Node-only imports and a CI workflow to run checks on PRs. |
 | F9 | API wrapper implicit bypass (fixed) | `src/lib/api-wrapper.ts` | High | Resolved | Removed implicit preview bypass and extra fallback; use one session resolution path only. |
 | F10 | Playwright config duplicate imports | `e2e/playwright.config.ts` | Low | N/A | Current file shows no duplicate imports; prior note removed. |
 | F11 | Prisma datasource env coherence | `prisma/schema.prisma`, `scripts/check-required-envs.sh`, `src/lib/prisma.ts` | Low | Aligned | Schema uses `DATABASE_URL`; validator accepts `DATABASE_URL|NETLIFY_DATABASE_URL`; client wrapper supports both. Keep as-is with docs alignment. |
@@ -133,6 +133,10 @@ Notes:
   - File: `src/lib/default-tenant.ts`
   - Change: Replaced Node `crypto.randomUUID` with `safeRandomUUID` (Web Crypto first; no `require()`), eliminating Edge warnings and ESLint errors.
 
+- R5 (Guardrails): Edge runtime semgrep checks
+  - Files: `semgrep/edge-node-imports.yml`, `.github/workflows/semgrep-edge-guard.yml`
+  - Change: Added semgrep rules to detect Node built-in imports and require() usage, and a CI workflow that runs semgrep on PRs to prevent Node-only imports from being merged into Edge-targeted files.
+
 - R4 (Resolved): Extracted shared health module and refactored callers
   - File: `src/lib/health.ts` and callers: `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts`
   - Change: Implemented `collectSystemHealth()` and `toSecurityHealthPayload()`; refactored endpoints and Netlify function to call the shared module for consistent health rollups.
@@ -197,7 +201,7 @@ Notes:
 - [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
 - [x] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
 - [x] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
-- [ ] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
+- [x] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
 - [ ] [F9] Auth wrapper guardrails — add unit tests ensuring unauthenticated admin routes return 401; add semgrep rule to forbid implicit auth bypass patterns in wrappers.
 - [ ] [F11] Datasource env coherence — document DATABASE_URL as canonical; confirm prisma.ts continues to accept NETLIFY_DATABASE_URL fallback; update docs/env-reference and scripts/check-required-envs.sh notes.
 - [ ] Repo hygiene — add CI job to detect duplicate route paths and duplicate component basenames in critical areas (e.g., SettingsNavigation).
