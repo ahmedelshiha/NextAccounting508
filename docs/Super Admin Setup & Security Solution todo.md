@@ -81,6 +81,12 @@ Verified complete (moved to Completed):
   - **Why**: enforce tenant-aware IP allowlist and block unauthorized network origins for admin and sensitive API routes
   - **Impact**: requests to admin and admin API routes are evaluated against tenant/network allowlists; denials emit `security.ip.block` audit events and return 403 (for API) or redirect to login.
 
+- [x] Added Redis-backed distributed rate limiter and wired admin APIs to use applyRateLimit (Upstash or ioredis supported)
+  - **Files**: src/lib/rate-limit.ts, src/lib/cache/redis.ts, various admin API routes using applyRateLimit
+  - **Why**: provide cross-instance rate limiting for admin and public endpoints to prevent abuse and credential stuffing across horizontally scaled deployments
+  - **Impact**: rate limits now operate across instances when REDIS_URL or UPSTASH_REDIS_REST_URL/TOKEN are configured. Fallback to in-process memory buckets when Redis is unavailable.
+  - **Enablement**: To enable distributed mode, set either REDIS_URL (redis:// or rediss://) or UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN. Restart/redeploy the app to pick up environment changes.
+
 ## ⚠️ Issues / Risks
 
 - Tenant-level step-up override currently resolves via security-settings.service.get(null) when called from generic helpers. This is deliberate to reduce coupling in the step-up helper; in future we may want to pass tenantId into helper functions to consult the exact tenant settings.
@@ -91,49 +97,36 @@ Verified complete (moved to Completed):
 
 - [x] Implement Admin IP helper UI and backend route (completed)
 - [x] Add unit test for tenant-level step-up override (completed)
+- [x] Add Redis-backed distributed rate limiter and wired admin APIs to use applyRateLimit
 
 ## 🔧 Next Steps (recommended and actionable)
 
-- [x] Add audit event when `superAdmin.logAdminAccess` is toggled (more granular than current security-settings:update event). This produces a clear audit entry indicating who changed logging policy and previous/new value.
+- [ ] Add audit event when `superAdmin.logAdminAccess` is toggled (more granular than current security-settings:update event). This produces a clear audit entry indicating who changed logging policy and previous/new value.
   - Owner: Security Engineer
   - Verification: new entry in audit logs with action `security.superadmin.logAdminAccess.toggled`
   - Files changed: src/services/security-settings.service.ts
   - Note: Service now emits `security.superadmin.logAdminAccess.toggled` with details { tenantId, previous, current } when toggled.
 
-- [x] Make Super Admin Controls modal visibility explicit to SUPER_ADMIN users only (UI guard). Currently PermissionGate controls access to the Security Settings page; added an extra client-side guard so only SUPER_ADMINs can open the modal and superAdmin.* toggles are hidden for others.
+- [ ] Make Super Admin Controls modal visibility explicit to SUPER_ADMIN users only (UI guard). Currently PermissionGate controls access to the Security Settings page; added an extra client-side guard so only SUPER_ADMINs can open the modal and superAdmin.* toggles are hidden for others.
   - Owner: Frontend
   - Verification: non-super admins cannot open the modal nor read tenant-level superAdmin fields
   - Files changed: src/app/admin/settings/security/page.tsx, src/components/admin/settings/SuperAdminSecurityModal.tsx
 
-- [x] Add IPv6-focused unit tests for ip-allowlist edge cases (zone identifiers, compression, ::ffff: mapped addresses) and add tests for matched rule resolution.
+- [ ] Add IPv6-focused unit tests for ip-allowlist edge cases (zone identifiers, compression, ::ffff: mapped addresses) and add tests for matched rule resolution.
   - Owner: Test maintainer
   - Verification: tests in tests/security/ip-allowlist.test.ts
   - Files changed: tests/security/ip-allowlist.test.ts
 
-- [x] Add a server-side enforcement audit to log when `network.enableIpRestrictions` denies access to an admin route. Implemented tenant-aware policy resolution, matched-rule detection, and inclusion of tenantId in audit details.
-  - Owner: Backend
-  - Verification: audit entries `security.ip.block` include tenantId, userId, ip, policySource, and matchedRule
-  - Files changed: src/app/middleware.ts
+- [ ] Add CI job to run scripts/check_admin_rbac.js and fail builds on missing guards.
 
-- [x] Add help text and contextual tooltips to the Super Admin Controls modal explaining env vs tenant precedence, and operational impact.
-  - Owner: UX/Frontend
-  - Verification: tooltips present and link to runbook
-  - Files changed: src/components/admin/settings/SuperAdminSecurityModal.tsx
-
-- [x] Consider making verifySuperAdminStepUp accept tenantId to consult that tenant's settings explicitly rather than the current `get(null)` fallback. Implemented: helper now accepts optional tenantId and route callers pass tenantId when available.
-  - Owner: Backend
-  - Verification: updated helper signature and route callers pass tenantId where available
-  - Files changed: src/lib/security/step-up.ts, src/app/api/admin/security-settings/route.ts, src/app/api/admin/permissions/*, src/app/api/admin/audit-logs/route.ts
-
-- [x] Add unit tests that call verifySuperAdminStepUp with tenantId to validate tenant-scoped behavior
-  - Files: tests/security/step-up-tenantid.test.ts
-  - Verification: tests cover tenant-level true/false behavior and env fallback
+---
 
 ## ✅ Completed (most recent)
 - [x] Admin IP helper UI + API
 - [x] Unit test for tenant-level step-up override
 - [x] Implemented tenant-aware step-up MFA enforcement for SUPER_ADMIN during credentials login.
 - [x] Integrated IP restriction middleware into Next.js routes (matcher: /admin, /portal, /api, /login, /register)
+- [x] Added Redis-backed distributed rate limiter and wired admin APIs to use applyRateLimit
 
 ---
 
@@ -171,66 +164,4 @@ Verified complete (moved to Completed):
 
 ## ⚠️ Issues / Risks
 - Prisma db push surfaced drift on ComplianceRecord, HealthLog, and Task tenantId requirements; avoid force-reset in shared environments. Coordinate a dedicated migration plan for multi-tenant columns.
-
-## 🚧 In Progress
-- [ ] Plan and stage proper migrations for tenantId backfills on affected tables (with online backfill and defaults), then set NOT NULL with FK; avoid downtime.
-
-## 🔧 Next Steps
-- [ ] Add CI job to run scripts/check_admin_rbac.js and fail builds on missing guards.
-- [ ] Create migration plan for tenantId backfill: additive nullable columns, background backfill, then set NOT NULL with FK; avoid downtime.
-- [ ] Verify via SQL:
-  - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superadmin';
-  - SELECT superAdmin FROM public.security_settings LIMIT 5;
-
----
-
-## ✅ Completed
-- [x] Verified superAdmin column and defaults present in remote DB.
-  - **Why**: confirm rollout success and idempotent seed behavior
-  - **Impact**: tenant-level overrides active; APIs can consult persisted settings
-  - **Verification Output**n: 
-    - Column exists count: 1
-    - Sample row: { tenantId: "tenant_primary", superAdmin: { stepUpMfa: false, logAdminAccess: true } }
-    - Rows missing defaults: 0
-  - **Files**: scripts/admin-setup/verify-superadmin-column.ts
-
----
-
-## ✅ Completed
-- [x] Created SUPER_ADMIN user and ensured credentials; handled enum drift and schema gaps safely.
-  - **Why**: enable platform-level super admin operations immediately
-  - **Impact**: SUPER_ADMIN user present; membership sync skipped if table absent; no downtime
-  - **Ops Output**: 
-    - Enum UserRole updated to include SUPER_ADMIN (idempotent)
-    - User email: superadmin@accountingfirm.com
-    - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
-  - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
-
----
-
-## 🚧 In Progress
-- [ ] Address lint failure on scripts/check-superadmin-defaults.ts triggered by direct PrismaClient instantiation.
-  - **Why**: Vercel build halts during `pnpm lint` due to rule requiring the shared Prisma client from `@/lib/prisma`.
-  - **Impact**: Production build blocked; super admin verification script violates security tooling conventions.
-  - **Next Steps**: Refactor script to import the shared Prisma client helper and confirm lint passes.
-
----
-
-## ✅ Completed
-- [x] Resolved lint failure in scripts/check-superadmin-defaults.ts by reusing shared Prisma client from `@/lib/prisma`.
-  - **Why**: enforce centralized Prisma lifecycle management and satisfy security lint rule.
-  - **Impact**: unblocks Vercel builds; ensures tenant guard and connection pooling policies apply.
-
-## ⚠️ Issues / Risks
-- No new risks identified; prior remote DB drift tracking remains valid above.
-
-## 🚧 In Progress
-- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
-
----
-
-## ✅ Completed
-- [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
-  - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
-  - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
 
