@@ -4,7 +4,7 @@
   - **Prerequisites**: Confirm current handler behavior and any downstream consumers relying on the nested path.
   - **Expected output**: Only `src/app/api/auth/register/route.ts` handles registrations, and redundant files are removed or redirect to it.
   - **Verification criteria**: Requests to both legacy and canonical endpoints succeed with identical responses; unit/integration tests pass.
-- [ ] Unify dev login endpoints under /_dev/login with strict gating
+- [x] Unify dev login endpoints under /_dev/login with strict gating
   - **Description**: Remove duplicate dev login route and ensure remaining handler performs environment and role checks.
   - **Prerequisites**: Inventory existing guards and secrets used by both endpoints.
   - **Expected output**: A single safe dev login handler under `/_dev/login`; old path removed or redirected.
@@ -44,13 +44,16 @@
 - [x] Consolidated /auth/register handlers into a single canonical route
   - **Why**: redundancy cleanup of duplicate register handlers
   - **Impact**: unified tenant-aware registration logic and added a 307 redirect for the legacy `/api/auth/register/register` path to avoid breaking clients
+- [x] Unified dev login endpoints under /_dev/login with strict gating
+  - **Why**: eliminated duplicate dev login logic and enforced a single entry point
+  - **Impact**: centralized development authentication with optional token gating and preserved legacy `/api/dev-login` support via 307 redirect
 
 ## ⚠️ Issues / Risks
 - Legacy consumers may depend on deprecated routes; redirects must be verified before deletion.
 
 ## 🚧 In Progress
-- [ ] Unify dev login endpoints under /_dev/login with strict gating.
+- [ ] Evaluate next high-priority consolidation task (e.g., merging `usePerformanceMonitoring`).
 
 ## 🔧 Next Steps
-- [ ] Prioritize dev login consolidation and audit logging alignment.
-- [ ] Monitor redirect usage metrics to determine safe removal window for the legacy register route file.
+- [ ] Audit telemetry around legacy dev login redirect usage before final removal.
+- [ ] Prepare consolidation plan for `usePerformanceMonitoring` hook variants.
