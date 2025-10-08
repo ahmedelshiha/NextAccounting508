@@ -1,5 +1,19 @@
-import { randomUUID } from 'crypto'
 import prisma from '@/lib/prisma'
+
+function safeRandomUUID(): string {
+  try {
+    if (typeof globalThis !== 'undefined' && typeof (globalThis as any).crypto !== 'undefined' && typeof (globalThis as any).crypto.randomUUID === 'function') {
+      return (globalThis as any).crypto.randomUUID()
+    }
+  } catch {}
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { randomUUID } = require('node:crypto')
+    return randomUUID()
+  } catch {}
+  const rand = Math.random().toString(36).slice(2, 10)
+  return `${Date.now().toString(36)}-${rand}`
+}
 
 let cachedDefaultTenantId: string | null = null
 
@@ -18,7 +32,7 @@ async function ensureDefaultTenant(): Promise<string> {
     return existing.id
   }
 
-  const generatedId = `tenant_${randomUUID().replace(/-/g, '').slice(0, 24)}`
+  const generatedId = `tenant_${safeRandomUUID().replace(/-/g, '').slice(0, 24)}`
   const created = await prisma.tenant.create({
     data: {
       id: generatedId,
