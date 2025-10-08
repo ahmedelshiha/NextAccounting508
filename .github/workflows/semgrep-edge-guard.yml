@@ -20,3 +20,6 @@ jobs:
       - name: Run semgrep for node builtin imports
         run: |
           ~/.local/bin/semgrep --config semgrep/edge-node-imports.yml || true
+      - name: Run semgrep auth bypass checks
+        run: |
+          ~/.local/bin/semgrep --config semgrep/auth-bypass.yml || true
