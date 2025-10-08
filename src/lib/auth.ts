@@ -122,19 +122,49 @@ export const authOptions: NextAuthOptions = {
         // MFA enforcement for admin/super admin
         try {
           const role = String(user.role || '').toUpperCase()
-          if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+          if (role === 'SUPER_ADMIN') {
+            // For SUPER_ADMIN, enforce tenant-aware step-up MFA policy.
+            const { verifySuperAdminStepUp } = await import('@/lib/security/step-up')
+
+            // Build a request-like object whose headers.get prioritizes OTP passed in credentials (credentials.mfa/otp/code)
+            const credOtp = (credentials as any)?.mfa || (credentials as any)?.otp || (credentials as any)?.code || ''
+            const headerLike: any = {
+              headers: {
+                get: (name: string) => {
+                  if (credOtp && String(credOtp).trim()) return String(credOtp).trim()
+                  try {
+                    const r = (req as any)?.request ?? (req as any)
+                    return r?.headers?.get?.(name) ?? null
+                  } catch {
+                    return null
+                  }
+                },
+              },
+            }
+
+            const stepUpOk = await verifySuperAdminStepUp(headerLike as any, user.id, tenantId)
+            if (!stepUpOk) {
+              await logAudit({ action: 'auth.mfa.stepup.required', actorId: user.id, targetId: user.id, details: { tenantId } }).catch(() => {})
+              return null
+            }
+          } else if (role === 'ADMIN') {
+            // For regular ADMIN, keep previous behavior: require OTP only if user has MFA secret configured
             const { getUserMfaSecret, verifyTotp, consumeBackupCode } = await import('@/lib/mfa')
             const secret = await getUserMfaSecret(user.id)
             if (secret) {
               const otp = (credentials as any)?.mfa || (credentials as any)?.otp || (credentials as any)?.code || ''
               const isValid = verifyTotp(secret, String(otp || '')) || (await consumeBackupCode(user.id, String(otp || '')))
               if (!isValid) {
-                await logAudit({ action: 'auth.mfa.required', actorId: user.id, targetId: user.id, details: { tenantId } })
+                await logAudit({ action: 'auth.mfa.required', actorId: user.id, targetId: user.id, details: { tenantId } }).catch(() => {})
                 return null
               }
             }
           }
-        } catch {}
+        } catch (err) {
+          // Fail closed: if any error occurs during MFA checks, log and block the login
+          try { await logAudit({ action: 'auth.mfa.error', actorId: user.id, targetId: user.id, details: { error: String(err) } }) } catch {}
+          return null
+        }
 
         // Fetch tenant memberships for the user to populate available tenants
         const tenantMemberships = await prisma.tenantMembership.findMany({ where: { userId: user.id }, include: { tenant: true } }).catch(() => [])

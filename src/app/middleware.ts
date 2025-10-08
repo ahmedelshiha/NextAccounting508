@@ -49,6 +49,10 @@ export async function middleware(req: NextServer.NextRequest) {
   const isAdminPage = pathname.startsWith('/admin')
   const isPortalPage = pathname.startsWith('/portal')
 
+  let resolvedTenantId: string | null = null
+  let resolvedTenantSlug: string | null = null
+  let apiEntryLogged = false
+
   if (isAuthPage && isAuth) {
     const role = (token as unknown as { role?: string } | null)?.role
     const dest = isStaffRole(role) ? '/admin' : '/portal'
@@ -126,10 +130,6 @@ export async function middleware(req: NextServer.NextRequest) {
   requestHeaders.delete('x-user-id')
   requestHeaders.delete('x-request-id')
   requestHeaders.set('x-request-id', requestId)
-
-  let resolvedTenantId: string | null = null
-  let resolvedTenantSlug: string | null = null
-  let apiEntryLogged = false
 
   const baseLogContext: Record<string, unknown> = {
     requestId,
