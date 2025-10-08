@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-// Import auth helpers dynamically inside handlers to respect test mocks and runtime environments
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
 import { verifyTenantCookie } from '@/lib/tenant-cookie'
 
+/**
+ * Safely read a cookie value from NextRequest or a request-like object.
+ * Handles Next.js cookies API, plain objects, and raw Cookie headers.
+ */
 export function getCookie(req: any, name: string): string | null {
   if (!req) return null
   const cookies = (req as any).cookies
@@ -11,15 +14,17 @@ export function getCookie(req: any, name: string): string | null {
     // NextRequest cookie store
     if (cookies && typeof cookies.get === 'function') {
       const c = cookies.get(name)
-      return (c && typeof c === 'object' && 'value' in c) ? c.value : (c ?? null)
+      return (c && typeof c === 'object' && 'value' in c) ? (c as any).value : (c ?? null)
     }
     // Plain object or map-like
     if (cookies && typeof cookies === 'object') {
       const v = (cookies as any)[name]
-      if (v !== undefined) return (v && typeof v === 'object' && 'value' in v) ? v.value : v
+      if (v !== undefined) return (v && typeof v === 'object' && 'value' in v) ? (v as any).value : v
     }
     // Fallback to Cookie header parsing
-    const header = req && req.headers && typeof req.headers.get === 'function' ? req.headers.get('cookie') : (req && req.headers && (req.headers as any).cookie)
+    const header = req && req.headers && typeof req.headers.get === 'function'
+      ? (req.headers as any).get('cookie')
+      : (req && req.headers && (req.headers as any).cookie)
     if (header && typeof header === 'string') {
       const parts = header.split(';').map(p => p.trim())
       for (const part of parts) {
@@ -27,8 +32,7 @@ export function getCookie(req: any, name: string): string | null {
         if (k === name) return rest.join('=')
       }
     }
-  } catch (e) {
-    // Defensive: any unexpected shape -> null
+  } catch {
     return null
   }
   return null
@@ -46,6 +50,12 @@ export interface ApiWrapperOptions {
   allowedRoles?: string[]
 }
 
+/**
+ * Wrap an App Router API route with tenant and auth context.
+ * - Resolves session via next-auth (preferring next-auth/next), with a fallback to a local helper.
+ * - Optionally enforces auth and role requirements.
+ * - Establishes AsyncLocal tenant context for downstream code.
+ */
 export function withTenantContext(
   handler: ApiHandler,
   options: ApiWrapperOptions = {}
@@ -59,18 +69,24 @@ export function withTenantContext(
     } = options
 
     try {
-      // Resolve session in a way that prioritizes test overrides:
-      // 1) Use next-auth/next.getServerSession(authOptions) if available (tests often mock this)
-      // 2) Fallback to next-auth.getServerSession(authOptions)
-      // 3) Finally, fall back to '@/lib/auth'.getSessionOrBypass()
+      // Resolve session with robust fallbacks
       let session: any = null
       try {
-            session = null
+        // Prefer next-auth/next for App Router
+        const naNext = await import('next-auth/next').catch(() => null as any)
+        const authMod = await import('@/lib/auth')
+        if (naNext?.getServerSession) {
+          session = await naNext.getServerSession((authMod as any).authOptions)
+        }
+        // Fallback to next-auth (pages compat)
+        if (!session) {
+          const na = await import('next-auth').catch(() => null as any)
+          if (na?.getServerSession) {
+            session = await na.getServerSession((authMod as any).authOptions)
           }
         }
-
-        // Final fallback: centralized helper (may return null if no auth)
-        if (!session && authMod && typeof (authMod as any).getSessionOrBypass === 'function') {
+        // Final fallback: project helper
+        if (!session && typeof (authMod as any).getSessionOrBypass === 'function') {
           session = await (authMod as any).getSessionOrBypass()
         }
       } catch {
@@ -84,7 +100,7 @@ export function withTenantContext(
         )
       }
 
-      // If unauthenticated requests are allowed, try to derive tenant from headers and run within context
+      // If unauthenticated requests are allowed, optionally run within tenant header context
       if (!session?.user) {
         try {
           const headerTenant = (request && (request as any).headers && typeof (request as any).headers.get === 'function')
@@ -133,11 +149,10 @@ export function withTenantContext(
         )
       }
 
-      // Tenant cookie check: cryptographically verify tenant_sig and ensure it matches session
+      // Verify tenant signature cookie if present
       try {
         const tenantCookie = getCookie(request, 'tenant_sig')
         if (tenantCookie) {
-          // If session lacks tenantId, treat cookie as invalid and deny access.
           if (!user.tenantId) {
             logger.warn('Tenant cookie present but session user has no tenantId', { userId: user.id, tenantId: user.tenantId })
             return NextResponse.json(
@@ -157,9 +172,6 @@ export function withTenantContext(
         }
       } catch (err) {
         logger.warn('Failed to validate tenant cookie', { error: err })
-        // In some environments (unit tests or minimal Request objects) the `request.cookies` API may be missing
-        // Treat cookie validation failures as a missing/invalid cookie but do NOT block the request here.
-        // Let the handler perform authentication/authorization checks and return the appropriate 401/403.
       }
 
       const context: TenantContext = {
@@ -171,7 +183,7 @@ export function withTenantContext(
         role: user.role ?? null,
         tenantRole: user.tenantRole ?? null,
         isSuperAdmin: user.role === 'SUPER_ADMIN',
-        requestId: (request && (request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('x-request-id') : null,
+        requestId: ((request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('x-request-id') : null,
         timestamp: new Date(),
       }
 

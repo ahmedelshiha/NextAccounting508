@@ -39,7 +39,7 @@
     "production:deploy": "pnpm monitoring:setup && pnpm vercel:build",
     "deploy:netlify": "doppler run --config netlify -- netlify deploy --prod",
     "deploy:vercel": "doppler run --config vercel -- vercel --prod",
-    "check:duplicates": "node scripts/ci/check-duplicate-api-routes.js",
+    "check:duplicates": "node scripts/ci/check-duplicate-api-routes.js && node scripts/ci/check-critical-duplicates.js",
     "validate:stateful-docs": "node scripts/verify_stateful_docs.js"
   },
   "dependencies": {

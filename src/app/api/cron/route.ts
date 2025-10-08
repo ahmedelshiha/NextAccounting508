@@ -1,55 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { runScheduledTasks, sendBookingReminders, updateBookingStatuses, cleanupOldData, generateMonthlyReports } from '@/lib/cron'
+import { runScheduledTasks, updateBookingStatuses, cleanupOldData, generateMonthlyReports } from '@/lib/cron'
 import { processBookingReminders } from '@/lib/cron/reminders'
+import { authorizeCron, runCronTask } from '@/lib/cron/scheduler'
 
 // POST /api/cron - Run scheduled tasks
 export async function POST(request: NextRequest) {
+  const auth = authorizeCron(request)
+  if (auth) return auth
   try {
-    // Verify the request is from a cron service or has the correct authorization
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET || 'default-cron-secret'
-    
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const body = await request.json().catch(() => ({}))
     const { task } = body
 
-    let result
-
     switch (task) {
       case 'booking-reminders':
-        // Delegate to shared reminders scheduler to avoid duplicate logic
-        result = await processBookingReminders()
-        break
-      
+        return NextResponse.json(await runCronTask('booking-reminders', () => processBookingReminders()))
       case 'booking-statuses':
-        result = await updateBookingStatuses()
-        break
-      
+        return NextResponse.json(await runCronTask('booking-statuses', () => updateBookingStatuses()))
       case 'cleanup':
-        result = await cleanupOldData()
-        break
-      
+        return NextResponse.json(await runCronTask('cleanup', () => cleanupOldData()))
       case 'monthly-report':
-        result = await generateMonthlyReports()
-        break
-      
+        return NextResponse.json(await runCronTask('monthly-report', () => generateMonthlyReports()))
       case 'all':
       default:
-        result = await runScheduledTasks()
-        break
+        return NextResponse.json(await runCronTask('all', () => runScheduledTasks()))
     }
-
-    return NextResponse.json({
-      success: true,
-      task: task || 'all',
-      result
-    })
   } catch (error) {
     console.error('Cron job error:', error)
     return NextResponse.json(
@@ -65,16 +40,9 @@ export async function POST(request: NextRequest) {
 
 // GET /api/cron - Get cron job information
 export async function GET(request: NextRequest) {
+  const auth = authorizeCron(request)
+  if (auth) return auth
   try {
-    const authHeader = request.headers.get('authorization')
-    const cronSecret = process.env.CRON_SECRET || 'default-cron-secret'
-    
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     return NextResponse.json({
       message: 'Cron job endpoint',

@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { addDays, startOfDay, endOfDay } from 'date-fns'
 // Avoid importing @prisma/client at runtime in tests; use string literals for BookingStatus
+import prisma from '@/lib/prisma'
 
 // Send booking reminders via shared scheduler logic to avoid duplication
 export async function sendBookingReminders() {
