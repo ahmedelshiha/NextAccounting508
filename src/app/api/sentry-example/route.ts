@@ -1,10 +1,6 @@
-import * as Sentry from '@sentry/nextjs'
+import { NextResponse } from 'next/server'
 
-export async function GET() {
-  try {
-    throw new Error('Sentry Server Test Error')
-  } catch (e) {
-    Sentry.captureException(e)
-    throw e
-  }
+export async function GET(request: Request) {
+  const redirectUrl = new URL('/api/sentry-check', request.url)
+  return NextResponse.redirect(redirectUrl, 307)
 }
