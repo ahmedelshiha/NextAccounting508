@@ -1,5 +1,5 @@
 ## 🚧 Tasks
-- [ ] Consolidate /auth/register handlers into a single canonical route
+- [x] Consolidate /auth/register handlers into a single canonical route
   - **Description**: Remove the nested `/api/auth/register/register` handler, keep `/api/auth/register`, and provide a redirect for legacy consumers if required.
   - **Prerequisites**: Confirm current handler behavior and any downstream consumers relying on the nested path.
   - **Expected output**: Only `src/app/api/auth/register/route.ts` handles registrations, and redundant files are removed or redirect to it.
@@ -41,13 +41,16 @@
   - **Verification criteria**: Guardrail tests intentionally triggered in local run and prevent merges without fixes.
 
 ## ✅ Completed
-- None recorded yet.
+- [x] Consolidated /auth/register handlers into a single canonical route
+  - **Why**: redundancy cleanup of duplicate register handlers
+  - **Impact**: unified tenant-aware registration logic and added a 307 redirect for the legacy `/api/auth/register/register` path to avoid breaking clients
 
 ## ⚠️ Issues / Risks
 - Legacy consumers may depend on deprecated routes; redirects must be verified before deletion.
 
 ## 🚧 In Progress
-- [ ] Pending task selection for current session.
+- [ ] Unify dev login endpoints under /_dev/login with strict gating.
 
 ## 🔧 Next Steps
-- [ ] Prioritize high-impact route consolidation before deeper refactors.
+- [ ] Prioritize dev login consolidation and audit logging alignment.
+- [ ] Monitor redirect usage metrics to determine safe removal window for the legacy register route file.
