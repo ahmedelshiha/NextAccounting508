@@ -85,8 +85,13 @@ export function withTenantContext(
             session = await na.getServerSession((authMod as any).authOptions)
           }
         }
-        // Final fallback: project helper
-        if (!session && typeof (authMod as any).getSessionOrBypass === 'function') {
+        // Final fallback: allow auth bypass ONLY when explicitly enabled and not under test
+        if (
+          !session &&
+          typeof (authMod as any).getSessionOrBypass === 'function' &&
+          String(process.env.AUTH_DISABLED || '').toLowerCase() === 'true' &&
+          String(process.env.NODE_ENV || '') !== 'test'
+        ) {
           session = await (authMod as any).getSessionOrBypass()
         }
       } catch {
