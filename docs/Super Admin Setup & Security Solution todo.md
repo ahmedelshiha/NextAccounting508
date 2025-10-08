@@ -328,3 +328,41 @@ Append further entries here in chronological order when new work begins or compl
     - User email: superadmin@accountingfirm.com
     - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
   - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
+
+---
+
+## 🚧 In Progress
+- [ ] Address lint failure on scripts/check-superadmin-defaults.ts triggered by direct PrismaClient instantiation.
+  - **Why**: Vercel build halts during `pnpm lint` due to rule requiring the shared Prisma client from `@/lib/prisma`.
+  - **Impact**: Production build blocked; super admin verification script violates security tooling conventions.
+  - **Next Steps**: Refactor script to import the shared Prisma client helper and confirm lint passes.
+
+---
+
+## ✅ Completed
+- [x] Resolved lint failure in scripts/check-superadmin-defaults.ts by reusing shared Prisma client from `@/lib/prisma`.
+  - **Why**: enforce centralized Prisma lifecycle management and satisfy security lint rule.
+  - **Impact**: unblocks Vercel builds; ensures tenant guard and connection pooling policies apply.
+
+## ⚠️ Issues / Risks
+- No new risks identified; prior remote DB drift tracking remains valid above.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+---
+
+## ✅ Completed
+- [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
+  - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
+  - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
+
+## ⚠️ Issues / Risks
+- Portal-first fallback in login page persists if /api/users/me fails; may revisit to derive role from session directly.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+## 🔧 Next Steps
+- [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
+- [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
