@@ -27,13 +27,16 @@
 - [x] Fix build parsing error in src/lib/api-wrapper.ts
   - Why: unblock Netlify build (ESLint parsing error: "catch or finally expected" at line ~70)
   - Impact: restored lint/typecheck/build pipeline; robust session resolution with fallbacks; added JSDoc
+- [x] Implement canonical /api/auth/register API
+  - Why: unify registration flow; remove duplicated routes
+  - Impact: register page and admin client creation now target a single endpoint; tenant-aware user creation; safe demo/DB-less handling
 
 ## ⚠️ Issues / Risks
-- None observed for this change; wrapper preserves existing auth/tenant semantics.
+- Registration disabled when DB is not configured (returns 503), by design.
 
 ## 🚧 In Progress
-- [ ] Review and unify redundant auth/register routes and preview-login logic
+- [ ] Confirm no remaining preview-login duplicates; keep single fallback in next-auth authorize
 
 ## 🔧 Next Steps
-- [ ] Run lint/typecheck/tests to confirm no regressions
-- [ ] Proceed with Objective 1: unify /auth/register, /api/auth/register and preview login
+- [ ] Add unit tests for /api/auth/register input validation and conflict handling
+- [ ] Scan for legacy /auth/register page routes and remove/redirect if found
