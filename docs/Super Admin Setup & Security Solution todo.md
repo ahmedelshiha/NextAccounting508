@@ -265,3 +265,21 @@ Append further entries here in chronological order when new work begins or compl
   - Owner: Ops/Backend
   - Status: Rolling out and validating; ensure defaults persist and APIs reflect tenant-level overrides
   - Verification: `security_settings.superAdmin` JSON contains `stepUpMfa`, `logAdminAccess`; seed idempotent across runs
+
+---
+
+## ✅ Completed
+- [x] Context reloaded; verified SUPER_ADMIN step-up integration and IP allowlist utilities across key admin routes; RBAC audit scripts present.
+  - **Why**: establish accurate baseline before further hardening
+  - **Impact**: avoids redundant work; confirms current security posture
+
+## ⚠️ Issues / Risks
+- This log contains older conflicting status entries (e.g., migration both pending and completed). We will keep append-only updates that clarify current state to prevent ambiguity.
+
+## 🚧 In Progress
+- [ ] Plan final sweep for SUPER_ADMIN step-up coverage on high-risk admin endpoints and UI actions; identify any gaps.
+
+## 🔧 Next Steps
+- [ ] Add scripts/check_admin_rbac.js to CI to fail builds when guards are missing.
+- [ ] Centralize SUPER_ADMIN step-up checks for privileged mutations to reduce duplication while preserving per-route control.
+- [ ] Document CI addition and operational guidance in this log and docs/ENVIRONMENT_VARIABLES_REFERENCE.md.
