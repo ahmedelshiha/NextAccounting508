@@ -3,13 +3,11 @@
   - **Why**: preserve intentional legacy compatibility endpoints while enforcing new duplicates rule
   - **Impact**: existing legacy redirect `/api/auth/register/register` is explicitly allowlisted; unintentional nested duplicates will still fail CI
 
-
 ## ✅ Completed (append)
 - [x] Added CI duplicate API route checker and package.json script
   - **Why**: prevent reintroduction of nested or duplicate API endpoints
   - **Impact**: CI can now fail early when nested duplicate segments exist under src/app/api
   - **How to run locally**: pnpm run check:duplicates
-
 
 ## ✅ Completed (append)
 - [x] Consolidated cron reminders into src/lib/cron/reminders.ts and refactored API + Netlify function to depend on it
@@ -30,48 +28,25 @@
   - **Impact**: single canonical registration endpoint (`/api/auth/register`); legacy path now issues 307 redirects; reduces surface area for future drift
   - **Verification**: grep shows both paths exist but nested path only performs redirect; internal callers use canonical endpoint
 
+## ✅ In Progress
+- [ ] Merge usePerformanceMonitoring across /hooks and /components
+  - **Why**: eliminate duplicate implementations and provide a single hook for performance monitoring across admin UI
+  - **Actions taken**:
+    - Created consolidated hook at src/hooks/usePerformanceMonitoring.ts
+    - Updated imports in components to reference the consolidated hook
+  - **Next**: remove legacy hook file src/hooks/admin/usePerformanceMonitoring.ts and run typecheck/tests
+
 ## ⚠️ Issues / Risks
 - redundancy-report.md not found in repository; proceeding with consolidation based on existing code and objectives. Provide or restore this file for full directive traceability.
 - DATABASE_URL vs NETLIFY_DATABASE_URL dual support exists in src/lib/health.ts; pending unification to canonical DATABASE_URL across app and functions.
 
-## 🚧 Tasks
-- [ ] Remove duplicate route: /auth/register → redirect to /api/auth/register
-  - Description: Replace any duplicate page routes with a redirect to the canonical API route
-  - Prerequisites: Inventory existing auth routes and preview-login logic
-  - Expected output: Single registration flow with server-side redirect
-  - Verification criteria: Grep shows only one implementation; e2e auth still passes
-- [ ] Merge usePerformanceMonitoring across /hooks and /components
-  - Description: Consolidate duplicated hook logic into src/hooks/usePerformanceMonitoring.ts
-  - Prerequisites: Identify duplicates in hooks/admin and components/admin
-  - Expected output: Single exported hook with tests
-  - Verification criteria: All imports updated; app compiles; tests pass
+## 🚧 Remaining Tasks
 - [ ] Refactor SettingsNavigation → shared component under /components/common/
-  - Description: Move/merge duplicates, keep styles and props stable
-  - Prerequisites: Compare components/admin/settings/SettingsNavigation and any duplicates
-  - Expected output: Single reusable component
-  - Verification criteria: UI unchanged; stories/tests green
 - [ ] Consolidate cron logic under src/lib/cron/scheduler.ts
-  - Description: Extract scheduler and task runners used by Netlify and API
-  - Prerequisites: Inventory cron Netlify functions and API routes
-  - Expected output: Shared scheduler with unit tests
-  - Verification criteria: Cron endpoints/functions import shared code only
 - [ ] Update Prisma env reference → canonical DATABASE_URL
-  - Description: Standardize env usage (Netlify/Neon) to DATABASE_URL with adapter logic
-  - Prerequisites: Audit prisma.config.ts, lib/db, Netlify env mapping
-  - Expected output: Single env variable with compatibility shim
-  - Verification criteria: Local, Netlify, Vercel all connect via DATABASE_URL
-- [ ] Add CI check for duplicate routes or components
-  - Description: Script to detect duplicate filenames and dev-only exports
-  - Prerequisites: Decide patterns to flag
-  - Expected output: CI step failing on duplication
-  - Verification criteria: Intentional duplicates are ignored via allowlist
-
-## 🚧 In Progress
-- [ ] Plan env unification to DATABASE_URL and remove drift
+- [ ] Add CI check for duplicate routes or components (completed for API routes; extend to components if desired)
 
 ## 🔧 Next Steps
-- [ ] Audit auth/register callers across services and tests to replace any remaining usage of `/api/auth/register/register` with `/api/auth/register` where safe
-- [ ] Add CI check to flag nested or duplicate API routes under `src/app/api/**/` to prevent regressions
-- [ ] Locate and merge duplicate usePerformanceMonitoring
-- [ ] Unify SettingsNavigation component location and API
-- [ ] Introduce src/lib/cron/scheduler.ts and migrate call sites
+- [ ] Remove legacy src/hooks/admin/usePerformanceMonitoring.ts after verifying no consumers remain and tests pass
+- [ ] Run pnpm typecheck and pnpm test to ensure no regressions
+- [ ] Continue with SettingsNavigation consolidation
