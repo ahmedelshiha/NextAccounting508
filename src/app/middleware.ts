@@ -7,7 +7,7 @@ import { computeIpHash } from '@/lib/security/ip-hash'
 import { isIpAllowed } from '@/lib/security/ip-allowlist'
 
 function isStaffRole(role: string | undefined | null) {
-  return role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
+  return role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER'
 }
 
 export async function middleware(req: NextServer.NextRequest) {
