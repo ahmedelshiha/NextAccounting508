@@ -1,4 +1,11 @@
 ## ✅ Completed (append)
+- [x] Added CI duplicate API route checker and package.json script
+  - **Why**: prevent reintroduction of nested or duplicate API endpoints
+  - **Impact**: CI can now fail early when nested duplicate segments or multiple route files with same basename exist under src/app/api
+  - **How to run locally**: pnpm run check:duplicates
+
+
+## ✅ Completed (append)
 - [x] Consolidated cron reminders into src/lib/cron/reminders.ts and refactored API + Netlify function to depend on it
   - **Why**: remove logic drift across entry points
   - **Impact**: single source of truth for reminder processing; Netlify function falls back to shared runner when origin absent
