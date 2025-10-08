@@ -137,6 +137,10 @@ Notes:
   - Files: `semgrep/edge-node-imports.yml`, `.github/workflows/semgrep-edge-guard.yml`
   - Change: Added semgrep rules to detect Node built-in imports and require() usage, and a CI workflow that runs semgrep on PRs to prevent Node-only imports from being merged into Edge-targeted files.
 
+- R6 (Guardrails): Auth wrapper semgrep and tests
+  - Files: `semgrep/auth-bypass.yml`, `tests/admin-auth-guard.test.ts`
+  - Change: Added semgrep rules to flag implicit auth bypass helpers and preview bypass patterns; added a unit test asserting unauthenticated admin routes return 401 to prevent regressions.
+
 - R4 (Resolved): Extracted shared health module and refactored callers
   - File: `src/lib/health.ts` and callers: `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts`
   - Change: Implemented `collectSystemHealth()` and `toSecurityHealthPayload()`; refactored endpoints and Netlify function to call the shared module for consistent health rollups.
@@ -202,7 +206,7 @@ Notes:
 - [x] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
 - [x] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
 - [x] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
-- [ ] [F9] Auth wrapper guardrails — add unit tests ensuring unauthenticated admin routes return 401; add semgrep rule to forbid implicit auth bypass patterns in wrappers.
+- [x] [F9] Auth wrapper guardrails — added unit test ensuring unauthenticated admin system health returns 401; added semgrep rule to detect auth bypass helpers and preview bypass patterns.
 - [ ] [F11] Datasource env coherence — document DATABASE_URL as canonical; confirm prisma.ts continues to accept NETLIFY_DATABASE_URL fallback; update docs/env-reference and scripts/check-required-envs.sh notes.
 - [ ] Repo hygiene — add CI job to detect duplicate route paths and duplicate component basenames in critical areas (e.g., SettingsNavigation).
 - [ ] Docs — update docs/redundancy-report.md and related docs after each fix; include redirects and deprecation notes.
