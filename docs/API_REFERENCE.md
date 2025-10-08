@@ -5,7 +5,7 @@ This document orients you to the API surface exposed under `src/app/api`. For a 
 ## Authentication
 - `POST /api/auth/[...nextauth]` — NextAuth.js routes
 - `POST /api/auth/register` — Registration
-- Dev login (development only): `/api/_dev/login`
+- Dev login (development only): `/api/_dev/login` — canonical dev-only login. Note: legacy `/api/dev-login` redirects to this route.
 
 ## Public & Content
 - `GET /api/posts`, `GET /api/posts/[slug]`
