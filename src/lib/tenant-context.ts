@@ -15,15 +15,29 @@ if (typeof window === 'undefined') {
 if (!AsyncLocalStorageClass) {
   AsyncLocalStorageClass = class<T> {
     private _store: T | null = null
+
     run(store: T, callback: () => any) {
-      // simple synchronous call; no async context propagation
+      // Support both synchronous and asynchronous callbacks. If the callback
+      // returns a promise, ensure the store remains available until the promise
+      // settles so async code can access the tenant context.
       this._store = store
+      const clear = () => { this._store = null }
       try {
-        return callback()
-      } finally {
-        this._store = null
+        const result = callback()
+        if (result && typeof (result as any).then === 'function') {
+          return (result as Promise<any>).then(
+            (v) => { clear(); return v },
+            (err) => { clear(); throw err }
+          )
+        }
+        clear()
+        return result
+      } catch (err) {
+        clear()
+        throw err
       }
     }
+
     getStore() {
       return this._store
     }
