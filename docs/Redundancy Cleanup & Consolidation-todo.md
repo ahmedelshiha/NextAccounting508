@@ -130,18 +130,48 @@ The following test files produced failures during recent test runs. Each item be
   - Expected output: Callbacks populate session and invalidate tokens appropriately.
   - Verification: File-level tests pass.
 
-## 📋 Plan to remediate
-- Prioritize tenant/context and auth-related failures first (they block many other tests):
-  1. Stabilize auth mocks (centralize to `@/lib/auth` and update vitest.setup.ts); ensure getSessionOrBypass is exported and mockable.
-  2. Verify tenant cookie and tenantContext behavior under test mocks.
-  3. Re-run failing integration tests and fix API wrapper edge-cases.
+- [ ] tests/portal-comments.route.test.ts
+  - Description: Portal comments route tests returning 401 where 201/400 expected; auth fallbacks not applied.
+  - Prerequisites: Ensure header/session mocks and withTenantContext behavior covers portal routes.
+  - Expected output: POST creates comments and accepts attachments metadata.
+  - Verification: File-level tests pass.
 
-- Parallelizable items (UI tests, specific service logic) can be batched and fixed concurrently after auth/tenant stabilization.
+- [ ] tests/components/communication-settings.export-import.ui.test.tsx
+  - Description: UI export/import render failure (render is not a function).
+  - Prerequisites: Confirm testing-library/react and render export presence.
+  - Expected output: UI renders and handles import/export flows.
+  - Verification: File-level tests pass.
 
-## 🔁 Next actions (pick one)
-- [ ] I will create individual TODOs for each test file above with an owner/estimate and start triaging the highest priority ones (tenant/auth).
-- [ ] Or I can begin implementing the top-priority fixes now (auth mock stabilization + tenant cookie handling). 
+- [ ] tests/status-transitions.test.ts
+  - (Already listed above) Ensure RBAC and validation behavior restored.
 
+- [ ] tests/auto-assignment.test.ts
+  - (Already listed above)
+
+- [ ] tests/admin-integration-hub.api.test.ts
+  - (Already listed above)
+
+- [ ] tests/admin-service-requests.export.test.ts
+  - (Already listed above)
+
+- [ ] tests/auth.session-callback.test.ts
+  - (Already listed above)
+
+- [ ] tests/components/communication-settings.export-import.ui.test.tsx
+  - (Already listed above)
+
+## 📋 Full Test Run Notes
+- The full test run was attempted; it produced dozens of failing tests across auth/session mocks, tenant context, and UI render helpers. The failures cluster around:
+  - Auth/session mocking surface mismatches (getSessionOrBypass vs next-auth mocks)
+  - Tenant context propagation (AsyncLocalStorage) and tenant cookie validation
+  - Permission checks and RBAC expectations in API routes
+  - Testing-library DOM helpers not present or mocked incorrectly in vitest.setup
+
+## 🔁 Next actions (I will perform these if you confirm)
+- [ ] Create granular TODOs for each failing test file with owner and estimated effort (I can create these here).
+- [ ] Start triage on highest-priority failures (auth/session mocks, tenant-context) and apply fixes incrementally.
+- [ ] Stabilize test environment (ensure vitest.setup.ts provides consistent mocks for auth, permissions, testing-library)
+- [ ] Re-run full test suite after fixes and iterate until green.
 
 ---
-*This inventory was generated from recent test run logs. If you want me to run the full test suite again to capture any additional failures, say "run full tests" and I will attempt another run (may take several minutes)."
+*I attempted to run the full suite; the run produced extensive failure output which has been summarized above and appended to this todo file. If you want me to start fixing items, confirm which priority you prefer (auth/tenant first is recommended)."
