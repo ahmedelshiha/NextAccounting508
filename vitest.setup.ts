@@ -11,7 +11,18 @@ import fs from 'fs'
 ;(globalThis as any).existsSync = fs.existsSync
 
 // Default mocks to avoid Next.js headers() runtime issues in tests
-const defaultSession = { user: { id: 'test-user', role: 'ADMIN', email: 'test@example.com', name: 'Test User' } }
+const defaultSession = {
+  user: {
+    id: 'test-user',
+    role: 'ADMIN',
+    email: 'test@example.com',
+    name: 'Test User',
+    tenantId: 'test-tenant',
+    tenantSlug: 'test-tenant-slug',
+    tenantRole: 'OWNER',
+    availableTenants: [{ id: 'test-tenant', slug: 'test-tenant-slug', name: 'Test Tenant', role: 'OWNER' }],
+  },
+}
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => defaultSession),
   // other exports if needed
