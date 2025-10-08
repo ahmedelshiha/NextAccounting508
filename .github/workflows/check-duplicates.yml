@@ -1,0 +1,23 @@
+name: Check Duplicates
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+
+jobs:
+  check-duplicates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Run duplicate checks
+        run: node scripts/ci/check-duplicates.js
