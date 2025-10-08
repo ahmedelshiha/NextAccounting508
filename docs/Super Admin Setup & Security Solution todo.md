@@ -350,5 +350,19 @@ Append further entries here in chronological order when new work begins or compl
 ## 🚧 In Progress
 - [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
 
+---
+
+## ✅ Completed
+- [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
+  - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
+  - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
+
+## ⚠️ Issues / Risks
+- Portal-first fallback in login page persists if /api/users/me fails; may revisit to derive role from session directly.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
 ## 🔧 Next Steps
 - [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
+- [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
