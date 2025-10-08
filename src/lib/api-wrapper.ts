@@ -122,6 +122,15 @@ export function withTenantContext(
       try {
         const tenantCookie = getCookie(request, 'tenant_sig')
         if (tenantCookie) {
+          // If session lacks tenantId, treat cookie as invalid and deny access.
+          if (!user.tenantId) {
+            logger.warn('Tenant cookie present but session user has no tenantId', { userId: user.id, tenantId: user.tenantId })
+            return NextResponse.json(
+              { error: 'Forbidden', message: 'Invalid tenant signature' },
+              { status: 403 }
+            )
+          }
+
           const ok = verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
           if (!ok) {
             logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: user.tenantId })
