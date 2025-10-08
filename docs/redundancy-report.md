@@ -207,6 +207,6 @@ Notes:
 - [x] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
 - [x] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
 - [x] [F9] Auth wrapper guardrails — added unit test ensuring unauthenticated admin system health returns 401; added semgrep rule to detect auth bypass helpers and preview bypass patterns.
-- [ ] [F11] Datasource env coherence — document DATABASE_URL as canonical; confirm prisma.ts continues to accept NETLIFY_DATABASE_URL fallback; update docs/env-reference and scripts/check-required-envs.sh notes.
+- [x] [F11] Datasource env coherence — documented `DATABASE_URL` as canonical; `src/lib/prisma.ts` accepts `NETLIFY_DATABASE_URL` as a fallback; updated docs/ENVIRONMENT_VARIABLES_REFERENCE.md and scripts/check-required-envs.sh to clarify behavior.
 - [ ] Repo hygiene — add CI job to detect duplicate route paths and duplicate component basenames in critical areas (e.g., SettingsNavigation).
 - [ ] Docs — update docs/redundancy-report.md and related docs after each fix; include redirects and deprecation notes.
