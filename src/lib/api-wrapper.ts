@@ -89,7 +89,7 @@ export function withTenantContext(
               // Debug log to trace why test-local next-auth mocks may not be returning session
               try {
                 // eslint-disable-next-line no-console
-                console.debug('[api-wrapper] calling getServerSession with authFallback.authOptions:', authFallback && authFallback.authOptions)
+                console.log('[api-wrapper] calling getServerSession with authFallback.authOptions:', authFallback && authFallback.authOptions)
               } catch {}
               try {
                 session = await getServerSession(authFallback.authOptions)
