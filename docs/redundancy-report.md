@@ -22,7 +22,7 @@ Key actions:
 | F1 | API: Auth Register (duplicate path) | `src/app/api/auth/register/route.ts`, `src/app/api/auth/register/register/route.ts` | High | Open | Keep single endpoint at `auth/register`; remove nested `register/register`. Add redirect if needed. |
 | F2 | API: Dev Login (two entry points) | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Open | Keep one dev login entry point. Prefer `/_dev/login` gated by env/role; remove the other or alias explicitly. |
 | F3 | Health Checks (divergent) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts` | High | Resolved | Shared health module implemented at `src/lib/health.ts`; callers refactored to reuse it. |
-| F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Open | Consolidate to a single canonical component. Provide barrel re-export to preserve import paths during transition. |
+| F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Canonical component consolidated at `src/components/admin/settings/SettingsNavigation.tsx`; barrel re-export exists at `src/components/admin/SettingsNavigation.tsx` to preserve imports. |
 | F5 | Cron entrypoint duplication | `netlify/functions/cron-reminders.ts` and `/api/cron/reminders/route.ts` (and similar cron routes) | Medium | In Progress | Keep shared job logic in `src/lib/cron/*` and call from both contexts to avoid drift. Verify all cron routes are refactored. |
 | F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep one canonical test path; deprecate the other with redirect. |
 | F7 | RBAC scripts overlap | `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js` | Medium | Open | Combine or keep one entry with flags; document usage. |
@@ -73,9 +73,9 @@ Notes:
 - Paths:
   - `src/components/admin/SettingsNavigation.tsx`
   - `src/components/admin/settings/SettingsNavigation.tsx`
-- Risk: UI drift; inconsistent nav between admin screens.
-- Recommendation: Unify logic in one component. Provide `src/components/admin/settings/index.ts` to re-export for both import styles temporarily.
-- Acceptance: Single source; snapshot tests stable.
+- Status: Resolved
+- Change: Consolidated the navigation into a single canonical implementation at `src/components/admin/settings/SettingsNavigation.tsx`. A barrel re-export remains at `src/components/admin/SettingsNavigation.tsx` to keep existing imports working during transition.
+- Acceptance: Single source; imports preserved; snapshot tests should remain stable.
 
 ### F5. Duplicated Cron Entry Points
 - Paths: `netlify/functions/cron-reminders.ts`, `/api/cron/reminders/route.ts`, plus other cron routes under `src/app/api/cron/*`
@@ -191,7 +191,7 @@ Notes:
 - [x] [F1] Consolidate auth register routes — remove src/app/api/auth/register/register/route.ts; add redirect to /api/auth/register if needed; update tests and API docs.
 - [x] [F2] Unify dev login endpoint — keep /api/_dev/login with strict gating (env + IP/secret); remove or redirect /api/dev-login; update docs.
 - [x] [F3] Extract shared health module — create src/lib/health.ts (collectHealth); refactor /api/security/health, /api/admin/system/health, and netlify/functions/health-monitor.ts to reuse.
-- [ ] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
+- [x] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
 - [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
 - [ ] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
 - [ ] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
