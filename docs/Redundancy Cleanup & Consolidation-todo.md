@@ -1,7 +1,13 @@
 ## ✅ Completed (append)
+- [x] Created allowlist for CI duplicate route checker: scripts/ci/duplicates.allowlist.json
+  - **Why**: preserve intentional legacy compatibility endpoints while enforcing new duplicates rule
+  - **Impact**: existing legacy redirect `/api/auth/register/register` is explicitly allowlisted; unintentional nested duplicates will still fail CI
+
+
+## ✅ Completed (append)
 - [x] Added CI duplicate API route checker and package.json script
   - **Why**: prevent reintroduction of nested or duplicate API endpoints
-  - **Impact**: CI can now fail early when nested duplicate segments or multiple route files with same basename exist under src/app/api
+  - **Impact**: CI can now fail early when nested duplicate segments exist under src/app/api
   - **How to run locally**: pnpm run check:duplicates
 
 
