@@ -1,7 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 
-import { defineConfig, devices } from '@playwright/test'
-
 const isNetlify = Boolean(process.env.NETLIFY)
 
 export default defineConfig({
