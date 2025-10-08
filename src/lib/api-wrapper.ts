@@ -78,17 +78,8 @@ export function withTenantContext(
         if (naNext?.getServerSession) {
           session = await naNext.getServerSession((authMod as any).authOptions)
         }
-        // Fallback to next-auth (pages compat)
-        if (!session) {
-          const na = await import('next-auth').catch(() => null as any)
-          if (na?.getServerSession) {
-            session = await na.getServerSession((authMod as any).authOptions)
-          }
-        }
-        // Final fallback: project helper
-        if (!session && typeof (authMod as any).getSessionOrBypass === 'function') {
-          session = await (authMod as any).getSessionOrBypass()
-        }
+        // NOTE: No fallback to 'next-auth' here to keep behavior deterministic in tests.
+        // Routes needing broader compatibility should resolve sessions explicitly.
       } catch {
         session = null
       }

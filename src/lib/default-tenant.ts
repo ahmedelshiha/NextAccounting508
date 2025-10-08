@@ -1,5 +1,23 @@
-import { randomUUID } from 'crypto'
 import prisma from '@/lib/prisma'
+
+function safeRandomUUID(): string {
+  try {
+    const g: any = globalThis as any
+    if (g && g.crypto && typeof g.crypto.randomUUID === 'function') {
+      return g.crypto.randomUUID()
+    }
+    if (g && g.crypto && typeof g.crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16)
+      g.crypto.getRandomValues(bytes)
+      bytes[6] = (bytes[6] & 0x0f) | 0x40
+      bytes[8] = (bytes[8] & 0x3f) | 0x80
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+    }
+  } catch {}
+  const rand = Math.random().toString(36).slice(2, 10)
+  return `${Date.now().toString(36)}-${rand}`
+}
 
 let cachedDefaultTenantId: string | null = null
 
@@ -18,7 +36,7 @@ async function ensureDefaultTenant(): Promise<string> {
     return existing.id
   }
 
-  const generatedId = `tenant_${randomUUID().replace(/-/g, '').slice(0, 24)}`
+  const generatedId = `tenant_${safeRandomUUID().replace(/-/g, '').slice(0, 24)}`
   const created = await prisma.tenant.create({
     data: {
       id: generatedId,
