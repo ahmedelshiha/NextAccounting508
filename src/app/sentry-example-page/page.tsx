@@ -15,7 +15,7 @@ export default function SentryExamplePage() {
   }
 
   const triggerServerError = async () => {
-    await fetch('/api/sentry-example', { cache: 'no-store' })
+    await fetch('/api/sentry-check', { cache: 'no-store' })
   }
 
   return (
