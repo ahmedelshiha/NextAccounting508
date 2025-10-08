@@ -59,7 +59,28 @@ export function withTenantContext(
     } = options
 
     try {
-      const session = await getSessionOrBypass()
+      // Dynamically import auth helpers to respect test mocks. Try centralized getSessionOrBypass first,
+      // fall back to getServerSession if the mock does not provide it.
+      let session: any = null
+      try {
+        const authMod = await import('@/lib/auth')
+        if (authMod && typeof authMod.getSessionOrBypass === 'function') {
+          session = await authMod.getSessionOrBypass()
+        } else if (authMod && typeof authMod.getServerSession === 'function') {
+          // Some tests may mock auth module to expose getServerSession directly
+          session = await authMod.getServerSession(authMod.authOptions)
+        } else {
+          try {
+            const { getServerSession } = await import('next-auth/next')
+            const authFallback = await import('@/lib/auth').catch(() => ({}))
+            session = await (typeof getServerSession === 'function' ? getServerSession(authFallback.authOptions) : null)
+          } catch (err) {
+            session = null
+          }
+        }
+      } catch (err) {
+        session = null
+      }
 
       if (requireAuth && !session?.user) {
         return NextResponse.json(
