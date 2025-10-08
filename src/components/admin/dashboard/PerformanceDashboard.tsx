@@ -31,7 +31,7 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react'
-import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
+import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
 
 interface MetricCard {
   title: string

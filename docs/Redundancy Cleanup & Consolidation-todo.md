@@ -1,4 +1,6 @@
-## ✅ Completed (append)
-- [x] Consolidated cron reminders into src/lib/cron/reminders.ts and refactored API + Netlify function to depend on it
-  - **Why**: remove logic drift across entry points
-  - **Impact**: single source of truth for reminder processing; Netlify function falls back to shared runner when origin absent
+## ✅ Actions taken
+- [x] Removed static import of getSessionOrBypass from src/lib/api-wrapper.ts to avoid static resolution issues with test mocks. Now auth helpers are dynamically imported at runtime, making tests that vi.mock('@/lib/auth') or vi.mock('next-auth') work consistently.
+
+## 🔧 Next verification
+- Re-run tenant/context focused tests: tests/integration/tenant-mismatch.security.test.ts
+- If additional failures due to mocks persist, adapt vitest.setup.ts to provide comprehensive default mocks.

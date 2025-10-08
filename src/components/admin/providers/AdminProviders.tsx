@@ -15,7 +15,7 @@ import { SWRConfig } from 'swr'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
 import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
-import { usePerformanceMonitoring } from '@/hooks/admin/usePerformanceMonitoring'
+import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
 import useRoleSync from '@/hooks/useRoleSync'
 
