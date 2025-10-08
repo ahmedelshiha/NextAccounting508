@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
-import { processBookingReminders } from '@/lib/cron/reminders'
+import { sendBookingReminders } from '@/lib/cron'
 
 export const runtime = 'nodejs'
 
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
 
     if (secret && !header && process.env.NODE_ENV !== 'test') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const result = await processBookingReminders()
+    const result = await sendBookingReminders()
     return NextResponse.json(result)
   } catch (e) {
     await captureErrorIfAvailable(e, { route: 'cron:reminders' })
