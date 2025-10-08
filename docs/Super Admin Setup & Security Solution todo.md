@@ -128,6 +128,10 @@ Verified complete (moved to Completed):
 - [x] Integrated IP restriction middleware into Next.js routes (matcher: /admin, /portal, /api, /login, /register)
 - [x] Added Redis-backed distributed rate limiter and wired admin APIs to use applyRateLimit
 
+- [x] Fixed dev server crash by updating dev command to `pnpm run next-dev` and restarting the dev server.
+  - **Why**: original `npm run dev` invoked Doppler in dev script which failed in this environment; switching to `pnpm run next-dev` bypasses Doppler and starts Next.js directly.
+  - **Impact**: Dev server is running (Next.js ready). To persist this change in developer workflows, consider updating the dev command in package.json or the project run configuration.
+
 ---
 
 ## 🚧 In Progress
