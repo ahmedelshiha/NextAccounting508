@@ -61,9 +61,15 @@ vi.mock('next-auth/jwt', () => {
 
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
 vi.mock('@/lib/auth', async () => {
-  const actual = await vi.importActual('@/lib/auth')
+  let actual: any = {}
+  try {
+    actual = await vi.importActual('@/lib/auth')
+  } catch (err) {
+    // If importing the real module fails (e.g. DB/env side-effects), fall back to a minimal shape
+    actual = {}
+  }
   return {
-    // Preserve actual exports (authOptions, helpers) so tests that import authOptions get the real callbacks
+    // Preserve actual exports when available (authOptions, helpers) so tests that import authOptions get the real callbacks
     ...actual,
     // Ensure getSessionOrBypass exists and delegates to next-auth mock when present
     getSessionOrBypass: async () => {
