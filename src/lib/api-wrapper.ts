@@ -71,7 +71,19 @@ export function withTenantContext(
           session = await authMod.getServerSession(authMod.authOptions)
         } else {
           try {
-            const { getServerSession } = await import('next-auth/next')
+            // Some tests mock 'next-auth' module directly using vi.doMock('next-auth', ...)
+            // Prefer importing 'next-auth' first so test-local mocks are respected.
+            let getServerSession: any = null
+            try {
+              const modA = await import('next-auth')
+              if (modA && typeof modA.getServerSession === 'function') getServerSession = modA.getServerSession
+            } catch {}
+            if (!getServerSession) {
+              try {
+                const modB = await import('next-auth/next')
+                if (modB && typeof modB.getServerSession === 'function') getServerSession = modB.getServerSession
+              } catch {}
+            }
             const authFallback = await import('@/lib/auth').catch(() => ({}))
             session = await (typeof getServerSession === 'function' ? getServerSession(authFallback.authOptions) : null)
           } catch (err) {
