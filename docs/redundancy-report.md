@@ -25,7 +25,7 @@ Key actions:
 | F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Canonical component consolidated at `src/components/admin/settings/SettingsNavigation.tsx`; barrel re-export exists at `src/components/admin/SettingsNavigation.tsx` to preserve imports. |
 | F5 | Cron entrypoint duplication | `netlify/functions/cron-reminders.ts` and `/api/cron/reminders/route.ts` (and similar cron routes) | Medium | In Progress | Keep shared job logic in `src/lib/cron/*` and call from both contexts to avoid drift. Verify all cron routes are refactored. |
 | F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Resolved | Canonicalized to `src/app/api/sentry-check/route.ts`; legacy `sentry-example` now redirects to canonical. |
-| F7 | RBAC scripts overlap | `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js` | Medium | Open | Combine or keep one entry with flags; document usage. |
+| F7 | RBAC scripts overlap | `scripts/rbac.js` | Medium | Resolved | Unified RBAC utility implemented at `scripts/rbac.js` with `--check` and `--audit` modes; package scripts updated. |
 | F8 | Edge runtime incompatibility (fixed) | `src/lib/default-tenant.ts` | Medium | Resolved | Replaced Node crypto usage with `safeRandomUUID` (Web Crypto first; no `require()`). |
 | F9 | API wrapper implicit bypass (fixed) | `src/lib/api-wrapper.ts` | High | Resolved | Removed implicit preview bypass and extra fallback; use one session resolution path only. |
 | F10 | Playwright config duplicate imports | `e2e/playwright.config.ts` | Low | N/A | Current file shows no duplicate imports; prior note removed. |
@@ -90,10 +90,10 @@ Notes:
 - Acceptance: Single canonical test endpoint; example page uses canonical route; no destructive test handlers remain exposed.
 
 ### F7. RBAC Scripts Overlap
-- Paths: `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js`
-- Issue: Overlapping intent (verify vs audit).
-- Recommendation: Unify as `scripts/rbac.js` with flags (`--audit`, `--check`), or keep one entry and alias the other.
-- Acceptance: Single documented entry point.
+- Paths: `scripts/rbac.js`
+- Status: Resolved
+- Change: Merged previous scripts into a single `scripts/rbac.js` with `--check` (pattern-based protection scan) and `--audit` (detailed admin route audit) modes. Updated package.json scripts `check:rbac` and `audit:rbac` to call the unified script.
+- Acceptance: One documented entry point for RBAC checks and audits.
 
 ### F8. Edge Runtime Incompatibility (Resolved)
 - Path: `src/lib/default-tenant.ts`
@@ -196,7 +196,7 @@ Notes:
 - [x] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
 - [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
 - [x] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
-- [ ] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
+- [x] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
 - [ ] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
 - [ ] [F9] Auth wrapper guardrails — add unit tests ensuring unauthenticated admin routes return 401; add semgrep rule to forbid implicit auth bypass patterns in wrappers.
 - [ ] [F11] Datasource env coherence — document DATABASE_URL as canonical; confirm prisma.ts continues to accept NETLIFY_DATABASE_URL fallback; update docs/env-reference and scripts/check-required-envs.sh notes.
