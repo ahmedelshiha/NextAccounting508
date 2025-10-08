@@ -119,7 +119,7 @@ Append further entries here in chronological order when new work begins or compl
 
 ## 🔜 Next Task (owner: Ops/Backend)
 
-- [ ] Apply schema migration and seed to add `superAdmin` to security_settings
+- [ ] Apply schema migration and seed to add `superAdmin` to `security_settings`
   - **Steps**:
     1. Ensure DATABASE_URL points to target Neon DB (ops):
        export DATABASE_URL="postgresql://..."
@@ -137,9 +137,6 @@ Append further entries here in chronological order when new work begins or compl
 
 ---
 
-(Entry added automatically.)
-
----
 ## ✅ Completed
 
 - _No new completions in this update_
@@ -366,3 +363,19 @@ Append further entries here in chronological order when new work begins or compl
 ## 🔧 Next Steps
 - [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
 - [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
+
+---
+
+## ✅ Completed
+- [x] Tenant-controlled SUPER_ADMIN access audit logging in middleware.
+  - **Why**: improve visibility and compliance for privileged access to admin surfaces.
+  - **Impact**: per-tenant toggle (superAdmin.logAdminAccess) governs lightweight audit entries on admin page GET requests; includes tenantId, path, method, and IP.
+
+## 🚧 In Progress
+- [ ] Add UI notice in Admin > Settings > Security when `logAdminAccess` is enabled, linking to Audit Logs.
+
+## 🔧 Next Steps
+- [ ] Consider coalescing repeated access logs per user (e.g., 5-minute window) to reduce noise on heavy navigation.
+
+## ⚠️ Issues / Risks
+- Potential log volume on frequent page navigation; monitor and adjust coalescing strategy if needed.
