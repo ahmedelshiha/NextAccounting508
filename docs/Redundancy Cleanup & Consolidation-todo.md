@@ -1,4 +1,9 @@
 ## ✅ Completed (append)
+- [x] Consolidated cron reminders into src/lib/cron/reminders.ts and refactored API + Netlify function to depend on it
+  - **Why**: remove logic drift across entry points
+  - **Impact**: single source of truth for reminder processing; Netlify function falls back to shared runner when origin absent
+
+## ✅ Completed (append)
 - [x] Fixed build errors in health endpoints by importing NextRequest/NextResponse and documenting handlers
   - **Why**: unblock CI/build; standardize API handler typings
   - **Impact**: vercel:build passes type checks for health routes; safer edge/node compatibility
