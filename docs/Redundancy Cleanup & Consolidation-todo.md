@@ -8,10 +8,19 @@
     - Prisma tenant-guard integration tests failing (tenant injection/scoping mismatches)
   - **Impact**: Cannot verify refactor safety until tests pass; some failures are environmental (DB envs), others may be regressions needing investigation
 
+## ✅ Completed (append)
+- [x] Set DATABASE_URL for test runs (value provided by admin) — value redacted in logs
+  - **Why**: enable integration tests that require a Postgres database
+  - **Impact**: test runner executed against real DB; many integration failures surfaced (see In Progress below)
+
 ## 🔧 Recommended next steps
-- [ ] Provide DB test database connection (set DATABASE_URL or NETLIFY_DATABASE_URL) for CI/local test runs or mock DB in tests
-- [ ] Re-run full typecheck/tests after DB envs are available
-- [ ] Triage failing unit tests to identify regressions introduced by hook consolidation (focus on tenant/context-related failures)
+- [ ] Re-run full typecheck and tests now that DATABASE_URL is set
+- [ ] Triage failing tests focusing on tenant/context issues and API permission mismatches
+- [ ] Add CI mocks or test fixtures to avoid brittle integration failures in CI
 
 ## 🔄 In Progress
-- [ ] Awaiting instruction to proceed with test-fix triage or provide DB credentials/environment for CI
+- [ ] Running full test-suite after DATABASE_URL provision (partial run timed out; see console output for failures)
+
+## ⚠️ Issues / Risks
+- The DATABASE_URL was set from a user-provided string. Ensure secrets are rotated if this is a production credential.
+- Some failures may be regressions introduced during consolidation and require focused fixes.
