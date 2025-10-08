@@ -99,6 +99,25 @@ export async function middleware(req: NextServer.NextRequest) {
         }
       }
     } catch {}
+
+    // Super admin access audit logging (tenant-level controlled)
+    try {
+      const role = (token as unknown as { role?: string } | null)?.role
+      if (role === 'SUPER_ADMIN' && method === 'GET') {
+        let enabled = false
+        try {
+          const securityService = await import('@/services/security-settings.service')
+          const tsettings = resolvedTenantId ? await securityService.default.get(resolvedTenantId).catch(() => null) : await securityService.default.get(null).catch(() => null)
+          enabled = Boolean(tsettings && tsettings.superAdmin && typeof tsettings.superAdmin.logAdminAccess === 'boolean' ? tsettings.superAdmin.logAdminAccess : false)
+        } catch {}
+        if (enabled) {
+          try {
+            const { logAudit } = await import('@/lib/audit')
+            await logAudit({ action: 'security.superadmin.access', actorId: userId || null, details: { tenantId: resolvedTenantId ?? null, path: pathname, method, ip: clientIp } })
+          } catch {}
+        }
+      }
+    } catch {}
   }
 
   const requestHeaders = new Headers(req.headers)
