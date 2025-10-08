@@ -17,6 +17,13 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
 
+    const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
+    if (!hasDb) {
+      // Return user info from session context in demo/no-DB mode
+      const user = { id: ctx.userId as string, name: (ctx as any).userName ?? null, email: (ctx as any).userEmail ?? null, role: ctx.role }
+      return NextResponse.json({ user })
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: ctx.userId as string },
       select: { id: true, name: true, email: true, role: true }
