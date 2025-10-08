@@ -3,13 +3,15 @@
 This file is the central state for all Super Admin setup and security work. Append-only style — new entries are added to the bottom.
 
 ## 🚧 In Progress (Prioritized)
-- [ ] Remote DB connection and migration application — apply schema migration and seed to add `superAdmin` to `security_settings`; then verify via SQL (Ops/Backend).
-- [ ] Finalize rate limiting rollout — audit all endpoints use `applyRateLimit`; ensure every 429 emits `security.ratelimit.block`; document intentional exclusions; perform final sweep.
 - [ ] SUPER_ADMIN step-up coverage — final sweep across high‑risk admin endpoints and UI actions; centralize step-up checks while preserving per-route control; document behavior and precedence.
 - [ ] CI hardening — add `scripts/check_admin_rbac.js` to CI; document in this log and `docs/ENVIRONMENT_VARIABLES_REFERENCE.md`; deprecate/wrap legacy `rateLimit()` to avoid regressions.
 - [ ] Multi‑tenant schema alignment — plan and stage tenantId backfills with online backfill and constraints; re-run seeding for tasks once aligned.
 - [ ] Build hygiene — monitor next CI/Vercel build; prune legacy direct PrismaClient instantiations after successful pass.
 - [ ] SUPER_ADMIN role audit — verify remaining role checks grant full admin capabilities across hooks and UI guards.
+
+Verified complete (moved to Completed):
+- Remote DB migration/seed for `security_settings.superAdmin` (column present; defaults seeded; verified).
+- Rate limiting rollout and 429 audit logging coverage (final sweep completed).
 
 ## ✅ Completed
 
