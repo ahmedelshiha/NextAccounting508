@@ -3,7 +3,9 @@ export const config = { schedule: '*/15 * * * *' }
 // Scheduled function: triggers the internal reminders cron endpoint
 // Runs every 15 minutes to align with reminder windows (e.g., 24h and 2h before)
 // Uses x-cron-secret header if configured to protect the internal route
-import { processBookingReminders } from '@/lib/cron/reminders'
+import { sendBookingReminders } from '@/lib/cron'
+
+export const config = { schedule: '*/15 * * * *' }
 
 async function handler() {
   const origin = process.env.URL || process.env.SITE_URL
@@ -26,7 +28,7 @@ async function handler() {
     }
 
     // Fallback: run reminders directly if no origin available
-    await processBookingReminders()
+    await sendBookingReminders()
   } catch (err) {
     console.error('cron-reminders run failed:', err)
     if (origin) {
