@@ -94,7 +94,7 @@ export function withTenantContext(
               try {
                 session = await getServerSession(authFallback.authOptions)
                 // eslint-disable-next-line no-console
-                console.debug('[api-wrapper] getServerSession returned:', session)
+                console.log('[api-wrapper] getServerSession returned:', session)
               } catch (err) {
                 // eslint-disable-next-line no-console
                 console.debug('[api-wrapper] getServerSession threw', err && (err as any).message)
