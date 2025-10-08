@@ -35,6 +35,9 @@
   - **Verification**: no imports reference `@/hooks/admin/usePerformanceMonitoring`; consolidated hook file present and components consuming it
   - **Next**: run pnpm typecheck and tests to ensure no regressions
 
+## 🔄 In Progress
+- [ ] Running pnpm typecheck and pnpm test to validate refactor (started)
+
 ## ⚠️ Issues / Risks
 - redundancy-report.md not found in repository; proceeding with consolidation based on existing code and objectives. Provide or restore this file for full directive traceability.
 - DATABASE_URL vs NETLIFY_DATABASE_URL dual support exists in src/lib/health.ts; pending unification to canonical DATABASE_URL across app and functions.
@@ -46,6 +49,5 @@
 - [ ] Add CI check for duplicate routes or components (completed for API routes; extend to components if desired)
 
 ## 🔧 Next Steps
-- [ ] Run pnpm typecheck and pnpm test to ensure no regressions
 - [ ] Remove any remaining legacy files and update docs referencing deprecated paths
 - [ ] Continue with SettingsNavigation consolidation
