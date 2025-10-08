@@ -1,0 +1,28 @@
+rules:
+  - id: no-node-builtins-in-edge
+    patterns:
+      - pattern: |
+          import $MODULE from '$LIB'
+      - pattern-either:
+          - pattern: |-
+              export const runtime = 'edge'
+          - pattern: |-
+              export const runtime = "edge"
+    message: "Avoid importing Node.js built-in modules in Edge runtime files. Use web-compatible APIs or guard imports."
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      category: security
+    languages: [javascript, typescript]
+    # restrict when lib is a node builtin
+    condition: |
+      lib in ['fs','path','crypto','net','tls','child_process','os','stream','vm']
+    
+  - id: no-require-in-edge
+    pattern: |
+      require($X)
+    message: "Avoid using require() in Edge runtime files; use ESM imports and web APIs instead."
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      category: correctness
