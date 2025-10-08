@@ -59,7 +59,7 @@ export function withTenantContext(
     } = options
 
     try {
-      const session = await getServerSession(authOptions)
+      const session = await getSessionOrBypass()
 
       if (requireAuth && !session?.user) {
         return NextResponse.json(
