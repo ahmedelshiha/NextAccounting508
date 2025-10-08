@@ -127,10 +127,6 @@ export async function middleware(req: NextServer.NextRequest) {
   requestHeaders.delete('x-request-id')
   requestHeaders.set('x-request-id', requestId)
 
-  let resolvedTenantId: string | null = null
-  let resolvedTenantSlug: string | null = null
-  let apiEntryLogged = false
-
   const baseLogContext: Record<string, unknown> = {
     requestId,
     method,
