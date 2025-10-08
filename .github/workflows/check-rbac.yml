@@ -18,6 +18,8 @@ jobs:
           cache: 'pnpm'
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+      - name: Install pnpm (fallback)
+        run: npm install -g pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Run RBAC check
