@@ -21,3 +21,19 @@
   - Why: eliminate env drift
   - Impact: consistent DB connection locally and on Netlify/Vercel
 
+---
+
+## ✅ Completed (2025-10-08)
+- [x] Fix build parsing error in src/lib/api-wrapper.ts
+  - Why: unblock Netlify build (ESLint parsing error: "catch or finally expected" at line ~70)
+  - Impact: restored lint/typecheck/build pipeline; robust session resolution with fallbacks; added JSDoc
+
+## ⚠️ Issues / Risks
+- None observed for this change; wrapper preserves existing auth/tenant semantics.
+
+## 🚧 In Progress
+- [ ] Review and unify redundant auth/register routes and preview-login logic
+
+## 🔧 Next Steps
+- [ ] Run lint/typecheck/tests to confirm no regressions
+- [ ] Proceed with Objective 1: unify /auth/register, /api/auth/register and preview login
