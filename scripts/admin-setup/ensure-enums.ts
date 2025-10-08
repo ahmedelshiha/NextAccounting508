@@ -12,7 +12,23 @@ async function main() {
   const client = await pool.connect()
   try {
     // Add value to UserRole enum if missing
-    await client.query('DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = $1 AND e.enumlabel = $2) THEN EXECUTE format(''ALTER TYPE %I ADD VALUE %L'', $1, $2); END IF; END $$;', ['UserRole', 'SUPER_ADMIN'])
+    const plpgsql = `
+      DO $$
+      DECLARE
+        typename text := 'UserRole';
+        label text := 'SUPER_ADMIN';
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_enum e
+          JOIN pg_type t ON e.enumtypid = t.oid
+          WHERE t.typname = typname AND e.enumlabel = label
+        ) THEN
+          EXECUTE 'ALTER TYPE ' || quote_ident(typename) || ' ADD VALUE ' || quote_literal(label);
+        END IF;
+      END
+      $$;
+    `
+    await client.query(plpgsql)
     console.log('✅ Ensured enum UserRole contains SUPER_ADMIN')
   } finally {
     client.release()
