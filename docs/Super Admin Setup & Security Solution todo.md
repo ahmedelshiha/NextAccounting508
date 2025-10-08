@@ -232,6 +232,402 @@ Append further entries here in chronological order when new work begins or compl
 ---
 
 ## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for admin newsletter list endpoint and auth password flows (forgot/reset) when rate limits trigger.
+  - **Why**: improve visibility into abuse and throttling on privileged/admin-related surfaces
+  - **Impact**: responders can trace 429s with IP and key context; no user-facing leakage
+
+## 🚧 In Progress
+- [ ] Continue auditing endpoints using applyRateLimit to ensure all privileged/admin routes emit `security.ratelimit.block` on 429; portal/public routes to be reviewed with privacy considerations.
+
+---
+## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for portal and public endpoints on 429:
+  - portal chat POST, portal service-requests (create, update, export, comments), public service-requests create, analytics track
+  - **Why**: comprehensive visibility into abuse across user-facing surfaces
+  - **Impact**: consistent incident traceability; minimal PII, tenant-scoped when available
+
+## 🚧 In Progress
+- [ ] Final sweep: verify all 429 paths for privileged and user-facing endpoints emit audits; document exclusions if any (e.g., extremely high-volume public endpoints if noise becomes an issue).
+
+---
+## ✅ Completed
+- [x] Emit `security.ratelimit.block` on newsletter subscribe 429 with minimal details (ip, key, route).
+  - **Why**: consistent visibility for public-facing throttles
+  - **Impact**: incident traceability without storing content/PII
+
+- [x] Emit `security.ratelimit.block` on login throttles (per-IP and per-email) in authorize() flow.
+  - **Why**: detect credential stuffing and abusive login attempts
+  - **Impact**: improved SOC telemetry; no user enumeration in responses
+
+## 🚧 In Progress
+- [ ] Final sweep for any other 429 paths; document any intentional exclusions due to volume/noise.
+
+---
+## ✅ Completed
+- [x] Audited applyRateLimit and rateLimitAsync usage to confirm `security.ratelimit.block` audit logging on all 429 response paths.
+  - **Why**: final sweep to verify telemetry coverage for throttled requests
+  - **Impact**: ensures incident responders receive consistent audit data across admin, portal, and public endpoints
+
+## ⚠️ Issues / Risks
+- Legacy `rateLimit()` helper remains exported; future code should prefer `applyRateLimit` or add explicit audits to avoid regressions.
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Evaluate deprecating or wrapping legacy `rateLimit()` helper with audit logging to enforce consistency.
+
+## ✅ Completed
+- [x] Prepared Prisma migration to add `superAdmin` JSON column to `security_settings` and updated seed to ensure defaults.
+  - **Why**: enable persistent tenant-level SUPER_ADMIN overrides (stepUpMfa, logAdminAccess)
+  - **Impact**: consistent defaults; safe, backward-compatible rollout
+
+## 🚧 In Progress
+- [ ] Awaiting remote DB credentials (NETLIFY_DATABASE_URL) and target environment (staging/prod) to apply migration and seed.
+
+## 🔧 Next Steps
+- [ ] Apply migration and seed
+  1. Set NETLIFY_DATABASE_URL to the remote Postgres connection string.
+  2. Run: pnpm db:migrate && pnpm db:seed
+  3. Verify:
+     - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superAdmin';
+     - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+## ✅ Completed
+- [x] Set NETLIFY_DATABASE_URL and DATABASE_URL for remote Neon DB (via dev server env config).
+  - **Why**: enable Prisma to target the remote database for migration/seed
+  - **Impact**: environment prepared for schema changes
+
+## ⚠️ Issues / Risks
+- ACL blocked running migration/seed commands from this environment.
+  - Operators must execute: `pnpm db:migrate && pnpm db:generate && pnpm db:seed` in a shell with the same NETLIFY_DATABASE_URL.
+
+## 🔧 Next Steps
+- [ ] Ops: Run migrations and seed as above, then verify column and sample values exist as documented. Provide confirmation or logs to record in this file.
+
+## ✅ Completed
+- [x] Applied migrations to Neon and ran seed with resilience; superAdmin JSON present and defaults ensured.
+  - **Why**: finalize tenant-level SUPER_ADMIN overrides persistence
+  - **Impact**: stepUpMfa/logAdminAccess now persisted per-tenant; seed succeeds even if legacy Task schema lags
+
+## ⚠️ Issues / Risks
+- Remote DB missing `Task.tenantId`; task/compliance seed skipped to avoid failure. DB schema may be out-of-sync with current Prisma models.
+
+## 🔧 Next Steps
+- [ ] Ops: plan follow-up migration to align Task schema (ensure `Task.tenantId` exists) or confirm intentional divergence. Re-run seeding for tasks once aligned.
+
+## 🚧 In Progress (High Priority)
+- [ ] Remote DB connection and migration application — Priority: High
+  - Owner: Ops/Backend
+  - Status: Executing and monitoring rollout across environments
+  - Notes: Neon connection configured via NETLIFY_DATABASE_URL/DATABASE_URL; continue validation and access monitoring
+- [ ] Apply schema migration and seed to add `superAdmin` to `security_settings` — Priority: High
+  - Owner: Ops/Backend
+  - Status: Rolling out and validating; ensure defaults persist and APIs reflect tenant-level overrides
+  - Verification: `security_settings.superAdmin` JSON contains `stepUpMfa`, `logAdminAccess`; seed idempotent across runs
+
+---
+
+## ✅ Completed
+- [x] Context reloaded; verified SUPER_ADMIN step-up integration and IP allowlist utilities across key admin routes; RBAC audit scripts present.
+  - **Why**: establish accurate baseline before further hardening
+  - **Impact**: avoids redundant work; confirms current security posture
+
+## ⚠️ Issues / Risks
+- This log contains older conflicting status entries (e.g., migration both pending and completed). We will keep append-only updates that clarify current state to prevent ambiguity.
+
+## 🚧 In Progress
+- [ ] Plan final sweep for SUPER_ADMIN step-up coverage on high-risk admin endpoints and UI actions; identify any gaps.
+
+## 🔧 Next Steps
+- [ ] Add scripts/check_admin_rbac.js to CI to fail builds when guards are missing.
+- [ ] Centralize SUPER_ADMIN step-up checks for privileged mutations to reduce duplication while preserving per-route control.
+- [ ] Document CI addition and operational guidance in this log and docs/ENVIRONMENT_VARIABLES_REFERENCE.md.
+
+---
+
+## ✅ Completed
+- [x] Remote DB: ensured security_settings.superAdmin column and seeded defaults via surgical SQL scripts (no destructive drift push).
+  - **Why**: prisma db push detected non-trivial drift (required tenantId on existing tables) and would require data-destructive reset; we applied a safe, targeted change instead to unblock SUPER_ADMIN overrides.
+  - **Impact**: superAdmin JSON column exists; defaults ensured for existing rows; no data loss and no unrelated schema changes.
+  - **Files**: scripts/admin-setup/add-superadmin-column.ts, scripts/admin-setup/seed-superadmin-defaults.ts
+
+## ⚠️ Issues / Risks
+- Prisma db push surfaced drift on ComplianceRecord, HealthLog, and Task tenantId requirements; avoid force-reset in shared environments. Coordinate a dedicated migration plan for multi-tenant columns.
+
+## 🚧 In Progress
+- [ ] Plan and stage proper migrations for tenantId backfills on affected tables (with online backfill and defaults), then set NOT NULL with FK; avoid downtime.
+
+## 🔧 Next Steps
+- [ ] Add CI job to run scripts/check_admin_rbac.js and fail builds on missing guards.
+- [ ] Create migration plan for tenantId backfill: additive nullable columns, background backfill, then set NOT NULL with FK; avoid downtime.
+- [ ] Verify via SQL:
+  - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superadmin';
+  - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+---
+
+## ✅ Completed
+- [x] Verified superAdmin column and defaults present in remote DB.
+  - **Why**: confirm rollout success and idempotent seed behavior
+  - **Impact**: tenant-level overrides active; APIs can consult persisted settings
+  - **Verification Output**:
+    - Column exists count: 1
+    - Sample row: { tenantId: "tenant_primary", superAdmin: { stepUpMfa: false, logAdminAccess: true } }
+    - Rows missing defaults: 0
+  - **Files**: scripts/admin-setup/verify-superadmin-column.ts
+
+---
+
+## ✅ Completed
+- [x] Created SUPER_ADMIN user and ensured credentials; handled enum drift and schema gaps safely.
+  - **Why**: enable platform-level super admin operations immediately
+  - **Impact**: SUPER_ADMIN user present; membership sync skipped if table absent; no downtime
+  - **Ops Output**:
+    - Enum UserRole updated to include SUPER_ADMIN (idempotent)
+    - User email: superadmin@accountingfirm.com
+    - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
+  - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
+
+---
+
+## 🚧 In Progress
+- [ ] Address lint failure on scripts/check-superadmin-defaults.ts triggered by direct PrismaClient instantiation.
+  - **Why**: Vercel build halts during `pnpm lint` due to rule requiring the shared Prisma client from `@/lib/prisma`.
+  - **Impact**: Production build blocked; super admin verification script violates security tooling conventions.
+  - **Next Steps**: Refactor script to import the shared Prisma client helper and confirm lint passes.
+
+---
+
+## ✅ Completed
+- [x] Resolved lint failure in scripts/check-superadmin-defaults.ts by reusing shared Prisma client from `@/lib/prisma`.
+  - **Why**: enforce centralized Prisma lifecycle management and satisfy security lint rule.
+  - **Impact**: unblocks Vercel builds; ensures tenant guard and connection pooling policies apply.
+
+## ⚠️ Issues / Risks
+- No new risks identified; prior remote DB drift tracking remains valid above.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+---
+
+## ✅ Completed
+- [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
+  - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
+  - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
+
+## ⚠️ Issues / Risks
+- Portal-first fallback in login page persists if /api/users/me fails; may revisit to derive role from session directly.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+## 🔧 Next Steps
+- [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
+- [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
+
+---
+
+## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for admin newsletter list endpoint and auth password flows (forgot/reset) when rate limits trigger.
+  - **Why**: improve visibility into abuse and throttling on privileged/admin-related surfaces
+  - **Impact**: responders can trace 429s with IP and key context; no user-facing leakage
+
+## 🚧 In Progress
+- [ ] Continue auditing endpoints using applyRateLimit to ensure all privileged/admin routes emit `security.ratelimit.block` on 429; portal/public routes to be reviewed with privacy considerations.
+
+---
+## ✅ Completed
+- [x] Added `security.ratelimit.block` audit logging for portal and public endpoints on 429:
+  - portal chat POST, portal service-requests (create, update, export, comments), public service-requests create, analytics track
+  - **Why**: comprehensive visibility into abuse across user-facing surfaces
+  - **Impact**: consistent incident traceability; minimal PII, tenant-scoped when available
+
+## 🚧 In Progress
+- [ ] Final sweep: verify all 429 paths for privileged and user-facing endpoints emit audits; document exclusions if any (e.g., extremely high-volume public endpoints if noise becomes an issue).
+
+---
+## ✅ Completed
+- [x] Emit `security.ratelimit.block` on newsletter subscribe 429 with minimal details (ip, key, route).
+  - **Why**: consistent visibility for public-facing throttles
+  - **Impact**: incident traceability without storing content/PII
+
+- [x] Emit `security.ratelimit.block` on login throttles (per-IP and per-email) in authorize() flow.
+  - **Why**: detect credential stuffing and abusive login attempts
+  - **Impact**: improved SOC telemetry; no user enumeration in responses
+
+## 🚧 In Progress
+- [ ] Final sweep for any other 429 paths; document any intentional exclusions due to volume/noise.
+
+---
+## ✅ Completed
+- [x] Audited applyRateLimit and rateLimitAsync usage to confirm `security.ratelimit.block` audit logging on all 429 response paths.
+  - **Why**: final sweep to verify telemetry coverage for throttled requests
+  - **Impact**: ensures incident responders receive consistent audit data across admin, portal, and public endpoints
+
+## ⚠️ Issues / Risks
+- Legacy `rateLimit()` helper remains exported; future code should prefer `applyRateLimit` or add explicit audits to avoid regressions.
+
+## 🚧 In Progress
+- [ ] None
+
+## 🔧 Next Steps
+- [ ] Evaluate deprecating or wrapping legacy `rateLimit()` helper with audit logging to enforce consistency.
+
+## ✅ Completed
+- [x] Prepared Prisma migration to add `superAdmin` JSON column to `security_settings` and updated seed to ensure defaults.
+  - **Why**: enable persistent tenant-level SUPER_ADMIN overrides (stepUpMfa, logAdminAccess)
+  - **Impact**: consistent defaults; safe, backward-compatible rollout
+
+## 🚧 In Progress
+- [ ] Awaiting remote DB credentials (NETLIFY_DATABASE_URL) and target environment (staging/prod) to apply migration and seed.
+
+## 🔧 Next Steps
+- [ ] Apply migration and seed
+  1. Set NETLIFY_DATABASE_URL to the remote Postgres connection string.
+  2. Run: pnpm db:migrate && pnpm db:seed
+  3. Verify:
+     - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superAdmin';
+     - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+## ✅ Completed
+- [x] Set NETLIFY_DATABASE_URL and DATABASE_URL for remote Neon DB (via dev server env config).
+  - **Why**: enable Prisma to target the remote database for migration/seed
+  - **Impact**: environment prepared for schema changes
+
+## ⚠️ Issues / Risks
+- ACL blocked running migration/seed commands from this environment.
+  - Operators must execute: `pnpm db:migrate && pnpm db:generate && pnpm db:seed` in a shell with the same NETLIFY_DATABASE_URL.
+
+## 🔧 Next Steps
+- [ ] Ops: Run migrations and seed as above, then verify column and sample values exist as documented. Provide confirmation or logs to record in this file.
+
+## ✅ Completed
+- [x] Applied migrations to Neon and ran seed with resilience; superAdmin JSON present and defaults ensured.
+  - **Why**: finalize tenant-level SUPER_ADMIN overrides persistence
+  - **Impact**: stepUpMfa/logAdminAccess now persisted per-tenant; seed succeeds even if legacy Task schema lags
+
+## ⚠️ Issues / Risks
+- Remote DB missing `Task.tenantId`; task/compliance seed skipped to avoid failure. DB schema may be out-of-sync with current Prisma models.
+
+## 🔧 Next Steps
+- [ ] Ops: plan follow-up migration to align Task schema (ensure `Task.tenantId` exists) or confirm intentional divergence. Re-run seeding for tasks once aligned.
+
+## 🚧 In Progress (High Priority)
+- [ ] Remote DB connection and migration application — Priority: High
+  - Owner: Ops/Backend
+  - Status: Executing and monitoring rollout across environments
+  - Notes: Neon connection configured via NETLIFY_DATABASE_URL/DATABASE_URL; continue validation and access monitoring
+- [ ] Apply schema migration and seed to add `superAdmin` to `security_settings` — Priority: High
+  - Owner: Ops/Backend
+  - Status: Rolling out and validating; ensure defaults persist and APIs reflect tenant-level overrides
+  - Verification: `security_settings.superAdmin` JSON contains `stepUpMfa`, `logAdminAccess`; seed idempotent across runs
+
+---
+
+## ✅ Completed
+- [x] Context reloaded; verified SUPER_ADMIN step-up integration and IP allowlist utilities across key admin routes; RBAC audit scripts present.
+  - **Why**: establish accurate baseline before further hardening
+  - **Impact**: avoids redundant work; confirms current security posture
+
+## ⚠️ Issues / Risks
+- This log contains older conflicting status entries (e.g., migration both pending and completed). We will keep append-only updates that clarify current state to prevent ambiguity.
+
+## 🚧 In Progress
+- [ ] Plan final sweep for SUPER_ADMIN step-up coverage on high-risk admin endpoints and UI actions; identify any gaps.
+
+## 🔧 Next Steps
+- [ ] Add scripts/check_admin_rbac.js to CI to fail builds when guards are missing.
+- [ ] Centralize SUPER_ADMIN step-up checks for privileged mutations to reduce duplication while preserving per-route control.
+- [ ] Document CI addition and operational guidance in this log and docs/ENVIRONMENT_VARIABLES_REFERENCE.md.
+
+---
+
+## ✅ Completed
+- [x] Remote DB: ensured security_settings.superAdmin column and seeded defaults via surgical SQL scripts (no destructive drift push).
+  - **Why**: prisma db push detected non-trivial drift (required tenantId on existing tables) and would require data-destructive reset; we applied a safe, targeted change instead to unblock SUPER_ADMIN overrides.
+  - **Impact**: superAdmin JSON column exists; defaults ensured for existing rows; no data loss and no unrelated schema changes.
+  - **Files**: scripts/admin-setup/add-superadmin-column.ts, scripts/admin-setup/seed-superadmin-defaults.ts
+
+## ⚠️ Issues / Risks
+- Prisma db push surfaced drift on ComplianceRecord, HealthLog, and Task tenantId requirements; avoid force-reset in shared environments. Coordinate a dedicated migration plan for multi-tenant columns.
+
+## 🚧 In Progress
+- [ ] Plan and stage proper migrations for tenantId backfills on affected tables (with online backfill and defaults), then set NOT NULL with FK; avoid downtime.
+
+## 🔧 Next Steps
+- [ ] Add CI job to run scripts/check_admin_rbac.js and fail builds on missing guards.
+- [ ] Create migration plan for tenantId backfill: additive nullable columns, background backfill, then set NOT NULL with FK; avoid downtime.
+- [ ] Verify via SQL:
+  - SELECT column_name FROM information_schema.columns WHERE table_name='security_settings' AND column_name='superadmin';
+  - SELECT superAdmin FROM public.security_settings LIMIT 5;
+
+---
+
+## ✅ Completed
+- [x] Verified superAdmin column and defaults present in remote DB.
+  - **Why**: confirm rollout success and idempotent seed behavior
+  - **Impact**: tenant-level overrides active; APIs can consult persisted settings
+  - **Verification Output**:
+    - Column exists count: 1
+    - Sample row: { tenantId: "tenant_primary", superAdmin: { stepUpMfa: false, logAdminAccess: true } }
+    - Rows missing defaults: 0
+  - **Files**: scripts/admin-setup/verify-superadmin-column.ts
+
+---
+
+## ✅ Completed
+- [x] Created SUPER_ADMIN user and ensured credentials; handled enum drift and schema gaps safely.
+  - **Why**: enable platform-level super admin operations immediately
+  - **Impact**: SUPER_ADMIN user present; membership sync skipped if table absent; no downtime
+  - **Ops Output**:
+    - Enum UserRole updated to include SUPER_ADMIN (idempotent)
+    - User email: superadmin@accountingfirm.com
+    - Password: set via SEED_SUPERADMIN_PASSWORD or generated and displayed during run
+  - **Files**: scripts/admin-setup/ensure-enums.ts, scripts/admin-setup/create-superadmin-user.ts
+
+---
+
+## 🚧 In Progress
+- [ ] Address lint failure on scripts/check-superadmin-defaults.ts triggered by direct PrismaClient instantiation.
+  - **Why**: Vercel build halts during `pnpm lint` due to rule requiring the shared Prisma client from `@/lib/prisma`.
+  - **Impact**: Production build blocked; super admin verification script violates security tooling conventions.
+  - **Next Steps**: Refactor script to import the shared Prisma client helper and confirm lint passes.
+
+---
+
+## ✅ Completed
+- [x] Resolved lint failure in scripts/check-superadmin-defaults.ts by reusing shared Prisma client from `@/lib/prisma`.
+  - **Why**: enforce centralized Prisma lifecycle management and satisfy security lint rule.
+  - **Impact**: unblocks Vercel builds; ensures tenant guard and connection pooling policies apply.
+
+## ⚠️ Issues / Risks
+- No new risks identified; prior remote DB drift tracking remains valid above.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+---
+
+## ✅ Completed
+- [x] Restored SUPER_ADMIN routing parity with ADMIN roles.
+  - **Why**: super admins were redirected to portal due to middleware staff check excluding SUPER_ADMIN, preventing admin dashboard access.
+  - **Impact**: SUPER_ADMIN logins now reach /admin automatically; login flow and middleware share consistent role gating.
+
+## ⚠️ Issues / Risks
+- Portal-first fallback in login page persists if /api/users/me fails; may revisit to derive role from session directly.
+
+## 🚧 In Progress
+- [ ] Monitor upcoming CI/Vercel build to confirm lint stage passes with shared client usage.
+
+## 🔧 Next Steps
+- [ ] If build succeeds, prune outdated direct PrismaClient instantiations in any remaining legacy scripts.
+- [ ] Audit remaining role checks (e.g., permission hooks) to ensure SUPER_ADMIN receives full admin capabilities.
+
+---
+
+## ✅ Completed
 - [x] Fixed Vercel build error (TS2448) by declaring resolvedTenantId/resolvedTenantSlug/apiEntryLogged before first use in middleware.
   - **Files**: src/app/middleware.ts
   - **Why**: unblock `pnpm typecheck` during `pnpm vercel:build`
