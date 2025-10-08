@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { encode } from 'next-auth/jwt'
 
@@ -6,67 +6,125 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const COOKIE_NAME = '__Secure-next-auth.session-token'
+const DEFAULT_EMAIL = 'staff@accountingfirm.com'
+const DEFAULT_TENANT_SLUG = 'primary'
 
-export async function POST(req: Request) {
+interface DevLoginRequestPayload {
+  email?: string
+  tenantSlug?: string
+  tenantId?: string
+  token?: string
+}
+
+/**
+ * Issues a development-only session cookie for testing flows without standard authentication.
+ * Never available in production and optionally gated by DEV_LOGIN_TOKEN.
+ */
+export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ success: false, error: 'Not allowed in production' }, { status: 403 })
+    return NextResponse.json(
+      { success: false, error: 'Not allowed in production' },
+      { status: 403 },
+    )
   }
 
   if (!process.env.NEXTAUTH_SECRET) {
-    return NextResponse.json({ success: false, error: 'NEXTAUTH_SECRET not configured' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'NEXTAUTH_SECRET not configured' },
+      { status: 500 },
+    )
+  }
+
+  let body: DevLoginRequestPayload = {}
+  try {
+    body = await request.json()
+  } catch {
+    body = {}
+  }
+
+  const expectedToken = process.env.DEV_LOGIN_TOKEN
+  if (expectedToken) {
+    const providedToken =
+      request.headers.get('x-dev-login-token') ??
+      (typeof body.token === 'string' ? body.token : null)
+
+    if (providedToken !== expectedToken) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid dev login token' },
+        { status: 403 },
+      )
+    }
   }
 
   try {
-    const body = await req.json().catch(() => ({}))
-    const email = (body?.email as string) || 'staff@accountingfirm.com'
-    const tenantSlug = typeof body?.tenantSlug === 'string' && body.tenantSlug.trim().length > 0 ? body.tenantSlug.trim() : 'primary'
-    const tenantIdOverride = typeof body?.tenantId === 'string' && body.tenantId.trim().length > 0 ? body.tenantId.trim() : null
+    const email =
+      typeof body.email === 'string' && body.email.trim().length > 0
+        ? body.email.trim().toLowerCase()
+        : DEFAULT_EMAIL
 
-    const tenantLookup = tenantIdOverride
+    const tenantSlug =
+      typeof body.tenantSlug === 'string' && body.tenantSlug.trim().length > 0
+        ? body.tenantSlug.trim()
+        : DEFAULT_TENANT_SLUG
+
+    const tenantIdOverride =
+      typeof body.tenantId === 'string' && body.tenantId.trim().length > 0
+        ? body.tenantId.trim()
+        : null
+
+    const tenantCandidate = tenantIdOverride
       ? await prisma.tenant.findUnique({ where: { id: tenantIdOverride } })
       : await prisma.tenant.findUnique({ where: { slug: tenantSlug } })
 
-    const tenant = tenantLookup ?? (await prisma.tenant.findFirst())
+    const tenant = tenantCandidate ?? (await prisma.tenant.findFirst())
+    const tenantId = tenant?.id ?? null
+    const tenantSlugResolved = tenant?.slug ?? null
 
     const user =
-      (tenant
+      (tenantId
         ? await prisma.user.findUnique({
-            where: { tenantId_email: { tenantId: tenant.id, email } },
+            where: { tenantId_email: { tenantId, email } },
           })
-        : null) ?? (await prisma.user.findFirst({ where: { email } }))
+        : null) ??
+      (await prisma.user.findFirst({ where: { email } }))
 
     if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 },
+      )
     }
-
-    const activeTenantId = tenant?.id ?? user.tenantId ?? null
-    const activeTenantSlug = tenant?.slug ?? null
 
     const tokenPayload = {
       name: user.name,
       email: user.email,
-      picture: user.image || null,
+      picture: user.image ?? null,
       sub: user.id,
       role: user.role,
+      tenantRole: user.tenantRole ?? null,
       sessionVersion: user.sessionVersion ?? 0,
-      tenantId: activeTenantId,
-      tenantSlug: activeTenantSlug,
+      tenantId,
+      tenantSlug: tenantSlugResolved,
       iat: Math.floor(Date.now() / 1000),
     }
 
     const encoded = await encode({ token: tokenPayload as any, secret: process.env.NEXTAUTH_SECRET })
     if (!encoded) {
-      return NextResponse.json({ success: false, error: 'Failed to encode token' }, { status: 500 })
+      return NextResponse.json(
+        { success: false, error: 'Failed to encode token' },
+        { status: 500 },
+      )
     }
 
     const cookie = `${COOKIE_NAME}=${encoded}; Path=/; HttpOnly; Secure; SameSite=Lax`
-
-    const res = NextResponse.json({ success: true, cookie: cookie, token: encoded })
-    res.headers.set('Set-Cookie', cookie)
-    return res
-  } catch (e) {
-     
-    console.error('dev login error', e)
-    return NextResponse.json({ success: false, error: 'internal' }, { status: 500 })
+    const response = NextResponse.json({ success: true, token: encoded, cookie })
+    response.headers.set('Set-Cookie', cookie)
+    return response
+  } catch (error) {
+    console.error('dev login error', error)
+    return NextResponse.json(
+      { success: false, error: 'internal' },
+      { status: 500 },
+    )
   }
 }
