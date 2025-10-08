@@ -54,20 +54,24 @@ async function ensureSuperAdmin() {
     }
 
     // Ensure tenant_memberships row
-    const mem = await client.query(
-      'SELECT id FROM public.tenant_memberships WHERE "userId" = $1 AND "tenantId" = $2 LIMIT 1',
-      [userId, tenantId]
-    )
-    if (mem.rowCount === 0) {
-      const memId = crypto.randomUUID()
-      await client.query(
-        'INSERT INTO public.tenant_memberships (id, "userId", "tenantId", role, "isDefault", "createdAt") VALUES ($1,$2,$3,$4,$5,NOW())',
-        [memId, userId, tenantId, 'SUPER_ADMIN', true]
+    try {
+      const mem = await client.query(
+        'SELECT id FROM public.tenant_memberships WHERE "userId" = $1 AND "tenantId" = $2 LIMIT 1',
+        [userId, tenantId]
       )
-      console.log('✅ Added tenant membership as SUPER_ADMIN (default)')
-    } else {
-      await client.query('UPDATE public.tenant_memberships SET role = $1 WHERE id = $2', ['SUPER_ADMIN', mem.rows[0].id])
-      console.log('✅ Ensured tenant membership role SUPER_ADMIN')
+      if (mem.rowCount === 0) {
+        const memId = crypto.randomUUID()
+        await client.query(
+          'INSERT INTO public.tenant_memberships (id, "userId", "tenantId", role, "isDefault", "createdAt") VALUES ($1,$2,$3,$4,$5,NOW())',
+          [memId, userId, tenantId, 'SUPER_ADMIN', true]
+        )
+        console.log('✅ Added tenant membership as SUPER_ADMIN (default)')
+      } else {
+        await client.query('UPDATE public.tenant_memberships SET role = $1 WHERE id = $2', ['SUPER_ADMIN', mem.rows[0].id])
+        console.log('✅ Ensured tenant membership role SUPER_ADMIN')
+      }
+    } catch (err) {
+      console.warn('⚠️ Skipping tenant_memberships sync (table missing or schema drift):', (err as any)?.message)
     }
 
     console.log('Credentials:')
