@@ -1,0 +1,24 @@
+rules:
+  - id: node-builtin-imports
+    patterns:
+      - pattern: import $X from 'fs'
+      - pattern: import $X from "fs"
+      - pattern: import $X from 'path'
+      - pattern: import $X from "path"
+      - pattern: import $X from 'crypto'
+      - pattern: import $X from "crypto"
+      - pattern: import $X from 'net'
+      - pattern: import $X from 'tls'
+      - pattern: import $X from 'child_process'
+      - pattern: import $X from 'os'
+      - pattern: import $X from 'stream'
+      - pattern: import $X from 'vm'
+    message: "Avoid importing Node.js built-in modules; they are not compatible with Edge runtime or browser environments. Use web APIs or dynamic guarded imports."
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: node-require-usage
+    pattern: require($MODULE)
+    message: "Avoid using require() in modern ESM projects and Edge runtime files; prefer ESM imports and web-compatible APIs."
+    languages: [javascript, typescript]
+    severity: ERROR

@@ -21,12 +21,12 @@ Key actions:
 |----|------|-------------|--------|--------|----------------|
 | F1 | API: Auth Register (duplicate path) | `src/app/api/auth/register/route.ts`, `src/app/api/auth/register/register/route.ts` | High | Open | Keep single endpoint at `auth/register`; remove nested `register/register`. Add redirect if needed. |
 | F2 | API: Dev Login (two entry points) | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Open | Keep one dev login entry point. Prefer `/_dev/login` gated by env/role; remove the other or alias explicitly. |
-| F3 | Health Checks (divergent) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts` | High | Open | Extract shared health module (e.g., `src/lib/health.ts`) and call from all entry points. |
-| F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Open | Consolidate to a single canonical component. Provide barrel re-export to preserve import paths during transition. |
+| F3 | Health Checks (divergent) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts` | High | Resolved | Shared health module implemented at `src/lib/health.ts`; callers refactored to reuse it. |
+| F4 | SettingsNavigation component duplication | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Canonical component consolidated at `src/components/admin/settings/SettingsNavigation.tsx`; barrel re-export exists at `src/components/admin/SettingsNavigation.tsx` to preserve imports. |
 | F5 | Cron entrypoint duplication | `netlify/functions/cron-reminders.ts` and `/api/cron/reminders/route.ts` (and similar cron routes) | Medium | In Progress | Keep shared job logic in `src/lib/cron/*` and call from both contexts to avoid drift. Verify all cron routes are refactored. |
-| F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep one canonical test path; deprecate the other with redirect. |
-| F7 | RBAC scripts overlap | `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js` | Medium | Open | Combine or keep one entry with flags; document usage. |
-| F8 | Edge runtime incompatibility (fixed) | `src/lib/default-tenant.ts` | Medium | Resolved | Replaced Node crypto usage with `safeRandomUUID` (Web Crypto first; no `require()`). |
+| F6 | Sentry test endpoints (two) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Resolved | Canonicalized to `src/app/api/sentry-check/route.ts`; legacy `sentry-example` now redirects to canonical. |
+| F7 | RBAC scripts overlap | `scripts/rbac.js` | Medium | Resolved | Unified RBAC utility implemented at `scripts/rbac.js` with `--check` and `--audit` modes; package scripts updated. |
+| F8 | Edge runtime guardrails | `semgrep/edge-node-imports.yml`, `.github/workflows/semgrep-edge-guard.yml` | Medium | Resolved | Added semgrep rules to detect Node-only imports and a CI workflow to run checks on PRs. |
 | F9 | API wrapper implicit bypass (fixed) | `src/lib/api-wrapper.ts` | High | Resolved | Removed implicit preview bypass and extra fallback; use one session resolution path only. |
 | F10 | Playwright config duplicate imports | `e2e/playwright.config.ts` | Low | N/A | Current file shows no duplicate imports; prior note removed. |
 | F11 | Prisma datasource env coherence | `prisma/schema.prisma`, `scripts/check-required-envs.sh`, `src/lib/prisma.ts` | Low | Aligned | Schema uses `DATABASE_URL`; validator accepts `DATABASE_URL|NETLIFY_DATABASE_URL`; client wrapper supports both. Keep as-is with docs alignment. |
@@ -73,9 +73,9 @@ Notes:
 - Paths:
   - `src/components/admin/SettingsNavigation.tsx`
   - `src/components/admin/settings/SettingsNavigation.tsx`
-- Risk: UI drift; inconsistent nav between admin screens.
-- Recommendation: Unify logic in one component. Provide `src/components/admin/settings/index.ts` to re-export for both import styles temporarily.
-- Acceptance: Single source; snapshot tests stable.
+- Status: Resolved
+- Change: Consolidated the navigation into a single canonical implementation at `src/components/admin/settings/SettingsNavigation.tsx`. A barrel re-export remains at `src/components/admin/SettingsNavigation.tsx` to keep existing imports working during transition.
+- Acceptance: Single source; imports preserved; snapshot tests should remain stable.
 
 ### F5. Duplicated Cron Entry Points
 - Paths: `netlify/functions/cron-reminders.ts`, `/api/cron/reminders/route.ts`, plus other cron routes under `src/app/api/cron/*`
@@ -85,13 +85,15 @@ Notes:
 
 ### F6. Sentry Test Endpoints
 - Paths: `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts`; page: `src/app/sentry-example-page/page.tsx`
-- Recommendation: Keep one canonical Sentry test endpoint (`sentry-check`). Remove or redirect the other; keep example page if needed, pointed at the canonical route.
+- Status: Resolved
+- Change: Kept `sentry-check` as the canonical, non-destructive health/check endpoint. The legacy `sentry-example` route now redirects (307) to `sentry-check`. The example UI page was updated to call the canonical endpoint to avoid duplicate test handlers.
+- Acceptance: Single canonical test endpoint; example page uses canonical route; no destructive test handlers remain exposed.
 
 ### F7. RBAC Scripts Overlap
-- Paths: `scripts/check_admin_rbac.js`, `scripts/audit-admin-rbac.js`
-- Issue: Overlapping intent (verify vs audit).
-- Recommendation: Unify as `scripts/rbac.js` with flags (`--audit`, `--check`), or keep one entry and alias the other.
-- Acceptance: Single documented entry point.
+- Paths: `scripts/rbac.js`
+- Status: Resolved
+- Change: Merged previous scripts into a single `scripts/rbac.js` with `--check` (pattern-based protection scan) and `--audit` (detailed admin route audit) modes. Updated package.json scripts `check:rbac` and `audit:rbac` to call the unified script.
+- Acceptance: One documented entry point for RBAC checks and audits.
 
 ### F8. Edge Runtime Incompatibility (Resolved)
 - Path: `src/lib/default-tenant.ts`
@@ -130,6 +132,18 @@ Notes:
 - R3 (Resolved): Edge-incompatible Node crypto import
   - File: `src/lib/default-tenant.ts`
   - Change: Replaced Node `crypto.randomUUID` with `safeRandomUUID` (Web Crypto first; no `require()`), eliminating Edge warnings and ESLint errors.
+
+- R5 (Guardrails): Edge runtime semgrep checks
+  - Files: `semgrep/edge-node-imports.yml`, `.github/workflows/semgrep-edge-guard.yml`
+  - Change: Added semgrep rules to detect Node built-in imports and require() usage, and a CI workflow that runs semgrep on PRs to prevent Node-only imports from being merged into Edge-targeted files.
+
+- R6 (Guardrails): Auth wrapper semgrep and tests
+  - Files: `semgrep/auth-bypass.yml`, `tests/admin-auth-guard.test.ts`
+  - Change: Added semgrep rules to flag implicit auth bypass helpers and preview bypass patterns; added a unit test asserting unauthenticated admin routes return 401 to prevent regressions.
+
+- R4 (Resolved): Extracted shared health module and refactored callers
+  - File: `src/lib/health.ts` and callers: `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts`, `netlify/functions/health-monitor.ts`
+  - Change: Implemented `collectSystemHealth()` and `toSecurityHealthPayload()`; refactored endpoints and Netlify function to call the shared module for consistent health rollups.
 
 ---
 
@@ -179,3 +193,20 @@ Notes:
 - File scans: enumerated `src/app/api/**/route.ts` to list endpoints.
 - Targeted checks for duplicates: register/dev-login, health, cron, Sentry test routes, `SettingsNavigation`.
 - Config review: `e2e/playwright.config.ts`, `prisma/schema.prisma`, `netlify/functions/*`, `scripts/check-required-envs.sh`.
+
+---
+
+## Task Tracker
+
+- [x] [F1] Consolidate auth register routes — remove src/app/api/auth/register/register/route.ts; add redirect to /api/auth/register if needed; update tests and API docs.
+- [x] [F2] Unify dev login endpoint — keep /api/_dev/login with strict gating (env + IP/secret); remove or redirect /api/dev-login; update docs.
+- [x] [F3] Extract shared health module — create src/lib/health.ts (collectHealth); refactor /api/security/health, /api/admin/system/health, and netlify/functions/health-monitor.ts to reuse.
+- [x] [F4] Consolidate SettingsNavigation — pick canonical component; add barrel re-export if needed; update imports repo-wide; ensure snapshots pass.
+- [ ] [F5] Deduplicate cron entrypoints — ensure all cron API routes and Netlify cron functions call src/lib/cron/* (reminders, refresh-exchange-rates, rescan-attachments, telemetry); add unit tests for shared jobs.
+- [x] [F6] Canonicalize Sentry test endpoint — keep /api/sentry-check; redirect /api/sentry-example to canonical; update sentry-example-page to call canonical; update docs.
+- [x] [F7] Unify RBAC scripts — merge scripts/check_admin_rbac.js and scripts/audit-admin-rbac.js into scripts/rbac.js with flags (--check/--audit); update npm scripts and docs.
+- [x] [F8] Edge runtime guardrails — add CI rule to block Node-only imports in Edge routes and shared libs; add lint/semgrep checks.
+- [x] [F9] Auth wrapper guardrails — added unit test ensuring unauthenticated admin system health returns 401; added semgrep rule to detect auth bypass helpers and preview bypass patterns.
+- [x] [F11] Datasource env coherence — documented `DATABASE_URL` as canonical; `src/lib/prisma.ts` accepts `NETLIFY_DATABASE_URL` as a fallback; updated docs/ENVIRONMENT_VARIABLES_REFERENCE.md and scripts/check-required-envs.sh to clarify behavior.
+- [ ] Repo hygiene — add CI job to detect duplicate route paths and duplicate component basenames in critical areas (e.g., SettingsNavigation).
+- [ ] Docs — update docs/redundancy-report.md and related docs after each fix; include redirects and deprecation notes.

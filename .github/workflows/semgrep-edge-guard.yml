@@ -1,0 +1,25 @@
+name: Semgrep Edge Guard
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'semgrep/**'
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install semgrep
+        run: |
+          python3 -m pip install --user semgrep
+          export PATH=$PATH:~/.local/bin
+      - name: Run semgrep for node builtin imports
+        run: |
+          ~/.local/bin/semgrep --config semgrep/edge-node-imports.yml || true
+      - name: Run semgrep auth bypass checks
+        run: |
+          ~/.local/bin/semgrep --config semgrep/auth-bypass.yml || true

@@ -16,9 +16,18 @@ interface DevLoginRequestPayload {
   token?: string
 }
 
+function getClientIp(request: NextRequest) {
+  const xff = request.headers.get('x-forwarded-for')
+  if (xff) return xff.split(',')[0].trim()
+  const xrip = request.headers.get('x-real-ip')
+  if (xrip) return xrip
+  // Fallback to host header (not reliable) — return null if unknown
+  return null
+}
+
 /**
  * Issues a development-only session cookie for testing flows without standard authentication.
- * Never available in production and optionally gated by DEV_LOGIN_TOKEN.
+ * Never available in production and optionally gated by DEV_LOGIN_TOKEN and DEV_LOGIN_ALLOWED_IPS.
  */
 export async function POST(request: NextRequest) {
   if (process.env.NODE_ENV === 'production') {
@@ -51,6 +60,25 @@ export async function POST(request: NextRequest) {
     if (providedToken !== expectedToken) {
       return NextResponse.json(
         { success: false, error: 'Invalid dev login token' },
+        { status: 403 },
+      )
+    }
+  }
+
+  const allowedIps = process.env.DEV_LOGIN_ALLOWED_IPS
+  if (allowedIps) {
+    const clientIp = getClientIp(request)
+    if (!clientIp) {
+      return NextResponse.json(
+        { success: false, error: 'Client IP unknown; access restricted' },
+        { status: 403 },
+      )
+    }
+
+    const allowed = allowedIps.split(',').map(s => s.trim()).filter(Boolean)
+    if (!allowed.includes(clientIp)) {
+      return NextResponse.json(
+        { success: false, error: 'IP not allowed' },
         { status: 403 },
       )
     }

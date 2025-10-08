@@ -1,0 +1,14 @@
+rules:
+  - id: detect-getSessionOrBypass
+    pattern: getSessionOrBypass(
+    message: "Forbidden auth bypass helper 'getSessionOrBypass' detected. Avoid implicit bypass patterns in wrappers."
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: detect-implicit-preview-bypass
+    patterns:
+      - pattern: "preview"
+      - pattern: "bypass"
+    message: "Potential implicit auth bypass or preview-based bypass detected. Ensure wrappers don't implicitly bypass auth for previews or tests."
+    languages: [javascript, typescript]
+    severity: WARNING

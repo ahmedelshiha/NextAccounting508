@@ -100,6 +100,18 @@ const nextConfig = {
       },
     ]
   },
+
+  // Legacy route redirects and deprecations
+  async redirects() {
+    return [
+      {
+        source: '/api/auth/register/register',
+        destination: '/api/auth/register',
+        permanent: false,
+        statusCode: 307,
+      },
+    ]
+  },
 }
 
 const disableSourcemapsOnNetlify = !!process.env.NETLIFY

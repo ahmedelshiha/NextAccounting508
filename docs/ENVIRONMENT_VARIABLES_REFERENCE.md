@@ -3,7 +3,7 @@
 ## Core Application
 | Variable | Description | Required | Notes |
 |----------|-------------|---------|-------|
-| `DATABASE_URL` | Primary PostgreSQL connection string | Yes | Local/production database; may be replaced by `NETLIFY_DATABASE_URL` on Netlify |
+| `DATABASE_URL` | Primary PostgreSQL connection string (canonical) | Yes | Canonical connection string used by Prisma and runtime. When deploying to Netlify, `NETLIFY_DATABASE_URL` may be provided by the platform and is accepted as a fallback by the application (see `src/lib/prisma.ts` and `scripts/check-required-envs.sh`). |
 | `NETLIFY_DATABASE_URL` | Netlify-provisioned database URL | Conditional | Overrides `DATABASE_URL` when present in Netlify environment |
 | `NEXTAUTH_URL` | Site URL used by NextAuth.js | Yes (non-Netlify) | Should match deployment domain |
 | `NEXTAUTH_SECRET` | Secret for NextAuth.js sessions | Yes | Generate secure 32+ char value |
