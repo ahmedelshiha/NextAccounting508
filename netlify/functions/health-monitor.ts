@@ -28,31 +28,25 @@ const handler = async () => {
     return
   }
   try {
-    const [dbRes, emailRes] = await Promise.all([
-      fetch(`${origin}/api/db-check`, { cache: 'no-store' }),
-      fetch(`${origin}/api/email-check`, { cache: 'no-store' }),
-    ])
+    const { collectSystemHealth } = await import('@/lib/health')
+    const health = await collectSystemHealth({ includeRealtime: false })
 
-    const dbOk = dbRes.ok
-    const emailOk = emailRes.ok
+    const dbOk = health.db.status === 'healthy'
+    const emailOk = health.email.status === 'healthy'
+    const dbMsg = health.db.message || null
+    const emailMsg = health.email.message || null
 
-    // Read bodies for error messages
-    const [dbText, emailText] = await Promise.all([
-      dbRes.ok ? Promise.resolve('ok') : dbRes.text().catch(() => 'error'),
-      emailRes.ok ? Promise.resolve('ok') : emailRes.text().catch(() => 'error'),
-    ])
-
-    // Log results to HealthLog via API
+    // Log results to HealthLog via API (two entries to preserve existing consumers)
     await Promise.all([
       fetch(`${origin}/api/health/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: 'db', status: dbOk ? 'ok' : 'error', message: dbOk ? null : dbText }),
+        body: JSON.stringify({ service: 'db', status: dbOk ? 'ok' : 'error', message: dbMsg }),
       }),
       fetch(`${origin}/api/health/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: 'email', status: emailOk ? 'ok' : 'error', message: emailOk ? null : emailText }),
+        body: JSON.stringify({ service: 'email', status: emailOk ? 'ok' : 'error', message: emailMsg }),
       }),
     ])
 
