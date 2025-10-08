@@ -43,7 +43,8 @@ export default function LoginPage() {
           if (res.ok) {
             const json = await res.json().catch(() => ({}))
             const user = json.user
-            if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+            const role = typeof user?.role === 'string' ? user.role.toUpperCase() : null
+            if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'STAFF') {
               router.push('/admin')
             } else {
               router.push('/portal')
