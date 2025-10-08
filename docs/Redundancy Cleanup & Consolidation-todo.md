@@ -1,23 +1,23 @@
-## ✅ Actions taken
-- [x] Removed static import of getSessionOrBypass from src/lib/api-wrapper.ts to avoid static resolution issues with test mocks. Now auth helpers are dynamically imported at runtime, making tests that vi.mock('@/lib/auth') or vi.mock('next-auth') work consistently.
-
-## 🔧 Next verification
-- Re-run tenant/context focused tests: tests/integration/tenant-mismatch.security.test.ts
-- If additional failures due to mocks persist, adapt vitest.setup.ts to provide comprehensive default mocks.
-
 ## ✅ Completed
-- [x] Fix thresholds unauthenticated path returning 200 instead of 401
-  - **Why**: test/build failure; withTenantContext preferred next-auth root mock over next-auth/next, so tests couldn't force unauth
-  - **Impact**: Builds unblock; route auth now respects per-test overrides, ensuring correct 401 behavior when unauthenticated
-- [x] Consolidate cron reminders to shared scheduler
-  - **Why**: Remove duplicate reminder logic between lib/cron.ts and lib/cron/reminders.ts
-  - **Impact**: Netlify function and API routes now share identical logic via processBookingReminders; reduced drift and easier maintenance (src/lib/cron.ts delegates; /api/cron uses scheduler)
+- [x] F1: Consolidated auth register routes; legacy /api/auth/register/register now redirects to canonical /api/auth/register
+  - Why: remove duplicate route surface
+  - Impact: single source of registration logic; legacy clients supported via 307 redirect
+- [x] F2: Unified dev login to /api/_dev/login; /api/dev-login redirects
+  - Why: prevent ambiguous dev entrypoints
+  - Impact: safer gating; single path in tests and docs
+- [x] F3: Extracted shared health module at src/lib/health.ts and refactored routes to use it
+  - Why: avoid drift across health endpoints/functions
+  - Impact: consistent health payloads
+- [x] F4: De-duplicated usePerformanceMonitoring; only src/hooks/usePerformanceMonitoring.ts remains
+  - Why: remove import ambiguity
+  - Impact: stable imports
+- [x] F5: Consolidated SettingsNavigation to src/components/admin/settings/SettingsNavigation.tsx with barrel re-export at src/components/admin/SettingsNavigation.tsx
+  - Why: avoid UI drift
+  - Impact: single source, backward-compatible imports
+- [x] F6: Fixed duplicate import in e2e/playwright.config.ts
+  - Why: cleanup redundancy
+  - Impact: cleaner config, no duplication warnings
+- [x] F8: Standardized Prisma datasource to DATABASE_URL; prisma.config.ts mirrors NETLIFY_DATABASE_URL→DATABASE_URL. Set DATABASE_URL from env.
+  - Why: eliminate env drift
+  - Impact: consistent DB connection locally and on Netlify/Vercel
 
-## 🚧 In Progress
-- [ ] Unify redundant routes and preview-login logic
-
-## 🔧 Next Steps
-- [ ] Consolidate duplicate hooks (usePerformanceMonitoring) and SettingsNavigation into shared modules
-- [ ] Extract remaining cron tasks into a single scheduler module or delegate wrappers
-- [ ] Standardize Prisma env to DATABASE_URL across deploy targets
-- [ ] Add CI guardrails for duplicate routes/components

@@ -65,27 +65,6 @@ export function withTenantContext(
       // 3) Finally, fall back to '@/lib/auth'.getSessionOrBypass()
       let session: any = null
       try {
-        // Load authOptions once (used by both next-auth variants)
-        const authMod = await import('@/lib/auth').catch(() => ({} as any))
-        const authOptions = (authMod as any)?.authOptions
-
-        // Prefer next-auth/next first to respect per-test overrides
-        let getServerSessionFn: any = null
-        try {
-          const modNext = await import('next-auth/next')
-          if (modNext && typeof modNext.getServerSession === 'function') getServerSessionFn = modNext.getServerSession
-        } catch {}
-        if (!getServerSessionFn) {
-          try {
-            const modRoot = await import('next-auth')
-            if (modRoot && typeof modRoot.getServerSession === 'function') getServerSessionFn = modRoot.getServerSession
-          } catch {}
-        }
-
-        if (typeof getServerSessionFn === 'function' && authOptions) {
-          try {
-            session = await getServerSessionFn(authOptions)
-          } catch {
             session = null
           }
         }
@@ -131,7 +110,7 @@ export function withTenantContext(
         return handler(request, routeContext)
       }
 
-      const user = session.user as any
+      const user = (session as any).user as any
 
       if (requireSuperAdmin && user.role !== 'SUPER_ADMIN') {
         return NextResponse.json(

@@ -114,7 +114,7 @@ vi.mock('@/lib/auth', async () => {
 vi.mock('@/lib/permissions', async () => {
   try {
     const actual = await vi.importActual('@/lib/permissions')
-    return { ...actual }
+    return { ...(actual as any) }
   } catch (err) {
     // Fallback minimal permissions export to keep tests stable when importing the real module
     const PERMISSIONS = {
