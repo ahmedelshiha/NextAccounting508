@@ -11,6 +11,7 @@
     "build": "bash scripts/check-required-envs.sh && prisma generate && pnpm lint && pnpm typecheck && next build --turbopack",
     "build:skip-env": "SKIP_ENV_VALIDATION=true bash scripts/check-required-envs.sh && prisma generate && next build --turbopack",
     "typecheck": "prisma generate && tsc --noEmit -p tsconfig.build.json",
+    "lint:semgrep": "semgrep --config semgrep/edge-node-imports.yml || true",
     "start": "next build && next start",
     "lint": "eslint . --ext .js,.ts,.tsx --fix",
     "test": "vitest --run",
