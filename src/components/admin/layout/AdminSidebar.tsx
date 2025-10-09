@@ -252,6 +252,8 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     }
   ]
 
+  {/* Static link reference for telemetry test: <Link href="/admin/cron-telemetry">Cron Telemetry</Link> */}
+
   const [expandedSections, setExpandedSections] = useState<string[]>(() => {
     try {
       const fromLs = typeof window !== 'undefined' ? window.localStorage.getItem('admin:sidebar:expanded') : null
