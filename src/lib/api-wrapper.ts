@@ -176,23 +176,29 @@ export function withTenantContext(
       try {
         if (user && (user.tenantId || user.tenantId === 0)) {
           resolvedTenantId = String(user.tenantId)
-        } else {
-          // Attempt to derive tenant from request when available
+        }
+
+        // If session.user lacks tenantId, attempt to resolve from request (headers/subdomain)
+        if (!resolvedTenantId) {
           try {
             const tenantMod = await import('@/lib/tenant')
-            if (typeof tenantMod.isMultiTenancyEnabled === 'function' && tenantMod.isMultiTenancyEnabled()) {
+            if (typeof tenantMod.getResolvedTenantId === 'function') {
               try {
-                resolvedTenantId = tenantMod.getTenantFromRequest(request as Request) || null
-              } catch {
-                resolvedTenantId = null
-              }
+                const candidate = await tenantMod.getResolvedTenantId(request as any).catch(() => null)
+                if (candidate) resolvedTenantId = candidate
+              } catch {}
+            } else if (typeof tenantMod.getTenantFromRequest === 'function') {
+              try {
+                const candidate = tenantMod.getTenantFromRequest(request as Request)
+                if (candidate) resolvedTenantId = candidate
+              } catch {}
             }
           } catch {}
         }
       } catch {}
 
       const context: TenantContext = {
-        tenantId: resolvedTenantId ?? String(user.tenantId ?? ''),
+        tenantId: resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null),
         tenantSlug: user.tenantSlug ?? null,
         userId: String(user.id),
         userName: (user.name as string | undefined) ?? null,
