@@ -28,7 +28,7 @@ function findElementByTestId(html: string, id: string) {
   return { html: match[0], textContent: '' }
 }
 
-export function render(node: React.ReactElement) {
+function render(node: React.ReactElement) {
   try {
     const html = renderToStaticMarkup(node)
     const text = extractVisibleText(html)
