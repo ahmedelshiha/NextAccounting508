@@ -1,5 +1,6 @@
 import { render, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, waitFor, fireEvent } from '@testing-library/react'
 import GeneralTab from '@/components/admin/settings/groups/Organization/GeneralTab'
 
 vi.mock('next-auth/next', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN' } })) }))
