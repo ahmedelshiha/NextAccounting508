@@ -21,7 +21,7 @@
 ## 🟠 High Priority - Database & ORM Issues
 
 ### Booking Settings Service
-- [ ] **Fix BookingSettingsService tenant context**
+- [x] **Fix BookingSettingsService tenant context** - completed 2025-10-09
   - **Issue**: "tenantId is required to create booking settings"
   - **Files**: `tests/booking-settings.service.test.ts` (4 failed tests)
   - **Action**: Ensure tenant context is properly set before service operations
