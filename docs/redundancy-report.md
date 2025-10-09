@@ -16,7 +16,7 @@ This report identifies duplicate or overlapping code paths, components, and scri
 | F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Resolved | Centralized cron job logic in `src/lib/cron/*`; API and Netlify entrypoints now delegate to shared modules. |
 | F4 | UI component duplication: Settings Navigation | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Consolidated into canonical `src/components/admin/settings/SettingsNavigation.tsx`; top-level path now re-exports the canonical component. |
 | F5 | UI component duplication: BulkActionsPanel (3x) | `src/components/admin/services/BulkActionsPanel.tsx`, `src/components/dashboard/tables/BulkActionsPanel.tsx`, `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx` | High | Resolved | Implemented shared `src/components/common/bulk/BulkActionsPanel.tsx` and replaced duplicates with thin wrappers that delegate to the shared component. |
-| F6 | Sentry test endpoints (2x) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep only `sentry-check`; have `sentry-example` redirect (307) or remove it. Update the example page to use the canonical route. |
+| F6 | Sentry test endpoints (2x) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Resolved | Kept `sentry-check` as canonical. `sentry-example` now redirects (307) to the canonical endpoint. Example page uses the canonical endpoint. |
 | F7 | Env/tooling references drift | `package.json` scripts, `docs/env-reference.md`, `doppler.yaml` | Medium | Partially Resolved | Doppler removed from scripts. Align docs to reflect current env strategy; consider removing `doppler.yaml` if no longer used. |
 
 Notes:
@@ -64,10 +64,11 @@ Notes:
 - Action taken: Implemented `src/components/common/bulk/BulkActionsPanel.tsx` as a configurable shared component supporting three modes: `service` (complex form-based bulk actions), `actions` (list of action buttons), and `tasks` (task-specific quick actions). Replaced the three original implementations with wrappers delegating to the shared component. Preserved original behavior and styles for each context.
 - Acceptance: One shared component in use; wrappers preserve existing APIs; consider removing wrappers and updating imports to the shared path in a future cleanup.
 
-### F6. Sentry Test Endpoints
+### F6. Sentry Test Endpoints — Resolved
 - Paths: `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts`
-- Recommendation: Keep `sentry-check` as canonical; redirect or remove `sentry-example`. Update `src/app/sentry-example-page/page.tsx` to call the canonical endpoint.
-- Acceptance: Single canonical test endpoint in production.
+- Recommendation: Keep `sentry-check` as canonical; redirect or remove `sentry-example`.
+- Action taken: `src/app/api/sentry-example/route.ts` now performs a 307 redirect to `/api/sentry-check`. `src/app/sentry-example-page/page.tsx` invokes `/api/sentry-check` as the canonical endpoint for server tests. No duplicate test endpoints remain in production.
+- Acceptance: Single canonical test endpoint in production; `sentry-example` serves as a compatibility redirect.
 
 ### F7. Environment & Tooling Alignment
 - Current: Doppler removed from `package.json` scripts; dev uses `pnpm run next-dev`.
@@ -106,8 +107,8 @@ Notes:
   - `**/BulkActionsPanel.tsx` → 1 shared implementation + 3 thin wrappers (duplicates replaced)
 - Duplicate routes:
   - Dev login → 2 matches
-  - Sentry test → 2 matches
-  - Health → 2 endpoints (intentional split)
+- Sentry test → canonical + redirect (resolved)
+- Health → 2 endpoints (intentional split)
 - Cron duplication (resolved):
   - API routes under `src/app/api/cron/*` (now delegate to `src/lib/cron/*`)
   - Netlify functions under `netlify/functions/cron-*.ts` (now delegate to `src/lib/cron/*`)
@@ -120,5 +121,5 @@ Notes:
 - [x] F3: Centralize cron job logic — shared modules added; API and Netlify entrypoints delegate to `src/lib/cron/*`; consider adding integration tests for cron entrypoints.
 - [x] F4: Consolidate SettingsNavigation — canonical created under admin/settings; top-level re-export added; consider removing re-export after consumers updated.
 - [x] F5: Unify BulkActionsPanel — shared component implemented; wrappers added; callers delegate to shared component.
-- [ ] F6: Canonicalize Sentry test — keep /api/sentry-check; ensure /api/sentry-example redirects; update example page to call canonical; remove duplicate
+- [x] F6: Canonicalize Sentry test — `/api/sentry-check` canonical; `/api/sentry-example` redirects; example page updated. Consider removing redirect after consumers update.
 - [ ] F7: Env/tooling alignment — update docs/env-reference.md; decide fate of doppler.yaml; ensure package scripts match current approach
