@@ -56,8 +56,9 @@ export default function ChatTab({ value, onChange, disabled }: ChatTabProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Offline message</label>
+        <label htmlFor="chat-offline-message" className="block text-sm font-medium text-gray-700 mb-1">Offline message</label>
         <textarea
+          id="chat-offline-message"
           value={value.offlineMessage}
           onChange={(event) => updateField('offlineMessage', event.target.value)}
           className="w-full min-h-[120px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
