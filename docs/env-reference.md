@@ -1,4 +1,4 @@
-# Doppler Environment Reference
+# Environment Reference
 
 ## Overview
 This document describes the environment variable strategy used by the project and provides platform-agnostic guidance for local development, CI, and production. The preferred approach is to configure environment variables directly in the target platform (Vercel, Netlify) or use the local `.env.local` for development together with the project's validation script. Doppler may be used optionally as a secrets manager, but it is not required by the build scripts in the repository.
