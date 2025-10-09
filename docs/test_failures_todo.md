@@ -12,6 +12,7 @@
 - [x] **Fixed portal service-requests routes** - 8 test files, 14+ tests passing
 - [x] **Fixed admin services permissions** - 2 tests passing (PR #498)
 - [x] **Fixed unauthenticated access controls** - 8 tests passing (PR #499)
+- [x] **Fixed AdminProviders named export and props** - providers test passing (2025-10-09)
 
 ---
 
@@ -43,8 +44,8 @@
   - **Files**:
     - `tests/admin/providers/admin-context.test.tsx` (1 failed)
       - Expected text not found: "tenant:null perms:0 loading:0 collapsed:0"
-    - `tests/admin/providers/admin-providers.test.tsx` (1 failed)
-      - RENDER_ERROR: Element type invalid (undefined export)
+    - `tests/admin/providers/admin-providers.test.tsx` (fixed 2025-10-09)
+      - Resolved by exporting named AdminProviders and default export
   - **Action**: 
     1. Verify AdminContextProvider exports correct values
     2. Check AdminProviders composition and component exports
