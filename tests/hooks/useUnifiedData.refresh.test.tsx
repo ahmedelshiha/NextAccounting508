@@ -1,4 +1,4 @@
-import { render, screen } from '../../test-mocks/testing-library-react'
+import { render, screen } from '@testing-library/react'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 
 function Probe() {

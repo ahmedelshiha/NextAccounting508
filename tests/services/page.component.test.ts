@@ -1,18 +1,5 @@
-vi.mock('@/hooks/useServicesPermissions', () => ({
-  useServicesPermissions: () => ({
-    canView: true,
-    canCreate: true,
-    canEdit: true,
-    canDelete: true,
-    canBulkEdit: true,
-    canExport: true,
-    canViewAnalytics: true,
-    canManageFeatured: true,
-  })
-}))
-
 import React from 'react'
-import { render, screen } from '../../test-mocks/testing-library-react'
+import { render, screen } from '@testing-library/react'
 import Page from '@/app/admin/services/page'
 
 describe('Admin Services page component', () => {

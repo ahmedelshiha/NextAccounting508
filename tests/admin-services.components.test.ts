@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@/../test-mocks/testing-library-react'
+import { render, screen } from '@testing-library/react'
 import { ServiceForm } from '@/components/admin/services/ServiceForm'
 import { BulkActionsPanel } from '@/components/admin/services/BulkActionsPanel'
 import { ServicesAnalytics } from '@/components/admin/services/ServicesAnalytics'

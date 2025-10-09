@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../test-mocks/testing-library-react'
+import { render, screen } from '@testing-library/react'
 
 // Simulate no session for this unit test to validate default context values
 vi.mock('next-auth/react', () => ({ useSession: () => ({ data: null, status: 'unauthenticated' }) }))

@@ -1,5 +1,4 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@/test-mocks/testing-library-react'
+import { render, screen } from '@testing-library/react'
 import BookingSettingsPanel from '@/src/components/admin/BookingSettingsPanel'
 
 // Note: test renderer is static and does not execute effects/handlers.
