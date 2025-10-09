@@ -43,7 +43,13 @@
     - Enhanced `test-mocks/testing-library-react.ts` with basic implementations for `getByRole` and `getByLabelText` to improve component test compatibility in mocked environments.
     - AdminFooter previously updated to include Support links and proper aria-labels.
   - Remaining: Update individual tests that still import incorrect test utilities or use Chai assertions — will convert them iteratively.
+  - Remaining targets: templates, smoke tests, component exports, role/permission mocks.
   - Next batch target: admin layout and sidebar tests, then templates and smoke tests.
+  - Converted/validated on 2025-10-09: Admin layout and sidebar tests updated to use @testing-library/react and jest-dom matchers.
+    - `tests/admin/layout/AdminDashboardLayout.test.tsx` ✅
+    - `tests/admin/layout/AdminSidebar.test.tsx` ✅
+
+
   - Tests converted to use `@testing-library/react` on 2025-10-09:
     - `tests/smoke/admin-posts.template.test.tsx`
     - `tests/hooks/useUnifiedData.test.tsx`
