@@ -110,3 +110,14 @@ Notes:
 - Cron duplication:
   - API routes under `src/app/api/cron/*`
   - Netlify functions under `netlify/functions/cron-*.ts`
+
+---
+
+## Task Tracker (auto-generated from Findings)
+- [ ] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
+- [x] F2: Health endpoints alignment — both reuse lib/health; public route uses Node runtime; document scopes
+- [ ] F3: Centralize cron job logic — ensure all entrypoints call src/lib/cron/*; remove duplicates; add tests
+- [ ] F4: Consolidate SettingsNavigation — choose canonical under admin/settings, add temporary re-export, migrate imports, delete duplicate
+- [ ] F5: Unify BulkActionsPanel — create shared component under components/common/bulk with contextual props; migrate callers; delete duplicates
+- [ ] F6: Canonicalize Sentry test — keep /api/sentry-check; ensure /api/sentry-example redirects; update example page to call canonical; remove duplicate
+- [ ] F7: Env/tooling alignment — update docs/env-reference.md; decide fate of doppler.yaml; ensure package scripts match current approach
