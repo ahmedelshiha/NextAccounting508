@@ -4,9 +4,8 @@ import path from 'path'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@testing-library/react': path.resolve(__dirname, 'test-mocks/testing-library-react.ts')
-    },
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   test: {
     globals: true,
@@ -14,6 +13,8 @@ export default defineConfig({
     environmentMatchGlobs: [
       ['tests/**/nav/**/*.test.tsx', 'jsdom'],
       ['tests/**/realtime/**/*.test.tsx', 'jsdom'],
+      ['tests/admin/integration/**/*.test.tsx', 'jsdom'],
+      ['tests/admin/**/*.test.tsx', 'jsdom'],
       ['**/*.dom.test.tsx', 'jsdom']
     ],
     setupFiles: ['./vitest.setup.ts'],

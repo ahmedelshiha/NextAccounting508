@@ -1,7 +1,7 @@
-# Doppler Environment Reference
+# Environment Reference
 
 ## Overview
-Doppler centralizes environment variables for this Next.js + Prisma project, replacing manual configuration across local workstations, Netlify preview builds, and Vercel production deploys. Each environment loads the same encrypted secrets from the `next-accounting` Doppler project, ensuring consistent behavior while eliminating drift between hosting platforms.
+This document describes the environment variable strategy used by the project and provides platform-agnostic guidance for local development, CI, and production. The preferred approach is to configure environment variables directly in the target platform (Vercel, Netlify) or use the local `.env.local` for development together with the project's validation script. Doppler may be used optionally as a secrets manager, but it is not required by the build scripts in the repository.
 
 ## Variable Groups
 
@@ -18,7 +18,7 @@ Doppler centralizes environment variables for this Next.js + Prisma project, rep
 | `LOG_ADMIN_ACCESS` | Logs allow/deny decisions for admin access. | Useful during rollout and auditing. |
 | `AUTH_DISABLED` | Bypasses authentication for preview/testing flows. | Leave empty except during controlled previews. |
 | `PREVIEW_ADMIN_EMAIL` | Email used by preview auth bypass. | Pair with `PREVIEW_ADMIN_PASSWORD` when `AUTH_DISABLED` is set. |
-| `PREVIEW_ADMIN_PASSWORD` | Password used by preview auth bypass. | Store only in Doppler preview configs. |
+| `PREVIEW_ADMIN_PASSWORD` | Password used by preview auth bypass. | Store securely in your chosen secrets manager or platform environment configuration. |
 
 ### Database & Backend
 
@@ -48,66 +48,61 @@ Doppler centralizes environment variables for this Next.js + Prisma project, rep
 
 ## Environment Profiles
 
-Before running any profile, install and authenticate the Doppler CLI:
+Local development and CI workflows
+
+- Preferred local development: run the Next.js dev server directly and use `.env.local` for convenience (do not commit `.env.local`):
 
 ```bash
-npm install -g doppler
-doppler login
+# start dev server
+pnpm run dev
 ```
 
-### Local Development
+- The repository contains a validation script that CI and local tooling can run to ensure required variables are present. Use:
 
 ```bash
-doppler setup --project next-accounting --config local
-doppler run --config local -- pnpm run dev
+# validate environment prior to build
+pnpm run check:env
 ```
 
-### Netlify (Preview/Testing)
+- Platform deployments (Netlify, Vercel): configure environment variables through the platform's dashboard or provider APIs. This is the recommended production approach.
 
-```bash
-doppler setup --project next-accounting --config netlify --token=$DOPPLER_TOKEN
-doppler run --config netlify -- pnpm run build
-```
+Secrets manager (optional)
 
-### Vercel (Production)
-
-```bash
-doppler vercel setup --project next-accounting --config vercel
-doppler run --config vercel -- pnpm run build
-```
+If you use a secrets manager (Doppler, Vault, AWS Secrets Manager, etc.), document the team's preferred tool and access process in your internal runbook. CI should be configured to provide secrets via platform environment variables or CI secret storage. Do not assume any particular manager is present in CI builds.
 
 ## Validation
 
+- Use the repository validation script to check required environment variables before building or running tests:
+
 ```bash
-doppler secrets
-doppler run -- printenv | grep NEXTAUTH_URL
+pnpm run check:env
 ```
-Verify that required keys and values appear and match the expected deployment context.
+
+- For ad-hoc verification, print the environment locally (do not commit) and confirm required keys are present.
 
 ## Security Notes
 
-- Never commit `.env*` files; rely exclusively on Doppler-managed secrets.
-- Rotate Doppler service tokens every 90 days and update Netlify/Vercel integrations after rotation.
-- Restrict access to production configs via Doppler roles and audit permissions quarterly.
+- Never commit `.env*` files or files containing secrets to the repository.
+- Prefer managing production secrets via the hosting platform's environment variable configuration (Vercel/Netlify), or a dedicated secrets manager with audited access controls.
+- If using Doppler, rotate service tokens regularly and restrict access to production configs via roles and audits.
 
 ## Reference Example
 
 ```diff
-chore(env): integrate Doppler for unified environment management
+chore(env): document environment management and platform configuration
 
-- Added Doppler CLI as dev dependency.
-- Wrapped scripts in doppler-run commands.
-- Added doppler.yaml and env-reference.md.
+- Documented platform-centric workflows and local `.env.local` usage.
+- Added env-reference.md and validation script guidance.
 ```
 
 ## Additional Reference
 
-Doppler project: **`next-accounting`**
+Preferred mapping of environments to deployment contexts:
 
-| Environment | Doppler Config | Primary Usage |
-| --- | --- | --- |
-| `local` | `local` | Developer machines |
-| `netlify` | `netlify` | Preview builds and scheduled functions |
-| `vercel` | `vercel` | Production runtime |
+| Environment | Primary Usage |
+| --- | --- |
+| `local` | Developer machines |
+| `netlify` | Preview builds and scheduled functions |
+| `vercel` | Production runtime |
 
-The mapping above is mirrored in the root `doppler.yaml` file for CLI tooling and CI workflows.
+Any previous doppler.yaml helper has been removed from the repository; prefer platform-specific environment configuration and the repository validation script.
