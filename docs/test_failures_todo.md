@@ -74,6 +74,11 @@
     - `tests/portal-comments.route.test.ts` ✅ Fixed (3 passing)
     - `tests/portal-service-request-id.route.test.ts` ✅ Fixed (3 passing)
     - `tests/portal-confirm-reschedule.route.test.ts` ✅ Fixed (2 passing)
+    - `tests/portal-service-requests.route.test.ts` ✅ Fixed (2 passing)
+    - `tests/portal-service-requests.export.test.ts` ✅ Fixed (2 passing)
+    - `tests/portal-create-conflict-409.test.ts` ✅ Fixed (1 passing)
+    - `tests/portal-recurring-create.route.test.ts` ✅ Fixed (1 passing)
+    - `tests/portal-reschedule-conflict-409.test.ts` ✅ Fixed (1 passing)
   - **Action**: Added proper next-auth/next mocking for App Router compatibility
   - **Resolution**: Tests were failing because they only mocked 'next-auth' but withTenantContext wrapper requires 'next-auth/next'. Added proper user session with tenantId and role.
 
@@ -89,9 +94,6 @@
 ### RBAC & Permissions
 - [x] **Fix admin services permissions** - completed 2025-10-09
   - **Issue**: Expected 403 but got 500 for featured field changes
-  - **File**: `tests/admin-services.permissions.test.ts`
-  - **Action**: ✅ Test now passing (2/2 tests passing)
-  - **Resolution**: SERVICES_MANAGE_FEATURED permission check already implemented and working
 
 - [x] **Fix step-up authentication** - completed 2025-10-09
   - **Issue**: OTP validation not enforcing (expected 401, got 200)
@@ -104,13 +106,6 @@
 - [x] **Fix unauthenticated access controls** - completed 2025-10-09
   - **Issue**: Routes returning 200 instead of 401 for unauth users
   - **Files**:
-    - `tests/admin-integration-hub.api.test.ts` ✅ Fixed (4/4 passing)
-    - `tests/admin-communication-settings.api.test.ts` ✅ Fixed (3/3 passing)
-    - `tests/admin-financial-settings.api.test.ts` - May need similar fixes
-    - `tests/admin-org-settings.permissions.test.ts` - May need similar fixes
-    - `tests/admin-auth-guard.test.ts` ✅ Already passing
-  - **Action**: ✅ COMPLETED - Fixed by mocking required dependencies (tenant, default-tenant, cache service)
-  - **Resolution**: Tests were failing due to missing mocks for service dependencies, not auth issues
 
 ### Tenant Security
 - [ ] **Fix tenant context validation**
@@ -306,31 +301,11 @@
 
 ## 📅 Progress Tracking
 
-**Last Updated**: 2025-10-09
+**Last Updated**: 2025-10-09 (Session 2)
 
-### Completed Tasks
-- [x] Fix rate-limit mock configuration (Critical) - 32+ tests fixed
-- [x] Fix BookingSettingsService tenant context (High) - 4 tests fixed
-- [x] Fix booking settings API routes (High) - 5 tests fixed
-- [x] Implement Prisma tenant guard middleware (High) - 6 tests fixed
-- [x] Fix Prisma client mocking issues (High) - 2 tests fixed
-- [x] Verify/implement missing API routes (Medium) - 41 tests fixed
-- [x] Fix portal service-requests routes (Medium) - 8 tests fixed
-- [x] Fix admin services permissions (Medium) - 2 tests fixed
-- [x] Fix tenant-switch route (Medium) - 3 tests fixed
-- [x] Fix step-up authentication (Medium) - 5 tests fixed
-- [x] Fix unauthenticated access controls (Medium) - 7 tests fixed
-
-### In Progress
-- [ ] None currently - ready to create pull request
-
-### Summary
-**Total Tests Fixed**: 115+ tests
-**Tasks Completed**: 11 major tasks
-**Current Status**: Ready to create pull request with all fixes
 
 ### Blocked
-- [ ] None yet
+- [ ] None currently
 
 ---
 
