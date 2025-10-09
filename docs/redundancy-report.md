@@ -15,7 +15,7 @@ This report identifies duplicate or overlapping code paths, components, and scri
 | F2 | API: Health endpoints overlap (intended) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts` | Medium | Confirmed | Keep both, but ensure the public endpoint remains minimal and Node runtime is used to avoid Edge size limits. Document scopes. |
 | F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Resolved | Centralized cron job logic in `src/lib/cron/*`; API and Netlify entrypoints now delegate to shared modules. |
 | F4 | UI component duplication: Settings Navigation | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Resolved | Consolidated into canonical `src/components/admin/settings/SettingsNavigation.tsx`; top-level path now re-exports the canonical component. |
-| F5 | UI component duplication: BulkActionsPanel (3x) | `src/components/admin/services/BulkActionsPanel.tsx`, `src/components/dashboard/tables/BulkActionsPanel.tsx`, `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx` | High | Open | Create a shared `src/components/common/bulk/BulkActionsPanel.tsx` with props for context-specific behavior; update imports; delete duplicates. |
+| F5 | UI component duplication: BulkActionsPanel (3x) | `src/components/admin/services/BulkActionsPanel.tsx`, `src/components/dashboard/tables/BulkActionsPanel.tsx`, `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx` | High | Resolved | Implemented shared `src/components/common/bulk/BulkActionsPanel.tsx` and replaced duplicates with thin wrappers that delegate to the shared component. |
 | F6 | Sentry test endpoints (2x) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep only `sentry-check`; have `sentry-example` redirect (307) or remove it. Update the example page to use the canonical route. |
 | F7 | Env/tooling references drift | `package.json` scripts, `docs/env-reference.md`, `doppler.yaml` | Medium | Partially Resolved | Doppler removed from scripts. Align docs to reflect current env strategy; consider removing `doppler.yaml` if no longer used. |
 
@@ -55,14 +55,14 @@ Notes:
 - Action taken: Chosen canonical implementation at `src/components/admin/settings/SettingsNavigation.tsx`. Created a thin re-export at `src/components/admin/SettingsNavigation.tsx` (`export { default } from './settings/SettingsNavigation'`) to preserve import paths. Verified usage within settings shell and overview components use the canonical API. No duplicate implementation remains.
 - Acceptance: Single implementation file; entry-point re-export preserves backwards compatibility; plan to remove the re-export after a deprecation period and update any remaining imports.
 
-### F5. BulkActionsPanel Duplicated (3 implementations)
+### F5. BulkActionsPanel Duplicated (3 implementations) — Resolved
 - Paths:
-  - `src/components/admin/services/BulkActionsPanel.tsx`
-  - `src/components/dashboard/tables/BulkActionsPanel.tsx`
-  - `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx`
+  - `src/components/admin/services/BulkActionsPanel.tsx` (now a thin wrapper)
+  - `src/components/dashboard/tables/BulkActionsPanel.tsx` (now a thin wrapper)
+  - `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx` (now a thin wrapper)
 - Risk: Features drift, inconsistent UX, duplicate bug fixes.
-- Recommendation: Implement `src/components/common/bulk/BulkActionsPanel.tsx` with configurable props and context hooks. Update all callers. Remove duplicate files.
-- Acceptance: One shared component; no regressions in tasks/services/tables flows.
+- Action taken: Implemented `src/components/common/bulk/BulkActionsPanel.tsx` as a configurable shared component supporting three modes: `service` (complex form-based bulk actions), `actions` (list of action buttons), and `tasks` (task-specific quick actions). Replaced the three original implementations with wrappers delegating to the shared component. Preserved original behavior and styles for each context.
+- Acceptance: One shared component in use; wrappers preserve existing APIs; consider removing wrappers and updating imports to the shared path in a future cleanup.
 
 ### F6. Sentry Test Endpoints
 - Paths: `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts`
@@ -103,7 +103,7 @@ Notes:
 ## Appendix: Discovery Artifacts
 - Duplicate components:
   - `**/SettingsNavigation.tsx` → 1 canonical implementation + 1 re-export (re-export points to canonical)
-  - `**/BulkActionsPanel.tsx` → 3 matches
+  - `**/BulkActionsPanel.tsx` → 1 shared implementation + 3 thin wrappers (duplicates replaced)
 - Duplicate routes:
   - Dev login → 2 matches
   - Sentry test → 2 matches
@@ -119,6 +119,6 @@ Notes:
 - [x] F2: Health endpoints alignment — both reuse lib/health; public route uses Node runtime; document scopes
 - [x] F3: Centralize cron job logic — shared modules added; API and Netlify entrypoints delegate to `src/lib/cron/*`; consider adding integration tests for cron entrypoints.
 - [x] F4: Consolidate SettingsNavigation — canonical created under admin/settings; top-level re-export added; consider removing re-export after consumers updated.
-- [ ] F5: Unify BulkActionsPanel — create shared component under components/common/bulk with contextual props; migrate callers; delete duplicates
+- [x] F5: Unify BulkActionsPanel — shared component implemented; wrappers added; callers delegate to shared component.
 - [ ] F6: Canonicalize Sentry test — keep /api/sentry-check; ensure /api/sentry-example redirects; update example page to call canonical; remove duplicate
 - [ ] F7: Env/tooling alignment — update docs/env-reference.md; decide fate of doppler.yaml; ensure package scripts match current approach
