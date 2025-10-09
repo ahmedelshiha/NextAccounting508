@@ -2,6 +2,9 @@ import { vi } from 'vitest'
 import * as React from 'react'
 import fs from 'fs'
 
+// Extend expect with DOM matchers
+import '@testing-library/jest-dom'
+
 // Ensure NEXTAUTH_SECRET for tenant cookie signing in tests
 if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = 'test-secret'
 

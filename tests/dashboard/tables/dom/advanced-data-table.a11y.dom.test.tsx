@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { act } from 'react-dom/test-utils'
 import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import { TranslationContext } from '@/lib/i18n'
-import { renderDOM } from '../../../../test-mocks/dom'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 interface Row { id: number; name: string }
 
@@ -25,10 +24,10 @@ describe('AdvancedDataTable a11y', () => {
       />
     )
 
-    const { container, getByText, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       // pagination summary visible
-      expect(getByText(/Page 1 of 2/i)).toBeTruthy()
+      expect(screen.getByText(/Page 1 of 2/i)).toBeTruthy()
       // navigation landmark present
       const nav = container.querySelector('div[role="navigation"][aria-label="Pagination"]') as HTMLElement
       expect(nav).toBeTruthy()
@@ -38,8 +37,8 @@ describe('AdvancedDataTable a11y', () => {
       expect(prev && next).toBeTruthy()
 
       // buttons operate via click (keyboard activation triggers click in browsers)
-      await act(async () => { next.click() })
-      expect(getByText(/Page 2 of 2/i)).toBeTruthy()
+      fireEvent.click(next)
+      await waitFor(() => expect(screen.getByText(/Page 2 of 2/i)).toBeTruthy())
     } finally {
       unmount()
     }

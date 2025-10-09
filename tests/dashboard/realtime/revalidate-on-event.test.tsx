@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 import React, { useMemo } from 'react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { SWRConfig } from 'swr'
-import { createRoot } from 'react-dom/client'
-import { act } from 'react-dom/test-utils'
 import { RealtimeCtx } from '@/components/dashboard/realtime/RealtimeProvider'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 
@@ -39,33 +38,23 @@ function Probe() {
 
 describe('useUnifiedData revalidates on realtime events', () => {
   it('updates data when an interested event is triggered', async () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-
     let current = 0
     const fetcher = async () => ({ n: current })
     const realtime = makeMockRealtime()
 
-    await act(async () => {
-      root.render(
-        <SWRConfig value={{ fetcher, provider: () => new Map() }}>
-          <RealtimeCtx.Provider value={realtime.value}>
-            <Probe />
-          </RealtimeCtx.Provider>
-        </SWRConfig>
-      )
-    })
+    const { container } = render(
+      <SWRConfig value={{ fetcher, provider: () => new Map() }}>
+        <RealtimeCtx.Provider value={realtime.value}>
+          <Probe />
+        </RealtimeCtx.Provider>
+      </SWRConfig>
+    )
 
-    expect(container.textContent || '').toContain('n:0')
+    await waitFor(() => expect(container.textContent || '').toContain('n:0'))
 
     current = 1
-    await act(async () => {
-      realtime.trigger('tick')
-      // allow SWR microtasks to flush
-      await Promise.resolve()
-    })
+    realtime.trigger('tick')
 
-    expect(container.textContent || '').toContain('n:1')
+    await waitFor(() => expect(container.textContent || '').toContain('n:1'))
   })
 })

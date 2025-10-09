@@ -1,6 +1,5 @@
 import React from 'react'
-import { act } from 'react-dom/test-utils'
-import { renderDOM, fire } from '../../../test-mocks/dom'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 vi.mock('@/lib/api', () => ({
   apiFetch: vi.fn()
@@ -20,11 +19,11 @@ describe('Admin Posts CRUD flows', () => {
       .mockResolvedValueOnce(mockJson({})) // POST /api/posts
       .mockResolvedValueOnce(mockJson({ posts: [{ id: '1', title: 'My Post', slug: 'my-post', content: 'hello world content with enough length to pass validation '.repeat(5), excerpt: '', published: false, featured: false, tags: [], status: 'DRAFT', priority: 'LOW', updatedAt: new Date().toISOString(), version: 1 }] })) // reload
 
-    const { container, unmount, getByText } = renderDOM(<AdminPostsPage />)
+    const { container, unmount } = render(<AdminPostsPage />)
     try {
       // open create modal
-      const createBtn = getByText('Create Post')
-      await act(async () => { fire.click(createBtn) })
+      const createBtn = screen.getByText('Create Post')
+      fireEvent.click(createBtn)
 
       // fill form
       const title = container.querySelector('input[placeholder="Enter post title..."]') as HTMLInputElement
@@ -32,14 +31,12 @@ describe('Admin Posts CRUD flows', () => {
       const content = Array.from(container.querySelectorAll('textarea')).find(t => (t as HTMLTextAreaElement).placeholder?.includes('Write your professional blog content')) as HTMLTextAreaElement
       expect(title && slug && content).toBeTruthy()
 
-      await act(async () => {
-        fire.change(title, 'My Post')
-        fire.change(slug, 'my-post')
-        fire.change(content, 'hello world content with enough length to pass validation '.repeat(5))
-      })
+      fireEvent.change(title, { target: { value: 'My Post' } })
+      fireEvent.change(slug, { target: { value: 'my-post' } })
+      fireEvent.change(content, { target: { value: 'hello world content with enough length to pass validation '.repeat(5) } })
 
       const confirmCreate = Array.from(container.querySelectorAll('button')).find(b => (b.textContent || '').includes('Create Post')) as HTMLButtonElement
-      await act(async () => { confirmCreate.click() })
+      fireEvent.click(confirmCreate)
 
       // assertions
       const calls = (apiFetch as any).mock.calls.map((c: any[]) => c[0])
@@ -56,17 +53,17 @@ describe('Admin Posts CRUD flows', () => {
       .mockResolvedValueOnce(mockJson({})) // PUT
       .mockResolvedValueOnce(mockJson({ posts: [{ ...existing, title: 'Updated' }] })) // reload
 
-    const { container, unmount, getByText } = renderDOM(<AdminPostsPage />)
+    const { container, unmount } = render(<AdminPostsPage />)
     try {
-      const editBtn = getByText('Edit')
-      await act(async () => { fire.click(editBtn) })
+      const editBtn = screen.getByText('Edit')
+      fireEvent.click(editBtn)
 
       const title = Array.from(container.querySelectorAll('input')).find(i => (i as HTMLInputElement).value === 'Original') as HTMLInputElement
       expect(title).toBeTruthy()
-      await act(async () => { fire.change(title, 'Updated') })
+      fireEvent.change(title, { target: { value: 'Updated' } })
 
       const update = Array.from(container.querySelectorAll('button')).find(b => (b.textContent || '').includes('Update Post')) as HTMLButtonElement
-      await act(async () => { update.click() })
+      fireEvent.click(update)
 
       const calls = (apiFetch as any).mock.calls
       const putCall = calls.find(([, init]: any[]) => init && init.method === 'PUT')
@@ -81,19 +78,19 @@ describe('Admin Posts CRUD flows', () => {
       .mockResolvedValueOnce(mockJson({})) // DELETE
       .mockResolvedValueOnce(mockJson({ posts: [] })) // reload
 
-    const { container, unmount, getByText } = renderDOM(<AdminPostsPage />)
+    const { container, unmount } = render(<AdminPostsPage />)
     try {
       // find Delete icon button next to Edit
-      const editBtnEl = getByText('Edit')
+      const editBtnEl = screen.getByText('Edit')
       const btn = editBtnEl.closest('button') as HTMLButtonElement
       const group = btn?.parentElement as HTMLElement
       const deleteBtn = group?.querySelectorAll('button')[1] as HTMLButtonElement
       expect(deleteBtn).toBeTruthy()
 
-      await act(async () => { deleteBtn.click() })
+      fireEvent.click(deleteBtn)
 
       const confirmDelete = Array.from(container.querySelectorAll('button')).find(b => (b.textContent || '').includes('Delete Post')) as HTMLButtonElement
-      await act(async () => { confirmDelete.click() })
+      fireEvent.click(confirmDelete)
 
       const calls = (apiFetch as any).mock.calls
       const delCall = calls.find(([, init]: any[]) => init && init.method === 'DELETE')

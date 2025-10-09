@@ -12,13 +12,15 @@
 - [x] **Fixed portal service-requests routes** - 8 test files, 14+ tests passing
 - [x] **Fixed admin services permissions** - 2 tests passing (PR #498)
 - [x] **Fixed unauthenticated access controls** - 8 tests passing (PR #499)
+- [x] **Fixed AdminProviders named export and props** - providers test passing (2025-10-09)
+- [x] **Fixed AdminContextProvider default state in test** - admin-context test passing (2025-10-09)
 
 ---
 
 ## 🔴 Critical - Component Testing Infrastructure (HIGH PRIORITY)
 
 ### React Testing Library Setup Issues
-- [ ] **Fix component test render configuration**
+- [x] **Fix component test render configuration** - partial ✅ (2025-10-09)
   - **Issue**: Multiple tests failing with "render is not a function" or label accessibility errors
   - **Files Affected**:
     - `tests/admin/layout/AdminFooter.test.tsx` (4 failed)
@@ -29,60 +31,76 @@
       - Form labels not associated with inputs (missing `htmlFor` attributes)
     - `tests/components/org-general-tab.test.tsx` (1 failed)
       - Form labels not associated with inputs
-  - **Action**: 
+  - **Action**:
     1. Import `@testing-library/react` properly in all component tests
     2. Fix form label associations using `htmlFor` attribute
     3. Update assertions from Chai to Jest/Vitest matchers
     4. Add missing "Support" link to AdminFooter component
   - **Expected Outcome**: All React component tests render and assert correctly
-  - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Form labels fixed in FormField. Remaining: test matcher/config updates.
+  - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Form labels fixed in FormField.
+  - Changes Implemented (2025-10-09):
+    - Added `import '@testing-library/jest-dom'` to `vitest.setup.ts` to register DOM matchers (toHaveAttribute, toHaveClass, etc.)
+    - Enhanced `test-mocks/testing-library-react.ts` with basic implementations for `getByRole` and `getByLabelText` to improve component test compatibility in mocked environments.
+    - AdminFooter previously updated to include Support links and proper aria-labels.
+  - Remaining: Update individual tests that still import incorrect test utilities or use Chai assertions — will convert them iteratively.
+  - Remaining targets: templates that inspect source (file-read smoke tests), role/permission mocks, and any integration/e2e tests that require environment setup.
+  - Next batch target: admin layout and sidebar tests, then templates and smoke tests.
+  - Converted/validated on 2025-10-09: Admin layout and sidebar tests updated to use @testing-library/react and jest-dom matchers.
+    - `tests/admin/layout/AdminDashboardLayout.test.tsx` ✅
+    - `tests/admin/layout/AdminSidebar.test.tsx` ✅
+    - `tests/components/kpi-grid.smoke.test.tsx` ✅
+    - `tests/components/services-list.smoke.test.tsx` ✅
+    - `tests/dashboard/nav/sidebar-ia.test.tsx` ✅
+    - `tests/dashboard/nav/sidebar-active.dom.test.tsx` ✅
+    - `tests/dashboard/realtime/revalidate-on-event.test.tsx` ✅
+
+
+  - Tests converted to use `@testing-library/react` on 2025-10-09:
+    - `tests/smoke/admin-posts.template.test.tsx`
+    - `tests/hooks/useUnifiedData.test.tsx`
+    - `tests/components/communication-settings.page.test.tsx`
+    - `tests/components/org-general-tab.test.tsx`
 
 ### Admin Context & Providers
-- [ ] **Fix AdminContextProvider and AdminProviders**
+- [x] **Fix AdminContextProvider and AdminProviders** (2025-10-09)
   - **Issue**: Provider composition and context value errors
   - **Files**:
-    - `tests/admin/providers/admin-context.test.tsx` (1 failed)
-      - Expected text not found: "tenant:null perms:0 loading:0 collapsed:0"
-    - `tests/admin/providers/admin-providers.test.tsx` (1 failed)
-      - RENDER_ERROR: Element type invalid (undefined export)
-  - **Action**: 
-    1. Verify AdminContextProvider exports correct values
-    2. Check AdminProviders composition and component exports
-    3. Ensure all provider components are properly exported
+    - `tests/admin/providers/admin-context.test.tsx` (fixed)
+      - Default context values now verified: "tenant:null perms:0 loading:0 collapsed:0"
+    - `tests/admin/providers/admin-providers.test.tsx` (fixed 2025-10-09)
+      - Export issue resolved by adding named AdminProviders export and default export
+  - **Action Taken**:
+    1. AdminContext test now mocks `next-auth/react` to simulate no session so defaults are asserted.
+    2. Export mismatch in AdminProviders corrected — added named export and default export.
+    3. Updated docs and test files to reflect fixes.
 
 ---
 
 ## 🟠 High Priority - Navigation & Accessibility
 
 ### Navigation Components
-- [ ] **Fix Sidebar navigation and accessibility**
+- [x] **Fix Sidebar navigation and accessibility** - 2025-10-09
   - **Issue**: Multiple sidebar tests failing with null elements and missing attributes
   - **Files**:
-    - `tests/dashboard/nav/sidebar-keyboard.dom.test.tsx` (1 failed)
-      - Navigation landmark and toggle button not found
-    - `tests/dashboard/nav/sidebar-ia.dom.test.tsx` (1 failed)
-      - Nav links not rendering when collapsed
-    - `tests/dashboard/nav/sidebar-active.dom.test.tsx` (1 failed)
-      - aria-current and active classes not applied
-  - **Action**: 
-    1. Ensure Sidebar renders with proper semantic HTML (`<nav>` landmark)
-    2. Add accessible toggle button with ARIA labels
-    3. Implement aria-current="page" for active routes
-    4. Fix collapsed state rendering
-  - **Expected Outcome**: Sidebar passes all a11y and keyboard navigation tests
+    - `tests/dashboard/nav/sidebar-keyboard.dom.test.tsx` (fixed)
+    - `tests/dashboard/nav/sidebar-ia.dom.test.tsx` (fixed)
+    - `tests/dashboard/nav/sidebar-active.dom.test.tsx` (fixed)
+  - **Action Taken**: Ensured Sidebar renders semantic `<nav>` landmark, added accessible toggle button with `aria-label="Toggle sidebar"` and `aria-pressed` state, implemented `aria-current="page"` for active links, and preserved collapsed-state rendering for icon-only views.
+  - **Outcome**: Sidebar passes IA, keyboard and collapsed-state tests.
 
 ### Route Announcer
-- [ ] **Fix AccessibleRouteAnnouncer**
+- [x] **Fix AccessibleRouteAnnouncer** - 2025-10-09
   - **Issue**: Live region not rendering
-  - **File**: `tests/providers/route-announcer.dom.test.tsx` (1 failed)
-  - **Action**: Implement polite live region for route changes
-  - **Expected Outcome**: Screen reader users get route change announcements
+  - **File**: `tests/providers/route-announcer.dom.test.tsx` (fixed)
+  - **Action Taken**: Implemented a polite live region with `role="status"`, `aria-live="polite"`, `aria-atomic="true"` and `data-testid="route-announcer"`. Ensured it updates on route changes using `usePathname` and falls back to document.title when available.
+  - **Outcome**: Screen reader announcements render reliably in tests and client runtime.
 
 ### General Navigation
-- [ ] **Fix Navigation component accessibility**
+- [x] **Fix Navigation component accessibility** - 2025-10-09
   - **Issue**: Missing nav landmark and aria-current attribute
-  - **File**: `tests/ui/navigation.a11y.dom.test.tsx` (1 failed)
-  - **Action**: Add semantic navigation elements and ARIA attributes
+  - **File**: `tests/ui/navigation.a11y.dom.test.tsx` (fixed)
+  - **Action Taken**: Verified header contains `<nav aria-label="Top">`, links include `aria-current="page"` on active routes, mobile toggle exposes `aria-controls="primary-mobile-nav"` and `aria-expanded` state, and logo anchor has descriptive `aria-label`.
+  - **Outcome**: Top navigation accessibility tests pass.
 
 ---
 
@@ -356,6 +374,7 @@
    - Update all component tests to properly import and use RTL
    - Replace Chai assertions with Vitest matchers
    - Fix act() warnings
+   - [ ] Convert remaining `renderDOM` usages in test files to use `@testing-library/react` (`render`, `screen`, `fireEvent`, `waitFor`) — found 38 files under `tests/` (next task)
 
 2. **Fix form accessibility** - Quick wins
    - Add `htmlFor` attributes to all form labels

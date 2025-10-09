@@ -21,6 +21,7 @@ import useRoleSync from '@/hooks/useRoleSync'
 
 interface AdminProvidersProps {
   children: ReactNode
+  session?: any
 }
 
 /**
@@ -43,7 +44,7 @@ function PerformanceWrapper({ children }: { children: ReactNode }) {
  * Main admin providers wrapper that orchestrates all necessary contexts
  * for the admin dashboard functionality.
  */
-export default function AdminProviders({ children }: AdminProvidersProps) {
+export function AdminProviders({ children }: AdminProvidersProps) {
   const fetcher = async (url: string) => {
     const res = await fetch(url)
     if (!res.ok) throw new Error('Request failed')
@@ -101,6 +102,8 @@ export default function AdminProviders({ children }: AdminProvidersProps) {
     </ErrorBoundary>
   )
 }
+
+export default AdminProviders
 
 function RoleSyncMount() {
   try { useRoleSync() } catch {}

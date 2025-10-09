@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react'
+import { render } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { createRoot } from 'react-dom/client'
 import Sidebar from '@/components/dashboard/Sidebar'
 import { AdminContextProvider } from '@/components/admin/providers/AdminContext'
 import { navGroups } from '@/components/dashboard/nav.config'
@@ -16,11 +16,7 @@ vi.mock('next/navigation', () => ({
 
 describe('Sidebar IA', () => {
   it('renders nav links for all groups when collapsed', async () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-
-    root.render(
+    const { container } = render(
       <AdminContextProvider>
         <Sidebar />
       </AdminContextProvider>

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react'
+import { render } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { createRoot } from 'react-dom/client'
 import ServicesList from '@/components/dashboard/lists/ServicesList'
 
 vi.mock('next/link', () => ({ default: (props: any) => <a {...props} /> }))
@@ -14,11 +14,7 @@ vi.mock('@/lib/api', () => ({
 
 describe('ServicesList smoke', () => {
   it('renders title and row', async () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-
-    root.render(<ServicesList />)
+    const { container } = render(<ServicesList />)
 
     // Title falls back to key when i18n not loaded
     expect(container.textContent || '').toMatch(/dashboard\.services\.title|Key Performance|Services/i)

@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { renderDOM } from '../../../../test-mocks/dom'
+import { render } from '@testing-library/react'
 import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import { TranslationContext } from '@/lib/i18n'
+import { screen } from '@testing-library/react'
 
 interface Row { id: number; name: string }
 
@@ -23,17 +24,22 @@ describe('AdvancedDataTable a11y focusability', () => {
         pageSize={2}
       />
     )
-    const { container, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       const sortBtn = container.querySelector('th button') as HTMLButtonElement
-      const prev = container.querySelector('button[aria-label="Previous page"]') as HTMLButtonElement
-      const next = container.querySelector('button[aria-label="Next page"]') as HTMLButtonElement
+      const prev = screen.getByRole('button', { name: /Previous page/i }) as HTMLButtonElement
+      const next = screen.getByRole('button', { name: /Next page/i }) as HTMLButtonElement
       expect(sortBtn).toBeTruthy()
       expect(prev).toBeTruthy()
       expect(next).toBeTruthy()
-      expect(sortBtn.tabIndex).not.toBe(-1)
-      expect(prev.tabIndex).not.toBe(-1)
-      expect(next.tabIndex).not.toBe(-1)
+
+      // ensure elements can receive focus
+      sortBtn?.focus()
+      expect(document.activeElement).toBe(sortBtn)
+      prev.focus()
+      expect(document.activeElement).toBe(prev)
+      next.focus()
+      expect(document.activeElement).toBe(next)
     } finally {
       unmount()
     }

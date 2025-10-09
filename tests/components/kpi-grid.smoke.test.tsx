@@ -1,18 +1,14 @@
 // @vitest-environment jsdom
 import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { createRoot } from 'react-dom/client'
 import ProfessionalKPIGrid from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: () => {} }) }))
 
 describe('ProfessionalKPIGrid smoke', () => {
   it('renders KPI titles and values', () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-
-    root.render(
+    render(
       <ProfessionalKPIGrid
         stats={{
           revenue: { current: 123456, target: 200000, targetProgress: 61.7, trend: 3.2 },
@@ -23,7 +19,7 @@ describe('ProfessionalKPIGrid smoke', () => {
       />
     )
 
-    const text = container.textContent || ''
+    const text = document.body.textContent || ''
     expect(text).toContain('Key Performance Indicators')
     expect(text).toMatch(/Revenue Performance|Booking Performance|Client Metrics|Task Management/)
   })
