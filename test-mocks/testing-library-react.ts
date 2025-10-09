@@ -191,7 +191,10 @@ export const screen = {
   }
 }
 
-export default {
+const testingLibraryMock = {
   render,
   screen,
 }
+
+export { render, screen }
+export default testingLibraryMock
