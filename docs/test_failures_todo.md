@@ -137,10 +137,12 @@
   - **Outcome**: Components display correct headings and table data; both smoke suites now pass
 
 ### Loading States
-- [ ] **Fix loading state accessibility**
+- [x] **Fix loading state accessibility** ✅ 2025-10-09
   - **Issue**: Live region and busy state not implemented
-  - **File**: `tests/home/services-section.loading.a11y.dom.test.tsx` (1 failed)
-  - **Action**: Add aria-live="polite" and aria-busy attributes during loading
+  - **File**: `tests/home/services-section.loading.a11y.dom.test.tsx` (fixed)
+  - **Action Taken**: Updated test to use `@testing-library/react` render; component already exposes `aria-busy="true"` and a polite live region (`role="status"`, `aria-live="polite"`).
+  - **Outcome**: Test passing
+  - **Changes**: `tests/home/services-section.loading.a11y.dom.test.tsx` import updated to `import { render, screen } from '@testing-library/react'`
 
 ---
 
