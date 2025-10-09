@@ -13,6 +13,7 @@
 - [x] **Fixed admin services permissions** - 2 tests passing (PR #498)
 - [x] **Fixed unauthenticated access controls** - 8 tests passing (PR #499)
 - [x] **Fixed AdminProviders named export and props** - providers test passing (2025-10-09)
+- [x] **Fixed AdminContextProvider default state in test** - admin-context test passing (2025-10-09)
 
 ---
 
@@ -39,17 +40,17 @@
   - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Form labels fixed in FormField. Remaining: test matcher/config updates.
 
 ### Admin Context & Providers
-- [ ] **Fix AdminContextProvider and AdminProviders**
+- [x] **Fix AdminContextProvider and AdminProviders** (2025-10-09)
   - **Issue**: Provider composition and context value errors
   - **Files**:
-    - `tests/admin/providers/admin-context.test.tsx` (1 failed)
-      - Expected text not found: "tenant:null perms:0 loading:0 collapsed:0"
+    - `tests/admin/providers/admin-context.test.tsx` (fixed)
+      - Default context values now verified: "tenant:null perms:0 loading:0 collapsed:0"
     - `tests/admin/providers/admin-providers.test.tsx` (fixed 2025-10-09)
-      - Resolved by exporting named AdminProviders and default export
-  - **Action**: 
-    1. Verify AdminContextProvider exports correct values
-    2. Check AdminProviders composition and component exports
-    3. Ensure all provider components are properly exported
+      - Export issue resolved by adding named AdminProviders export and default export
+  - **Action Taken**:
+    1. AdminContext test now mocks `next-auth/react` to simulate no session so defaults are asserted.
+    2. Export mismatch in AdminProviders corrected — added named export and default export.
+    3. Updated docs and test files to reflect fixes.
 
 ---
 
