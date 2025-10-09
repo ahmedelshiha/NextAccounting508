@@ -142,6 +142,33 @@ function SettingsOverviewInner() {
         </SettingsCard>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <SettingsCard className="h-full flex flex-col min-h-[180px]">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold">Pinned Settings</h3>
+            <p className="text-sm text-muted-foreground mt-1">Quick access to frequently used configuration</p>
+
+            <ul className="mt-4 space-y-2">
+              <li className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Organization • Branding</span>
+                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Security • MFA</span>
+                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
+              </li>
+              <li className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">Communication • Notifications</span>
+                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
+              </li>
+            </ul>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button type="button" aria-label="Manage pinned settings">Manage</Button>
+          </div>
+        </SettingsCard>
+      </div>
+
     </SettingsShell>
   )
 }
