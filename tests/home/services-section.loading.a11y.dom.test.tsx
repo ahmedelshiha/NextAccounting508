@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderDOM } from '../../test-mocks/dom'
 import { ServicesSection } from '@/components/home/services-section'
-import { screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 
 // Prevent effect from immediately finishing by mocking apiFetch to a pending promise
 vi.mock('@/lib/api', () => ({ apiFetch: async () => new Promise(() => {}) }))
