@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 async function devLoginAndSetCookie(page, request, baseURL: string, email: string) {
   const base = baseURL || process.env.E2E_BASE_URL || 'http://localhost:3000'
-  const res = await request.post(`${base}/api/dev-login`, { data: { email } })
+  const res = await request.post(`${base}/api/_dev/login`, { data: { email } })
   expect(res.ok()).toBeTruthy()
   const json = await res.json()
   const token = json.token as string

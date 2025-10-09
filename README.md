@@ -201,7 +201,7 @@ Visit http://localhost:3000 to access the web application.
 ## API Overview
 Key groups (see `src/app/api` for handlers):
 - Public content and utilities: `/api/posts`, `/api/pricing`, `/api/currencies`, `/api/tools/*`.
-- Auth & user: `/api/auth/[...nextauth]`, `/api/users/*`, canonical dev-only login: `/api/_dev/login` (legacy `/api/dev-login` redirects to this route).
+- Auth & user: `/api/auth/[...nextauth]`, `/api/users/*`, canonical dev-only login: `/api/_dev/login` (requires DEV_LOGIN_TOKEN and IP gating in non-local environments).
 - Bookings: `/api/bookings/*`, `/api/bookings/[id]/*`, `/api/ws/bookings`.
 - Admin: `/api/admin/*` including analytics, bookings, services, tasks, stats, settings, permissions, team, uploads quarantine.
 - Portal: `/api/portal/*` for client-facing bookings and service requests.

@@ -11,7 +11,7 @@ This report identifies duplicate or overlapping code paths, components, and scri
 ## Findings Overview
 | ID | Area | Files/Paths | Impact | Status | Recommendation |
 |----|------|-------------|--------|--------|----------------|
-| F1 | API: Dev Login duplicated | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Open | Keep a single dev login endpoint (prefer `/_dev/login`) behind strict env/IP gating; remove or redirect the other. |
+| F1 | API: Dev Login duplicated | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Resolved | `/_dev/login` remains canonical with env/IP gating; `/api/dev-login` route removed and callers updated. |
 | F2 | API: Health endpoints overlap (intended) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts` | Medium | Confirmed | Keep both, but ensure the public endpoint remains minimal and Node runtime is used to avoid Edge size limits. Document scopes. |
 | F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Open | Ensure all cron entrypoints delegate to shared job logic in `src/lib/cron/*`; remove any duplicated logic. |
 | F4 | UI component duplication: Settings Navigation | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Open | Consolidate into a single canonical component (recommend the nested `admin/settings` path). Provide a temporary re-export and then remove the duplicate. |
@@ -27,11 +27,12 @@ Notes:
 ## Detailed Findings
 ### F1. Duplicate Dev Login Routes
 - Paths:
-  - `src/app/api/dev-login/route.ts`
-  - `src/app/api/_dev/login/route.ts`
+  - Canonical: `src/app/api/_dev/login/route.ts`
+  - Removed: `src/app/api/dev-login/route.ts` (legacy redirect deleted)
 - Risk: Ambiguous dev-only access and potential accidental exposure.
 - Recommendation: Keep `/_dev/login` gated by environment and IP/secret; remove or 307-redirect `/api/dev-login`.
 - Acceptance: Exactly one dev login route, enforced gating, tests updated.
+- Status: Completed — `/api/dev-login` removed; all tests and docs now reference `/api/_dev/login`.
 
 ### F2. Health Endpoints
 - Paths:
@@ -114,7 +115,7 @@ Notes:
 ---
 
 ## Task Tracker (auto-generated from Findings)
-- [ ] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
+- [x] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
 - [x] F2: Health endpoints alignment — both reuse lib/health; public route uses Node runtime; document scopes
 - [ ] F3: Centralize cron job logic — ensure all entrypoints call src/lib/cron/*; remove duplicates; add tests
 - [ ] F4: Consolidate SettingsNavigation — choose canonical under admin/settings, add temporary re-export, migrate imports, delete duplicate
