@@ -1,13 +1,13 @@
 async function run(){
   try{
     // dev login
-    const loginRes = await fetch('http://localhost:3000/api/dev-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'staff@accountingfirm.com' }) })
+    const loginRes = await fetch('http://localhost:3000/api/_dev/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'staff@accountingfirm.com' }) })
     const loginText = await loginRes.text()
     console.log('login status', loginRes.status)
     console.log(loginText)
     const cookie = loginRes.headers.get('set-cookie')
     console.log('cookie', cookie)
-    if (!cookie) { console.error('No cookie from dev-login'); process.exit(1) }
+    if (!cookie) { console.error('No cookie from /api/_dev/login'); process.exit(1) }
 
     // find a service
     const svcRes = await fetch('http://localhost:3000/api/services')
