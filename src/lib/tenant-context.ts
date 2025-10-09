@@ -45,7 +45,7 @@ if (!AsyncLocalStorageClass) {
 }
 
 export interface TenantContext {
-  tenantId: string
+  tenantId: string | null
   tenantSlug?: string | null
   userId?: string | null
   userName?: string | null

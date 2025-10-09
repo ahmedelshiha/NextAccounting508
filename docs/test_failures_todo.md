@@ -176,29 +176,6 @@
 - [ ] Add SSR-safe checks for browser APIs
 - [ ] Consider using @testing-library/react with proper environment
 
----
-
-### 8. Data Table & Pagination Issues
-**Priority:** P2 - Medium  
-**Files Affected:**
-- Admin bookings API
-- Data table components
-
-**Failed Tests:**
-- ✗ `tests/api/admin-bookings.contract.test.ts` (2 tests)
-- ✗ `tests/admin-services.route.test.ts` - GET list returns undefined count
-- ✗ `tests/e2e/admin-bookings.smoke.test.ts`
-
-**Errors:**
-- X-Total-Count header missing
-- Sort order not working correctly
-- Client email undefined
-
-**Action Items:**
-- [ ] Add X-Total-Count header to admin bookings GET endpoint
-- [ ] Fix sortBy/sortOrder query parameter handling
-- [ ] Ensure pagination metadata is included in responses
-- [ ] Add proper field population (e.g., clientEmail)
 
 ---
 
