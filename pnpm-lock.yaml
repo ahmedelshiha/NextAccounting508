@@ -168,9 +168,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.14
         version: 10.4.21(postcss@8.5.6)
-      doppler:
-        specifier: ^1.0.0
-        version: 1.0.0
       eslint:
         specifier: ^9
         version: 9.36.0(jiti@2.6.0)
@@ -2578,9 +2575,6 @@ packages:
   doctrine@2.1.0:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
-
-  doppler@1.0.0:
-    resolution: {integrity: sha512-fr1qJ1KSNhdTO3GPeq6GE0SxbpLcRR+CnQmd9wS1//6x2zPlNQQlC64eker/rE6b0CDNBkhsvJamR51M4YC6TQ==}
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
@@ -6847,8 +6841,6 @@ snapshots:
   doctrine@2.1.0:
     dependencies:
       esutils: 2.0.3
-
-  doppler@1.0.0: {}
 
   dotenv@16.6.1: {}
 
