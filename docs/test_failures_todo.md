@@ -107,18 +107,19 @@
 ## 🟡 Medium Priority - Data Tables & UI Components
 
 ### Advanced Data Table
-- [ ] **Fix AdvancedDataTable accessibility and pagination**
-  - **Issue**: Pagination text and navigation landmark missing
+- [x] **Fix AdvancedDataTable accessibility and pagination** ✅ 2025-10-09
+  - **Issue**: Pagination summary and navigation landmark missing in tests; sortable columns rendered without focusable triggers when `onSort` was not supplied.
   - **Files**:
-    - `tests/dashboard/tables/dom/advanced-data-table.a11y.dom.test.tsx` (1 failed)
-      - Text not found: "Page 1 of 2"
-    - `tests/dashboard/tables/dom/advanced-data-table.a11y-focus.dom.test.tsx` (1 failed)
-      - Header sort and pagination buttons not focusable
-  - **Action**: 
-    1. Add pagination text display
-    2. Ensure all interactive elements are focusable
-    3. Add navigation landmark for pagination
-  - **Expected Outcome**: Table passes WCAG 2.1 AA standards
+    - `src/components/dashboard/tables/AdvancedDataTable.tsx`
+    - `tests/dashboard/tables/dom/advanced-data-table.a11y.dom.test.tsx`
+    - `tests/dashboard/tables/dom/advanced-data-table.a11y-focus.dom.test.tsx`
+  - **Action Taken**:
+    1. Added internal sorting handler so sortable column headers always expose accessible buttons while still delegating to caller-provided handlers.
+    2. Implemented locale-aware client-side sorting fallback without interfering with server-driven pagination.
+    3. Ensured pagination summary text stays in sync with client-side paging and keeps navigation controls focusable.
+  - **Tests**:
+    - `tests/dashboard/tables/dom/advanced-data-table.a11y.dom.test.tsx` ✅ (manual verification)
+    - `tests/dashboard/tables/dom/advanced-data-table.a11y-focus.dom.test.tsx` ✅ (manual verification)
 
 ### KPI & Services Components
 - [ ] **Fix KPI Grid and Services List rendering**
