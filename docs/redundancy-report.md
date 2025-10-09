@@ -27,8 +27,8 @@ Notes:
 ## Detailed Findings
 ### F1. Duplicate Dev Login Routes
 - Paths:
-  - `src/app/api/dev-login/route.ts`
-  - `src/app/api/_dev/login/route.ts`
+  - Canonical: `src/app/api/_dev/login/route.ts`
+  - Removed: `src/app/api/dev-login/route.ts` (legacy redirect deleted)
 - Risk: Ambiguous dev-only access and potential accidental exposure.
 - Recommendation: Keep `/_dev/login` gated by environment and IP/secret; remove or 307-redirect `/api/dev-login`.
 - Acceptance: Exactly one dev login route, enforced gating, tests updated.
