@@ -342,10 +342,11 @@
   - **Action**: Added explicit no-DB guard to workload route; availability, skills, assignments already returned empty structures
   - **Outcome**: Routes return 200 with empty/default data when DB is not configured
 
-- [ ] **Fix settings services persistence**
+- [x] **Fix settings services persistence** ✅ 2025-10-09
   - **Issue**: Settings not being saved/retrieved correctly
   - **File**: `tests/admin-services-settings.route.test.ts`
-  - **Action**: Debug settings save/load logic
+  - **Action**: Persist settings in legacy flat JSON shape via flattenSettings; GET returns flat data; POST writes flat
+  - **Outcome**: File contains expected top-level fields (e.g., defaultCategory), tests pass
 
 ---
 
