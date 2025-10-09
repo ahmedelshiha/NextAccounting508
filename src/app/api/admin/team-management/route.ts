@@ -25,8 +25,13 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     // Get team members with their assignments and workload
+    // Note: TeamMember doesn't have tenantId, filter through user relation
     const teamMembers = await prisma.teamMember.findMany({
-      where: tenantId ? { tenantId } : {},
+      where: tenantId ? { 
+        user: {
+          tenantId: tenantId
+        }
+      } : {},
       orderBy: { name: 'asc' },
       include: { 
         user: { 
@@ -34,7 +39,8 @@ export const GET = withTenantContext(async (request: Request) => {
             id: true, 
             name: true, 
             email: true, 
-            role: true 
+            role: true,
+            tenantId: true
           } 
         }
       },
@@ -43,7 +49,7 @@ export const GET = withTenantContext(async (request: Request) => {
     const teamManagement = {
       teamMembers: teamMembers.map((member) => ({
         id: member.id,
-        userId: member.userId || member.user?.id || null,
+        userId: member.userId || null,
         name: member.name,
         email: member.email,
         title: member.title || null,
@@ -103,9 +109,9 @@ export const POST = withTenantContext(async (req: Request) => {
         userId,
         specialties,
         isAvailable: true,
-        status: 'active',
-        ...(tenantId && { tenantId })
-      } as any 
+        status: 'active'
+        // Note: TeamMember doesn't have tenantId field directly
+      } 
     })
     
     return NextResponse.json({ teamMember: created }, { status: 201 })
@@ -132,10 +138,25 @@ export const PUT = withTenantContext(async (req: Request) => {
       return NextResponse.json({ error: 'Missing team member ID' }, { status: 400 })
     }
     
+    // First check if the team member exists and belongs to the right tenant
+    const existingMember = await prisma.teamMember.findFirst({
+      where: {
+        id,
+        ...(tenantId && {
+          user: {
+            tenantId: tenantId
+          }
+        })
+      }
+    })
+
+    if (!existingMember) {
+      return NextResponse.json({ error: 'Team member not found' }, { status: 404 })
+    }
+
     const updated = await prisma.teamMember.update({
       where: { 
-        id,
-        ...(tenantId && { tenantId })
+        id
       },
       data: updateData
     })
