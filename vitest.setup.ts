@@ -59,6 +59,14 @@ vi.mock('next-auth/jwt', () => {
   }
 })
 
+// Provide a minimal Prisma namespace for tests importing { Prisma } without generated client
+vi.mock('@prisma/client', () => ({
+  Prisma: {
+    DbNull: null,
+    NullTypes: { DbNull: null },
+  },
+}))
+
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
 vi.mock('@/lib/auth', async () => {
   let actual: any = {}
@@ -187,3 +195,25 @@ if (typeof (globalThis as any).File === 'undefined') {
   }
   ;(globalThis as any).File = NodeFile as any
 }
+
+// Provide a safe default partial mock for rate-limit to ensure applyRateLimit exists in all tests
+vi.mock('@/lib/rate-limit', async () => {
+  try {
+    const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+    return {
+      ...actual,
+      // Stable IP in tests
+      getClientIp: vi.fn(() => '127.0.0.1'),
+      // Async helpers default to allowed; individual tests can override
+      rateLimitAsync: vi.fn(async () => true),
+      applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+    }
+  } catch {
+    return {
+      getClientIp: vi.fn(() => '127.0.0.1'),
+      rateLimit: vi.fn(() => true),
+      rateLimitAsync: vi.fn(async () => true),
+      applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+    }
+  }
+})

@@ -2,7 +2,7 @@
 
 ## 🔴 Critical - Rate Limiting Mock Issues (HIGH PRIORITY)
 
-- [ ] **Fix rate-limit mock configuration**
+- [x] **Fix rate-limit mock configuration** - completed 2025-10-09
   - **Issue**: Multiple tests failing with `No "applyRateLimit" export is defined on the "@/lib/rate-limit" mock`
   - **Files Affected**: 
     - `tests/admin-rbac-comprehensive.test.ts`
@@ -21,18 +21,18 @@
 ## 🟠 High Priority - Database & ORM Issues
 
 ### Booking Settings Service
-- [ ] **Fix BookingSettingsService tenant context**
+- [x] **Fix BookingSettingsService tenant context** - completed 2025-10-09
   - **Issue**: "tenantId is required to create booking settings"
   - **Files**: `tests/booking-settings.service.test.ts` (4 failed tests)
   - **Action**: Ensure tenant context is properly set before service operations
   
-- [ ] **Fix booking settings API routes**
+- [x] **Fix booking settings API routes** - completed 2025-10-09
   - **Issue**: Multiple 500 errors and undefined settings
   - **Files**: `tests/booking-settings.api.test.ts` (5 failed)
   - **Action**: Debug API route handlers for proper settings initialization
 
 ### Prisma Tenant Guard Middleware
-- [ ] **Implement Prisma tenant guard middleware**
+- [x] **Implement Prisma tenant guard middleware** - completed 2025-10-09
   - **Issue**: Middleware not injecting tenantId filters automatically
   - **Files**: `tests/integration/prisma-tenant-guard.test.ts` (6 failed)
   - **Tests Failing**:

@@ -9,6 +9,15 @@ vi.mock('@/lib/prisma', () => ({
   default: {
     serviceRequest: {
       findUnique: vi.fn(async ({ where }: any) => (where?.id === db.req.id ? { ...db.req } : null)),
+      findFirst: vi.fn(async ({ where, include }: any) => {
+        if (where?.id !== db.req.id) return null
+        const base = { ...db.req }
+        const withInclude: any = { ...base }
+        if (include?.client) withInclude.client = { id: 'c1', name: base.clientName || 'Acme', email: base.clientEmail || 'a@x.com' }
+        if (include?.service) withInclude.service = base.service || { id: 's1', name: 'Service', duration: 60, price: 0, category: 'general' }
+        if (include?.assignedTeamMember) withInclude.assignedTeamMember = base.assignedTeamMemberId ? { id: base.assignedTeamMemberId, name: 'TM', email: 'tm@example.com' } : null
+        return withInclude
+      }),
       update: vi.fn(async ({ where, data }: any) => { if (where?.id !== db.req.id) throw new Error('not found'); db.req = { ...db.req, ...data }; return { ...db.req } }),
     },
     booking: {

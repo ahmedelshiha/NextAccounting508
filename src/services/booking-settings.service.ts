@@ -90,13 +90,9 @@ export class BookingSettingsService {
 
   /** Create default settings for a tenant with sensible defaults. */
   async createDefaultSettings(tenantId: string | null): Promise<BookingSettings> {
-    if (!tenantId) {
-      throw new Error('tenantId is required to create booking settings')
-    }
-
     await prisma.$transaction(async (tx) => {
       const settings = await tx.bookingSettings.create({
-        data: { tenant: { connect: { id: tenantId } } },
+        data: (tenantId ? { tenantId } : { tenantId: null }) as any,
       })
 
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
@@ -107,7 +103,7 @@ export class BookingSettingsService {
 
     await this.invalidateByTenant(tenantId)
     const full = await prisma.bookingSettings.findFirst({
-      where: { tenantId },
+      where: { tenantId: tenantId ?? undefined },
       include: {
         steps: { orderBy: { stepOrder: 'asc' } },
         businessHoursConfig: { orderBy: { dayOfWeek: 'asc' } },
@@ -346,7 +342,7 @@ export class BookingSettingsService {
 
       let settings = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (!settings) {
-        settings = await tx.bookingSettings.create({ data: { tenant: { connect: { id: tenantId } } } })
+        settings = await tx.bookingSettings.create({ data: { tenantId } as any })
       }
 
       if (overwriteExisting && selectedSections.includes('settings')) {
