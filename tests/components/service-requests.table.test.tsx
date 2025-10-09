@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-mocks/testing-library-react'
 import ServiceRequestsTable, { type ServiceRequestItem } from '@/components/admin/service-requests/table'
 
 describe('ServiceRequestsTable', () => {
