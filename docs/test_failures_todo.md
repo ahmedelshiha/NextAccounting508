@@ -157,12 +157,15 @@
   - **Notes**: act() warnings originate from state updates during clicks; not test-failing.
 
 ### Form Validation
-- [ ] **Fix form accessibility across settings pages**
+- [x] **Fix form accessibility across settings pages** ✅ 2025-10-09
   - **Issue**: Labels not associated with form controls
-  - **Files**: Multiple settings component tests
-  - **Pattern**: Using `<label>` without `htmlFor` or proper association
-  - **Action**: Add `htmlFor` attribute to all label elements
-  - **Expected Outcome**: All form controls are accessible
+  - **Files**: Communication Email/Chat/Newsletters tabs
+  - **Changes**:
+    - EmailTab: associated “Email signature” and template “Body” labels to textareas via htmlFor/id
+    - ChatTab: associated “Offline message” label to textarea via htmlFor/id
+    - NewslettersTab: associated topic “Description” labels to textareas via htmlFor/id
+  - **Tests**: communication-settings.page.test.tsx and org-general-tab.test.tsx passing
+  - **Outcome**: Label-based queries and a11y improved across settings forms
 
 ---
 
