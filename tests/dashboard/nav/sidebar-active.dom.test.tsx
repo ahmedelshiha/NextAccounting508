@@ -1,6 +1,6 @@
 import React from 'react'
+import { render } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { createRoot } from 'react-dom/client'
 import Sidebar from '@/components/dashboard/Sidebar'
 import { AdminContextProvider } from '@/components/admin/providers/AdminContext'
 
@@ -14,11 +14,7 @@ vi.mock('next/navigation', () => ({
 
 describe('Sidebar active state & navigation IA', () => {
   it('marks current route with aria-current and correct classes', async () => {
-    const container = document.createElement('div')
-    document.body.appendChild(container)
-    const root = createRoot(container)
-
-    root.render(
+    const { container } = render(
       <AdminContextProvider>
         <Sidebar />
       </AdminContextProvider>
