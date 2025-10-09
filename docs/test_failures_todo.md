@@ -205,7 +205,7 @@
 ## 🟣 Low Priority - Business Logic & Routes
 
 ### Missing Routes
-- [ ] **Verify/implement missing API routes**
+- [x] **Verify/implement missing API routes**
   - **Routes Not Found**:
     - `/api/admin/service-requests` (multiple RBAC tests)
     - `/api/portal/bookings` (tenant mismatch test)
