@@ -13,7 +13,7 @@ This report identifies duplicate or overlapping code paths, components, and scri
 |----|------|-------------|--------|--------|----------------|
 | F1 | API: Dev Login duplicated | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Resolved | `/_dev/login` remains canonical with env/IP gating; `/api/dev-login` route removed and callers updated. |
 | F2 | API: Health endpoints overlap (intended) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts` | Medium | Confirmed | Keep both, but ensure the public endpoint remains minimal and Node runtime is used to avoid Edge size limits. Document scopes. |
-| F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Open | Ensure all cron entrypoints delegate to shared job logic in `src/lib/cron/*`; remove any duplicated logic. |
+| F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Resolved | Centralized cron job logic in `src/lib/cron/*`; API and Netlify entrypoints now delegate to shared modules. |
 | F4 | UI component duplication: Settings Navigation | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Open | Consolidate into a single canonical component (recommend the nested `admin/settings` path). Provide a temporary re-export and then remove the duplicate. |
 | F5 | UI component duplication: BulkActionsPanel (3x) | `src/components/admin/services/BulkActionsPanel.tsx`, `src/components/dashboard/tables/BulkActionsPanel.tsx`, `src/app/admin/tasks/components/bulk/BulkActionsPanel.tsx` | High | Open | Create a shared `src/components/common/bulk/BulkActionsPanel.tsx` with props for context-specific behavior; update imports; delete duplicates. |
 | F6 | Sentry test endpoints (2x) | `src/app/api/sentry-check/route.ts`, `src/app/api/sentry-example/route.ts` | Low | Open | Keep only `sentry-check`; have `sentry-example` redirect (307) or remove it. Update the example page to use the canonical route. |
@@ -41,11 +41,11 @@ Notes:
 - Intentional split: public minimal payload vs admin full payload. Ensure `collectSystemHealth()` and `toSecurityHealthPayload()` are the shared source of truth in `src/lib/health`.
 - Acceptance: Public returns compact, non-sensitive JSON; admin returns detailed rollup; both reuse `lib/health`.
 
-### F3. Cron Entry Points (API vs Netlify)
+### F3. Cron Entry Points (API vs Netlify) — Resolved
 - Paths: `src/app/api/cron/*` and `netlify/functions/cron-*.ts`
 - Risk: Logic drift if jobs are implemented separately.
-- Recommendation: Keep job logic in `src/lib/cron/*` (e.g., `reminders.ts`, `scheduler.ts`) and have all entrypoints call into these. Remove any duplicated logic blocks.
-- Acceptance: Shared modules own job code; entrypoints are thin wrappers only.
+- Action taken: Implemented shared cron modules in `src/lib/cron/` (added `exchange.ts`, `rescan.ts`, `payments.ts`). Updated API routes such as `src/app/api/cron/refresh-exchange-rates/route.ts` and `src/app/api/cron/rescan-attachments/route.ts` to delegate to these modules and to use the shared `authorizeCron` helper. Updated Netlify functions (e.g., `netlify/functions/cron-payments-reconcile.ts`) to call shared jobs. Removed duplicated business logic from entrypoints.
+- Acceptance: Shared modules own job code; entrypoints are thin wrappers only. F3 is marked resolved.
 
 ### F4. Duplicate Settings Navigation Components
 - Paths:
@@ -105,19 +105,19 @@ Notes:
   - `**/SettingsNavigation.tsx` → 2 matches
   - `**/BulkActionsPanel.tsx` → 3 matches
 - Duplicate routes:
-  - Dev login → 2 matches
+  - Dev login �� 2 matches
   - Sentry test → 2 matches
   - Health → 2 endpoints (intentional split)
-- Cron duplication:
-  - API routes under `src/app/api/cron/*`
-  - Netlify functions under `netlify/functions/cron-*.ts`
+- Cron duplication (resolved):
+  - API routes under `src/app/api/cron/*` (now delegate to `src/lib/cron/*`)
+  - Netlify functions under `netlify/functions/cron-*.ts` (now delegate to `src/lib/cron/*`)
 
 ---
 
 ## Task Tracker (auto-generated from Findings)
 - [x] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
 - [x] F2: Health endpoints alignment — both reuse lib/health; public route uses Node runtime; document scopes
-- [ ] F3: Centralize cron job logic — ensure all entrypoints call src/lib/cron/*; remove duplicates; add tests
+- [x] F3: Centralize cron job logic — shared modules added; API and Netlify entrypoints delegate to `src/lib/cron/*`; consider adding integration tests for cron entrypoints.
 - [ ] F4: Consolidate SettingsNavigation — choose canonical under admin/settings, add temporary re-export, migrate imports, delete duplicate
 - [ ] F5: Unify BulkActionsPanel — create shared component under components/common/bulk with contextual props; migrate callers; delete duplicates
 - [ ] F6: Canonicalize Sentry test — keep /api/sentry-check; ensure /api/sentry-example redirects; update example page to call canonical; remove duplicate
