@@ -22,6 +22,10 @@ export function TaxCalculator() {
 
   const fmt = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'USD' })
 
+  const idIncome = React.useId()
+  const idDeductions = React.useId()
+  const idRate = React.useId()
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -31,16 +35,16 @@ export function TaxCalculator() {
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div>
-            <label className="text-sm text-gray-700">Annual Income</label>
-            <Input value={income} onChange={(e) => setIncome(e.target.value)} inputMode="decimal" />
+            <label htmlFor={idIncome} className="text-sm text-gray-700">Annual Income</label>
+            <Input id={idIncome} value={income} onChange={(e) => setIncome(e.target.value)} inputMode="decimal" />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Deductions</label>
-            <Input value={deductions} onChange={(e) => setDeductions(e.target.value)} inputMode="decimal" />
+            <label htmlFor={idDeductions} className="text-sm text-gray-700">Deductions</label>
+            <Input id={idDeductions} value={deductions} onChange={(e) => setDeductions(e.target.value)} inputMode="decimal" />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Tax Rate %</label>
-            <Input value={rate} onChange={(e) => setRate(e.target.value)} inputMode="decimal" />
+            <label htmlFor={idRate} className="text-sm text-gray-700">Tax Rate %</label>
+            <Input id={idRate} value={rate} onChange={(e) => setRate(e.target.value)} inputMode="decimal" />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -89,8 +89,9 @@ export default function ProfessionalKPIGrid({ stats }: KPIStatsProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">Key Performance Indicators</h2>
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Period:</label>
+          <label htmlFor="kpi-timeframe" className="text-sm text-gray-600">Period:</label>
           <select
+            id="kpi-timeframe"
             value={selectedTimeframe}
             onChange={(e) => setSelectedTimeframe(e.target.value as 'today' | 'week' | 'month')}
             className="border rounded px-2 py-1 text-sm"

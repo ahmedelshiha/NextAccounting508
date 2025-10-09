@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent } from '@/test-mocks/testing-library-react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'

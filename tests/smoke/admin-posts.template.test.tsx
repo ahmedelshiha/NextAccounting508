@@ -1,6 +1,5 @@
 import { render, screen } from '@/test-mocks/testing-library-react'
 import React from 'react'
-import { render, screen } from '@testing-library/react'
 
 vi.mock('@/lib/api', () => ({
   apiFetch: vi.fn(async () => ({ ok: true, json: async () => ({ posts: [] }) }))

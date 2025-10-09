@@ -191,7 +191,69 @@ export const screen = {
   }
 }
 
-export default {
-  render,
-  screen,
+// Enhance screen with async helpers similar to @testing-library/react
+const asyncScreen: any = { ...screen }
+async function findByText(t: string | RegExp, timeout = 50) {
+  return new Promise((resolve, reject) => {
+    try {
+      const res = (screen as any).getByText(t)
+      resolve(res)
+    } catch (e) {
+      // fallback: wait a tick then try
+      setTimeout(() => {
+        try {
+          const r = (screen as any).getByText(t)
+          resolve(r)
+        } catch (err) {
+          reject(err)
+        }
+      }, 0)
+    }
+  })
 }
+async function findByRole(role: string, options?: any) {
+  return new Promise((resolve, reject) => {
+    try {
+      const res = (screen as any).getByRole(role, options)
+      resolve(res)
+    } catch (e) {
+      setTimeout(() => {
+        try {
+          const r = (screen as any).getByRole(role, options)
+          resolve(r)
+        } catch (err) {
+          reject(err)
+        }
+      }, 0)
+    }
+  })
+}
+async function findByTestId(id: string) {
+  return new Promise((resolve, reject) => {
+    try {
+      const res = (screen as any).getByTestId(id)
+      resolve(res)
+    } catch (e) {
+      setTimeout(() => {
+        try {
+          const r = (screen as any).getByTestId(id)
+          resolve(r)
+        } catch (err) {
+          reject(err)
+        }
+      }, 0)
+    }
+  })
+}
+
+asyncScreen.findByText = findByText
+asyncScreen.findByRole = findByRole
+asyncScreen.findByTestId = findByTestId
+
+const testingLibraryMock = {
+  render,
+  screen: asyncScreen,
+}
+
+export { render, asyncScreen as screen }
+export default testingLibraryMock

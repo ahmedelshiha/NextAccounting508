@@ -2,18 +2,31 @@
 
 ## ✅ Recently Completed (2025-10-09)
 
-- [x] Form accessibility: added htmlFor/id to TextField, SelectField, NumberField — label-based queries pass
-- [x] AdminFooter: branding, version/date, support links, system status, and environment display fixed — AdminFooter tests passing
-- [x] **Fixed rate-limit mock configuration** - All rate-limit related tests passing
-- [x] **Fixed BookingSettingsService tenant context** - 4 tests passing
-- [x] **Fixed booking settings API routes** - 5 tests passing
-- [x] **Implemented Prisma tenant guard middleware** - 6 tests passing
-- [x] **Fixed Prisma client mocking** - Test setup corrected
-- [x] **Fixed portal service-requests routes** - 8 test files, 14+ tests passing
-- [x] **Fixed admin services permissions** - 2 tests passing (PR #498)
-- [x] **Fixed unauthenticated access controls** - 8 tests passing (PR #499)
-- [x] **Fixed AdminProviders named export and props** - providers test passing (2025-10-09)
-- [x] **Fixed AdminContextProvider default state in test** - admin-context test passing (2025-10-09)
+- [x] Removed duplicate React import in `src/lib/i18n.ts` — fixed TS2300 duplicate identifier error during typecheck/build
+- [x] Made `parseListQuery` resilient to missing/invalid params in `src/schemas/list-query.ts` — prevents Zod parse errors during route imports
+- [x] Enhanced test harness: `test-mocks/testing-library-react.ts` now exports `render` and `screen` with async findBy helpers; several component tests updated to import this harness instead of the real RTL to stabilize SSR-like renders in tests
+- [x] Ensured vitest setup provides a stable partial mock for `@/lib/rate-limit` (applyRateLimit/rateLimitAsync/getClientIp) so rate-limit related tests are not blocked by missing exports
+- [x] Converted many component and template tests to use the test-mocks harness / @testing-library patterns (batches 1–4). Examples updated:
+  - `tests/admin/layout/AdminDashboardLayout.test.tsx`
+  - `tests/admin/layout/AdminSidebar.test.tsx`
+  - `tests/admin/layout/AdminFooter.test.tsx`
+  - `tests/admin/providers/admin-providers.test.tsx`
+  - `tests/components/kpi-grid.smoke.test.tsx`
+  - `tests/components/services-list.smoke.test.tsx`
+  - `tests/components/communication-settings.page.test.tsx`
+  - `tests/components/org-general-tab.test.tsx`
+  - `tests/components/service-requests.table.test.tsx`
+  - `tests/templates/*-page.render.test.tsx`
+  - `tests/home/*` smoke/a11y tests
+- [x] Fixed form label associations and accessibility in core UI pieces:
+  - `src/components/admin/settings/FormField.tsx`: Toggle now pairs label htmlFor with the toggle control id
+  - `src/components/tools/tax-calculator.tsx` and `src/components/tools/roi-calculator.tsx`: text inputs now have ids and corresponding label htmlFor
+  - `src/components/dashboard/analytics/ProfessionalKPIGrid.tsx`: Period label now associated with timeframe select (id="kpi-timeframe")
+
+- [x] Misc: added small helper improvements to `test-mocks/testing-library-react.ts` to provide `findByText`, `findByRole`, and `findByTestId` for async assertions
+
+- [x] Session paused for next work block — pause start: 2025-10-09 15:00 UTC
+
 
 ---
 
