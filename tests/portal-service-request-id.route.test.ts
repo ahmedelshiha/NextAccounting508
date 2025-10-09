@@ -1,8 +1,38 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-vi.mock('next-auth', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'client1' } })) }))
+// Mock next-auth/next for App Router
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      name: 'Test Client',
+      role: 'CLIENT',
+      tenantId: 'test-tenant',
+      tenantRole: 'CLIENT'
+    } 
+  })),
+}))
+vi.mock('next-auth', () => ({ 
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      role: 'CLIENT',
+      tenantId: 'test-tenant',
+      tenantRole: 'CLIENT'
+    } 
+  })) 
+}))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
-vi.mock('@/lib/rate-limit', () => ({ getClientIp: () => '127.0.0.1', rateLimit: () => true }))
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return {
+    ...actual,
+    getClientIp: vi.fn(() => '127.0.0.1'),
+    rateLimit: vi.fn(() => true),
+    rateLimitAsync: vi.fn(async () => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+  }
+})
 
 const db: any = {
   sr: { id: 'sr1', clientId: 'client1', status: 'SUBMITTED', description: 'Initial' },
@@ -31,7 +61,7 @@ beforeEach(() => {
 describe('portal service-requests [id] route', () => {
   it('GET returns item for owner', async () => {
     // Mock prisma findUnique to include service/comments shape via GET path? We only validate 200
-    const res: any = await GET({} as any, { params: Promise.resolve({ id: 'sr1' }) })
+    const res: any = await GET(new Request('https://x') as any, { params: Promise.resolve({ id: 'sr1' }) })
     expect(res.status).toBe(200)
   })
 

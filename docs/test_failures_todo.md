@@ -67,13 +67,14 @@
   - **Action**: Check route file locations and naming conventions
 
 ### Portal Routes
-- [ ] **Fix portal service-requests routes**
-  - **Issue**: 404 errors for GET/PATCH/POST operations
+- [x] **Fix portal service-requests routes** - completed 2025-10-09
+  - **Issue**: 404 errors for GET/PATCH/POST operations  
   - **Files**: 
-    - `tests/portal-comments.route.test.ts` (3 failed)
-    - `tests/portal-service-request-id.route.test.ts` (3 failed)
-    - `tests/portal-confirm-reschedule.route.test.ts` (2 failed)
-  - **Action**: Verify route handlers and parameters
+    - `tests/portal-comments.route.test.ts` ✅ Fixed (3 passing)
+    - `tests/portal-service-request-id.route.test.ts` ✅ Fixed (3 passing)
+    - `tests/portal-confirm-reschedule.route.test.ts` ✅ Fixed (2 passing)
+  - **Action**: Added proper next-auth/next mocking for App Router compatibility
+  - **Resolution**: Tests were failing because they only mocked 'next-auth' but withTenantContext wrapper requires 'next-auth/next'. Added proper user session with tenantId and role.
 
 - [ ] **Fix portal bookings cancel flow**
   - **Issue**: 404 errors on cancel operations
