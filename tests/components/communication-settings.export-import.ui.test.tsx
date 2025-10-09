@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach, waitFor, fireEvent, render } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, waitFor, fireEvent } from '@testing-library/react'
 import CommunicationSettingsPage from '@/app/admin/settings/communication/page'
 
 vi.mock('next-auth/next', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN' } })) }))
@@ -42,7 +43,9 @@ describe('Communication Settings Export/Import UI', () => {
     fireEvent.click(getByText('Export') as any)
     await waitFor(() => expect((global.fetch as any).mock.calls.some((c: any[]) => String(c[0]).endsWith('/api/admin/communication-settings/export'))).toBe(true))
 
-    fireEvent.click(getByText('Import') as any)
+    const importButtons = container.querySelectorAll('button')
+    const importButton = Array.from(importButtons).find(btn => btn.textContent === 'Import' && !btn.disabled)
+    fireEvent.click(importButton as any)
     await waitFor(() => getByText('Import Communication Settings'))
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
@@ -50,7 +53,10 @@ describe('Communication Settings Export/Import UI', () => {
     const dt = { files: [file] } as any
     fireEvent.change(input, dt)
 
-    fireEvent.click(getByText('Import') as any)
+    // Find the confirm Import button (should be in the modal/dialog)
+    const confirmButtons = container.querySelectorAll('button')
+    const confirmImport = Array.from(confirmButtons).find(btn => btn.textContent === 'Import' && !btn.hasAttribute('disabled'))
+    fireEvent.click(confirmImport as any)
     await waitFor(() => expect((global.fetch as any).mock.calls.some((c: any[]) => String(c[0]).endsWith('/api/admin/communication-settings/import'))).toBe(true))
   })
 })

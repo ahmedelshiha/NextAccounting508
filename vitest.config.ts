@@ -15,6 +15,7 @@ export default defineConfig({
       ['tests/**/realtime/**/*.test.tsx', 'jsdom'],
       ['tests/admin/integration/**/*.test.tsx', 'jsdom'],
       ['tests/admin/**/*.test.tsx', 'jsdom'],
+      ['tests/components/**/*.test.tsx', 'jsdom'],
       ['**/*.dom.test.tsx', 'jsdom']
     ],
     setupFiles: ['./vitest.setup.ts'],

@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach, waitFor, fireEvent, render } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, waitFor, fireEvent } from '@testing-library/react'
 import AnalyticsSettingsPage from '@/app/admin/settings/analytics/page'
 
 vi.mock('next-auth/next', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN' } })) }))
