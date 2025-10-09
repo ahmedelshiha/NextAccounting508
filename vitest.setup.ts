@@ -59,6 +59,14 @@ vi.mock('next-auth/jwt', () => {
   }
 })
 
+// Provide a minimal Prisma namespace for tests importing { Prisma } without generated client
+vi.mock('@prisma/client', () => ({
+  Prisma: {
+    DbNull: null,
+    NullTypes: { DbNull: null },
+  },
+}))
+
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
 vi.mock('@/lib/auth', async () => {
   let actual: any = {}
