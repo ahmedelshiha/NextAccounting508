@@ -1,5 +1,4 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getServerSession } from 'next-auth'
 
 vi.mock('@/lib/auth', () => ({
   authOptions: {
@@ -7,6 +6,11 @@ vi.mock('@/lib/auth', () => ({
       sessionToken: { name: 'next-auth.session-token' },
     },
   },
+}))
+
+// Mock next-auth/next for withTenantContext
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn()
 }))
 
 const db = {
@@ -51,7 +55,7 @@ beforeAll(async () => {
   POST = mod.POST as unknown as (request: Request) => Promise<Response>
 })
 
-beforeEach(() => {
+beforeEach(async () => {
   db.users.splice(0, db.users.length, {
     id: 'user-1',
     name: 'Tenant Admin',
@@ -65,6 +69,9 @@ beforeEach(() => {
   prismaMock.tenantMembership.findFirst.mockClear()
   prismaMock.tenantMembership.findMany.mockClear()
   prismaMock.user.findUnique.mockClear()
+  
+  // Mock the getServerSession from next-auth/next
+  const { getServerSession } = await import('next-auth/next')
   vi.mocked(getServerSession).mockResolvedValue({
     user: {
       id: 'user-1',

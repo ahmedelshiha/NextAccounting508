@@ -35,10 +35,32 @@ vi.mock('next-auth', () => ({
 
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 
+vi.mock('@/lib/audit', () => ({
+  logAudit: vi.fn(async () => {})
+}))
+
 vi.mock('@/lib/mfa', () => ({
   getUserMfaSecret: vi.fn(async () => 'S'),
   verifyTotp: vi.fn((s: string, code: string) => s === 'S' && code === '000111'),
   consumeBackupCode: vi.fn(async () => false)
+}))
+
+// Mock the security settings service to enable step-up MFA
+vi.mock('@/services/security-settings.service', () => ({
+  default: {
+    get: vi.fn(async () => ({
+      passwordPolicy: {},
+      sessionSecurity: {},
+      twoFactor: {},
+      network: {},
+      dataProtection: {},
+      compliance: {},
+      superAdmin: {
+        stepUpMfa: true,  // Enable step-up MFA
+        logAdminAccess: true
+      }
+    }))
+  }
 }))
 
 describe('SUPER_ADMIN step-up routes', () => {

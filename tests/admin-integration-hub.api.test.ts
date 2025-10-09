@@ -25,6 +25,12 @@ const prismaMock = {
 
 vi.mock('@/lib/prisma', () => ({ default: prismaMock }))
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => ({ ok: true })) }))
+vi.mock('@/lib/tenant', () => ({ 
+  tenantFilter: vi.fn((tenantId: string | null) => ({ tenantId }))
+}))
+vi.mock('@/lib/default-tenant', () => ({
+  resolveTenantId: vi.fn(async (tenantId: string | null) => tenantId || 'default-tenant')
+}))
 
 beforeEach(() => { db.rows.length = 0 })
 
