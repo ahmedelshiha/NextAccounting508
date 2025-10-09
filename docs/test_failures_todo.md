@@ -336,10 +336,11 @@
   - **Action**: Updated test to mock applyRateLimit (async) instead of legacy rateLimit; returns 429 when exceeded
   - **Outcome**: Test passes
 
-- [ ] **Fix team management fallback routes**
+- [x] **Fix team management fallback routes** ✅ 2025-10-09
   - **Issue**: 500 errors when DB not configured
   - **File**: `tests/team-management.routes.test.ts` (3 failed)
-  - **Action**: Implement proper fallback responses
+  - **Action**: Added explicit no-DB guard to workload route; availability, skills, assignments already returned empty structures
+  - **Outcome**: Routes return 200 with empty/default data when DB is not configured
 
 - [ ] **Fix settings services persistence**
   - **Issue**: Settings not being saved/retrieved correctly
