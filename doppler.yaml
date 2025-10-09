@@ -1,4 +1,10 @@
 # Doppler configuration mapping
+# Optional Doppler helper (NOT required)
+# This file is a convenience mapping for teams that still use Doppler CLI.
+# The repository build and dev scripts do NOT depend on Doppler. Prefer
+# configuring environment variables via the hosting platform or local
+# .env.local and use `pnpm run check:env` to validate them.
+
 # Project: next-accounting
 
 project: next-accounting
@@ -10,11 +16,12 @@ environments:
   vercel:
     config: vercel
 
-# Local setup:
+# Local setup (optional Doppler):
 #   npm install -g doppler
 #   doppler login
 #   doppler setup --project next-accounting --config local
-# Usage:
+# Usage (optional):
 #   doppler run --config local -- pnpm run dev
 #   doppler run --config netlify -- pnpm run build
 #   doppler run --config vercel -- pnpm run build
+# If your team does not use Doppler, you can safely ignore or remove this file.
