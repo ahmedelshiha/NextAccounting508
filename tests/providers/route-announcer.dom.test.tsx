@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-mocks/testing-library-react'
 import AccessibleRouteAnnouncer from '@/components/providers/RouteAnnouncer'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/services' }))
