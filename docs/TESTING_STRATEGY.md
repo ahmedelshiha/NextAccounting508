@@ -23,7 +23,7 @@
 ## End-to-End Tests
 - Playwright specs in `e2e/tests/` covering admin settings, services, booking flows, portal uploads, and preview authentication.
 - Configured via `e2e/playwright.config.ts` with base URL from `E2E_BASE_URL`.
-- Credentials provided by `ADMIN_AUTH_TOKEN` or `/api/dev-login` when permitted.
+- Credentials provided by `ADMIN_AUTH_TOKEN` or `/api/_dev/login` when permitted.
 - Execute `pnpm test:e2e`; ensure environment replicates production as closely as possible.
 
 ## Mocking & Fixtures
