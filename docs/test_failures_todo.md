@@ -195,10 +195,9 @@
 - [ ] **Verify/implement missing API routes**
   - **Routes Not Found**:
     - `/api/admin/service-requests` (multiple RBAC tests)
-    - `/api/admin/analytics` (RBAC test)
     - `/api/portal/bookings` (tenant mismatch test)
   - **Action**: Check route file locations and naming conventions
-  - **Note**: `/api/admin/bookings` and `/api/admin/team-management` exist; admin bookings GET updated to return flat payload and set `X-Total-Count` header to satisfy contract tests
+  - **Note**: `/api/admin/bookings` and `/api/admin/team-management` exist; admin bookings GET sets `X-Total-Count` and returns flat payload. `/api/admin/analytics` exists; updated to return flat payload from cache wrapper.
 
 ### Portal Bookings
 - [ ] **Fix portal bookings cancel flow**

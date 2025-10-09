@@ -51,8 +51,10 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Use cached handler for data retrieval
-    return getCachedAnalytics(request as any)
+    // Use cached handler for data retrieval and unwrap payload
+    const cached = await getCachedAnalytics(request as any)
+    const payload = await cached.json() as { data: AnalyticsData }
+    return NextResponse.json(payload.data)
   } catch (error) {
     console.error('Error fetching analytics data:', error)
     return NextResponse.json({
