@@ -10,9 +10,30 @@ vi.mock('@/lib/prisma', () => ({
   }
 }))
 
-vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(async () => ({ user: { id: 'u1', role: 'SUPER_ADMIN' } }))
+// Mock next-auth/next for App Router
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'u1', 
+      name: 'Super Admin',
+      role: 'SUPER_ADMIN',
+      tenantId: 'test-tenant',
+      tenantRole: 'SUPER_ADMIN'
+    } 
+  }))
 }))
+
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'u1', 
+      role: 'SUPER_ADMIN',
+      tenantId: 'test-tenant'
+    } 
+  }))
+}))
+
+vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 
 vi.mock('@/lib/mfa', () => ({
   getUserMfaSecret: vi.fn(async () => 'S'),

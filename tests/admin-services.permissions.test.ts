@@ -1,5 +1,37 @@
+import { vi, describe, it, expect } from 'vitest'
+
+// Mock next-auth/next for App Router
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'admin1',
+      name: 'Test Admin',
+      role: 'ADMIN',
+      tenantId: 'test-tenant',
+      tenantRole: 'ADMIN'
+    } 
+  })),
+}))
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'admin1',
+      role: 'ADMIN',
+      tenantId: 'test-tenant'
+    } 
+  })),
+}))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
-vi.mock('@/lib/rate-limit', () => ({ getClientIp: () => '127.0.0.1', rateLimit: () => true }))
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return {
+    ...actual,
+    getClientIp: vi.fn(() => '127.0.0.1'),
+    rateLimit: vi.fn(() => true),
+    rateLimitAsync: vi.fn(async () => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+  }
+})
 vi.mock('@/lib/tenant', () => ({ getTenantFromRequest: () => null }))
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => {}) }))
 
@@ -18,9 +50,34 @@ vi.mock('@/lib/prisma', () => ({
 
 describe('Permissions for featured field', () => {
   it('POST blocks setting featured without SERVICES_MANAGE_FEATURED', async () => {
-    vi.doMock('@/lib/permissions', () => ({ hasPermission: () => false, PERMISSIONS: { SERVICES_MANAGE_FEATURED: 'services.manage.featured', SERVICES_CREATE: 'services.create', SERVICES_VIEW: 'services.view' } }))
+    // Mock permissions to allow creation but not featured management
+    vi.doMock('@/lib/permissions', () => ({ 
+      hasPermission: (role: any, p: string) => {
+        // Allow SERVICES_CREATE but not SERVICES_MANAGE_FEATURED
+        return p === 'services.create'
+      },
+      PERMISSIONS: { 
+        SERVICES_MANAGE_FEATURED: 'services.manage.featured', 
+        SERVICES_CREATE: 'services.create', 
+        SERVICES_VIEW: 'services.view' 
+      } 
+    }))
     const { POST }: any = await import('@/app/api/admin/services/route')
-    const req = new Request('https://x', { method: 'POST', body: JSON.stringify({ name: 'A', slug: 'a', description: 'd', features: [], featured: true, active: true }) })
+    const req = new Request('https://x', { 
+      method: 'POST', 
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ 
+        name: 'Test Service', 
+        slug: 'test-service', 
+        description: 'Test Description', 
+        features: [], 
+        featured: true, 
+        active: true,
+        price: 100,
+        duration: 60,
+        shortDesc: 'Short description'
+      }) 
+    })
     const res: any = await POST(req)
     expect(res.status).toBe(403)
   })
