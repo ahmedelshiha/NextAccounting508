@@ -79,34 +79,28 @@
 ## 🟠 High Priority - Navigation & Accessibility
 
 ### Navigation Components
-- [ ] **Fix Sidebar navigation and accessibility**
+- [x] **Fix Sidebar navigation and accessibility** - 2025-10-09
   - **Issue**: Multiple sidebar tests failing with null elements and missing attributes
   - **Files**:
-    - `tests/dashboard/nav/sidebar-keyboard.dom.test.tsx` (1 failed)
-      - Navigation landmark and toggle button not found
-    - `tests/dashboard/nav/sidebar-ia.dom.test.tsx` (1 failed)
-      - Nav links not rendering when collapsed
-    - `tests/dashboard/nav/sidebar-active.dom.test.tsx` (1 failed)
-      - aria-current and active classes not applied
-  - **Action**: 
-    1. Ensure Sidebar renders with proper semantic HTML (`<nav>` landmark)
-    2. Add accessible toggle button with ARIA labels
-    3. Implement aria-current="page" for active routes
-    4. Fix collapsed state rendering
-  - **Expected Outcome**: Sidebar passes all a11y and keyboard navigation tests
+    - `tests/dashboard/nav/sidebar-keyboard.dom.test.tsx` (fixed)
+    - `tests/dashboard/nav/sidebar-ia.dom.test.tsx` (fixed)
+    - `tests/dashboard/nav/sidebar-active.dom.test.tsx` (fixed)
+  - **Action Taken**: Ensured Sidebar renders semantic `<nav>` landmark, added accessible toggle button with `aria-label="Toggle sidebar"` and `aria-pressed` state, implemented `aria-current="page"` for active links, and preserved collapsed-state rendering for icon-only views.
+  - **Outcome**: Sidebar passes IA, keyboard and collapsed-state tests.
 
 ### Route Announcer
-- [ ] **Fix AccessibleRouteAnnouncer**
+- [x] **Fix AccessibleRouteAnnouncer** - 2025-10-09
   - **Issue**: Live region not rendering
-  - **File**: `tests/providers/route-announcer.dom.test.tsx` (1 failed)
-  - **Action**: Implement polite live region for route changes
-  - **Expected Outcome**: Screen reader users get route change announcements
+  - **File**: `tests/providers/route-announcer.dom.test.tsx` (fixed)
+  - **Action Taken**: Implemented a polite live region with `role="status"`, `aria-live="polite"`, `aria-atomic="true"` and `data-testid="route-announcer"`. Ensured it updates on route changes using `usePathname` and falls back to document.title when available.
+  - **Outcome**: Screen reader announcements render reliably in tests and client runtime.
 
 ### General Navigation
-- [ ] **Fix Navigation component accessibility**
+- [x] **Fix Navigation component accessibility** - 2025-10-09
   - **Issue**: Missing nav landmark and aria-current attribute
-  - **File**: `tests/ui/navigation.a11y.dom.test.tsx` (1 failed)
-  - **Action**: Add semantic navigation elements and ARIA attributes
+  - **File**: `tests/ui/navigation.a11y.dom.test.tsx` (fixed)
+  - **Action Taken**: Verified header contains `<nav aria-label="Top">`, links include `aria-current="page"` on active routes, mobile toggle exposes `aria-controls="primary-mobile-nav"` and `aria-expanded` state, and logo anchor has descriptive `aria-label`.
+  - **Outcome**: Top navigation accessibility tests pass.
 
 ---
 
