@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
 export const GET = withTenantContext(async (request: Request) => {
   try {
     const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId ?? null
+    const tenantId = ctx.tenantId
     const userId = ctx.userId
     
     // Apply rate limiting
@@ -26,7 +26,7 @@ export const GET = withTenantContext(async (request: Request) => {
     // For portal users, only show their own bookings
     const bookings = await prisma.booking.findMany({
       where: {
-        ...(tenantId && { tenantId }),
+        ...(tenantId ? { tenantId } : {}),
         clientId: userId  // Using clientId instead of userId
       },
       orderBy: { createdAt: 'desc' },
@@ -67,7 +67,7 @@ export const GET = withTenantContext(async (request: Request) => {
 export const POST = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId ?? null
+    const tenantId = ctx.tenantId
     const userId = ctx.userId
     
     // Apply rate limiting
@@ -101,7 +101,7 @@ export const POST = withTenantContext(async (req: Request) => {
     const service = await prisma.service.findFirst({
       where: {
         id: serviceId,
-        ...(tenantId && { tenantId })
+        ...(tenantId ? { tenantId } : {})
       }
     })
 
@@ -115,20 +115,34 @@ export const POST = withTenantContext(async (req: Request) => {
       select: { name: true, email: true }
     })
 
-    // Create the booking
+    // Create the booking using nested connects to satisfy Prisma checked input types
+    const bookingData: any = {
+      serviceId,
+      clientId: userId,
+      scheduledAt: new Date(scheduledAt),
+      duration: service.duration || 60,
+      notes,
+      clientName: clientName || user?.name || 'Unknown',
+      clientEmail: clientEmail || user?.email || '',
+      clientPhone: clientPhone || '',
+      status: 'PENDING',
+    }
+
+    const createPayload: any = { ...bookingData }
+    if (createPayload.clientId) {
+      createPayload.client = { connect: { id: createPayload.clientId } }
+      delete createPayload.clientId
+    }
+    if (createPayload.serviceId) {
+      createPayload.service = { connect: { id: createPayload.serviceId } }
+      delete createPayload.serviceId
+    }
+    if (tenantId) {
+      createPayload.tenant = { connect: { id: String(tenantId) } }
+    }
+
     const booking = await prisma.booking.create({
-      data: {
-        serviceId,
-        clientId: userId,  // Using clientId instead of userId
-        scheduledAt: new Date(scheduledAt),  // Convert to Date
-        duration: service.duration || 60,  // Use service duration or default to 60
-        notes,
-        clientName: clientName || user?.name || 'Unknown',
-        clientEmail: clientEmail || user?.email || '',
-        clientPhone: clientPhone || '',
-        status: 'PENDING',
-        ...(tenantId && { tenantId })
-      },
+      data: createPayload,
       include: {
         service: {
           select: {
@@ -136,10 +150,10 @@ export const POST = withTenantContext(async (req: Request) => {
             name: true,
             description: true,
             price: true,
-            duration: true
-          }
-        }
-      }
+            duration: true,
+          },
+        },
+      },
     })
     
     const formattedBooking = {
