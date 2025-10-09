@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { collectSystemHealth, toSecurityHealthPayload } from '@/lib/health'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 /**
  * Public security-focused health endpoint.
