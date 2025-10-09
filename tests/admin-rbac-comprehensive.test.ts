@@ -15,10 +15,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
 // Mock dependencies
-vi.mock('@/lib/rate-limit', () => ({
-  getClientIp: () => '127.0.0.1',
-  rateLimit: () => true
-}))
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return {
+    ...actual,
+    getClientIp: vi.fn(() => '127.0.0.1'),
+    rateLimit: vi.fn(() => true),
+    rateLimitAsync: vi.fn(async () => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+  }
+})
 
 vi.mock('@/lib/tenant', () => ({
   getTenantFromRequest: () => null,
