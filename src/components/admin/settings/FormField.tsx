@@ -19,10 +19,12 @@ export function TextField({
   labelHidden = false,
   containerClassName,
 }: FieldBaseProps & { value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean }){
+  const inputId = React.useId()
   return (
     <div className={clsx('mb-4', containerClassName)}>
-      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
+      <label htmlFor={inputId} className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <input
+        id={inputId}
         value={value}
         onChange={(e)=>onChange(e.target.value)}
         placeholder={placeholder}
@@ -44,10 +46,12 @@ export function SelectField({
   labelHidden = false,
   containerClassName,
 }: FieldBaseProps & { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; disabled?: boolean }){
+  const selectId = React.useId()
   return (
     <div className={clsx('mb-4', containerClassName)}>
-      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
+      <label htmlFor={selectId} className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <select
+        id={selectId}
         value={value}
         onChange={(e)=>onChange(e.target.value)}
         disabled={disabled}
@@ -98,10 +102,12 @@ export function NumberField({
   containerClassName,
   step,
 }: FieldBaseProps & { value: number; onChange: (v: number) => void; min?: number; max?: number; disabled?: boolean; step?: number }){
+  const numberId = React.useId()
   return (
     <div className={clsx('mb-4', containerClassName)}>
-      <label className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
+      <label htmlFor={numberId} className={clsx('block text-sm font-medium text-gray-700 mb-1', labelHidden && 'sr-only')}>{label}</label>
       <input
+        id={numberId}
         type="number"
         value={String(value)}
         onChange={(e)=>onChange(Number(e.target.value))}
