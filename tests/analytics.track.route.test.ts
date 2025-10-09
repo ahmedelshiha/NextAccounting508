@@ -5,13 +5,13 @@ vi.mock('@/lib/rate-limit', async () => {
   return {
     ...actual,
     getClientIp: vi.fn(() => '1.2.3.4'),
-    rateLimit: vi.fn(() => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 100, remaining: 99, resetAt: Date.now() + 60_000 })),
   }
 })
 
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => ({ ok: true, stored: false })) }))
 
-import { rateLimit } from '@/lib/rate-limit'
+import { applyRateLimit } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 
 // Helper to build a Request
@@ -55,7 +55,7 @@ describe('api/analytics/track route', () => {
   })
 
   it('applies rate limiting and returns 429 when exceeded', async () => {
-    vi.mocked(rateLimit).mockReturnValueOnce(false)
+    vi.mocked(applyRateLimit).mockResolvedValueOnce({ allowed: false, backend: 'memory', count: 101, limit: 100, remaining: 0, resetAt: Date.now() + 1_000 })
     const { POST }: any = await import('@/app/api/analytics/track/route')
     const res: Response = await POST(buildRequest({ event: 'e' }) as any)
     expect(res.status).toBe(429)
