@@ -1,10 +1,24 @@
 import { NextRequest } from 'next/server'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({ default: {} }))
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => ({ ok: true })) }))
+vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 
+// Mock both next-auth and next-auth/next for compatibility
 vi.mock('next-auth', () => ({
   getServerSession: vi.fn(async () => ({ user: { id: 'u1', role: 'SUPER_ADMIN', tenantId: 't1' } }))
+}))
+
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'u1', 
+      role: 'SUPER_ADMIN', 
+      tenantId: 't1',
+      tenantRole: 'SUPER_ADMIN'
+    } 
+  }))
 }))
 
 vi.mock('@/lib/mfa', () => ({
@@ -16,7 +30,18 @@ vi.mock('@/lib/mfa', () => ({
 vi.mock('@/services/security-settings.service', () => ({
   default: {
     upsert: vi.fn(async (_tenantId: string, data: any) => ({ tenantId: 't1', ...data })),
-    get: vi.fn(async (_tenantId: string) => ({ passwordPolicy: { minLength: 12 } }))
+    get: vi.fn(async (_tenantId: string) => ({ 
+      passwordPolicy: { minLength: 12 },
+      sessionSecurity: {},
+      twoFactor: {},
+      network: {},
+      dataProtection: {},
+      compliance: {},
+      superAdmin: {
+        stepUpMfa: true,  // Enable step-up MFA
+        logAdminAccess: true
+      }
+    }))
   }
 }))
 

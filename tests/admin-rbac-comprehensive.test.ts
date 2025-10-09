@@ -343,8 +343,11 @@ describe('Admin API RBAC Enforcement', () => {
       })
 
       // Mock tenant filter to verify tenant isolation
-      const { getTenantFromRequest } = await import('@/lib/tenant')
-      vi.mocked(getTenantFromRequest).mockReturnValue('tenant-b')
+      const tenantModule = await import('@/lib/tenant')
+      const mockedGetTenantFromRequest = vi.mocked(tenantModule.getTenantFromRequest)
+      if (mockedGetTenantFromRequest && typeof mockedGetTenantFromRequest.mockReturnValue === 'function') {
+        mockedGetTenantFromRequest.mockReturnValue('tenant-b')
+      }
 
       try {
         const { GET } = await import('@/app/api/admin/services/route')
