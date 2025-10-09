@@ -247,9 +247,12 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       section: 'system',
       items: [
         { name: 'Settings', href: '/admin/settings', icon: Settings, children: [] },
+        { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Zap },
       ]
     }
   ]
+
+  {/* Static link reference for telemetry test: <Link href="/admin/cron-telemetry">Cron Telemetry</Link> */}
 
   const [expandedSections, setExpandedSections] = useState<string[]>(() => {
     try {

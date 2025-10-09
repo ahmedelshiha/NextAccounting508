@@ -74,8 +74,9 @@ export default function NewslettersTab({ value, onChange, disabled }: Newsletter
                   <TextField label="Label" value={topic.label} onChange={(v) => updateTopic(index, { label: v })} disabled={disabled} />
                 </div>
                 <div className="mt-3">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                  <label htmlFor={`topic-description-${index}`} className="block text-xs font-medium text-gray-600 mb-1">Description</label>
                   <textarea
+                    id={`topic-description-${index}`}
                     value={topic.description ?? ''}
                     onChange={(event) => updateTopic(index, { description: event.target.value })}
                     className="w-full min-h-[100px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
