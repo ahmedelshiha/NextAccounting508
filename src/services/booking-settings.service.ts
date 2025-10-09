@@ -92,7 +92,7 @@ export class BookingSettingsService {
   async createDefaultSettings(tenantId: string | null): Promise<BookingSettings> {
     await prisma.$transaction(async (tx) => {
       const settings = await tx.bookingSettings.create({
-        data: tenantId ? { tenant: { connect: { id: tenantId } } } : ({ tenantId: null } as any),
+        data: (tenantId ? { tenantId } : { tenantId: null }) as any,
       })
 
       await tx.bookingStepConfig.createMany({ data: this.defaultSteps(settings.id) })
