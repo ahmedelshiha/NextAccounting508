@@ -18,7 +18,7 @@ This document describes the environment variable strategy used by the project an
 | `LOG_ADMIN_ACCESS` | Logs allow/deny decisions for admin access. | Useful during rollout and auditing. |
 | `AUTH_DISABLED` | Bypasses authentication for preview/testing flows. | Leave empty except during controlled previews. |
 | `PREVIEW_ADMIN_EMAIL` | Email used by preview auth bypass. | Pair with `PREVIEW_ADMIN_PASSWORD` when `AUTH_DISABLED` is set. |
-| `PREVIEW_ADMIN_PASSWORD` | Password used by preview auth bypass. | Store only in Doppler preview configs. |
+| `PREVIEW_ADMIN_PASSWORD` | Password used by preview auth bypass. | Store securely in your chosen secrets manager or platform environment configuration. |
 
 ### Database & Backend
 
@@ -66,20 +66,9 @@ pnpm run check:env
 
 - Platform deployments (Netlify, Vercel): configure environment variables through the platform's dashboard or provider APIs. This is the recommended production approach.
 
-Optional: Doppler
+Secrets manager (optional)
 
-If you prefer Doppler for secret management it remains supported as an optional workflow. Only use it if your team has an established Doppler project and tokens. Example commands (optional):
-
-```bash
-# install Doppler CLI (optional)
-npm install -g doppler
-# authenticate
-doppler login
-# run dev with Doppler (optional)
-doppler run --config local -- pnpm run dev
-```
-
-Do not assume Doppler is present in CI; CI pipelines should rely on platform-provided secrets or repository-provided CI mappings.
+If you use a secrets manager (Doppler, Vault, AWS Secrets Manager, etc.), document the team's preferred tool and access process in your internal runbook. CI should be configured to provide secrets via platform environment variables or CI secret storage. Do not assume any particular manager is present in CI builds.
 
 ## Validation
 
@@ -100,21 +89,20 @@ pnpm run check:env
 ## Reference Example
 
 ```diff
-chore(env): integrate Doppler for unified environment management
+chore(env): document environment management and platform configuration
 
-- Added Doppler CLI as dev dependency.
-- Wrapped scripts in doppler-run commands.
-- Added doppler.yaml and env-reference.md.
+- Documented platform-centric workflows and local `.env.local` usage.
+- Added env-reference.md and validation script guidance.
 ```
 
 ## Additional Reference
 
-Doppler project: **`next-accounting`**
+Preferred mapping of environments to deployment contexts:
 
-| Environment | Doppler Config | Primary Usage |
-| --- | --- | --- |
-| `local` | `local` | Developer machines |
-| `netlify` | `netlify` | Preview builds and scheduled functions |
-| `vercel` | `vercel` | Production runtime |
+| Environment | Primary Usage |
+| --- | --- |
+| `local` | Developer machines |
+| `netlify` | Preview builds and scheduled functions |
+| `vercel` | Production runtime |
 
 Any previous doppler.yaml helper has been removed from the repository; prefer platform-specific environment configuration and the repository validation script.
