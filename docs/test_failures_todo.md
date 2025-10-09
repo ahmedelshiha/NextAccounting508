@@ -26,7 +26,7 @@
   - **Files**: `tests/booking-settings.service.test.ts` (4 failed tests)
   - **Action**: Ensure tenant context is properly set before service operations
   
-- [ ] **Fix booking settings API routes**
+- [x] **Fix booking settings API routes** - completed 2025-10-09
   - **Issue**: Multiple 500 errors and undefined settings
   - **Files**: `tests/booking-settings.api.test.ts` (5 failed)
   - **Action**: Debug API route handlers for proper settings initialization
