@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { validateBulkAction } from '@/lib/services/utils'
+import { ServiceBulkActionType, BulkAction as ServiceBulkAction } from '@/types/services'
 
 type ActionButton = {
   key: string
@@ -15,7 +16,6 @@ type ActionButton = {
   variant?: 'default' | 'destructive'
 }
 
-export type ServiceBulkAction = { action: string; serviceIds: string[]; value?: any }
 
 export default function SharedBulkActionsPanel(props: {
   selectedIds: Array<string | number>
@@ -45,7 +45,7 @@ export default function SharedBulkActionsPanel(props: {
     onDelete,
   } = props
 
-  const [selectedAction, setSelectedAction] = useState<string>('')
+  const [selectedAction, setSelectedAction] = useState<ServiceBulkActionType | ''>('')
   const [categoryValue, setCategoryValue] = useState('')
   const [priceValue, setPriceValue] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
@@ -126,7 +126,8 @@ export default function SharedBulkActionsPanel(props: {
 
     try {
       setIsProcessing(true)
-      await onBulkAction({ action: selectedAction, serviceIds: selectedIds as string[], value: actionValue })
+      const actionKey = selectedAction as ServiceBulkActionType
+      await onBulkAction({ action: actionKey, serviceIds: selectedIds as string[], value: actionValue })
       setSelectedAction('')
       setCategoryValue('')
       setPriceValue('')
@@ -147,7 +148,7 @@ export default function SharedBulkActionsPanel(props: {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div className="space-y-2">
             <Label>Bulk Action</Label>
-            <select value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)} className="w-full rounded border px-3 py-2 text-sm">
+            <select value={selectedAction} onChange={(e) => setSelectedAction((e.target as HTMLSelectElement).value as ServiceBulkActionType | '')} className="w-full rounded border px-3 py-2 text-sm">
               <option value="">Choose action</option>
               <option value="activate">Activate</option>
               <option value="deactivate">Deactivate</option>
