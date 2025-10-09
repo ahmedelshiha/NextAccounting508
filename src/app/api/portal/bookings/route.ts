@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
 export const GET = withTenantContext(async (request: Request) => {
   try {
     const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId ?? null
+    const tenantId = ctx.tenantId
     const userId = ctx.userId
     
     // Apply rate limiting
@@ -26,7 +26,7 @@ export const GET = withTenantContext(async (request: Request) => {
     // For portal users, only show their own bookings
     const bookings = await prisma.booking.findMany({
       where: {
-        ...(tenantId && { tenantId }),
+        ...(tenantId ? { tenantId } : {}),
         clientId: userId  // Using clientId instead of userId
       },
       orderBy: { createdAt: 'desc' },
@@ -67,7 +67,7 @@ export const GET = withTenantContext(async (request: Request) => {
 export const POST = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId ?? null
+    const tenantId = ctx.tenantId
     const userId = ctx.userId
     
     // Apply rate limiting
@@ -101,7 +101,7 @@ export const POST = withTenantContext(async (req: Request) => {
     const service = await prisma.service.findFirst({
       where: {
         id: serviceId,
-        ...(tenantId && { tenantId })
+        ...(tenantId ? { tenantId } : {})
       }
     })
 
@@ -127,7 +127,7 @@ export const POST = withTenantContext(async (req: Request) => {
         clientEmail: clientEmail || user?.email || '',
         clientPhone: clientPhone || '',
         status: 'PENDING',
-        ...(tenantId && { tenantId })
+        ...(tenantId ? { tenantId } : {})
       },
       include: {
         service: {
