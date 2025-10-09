@@ -115,7 +115,7 @@ Notes:
 ---
 
 ## Task Tracker (auto-generated from Findings)
-- [ ] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
+- [x] F1: Deduplicate dev login endpoints — keep /api/_dev/login (strict gating), remove or 307-redirect /api/dev-login; update tests & docs
 - [x] F2: Health endpoints alignment — both reuse lib/health; public route uses Node runtime; document scopes
 - [ ] F3: Centralize cron job logic — ensure all entrypoints call src/lib/cron/*; remove duplicates; add tests
 - [ ] F4: Consolidate SettingsNavigation — choose canonical under admin/settings, add temporary re-export, migrate imports, delete duplicate
