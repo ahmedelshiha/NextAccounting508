@@ -200,7 +200,7 @@ export function enforceTenantGuard(params: any): void {
       : null
   if (requestUrl && requestUrl.includes('/api/auth')) return
 
-  const config = tenantModelConfigs?.get(model)
+  const config: TenantModelConfig | null = tenantModelConfigs?.get(model) ?? { field: 'tenantId', optional: true }
   if (!config) return
 
   const context = tenantContext.getContextOrNull()
