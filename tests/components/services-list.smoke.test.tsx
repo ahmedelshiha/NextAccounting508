@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import ServicesList from '@/components/dashboard/lists/ServicesList'
 
@@ -14,10 +14,10 @@ vi.mock('@/lib/api', () => ({
 
 describe('ServicesList smoke', () => {
   it('renders title and row', async () => {
-    const { container } = render(<ServicesList />)
+    render(<ServicesList />)
 
     // Title falls back to key when i18n not loaded
-    expect(container.textContent || '').toMatch(/dashboard\.services\.title|Key Performance|Services/i)
-    expect(container.textContent || '').toContain('Tax Prep')
+    await screen.findByText(/dashboard\.services\.title|Key Performance|Services/i)
+    await screen.findByText('Tax Prep')
   })
 })
