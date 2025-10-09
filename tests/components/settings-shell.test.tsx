@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react'
+import { render, fireEvent } from '@/test-mocks/testing-library-react'
 import { describe, it, expect } from 'vitest'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 
