@@ -117,4 +117,4 @@ Doppler project: **`next-accounting`**
 | `netlify` | `netlify` | Preview builds and scheduled functions |
 | `vercel` | `vercel` | Production runtime |
 
-The mapping above is mirrored in the root `doppler.yaml` file for CLI tooling and CI workflows.
+Any previous doppler.yaml helper has been removed from the repository; prefer platform-specific environment configuration and the repository validation script.
