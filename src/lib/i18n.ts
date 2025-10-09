@@ -1,5 +1,8 @@
 import { createContext, useContext } from 'react'
 
+import { createContext, useContext } from 'react'
+import enTranslations from '@/app/locales/en.json'
+
 // Supported locales
 export const locales = ['en', 'ar', 'hi'] as const
 export type Locale = typeof locales[number]
@@ -36,7 +39,7 @@ export const TranslationContext = createContext<{
   setLocale: (locale: Locale) => void
 }>({
   locale: defaultLocale,
-  translations: {},
+  translations: enTranslations,
   setLocale: () => {}
 })
 

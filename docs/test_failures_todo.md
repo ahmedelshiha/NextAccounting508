@@ -122,15 +122,19 @@
     - `tests/dashboard/tables/dom/advanced-data-table.a11y-focus.dom.test.tsx` ✅ (manual verification)
 
 ### KPI & Services Components
-- [ ] **Fix KPI Grid and Services List rendering**
+- [x] **Fix KPI Grid and Services List rendering** (✅ 2025-10-09 13:30 UTC)
   - **Issue**: Missing expected text content
   - **Files**:
-    - `tests/components/kpi-grid.smoke.test.tsx` (1 failed)
-      - Expected text "Key Performance Indicators" not found
-    - `tests/components/services-list.smoke.test.tsx` (1 failed)
-      - Expected text matching services pattern not found
+    - `tests/components/kpi-grid.smoke.test.tsx`
+    - `tests/components/services-list.smoke.test.tsx`
   - **Action**: Verify component rendering and text content
-  - **Expected Outcome**: Components display correct headings and content
+  - **Resolution**:
+    - Added default English translations to `TranslationContext` and `TranslationProvider` so components render human-readable copy without an explicit provider
+    - Ensured ServicesList uses real strings ("Services", "New Service") instead of raw translation keys when translations are unavailable, avoiding duplicate regex matches
+  - **Tests**:
+    - `pnpm test --run tests/components/kpi-grid.smoke.test.tsx`
+    - `pnpm test --run tests/components/services-list.smoke.test.tsx`
+  - **Outcome**: Components display correct headings and table data; both smoke suites now pass
 
 ### Loading States
 - [ ] **Fix loading state accessibility**

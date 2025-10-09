@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ReactNode } from 'react'
 import { Locale, defaultLocale, loadTranslations, detectLocale, TranslationContext } from '@/lib/i18n'
+import enTranslations from '@/app/locales/en.json'
 
 interface TranslationProviderProps {
   children: ReactNode
@@ -10,7 +11,7 @@ interface TranslationProviderProps {
 
 export function TranslationProvider({ children, initialLocale }: TranslationProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale)
-  const [translations, setTranslations] = useState<Record<string, string>>({})
+  const [translations, setTranslations] = useState<Record<string, string>>(() => enTranslations)
   const [isLoading, setIsLoading] = useState(true)
 
   // Load translations when locale changes
