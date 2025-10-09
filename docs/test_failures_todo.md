@@ -44,12 +44,13 @@
   - **Action**: Implement or fix Prisma middleware extension
 
 ### Prisma Mock Issues
-- [ ] **Fix Prisma client mocking**
-  - **Issue**: `prisma.serviceRequest.findFirst is not a function`
+- [x] **Fix Prisma client mocking** - completed 2025-10-09
+  - **Issue**: Test setup issues with tenant context, permissions, and service settings mocking
   - **Files**: 
-    - `tests/admin-service-requests.convert-to-booking.settings.test.ts`
-    - `tests/admin-bookings-migrate.test.ts`
-  - **Action**: Properly mock Prisma client methods in test setup
+    - `tests/admin-service-requests.convert-to-booking.settings.test.ts` ✅ Fixed
+    - `tests/admin-bookings-migrate.test.ts` ✅ Already working
+  - **Action**: ✅ COMPLETED - Fixed test setup for tenant context, permissions, and service settings mocking
+  - **Resolution**: The issue was not actually Prisma mocking but improper test setup for tenant context and permissions
 
 ---
 
