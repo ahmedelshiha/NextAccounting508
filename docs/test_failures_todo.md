@@ -2,6 +2,7 @@
 
 ## ✅ Recently Completed (2025-10-09)
 
+- [x] Form accessibility: added htmlFor/id to TextField, SelectField, NumberField — label-based queries pass
 - [x] AdminFooter: branding, version/date, support links, system status, and environment display fixed — AdminFooter tests passing
 - [x] **Fixed rate-limit mock configuration** - All rate-limit related tests passing
 - [x] **Fixed BookingSettingsService tenant context** - 4 tests passing
