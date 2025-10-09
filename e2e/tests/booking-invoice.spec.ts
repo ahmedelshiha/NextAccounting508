@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 // This test expects an admin auth token to be available via process.env.ADMIN_AUTH_TOKEN
-// or an accessible dev-login route at /api/dev-login that returns { token }
+// or an accessible dev-login route at /api/_dev/login that returns { token }
 
 test.describe('Booking → Invoice → Payment (E2E)', () => {
   test('create booking, invoice and mark as paid', async ({ request, baseURL }) => {
@@ -10,7 +10,7 @@ test.describe('Booking → Invoice → Payment (E2E)', () => {
     // Obtain admin auth token
     let token = process.env.ADMIN_AUTH_TOKEN
     if (!token) {
-      const devLogin = await request.post(`${baseUrl}/api/dev-login`, { data: { email: 'staff@accountingfirm.com' } })
+      const devLogin = await request.post(`${baseUrl}/api/_dev/login`, { data: { email: 'staff@accountingfirm.com' } })
       expect(devLogin.ok()).toBeTruthy()
       const json = await devLogin.json()
       token = json.token
