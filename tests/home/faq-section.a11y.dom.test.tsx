@@ -10,7 +10,7 @@ const sample = [
 
 describe('FAQSection a11y and keyboard', () => {
   it('renders heading and items with accessible regions and controls', () => {
-    const { container, unmount, getByText } = renderDOM(<FAQSection items={sample} />)
+    const { container, unmount } = render(<FAQSection items={sample} />)
     try {
       // Heading present
       const heading = container.querySelector('#faq-section-heading')
@@ -29,7 +29,7 @@ describe('FAQSection a11y and keyboard', () => {
 
       // Toggling by click updates aria-expanded
       expect(btn0.getAttribute('aria-expanded')).toBe('false')
-      fire.click(btn0)
+      fireEvent.click(btn0)
       expect(btn0.getAttribute('aria-expanded')).toBe('true')
       // Content now visible
       expect(region0.classList.contains('hidden')).toBe(false)
@@ -39,7 +39,7 @@ describe('FAQSection a11y and keyboard', () => {
   })
 
   it('supports arrow key navigation and Home/End keys', () => {
-    const { container, unmount } = renderDOM(<FAQSection items={sample} />)
+    const { container, unmount } = render(<FAQSection items={sample} />)
     try {
       const btn0 = container.querySelector('#faq-0-content-header') as HTMLElement
       const btn1 = container.querySelector('#faq-1-content-header') as HTMLElement
@@ -51,35 +51,29 @@ describe('FAQSection a11y and keyboard', () => {
 
       // Focus btn0 then ArrowDown -> btn1
       btn0.focus()
-      const down = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true })
-      btn0.dispatchEvent(down)
+      fireEvent.keyDown(btn0, { key: 'ArrowDown' })
       expect(document.activeElement).toBe(btn1)
 
       // ArrowDown from last wraps to first
       btn1.focus()
-      const down2 = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true })
-      btn1.dispatchEvent(down2)
+      fireEvent.keyDown(btn1, { key: 'ArrowDown' })
       expect(document.activeElement).toBe(btn2)
 
-      const down3 = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true })
-      btn2.dispatchEvent(down3)
+      fireEvent.keyDown(btn2, { key: 'ArrowDown' })
       expect(document.activeElement).toBe(btn0)
 
       // Home moves to first
       btn2.focus()
-      const home = new KeyboardEvent('keydown', { key: 'Home', bubbles: true })
-      btn2.dispatchEvent(home)
+      fireEvent.keyDown(btn2, { key: 'Home' })
       expect(document.activeElement).toBe(btn0)
 
       // End moves to last
-      const end = new KeyboardEvent('keydown', { key: 'End', bubbles: true })
-      btn0.dispatchEvent(end)
+      fireEvent.keyDown(btn0, { key: 'End' })
       expect(document.activeElement).toBe(btn2)
 
       // Enter toggles
       expect(btn2.getAttribute('aria-expanded')).toBe('false')
-      const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
-      btn2.dispatchEvent(enter)
+      fireEvent.keyDown(btn2, { key: 'Enter' })
       expect(btn2.getAttribute('aria-expanded')).toBe('true')
     } finally {
       unmount()
