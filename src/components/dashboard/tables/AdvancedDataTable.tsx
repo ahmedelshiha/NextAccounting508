@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import DataTable from "@/components/dashboard/DataTable"
 import type { Column, RowAction } from "@/types/dashboard"
 
@@ -51,6 +51,63 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
   } = props
 
   const [uncontrolledPage, setUncontrolledPage] = useState(1)
+  const [internalSortKey, setInternalSortKey] = useState<string | undefined>(() => (onSort ? undefined : sortBy))
+  const [internalSortOrder, setInternalSortOrder] = useState<"asc" | "desc">(sortOrder ?? "asc")
+
+  useEffect(() => {
+    if (onSort) return
+    setInternalSortKey(sortBy)
+  }, [sortBy, onSort])
+
+  useEffect(() => {
+    if (onSort || !sortOrder) return
+    setInternalSortOrder(sortOrder)
+  }, [sortOrder, onSort])
+
+  const collator = useMemo(() => new Intl.Collator(undefined, { numeric: true, sensitivity: "base" }), [])
+
+  const handleSort = (key: string) => {
+    if (onSort) {
+      onSort(key)
+      return
+    }
+
+    setInternalSortKey((currentKey) => {
+      if (currentKey === key) {
+        setInternalSortOrder((currentOrder) => (currentOrder === "asc" ? "desc" : "asc"))
+        return currentKey
+      }
+
+      setInternalSortOrder("asc")
+      return key
+    })
+  }
+
+  const sortedRows = useMemo(() => {
+    if (onSort || total != null || !internalSortKey) {
+      return rows
+    }
+
+    const direction = internalSortOrder === "desc" ? -1 : 1
+
+    return [...rows].sort((a, b) => {
+      const valueA = (a as Record<string, unknown>)[internalSortKey]
+      const valueB = (b as Record<string, unknown>)[internalSortKey]
+
+      if (valueA == null && valueB == null) return 0
+      if (valueA == null) return -1 * direction
+      if (valueB == null) return 1 * direction
+
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return (valueA - valueB) * direction
+      }
+
+      return collator.compare(String(valueA), String(valueB)) * direction
+    })
+  }, [rows, onSort, total, internalSortKey, internalSortOrder, collator])
+
+  const effectiveRows = total != null ? rows : sortedRows
+
   const page = controlledPage ?? uncontrolledPage
   const pageCount = useMemo(() => Math.max(1, Math.ceil((total ?? rows.length) / pageSize)), [total, rows.length, pageSize])
 
@@ -58,8 +115,11 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
   const pagedRows = useMemo(() => {
     if (total != null) return rows // server paginated
     const start = (page - 1) * pageSize
-    return rows.slice(start, start + pageSize)
-  }, [rows, page, pageSize, total])
+    return effectiveRows.slice(start, start + pageSize)
+  }, [effectiveRows, page, pageSize, total, rows])
+
+  const effectiveSortBy = onSort ? sortBy : internalSortKey
+  const effectiveSortOrder = onSort ? (sortOrder ?? "asc") : internalSortOrder
 
   const changePage = (next: number) => {
     const n = Math.min(Math.max(1, next), pageCount)
@@ -75,9 +135,9 @@ export default function AdvancedDataTable<T extends { id?: string | number }>(pr
           columns={columns}
           rows={pagedRows}
           loading={loading}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          onSort={onSort}
+          sortBy={effectiveSortBy}
+          sortOrder={effectiveSortOrder}
+          onSort={handleSort}
           actions={actions}
           selectable={selectable}
           onSelectionChange={onSelectionChange}
