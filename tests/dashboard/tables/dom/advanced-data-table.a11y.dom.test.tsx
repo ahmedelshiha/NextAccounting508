@@ -25,10 +25,10 @@ describe('AdvancedDataTable a11y', () => {
       />
     )
 
-    const { container, getByText, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       // pagination summary visible
-      expect(getByText(/Page 1 of 2/i)).toBeTruthy()
+      expect(screen.getByText(/Page 1 of 2/i)).toBeTruthy()
       // navigation landmark present
       const nav = container.querySelector('div[role="navigation"][aria-label="Pagination"]') as HTMLElement
       expect(nav).toBeTruthy()
