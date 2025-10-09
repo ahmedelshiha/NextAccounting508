@@ -31,13 +31,18 @@
       - Form labels not associated with inputs (missing `htmlFor` attributes)
     - `tests/components/org-general-tab.test.tsx` (1 failed)
       - Form labels not associated with inputs
-  - **Action**: 
+  - **Action**:
     1. Import `@testing-library/react` properly in all component tests
     2. Fix form label associations using `htmlFor` attribute
     3. Update assertions from Chai to Jest/Vitest matchers
     4. Add missing "Support" link to AdminFooter component
   - **Expected Outcome**: All React component tests render and assert correctly
-  - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Form labels fixed in FormField. Remaining: test matcher/config updates.
+  - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Form labels fixed in FormField.
+  - Changes Implemented (2025-10-09):
+    - Added `import '@testing-library/jest-dom'` to `vitest.setup.ts` to register DOM matchers (toHaveAttribute, toHaveClass, etc.)
+    - Enhanced `test-mocks/testing-library-react.ts` with basic implementations for `getByRole` and `getByLabelText` to improve component test compatibility in mocked environments.
+    - AdminFooter previously updated to include Support links and proper aria-labels.
+  - Remaining: Update individual tests that still import incorrect test utilities or use Chai assertions — will convert them iteratively.
 
 ### Admin Context & Providers
 - [x] **Fix AdminContextProvider and AdminProviders** (2025-10-09)
