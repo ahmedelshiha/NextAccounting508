@@ -374,6 +374,7 @@
    - Update all component tests to properly import and use RTL
    - Replace Chai assertions with Vitest matchers
    - Fix act() warnings
+   - [ ] Convert remaining `renderDOM` usages in test files to use `@testing-library/react` (`render`, `screen`, `fireEvent`, `waitFor`) — found 38 files under `tests/` (next task)
 
 2. **Fix form accessibility** - Quick wins
    - Add `htmlFor` attributes to all form labels
