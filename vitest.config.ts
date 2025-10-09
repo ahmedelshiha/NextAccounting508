@@ -4,9 +4,8 @@ import path from 'path'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@testing-library/react': path.resolve(__dirname, 'test-mocks/testing-library-react.ts')
-    },
+      '@': path.resolve(__dirname, 'src')
+    }
   },
   test: {
     globals: true,
