@@ -342,7 +342,7 @@ export class BookingSettingsService {
 
       let settings = await tx.bookingSettings.findFirst({ where: { tenantId } })
       if (!settings) {
-        settings = await tx.bookingSettings.create({ data: { tenant: { connect: { id: tenantId } } } })
+        settings = await tx.bookingSettings.create({ data: { tenantId } as any })
       }
 
       if (overwriteExisting && selectedSections.includes('settings')) {
