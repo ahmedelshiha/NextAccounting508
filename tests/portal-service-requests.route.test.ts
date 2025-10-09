@@ -1,10 +1,37 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock next-auth/next for App Router
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      name: 'Test Client',
+      role: 'CLIENT',
+      tenantId: 'test-tenant',
+      tenantRole: 'CLIENT'
+    } 
+  })),
+}))
 vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(async () => ({ user: { id: 'client1' } })),
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      role: 'CLIENT',
+      tenantId: 'test-tenant'
+    } 
+  })),
 }))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
-vi.mock('@/lib/rate-limit', () => ({ getClientIp: () => '127.0.0.1', rateLimit: () => true }))
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return {
+    ...actual,
+    getClientIp: vi.fn(() => '127.0.0.1'),
+    rateLimit: vi.fn(() => true),
+    rateLimitAsync: vi.fn(async () => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+  }
+})
 
 const db: any = {
   items: [
@@ -21,7 +48,7 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn(async ({ where, skip = 0, take = 10 }: any) => db.items.filter((x: any) => x.clientId === where.clientId).slice(skip, skip + take)),
       count: vi.fn(async ({ where }: any) => db.items.filter((x: any) => x.clientId === where.clientId).length),
       create: vi.fn(async ({ data }: any) => {
-        const created = { id: `sr${db.items.length + 1}`, ...data }
+        const created = { id: `sr${db.items.length + 1}`, clientId: 'client1', createdAt: new Date().toISOString(), ...data }
         db.items.unshift(created)
         return created
       }),
