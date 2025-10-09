@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { renderDOM } from '../../../../test-mocks/dom'
+import { render } from '@testing-library/react'
 import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import { TranslationContext } from '@/lib/i18n'
 import { screen } from '@testing-library/react'
@@ -24,7 +24,7 @@ describe('AdvancedDataTable a11y focusability', () => {
         pageSize={2}
       />
     )
-    const { container, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       const sortBtn = container.querySelector('th button') as HTMLButtonElement
       const prev = screen.getByRole('button', { name: /Previous page/i }) as HTMLButtonElement
