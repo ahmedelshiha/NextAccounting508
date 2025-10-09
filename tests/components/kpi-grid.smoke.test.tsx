@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-mocks/testing-library-react'
 import { describe, it, expect, vi } from 'vitest'
 import ProfessionalKPIGrid from '@/components/dashboard/analytics/ProfessionalKPIGrid'
 
