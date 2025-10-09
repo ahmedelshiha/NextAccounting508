@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import React from 'react'
-import { renderDOM } from '@/test-mocks/dom'
+import { render } from '@testing-library/react'
 import { OptimizedFooter } from '@/components/ui/optimized-footer'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
 import { validateImportWithSchema } from '@/lib/settings/export'
