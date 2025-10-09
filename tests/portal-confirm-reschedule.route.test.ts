@@ -1,6 +1,26 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
-vi.mock('next-auth', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'client1' } })) }))
+// Mock next-auth/next for App Router
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      name: 'Test Client',
+      role: 'CLIENT',
+      tenantId: 'test-tenant',
+      tenantRole: 'CLIENT'
+    } 
+  })),
+}))
+vi.mock('next-auth', () => ({ 
+  getServerSession: vi.fn(async () => ({ 
+    user: { 
+      id: 'client1',
+      role: 'CLIENT',
+      tenantId: 'test-tenant'
+    } 
+  })) 
+}))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 vi.mock('@/lib/rate-limit', () => ({ getClientIp: () => '127.0.0.1', rateLimit: () => true }))
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => {}) }))
