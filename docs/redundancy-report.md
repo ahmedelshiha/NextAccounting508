@@ -70,10 +70,10 @@ Notes:
 - Action taken: `src/app/api/sentry-example/route.ts` now performs a 307 redirect to `/api/sentry-check`. `src/app/sentry-example-page/page.tsx` invokes `/api/sentry-check` as the canonical endpoint for server tests. No duplicate test endpoints remain in production.
 - Acceptance: Single canonical test endpoint in production; `sentry-example` serves as a compatibility redirect.
 
-### F7. Environment & Tooling Alignment
-- Current: Doppler removed from `package.json` scripts; dev uses `pnpm run next-dev`.
-- Recommendation: Update `docs/env-reference.md` to reflect current approach. Remove `doppler.yaml` if Doppler is no longer part of the workflow, or clearly scope it to local-only.
-- Acceptance: Scripts/docs consistent; CI passes env checks via `scripts/check-required-envs.sh`.
+### F7. Environment & Tooling Alignment — Resolved
+- Current: Repository build scripts use platform envs and local `.env.local` for development; `pnpm run next-dev` is the dev entrypoint.
+- Action taken: Updated `docs/env-reference.md` to reflect platform-centric env management and local `.env.local` usage. Removed `doppler.yaml` from the repository.
+- Acceptance: Scripts/docs consistent; CI runs `scripts/check-required-envs.sh` for validation; no remaining Doppler references in repository.
 
 ---
 
