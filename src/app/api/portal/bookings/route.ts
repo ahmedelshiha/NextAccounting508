@@ -27,7 +27,7 @@ export const GET = withTenantContext(async (request: Request) => {
     const bookings = await prisma.booking.findMany({
       where: {
         ...(tenantId && { tenantId }),
-        userId: userId
+        clientId: userId  // Using clientId instead of userId
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -49,9 +49,8 @@ export const GET = withTenantContext(async (request: Request) => {
       serviceName: booking.service?.name || 'Unknown Service',
       serviceDescription: booking.service?.description || '',
       price: booking.service?.price || 0,
-      duration: booking.service?.duration || 0,
-      date: booking.date,
-      time: booking.time,
+      duration: booking.service?.duration || booking.duration || 0,
+      scheduledAt: booking.scheduledAt,  // Using scheduledAt instead of date/time
       status: booking.status,
       notes: booking.notes,
       createdAt: booking.createdAt,
@@ -85,14 +84,16 @@ export const POST = withTenantContext(async (req: Request) => {
     const body = await req.json().catch(() => ({}))
     const { 
       serviceId, 
-      date, 
-      time,
-      notes = ''
+      scheduledAt,  // Using scheduledAt instead of date/time
+      notes = '',
+      clientName,
+      clientEmail,
+      clientPhone
     } = body || {}
     
-    if (!serviceId || !date || !time) {
+    if (!serviceId || !scheduledAt) {
       return NextResponse.json({ 
-        error: 'Missing required fields: serviceId, date, and time are required' 
+        error: 'Missing required fields: serviceId and scheduledAt are required' 
       }, { status: 400 })
     }
 
@@ -108,17 +109,26 @@ export const POST = withTenantContext(async (req: Request) => {
       return NextResponse.json({ error: 'Service not found' }, { status: 404 })
     }
 
+    // Get user's name and email for booking
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    })
+
     // Create the booking
     const booking = await prisma.booking.create({
       data: {
         serviceId,
-        userId,
-        date,
-        time,
+        clientId: userId,  // Using clientId instead of userId
+        scheduledAt: new Date(scheduledAt),  // Convert to Date
+        duration: service.duration || 60,  // Use service duration or default to 60
         notes,
+        clientName: clientName || user?.name || 'Unknown',
+        clientEmail: clientEmail || user?.email || '',
+        clientPhone: clientPhone || '',
         status: 'PENDING',
         ...(tenantId && { tenantId })
-      } as any,
+      },
       include: {
         service: {
           select: {
@@ -138,9 +148,8 @@ export const POST = withTenantContext(async (req: Request) => {
       serviceName: booking.service?.name || 'Unknown Service',
       serviceDescription: booking.service?.description || '',
       price: booking.service?.price || 0,
-      duration: booking.service?.duration || 0,
-      date: booking.date,
-      time: booking.time,
+      duration: booking.service?.duration || booking.duration || 0,
+      scheduledAt: booking.scheduledAt,
       status: booking.status,
       notes: booking.notes,
       createdAt: booking.createdAt,
