@@ -32,6 +32,7 @@ Notes:
 - Risk: Ambiguous dev-only access and potential accidental exposure.
 - Recommendation: Keep `/_dev/login` gated by environment and IP/secret; remove or 307-redirect `/api/dev-login`.
 - Acceptance: Exactly one dev login route, enforced gating, tests updated.
+- Status: Completed — `/api/dev-login` removed; all tests and docs now reference `/api/_dev/login`.
 
 ### F2. Health Endpoints
 - Paths:
