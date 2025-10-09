@@ -165,8 +165,28 @@ export function withTenantContext(
         logger.warn('Failed to validate tenant cookie', { error: err })
       }
 
+      // Resolve tenant id: prefer session.user.tenantId, otherwise try request-based resolution when multi-tenancy is enabled
+      let resolvedTenantId: string | null = null
+      try {
+        if (user && (user.tenantId || user.tenantId === 0)) {
+          resolvedTenantId = String(user.tenantId)
+        } else {
+          // Attempt to derive tenant from request when available
+          try {
+            const tenantMod = await import('@/lib/tenant')
+            if (typeof tenantMod.isMultiTenancyEnabled === 'function' && tenantMod.isMultiTenancyEnabled()) {
+              try {
+                resolvedTenantId = tenantMod.getTenantFromRequest(request as Request) || null
+              } catch {
+                resolvedTenantId = null
+              }
+            }
+          } catch {}
+        }
+      } catch {}
+
       const context: TenantContext = {
-        tenantId: String(user.tenantId),
+        tenantId: resolvedTenantId ?? String(user.tenantId ?? ''),
         tenantSlug: user.tenantSlug ?? null,
         userId: String(user.id),
         userName: (user.name as string | undefined) ?? null,
