@@ -12,7 +12,7 @@ describe('OptimizedFooter reflection', () => {
   afterEach(() => { if (cleanup) cleanup(); cleanup = null })
 
   it('renders org name and legal links from props', () => {
-    const { container, unmount } = renderDOM(
+    const { container, unmount } = render(
       <OptimizedFooter
         orgName="Acme Incorporated"
         contactEmail="hello@acme.test"
