@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 
-vi.mock('@/lib/auth', () => ({ authOptions: {} }))
+vi.mock('@/lib/auth', () => ({ authOptions: {}, getSessionOrBypass: async () => ({ user: { id: 'u1', role: 'ADMIN' } }) }))
 vi.mock('next-auth', () => ({ getServerSession: async () => ({ user: { id: 'u1', role: 'ADMIN' } }) }))
 vi.mock('@/lib/permissions', () => ({ hasPermission: () => true, PERMISSIONS: { ANALYTICS_VIEW: 'ANALYTICS_VIEW' } }))
 vi.mock('@/lib/prisma', () => ({ default: {
