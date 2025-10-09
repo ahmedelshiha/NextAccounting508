@@ -8,7 +8,7 @@ vi.mock('@/lib/api', () => ({ apiFetch: async () => new Promise(() => {}) }))
 
 describe('ServicesSection loading a11y', () => {
   it('renders a polite live region and marks section busy while loading', () => {
-    const { container, unmount } = renderDOM(<ServicesSection />)
+    const { container, unmount } = render(<ServicesSection />)
     try {
       const section = container.querySelector('section[aria-busy="true"]')
       expect(section).toBeTruthy()
