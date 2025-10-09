@@ -179,13 +179,13 @@
   - **Outcome**: Test passing
 
 ### Step-Up Authentication
-- [ ] **Fix step-up authentication**
-  - **Issue**: OTP validation not enforcing (expected 401, got 200)
-  - **Files**: 
-    - `tests/admin-security-settings.stepup.test.ts` (2 failed)
-    - `tests/admin-stepup.route.test.ts` (2 failed)
-  - **Action**: Implement/fix super admin step-up verification
-  - **Status**: Blocked pending implementation
+- [x] **Fix step-up authentication** ✅ 2025-10-09
+  - **Issue**: OTP validation enforcement for SUPER_ADMIN
+  - **Files**:
+    - `tests/admin-security-settings.stepup.test.ts` (now passing)
+    - `tests/admin-stepup.route.test.ts` (now passing)
+  - **Action Taken**: Verified and wired routes to use `verifySuperAdminStepUp` and `stepUpChallenge` in audit-logs, permissions/roles, and security-settings routes.
+  - **Outcome**: 5 tests passing
 
 ---
 
