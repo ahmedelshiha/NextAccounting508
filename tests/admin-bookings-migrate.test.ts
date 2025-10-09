@@ -14,6 +14,7 @@ vi.mock('@/lib/prisma', () => ({
   default: {
     booking: {
       findUnique: vi.fn(async ({ where }: any) => db.bookings.find(b => b.id === where.id)),
+      findFirst: vi.fn(async ({ where }: any) => db.bookings.find(b => b.id === (where?.id ?? where?.AND?.find((w:any)=>'id'in w)?.id))),
       update: vi.fn(async ({ where, data }: any) => {
         const idx = db.bookings.findIndex(b => b.id === where.id)
         if (idx === -1) return null
@@ -28,7 +29,7 @@ vi.mock('@/lib/prisma', () => ({
         })
         db.bookings[idx] = updated
         return db.bookings[idx]
-      })
+    })
     },
     serviceRequest: {
       create: vi.fn(async ({ data }: any) => {
