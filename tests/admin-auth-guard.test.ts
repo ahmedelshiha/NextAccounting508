@@ -1,4 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock authentication to return null for unauthenticated user
+vi.mock('next-auth/next', () => ({
+  getServerSession: vi.fn(async () => null)
+}))
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(async () => null)
+}))
+vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 
 describe('Auth wrapper guardrails', () => {
   it('unauthenticated admin system health returns 401', async () => {
