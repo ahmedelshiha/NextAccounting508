@@ -1,9 +1,8 @@
 import React from 'react'
 import { describe, it, expect } from 'vitest'
-import { act } from 'react-dom/test-utils'
 import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import { TranslationContext } from '@/lib/i18n'
-import { renderDOM, fire } from '../../../../test-mocks/dom'
+import { render, screen, fireEvent } from '@testing-library/react'
 
 interface Row { id: number; name: string }
 
@@ -29,12 +28,12 @@ describe('AdvancedDataTable interactions', () => {
       />
     )
 
-    const { container, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       const master = container.querySelector('thead input[type="checkbox"]') as HTMLInputElement
       expect(master).toBeTruthy()
 
-      await act(async () => { master.click() })
+      fireEvent.click(master)
 
       const summary = Array.from(container.querySelectorAll('div')).find(d => /selected/i.test(d.textContent || ''))
       expect(summary && (summary.textContent || '')).toContain('3 selected')
@@ -55,12 +54,12 @@ describe('AdvancedDataTable interactions', () => {
       />
     )
 
-    const { container, getByText, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
-      expect(getByText(/Page 1 of 3/i)).toBeTruthy()
+      expect(screen.getByText(/Page 1 of 3/i)).toBeTruthy()
       const next = Array.from(container.querySelectorAll('button')).find(b => /next/i.test(b.textContent || '')) as HTMLButtonElement
-      await act(async () => { next.click() })
-      expect(getByText(/Page 2 of 3/i)).toBeTruthy()
+      fireEvent.click(next)
+      expect(screen.getByText(/Page 2 of 3/i)).toBeTruthy()
     } finally {
       unmount()
     }
@@ -77,10 +76,10 @@ describe('AdvancedDataTable interactions', () => {
       />
     )
 
-    const { container, unmount } = renderDOM(ui)
+    const { container, unmount } = render(ui)
     try {
       const btn = Array.from(container.querySelectorAll('th button')).find(Boolean) as HTMLButtonElement
-      await act(async () => { btn.click() })
+      fireEvent.click(btn)
       expect(calls).toEqual(['name'])
     } finally {
       unmount()
