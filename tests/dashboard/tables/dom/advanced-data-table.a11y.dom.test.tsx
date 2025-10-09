@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import AdvancedDataTable from '@/components/dashboard/tables/AdvancedDataTable'
 import { TranslationContext } from '@/lib/i18n'
-import { renderDOM } from '../../../../test-mocks/dom'
-import { fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 interface Row { id: number; name: string }
 
