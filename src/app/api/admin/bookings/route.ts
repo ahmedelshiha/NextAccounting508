@@ -114,7 +114,11 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    return getCachedBookings(request)
+    const cached = await getCachedBookings(request)
+    const payload = await cached.json() as { data: BookingsResponse }
+    const res = NextResponse.json(payload.data, { status: 200 })
+    res.headers.set('X-Total-Count', String(payload.data.total))
+    return res
   } catch (error) {
     console.error('Error fetching admin bookings:', error)
     return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
