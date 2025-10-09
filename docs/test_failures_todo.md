@@ -332,10 +332,11 @@
   - **File**: `tests/templates.route.test.ts`
   - **Action**: Debug template persistence logic
 
-- [ ] **Fix analytics rate limiting test**
+- [x] **Fix analytics rate limiting test** ✅ 2025-10-09
   - **Issue**: Expected 429 but got 200
   - **File**: `tests/analytics.track.route.test.ts`
-  - **Action**: Ensure rate limiter is properly configured
+  - **Action**: Updated test to mock applyRateLimit (async) instead of legacy rateLimit; returns 429 when exceeded
+  - **Outcome**: Test passes
 
 - [ ] **Fix team management fallback routes**
   - **Issue**: 500 errors when DB not configured
