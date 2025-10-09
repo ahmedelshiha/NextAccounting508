@@ -194,12 +194,10 @@
 ### Missing Routes
 - [ ] **Verify/implement missing API routes**
   - **Routes Not Found**:
-    - `/api/admin/bookings` (multiple RBAC tests)
     - `/api/admin/service-requests` (multiple RBAC tests)
-    - `/api/admin/analytics` (RBAC test)
-    - `/api/admin/team-management` (multiple RBAC tests)
     - `/api/portal/bookings` (tenant mismatch test)
   - **Action**: Check route file locations and naming conventions
+  - **Note**: `/api/admin/bookings` and `/api/admin/team-management` exist; admin bookings GET sets `X-Total-Count` and returns flat payload. `/api/admin/analytics` exists; updated to return flat payload from cache wrapper.
 
 ### Portal Bookings
 - [ ] **Fix portal bookings cancel flow**
@@ -332,20 +330,23 @@
   - **File**: `tests/templates.route.test.ts`
   - **Action**: Debug template persistence logic
 
-- [ ] **Fix analytics rate limiting test**
+- [x] **Fix analytics rate limiting test** ✅ 2025-10-09
   - **Issue**: Expected 429 but got 200
   - **File**: `tests/analytics.track.route.test.ts`
-  - **Action**: Ensure rate limiter is properly configured
+  - **Action**: Updated test to mock applyRateLimit (async) instead of legacy rateLimit; returns 429 when exceeded
+  - **Outcome**: Test passes
 
-- [ ] **Fix team management fallback routes**
+- [x] **Fix team management fallback routes** ✅ 2025-10-09
   - **Issue**: 500 errors when DB not configured
   - **File**: `tests/team-management.routes.test.ts` (3 failed)
-  - **Action**: Implement proper fallback responses
+  - **Action**: Added explicit no-DB guard to workload route; availability, skills, assignments already returned empty structures
+  - **Outcome**: Routes return 200 with empty/default data when DB is not configured
 
-- [ ] **Fix settings services persistence**
+- [x] **Fix settings services persistence** ✅ 2025-10-09
   - **Issue**: Settings not being saved/retrieved correctly
   - **File**: `tests/admin-services-settings.route.test.ts`
-  - **Action**: Debug settings save/load logic
+  - **Action**: Persist settings in legacy flat JSON shape via flattenSettings; GET returns flat data; POST writes flat
+  - **Outcome**: File contains expected top-level fields (e.g., defaultCategory), tests pass
 
 ---
 

@@ -130,12 +130,8 @@ async function readFile(): Promise<unknown> {
 async function writeFile(settings: ServicesSettings): Promise<void> {
   const dir = path.dirname(SETTINGS_FILE_PATH)
   await fs.mkdir(dir, { recursive: true })
-  // Persist nested shape including notification templates for clarity while keeping legacy flat getters supported
-  const payload = {
-    services: settings.services,
-    serviceRequests: settings.serviceRequests,
-    notification: settings.notification ?? {},
-  }
+  // Persist in legacy flat shape to maintain backward compatibility with existing tools/tests
+  const payload = flattenSettings(settings)
   await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(payload, null, 2), 'utf-8')
 }
 

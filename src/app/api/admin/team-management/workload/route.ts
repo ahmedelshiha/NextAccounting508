@@ -12,6 +12,12 @@ export const GET = withTenantContext(async () => {
   if (!hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_VIEW)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const hasDb = !!process.env.NETLIFY_DATABASE_URL
+  if (!hasDb) {
+    return NextResponse.json({ data: { utilization: 0, activeMembers: 0, distribution: [] }, note: 'Workload fallback (no DB)' })
+  }
+
   try {
     const members = await prisma.teamMember.findMany({ where: tenantFilter(ctx.tenantId), select: { id: true, isAvailable: true } })
     const activeMembers = members.length
