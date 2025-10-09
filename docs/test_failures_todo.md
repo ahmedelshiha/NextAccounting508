@@ -2,6 +2,7 @@
 
 ## ✅ Recently Completed (2025-10-09)
 
+- [x] AdminFooter: branding, version/date, support links, system status, and environment display fixed — AdminFooter tests passing
 - [x] **Fixed rate-limit mock configuration** - All rate-limit related tests passing
 - [x] **Fixed BookingSettingsService tenant context** - 4 tests passing
 - [x] **Fixed booking settings API routes** - 5 tests passing
@@ -33,6 +34,7 @@
     3. Update assertions from Chai to Jest/Vitest matchers
     4. Add missing "Support" link to AdminFooter component
   - **Expected Outcome**: All React component tests render and assert correctly
+  - Progress (2025-10-09): AdminFooter updated to include branding, version (v2.3.2), release date (Sept 26, 2025), desktop support links (Admin Help, Documentation), explicit environment display ("production"/"development"), and "System Operational" status. Remaining: form label associations and test matcher/config updates.
 
 ### Admin Context & Providers
 - [ ] **Fix AdminContextProvider and AdminProviders**
