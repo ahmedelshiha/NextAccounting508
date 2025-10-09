@@ -169,11 +169,11 @@
 ## 🔵 Medium Priority - Authentication & Authorization
 
 ### Authentication Guards
-- [ ] **Fix admin-reminders auth guard**
+- [x] **Fix admin-reminders auth guard** ✅ 2025-10-09
   - **Issue**: Missing "getSessionOrBypass" export in mock
-  - **File**: `tests/admin-reminders.a11y.dom.test.tsx` (1 failed)
-  - **Action**: Update @/lib/auth mock to include getSessionOrBypass export
-  - **Expected Outcome**: Auth guard properly enforces authentication
+  - **File**: `tests/admin-reminders.a11y.dom.test.tsx` (fixed)
+  - **Action Taken**: Updated test mock for `@/lib/auth` to include `getSessionOrBypass` returning an ADMIN session.
+  - **Outcome**: Test passing
 
 ### Step-Up Authentication
 - [ ] **Fix step-up authentication**
