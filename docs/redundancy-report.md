@@ -11,7 +11,7 @@ This report identifies duplicate or overlapping code paths, components, and scri
 ## Findings Overview
 | ID | Area | Files/Paths | Impact | Status | Recommendation |
 |----|------|-------------|--------|--------|----------------|
-| F1 | API: Dev Login duplicated | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Open | Keep a single dev login endpoint (prefer `/_dev/login`) behind strict env/IP gating; remove or redirect the other. |
+| F1 | API: Dev Login duplicated | `src/app/api/dev-login/route.ts`, `src/app/api/_dev/login/route.ts` | High | Resolved | `/_dev/login` remains canonical with env/IP gating; `/api/dev-login` route removed and callers updated. |
 | F2 | API: Health endpoints overlap (intended) | `src/app/api/security/health/route.ts`, `src/app/api/admin/system/health/route.ts` | Medium | Confirmed | Keep both, but ensure the public endpoint remains minimal and Node runtime is used to avoid Edge size limits. Document scopes. |
 | F3 | Cron entrypoints duplicated (API vs Netlify) | `src/app/api/cron/*`, `netlify/functions/cron-*.ts` | Medium | Open | Ensure all cron entrypoints delegate to shared job logic in `src/lib/cron/*`; remove any duplicated logic. |
 | F4 | UI component duplication: Settings Navigation | `src/components/admin/SettingsNavigation.tsx`, `src/components/admin/settings/SettingsNavigation.tsx` | High | Open | Consolidate into a single canonical component (recommend the nested `admin/settings` path). Provide a temporary re-export and then remove the duplicate. |
