@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { renderDOM, fire } from '../../test-mocks/dom'
+import { render, fireEvent } from '@testing-library/react'
 import { FAQSection } from '@/components/home/FAQSection'
 
 const sample = [
