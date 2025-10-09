@@ -38,7 +38,7 @@ describe('AdvancedDataTable a11y', () => {
 
       // buttons operate via click (keyboard activation triggers click in browsers)
       fireEvent.click(next)
-      await waitFor(() => expect(getByText(/Page 2 of 2/i)).toBeTruthy())
+      await waitFor(() => expect(screen.getByText(/Page 2 of 2/i)).toBeTruthy())
     } finally {
       unmount()
     }
