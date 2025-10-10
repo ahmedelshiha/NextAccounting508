@@ -196,10 +196,12 @@ Wrapped with withTenantContext (public endpoints marked requireAuth: false):
 - src/app/api/admin/stats/counts/route.ts (POST 405 wrapper)
 - src/app/api/admin/settings/diagnostics/route.ts (POST)
 - src/app/api/security/events/route.ts (GET)
+- src/app/api/auth/[...nextauth]/route.ts (GET, POST) — requireAuth: false
 
 Notes:
 - Many other routes were already wrapped prior to this audit (e.g., bookings, portal, users, payments, posts, services root, etc.).
 - Public routes intentionally use `{ requireAuth: false }` to allow unauthenticated access with tenant context resolution via headers.
+- A fresh sweep confirmed every `src/app/api/**/route.ts` file currently exports handlers wrapped with `withTenantContext` with no remaining exceptions.
 
 ## Notes for Upcoming Work
 
