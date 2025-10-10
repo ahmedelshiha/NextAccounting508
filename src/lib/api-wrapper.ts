@@ -68,6 +68,15 @@ export function withTenantContext(
       allowedRoles = [],
     } = options
 
+    // Ensure a request ID exists for traceability
+    const incomingId = (request as any)?.headers?.get?.('x-request-id') || null
+    const requestId = incomingId || (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`)
+
+    const attachRequestId = (res: Response): Response => {
+      try { res.headers.set('X-Request-ID', requestId) } catch {}
+      return res
+    }
+
     try {
       // Ensure request object exists for tests that call handlers without args
       request = request ?? ({} as any)
@@ -98,9 +107,11 @@ export function withTenantContext(
       }
 
       if (requireAuth && !session?.user) {
-        return NextResponse.json(
-          { error: 'Unauthorized', message: 'Authentication required' },
-          { status: 401 }
+        return attachRequestId(
+          NextResponse.json(
+            { error: 'Unauthorized', message: 'Authentication required' },
+            { status: 401 }
+          )
         )
       }
 
@@ -121,35 +132,43 @@ export function withTenantContext(
               role: null,
               tenantRole: null,
               isSuperAdmin: false,
-              requestId: (request as any).headers?.get?.('x-request-id') || null,
+              requestId,
               timestamp: new Date(),
             }
-            return tenantContext.run(context, () => handler(request, routeContext))
+            const res = await tenantContext.run(context, () => handler(request, routeContext))
+            return attachRequestId(res)
           }
         } catch {}
-        return handler(request, routeContext)
+        const res = await handler(request, routeContext)
+        return attachRequestId(res)
       }
 
       const user = (session as any).user as any
 
       if (requireSuperAdmin && user.role !== 'SUPER_ADMIN') {
-        return NextResponse.json(
-          { error: 'Forbidden', message: 'Super admin access required' },
-          { status: 403 }
+        return attachRequestId(
+          NextResponse.json(
+            { error: 'Forbidden', message: 'Super admin access required' },
+            { status: 403 }
+          )
         )
       }
 
       if (requireTenantAdmin && !['OWNER', 'ADMIN'].includes(user.tenantRole)) {
-        return NextResponse.json(
-          { error: 'Forbidden', message: 'Tenant admin access required' },
-          { status: 403 }
+        return attachRequestId(
+          NextResponse.json(
+            { error: 'Forbidden', message: 'Tenant admin access required' },
+            { status: 403 }
+          )
         )
       }
 
       if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-        return NextResponse.json(
-          { error: 'Forbidden', message: 'Insufficient permissions' },
-          { status: 403 }
+        return attachRequestId(
+          NextResponse.json(
+            { error: 'Forbidden', message: 'Insufficient permissions' },
+            { status: 403 }
+          )
         )
       }
 
@@ -159,18 +178,22 @@ export function withTenantContext(
         if (tenantCookie) {
           if (!user.tenantId) {
             logger.warn('Tenant cookie present but session user has no tenantId', { userId: user.id, tenantId: user.tenantId })
-            return NextResponse.json(
-              { error: 'Forbidden', message: 'Invalid tenant signature' },
-              { status: 403 }
+            return attachRequestId(
+              NextResponse.json(
+                { error: 'Forbidden', message: 'Invalid tenant signature' },
+                { status: 403 }
+              )
             )
           }
 
           const ok = verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
           if (!ok) {
             logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: user.tenantId })
-            return NextResponse.json(
-              { error: 'Forbidden', message: 'Invalid tenant signature' },
-              { status: 403 }
+            return attachRequestId(
+              NextResponse.json(
+                { error: 'Forbidden', message: 'Invalid tenant signature' },
+                { status: 403 }
+              )
             )
           }
         }
@@ -213,16 +236,17 @@ export function withTenantContext(
         role: user.role ?? null,
         tenantRole: user.tenantRole ?? null,
         isSuperAdmin: user.role === 'SUPER_ADMIN',
-        requestId: ((request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('x-request-id') : null,
+        requestId,
         timestamp: new Date(),
       }
 
-      return tenantContext.run(context, () => handler(request, routeContext))
+      const res = await tenantContext.run(context, () => handler(request, routeContext))
+      return attachRequestId(res)
     } catch (error) {
       logger.error('API wrapper error', { error })
       return NextResponse.json(
         { error: 'Internal Server Error', message: 'Failed to process request' },
-        { status: 500 }
+        { status: 500, headers: { 'X-Request-ID': requestId } }
       )
     }
   }
