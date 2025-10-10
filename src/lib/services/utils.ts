@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import prisma from '@/lib/prisma';
+const getPrisma = () => require('@/lib/prisma').default as any;
 import { ServiceFormData } from '@/types/services';
 
 export function generateSlug(name: string): string {
