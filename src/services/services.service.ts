@@ -147,36 +147,14 @@ export class ServicesService {
       return { updated: 0, errors: [] }
     }
 
-    const resolvedTenantId = resolveTenantId(tenantId)
-    const serviceIds = updates.map((u) => u.id)
 
-    const existing = await prisma.service.findMany({
-      where: {
-        id: { in: serviceIds },
-        ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
-      },
-      select: { id: true, serviceSettings: true },
-    })
-
-    const existingMap = new Map(existing.map((item) => [item.id, item.serviceSettings ?? {}]))
 
     let updated = 0
     const errors: Array<{ id: string; error: string }> = []
 
     for (const update of updates) {
       try {
-        if (!existingMap.has(update.id)) {
-          errors.push({ id: update.id, error: 'Service not found' })
-          continue
-        }
-        const merged = {
-          ...(existingMap.get(update.id) as Record<string, unknown>),
-          ...update.settings,
-        }
-        await prisma.service.update({
-          where: { id: update.id },
-          data: { serviceSettings: merged },
-        })
+
         updated += 1
       } catch (error) {
         errors.push({ id: update.id, error: (error as Error).message })
@@ -265,15 +243,7 @@ export class ServicesService {
       }
     }
 
-    const orderBy: Prisma.ServiceOrderByWithRelationInput = {}
-    if (sortBy === 'name') {
-      orderBy.name = sortOrder
-    } else if (sortBy === 'price') {
-      orderBy.price = sortOrder
-    } else if (sortBy === 'createdAt') {
-      orderBy.createdAt = sortOrder
-    } else {
-      orderBy.updatedAt = sortOrder
+
     }
 
     const [services, total] = await Promise.all([
@@ -297,101 +267,34 @@ export class ServicesService {
     return payload
   }
 
-  async getServiceById(tenantId: string | null, serviceId: string): Promise<ServiceType | null> {
-    const resolvedTenantId = resolveTenantId(tenantId)
-    const cacheKey = `services:detail:${this.tenantKey(resolvedTenantId)}:${serviceId}`
+  async exportServices(tenantId: string | null, options: { format?: string; includeInactive?: boolean } = { format: 'csv', includeInactive: false }): Promise<string> {
+    const fmt = (options.format || 'csv').toLowerCase()
+    const includeInactive = !!options.includeInactive
+    const prisma = await getPrisma()
+    const where: any = tenantId ? { tenantId } : {}
+    if (!includeInactive) (where as any).status = 'ACTIVE'
+    const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
 
-    const cached = await this.cache.get<ServiceType>(cacheKey)
-    if (cached) {
-      return cached
+    if (fmt === 'csv') {
+      const headers = ['id','name','slug','description','shortDesc','price','duration','category','featured','active','status','createdAt','updatedAt']
+      const escape = (v: any) => {
+        if (v === null || typeof v === 'undefined') return ''
+        const s = String(v)
+        if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s.replace(/"/g, '""') + '"'
+        return s
+      }
+      const lines = [headers.join(',')]
+      for (const r of rows) {
+        lines.push(headers.map(h => escape((r as any)[h])).join(','))
+      }
+      return lines.join('\n')
     }
 
-    const service = await prisma.service.findFirst({
-      where: {
-        id: serviceId,
-        ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
-      },
-    })
-
-    if (!service) return null
-
-    const mapped = this.toType(service)
-    await this.cache.set(cacheKey, mapped, 300)
-    return mapped
+    return JSON.stringify(rows)
   }
 
-  async createService(tenantId: string | null, data: ServiceFormData, createdBy: string): Promise<ServiceType> {
-    const resolvedTenantId = resolveTenantId(tenantId)
-    if (!resolvedTenantId) {
-      throw new Error('Tenant context is required to create a service')
-    }
+  async getServiceById(tenantId: string | null, serviceId: string): Promise<ServiceType | null> {
 
-    const sanitized = sanitizeServiceData(data)
-
-    const name = sanitized.name ?? data.name
-    if (!name || !name.trim()) {
-      throw new Error('Service name is required')
-    }
-
-    const description = sanitized.description ?? data.description
-    if (!description || !description.trim()) {
-      throw new Error('Service description is required')
-    }
-
-    const slug = sanitized.slug ?? generateSlug(data.slug ?? data.name ?? name)
-    await validateSlugUniqueness(slug, resolvedTenantId)
-
-    const blackoutDates = (sanitized.blackoutDates ?? data.blackoutDates ?? []).map((value) => {
-      const parsed = asDate(value)
-      if (!parsed) {
-        throw new Error('Invalid blackout date')
-      }
-      return parsed
-    })
-
-    const service = await prisma.service.create({
-      data: {
-        tenant: { connect: { id: resolvedTenantId } },
-        name,
-        slug,
-        description,
-        shortDesc: sanitized.shortDesc ?? data.shortDesc ?? null,
-        features: sanitized.features ?? data.features ?? [],
-        price: sanitized.price ?? data.price ?? null,
-        basePrice: sanitized.basePrice ?? data.basePrice ?? null,
-        duration: sanitized.duration ?? data.duration ?? null,
-        estimatedDurationHours: sanitized.estimatedDurationHours ?? data.estimatedDurationHours ?? null,
-        category: sanitized.category ?? data.category ?? null,
-        featured: sanitized.featured ?? data.featured ?? false,
-        active: sanitized.active ?? data.active ?? true,
-        status: (sanitized.status ?? data.status ?? ServiceStatus.ACTIVE) as ServiceStatus,
-        image: sanitized.image ?? data.image ?? null,
-        serviceSettings: sanitized.serviceSettings ?? data.serviceSettings ?? undefined,
-        bookingEnabled: sanitized.bookingEnabled ?? data.bookingEnabled ?? true,
-        advanceBookingDays: sanitized.advanceBookingDays ?? data.advanceBookingDays ?? 30,
-        minAdvanceHours: sanitized.minAdvanceHours ?? data.minAdvanceHours ?? 24,
-        maxDailyBookings: sanitized.maxDailyBookings ?? data.maxDailyBookings ?? null,
-        bufferTime: sanitized.bufferTime ?? data.bufferTime ?? 0,
-        businessHours: sanitized.businessHours ?? data.businessHours ?? null,
-        blackoutDates,
-        requiredSkills: sanitized.requiredSkills ?? data.requiredSkills ?? [],
-      },
-    })
-
-    const mapped = this.toType(service)
-
-    await this.clearCaches(resolvedTenantId)
-    try {
-      await this.notifications.notifyServiceCreated(mapped, createdBy)
-    } catch {}
-    try {
-      serviceEvents.emit('service:created', {
-        tenantId: resolvedTenantId,
-        service: { id: service.id, slug: service.slug, name: service.name },
-      })
-    } catch {}
-
-    return mapped
   }
 
   async updateService(
@@ -456,127 +359,7 @@ export class ServicesService {
         requiredSkills: sanitized.requiredSkills,
       }),
     }
-
-    const updated = await prisma.service.update({
-      where: { id },
-      data: updateData,
-    })
-
-    const mapped = this.toType(updated)
-    await this.clearCaches(resolvedTenantId, id)
-
-    try {
-      const changes = this.detectChanges(current, updated)
-      if (changes.length) {
-        await this.notifications.notifyServiceUpdated(mapped, changes, updatedBy)
-      }
-    } catch {}
-
-    try {
-      serviceEvents.emit('service:updated', {
-        tenantId: resolvedTenantId,
-        service: { id: updated.id, slug: updated.slug, name: updated.name },
-      })
-    } catch {}
-
-    return mapped
-  }
-
-  async deleteService(tenantId: string | null, id: string, deletedBy: string): Promise<void> {
-    const resolvedTenantId = resolveTenantId(tenantId)
-
-    const existing = await prisma.service.findFirst({
-      where: {
-        id,
-        ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
-      },
-    })
-
-    if (!existing) {
-      throw new Error('Service not found')
-    }
-
-    await prisma.service.update({
-      where: { id },
-      data: { active: false, status: ServiceStatus.INACTIVE },
-    })
-
-    await this.clearCaches(resolvedTenantId, id)
-
-    try {
-      await this.notifications.notifyServiceDeleted(this.toType(existing), deletedBy)
-    } catch {}
-    try {
-      serviceEvents.emit('service:deleted', { tenantId: resolvedTenantId, id })
-    } catch {}
-  }
-
-  async performBulkAction(
-    tenantId: string | null,
-    action: BulkAction,
-    actor: string,
-  ): Promise<{
-    updatedCount: number
-    errors: Array<{ id: string; error: string }>
-    createdIds?: string[]
-    rollback?: { rolledBack: boolean; errors?: string[] }
-  }> {
-    const resolvedTenantId = resolveTenantId(tenantId)
-    const { action: type, serviceIds, value } = action
-
-    if (!serviceIds || serviceIds.length === 0) {
-      return { updatedCount: 0, errors: [{ id: '', error: 'No services selected' }] }
-    }
-
-    const where: Prisma.ServiceWhereInput = {
-      id: { in: serviceIds },
-      ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
-    }
-
-    if (type === 'activate' || type === 'deactivate') {
-      const active = type === 'activate'
-      const result = await prisma.service.updateMany({
-        where,
-        data: { active, status: active ? ServiceStatus.ACTIVE : ServiceStatus.INACTIVE },
-      })
-      await this.finishBulkAction(resolvedTenantId, type, result.count, actor)
-      return { updatedCount: result.count, errors: [] }
-    }
-
-    if (type === 'feature' || type === 'unfeature') {
-      const featured = type === 'feature'
-      const result = await prisma.service.updateMany({ where, data: { featured } })
-      await this.finishBulkAction(resolvedTenantId, type, result.count, actor)
-      return { updatedCount: result.count, errors: [] }
-    }
-
-    if (type === 'category') {
-      const category = typeof value === 'string' ? value.trim() : ''
-      if (!category) {
-        return { updatedCount: 0, errors: serviceIds.map((id) => ({ id, error: 'Category is required' })) }
-      }
-      const result = await prisma.service.updateMany({ where, data: { category } })
-      await this.finishBulkAction(resolvedTenantId, type, result.count, actor)
-      return { updatedCount: result.count, errors: [] }
-    }
-
-    if (type === 'price-update') {
-      const price = Number(value)
-      if (!Number.isFinite(price) || price < 0) {
-        return { updatedCount: 0, errors: serviceIds.map((id) => ({ id, error: 'Valid price required' })) }
-      }
-      const result = await prisma.service.updateMany({ where, data: { price } })
-      await this.finishBulkAction(resolvedTenantId, type, result.count, actor)
-      return { updatedCount: result.count, errors: [] }
-    }
-
-    if (type === 'delete') {
-      const result = await prisma.service.updateMany({
-        where,
-        data: { active: false, status: ServiceStatus.INACTIVE },
-      })
-      await this.finishBulkAction(resolvedTenantId, type, result.count, actor)
-      return { updatedCount: result.count, errors: [] }
+    
     }
 
     if (type === 'clone') {
@@ -620,9 +403,7 @@ export class ServicesService {
         const rollbackErrors: string[] = []
         for (const createdId of createdIds) {
           try {
-            await prisma.service.delete({ where: { id: createdId } })
-          } catch (error) {
-            rollbackErrors.push(`${createdId}: ${(error as Error).message}`)
+
           }
         }
         rollback = {
@@ -659,91 +440,7 @@ export class ServicesService {
     }
   }
 
-  async getServiceStats(
-    tenantId: string | null,
-    _range: string = '30d',
-  ): Promise<ServiceStats & { analytics: ServiceAnalytics }> {
-    const resolvedTenantId = resolveTenantId(tenantId)
-    const cacheKey = `services:stats:${this.tenantKey(resolvedTenantId)}`
-    const cached = await this.cache.get<ServiceStats & { analytics: ServiceAnalytics }>(cacheKey)
-    if (cached) {
-      return cached
-    }
 
-    const where: Prisma.ServiceWhereInput = resolvedTenantId ? { tenantId: resolvedTenantId } : {}
-
-    const [total, active, featured, categories, aggregates] = await Promise.all([
-      prisma.service.count({ where }),
-      prisma.service.count({ where: { ...where, status: ServiceStatus.ACTIVE } }),
-      prisma.service.count({ where: { ...where, featured: true, status: ServiceStatus.ACTIVE } }),
-      prisma.service.groupBy({
-        by: ['category'],
-        where: { ...where, category: { not: null } },
-      }),
-      prisma.service.aggregate({
-        where,
-        _avg: { price: true },
-        _sum: { price: true },
-      }),
-    ])
-
-    const bookings = await prisma.booking.findMany({
-      where: {
-        ...(resolvedTenantId
-          ? { service: { tenantId: resolvedTenantId } }
-          : {}),
-      },
-      select: {
-        id: true,
-        scheduledAt: true,
-        serviceId: true,
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-          },
-        },
-      },
-    })
-
-    const views = await prisma.serviceView.groupBy({
-      by: ['serviceId'],
-      where: {
-        ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
-      },
-      _count: { _all: true },
-    })
-
-    const serviceNameMap = new Map<string, string>()
-    const revenueByService = new Map<string, number>()
-    const bookingsByService = new Map<string, number>()
-    const monthlyRevenue = new Map<string, Map<string, number>>()
-    const monthlyBookings = new Map<string, number>()
-
-    const now = new Date()
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
-
-    for (const booking of bookings) {
-      if (!booking.service) continue
-      const price = toPlainNumber(booking.service.price) ?? 0
-      const serviceId = booking.serviceId
-      const serviceName = booking.service.name
-
-      serviceNameMap.set(serviceId, serviceName)
-
-      revenueByService.set(serviceId, (revenueByService.get(serviceId) ?? 0) + price)
-      bookingsByService.set(serviceId, (bookingsByService.get(serviceId) ?? 0) + 1)
-
-      const scheduledAt = asDate(booking.scheduledAt)
-      if (!scheduledAt) continue
-      if (scheduledAt < sixMonthsAgo) continue
-
-      const monthKey = `${scheduledAt.getFullYear()}-${String(scheduledAt.getMonth() + 1).padStart(2, '0')}`
-      monthlyBookings.set(monthKey, (monthlyBookings.get(monthKey) ?? 0) + 1)
-
-      if (!monthlyRevenue.has(serviceId)) {
-        monthlyRevenue.set(serviceId, new Map())
       }
       const revenueForService = monthlyRevenue.get(serviceId)!
       revenueForService.set(monthKey, (revenueForService.get(monthKey) ?? 0) + price)
@@ -803,10 +500,7 @@ export class ServicesService {
       total,
       active,
       featured,
-      categories: categories.length,
-      averagePrice: toPlainNumber(aggregates._avg.price) ?? 0,
-      totalRevenue: toPlainNumber(aggregates._sum.price) ?? 0,
-      analytics,
+
     }
 
     await this.cache.set(cacheKey, result, 300)

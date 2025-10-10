@@ -315,7 +315,7 @@ export async function middleware(req: NextServer.NextRequest) {
       if (isAuth) {
         try {
           logApiEntry()
-          const signed = signTenantCookie(String(resolvedTenantId ?? ''), userId)
+          const signed = await signTenantCookie(String(resolvedTenantId ?? ''), userId)
           const res = NextServer.NextResponse.next({ request: { headers: requestHeaders } })
 
           // Attach signed tenant cookie
