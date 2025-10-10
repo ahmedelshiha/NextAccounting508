@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
 import { verifyTenantCookie } from '@/lib/tenant-cookie'
+import { incrementMetric } from '@/lib/observability-helpers'
 
 /**
  * Safely read a cookie value from NextRequest or a request-like object.
@@ -139,6 +140,7 @@ export function withTenantContext(
             return attachRequestId(res)
           }
         } catch {}
+        incrementMetric('tenant_context.missing', { path: 'unauthenticated-no-header' })
         const res = await handler(request, routeContext)
         return attachRequestId(res)
       }

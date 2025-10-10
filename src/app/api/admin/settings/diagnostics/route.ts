@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   // Lightweight diagnostics: check simple envs and return status. In prod hook into real checks.
   const results = {
     database: Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL),
@@ -11,4 +12,4 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true, results })
-}
+})

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
 
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const email = searchParams.get('email')?.toLowerCase().trim()
@@ -22,3 +22,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ exists: false })
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

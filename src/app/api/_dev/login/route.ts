@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { encode } from 'next-auth/jwt'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ function getClientIp(request: NextRequest) {
  * Issues a development-only session cookie for testing flows without standard authentication.
  * Never available in production and optionally gated by DEV_LOGIN_TOKEN and DEV_LOGIN_ALLOWED_IPS.
  */
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { success: false, error: 'Not allowed in production' },
@@ -158,4 +159,4 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     )
   }
-}
+}, { requireAuth: false })

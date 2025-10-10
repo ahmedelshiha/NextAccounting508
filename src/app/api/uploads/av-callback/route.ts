@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   try {
     const secret = process.env.UPLOADS_AV_CALLBACK_SECRET
     if (secret) {
@@ -93,4 +94,4 @@ export async function POST(req: Request) {
     await captureErrorIfAvailable(e, { route: 'av-callback' })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
-}
+}, { requireAuth: false })

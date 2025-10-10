@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
 import { getTenantFromRequest, tenantFilter } from '@/lib/tenant'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { createHash } from 'crypto'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 // GET /api/services/lite - minimal fields for client booking flows
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     // Dev fallback if DB not configured
     if (!process.env.NETLIFY_DATABASE_URL) {
@@ -48,4 +49,4 @@ export async function GET(request: NextRequest) {
     const etag = '"' + createHash('sha1').update(JSON.stringify(fallback.map(s=>s.id))).digest('hex') + '"'
     return NextResponse.json(fallback, { headers: { 'Cache-Control': 'private, max-age=60', ETag: etag } })
   }
-}
+}, { requireAuth: false })

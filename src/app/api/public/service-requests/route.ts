@@ -1,5 +1,3 @@
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
@@ -7,6 +5,7 @@ import { respond, zodDetails } from '@/lib/api-response'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { getResolvedTenantId, userByTenantEmail, withTenant } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 const GuestCreateSchema = z.object({
   name: z.string().min(2).max(200),
@@ -33,7 +32,7 @@ const GuestCreateSchema = z.object({
   attachments: z.any().optional(),
 })
 
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const ip = getClientIp(request)
   // Stricter guest limits: 3 requests / minute per IP
   const key = `public:sr:create:${ip}`
@@ -138,3 +137,5 @@ export async function POST(request: NextRequest) {
     return respond.serverError('Failed to create service request', { code, message: msg })
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })

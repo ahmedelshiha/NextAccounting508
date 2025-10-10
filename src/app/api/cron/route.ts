@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { runScheduledTasks, updateBookingStatuses, cleanupOldData, generateMonthlyReports } from '@/lib/cron'
 import { processBookingReminders } from '@/lib/cron/reminders'
 import { authorizeCron, runCronTask } from '@/lib/cron/scheduler'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 // POST /api/cron - Run scheduled tasks
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET /api/cron - Get cron job information
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
@@ -96,3 +96,6 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

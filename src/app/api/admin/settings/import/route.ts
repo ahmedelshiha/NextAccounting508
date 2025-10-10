@@ -10,7 +10,7 @@ function jsonResponse(payload: any, status = 200) {
   })
 }
 
-export async function POST(req: Request) {
+const _api_POST = async (req: Request) => {
   try {
     const payload = await req.json()
     const parsed = ImportSchema.safeParse(payload)
@@ -24,3 +24,6 @@ export async function POST(req: Request) {
     return jsonResponse({ ok: false, error: 'Invalid JSON' }, 400)
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const POST = withTenantContext(_api_POST, { requireAuth: false })

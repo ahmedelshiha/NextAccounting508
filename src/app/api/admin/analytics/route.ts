@@ -148,8 +148,8 @@ function determineSystemStatus(): 'healthy' | 'warning' | 'error' {
 }
 
 // Support only GET method
-export async function POST() {
-  return NextResponse.json({ 
-    error: 'Method not allowed - Use GET to fetch analytics data' 
+export const POST = withTenantContext(async () => {
+  return NextResponse.json({
+    error: 'Method not allowed - Use GET to fetch analytics data'
   }, { status: 405 })
-}
+})
