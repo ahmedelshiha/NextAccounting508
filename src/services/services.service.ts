@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import prisma from '@/lib/prisma';
+const getPrisma = () => require('@/lib/prisma').default as any;
 import { queryTenantRaw } from '@/lib/db-raw';
 import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
