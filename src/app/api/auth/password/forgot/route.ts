@@ -64,3 +64,6 @@ const _api_POST = async (req: NextRequest) => {
     return NextResponse.json({ ok: true })
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
