@@ -13,27 +13,22 @@ const renderIcon = (icon?: IconType | React.ReactNode) => {
     // If it's a function (IconType), render it as a component
     if (typeof icon === 'function') {
       const Icon = icon as IconType
-      // Validate that it's a proper React component
       if (Icon && typeof Icon === 'function') {
         return <Icon className="w-4 h-4" />
       }
     }
-    
-    // If it's a valid React element, render it
+
+    // If it's a valid React element, clone to ensure we apply sizing styles consistently
     if (React.isValidElement(icon)) {
-      return icon
+      const existing = (icon.props as { className?: string })?.className || ''
+      const classes = ['w-4 h-4', existing].filter(Boolean).join(' ')
+      return React.cloneElement(icon, { className: classes })
     }
-    
-    // Enhanced validation: detect React element objects (common error #31 cause)
-    if (icon && typeof icon === 'object' && '$$typeof' in (icon as any)) {
-      console.error('PageHeader: React element object passed as icon instead of component reference', {
-        iconType: typeof icon,
-        iconKeys: Object.keys(icon as any),
-        hasRender: 'render' in (icon as any),
-        hasDisplayName: 'displayName' in (icon as any),
-        icon
-      })
-      return null
+
+    // Handle forwardRef/exotic component objects (e.g., lucide-react icons)
+    if (icon && typeof icon === 'object' && '$$typeof' in (icon as any) && typeof (icon as any).render === 'function') {
+      const ExoticIcon = icon as React.ComponentType<{ className?: string }>
+      return <ExoticIcon className="w-4 h-4" />
     }
 
     // If it's a string or number, don't render it as an icon
