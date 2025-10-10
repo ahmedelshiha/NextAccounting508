@@ -5,6 +5,8 @@ import { TeamSettingsSchema } from '@/schemas/settings/team-management'
 import * as Sentry from '@sentry/nextjs'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
 
 export const GET = withTenantContext(async (req: Request) => {
   try {
@@ -34,7 +36,10 @@ export const PUT = withTenantContext(async (req: Request) => {
       try { Sentry.captureMessage('team-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+    const before = await teamService.get(tenantId).catch(()=>null)
     const updated = await teamService.upsert(tenantId, parsed.data)
+    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'teamManagement', resource: 'team-settings', before: before || null, after: updated || null } }) } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'team-settings', details: { category: 'teamManagement' } } }) } catch {}
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
