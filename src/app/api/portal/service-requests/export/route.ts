@@ -142,7 +142,23 @@ export const GET = withTenantContext(async (req: NextRequest) => {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         let all = getAllRequests()
-        all = all.filter((r: any) => r.clientId === userId && r.tenantId === ctx.tenantId)
+        // Resolve userId/tenantId from context or fallback to session when needed
+        let resolvedUserId = userId
+        let resolvedTenantId = ctx.tenantId
+        if (!resolvedUserId || !resolvedTenantId) {
+          try {
+            const na = await import('next-auth').catch(() => null as any)
+            if (na && typeof na.getServerSession === 'function') {
+              const authMod = await import('@/lib/auth')
+              const session = await na.getServerSession((authMod as any).authOptions)
+              if (session?.user) {
+                resolvedUserId = resolvedUserId || session.user.id
+                resolvedTenantId = resolvedTenantId || session.user.tenantId
+              }
+            }
+          } catch {}
+        }
+        all = all.filter((r: any) => r.clientId === resolvedUserId && r.tenantId === resolvedTenantId)
         if (type === 'appointments') all = all.filter((r: any) => !!((r as any).scheduledAt || r.deadline))
         if (status) all = all.filter((r: any) => String(r.status) === String(status))
         if (priority) all = all.filter((r: any) => String(r.priority) === String(priority))
