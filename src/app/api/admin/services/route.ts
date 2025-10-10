@@ -59,7 +59,21 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     if (!ctx || !hasPermission(ctx.role, PERMISSIONS.SERVICES_VIEW)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     // Use cached handler for data retrieval
-    return getCachedServices(request)
+    const cachedRes = await getCachedServices(request)
+    try {
+      // Attempt to unwrap the wrapper produced by withCache which returns { data, cached, ... }
+      const body = await cachedRes.json()
+      if (body && body.data) {
+        const out = body.data
+        const resp = NextResponse.json(out, { status: cachedRes.status })
+        try { resp.headers.set('X-Total-Count', String(out.total ?? 0)) } catch {}
+        return resp
+      }
+    } catch (err) {
+      // If unwrapping fails, fall back to returning the cached response directly
+      return cachedRes
+    }
+    return cachedRes
   } catch (e: any) {
     const prismaMapped = mapPrismaError(e)
     if (prismaMapped) return NextResponse.json(makeErrorBody(prismaMapped), { status: prismaMapped.status })
