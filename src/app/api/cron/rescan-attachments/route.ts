@@ -14,3 +14,6 @@ const _api_POST = async (request: NextRequest) => {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
