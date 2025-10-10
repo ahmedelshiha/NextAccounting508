@@ -240,7 +240,8 @@ export class ServicesService {
     const cached = await this.cache.get<ServiceType>(cacheKey);
     if (cached) return cached;
 
-    const s = await getPrisma().service.findFirst({ where: { id: serviceId, ...(tId ? { tenantId: tId } : {}) } });
+    const prisma = await getPrisma();
+    const s = await prisma.service.findFirst({ where: { id: serviceId, ...(tId ? { tenantId: tId } : {}) } });
     if (!s) return null;
     const t = this.toType(s as any);
     await this.cache.set(cacheKey, t, 300);
