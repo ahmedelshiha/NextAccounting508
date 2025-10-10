@@ -18,7 +18,7 @@ export default defineConfig({
       ['tests/components/**/*.test.tsx', 'jsdom'],
       ['**/*.dom.test.tsx', 'jsdom']
     ],
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ['./vitest.setup.ts', './tests/setup.ts'],
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
     exclude: ['src/app/admin/tasks/tests/**/*'],
     testTimeout: 60000

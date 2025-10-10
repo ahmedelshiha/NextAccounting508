@@ -16,6 +16,11 @@
 
 **Success Criteria:** All 315 tests passing with proper tenant isolation and security enforcement.
 
+## Progress Log
+- [2025-10-10] Completed Task 1.1: Created tests/helpers/tenant-context.ts
+- [2025-10-10] Completed Task 1.2: Created tests/helpers/request.ts
+- [2025-10-10] Completed Task 1.3: Added tests/setup.ts; updated vitest.config.ts setupFiles to include it
+
 ---
 
 ## Phase 1: Test Infrastructure Setup
