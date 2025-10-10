@@ -121,57 +121,59 @@
 
 ---
 
-### ❌ 5. Tenant Signature Validation Failures
-**Status:** 🟠 Todo  
-**Affected Files:** Tenant middleware, cookie validation  
-**Impact:** Security vulnerability - invalid signatures not rejected
+### ❗ 5. Tenant Signature Validation Failures
+**Status:** 🟠 In Progress
+**Affected Files:** Tenant middleware, cookie validation
+**Impact:** Security vulnerability - invalid signatures must be rejected
 
-#### Current Behavior:
-- Invalid tenant_sig logs warning but allows request
-- Should return 403 Forbidden
+#### Current Behavior & Progress:
+- The API wrapper now explicitly checks the `tenant_sig` cookie using `verifyTenantCookie` and returns 403 when invalid. Tests log invalid signature warnings when encountered.
+- Work done: added defensive handling in `src/lib/api-wrapper.ts` to validate the tenant cookie and return 403 on failure; improved helper utilities to prefer session-derived tenant context.
+- Remaining work: ensure middleware and all routes consistently hard-fail on invalid signatures (some legacy fallbacks still log warnings). Add audit log entries for each invalid attempt and expand integration tests to cover additional edge cases.
 
-#### Tasks:
-- [ ] Review tenant signature validation in middleware
-- [ ] Change from warning to hard failure on invalid signature
-- [ ] Return proper 403 status code
-- [ ] Add audit log for failed signature attempts
-- [ ] Test with various signature tampering scenarios
+#### Tasks (updated):
+- [x] Review tenant signature validation in middleware
+- [x] Change to hard failure on invalid signature in api-wrapper
+- [ ] Ensure middleware (edge/middleware.ts) returns 403 consistently for invalid tenant_sig
+- [ ] Add audit log for failed signature attempts in all affected routes
+- [ ] Run combinatorial tests for cookie tampering and header mismatches
 
-#### Affected Tests:
-- `tests/integration/tenant-mismatch.portal.security.test.ts` (3 tests)
-- `tests/integration/tenant-mismatch.security.test.ts` (1 test)
-- `tests/integration/tenant-mismatch.additional.test.ts` (8 tests - all passing)
+#### Affected Tests (current status):
+- `tests/integration/tenant-mismatch.portal.security.test.ts` — some tests now pass; a subset still failing related to portal data fallbacks
+- `tests/integration/tenant-mismatch.security.test.ts` — mixed results; invalid cookie cases produce 403 as expected in many routes
+- `tests/integration/tenant-mismatch.additional.test.ts` — most cases passing
 
 ---
 
-### ❌ 6. Tenant Isolation Data Leakage
-**Status:** 🟠 Todo  
-**Priority:** High (Security Issue)  
+---
+
+### ❗ 6. Tenant Isolation Data Leakage
+**Status:** 🟠 In Progress
+**Priority:** High (Security Issue)
 **Impact:** Cross-tenant data exposure risk
 
-#### Issues:
-1. Portal service-requests returns empty array instead of tenant-filtered data
-2. Forged `x-tenant-id` header not properly ignored
-3. Export route doesn't filter by session tenant
+#### Issues Observed & Progress:
+1. Portal service-requests previously returned empty arrays in some test setups (now under investigation).
+2. Forged `x-tenant-id` header is being ignored in most routes, but some legacy fallback paths still rely on headers — fixed in many handlers.
+3. Export route had null/empty results when DB fallbacks were triggered — improved by adding session fallbacks, but a couple of integration tests still fail.
 
-#### Tasks:
-- [ ] Fix `GET /api/portal/service-requests` to:
-  - Ignore `x-tenant-id` header completely
-  - Use session tenant only
-  - Return tenant-scoped data
-  
-- [ ] Fix `GET /api/portal/export` to:
-  - Filter by session tenant
-  - Prevent tenant parameter override
-  
-- [ ] Fix `PATCH /api/admin/service-requests/:id` to:
-  - Return 404 (not 400) when item belongs to another tenant
-  - Verify tenant ownership before update
+#### Changes Made So Far:
+- Ensured server-side tenant context (AsyncLocal tenantContext) is preferred over header hints.
+- Enforced tenant ownership checks before performing updates on service-requests (PATCH now returns 404 when item belongs to another tenant).
+- Added session fallbacks in portal endpoints (GET and export) to resolve userId/tenantId when the tenant context is not populated by test harness.
 
-#### Affected Tests:
-- `tests/integration/tenant-mismatch.portal.security.test.ts` (3 tests)
-- `tests/integration/org-settings.tenant-isolation.test.ts` (1 test)
-- `tests/integration/portal-bookings-cancel.test.ts` (1 test)
+#### Remaining Tasks:
+- [ ] Debug why dev-fallbacks read/write leads to empty results in some tests (investigate filesystem/tmpdir visibility and test isolation)
+- [ ] Harden GET `/api/portal/service-requests` to ignore any forged headers unconditionally and always use session tenant
+- [ ] Ensure export route filters by session tenant consistently (including stream path and fallback path)
+- [ ] Add more integration tests to exercise header-forging and fallback code paths
+
+#### Affected Tests (current status):
+- `tests/integration/tenant-mismatch.portal.security.test.ts` — 2 failing tests remain (portal GET/export); others pass
+- `tests/integration/org-settings.tenant-isolation.test.ts` — pending verification
+- `tests/integration/portal-bookings-cancel.test.ts` — pending verification
+
+---
 
 ---
 
@@ -816,11 +818,17 @@ Cannot read properties of undefined (reading 'clientEmail')
 
 ### Completion Metrics
 - [x] P0 Critical: 3/3 (100%)
-- [ ] P1 High: 0/8 (0%)
+- [~] P1 High: 2/8 (in progress)
 - [ ] P2 Medium: 0/12 (0%)
 - [ ] P3 Low: 0/7 (0%)
 
-**Overall Progress:** 3/30 major issues resolved (10%)
+**Overall Progress:** 3/30 major issues resolved (10%), P1 work in progress
+
+### Current failing integration highlights
+- `tests/integration/tenant-mismatch.portal.security.test.ts` — 2 failing tests (portal GET/export)
+- A few other integration scenarios intermittently report fallback/empty results when DB is mocked/unavailable
+
+---
 
 ---
 
