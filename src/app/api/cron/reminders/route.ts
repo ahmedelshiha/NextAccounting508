@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
 import { sendBookingReminders } from '@/lib/cron'
