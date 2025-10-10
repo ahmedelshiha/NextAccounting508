@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authorizeCron } from '@/lib/cron/scheduler'
 import { refreshExchangeRates } from '@/lib/cron/exchange'
 
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
