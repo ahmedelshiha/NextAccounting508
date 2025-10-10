@@ -158,12 +158,56 @@ it('reads tenant data', async () => {
 
 ## Next Tasks
 
-- Generate requestId when missing in src/lib/api-wrapper.ts and include an X-Request-ID response header.
 - Add tests for unauthenticated header-based tenant context path in withTenantContext (x-tenant-id and x-tenant-slug).
-- Audit that all App Router API routes import and use withTenantContext; refactor any outliers.
 - Add lightweight metrics counters for tenant guard warnings/errors and missing tenant context in src/lib/observability-helpers.ts.
 - Extend docs/prisma_tenant_patterns.md with patterns for bulk mutations and pagination.
 - Run repo-wide lint and typecheck with extended timeout and address any residual issues.
+
+## Completed
+
+- Request ID generation and X-Request-ID response header in src/lib/api-wrapper.ts.
+- Audit and wrap all App Router API route handlers with withTenantContext (see list below).
+
+## Route Wrapping Status (Completed)
+
+Wrapped with withTenantContext (public endpoints marked requireAuth: false):
+
+- src/app/api/openapi/admin-services/route.ts (GET) — requireAuth: false
+- src/app/api/public/org-settings/route.ts (GET) — requireAuth: false
+- src/app/api/sentry-example/route.ts (GET) — requireAuth: false
+- src/app/api/invoicing/sequences/route.ts (GET, POST) — requireAuth: false
+- src/app/api/tools/tax/route.ts (GET, POST) — requireAuth: false
+- src/app/api/tools/client-ip/route.ts (GET)
+- src/app/api/tools/roi/route.ts (GET, POST) — requireAuth: false
+- src/app/api/bookings/availability/route.ts (GET) — requireAuth: false
+- src/app/api/neon/posts/[id]/route.ts (GET) — requireAuth: false
+- src/app/api/email-check/route.ts (GET) — requireAuth: false
+- src/app/api/compliance/overview/route.ts (GET) — requireAuth: false
+- src/app/api/services/lite/route.ts (GET) — requireAuth: false
+- src/app/api/services/[slug]/route.ts (GET — requireAuth: false; PUT, DELETE — requireAuth: true)
+- src/app/api/analytics/track/route.ts (POST) — requireAuth: false
+- src/app/api/sentry-check/route.ts (GET) — requireAuth: false
+- src/app/api/_dev/login/route.ts (POST) — requireAuth: false
+- src/app/api/monitoring/route.ts (GET, POST) — requireAuth: false
+- src/app/api/uploads/av-callback/route.ts (POST) — requireAuth: false
+- src/app/api/expenses/ingest/route.ts (GET, POST) — requireAuth: false
+- src/app/api/ws/bookings/route.ts (GET) — requireAuth: false
+- src/app/api/admin/analytics/route.ts (POST 405 wrapper)
+- src/app/api/admin/stats/counts/route.ts (POST 405 wrapper)
+- src/app/api/admin/settings/diagnostics/route.ts (POST)
+- src/app/api/security/events/route.ts (GET)
+
+Notes:
+- Many other routes were already wrapped prior to this audit (e.g., bookings, portal, users, payments, posts, services root, etc.).
+- Public routes intentionally use `{ requireAuth: false }` to allow unauthenticated access with tenant context resolution via headers.
+
+## Notes for Upcoming Work
+
+- Add a CI check to fail builds when an App Router API file exports async function handlers directly (regex guard) instead of using withTenantContext.
+- Create a lightweight ESLint rule to enforce withTenantContext usage in src/app/api/**/route.ts.
+- Add integration tests covering header-based tenant context for public routes (x-tenant-id/x-tenant-slug) and superadmin flows.
+- Ensure edge/runtime handlers (export const runtime = 'edge') are covered by tests for context propagation.
+- Add dashboards for new observability metrics (tenant_context.missing, tenant_guard.*) and alerts on spikes.
 
 ## Reference
 
