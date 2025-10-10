@@ -22,4 +22,4 @@ export const POST = withTenantContext(async (_req: NextRequest) => {
   } catch (e) {
     return NextResponse.json({ error: 'Failed to trigger reminders' }, { status: 500 })
   }
-})
+}, { requireAuth: false })
