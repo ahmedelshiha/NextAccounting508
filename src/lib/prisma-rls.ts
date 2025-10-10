@@ -1,4 +1,4 @@
-const getPrisma = () => require('@/lib/prisma').default as any
+const getPrisma = async () => (await import('@/lib/prisma')).default as any
 import { tenantContext } from '@/lib/tenant-context'
 
 /**
