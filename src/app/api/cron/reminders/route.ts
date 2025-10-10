@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 
 // POST /api/cron/reminders
 // Protected cron endpoint that scans upcoming confirmed appointments and sends reminders.
-export async function POST(req: Request) {
+const _api_POST = async (req: Request) => {
   try {
     const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
     const header = req.headers.get('x-cron-secret') || ''
