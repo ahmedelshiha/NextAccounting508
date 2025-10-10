@@ -1,9 +1,10 @@
 const COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 hours
 
-function getTextEncoder(): TextEncoder {
+async function getTextEncoder(): Promise<TextEncoder> {
   if (typeof globalThis.TextEncoder !== 'undefined') return new TextEncoder()
-  // Node <19 fallback
-  const { TextEncoder: NodeTextEncoder } = require('util') as { TextEncoder: typeof TextEncoder }
+  // Node <19 fallback using dynamic import to satisfy ESM lint rules
+  const util = await import('util')
+  const NodeTextEncoder = (util as any).TextEncoder as typeof TextEncoder
   return new NodeTextEncoder()
 }
 
@@ -22,14 +23,14 @@ function fromHex(hex: string): Uint8Array {
 
 function subtleCrypto(): SubtleCrypto | null {
   try {
-    if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.subtle) return globalThis.crypto.subtle
+    if (typeof globalThis.crypto !== 'undefined' && (globalThis.crypto as any).subtle) return (globalThis.crypto as any).subtle
   } catch {}
   return null
 }
 
 async function hmacSha256(message: string, secret: string): Promise<Uint8Array> {
   const subtle = subtleCrypto()
-  const enc = getTextEncoder()
+  const enc = await getTextEncoder()
   const msg = enc.encode(message)
   const keyData = enc.encode(secret)
 
@@ -45,9 +46,9 @@ async function hmacSha256(message: string, secret: string): Promise<Uint8Array> 
     return new Uint8Array(sig)
   }
 
-  // Node fallback (lazy require to keep edge-safe module)
-  const nodeCrypto = require('crypto') as typeof import('crypto')
-  const h = nodeCrypto.createHmac('sha256', secret)
+  // Node fallback using dynamic import to avoid require()
+  const nodeCrypto = await import('crypto')
+  const h = (nodeCrypto as any).createHmac('sha256', secret)
   h.update(message)
   return new Uint8Array(h.digest())
 }
