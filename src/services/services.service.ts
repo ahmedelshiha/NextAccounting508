@@ -208,6 +208,32 @@ export class ServicesService {
     }
   }
 
+  async exportServices(tenantId: string | null, options: { format?: string; includeInactive?: boolean } = { format: 'csv', includeInactive: false }): Promise<string> {
+    const fmt = (options.format || 'csv').toLowerCase()
+    const includeInactive = !!options.includeInactive
+    const prisma = await getPrisma()
+    const where: any = tenantId ? { tenantId } : {}
+    if (!includeInactive) (where as any).status = 'ACTIVE'
+    const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
+
+    if (fmt === 'csv') {
+      const headers = ['id','name','slug','description','shortDesc','price','duration','category','featured','active','status','createdAt','updatedAt']
+      const escape = (v: any) => {
+        if (v === null || typeof v === 'undefined') return ''
+        const s = String(v)
+        if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s.replace(/"/g, '""') + '"'
+        return s
+      }
+      const lines = [headers.join(',')]
+      for (const r of rows) {
+        lines.push(headers.map(h => escape((r as any)[h])).join(','))
+      }
+      return lines.join('\n')
+    }
+
+    return JSON.stringify(rows)
+  }
+
   async getServiceById(tenantId: string | null, serviceId: string): Promise<ServiceType | null> {
     const tId = resolveTenantId(tenantId)
     const cacheKey = `service:${serviceId}:${tId}`;
