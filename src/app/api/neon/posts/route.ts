@@ -60,3 +60,6 @@ const _api_GET = async (request: NextRequest) => {
     return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 })
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
