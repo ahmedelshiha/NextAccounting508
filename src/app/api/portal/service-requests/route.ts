@@ -108,7 +108,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
             ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
           } }
     ) : {}),
-    ...getTenantFilter('tenantId'),
+    ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
   }
 
   try {
@@ -150,7 +150,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
             ...(dateTo ? { lte: new Date(new Date(dateTo).setHours(23,59,59,999)) } : {}),
           },
         } : {}),
-        ...getTenantFilter('tenantId'),
+        ...(resolvedTenantId ? { tenantId: resolvedTenantId } : {}),
       }
       const [items, total] = await Promise.all([
         prisma.serviceRequest.findMany({
