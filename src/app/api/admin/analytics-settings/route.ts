@@ -5,6 +5,8 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import analyticsService from '@/services/analytics-settings.service'
 import { AnalyticsReportingSettingsSchema } from '@/schemas/settings/analytics-reporting'
 import * as Sentry from '@sentry/nextjs'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
 
 export const GET = withTenantContext(async (request: Request) => {
   try {
@@ -34,7 +36,10 @@ export const PUT = withTenantContext(async (request: Request) => {
       try { Sentry.captureMessage('analytics-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+    const before = await analyticsService.get(tenantId).catch(()=>null)
     const updated = await analyticsService.upsert(tenantId, parsed.data)
+    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'analyticsReporting', resource: 'analytics-settings', before: before || null, after: updated || null } }) } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'analytics-settings', details: { category: 'analyticsReporting' } } }) } catch {}
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
