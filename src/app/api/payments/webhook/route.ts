@@ -2,6 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 /**
  * Stripe Webhook Handler with Enhanced Security and Idempotency
