@@ -20,3 +20,5 @@ const _api_GET = async (request: NextRequest) => {
     return NextResponse.json({ error: 'Failed to convert' }, { status: 500 })
   }
 }
+
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
