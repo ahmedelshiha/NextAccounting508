@@ -47,3 +47,18 @@ Created: 2025-10-08
 - [ ] Add unit tests for search hook and keyboard interactions
 - [ ] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
+
+## ✅ Completed
+- [x] Added FavoriteToggle to settings headers (organization, booking, financial, communication, clients, team, tasks, services, analytics, integrations, security, system)
+  - **Why**: Enable one-click pinning from context of each settings category
+  - **Impact**: Faster access to frequently used areas; consistent UX via shared component
+
+## 🚧 In Progress
+- [ ] Persist diffs on save for Organization Settings (org-settings); extend to other categories next
+  - Implemented SettingChangeDiff + AuditEvent on org-settings PUT; rollout plan to other settings endpoints
+- [ ] Unit tests for favorites service and SettingsSearch keyboard interactions
+
+## 🔧 Next Steps
+- [ ] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, and system settings endpoints
+- [ ] Add rate limiting to diff preview endpoint
+- [ ] Add FavoriteToggle initial pinned state hydration (optional)
