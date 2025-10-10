@@ -5,6 +5,12 @@ import Link from 'next/link'
 import type { ActionItem, IconType } from '@/types/dashboard'
 import { validateActionItem, devValidateProps } from '@/utils/actionItemValidator'
 
+const ICON_CLASS = 'w-4 h-4'
+const REACT_FORWARD_REF = typeof Symbol === 'function' ? Symbol.for('react.forward_ref') : null
+const REACT_MEMO = typeof Symbol === 'function' ? Symbol.for('react.memo') : null
+
+const mergeIconClass = (existing?: string) => [ICON_CLASS, existing].filter(Boolean).join(' ')
+
 // Helper to render icon (handles both IconType and ReactNode)
 const renderIcon = (icon?: IconType | React.ReactNode) => {
   if (!icon) return null
