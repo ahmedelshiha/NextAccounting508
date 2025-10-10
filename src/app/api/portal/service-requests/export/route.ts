@@ -17,7 +17,18 @@ function toCsvValue(v: unknown): string {
 
 export const GET = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
-  const userId = String(ctx.userId)
+  let resolvedUserId = ctx.userId
+  if (!resolvedUserId) {
+    try {
+      const na = await import('next-auth').catch(() => null as any)
+      if (na && typeof na.getServerSession === 'function') {
+        const authMod = await import('@/lib/auth')
+        const session = await na.getServerSession((authMod as any).authOptions)
+        if (session?.user?.id) resolvedUserId = session.user.id
+      }
+    } catch {}
+  }
+  const userId = String(resolvedUserId)
 
   const ip = getClientIp(req as any)
   const key = `portal:service-requests:export:${ip}`
