@@ -11,6 +11,8 @@ This guide explains how tenant context flows through the app, how to write code 
 - Request wrapper: src/lib/api-wrapper.ts provides withTenantContext(handler) to resolve tenant and execute the handler inside tenantContext.run(...).
 - Prisma: src/lib/prisma.ts dynamically imports @prisma/client and registers a tenant guard via registerTenantGuard. Default export is a proxy that defers to an async client; explicit getPrisma() is also available.
 - Guard: src/lib/prisma-tenant-guard.ts enforces tenant scoping on Prisma operations when multi-tenancy is enabled.
+- Middleware: src/app/middleware.ts strips inbound x-tenant-id/x-tenant-slug, attaches canonical headers and x-request-id, and resolves tenant from session or subdomain.
+- Multi-tenancy flag: MULTI_TENANCY_ENABLED gates enforcement; guards are no-ops when disabled.
 
 ## Recent Updates
 
@@ -20,6 +22,7 @@ This guide explains how tenant context flows through the app, how to write code 
 - Intentional synchronous require usages remain where necessary and are suppressed in:
   - src/lib/rate-limit.ts (lazy Redis backend resolution)
   - src/lib/tenant-context.ts (async_hooks on Node-only paths)
+- src/app/middleware.ts now sanitizes inbound tenant headers and re-attaches canonical tenant headers and x-request-id.
 
 ## Authoring API Routes
 
@@ -42,6 +45,20 @@ export const GET = withTenantContext(async (request: Request) => {
 Notes:
 - Never compute tenant from query/body inside business logic; use withTenantContext resolution.
 - Avoid calling tenantContext.getContext() directly in routes; use requireTenantContext() for consistent errors.
+- Never trust client-sent x-tenant-id/x-tenant-slug. In production the middleware strips them and sets canonical values; public routes (requireAuth: false) rely on these headers only as set by middleware.
+
+Recommended wrapping pattern (avoid double exports):
+
+```ts
+// src/app/api/foo/route.ts
+import { withTenantContext } from '@/lib/api-wrapper'
+
+async function getImpl(request: Request) {
+  // handler logic
+}
+
+export const GET = withTenantContext(getImpl, { requireAuth: false })
+```
 
 ## Services and Libraries
 
@@ -73,6 +90,7 @@ await prismaClient.$transaction(async (tx) => {
 ```
 
 - All queries must be tenant-scoped. If your model has tenantId, include it in where/data as appropriate. The tenant guard logs and/or throws when scope is missing or mismatched.
+  - The guard may auto-inject tenantId for creates and auto-scope reads/mutations when possible; it will throw on mismatches or unsafe bulk operations.
 
 ## Raw SQL Helpers
 
@@ -127,12 +145,14 @@ it('reads tenant data', async () => {
 ```
 
 - For DB-free tests, set PRISMA_MOCK=true to receive a safe mock client.
+- Header-based, unauthenticated context is covered by tests/integration/withTenantContext.header-tenant.test.ts.
 
 ## Observability and Security
 
 - Logging: logs include tenantId, userId, requestId automatically via src/lib/logger.ts when context is present.
 - Sentry: events are tagged with tenant context; see sentry.server.config.ts and sentry.edge.config.ts.
 - The guard emits warnings or throws on missing tenant scope; treat these as security signals.
+  - Lightweight metrics counters exist in src/lib/observability-helpers.ts (e.g., tenant_context.missing, tenant_guard.*).
 
 ## Common Pitfalls
 
@@ -158,8 +178,6 @@ it('reads tenant data', async () => {
 
 ## Next Tasks
 
-- Add tests for unauthenticated header-based tenant context path in withTenantContext (x-tenant-id and x-tenant-slug).
-- Add lightweight metrics counters for tenant guard warnings/errors and missing tenant context in src/lib/observability-helpers.ts.
 - Extend docs/prisma_tenant_patterns.md with patterns for bulk mutations and pagination.
 - Run repo-wide lint and typecheck with extended timeout and address any residual issues.
 
@@ -167,6 +185,9 @@ it('reads tenant data', async () => {
 
 - Request ID generation and X-Request-ID response header in src/lib/api-wrapper.ts.
 - Audit and wrap all App Router API route handlers with withTenantContext (see list below).
+- Middleware strips inbound x-tenant-* headers and sets canonical headers for downstream consumption.
+- Lightweight metrics counters added in src/lib/observability-helpers.ts and integrated into guard/wrapper.
+- Tests for unauthenticated header-based tenant context in withTenantContext (x-tenant-id/x-tenant-slug).
 
 ## Route Wrapping Status (Completed)
 
@@ -219,5 +240,6 @@ Notes:
 - src/lib/prisma.ts
 - src/lib/prisma-tenant-guard.ts
 - src/lib/logger.ts
+- src/app/middleware.ts
 - sentry.server.config.ts
 - sentry.edge.config.ts
