@@ -42,7 +42,7 @@ export class ServicesService {
     let attempt = 1
      
     while (true) {
-      const exists = await getPrisma().service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+      const exists = await (await getPrisma()).service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
       if (!exists) break
       attempt += 1
       slug = `${baseSlug}-${attempt}`
