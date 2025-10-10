@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { addDays, format, startOfDay, endOfDay } from 'date-fns'
 import { calculateServicePrice } from '@/lib/booking/pricing'
 import { getAvailabilityForService, type BusinessHours } from '@/lib/booking/availability'
@@ -57,7 +58,7 @@ function ymd(d: Date) {
 }
 
 // GET /api/bookings/availability - Get available time slots
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     console.log('[availability] GET start')
     const { searchParams } = new URL(request.url)
@@ -197,4 +198,4 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching availability:', error)
     return NextResponse.json({ error: 'Failed to fetch availability' }, { status: 500 })
   }
-}
+}, { requireAuth: false })
