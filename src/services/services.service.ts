@@ -121,7 +121,7 @@ export class ServicesService {
         const before = map.get(u.id)
         const prev = (before?.serviceSettings as any) ?? {}
         const next = { ...prev, ...u.settings }
-        await prisma.service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        await getPrisma().service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
         updated += 1
       } catch (e: any) {
         errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
