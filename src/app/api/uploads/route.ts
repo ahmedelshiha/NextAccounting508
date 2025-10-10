@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { fileTypeFromBuffer } from 'file-type'
+import { NextResponse, NextRequest } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { logAuditSafe } from '@/lib/observability-helpers'
 import { getTenantFromRequest, isMultiTenancyEnabled } from '@/lib/tenant'
 import { resolveTenantId } from '@/lib/default-tenant'
