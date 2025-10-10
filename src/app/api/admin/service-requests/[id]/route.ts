@@ -83,6 +83,11 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
       return respond.tooMany()
     }
   }
+  // First ensure the service request exists and belongs to the current tenant
+  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() }, select: { clientId: true } })
+  if (!sr) return respond.notFound('Service request not found')
+
+  // Parse and validate payload after tenant ownership check
   const body = await req.json().catch(() => null)
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) {
@@ -94,8 +99,6 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
     updates.deadline = parsed.data.deadline ? new Date(parsed.data.deadline as any) : null
   }
 
-  const sr = await prisma.serviceRequest.findFirst({ where: { id, ...getTenantFilter() }, select: { clientId: true } })
-  if (!sr) return respond.notFound('Service request not found')
   const updated = await prisma.serviceRequest.update({ where: { id }, data: updates })
   try { realtimeService.emitServiceRequestUpdate(updated.id, { action: 'updated' }) } catch {}
   try { if (sr?.clientId) realtimeService.broadcastToUser(String(sr.clientId), { type: 'service-request-updated', data: { serviceRequestId: updated.id, action: 'updated' }, timestamp: new Date().toISOString() }) } catch {}
