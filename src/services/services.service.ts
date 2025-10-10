@@ -905,7 +905,21 @@ export class ServicesService {
     return changed
   }
 
-  private toType(service: Prisma.ServiceGetPayload<{ }>): ServiceType {
+  private toType(service: PrismaService): ServiceType {
+    const blackoutDates = (service.blackoutDates ?? []).map((value) =>
+      value instanceof Date ? value.toISOString() : String(value),
+    )
+
+    const booking = {
+      bookingEnabled: Boolean(service.bookingEnabled),
+      advanceBookingDays: service.advanceBookingDays ?? undefined,
+      minAdvanceHours: service.minAdvanceHours ?? undefined,
+      maxDailyBookings: service.maxDailyBookings ?? undefined,
+      bufferTime: service.bufferTime ?? undefined,
+      businessHours: (service.businessHours as Record<string, unknown> | null) ?? null,
+      blackoutDates,
+    }
+
     return {
       id: service.id,
       tenantId: service.tenantId,
@@ -924,23 +938,15 @@ export class ServicesService {
       active: Boolean(service.active),
       status: service.status,
       serviceSettings: (service.serviceSettings as Record<string, unknown> | null) ?? null,
-      metrics: undefined,
       views: service.views ?? undefined,
       image: service.image ?? null,
-      createdAt: (service.createdAt instanceof Date ? service.createdAt.toISOString() : String(service.createdAt)) ?? new Date().toISOString(),
-      updatedAt: (service.updatedAt instanceof Date ? service.updatedAt.toISOString() : String(service.updatedAt)) ?? new Date().toISOString(),
-      booking: {
-        bookingEnabled: Boolean(service.bookingEnabled),
-        advanceBookingDays: service.advanceBookingDays ?? undefined,
-        minAdvanceHours: service.minAdvanceHours ?? undefined,
-        maxDailyBookings: service.maxDailyBookings ?? undefined,
-        bufferTime: service.bufferTime ?? undefined,
-        businessHours: (service.businessHours as Record<string, unknown> | null) ?? null,
-        blackoutDates: (service.blackoutDates ?? []).map((value) => (value instanceof Date ? value.toISOString() : String(value))),
-      },
+      createdAt:
+        service.createdAt instanceof Date ? service.createdAt.toISOString() : String(service.createdAt),
+      updatedAt:
+        service.updatedAt instanceof Date ? service.updatedAt.toISOString() : String(service.updatedAt),
+      booking,
       currency: null,
-      priceCents: undefined,
-    } as ServiceType
+    }
   }
 
   private async clearCaches(tenantId: string | null, serviceId?: string) {
