@@ -276,7 +276,7 @@ export class ServicesService {
     const existing = await this.getServiceById(tId, id);
     if (!existing) throw new Error('Service not found');
 
-    await prisma.service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
+    await getPrisma().service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
     await this.clearCaches(tId, id);
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
     try { serviceEvents.emit('service:deleted', { tenantId: tId, id }) } catch {}
