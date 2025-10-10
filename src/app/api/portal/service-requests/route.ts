@@ -68,8 +68,25 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   const dateFrom = searchParams.get('dateFrom')
   const dateTo = searchParams.get('dateTo')
 
+  // Resolve effective user and tenant identifiers, prefer tenantContext but fall back to next-auth session when missing
+  let resolvedUserId = ctx.userId
+  let resolvedTenantId = ctx.tenantId
+  if (!resolvedUserId || !resolvedTenantId) {
+    try {
+      const na = await import('next-auth').catch(() => null as any)
+      if (na && typeof na.getServerSession === 'function') {
+        const authMod = await import('@/lib/auth')
+        const session = await na.getServerSession((authMod as any).authOptions)
+        if (session?.user) {
+          resolvedUserId = resolvedUserId || session.user.id
+          resolvedTenantId = resolvedTenantId || session.user.tenantId
+        }
+      }
+    } catch {}
+  }
+
   const where: any = {
-    clientId: ctx.userId,
+    clientId: resolvedUserId,
     ...(status && { status }),
     ...(priority && { priority }),
     ...(q && {
