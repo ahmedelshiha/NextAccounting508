@@ -9,7 +9,7 @@ import { createHash, randomBytes } from 'crypto'
 
 const schema = z.object({ email: z.string().email() })
 
-export async function POST(req: NextRequest) {
+const _api_POST = async (req: NextRequest) => {
   try {
     const ip = getClientIp(req as unknown as Request)
     const key = `auth:forgot:${ip}`
