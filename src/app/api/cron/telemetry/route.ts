@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable } from '@/lib/observability-helpers'
 import { withTenantContext } from '@/lib/api-wrapper'
