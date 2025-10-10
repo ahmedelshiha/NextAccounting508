@@ -4,7 +4,7 @@ import { processBookingReminders } from '@/lib/cron/reminders'
 import { authorizeCron, runCronTask } from '@/lib/cron/scheduler'
 
 // POST /api/cron - Run scheduled tasks
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
