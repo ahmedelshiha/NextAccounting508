@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
 
-import { Prisma, ServiceStatus } from '@prisma/client'
+import { Prisma, ServiceStatus, type Service as PrismaService } from '@prisma/client'
 
 import prisma from '@/lib/prisma'
 import { CacheService } from '@/lib/cache.service'
