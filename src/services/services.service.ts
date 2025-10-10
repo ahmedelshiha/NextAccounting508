@@ -386,11 +386,11 @@ export class ServicesService {
 
     const where: Prisma.ServiceWhereInput = tId ? ({ tenantId: tId } as any) : {};
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
-      prisma.service.count({ where }),
-      prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
-      prisma.service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
-      prisma.service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
-      prisma.service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
+      getPrisma().service.count({ where }),
+      getPrisma().service.count({ where: { ...where, status: 'ACTIVE' as any } }),
+      getPrisma().service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
+      getPrisma().service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
+      getPrisma().service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
     ]);
 
     // Analytics window: last 6 months
