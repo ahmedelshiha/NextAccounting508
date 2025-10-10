@@ -263,7 +263,7 @@ export class ServicesService {
     if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
       updateData.serviceSettings = (sanitized as any).serviceSettings as unknown as Prisma.InputJsonValue;
     }
-    const s = await prisma.service.update({ where: { id }, data: updateData });
+    const s = await getPrisma().service.update({ where: { id }, data: updateData });
     await this.clearCaches(tId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
