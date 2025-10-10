@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 // GET /api/services/[slug] - Get service by slug
 const _api_GET = async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
@@ -36,12 +37,14 @@ const _api_GET = async (request: NextRequest, context: { params: Promise<{ slug:
   }
 }
 
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
+
 // PUT /api/services/[slug] - Update service (admin only)
-export async function PUT(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export const PUT = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   const { slug } = await context.params
   try {
     const body = await request.json()
-    
+
     const {
       name,
       description,
@@ -81,10 +84,10 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ slu
       { status: 500 }
     )
   }
-}
+}, { requireAuth: true })
 
 // DELETE /api/services/[slug] - Delete service (admin only)
-export async function DELETE(request: NextRequest, context: { params: Promise<{ slug: string }> }) {
+export const DELETE = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   try {
     const { slug } = await context.params
     // Soft delete by setting active to false
@@ -103,4 +106,4 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       { status: 500 }
     )
   }
-}
+}, { requireAuth: true })

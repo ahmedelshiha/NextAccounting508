@@ -28,6 +28,6 @@ export const GET = withTenantContext(async (_req: NextRequest) => {
   }
 })
 
-export async function POST() {
+export const POST = withTenantContext(async () => {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 })
-}
+})

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 const eventSchema = z.object({
   event: z.string().min(1).max(64),
@@ -9,7 +10,7 @@ const eventSchema = z.object({
   timestamp: z.number().int().optional(),
 })
 
-export async function POST(req: NextRequest) {
+export const POST = withTenantContext(async (req: NextRequest) => {
   // Public endpoint; protect via strict rate limiting per IP
   const ip = getClientIp(req as unknown as Request)
   const key = `analytics:track:${ip}`
@@ -42,4 +43,4 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: 'Failed to track event' }, { status: 500 })
   }
-}
+}, { requireAuth: false })

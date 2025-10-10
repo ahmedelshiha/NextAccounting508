@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { getClientIp } from '@/lib/rate-limit'
 import isIpAllowed from '@/lib/security/ip-allowlist'
 import securityService from '@/services/security-settings.service'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: Request) => {
   try {
     const ip = getClientIp(request)
     const family = ip.includes(':') ? 'ipv6' : 'ipv4'
@@ -24,4 +25,4 @@ export async function GET(request: Request) {
   } catch (e) {
     return NextResponse.json({ error: 'Failed to resolve client ip' }, { status: 500 })
   }
-}
+})

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@netlify/neon'
+import { withTenantContext } from '@/lib/api-wrapper'
 let sql: any = null
 try {
   sql = neon()
@@ -31,7 +32,7 @@ export type PostRow = {
   updatedAt?: string | Date
 }
 
-export async function GET(_req: Request, ctx: any) {
+export const GET = withTenantContext(async (_req: Request, ctx: any) => {
   try {
     const params = ctx?.params || ctx
     const { id } = params && params.params ? await params.params : (params || {})
@@ -46,4 +47,4 @@ export async function GET(_req: Request, ctx: any) {
     console.error('Neon GET /api/neon/posts/[id] error:', error)
     return new Response(JSON.stringify({ error: 'Failed to fetch post' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
-}
+}, { requireAuth: false })

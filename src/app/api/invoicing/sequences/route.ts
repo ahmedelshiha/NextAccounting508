@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'edge'
 
@@ -26,7 +27,7 @@ function nextRuns(start: string, cadence: 'weekly' | 'monthly' | 'quarterly', co
   return dates
 }
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   let body: unknown
   try {
     body = await req.json()
@@ -47,8 +48,8 @@ export async function POST(req: Request) {
       ...data,
     }
   })
-}
+}, { requireAuth: false })
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   return NextResponse.json({ schema: "POST { name,startDate(YYYY-MM-DD),cadence('weekly'|'monthly'|'quarterly'),amount,currency(AAA) } -> { success, data:{ id, preview:string[], ...input } }" })
-}
+}, { requireAuth: false })
