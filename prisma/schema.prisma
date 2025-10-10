@@ -59,6 +59,9 @@ model User {
   expenses Expense[]
   tenantMemberships TenantMembership[]
   auditLogs AuditLog[]
+  settingChangeDiffs SettingChangeDiff[]
+  favoriteSettings   FavoriteSetting[]
+  auditEvents        AuditEvent[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -147,6 +150,9 @@ model Tenant {
   securitySettings     SecuritySettings?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
+  settingChangeDiffs   SettingChangeDiff[]
+  favoriteSettings     FavoriteSetting[]
+  auditEvents          AuditEvent[]
 
   @@index([status])
 }
