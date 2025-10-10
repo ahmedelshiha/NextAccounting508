@@ -4,7 +4,7 @@ import { rescanErroredAttachments } from '@/lib/cron/rescan'
 
 export const runtime = 'nodejs'
 
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
