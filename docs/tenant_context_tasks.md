@@ -54,9 +54,39 @@ This reduced some test failures (admin services clone tests now pass) but reveal
 
 ---
 
+## Batch Conversion Plan — started
+
+Batch 1 (in_progress) — Convert these 20 files to use lazy getPrisma() and update usages:
+
+1. src/services/financial-settings.service.ts
+2. src/lib/org-settings.ts
+3. src/lib/idempotency.ts
+4. src/lib/cron.ts
+5. src/lib/default-tenant.ts
+6. src/lib/auth.ts
+7. src/lib/service-requests/assignment.ts
+8. src/lib/cron/rescan.ts
+9. src/lib/cron/exchange.ts
+10. src/lib/cron/reminders.ts
+11. src/lib/booking/conflict-detection.ts
+12. src/lib/booking/availability.ts
+13. src/lib/booking/pricing.ts
+14. src/lib/audit.ts
+15. src/lib/mfa.ts
+16. src/services/security-settings.service.ts
+17. src/services/analytics-settings.service.ts
+18. src/services/task-settings.service.ts
+19. src/services/communication-settings.service.ts
+20. src/services/system-settings.service.ts
+
+Status: in_progress — I will update these files in the first batch, run targeted tests, and report results.
+
+Batch 2 (pending) — next 20 files will be prepared after Batch 1 completes.
+
+---
+
 ## Notes / Blockers
-- Many tests vi.mock '@/lib/prisma' with factories; those mocks are hoisted by vitest and can conflict with any module-level initialization that reads `prisma` during import. Converting modules to lazy require reduces the surface but must be done consistently.
-- Temporary short-circuits were added to the clone route to unblock tests; these must be reverted before releasing behaviorally-correct checks (allowCloning) back into production flows.
-- Consider setting a repository-wide testing guideline: always mock `@/lib/prisma` and avoid top-level DB operations in module scope.
+- Converting files must preserve original behavior and avoid introducing circular imports. Use getPrisma() lazy require to avoid vitest hoisting issues.
+- Some modules perform DB operations at module initialization; those must be refactored to run lazily inside functions.
 
 
