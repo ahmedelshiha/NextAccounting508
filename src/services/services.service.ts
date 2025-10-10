@@ -408,7 +408,7 @@ export class ServicesService {
     let bookings: Array<{ id: string; scheduledAt: any; serviceId: string; service?: { id: string; name: string; price: any } }> = []
     try {
       if ((prisma as any)?.booking?.findMany) {
-        bookings = await prisma.booking.findMany({ where: bookingWhere as any, include: { service: { select: { id: true, name: true, price: true } } } })
+        bookings = await getPrisma().booking.findMany({ where: bookingWhere as any, include: { service: { select: { id: true, name: true, price: true } } } })
       } else {
         bookings = await queryTenantRaw<any>`
           SELECT b.id, b.scheduledAt, b.serviceId, s.id as "service.id", s.name as "service.name", s.price as "service.price"
