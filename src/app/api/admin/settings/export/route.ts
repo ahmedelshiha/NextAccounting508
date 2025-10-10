@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 export async function GET() {
   // In production, gather actual settings from DB/services. For now, build a minimal export.
   const payload = {
@@ -18,3 +16,8 @@ export async function GET() {
     },
   })
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+
+const _api_GET = GET
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
