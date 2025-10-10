@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable } from '@/lib/observability-helpers'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -100,3 +100,5 @@ const _api_GET = async (req: Request) => {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
