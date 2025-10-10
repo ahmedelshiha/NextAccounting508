@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function GET(_request: NextRequest) {
+const _api_GET = async (_request: NextRequest) => {
   try {
     const base = process.env.EXCHANGE_BASE_CURRENCY || 'USD'
     const currencies = await prisma.currency.findMany({ where: { active: true }, orderBy: { isDefault: 'desc' } })
