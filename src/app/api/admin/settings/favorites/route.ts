@@ -19,7 +19,7 @@ export const POST = withTenantContext(async (req: Request) => {
   const body = await req.json()
   const { settingKey, route, label } = body || {}
   if (!settingKey || !route || !label) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
-  const item = await (await prisma).favoriteSetting.upsert({
+  const item = await prisma.favoriteSetting.upsert({
     where: { tenantId_userId_settingKey: { tenantId: ctx.tenantId, userId: String(ctx.userId), settingKey } },
     update: { route, label },
     create: { tenantId: ctx.tenantId, userId: String(ctx.userId), settingKey, route, label },
@@ -33,7 +33,7 @@ export const DELETE = withTenantContext(async (req: Request) => {
   const { searchParams } = new URL(req.url)
   const settingKey = searchParams.get('settingKey')
   if (!settingKey) return NextResponse.json({ error: 'Missing settingKey' }, { status: 400 })
-  await (await prisma).favoriteSetting.delete({
+  await prisma.favoriteSetting.delete({
     where: { tenantId_userId_settingKey: { tenantId: ctx.tenantId, userId: String(ctx.userId), settingKey } },
   })
   return NextResponse.json({ ok: true })
