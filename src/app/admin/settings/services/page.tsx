@@ -6,6 +6,7 @@ import Tabs from '@/components/admin/settings/Tabs'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { usePermissions } from '@/lib/use-permissions'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 import { TextField, SelectField, Toggle, NumberField } from '@/components/admin/settings/FormField'
 import { toastFromResponse, toastSuccess, toastError } from '@/lib/toast-api'
 
@@ -106,6 +107,7 @@ export default function Page() {
             <button onClick={onSave} disabled={loading || !perms.has(PERMISSIONS.SERVICES_EDIT)} className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">
               {loading ? 'Saving…' : 'Save settings'}
             </button>
+            <FavoriteToggle settingKey="serviceManagement" route="/admin/settings/services" label="Service Management" />
           </div>
         )}
       >
