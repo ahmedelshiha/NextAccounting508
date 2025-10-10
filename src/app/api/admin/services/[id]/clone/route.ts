@@ -21,6 +21,7 @@ async function resolveId(ctx: any): Promise<string | undefined> {
 export const POST = withTenantContext(async (request: NextRequest, context: Ctx) => {
   try {
     const id = await resolveId(context)
+    if (!id) return NextResponse.json(makeErrorBody({ code: 'INVALID_ID', message: 'Invalid id' } as any), { status: 400 })
     // Shortcut for tests: bypass tenant/session-dependent checks and directly exercise clone logic
     console.log('clone route NODE_ENV=', process.env.NODE_ENV)
     if (String(process.env.NODE_ENV) === 'test') {
