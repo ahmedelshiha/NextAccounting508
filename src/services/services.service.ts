@@ -500,4 +500,3 @@ export class ServicesService {
 
 const servicesService = new ServicesService()
 export default servicesService
-export default servicesService
