@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 // GET /api/cron/telemetry
 // Protected endpoint that returns recent telemetry for reminder runs.
 // Auth: requires Authorization: Bearer <CRON_SECRET> (or NEXT_CRON_SECRET)
-export async function GET(req: Request) {
+const _api_GET = async (req: Request) => {
   try {
     const authHeader = req.headers.get('authorization') || ''
     const cronSecret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET || ''
