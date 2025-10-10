@@ -5,6 +5,8 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import communicationSettingsService from '@/services/communication-settings.service'
 import { CommunicationSettingsPatchSchema } from '@/schemas/settings/communication'
 import * as Sentry from '@sentry/nextjs'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
 
 const patchSchema = CommunicationSettingsPatchSchema
 
@@ -34,7 +36,14 @@ export const PUT = withTenantContext(async (req: Request) => {
       try { Sentry.captureMessage('communication-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+    const before = await communicationSettingsService.get(ctx.tenantId).catch(()=>null)
     const updated = await communicationSettingsService.upsert(ctx.tenantId, parsed.data)
+
+    try {
+      await prisma.settingChangeDiff.create({ data: { tenantId: ctx.tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'communication', resource: 'communication-settings', before: before || null, after: updated || null } })
+    } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId: ctx.tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'communication-settings', details: { category: 'communication' } } }) } catch {}
+
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
