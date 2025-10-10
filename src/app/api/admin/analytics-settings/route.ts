@@ -6,8 +6,7 @@ import analyticsService from '@/services/analytics-settings.service'
 import { AnalyticsReportingSettingsSchema } from '@/schemas/settings/analytics-reporting'
 import * as Sentry from '@sentry/nextjs'
 import prisma from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
-import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (request: Request) => {
   try {
@@ -44,7 +43,7 @@ export const PUT = withTenantContext(async (request: Request) => {
     const before = await analyticsService.get(tenantId).catch(() => null)
     const updated = await analyticsService.upsert(tenantId, parsed.data)
     const actorUserId = ctx.userId ? String(ctx.userId) : undefined
-    const diffPayload: Prisma.SettingChangeDiffCreateInput = {
+    const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
       tenantId,
       category: 'analyticsReporting',
       resource: 'analytics-settings',
@@ -54,11 +53,11 @@ export const PUT = withTenantContext(async (request: Request) => {
       diffPayload.before = before as Prisma.InputJsonValue
     }
     diffPayload.after = updated as Prisma.InputJsonValue
-    const auditPayload: Prisma.AuditEventCreateInput = {
+    const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
       tenantId,
       type: 'settings.update',
       resource: 'analytics-settings',
-      details: { category: 'analyticsReporting' },
+      details: { category: 'analyticsReporting' } as Prisma.InputJsonValue,
       ...(actorUserId ? { userId: actorUserId } : {}),
     }
     try { await prisma.settingChangeDiff.create({ data: diffPayload }) } catch {}
