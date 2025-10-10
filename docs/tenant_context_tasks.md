@@ -12,6 +12,15 @@ This guide explains how tenant context flows through the app, how to write code 
 - Prisma: src/lib/prisma.ts dynamically imports @prisma/client and registers a tenant guard via registerTenantGuard. Default export is a proxy that defers to an async client; explicit getPrisma() is also available.
 - Guard: src/lib/prisma-tenant-guard.ts enforces tenant scoping on Prisma operations when multi-tenancy is enabled.
 
+## Recent Updates
+
+- src/lib/prisma.ts switched to dynamic async import with a proxy default and async getPrisma() to satisfy eslint rules without call-site changes.
+- src/lib/logger.ts now auto-enriches all logs with tenantId, tenantSlug, userId, requestId, role, tenantRole when available from tenantContext.
+- sentry.server.config.ts and sentry.edge.config.ts add tenant tags and user data to events.
+- Intentional synchronous require usages remain where necessary and are suppressed in:
+  - src/lib/rate-limit.ts (lazy Redis backend resolution)
+  - src/lib/tenant-context.ts (async_hooks on Node-only paths)
+
 ## Authoring API Routes
 
 Always wrap handlers with withTenantContext and derive tenant/user data from requireTenantContext:
@@ -121,8 +130,8 @@ it('reads tenant data', async () => {
 
 ## Observability and Security
 
-- Logging: include tenantId, userId, requestId on structured logs. If using a logger wrapper, read from tenantContext.getContextOrNull().
-- Sentry: tag events with tenant context in beforeSend hooks; see sentry.*.config.ts.
+- Logging: logs include tenantId, userId, requestId automatically via src/lib/logger.ts when context is present.
+- Sentry: events are tagged with tenant context; see sentry.server.config.ts and sentry.edge.config.ts.
 - The guard emits warnings or throws on missing tenant scope; treat these as security signals.
 
 ## Common Pitfalls
@@ -136,6 +145,8 @@ it('reads tenant data', async () => {
 
 - Prisma import now uses dynamic ESM import with an async getPrisma() and a proxy default export; no require() usage remains in prisma loader.
 - Tenant guard attaches at client creation.
+- Logger auto-enrichment enabled.
+- Sentry tagging enabled.
 - Tests can continue mocking '@/lib/prisma' default.
 
 ## Verification
@@ -145,6 +156,15 @@ it('reads tenant data', async () => {
 - Background jobs complete with explicit context.
 - Logs and error reports include tenant identifiers.
 
+## Next Tasks
+
+- Generate requestId when missing in src/lib/api-wrapper.ts and include an X-Request-ID response header.
+- Add tests for unauthenticated header-based tenant context path in withTenantContext (x-tenant-id and x-tenant-slug).
+- Audit that all App Router API routes import and use withTenantContext; refactor any outliers.
+- Add lightweight metrics counters for tenant guard warnings/errors and missing tenant context in src/lib/observability-helpers.ts.
+- Extend docs/prisma_tenant_patterns.md with patterns for bulk mutations and pagination.
+- Run repo-wide lint and typecheck with extended timeout and address any residual issues.
+
 ## Reference
 
 - src/lib/tenant-context.ts
@@ -152,3 +172,6 @@ it('reads tenant data', async () => {
 - src/lib/tenant-utils.ts
 - src/lib/prisma.ts
 - src/lib/prisma-tenant-guard.ts
+- src/lib/logger.ts
+- sentry.server.config.ts
+- sentry.edge.config.ts
