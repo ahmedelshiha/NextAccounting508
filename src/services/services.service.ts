@@ -95,7 +95,7 @@ export class ServicesService {
         active: false,
         status: ServiceStatus.DRAFT,
         image: original.image,
-        serviceSettings: original.serviceSettings ?? undefined,
+        serviceSettings: (original.serviceSettings as Prisma.InputJsonValue | null) ?? undefined,
         bookingEnabled: original.bookingEnabled,
         advanceBookingDays: original.advanceBookingDays,
         minAdvanceHours: original.minAdvanceHours,
@@ -175,7 +175,7 @@ export class ServicesService {
         }
         await prisma.service.update({
           where: { id: update.id },
-          data: { serviceSettings: merged },
+          data: { serviceSettings: merged as unknown as Prisma.InputJsonValue },
         })
         updated += 1
       } catch (error) {
@@ -366,13 +366,13 @@ export class ServicesService {
         active: sanitized.active ?? data.active ?? true,
         status: (sanitized.status ?? data.status ?? ServiceStatus.ACTIVE) as ServiceStatus,
         image: sanitized.image ?? data.image ?? null,
-        serviceSettings: sanitized.serviceSettings ?? data.serviceSettings ?? undefined,
+        serviceSettings: (sanitized.serviceSettings as unknown as Prisma.InputJsonValue) ?? (data.serviceSettings as unknown as Prisma.InputJsonValue) ?? undefined,
         bookingEnabled: sanitized.bookingEnabled ?? data.bookingEnabled ?? true,
         advanceBookingDays: sanitized.advanceBookingDays ?? data.advanceBookingDays ?? 30,
         minAdvanceHours: sanitized.minAdvanceHours ?? data.minAdvanceHours ?? 24,
         maxDailyBookings: sanitized.maxDailyBookings ?? data.maxDailyBookings ?? null,
         bufferTime: sanitized.bufferTime ?? data.bufferTime ?? 0,
-        businessHours: sanitized.businessHours ?? data.businessHours ?? null,
+        businessHours: (sanitized.businessHours as unknown as Prisma.InputJsonValue) ?? (data.businessHours as unknown as Prisma.InputJsonValue) ?? null,
         blackoutDates,
         requiredSkills: sanitized.requiredSkills ?? data.requiredSkills ?? [],
       },
@@ -445,13 +445,13 @@ export class ServicesService {
         active: sanitized.active,
         status: sanitized.status ? (sanitized.status as ServiceStatus) : undefined,
         image: sanitized.image ?? null,
-        serviceSettings: sanitized.serviceSettings ?? undefined,
+        serviceSettings: (sanitized.serviceSettings as unknown as Prisma.InputJsonValue) ?? undefined,
         bookingEnabled: sanitized.bookingEnabled,
         advanceBookingDays: sanitized.advanceBookingDays,
         minAdvanceHours: sanitized.minAdvanceHours,
         maxDailyBookings: sanitized.maxDailyBookings,
         bufferTime: sanitized.bufferTime,
-        businessHours: sanitized.businessHours ?? undefined,
+        businessHours: (sanitized.businessHours as unknown as Prisma.InputJsonValue) ?? undefined,
         blackoutDates: sanitized.blackoutDates ? sanitized.blackoutDates.map((d) => new Date(d)) : undefined,
         requiredSkills: sanitized.requiredSkills,
       }),
@@ -470,13 +470,13 @@ export class ServicesService {
       if (changes.length) {
         await this.notifications.notifyServiceUpdated(mapped, changes, updatedBy)
       }
-    } catch {}
-
-    try {
-      serviceEvents.emit('service:updated', {
-        tenantId: resolvedTenantId,
-        service: { id: updated.id, slug: updated.slug, name: updated.name },
-      })
+      try {
+        serviceEvents.emit('service:updated', {
+          tenantId: resolvedTenantId,
+          service: { id: updated.id, slug: updated.slug, name: updated.name },
+          changes,
+        })
+      } catch {}
     } catch {}
 
     return mapped
