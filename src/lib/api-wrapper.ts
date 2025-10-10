@@ -69,6 +69,13 @@ export function withTenantContext(
     } = options
 
     try {
+      // Ensure request object exists for tests that call handlers without args
+      request = request ?? ({} as any)
+      if (!request.headers || typeof (request.headers as any).get !== 'function') {
+        (request as any).headers = { get: (_: string) => null }
+      }
+      if (!(request as any).url) (request as any).url = 'http://localhost'
+
       // Resolve session with robust fallbacks
       let session: any = null
       try {

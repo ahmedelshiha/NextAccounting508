@@ -79,8 +79,14 @@ function extractTenantHint(source: TenantSource): string | null {
   return null
 }
 
+import { tenantContext } from './tenant-context'
+
 export function getTenantFromRequest(req: Request): string | null {
   try {
+    // If the tenant context is already set (authenticated session), prefer it over any header
+    const ctxTenant = tenantContext.getContextOrNull?.() ?? null
+    if (ctxTenant && ctxTenant.tenantId) return ctxTenant.tenantId
+
     const header = req.headers.get('x-tenant-id')
     if (header) return header
     const url = new URL((req as any).url || 'http://localhost')
