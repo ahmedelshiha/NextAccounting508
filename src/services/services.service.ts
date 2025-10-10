@@ -48,7 +48,7 @@ export class ServicesService {
       slug = `${baseSlug}-${attempt}`
     }
 
-    const created = await getPrisma().service.create({
+    const created = await (await getPrisma()).service.create({
       data: {
         name,
         slug,
