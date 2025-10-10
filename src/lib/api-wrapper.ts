@@ -186,7 +186,7 @@ export function withTenantContext(
             )
           }
 
-          const ok = verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
+          const ok = await verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
           if (!ok) {
             logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: user.tenantId })
             return attachRequestId(
