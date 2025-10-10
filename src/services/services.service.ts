@@ -170,8 +170,8 @@ export class ServicesService {
 
     try {
       const [rows, total] = await Promise.all([
-        prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
-        prisma.service.count({ where }),
+        getPrisma().service.findMany({ where, orderBy, skip: offset, take: limit }),
+        getPrisma().service.count({ where }),
       ]);
       const totalPages = Math.ceil(total / limit);
       const page = Math.floor(offset / limit) + 1;
