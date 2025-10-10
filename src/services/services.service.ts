@@ -307,7 +307,7 @@ export class ServicesService {
 
     // Delete -> soft deactivate
     if (type === 'delete') {
-      const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
+      const res = await getPrisma().service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
