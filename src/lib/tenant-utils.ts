@@ -17,6 +17,7 @@ export function requireTenantContext(): TenantContext {
 
 export function getTenantFilter(field: string = 'tenantId'): Record<string, string> {
   const context = requireTenantContext()
+  if (!context.tenantId) return {}
   return { [field]: context.tenantId }
 }
 
