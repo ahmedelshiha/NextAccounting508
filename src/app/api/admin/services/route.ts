@@ -157,11 +157,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       } catch {}
     }
 
-    if (!tenantId) {
-      return NextResponse.json({ error: 'Tenant context required to create service' }, { status: 400 })
-    }
-
-    const service = await svc.createService(tenantId, validated as any, String(ctx.userId ?? ''))
+    const service = await svc.createService(tenantId ?? null, validated as any, String(ctx.userId ?? ''))
 
     try { await logAudit({ action: 'SERVICE_CREATED', actorId: ctx.userId ?? null, targetId: service.id, details: { slug: service.slug } }) } catch {}
 
