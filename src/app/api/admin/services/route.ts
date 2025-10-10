@@ -65,8 +65,14 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       const body = await cachedRes.json()
       if (body && body.data) {
         const out = body.data
+        const etag = '"' + createHash('md5').update(JSON.stringify(out)).digest('hex') + '"'
+        const clientETag = request.headers.get('if-none-match')
+        if (clientETag && clientETag === etag) {
+          return new NextResponse(null, { status: 304, headers: { ETag: etag } })
+        }
         const resp = NextResponse.json(out, { status: cachedRes.status })
-        try { resp.headers.set('X-Total-Count', String(out.total ?? 0)) } catch {}
+        try { resp.headers.set('X-Total-Count', String((Array.isArray(out) ? out.length : (out.total ?? 0)))) } catch {}
+        try { resp.headers.set('ETag', etag); resp.headers.set('Cache-Control', 'private, max-age=60') } catch {}
         return resp
       }
     } catch (err) {
