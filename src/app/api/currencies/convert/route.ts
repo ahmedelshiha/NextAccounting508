@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url)
     const from = (searchParams.get('from') || process.env.EXCHANGE_BASE_CURRENCY || 'USD').toUpperCase()
