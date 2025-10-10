@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs'
 
 const schema = z.object({ token: z.string().min(32), password: z.string().min(8) })
 
-export async function POST(req: NextRequest) {
+const _api_POST = async (req: NextRequest) => {
   try {
     const ip = getClientIp(req as unknown as Request)
     const key = `auth:reset:${ip}`
