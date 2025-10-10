@@ -14,7 +14,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
  * - Database transaction safety
  */
 
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   const { STRIPE_WEBHOOK_SECRET, STRIPE_SECRET_KEY } = process.env as Record<string, string | undefined>
   
   // Environment validation
