@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { sendEmail } from '@/lib/email'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
     const to = process.env.ALERT_EMAIL
     const from = process.env.FROM_EMAIL
@@ -22,4 +23,4 @@ export async function GET() {
     console.error('Email health check failed:', error)
     return NextResponse.json({ status: 'error' }, { status: 500 })
   }
-}
+}, { requireAuth: false })

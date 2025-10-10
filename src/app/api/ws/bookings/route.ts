@@ -1,13 +1,14 @@
 export const runtime = 'edge'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { realtimeService } from '@/lib/realtime-enhanced'
 
 // WebSocket endpoint for booking realtime events
 // Attempts to upgrade to a WebSocket and bridge events from realtimeService.
 // If clients cannot use WebSocket they should fallback to SSE (/api/portal/realtime)
 
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: Request) => {
   try {
     // WebSocketPair is provided by the Next runtime in edge handlers
     // @ts-expect-error: WebSocketPair provided by runtime at execution time
@@ -79,4 +80,4 @@ export async function GET(request: Request) {
     console.error('ws/bookings upgrade failed', e)
     return NextResponse.json({ error: 'WebSocket not supported in this runtime' }, { status: 501 })
   }
-}
+}, { requireAuth: false })

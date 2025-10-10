@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
     const eff = await getEffectiveOrgSettingsFromHeaders()
     return NextResponse.json({
@@ -15,4 +16,4 @@ export async function GET() {
   } catch (e) {
     return NextResponse.json({ error: 'Failed to load public org settings' }, { status: 500 })
   }
-}
+}, { requireAuth: false })
