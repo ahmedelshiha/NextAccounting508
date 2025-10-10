@@ -1,5 +1,3 @@
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
@@ -247,19 +245,10 @@ async function handlePaymentFailed(paymentObject: any) {
   
   const sessionId = paymentObject?.id || paymentObject?.checkout_session || null
   if (sessionId) {
-    const sr = await prisma.serviceRequest.findFirst({ 
-      where: { paymentSessionId: sessionId } 
-    })
+    const sr = await prisma.serviceRequest.findFirst({ where: { paymentSessionId: sessionId } })
     
     if (sr) {
-      await prisma.serviceRequest.update({ 
-        where: { id: sr.id }, 
-        data: { 
-          paymentStatus: 'FAILED',
-          paymentUpdatedAt: new Date(),
-          paymentAttempts: (sr.paymentAttempts ?? 0) + 1
-        } 
-      })
+      await prisma.serviceRequest.update({ where: { id: sr.id }, data: { paymentStatus: 'FAILED', paymentUpdatedAt: new Date(), paymentAttempts: (sr.paymentAttempts ?? 0) + 1 } })
     }
   }
 }
@@ -288,3 +277,5 @@ async function handleSubscriptionChange(subscription: any, eventType: string) {
   console.log(`Processing ${eventType}:`, subscription.id)
   // Implementation for subscription lifecycle management
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
