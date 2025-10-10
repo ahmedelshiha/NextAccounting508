@@ -110,8 +110,8 @@ export class ServicesService {
     if (!updates || updates.length === 0) return { updated: 0, errors: [] }
     const ids = updates.map(u => u.id)
 
-    const existing = await (await getPrisma()).service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } })
-    const map = new Map(existing.map(e => [e.id, e]))
+    const existing = await (await getPrisma()).service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } }) as any[]
+    const map = new Map<string, any>(existing.map((e: any) => [e.id, e]))
 
     let updated = 0
     const errors: Array<{ id: string; error: string }> = []
