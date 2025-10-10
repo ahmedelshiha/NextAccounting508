@@ -11,3 +11,6 @@ const _api_GET = async () => {
     return respond.serverError('Database health check failed')
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
