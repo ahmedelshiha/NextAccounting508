@@ -13,3 +13,6 @@ const _api_GET = async () => {
   const payload = toSecurityHealthPayload(health)
   return NextResponse.json(payload)
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
