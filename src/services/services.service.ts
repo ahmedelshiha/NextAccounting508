@@ -110,7 +110,7 @@ export class ServicesService {
     if (!updates || updates.length === 0) return { updated: 0, errors: [] }
     const ids = updates.map(u => u.id)
 
-    const existing = await getPrisma().service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } })
+    const existing = await (await getPrisma()).service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } })
     const map = new Map(existing.map(e => [e.id, e]))
 
     let updated = 0
@@ -169,9 +169,10 @@ export class ServicesService {
     else (orderBy as any).updatedAt = sortOrder;
 
     try {
+      const prisma = await getPrisma();
       const [rows, total] = await Promise.all([
-        getPrisma().service.findMany({ where, orderBy, skip: offset, take: limit }),
-        getPrisma().service.count({ where }),
+        prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
+        prisma.service.count({ where }),
       ]);
       const totalPages = Math.ceil(total / limit);
       const page = Math.floor(offset / limit) + 1;
@@ -240,7 +241,7 @@ export class ServicesService {
       createData.tenant = { connect: { id: tId } }
     }
 
-    const s = await getPrisma().service.create({ data: createData });
+    const s = await (await getPrisma()).service.create({ data: createData });
     await this.clearCaches(tId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId: tId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
@@ -263,7 +264,7 @@ export class ServicesService {
     if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
       updateData.serviceSettings = (sanitized as any).serviceSettings as unknown as Prisma.InputJsonValue;
     }
-    const s = await getPrisma().service.update({ where: { id }, data: updateData });
+    const s = await (await getPrisma()).service.update({ where: { id }, data: updateData });
     await this.clearCaches(tId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
@@ -298,7 +299,7 @@ export class ServicesService {
       else if (type === 'category') data.category = String(value || '') || null;
       else if (type === 'price-update') data.price = Number(value);
 
-      const res = await getPrisma().service.updateMany({ where, data });
+      const res = await (await getPrisma()).service.updateMany({ where, data });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
@@ -307,7 +308,7 @@ export class ServicesService {
 
     // Delete -> soft deactivate
     if (type === 'delete') {
-      const res = await getPrisma().service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
+      const res = await (await getPrisma()).service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
@@ -348,7 +349,7 @@ export class ServicesService {
         for (const cid of createdIds) {
           try {
             // hard delete to clean up drafts created during clone
-            await getPrisma().service.delete({ where: { id: cid } });
+            await (await getPrisma()).service.delete({ where: { id: cid } });
           } catch (err: any) {
             rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
           }
@@ -385,12 +386,13 @@ export class ServicesService {
     if (cached) return cached;
 
     const where: Prisma.ServiceWhereInput = tId ? ({ tenantId: tId } as any) : {};
+    const prisma = await getPrisma();
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
-      getPrisma().service.count({ where }),
-      getPrisma().service.count({ where: { ...where, status: 'ACTIVE' as any } }),
-      getPrisma().service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
-      getPrisma().service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
-      getPrisma().service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
+      prisma.service.count({ where }),
+      prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
+      prisma.service.count({ where: { ...where, featured: true, status: 'ACTIVE' as any } }),
+      prisma.service.groupBy({ by: ['category'], where: { ...where, status: 'ACTIVE' as any, category: { not: null } } as any }),
+      prisma.service.aggregate({ where: { ...where, status: 'ACTIVE' as any, price: { not: null } } as any, _avg: { price: true }, _sum: { price: true } }),
     ]);
 
     // Analytics window: last 6 months
@@ -407,9 +409,9 @@ export class ServicesService {
 
     let bookings: Array<{ id: string; scheduledAt: any; serviceId: string; service?: { id: string; name: string; price: any } }> = []
     try {
-      if ((prisma as any)?.booking?.findMany) {
-        bookings = await getPrisma().booking.findMany({ where: bookingWhere as any, include: { service: { select: { id: true, name: true, price: true } } } })
-      } else {
+      try {
+        bookings = await prisma.booking.findMany({ where: bookingWhere as any, include: { service: { select: { id: true, name: true, price: true } } } })
+      } catch (_) {
         bookings = await queryTenantRaw<any>`
           SELECT b.id, b.scheduledAt, b.serviceId, s.id as "service.id", s.name as "service.name", s.price as "service.price"
           FROM bookings b
