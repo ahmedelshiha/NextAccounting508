@@ -1,3 +1,4 @@
+import { NextRequest, NextResponse } from 'next/server'
 import { runScheduledTasks, updateBookingStatuses, cleanupOldData, generateMonthlyReports } from '@/lib/cron'
 import { processBookingReminders } from '@/lib/cron/reminders'
 import { authorizeCron, runCronTask } from '@/lib/cron/scheduler'
