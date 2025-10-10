@@ -31,7 +31,7 @@ export class ServicesService {
 
     let tenantId: string | null = (src as any).tenantId ?? null
     if (!tenantId) {
-      const t = await getPrisma().tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+      const t = await (await getPrisma()).tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
       tenantId = t?.id || null
       if (!tenantId) throw new Error('Tenant context required to clone service')
     }
