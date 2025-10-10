@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 export default function IntegrationHubPage(){
   const [active, setActive] = useState('payments')
@@ -54,7 +55,7 @@ export default function IntegrationHubPage(){
     <div className="space-y-4">
       <div className="text-sm text-gray-600">{testResult}</div>
 
-      <SettingsShell title="Integration Hub" description="Connect payments, calendars, communications, analytics, and storage" tabs={tabs} activeTab={active} onChangeTab={setActive} actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.INTEGRATION_HUB_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button></PermissionGate></div>)}>
+      <SettingsShell title="Integration Hub" description="Connect payments, calendars, communications, analytics, and storage" tabs={tabs} activeTab={active} onChangeTab={setActive} actions={(<div className="flex items-center gap-2"><PermissionGate permission={PERMISSIONS.INTEGRATION_HUB_EDIT}><button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button></PermissionGate> <FavoriteToggle settingKey="integrationHub" route="/admin/settings/integrations" label="Integration Hub" /></div>)}>
         {active==='payments' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -71,7 +72,7 @@ export default function IntegrationHubPage(){
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key</label>
-              <input type="password" placeholder={settings?.payments?.hasSecret? '••••••••' : ''} onChange={(e)=>onChange('payments','secretKey', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+              <input type="password" placeholder={settings?.payments?.hasSecret? '���•••••••' : ''} onChange={(e)=>onChange('payments','secretKey', e.target.value)} className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
             </div>
             <div className="flex items-center justify-between">
               <label className="text-sm text-gray-700">Test Mode</label>

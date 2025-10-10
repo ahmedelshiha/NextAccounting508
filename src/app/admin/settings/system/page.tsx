@@ -5,6 +5,7 @@ import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { Toggle, NumberField, TextField } from '@/components/admin/settings/FormField'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 interface SystemState {
   maintenanceMode: boolean
@@ -62,11 +63,14 @@ export default function SystemAdministrationPage() {
         loading={loading}
         saving={saving}
         saved={saved}
-        actions={
-          <PermissionGate permission={[PERMISSIONS.SYSTEM_ADMIN_SETTINGS_EDIT]}>
-            <button onClick={save} className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50" disabled={saving}>Save</button>
-          </PermissionGate>
-        }
+        actions={(
+          <div className="flex items-center gap-2">
+            <PermissionGate permission={[PERMISSIONS.SYSTEM_ADMIN_SETTINGS_EDIT]}>
+              <button onClick={save} className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50" disabled={saving}>Save</button>
+            </PermissionGate>
+            <FavoriteToggle settingKey="systemAdministration" route="/admin/settings/system" label="System Administration" />
+          </div>
+        )}
       >
         <div className="space-y-8">
           <section className="space-y-3">

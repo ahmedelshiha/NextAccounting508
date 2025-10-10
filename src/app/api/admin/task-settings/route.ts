@@ -5,6 +5,8 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import taskService from '@/services/task-settings.service'
 import { TaskWorkflowSettingsSchema } from '@/schemas/settings/task-workflow'
 import * as Sentry from '@sentry/nextjs'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
 
 export const GET = withTenantContext(async (request: Request) => {
   try {
@@ -34,7 +36,10 @@ export const PUT = withTenantContext(async (request: Request) => {
       try { Sentry.captureMessage('task-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+    const before = await taskService.get(tenantId).catch(()=>null)
     const updated = await taskService.upsert(tenantId, parsed.data)
+    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'taskWorkflow', resource: 'task-settings', before: before || null, after: updated || null } }) } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'task-settings', details: { category: 'taskWorkflow' } } }) } catch {}
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}

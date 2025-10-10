@@ -83,9 +83,53 @@ export const PUT = withTenantContext(async (req: Request) => {
   const updateData = { ...normalized }
 
   try {
+    const beforeData = existing ? {
+      name: existing.name ?? null,
+      tagline: existing.tagline ?? null,
+      description: existing.description ?? null,
+      industry: existing.industry ?? null,
+      contactEmail: existing.contactEmail ?? null,
+      contactPhone: existing.contactPhone ?? null,
+      address: existing.address ?? null,
+      defaultTimezone: existing.defaultTimezone ?? 'UTC',
+      defaultCurrency: existing.defaultCurrency ?? 'USD',
+      defaultLocale: existing.defaultLocale ?? 'en',
+      logoUrl: existing.logoUrl ?? null,
+      branding: existing.branding ?? null,
+      termsUrl: existing.termsUrl ?? null,
+      privacyUrl: existing.privacyUrl ?? null,
+      refundUrl: existing.refundUrl ?? null,
+    } : {}
+
     const saved = existing
       ? await prisma.organizationSettings.update({ where: { id: existing.id }, data: updateData as Prisma.OrganizationSettingsUpdateInput })
       : await prisma.organizationSettings.create({ data: createData as Prisma.OrganizationSettingsCreateInput })
+
+    // Persist change diff and audit event (best-effort)
+    try {
+      await prisma.settingChangeDiff.create({
+        data: {
+          tenantId: ctx.tenantId,
+          userId: ctx.userId ? String(ctx.userId) : null,
+          category: 'organization',
+          resource: 'org-settings',
+          before: beforeData as any,
+          after: normalized as any,
+        },
+      })
+    } catch {}
+
+    try {
+      await prisma.auditEvent.create({
+        data: {
+          tenantId: ctx.tenantId,
+          userId: ctx.userId ? String(ctx.userId) : null,
+          type: 'settings.update',
+          resource: 'org-settings',
+          details: { category: 'organization' } as any,
+        },
+      })
+    } catch {}
 
     try {
       await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId: ctx.tenantId } })

@@ -4,6 +4,8 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import servicesSettingsService, { flattenSettings } from '@/services/services-settings.service'
 import { ZodError } from 'zod'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
 
 function jsonResponse(payload: any, status = 200) {
   return NextResponse.json(payload, { status })
@@ -35,7 +37,10 @@ export const POST = withTenantContext(async (request: Request) => {
       return jsonResponse({ ok: false, error: 'Invalid JSON body' }, 400)
     }
 
+    const before = await servicesSettingsService.getFlat(ctx.tenantId ?? null).catch(()=>null)
     const saved = await servicesSettingsService.save(payload, ctx.tenantId ?? null)
+    try { await prisma.settingChangeDiff.create({ data: { tenantId: ctx.tenantId ?? null, userId: ctx.userId ? String(ctx.userId) : null, category: 'serviceManagement', resource: 'services-settings', before: before || null, after: saved || null } }) } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId: ctx.tenantId ?? null, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'services-settings', details: { category: 'serviceManagement' } } }) } catch {}
     return jsonResponse({ ok: true, data: flattenSettings(saved) })
   } catch (error: any) {
     if (error instanceof ZodError) {
