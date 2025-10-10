@@ -114,7 +114,39 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       }
     }
 
-    const tenantId = ctx.tenantId
+    let tenantId = ctx.tenantId
+    // If tenantId is missing, attempt to resolve it from request or session as a fallback
+    if (!tenantId) {
+      try {
+        const tenantMod = await import('@/lib/tenant')
+        if (typeof tenantMod.getResolvedTenantId === 'function') {
+          const resolved = await (tenantMod.getResolvedTenantId as any)(request as any).catch(() => null)
+          if (resolved) tenantId = resolved
+        } else if (typeof tenantMod.getTenantFromRequest === 'function') {
+          try {
+            const resolved = (tenantMod.getTenantFromRequest as any)(request as any)
+            if (resolved) tenantId = resolved
+          } catch {}
+        }
+      } catch {}
+    }
+
+    // Last-resort: try to read tenant from server session
+    if (!tenantId) {
+      try {
+        const naNext = await import('next-auth/next').catch(() => null as any)
+        if (naNext && typeof naNext.getServerSession === 'function') {
+          const authMod = await import('@/lib/auth')
+          const session = await naNext.getServerSession((authMod as any).authOptions)
+          if (session?.user?.tenantId) tenantId = String(session.user.tenantId)
+        }
+      } catch {}
+    }
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required to create service' }, { status: 400 })
+    }
+
     const service = await svc.createService(tenantId, validated as any, String(ctx.userId ?? ''))
 
     try { await logAudit({ action: 'SERVICE_CREATED', actorId: ctx.userId ?? null, targetId: service.id, details: { slug: service.slug } }) } catch {}
