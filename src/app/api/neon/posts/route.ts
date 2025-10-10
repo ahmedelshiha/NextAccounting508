@@ -21,7 +21,7 @@ export type PostRow = {
   updatedAt?: string | Date
 }
 
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   try {
     if (!sql) {
       try {
