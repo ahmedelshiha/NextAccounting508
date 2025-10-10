@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs'
 
 const schema = z.object({ token: z.string().min(32), password: z.string().min(8) })
 
-export async function POST(req: NextRequest) {
+const _api_POST = async (req: NextRequest) => {
   try {
     const ip = getClientIp(req as unknown as Request)
     const key = `auth:reset:${ip}`
@@ -56,3 +56,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 })
   }
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const POST = withTenantContext(_api_POST, { requireAuth: false })

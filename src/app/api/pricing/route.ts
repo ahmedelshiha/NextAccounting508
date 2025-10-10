@@ -1,8 +1,7 @@
-export const runtime = 'nodejs'
-
 import { z } from 'zod'
 import prisma from '@/lib/prisma'
 import { respond, zodDetails } from '@/lib/api-response'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 const Body = z.object({
   serviceId: z.string().min(1),
@@ -13,7 +12,7 @@ const Body = z.object({
   bookingType: z.string().optional(),
 })
 
-export async function POST(request: Request) {
+const _api_POST = async (request: Request) => {
   const body = await request.json().catch(() => null)
   const parsed = Body.safeParse(body)
   if (!parsed.success) return respond.badRequest('Invalid payload', zodDetails(parsed.error))
@@ -55,3 +54,5 @@ export async function POST(request: Request) {
     return respond.serverError('Failed to calculate pricing')
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })

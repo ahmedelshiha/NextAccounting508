@@ -27,3 +27,23 @@ export async function logAuditSafe(payload: any) {
     }
   } catch {}
 }
+
+// Lightweight in-memory metrics counters for runtime and test assertions
+const __metricsCounters: Record<string, number> = Object.create(null)
+
+/** Increment a named metric counter (lightweight, in-memory). */
+export function incrementMetric(name: string, tags?: Record<string, string>): void {
+  try {
+    const key = typeof tags === 'object' && tags
+      ? `${name}|${Object.keys(tags).sort().map(k => `${k}=${String(tags[k])}`).join(',')}`
+      : name
+    __metricsCounters[key] = (__metricsCounters[key] ?? 0) + 1
+  } catch {
+    // no-op
+  }
+}
+
+/** Snapshot current counters (immutable copy). Useful for tests/diagnostics. */
+export function getMetricsSnapshot(): Readonly<Record<string, number>> {
+  return Object.freeze({ ...__metricsCounters })
+}

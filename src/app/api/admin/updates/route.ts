@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream<Uint8Array>({
@@ -74,3 +74,6 @@ export async function GET(request: NextRequest) {
     },
   })
 }
+
+import { withTenantContext } from '@/lib/api-wrapper'
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
