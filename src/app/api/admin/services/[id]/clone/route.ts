@@ -22,13 +22,17 @@ export const POST = withTenantContext(async (request: NextRequest, context: Ctx)
   try {
     const id = await resolveId(context)
     // Shortcut for tests: bypass tenant/session-dependent checks and directly exercise clone logic
+    console.log('clone route NODE_ENV=', process.env.NODE_ENV)
     if (process.env.NODE_ENV === 'test') {
+      console.log('clone route: test short-circuit')
       const body = await request.json().catch(() => ({}))
       const name = body?.name ? String(body.name).trim() : undefined
       const original = await svc.getServiceById(null, id)
+      console.log('clone route: original=', original)
       if (!original) return NextResponse.json(makeErrorBody({ code: 'NOT_FOUND', message: 'Source service not found' } as any), { status: 404 })
       const cloneName = name || `${original.name} (copy)`
       const created = await svc.cloneService(cloneName, id)
+      console.log('clone route: created=', created)
       return NextResponse.json({ service: created }, { status: 201 })
     }
 
