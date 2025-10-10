@@ -39,7 +39,7 @@ const _api_POST = async (request: NextRequest) => {
 }
 
 // GET /api/cron - Get cron job information
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   const auth = authorizeCron(request)
   if (auth) return auth
   try {
