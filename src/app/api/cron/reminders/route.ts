@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
 import { sendBookingReminders } from '@/lib/cron'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -37,3 +37,5 @@ const _api_POST = async (req: Request) => {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
