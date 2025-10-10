@@ -6,7 +6,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 export const GET = withTenantContext(async () => {
   const ctx = requireTenantContext()
   if (!ctx.userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const data = await (await prisma).favoriteSetting.findMany({
+  const data = await prisma.favoriteSetting.findMany({
     where: { tenantId: ctx.tenantId, userId: String(ctx.userId) },
     orderBy: { createdAt: 'desc' },
   })
