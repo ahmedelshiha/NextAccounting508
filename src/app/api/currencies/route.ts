@@ -16,3 +16,5 @@ const _api_GET = async (_request: NextRequest) => {
     return NextResponse.json({ error: 'Failed to fetch currencies' }, { status: 500 })
   }
 }
+
+export const GET = withTenantContext(_api_GET, { requireAuth: false })
