@@ -23,7 +23,8 @@ export const POST = withTenantContext(async (request: NextRequest, context: Ctx)
     const id = await resolveId(context)
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
-    if (!ctx.userId || !hasPermission(role, PERMISSIONS.SERVICES_CREATE)) {
+    // Check permission first (tests mock hasPermission). Then ensure a user is present.
+    if (!hasPermission(role, PERMISSIONS.SERVICES_CREATE) || !ctx.userId) {
       return NextResponse.json(makeErrorBody({ code: 'FORBIDDEN', message: 'Forbidden' } as any), { status: 403 })
     }
 
