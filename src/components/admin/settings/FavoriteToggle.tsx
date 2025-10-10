@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Star, StarOff } from 'lucide-react'
-import { addFavorite, removeFavorite } from '@/services/favorites.service'
+import { addFavorite, removeFavorite, getFavorites } from '@/services/favorites.service'
 import { Button } from '@/components/ui/button'
 
 export default function FavoriteToggle({ settingKey, route, label, initiallyPinned = false, onChange }: {
@@ -14,6 +14,20 @@ export default function FavoriteToggle({ settingKey, route, label, initiallyPinn
 }) {
   const [pinned, setPinned] = React.useState(initiallyPinned)
   const [working, setWorking] = React.useState(false)
+
+  React.useEffect(() => {
+    let mounted = true
+    if (initiallyPinned) return
+    ;(async () => {
+      try {
+        const items = await getFavorites()
+        if (!mounted) return
+        const found = Array.isArray(items) && items.some(i => i.settingKey === settingKey)
+        if (found) setPinned(true)
+      } catch {}
+    })()
+    return () => { mounted = false }
+  }, [initiallyPinned, settingKey])
 
   const toggle = async () => {
     if (working) return
