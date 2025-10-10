@@ -28,12 +28,13 @@ async function getSubtleCrypto(): Promise<SubtleCrypto | null> {
     }
   } catch {}
 
-  if (typeof process !== 'undefined' && process.versions?.node) {
+  const proc = (globalThis as any).process
+  if (proc?.versions?.node) {
     const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
     for (const candidate of moduleNames) {
       try {
         const nodeCrypto: any = await import(candidate)
-        const webCrypto = nodeCrypto?.webcrypto
+        const webCrypto = (nodeCrypto as any)?.webcrypto
         if (webCrypto?.subtle) return webCrypto.subtle as SubtleCrypto
       } catch {}
     }
@@ -43,7 +44,8 @@ async function getSubtleCrypto(): Promise<SubtleCrypto | null> {
 }
 
 async function loadNodeCrypto(): Promise<typeof import('crypto') | null> {
-  if (typeof process === 'undefined' || !process.versions?.node) return null
+  const proc = (globalThis as any).process
+  if (!proc?.versions?.node) return null
 
   const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
   for (const candidate of moduleNames) {
