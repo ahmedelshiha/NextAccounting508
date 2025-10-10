@@ -952,15 +952,15 @@ export class ServicesService {
   private async clearCaches(tenantId: string | null, serviceId?: string) {
     const tenantKey = this.tenantKey(tenantId)
     try {
-      await this.cache.deletePattern?.(`services:list:${tenantKey}:*`)
+      await this.cache.deletePattern(`services:list:${tenantKey}:*`)
     } catch {}
     if (serviceId) {
       try {
-        await this.cache.delete?.(`services:detail:${tenantKey}:${serviceId}`)
+        await this.cache.delete(`services:detail:${tenantKey}:${serviceId}`)
       } catch {}
     }
     try {
-      await this.cache.delete?.(`services:stats:${tenantKey}`)
+      await this.cache.delete(`services:stats:${tenantKey}`)
     } catch {}
   }
 
