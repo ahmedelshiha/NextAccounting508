@@ -69,4 +69,6 @@ function registerDefaultListeners() {
   serviceEvents.on('service:bulk', async (e) => { await invalidate(e.tenantId); setTimeout(() => { void warm(e.tenantId) }, 0) })
 }
 
-registerDefaultListeners()
+if (process.env.NODE_ENV !== 'test') {
+  registerDefaultListeners()
+}

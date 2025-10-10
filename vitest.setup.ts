@@ -70,6 +70,28 @@ vi.mock('@prisma/client', () => ({
   },
 }))
 
+// Provide a safe default proxy for '@/lib/prisma' so tests that import prisma do not crash when DB is not configured
+vi.mock('@/lib/prisma', () => {
+  const handler: ProxyHandler<any> = {
+    get(_t, prop) {
+      // return a model proxy which returns noop async functions for common methods
+      if (typeof prop === 'string') {
+        const modelProxy = new Proxy({}, {
+          get() {
+            return async (..._args: any[]) => {
+              // default safe responses
+              return null
+            }
+          }
+        })
+        return modelProxy
+      }
+      return undefined
+    }
+  }
+  return { default: new Proxy({}, handler) }
+})
+
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
 vi.mock('@/lib/auth', async () => {
   let actual: any = {}

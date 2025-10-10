@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-import prisma from '@/lib/prisma';
+const getPrisma = async () => (await import('@/lib/prisma')).default as any;
 import { ServiceFormData } from '@/types/services';
 
 export function generateSlug(name: string): string {
@@ -43,7 +43,7 @@ export async function validateSlugUniqueness(
   const where: Prisma.ServiceWhereInput = { slug };
   if (tenantId) (where as any).tenantId = tenantId;
   if (excludeServiceId) (where as any).id = { not: excludeServiceId } as any;
-  const exists = await prisma.service.findFirst({ where });
+  const exists = await (await getPrisma()).service.findFirst({ where });
   if (exists) throw new Error('A service with this slug already exists');
 }
 

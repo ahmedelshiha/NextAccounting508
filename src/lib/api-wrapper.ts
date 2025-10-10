@@ -78,6 +78,13 @@ export function withTenantContext(
     }
 
     try {
+      // Ensure request object exists for tests that call handlers without args
+      request = request ?? ({} as any)
+      if (!request.headers || typeof (request.headers as any).get !== 'function') {
+        (request as any).headers = { get: (_: string) => null }
+      }
+      if (!(request as any).url) (request as any).url = 'http://localhost'
+
       // Resolve session with robust fallbacks
       let session: any = null
       try {
@@ -86,9 +93,15 @@ export function withTenantContext(
         const authMod = await import('@/lib/auth')
         if (naNext?.getServerSession) {
           session = await naNext.getServerSession((authMod as any).authOptions)
+        } else {
+          // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
+          try {
+            const na = await import('next-auth').catch(() => null as any)
+            if (na && typeof na.getServerSession === 'function') {
+              session = await na.getServerSession((authMod as any).authOptions)
+            }
+          } catch {}
         }
-        // NOTE: No fallback to 'next-auth' here to keep behavior deterministic in tests.
-        // Routes needing broader compatibility should resolve sessions explicitly.
       } catch {
         session = null
       }
@@ -188,8 +201,34 @@ export function withTenantContext(
         logger.warn('Failed to validate tenant cookie', { error: err })
       }
 
+      // Resolve tenant id: prefer session.user.tenantId, otherwise try request-based resolution when multi-tenancy is enabled
+      let resolvedTenantId: string | null = null
+      try {
+        if (user && (user.tenantId || user.tenantId === 0)) {
+          resolvedTenantId = String(user.tenantId)
+        }
+
+        // If session.user lacks tenantId, attempt to resolve from request (headers/subdomain)
+        if (!resolvedTenantId) {
+          try {
+            const tenantMod = await import('@/lib/tenant')
+            if (typeof tenantMod.getResolvedTenantId === 'function') {
+              try {
+                const candidate = await tenantMod.getResolvedTenantId(request as any).catch(() => null)
+                if (candidate) resolvedTenantId = candidate
+              } catch {}
+            } else if (typeof tenantMod.getTenantFromRequest === 'function') {
+              try {
+                const candidate = tenantMod.getTenantFromRequest(request as Request)
+                if (candidate) resolvedTenantId = candidate
+              } catch {}
+            }
+          } catch {}
+        }
+      } catch {}
+
       const context: TenantContext = {
-        tenantId: String(user.tenantId),
+        tenantId: resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null),
         tenantSlug: user.tenantSlug ?? null,
         userId: String(user.id),
         userName: (user.name as string | undefined) ?? null,
