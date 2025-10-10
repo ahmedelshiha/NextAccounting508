@@ -11,6 +11,7 @@ type MaybeAny = any
 export default class RedisCache {
   private client: MaybeAny | null = null
   private rest: { baseUrl: string; token: string } | null = null
+  private initPromise: Promise<void> | null = null
 
   constructor(url?: string) {
     const redisUrl = url || process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL
@@ -24,16 +25,26 @@ export default class RedisCache {
       return
     }
 
-    // Otherwise, use ioredis TCP client
-    let IORedis: any
-    try {
-       
-      const req: any = eval('require')
-      IORedis = req('ioredis')
-    } catch (err) {
-      throw new Error('ioredis not installed. Install ioredis or provide UPSTASH_REDIS_REST_URL/TOKEN')
+    // Otherwise, use ioredis TCP client (Node.js runtime only)
+    this.initPromise = (async () => {
+      try {
+        const mod: any = await import('ioredis')
+        const IORedis = mod?.default ?? mod
+        this.client = new IORedis(redisUrl)
+      } catch (err) {
+        throw new Error('ioredis not installed. Install ioredis or provide UPSTASH_REDIS_REST_URL/TOKEN')
+      }
+    })()
+  }
+
+  private async ensureClient() {
+    if (this.initPromise) {
+      await this.initPromise
+      this.initPromise = null
     }
-    this.client = new IORedis(redisUrl)
+    if (!this.client && !this.rest) {
+      throw new Error('Redis client not initialized')
+    }
   }
 
   async get<T>(key: string): Promise<T | null> {
@@ -43,7 +54,8 @@ export default class RedisCache {
       if (value == null) return null
       try { return JSON.parse(value) as T } catch { return value as unknown as T }
     }
-    const raw = await this.client.get(key)
+    await this.ensureClient()
+    const raw = await this.client!.get(key)
     if (raw == null) return null
     try { return JSON.parse(raw) as T } catch { return null }
   }
@@ -56,10 +68,11 @@ export default class RedisCache {
       await this.restFetch(url.toString(), { method: 'POST' })
       return
     }
+    await this.ensureClient()
     if (ttlSeconds && ttlSeconds > 0) {
-      await this.client.set(key, raw, 'EX', ttlSeconds)
+      await this.client!.set(key, raw, 'EX', ttlSeconds)
     } else {
-      await this.client.set(key, raw)
+      await this.client!.set(key, raw)
     }
   }
 
@@ -68,7 +81,8 @@ export default class RedisCache {
       await this.restFetch(`${this.rest.baseUrl}/del/${encodeURIComponent(key)}`, { method: 'POST' })
       return
     }
-    await this.client.del(key)
+    await this.ensureClient()
+    await this.client!.del(key)
   }
 
   async deletePattern(pattern: string): Promise<void> {
@@ -93,8 +107,9 @@ export default class RedisCache {
     }
 
     // ioredis path: scanStream + pipeline
-    const stream = this.client.scanStream({ match: pattern, count: 100 })
-    const pipeline = this.client.pipeline()
+    await this.ensureClient()
+    const stream = this.client!.scanStream({ match: pattern, count: 100 })
+    const pipeline = this.client!.pipeline()
     await new Promise<void>((resolve, reject) => {
       stream.on('data', (keys: string[]) => {
         if (keys?.length) keys.forEach((k: string) => pipeline.del(k))

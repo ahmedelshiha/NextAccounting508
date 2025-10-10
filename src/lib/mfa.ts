@@ -1,4 +1,3 @@
-import crypto from 'crypto'
 import prisma from '@/lib/prisma'
 
 // Basic Base32 implementation (RFC 4648) for TOTP secrets
@@ -37,8 +36,18 @@ function fromBase32(input: string): Uint8Array {
   return Uint8Array.from(output)
 }
 
+function randomBytes(len: number): Uint8Array {
+  const arr = new Uint8Array(len)
+  if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(arr)
+  } else {
+    for (let i = 0; i < len; i++) arr[i] = Math.floor(Math.random() * 256)
+  }
+  return arr
+}
+
 export function generateTotpSecret(bytes = 20): { secret: string; uri: string } {
-  const buf = crypto.randomBytes(bytes)
+  const buf = randomBytes(bytes)
   const secret = toBase32(buf)
   const issuer = encodeURIComponent('Accounting Firm')
   const label = encodeURIComponent('Secure Login')
@@ -47,12 +56,70 @@ export function generateTotpSecret(bytes = 20): { secret: string; uri: string } 
   return { secret, uri }
 }
 
+// Minimal SHA-1 and HMAC-SHA1 implementations (synchronous, no Node/Edge crypto)
+function sha1(bytes: Uint8Array): Uint8Array {
+  // Based on public domain implementation
+  function rotl(n: number, b: number) { return (n << b) | (n >>> (32 - b)) }
+  const ml = bytes.length * 8
+  const withOne = new Uint8Array(((bytes.length + 9 + 63) & ~63))
+  withOne.set(bytes)
+  withOne[bytes.length] = 0x80
+  const dv = new DataView(withOne.buffer)
+  dv.setUint32(withOne.length - 8, Math.floor(ml / 0x100000000))
+  dv.setUint32(withOne.length - 4, ml >>> 0)
+  let h0 = 0x67452301 | 0
+  let h1 = 0xefcdab89 | 0
+  let h2 = 0x98badcfe | 0
+  let h3 = 0x10325476 | 0
+  let h4 = 0xc3d2e1f0 | 0
+  const w = new Uint32Array(80)
+  for (let i = 0; i < withOne.length; i += 64) {
+    for (let j = 0; j < 16; j++) w[j] = dv.getUint32(i + j * 4)
+    for (let j = 16; j < 80; j++) w[j] = rotl(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1)
+    let a = h0, b = h1, c = h2, d = h3, e = h4
+    for (let j = 0; j < 80; j++) {
+      const f = j < 20 ? (b & c) | (~b & d)
+        : j < 40 ? (b ^ c ^ d)
+        : j < 60 ? (b & c) | (b & d) | (c & d)
+        : (b ^ c ^ d)
+      const k = j < 20 ? 0x5a827999 : j < 40 ? 0x6ed9eba1 : j < 60 ? 0x8f1bbcdc : 0xca62c1d6
+      const temp = (rotl(a, 5) + f + e + k + w[j]) >>> 0
+      e = d; d = c; c = rotl(b, 30) >>> 0; b = a; a = temp
+    }
+    h0 = (h0 + a) >>> 0
+    h1 = (h1 + b) >>> 0
+    h2 = (h2 + c) >>> 0
+    h3 = (h3 + d) >>> 0
+    h4 = (h4 + e) >>> 0
+  }
+  const out = new Uint8Array(20)
+  const outDv = new DataView(out.buffer)
+  outDv.setUint32(0, h0)
+  outDv.setUint32(4, h1)
+  outDv.setUint32(8, h2)
+  outDv.setUint32(12, h3)
+  outDv.setUint32(16, h4)
+  return out
+}
+
+function hmacSha1(key: Uint8Array, data: Uint8Array): Uint8Array {
+  const blockSize = 64
+  if (key.length > blockSize) key = sha1(key)
+  const oKeyPad = new Uint8Array(blockSize)
+  const iKeyPad = new Uint8Array(blockSize)
+  oKeyPad.fill(0x5c); iKeyPad.fill(0x36)
+  for (let i = 0; i < key.length; i++) { oKeyPad[i] ^= key[i]; iKeyPad[i] ^= key[i] }
+  const inner = sha1(new Uint8Array([...iKeyPad, ...data]))
+  return sha1(new Uint8Array([...oKeyPad, ...inner]))
+}
+
 export function totpCode(secret: string, timeStepSec = 30, digits = 6, t: number = Date.now()): string {
   const counter = Math.floor(t / 1000 / timeStepSec)
   const key = fromBase32(secret)
-  const buf = Buffer.alloc(8)
-  buf.writeBigUInt64BE(BigInt(counter))
-  const hmac = crypto.createHmac('sha1', Buffer.from(key)).update(buf).digest()
+  const buf = new Uint8Array(8)
+  let x = BigInt(counter)
+  for (let i = 7; i >= 0; i--) { buf[i] = Number(x & 0xffn); x >>= 8n }
+  const hmac = hmacSha1(key, buf)
   const offset = hmac[hmac.length - 1] & 0x0f
   const code = ((hmac[offset] & 0x7f) << 24) | ((hmac[offset + 1] & 0xff) << 16) | ((hmac[offset + 2] & 0xff) << 8) | (hmac[offset + 3] & 0xff)
   const str = String(code % 10 ** digits).padStart(digits, '0')
@@ -91,7 +158,10 @@ export async function clearUserMfa(userId: string): Promise<void> {
 
 export async function generateBackupCodes(userId: string, count = 5): Promise<string[]> {
   const codes: string[] = []
-  for (let i = 0; i < count; i++) codes.push(crypto.randomBytes(5).toString('hex'))
+  for (let i = 0; i < count; i++) {
+    const rb = randomBytes(5)
+    codes.push(Array.from(rb).map(b => b.toString(16).padStart(2, '0')).join(''))
+  }
   await prisma.$transaction(async (tx) => {
     await tx.verificationToken.deleteMany({ where: { identifier: { startsWith: `${BACKUP_PREFIX}${userId}:` } } })
     for (const code of codes) {

@@ -1,7 +1,5 @@
 import fs from 'fs'
-import * as nodeFs from 'fs'
-import * as nodePath from 'path'
-import * as nodeOs from 'os'
+
 
 const TMPDIR = process.env.NETLIFY_TEMP_DIR || process.env.TMPDIR || nodeOs.tmpdir()
 const FILE = nodePath.resolve(TMPDIR, 'dev-fallbacks.json')
