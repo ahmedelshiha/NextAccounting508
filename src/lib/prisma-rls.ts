@@ -36,7 +36,7 @@ export async function withTenantRLSRead<T>(
   if (!ctxTenant) throw new Error('withTenantRLSRead: tenantId missing and no tenant context available')
   const maxWait = options?.maxWaitMs ?? 5000
   const timeout = options?.timeoutMs ?? 15000
-  return getPrisma().$transaction(async (tx: any) => {
+  return (await getPrisma()).$transaction(async (tx: any) => {
     await setTenantRLSOnTx(tx, ctxTenant)
     return fn(tx)
   }, { maxWait, timeout } as any)
