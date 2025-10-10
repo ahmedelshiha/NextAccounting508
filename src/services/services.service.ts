@@ -348,7 +348,7 @@ export class ServicesService {
         for (const cid of createdIds) {
           try {
             // hard delete to clean up drafts created during clone
-            await prisma.service.delete({ where: { id: cid } });
+            await getPrisma().service.delete({ where: { id: cid } });
           } catch (err: any) {
             rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
           }
