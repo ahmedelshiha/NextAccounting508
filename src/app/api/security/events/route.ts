@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export const GET = withTenantContext(async () => {
   const now = Date.now()
