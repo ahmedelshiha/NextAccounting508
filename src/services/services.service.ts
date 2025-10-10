@@ -121,7 +121,7 @@ export class ServicesService {
         const before = map.get(u.id)
         const prev = (before?.serviceSettings as any) ?? {}
         const next = { ...prev, ...u.settings }
-        await getPrisma().service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        await (await getPrisma()).service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
         updated += 1
       } catch (e: any) {
         errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
@@ -443,7 +443,7 @@ export class ServicesService {
           FROM bookings b
           LEFT JOIN services s ON s.id = b.serviceId
           WHERE b.scheduledAt >= ${start}
-          ${tId ? queryTenantRaw.raw` AND s."tenantId" = ${tId}` : ''}
+          ${tId ? `AND s."tenantId" = ${tId}` : ''}
         `
       }
     } catch (e) {
@@ -471,8 +471,9 @@ export class ServicesService {
         prev.revenue += price
         conversionsByService.set(sid, prev)
       }
-      analytics.conversionsByService = Array.from(conversionsByService.values())
-      analytics.revenueByService = analytics.conversionsByService.map(c => ({ serviceId: c.serviceId, revenue: c.revenue }))
+      const convs = Array.from(conversionsByService.values())
+      analytics.conversionsByService = convs.map(c => ({ service: c.name || c.serviceId, bookings: c.conversions, views: 0, conversionRate: 0 })) as any
+      analytics.revenueByService = convs.map(c => ({ service: c.name || c.serviceId, revenue: c.revenue })) as any
     } catch (e) {
       analytics.conversionsByService = []
       analytics.revenueByService = []
