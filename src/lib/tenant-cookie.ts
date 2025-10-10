@@ -21,15 +21,42 @@ function fromHex(hex: string): Uint8Array {
   return out
 }
 
-function subtleCrypto(): SubtleCrypto | null {
+async function getSubtleCrypto(): Promise<SubtleCrypto | null> {
   try {
-    if (typeof globalThis.crypto !== 'undefined' && (globalThis.crypto as any).subtle) return (globalThis.crypto as any).subtle
+    if (typeof globalThis.crypto !== 'undefined' && (globalThis.crypto as any).subtle) {
+      return (globalThis.crypto as any).subtle
+    }
   } catch {}
+
+  if (typeof process !== 'undefined' && process.versions?.node) {
+    const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
+    for (const candidate of moduleNames) {
+      try {
+        const nodeCrypto: any = await import(candidate)
+        const webCrypto = nodeCrypto?.webcrypto
+        if (webCrypto?.subtle) return webCrypto.subtle as SubtleCrypto
+      } catch {}
+    }
+  }
+
+  return null
+}
+
+async function loadNodeCrypto(): Promise<typeof import('crypto') | null> {
+  if (typeof process === 'undefined' || !process.versions?.node) return null
+
+  const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
+  for (const candidate of moduleNames) {
+    try {
+      return await import(candidate) as typeof import('crypto')
+    } catch {}
+  }
+
   return null
 }
 
 async function hmacSha256(message: string, secret: string): Promise<Uint8Array> {
-  const subtle = subtleCrypto()
+  const subtle = await getSubtleCrypto()
   const enc = await getTextEncoder()
   const msg = enc.encode(message)
   const keyData = enc.encode(secret)
@@ -46,11 +73,14 @@ async function hmacSha256(message: string, secret: string): Promise<Uint8Array> 
     return new Uint8Array(sig)
   }
 
-  // Node fallback using dynamic import to avoid require()
-  const nodeCrypto = await import('crypto')
-  const h = (nodeCrypto as any).createHmac('sha256', secret)
-  h.update(message)
-  return new Uint8Array(h.digest())
+  const nodeCrypto = await loadNodeCrypto()
+  if (nodeCrypto?.createHmac) {
+    const h = nodeCrypto.createHmac('sha256', secret)
+    h.update(message)
+    return new Uint8Array(h.digest())
+  }
+
+  throw new Error('HMAC computation is not supported in this runtime')
 }
 
 function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
