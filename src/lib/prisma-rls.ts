@@ -21,7 +21,7 @@ export async function withTenantRLS<T>(fn: (tx: any) => Promise<T>, tenantId?: s
   const ctxTenant = tenantId || tenantContext.getContextOrNull()?.tenantId || null
   if (!ctxTenant) throw new Error('withTenantRLS: tenantId missing and no tenant context available')
 
-  return prisma.$transaction(async (tx: any) => {
+  return getPrisma().$transaction(async (tx: any) => {
     await setTenantRLSOnTx(tx, ctxTenant)
     return fn(tx)
   })
