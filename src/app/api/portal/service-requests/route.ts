@@ -170,6 +170,8 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       try {
         const { getAllRequests } = await import('@/lib/dev-fallbacks')
         let all = getAllRequests()
+        // Debug: report dev-fallbacks content and resolved ids
+        try { console.log('[dev-fallbacks] total', all.length, 'ctx.userId', ctx.userId, 'ctx.tenantId', ctx.tenantId) } catch {}
         // Resolve userId/tenantId from context or fallback to session when context is missing in test setups
         let resolvedUserId = ctx.userId
         let resolvedTenantId = ctx.tenantId
