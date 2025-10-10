@@ -26,7 +26,7 @@ export class ServicesService {
    * - Copies pricing, duration, category, features, image and settings
    */
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
-    const src = await getPrisma().service.findUnique({ where: { id: fromId } })
+    const src = await (await getPrisma()).service.findUnique({ where: { id: fromId } })
     if (!src) throw new Error('Source service not found')
 
     let tenantId: string | null = (src as any).tenantId ?? null
