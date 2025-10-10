@@ -20,7 +20,7 @@ const AV_POLICY = String(process.env.UPLOADS_AV_POLICY || 'lenient').toLowerCase
 
 export const runtime = 'nodejs'
 
-export async function POST(request: Request) {
+const _uploads_POST = async (request: NextRequest) => {
   const contentType = request.headers.get('content-type') || ''
   if (!contentType.toLowerCase().includes('multipart/form-data')) {
     return NextResponse.json({ error: 'Expected multipart/form-data' }, { status: 400 })
@@ -183,3 +183,5 @@ if (process.env.UPLOADS_AV_SCAN_URL) {
     }
   }
 }
+
+export const POST = withTenantContext(_uploads_POST, { requireAuth: false })
