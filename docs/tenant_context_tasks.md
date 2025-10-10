@@ -21,6 +21,8 @@
 - [2025-10-10] Completed Task 1.2: Created tests/helpers/request.ts
 - [2025-10-10] Completed Task 1.3: Added tests/setup.ts; updated vitest.config.ts setupFiles to include it
 - [2025-10-10] Completed Task 5.5: Added ETag and 304 handling to admin services GET
+- [2025-10-10] Completed Task 6.4: Created docs/TENANT_CONTEXT.md
+- [2025-10-10] Completed Task 6.5: Created docs/DEPLOYMENT_CHECKLIST.md
 
 ---
 
