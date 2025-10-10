@@ -1,5 +1,24 @@
 # Tenant Context Implementation - Automated Task List
 
+# 🧠 Tenant Context Tasks Memory
+
+## ✅ Completed Tasks
+- Created tests/helpers/tenant-context.ts
+- Created tests/helpers/request.ts
+- Added tests/setup.ts and included in vitest.config.ts
+- Added ETag and 304 handling to admin services GET
+- Created docs/TENANT_CONTEXT.md
+- Created docs/DEPLOYMENT_CHECKLIST.md
+
+## 🚧 In Progress Tasks
+- Audit all API routes to ensure withTenantContext wrapping and tenant validation
+
+## 💡 Next Suggestions / Ideas
+- Review services for getTenantId() helper and tenant scoping; add where missing
+- Update failing tests to use new helpers; migrate existing tests incrementally
+- Implement admin service-clone duplicate-name 409 and status transition tests per plan
+- Run full test suite; add 404-on-cross-tenant checks where needed
+
 **Project:** NextAccounting403  
 **Issue:** Test failures due to missing tenant context system  
 **Priority:** Critical  
