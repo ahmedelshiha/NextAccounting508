@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { runDiagnostics, exportSettings, importSettings } from '@/services/settings.service'
+import Link from 'next/link'
+import { getFavorites, removeFavorite } from '@/services/favorites.service'
 
 const RecentChanges = lazy(() => import('./RecentChanges'))
 
