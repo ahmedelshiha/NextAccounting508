@@ -7,8 +7,59 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { runDiagnostics, exportSettings, importSettings } from '@/services/settings.service'
+import Link from 'next/link'
+import { getFavorites, removeFavorite } from '@/services/favorites.service'
 
 const RecentChanges = lazy(() => import('./RecentChanges'))
+
+function PinnedSettingsList() {
+  const [items, setItems] = React.useState<Array<{ settingKey: string; route: string; label: string }>>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+
+  const load = React.useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await getFavorites()
+      setItems(data.map(d => ({ settingKey: d.settingKey, route: d.route, label: d.label })))
+    } catch (e) {
+      setError('Failed to load pinned settings')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => { load() }, [load])
+
+  if (loading) {
+    return (
+      <div className="mt-4 space-y-2" role="status" aria-live="polite">
+        <div className="h-4 bg-gray-100 rounded w-1/2 animate-pulse" />
+        <div className="h-4 bg-gray-100 rounded w-2/3 animate-pulse" />
+        <div className="h-4 bg-gray-100 rounded w-1/3 animate-pulse" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return <div className="mt-4 text-sm text-red-600">{error}</div>
+  }
+
+  if (!items.length) {
+    return <div className="mt-4 text-sm text-muted-foreground">No pinned settings yet.</div>
+  }
+
+  return (
+    <ul className="mt-4 space-y-2">
+      {items.map((it) => (
+        <li key={it.settingKey} className="flex items-center justify-between">
+          <Link href={it.route} className="text-sm text-gray-700 hover:underline">{it.label}</Link>
+          <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 function SettingsOverviewInner() {
   const [running, setRunning] = useState(false)
@@ -148,20 +199,7 @@ function SettingsOverviewInner() {
             <h3 className="text-lg font-semibold">Pinned Settings</h3>
             <p className="text-sm text-muted-foreground mt-1">Quick access to frequently used configuration</p>
 
-            <ul className="mt-4 space-y-2">
-              <li className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Organization • Branding</span>
-                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Security • MFA</span>
-                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
-              </li>
-              <li className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">Communication • Notifications</span>
-                <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
-              </li>
-            </ul>
+            <PinnedSettingsList />
           </div>
           <div className="mt-4 flex justify-end">
             <Button type="button" aria-label="Manage pinned settings">Manage</Button>

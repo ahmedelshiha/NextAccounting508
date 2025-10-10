@@ -59,6 +59,9 @@ model User {
   expenses Expense[]
   tenantMemberships TenantMembership[]
   auditLogs AuditLog[]
+  settingChangeDiffs SettingChangeDiff[]
+  favoriteSettings   FavoriteSetting[]
+  auditEvents        AuditEvent[]
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
@@ -147,6 +150,9 @@ model Tenant {
   securitySettings     SecuritySettings?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
+  settingChangeDiffs   SettingChangeDiff[]
+  favoriteSettings     FavoriteSetting[]
+  auditEvents          AuditEvent[]
 
   @@index([status])
 }
@@ -1225,6 +1231,62 @@ enum UserRole {
   TEAM_LEAD
   ADMIN
   SUPER_ADMIN
+}
+
+// Settings change diff records for auditing previews and applied changes
+model SettingChangeDiff {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  category  String
+  resource  String?
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, category, createdAt])
+  @@map("setting_change_diffs")
+}
+
+// Per-user pinned settings shortcuts
+model FavoriteSetting {
+  id         String   @id @default(cuid())
+  tenantId   String
+  userId     String
+  settingKey String
+  route      String
+  label      String
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, settingKey])
+  @@index([tenantId, userId])
+  @@map("favorite_settings")
+}
+
+// Generic audit events (complements audit_logs)
+model AuditEvent {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  type      String
+  resource  String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([tenantId, createdAt])
+  @@index([type, createdAt])
+  @@map("audit_events")
 }
 
 // Organization settings persisted per-tenant

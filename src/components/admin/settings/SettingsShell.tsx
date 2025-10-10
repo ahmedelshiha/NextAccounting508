@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import Tabs from './Tabs'
+import SettingsSearch from '@/components/admin/settings/SettingsSearch'
 
 interface SettingsTabItem { key: string; label: string }
 
@@ -132,12 +133,11 @@ export function SettingsShell({
               </div>
             </div>
             
-            {/* Right: Actions */}
-            {actions && (
-              <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                {actions}
-              </div>
-            )}
+            {/* Right: Search + Actions */}
+            <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+              <SettingsSearch />
+              {actions}
+            </div>
           </div>
         </div>
       </div>
