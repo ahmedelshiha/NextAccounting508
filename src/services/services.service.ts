@@ -335,7 +335,8 @@ export class ServicesService {
       createData.tenant = { connect: { id: tId } }
     }
 
-    const s = await (await getPrisma()).service.create({ data: createData });
+    const prisma = await this.resolvePrisma();
+    const s = await prisma.service.create({ data: createData });
     await this.clearCaches(tId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId: tId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
