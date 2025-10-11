@@ -25,7 +25,7 @@ export const GET = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const url = new URL(request.url)
