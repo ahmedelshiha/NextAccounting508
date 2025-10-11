@@ -14,7 +14,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     if (!hasDb) {
