@@ -5,6 +5,7 @@ import { collectSystemHealth } from '@/lib/health'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { tenantContext } from '@/lib/tenant-context'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -18,7 +19,7 @@ export const GET = withTenantContext(
     try {
       const { role } = tenantContext.getContext()
       if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        return respond.forbidden('Forbidden')
       }
 
       const health = await collectSystemHealth({ includeRealtime: true })
