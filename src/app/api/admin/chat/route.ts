@@ -43,9 +43,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 export const GET = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
-  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL) || !ctx.userId) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  if (!ctx.userId) return respond.unauthorized()
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) return respond.forbidden('Forbidden')
 
   const tenantId = ctx.tenantId ?? null
   const { searchParams } = new URL(request.url)
