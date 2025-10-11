@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { z } from 'zod'
 import type { Prisma, RequestPriority, WorkOrderStatus } from '@prisma/client'
@@ -34,9 +35,8 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
   const canReadAll = hasPermission(role, PERMISSIONS.TASKS_READ_ALL)
   const canReadAssigned = hasPermission(role, PERMISSIONS.TASKS_READ_ASSIGNED)
-  if (!ctx.userId || (!canReadAll && !canReadAssigned)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  if (!ctx.userId) return respond.unauthorized()
+  if (!canReadAll && !canReadAssigned) return respond.forbidden('Forbidden')
 
   const { searchParams } = new URL(request.url)
   const common = parseListQuery(searchParams, { allowedSortBy: ['createdAt','updatedAt','dueAt','priority','status'], defaultSortBy: 'createdAt', maxLimit: 100 })

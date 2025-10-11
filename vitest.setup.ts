@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 import * as React from 'react'
 import fs from 'fs'
 

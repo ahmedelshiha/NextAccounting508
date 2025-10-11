@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import prisma from '@/lib/prisma'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -22,7 +22,7 @@ export const GET = withTenantContext(async (request: Request) => {
 
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     // Get team members with their assignments and workload
@@ -82,7 +82,7 @@ export const POST = withTenantContext(async (req: Request) => {
     const tenantId = ctx.tenantId ?? null
     
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
     
     const body = await req.json().catch(() => ({}))
@@ -129,7 +129,7 @@ export const PUT = withTenantContext(async (req: Request) => {
     const tenantId = ctx.tenantId ?? null
     
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
     
     const body = await req.json().catch(() => ({}))

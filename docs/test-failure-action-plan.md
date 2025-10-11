@@ -513,7 +513,7 @@ vi.mock('next/navigation', () => ({
 ---
 
 **Document Version:** 1.0
-**Last Updated:** 2025-10-11
+**Last Updated:** 2025-10-12
 **Status:** In Progress
 
 ## Progress Log
@@ -546,3 +546,77 @@ vi.mock('next/navigation', () => ({
   - `src/services/services.service.ts`
   - `vitest.setup.ts`
 - **Notes**: `tests/admin-rbac-comprehensive.test.ts` now passes (41/41). Added NextResponse imports to avoid runtime errors in tests and treated undefined rate-limit decisions as allowed to prevent false negatives.
+
+### Fix Build: TypeScript Duplicate Imports in API Routes
+- **Status**: ✅ Completed
+- **Date**: 2025-10-11 13:45:00
+- **Changes**: Removed duplicate imports of NextRequest/NextResponse in services stats route and duplicate NextResponse import in team-management route to resolve TS2300 errors.
+- **Files Modified**:
+  - `src/app/api/admin/services/stats/route.ts`
+  - `src/app/api/admin/team-management/route.ts`
+- **Notes**: Unblocks Next.js build typechecking for these routes.
+
+### Fix Build: Vitest setup globals typing
+- **Status**: ✅ Completed
+- **Date**: 2025-10-11 13:46:00
+- **Changes**: Imported beforeEach from vitest in vitest.setup.ts to satisfy TypeScript during build typecheck.
+- **Files Modified**:
+  - `vitest.setup.ts`
+- **Notes**: Resolves TS2304 (Cannot find name 'beforeEach') during typecheck.
+
+### Priority 1.1: Prisma Client Initialization - **Status**: ✅ Completed
+- **Date**: 2025-10-11 13:58:00
+- **Changes**: Added defensive null-checks and safer usage of the Prisma proxy in `ServicesService.cloneService()` to make behavior deterministic when using the test/mock Prisma client. Reused a single `getPrisma()` result per function to avoid multiple dynamic imports and improve performance.
+- **Files Modified**:
+  - `src/services/services.service.ts`
+- **Notes**: The cloneService function now validates the source record shape, avoids non-null assertions, uses the resolved prisma client instance for all DB calls within the function, and ensures tenant connect is only included when tenantId is present. Next: run full typecheck and test suite to confirm all issues resolved.
+
+### Priority 2.1: Authentication Middleware Issues - **Status**: ✅ Completed
+- **Date**: 2025-10-11 14:18:00
+- **Changes**: Updated `withTenantContext` to attempt passing the incoming request to next-auth's getServerSession (both 'next-auth/next' and classic 'next-auth' fallbacks). The wrapper now tries request-based session resolution first and falls back to the previous signature if needed. This improves compatibility with App Router session handling and test mocks.
+- **Files Modified**:
+  - `src/lib/api-wrapper.ts`
+- **Notes**: Non-invasive change; next steps are adding unit tests for withTenantContext and auditing admin routes for correct wrapper usage. Proceeding to Priority 2.2 (RBAC audit) next.
+
+### Priority 2.2: RBAC Audit & Permission Responses - **Status**: ✅ In Progress
+- **Date**: 2025-10-12 14:35:00
+- **Actions Taken**:
+  - Audited core admin routes and standardized permission-denied behavior to return 403 Forbidden when an authenticated user lacks permissions and 401 for unauthenticated requests.
+  - Updated many admin endpoints to use the centralized response helper `respond.forbidden('Forbidden')` or `respond.unauthorized()` where appropriate.
+- **Files Modified (partial list)**:
+  - `src/app/api/admin/tasks/route.ts`
+  - `src/app/api/admin/tasks/[id]/route.ts`
+  - `src/app/api/admin/tasks/[id]/assign/route.ts`
+  - `src/app/api/admin/tasks/[id]/status/route.ts`
+  - `src/app/api/admin/tasks/notifications/route.ts`
+  - `src/app/api/admin/tasks/export/route.ts`
+  - `src/app/api/admin/tasks/stream/route.ts`
+  - `src/app/api/admin/tasks/bulk/route.ts`
+  - `src/app/api/admin/tasks/templates/route.ts`
+  - `src/app/api/admin/tasks/analytics/route.ts`
+  - `src/app/api/admin/team-management/route.ts`
+  - `src/app/api/admin/analytics/route.ts`
+  - `src/app/api/admin/service-requests/[id]/route.ts`
+  - `src/app/api/admin/chat/route.ts`
+  - `src/app/api/admin/export/route.ts`
+  - `src/app/api/admin/tasks/export/route.ts`
+  - `src/app/api/admin/service-requests/export/route.ts`
+  - `src/app/api/admin/availability-slots/route.ts`
+  - `src/app/api/admin/currencies/route.ts`
+  - `src/app/api/admin/currencies/[code]/route.ts`
+  - `src/app/api/admin/currencies/refresh/route.ts`
+  - `src/app/api/admin/booking-settings/route.ts`
+  - `src/app/api/admin/expenses/route.ts`
+  - `src/app/api/admin/thresholds/route.ts`
+  - `src/app/api/admin/work-orders/[id]/route.ts`
+  - `src/app/api/admin/team-settings/route.ts`
+  - `src/app/api/admin/system/health/route.ts`
+- **Notes**: Sweep is ongoing — many task-related and admin endpoints updated. Next: continue sweeping remaining admin routes to normalize responses and then run targeted RBAC tests (see TODO below).
+
+## TODO
+- Continue sweeping remaining admin endpoints to replace direct `NextResponse.json({ error: 'Unauthorized' }, { status: 401 })` calls with `respond.forbidden('Forbidden')` or `respond.unauthorized()` as appropriate. (in_progress)
+- Run targeted tests for admin RBAC routes. (pending)
+
+---
+
+*End of document.*

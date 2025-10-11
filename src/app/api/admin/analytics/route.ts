@@ -3,6 +3,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -18,7 +19,7 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     // Minimal implementation for tests

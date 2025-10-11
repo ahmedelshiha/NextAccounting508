@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 import * as Sentry from '@sentry/nextjs'
 import { SystemAdministrationSettingsSchema } from '@/schemas/settings/system-administration'
 import systemService from '@/services/system-settings.service'
@@ -12,9 +13,7 @@ import type { Prisma } from '@prisma/client'
 export const GET = withTenantContext(async () => {
   try {
     const ctx = requireTenantContext()
-    if (!hasPermission(ctx.role || undefined, PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!hasPermission(ctx.role || undefined, PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW)) return respond.forbidden('Forbidden')
     const settings = await systemService.get(ctx.tenantId)
     return NextResponse.json(settings)
   } catch (e) {
