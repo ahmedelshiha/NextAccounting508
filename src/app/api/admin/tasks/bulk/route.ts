@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 function mapStatusToDb(s?: string): any {
   if (!s) return undefined
