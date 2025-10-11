@@ -7,6 +7,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (req: Request) => {
   try {
@@ -30,6 +31,10 @@ export const PUT = withTenantContext(async (req: Request) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      try { Sentry.captureMessage('team-settings:missing_tenant', { level: 'warning' } as any) } catch {}
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const body = await req.json().catch(() => ({}))
     const parsed = TeamSettingsSchema.partial().safeParse(body)
     if (!parsed.success) {
@@ -38,8 +43,32 @@ export const PUT = withTenantContext(async (req: Request) => {
     }
     const before = await teamService.get(tenantId).catch(()=>null)
     const updated = await teamService.upsert(tenantId, parsed.data)
-    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'teamManagement', resource: 'team-settings', before: before || null, after: updated || null } }) } catch {}
-    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'team-settings', details: { category: 'teamManagement' } } }) } catch {}
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'teamManagement',
+        resource: 'team-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'team-settings',
+        details: { category: 'teamManagement' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
+
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
