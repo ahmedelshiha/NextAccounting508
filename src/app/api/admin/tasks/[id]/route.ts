@@ -4,6 +4,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { getTenantFilter, requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const PriorityEnum = z.enum(['LOW','MEDIUM','HIGH'])
 const StatusEnum = z.enum(['OPEN','IN_PROGRESS','DONE'])
