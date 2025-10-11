@@ -4,6 +4,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
 import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
