@@ -35,21 +35,29 @@ export const POST = withTenantContext(async (_request: NextRequest) => {
       return respond.unauthorized()
     }
 
-    const body = await _request.json()
-    const { responseTime, errorRate, storageGrowth } = body
+    const body = await _request.json().catch(() => ({} as any))
+    const { responseTime, errorRate, storageGrowth } = body as Record<string, unknown>
     if (typeof responseTime !== 'number' || typeof errorRate !== 'number' || typeof storageGrowth !== 'number') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
-    const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
-    let upserted
-    if (existing) {
-      upserted = await prisma.healthThreshold.update({ where: { id: existing.id }, data: { responseTime, errorRate, storageGrowth } })
-    } else {
-      upserted = await prisma.healthThreshold.create({ data: { responseTime, errorRate, storageGrowth } })
+    const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } }).catch(() => null as any)
+
+    let record: any | null = null
+    const canUpdate = !!(existing && typeof (prisma as any)?.healthThreshold?.update === 'function')
+    const canCreate = typeof (prisma as any)?.healthThreshold?.create === 'function'
+
+    if (canUpdate) {
+      record = await (prisma as any).healthThreshold.update({ where: { id: existing.id }, data: { responseTime, errorRate, storageGrowth } })
+    } else if (canCreate) {
+      record = await (prisma as any).healthThreshold.create({ data: { responseTime, errorRate, storageGrowth } })
     }
 
-    return NextResponse.json({ responseTime: upserted.responseTime, errorRate: upserted.errorRate, storageGrowth: upserted.storageGrowth })
+    if (!record) {
+      return NextResponse.json({ error: 'Data store unavailable' }, { status: 503 })
+    }
+
+    return NextResponse.json({ responseTime: record.responseTime, errorRate: record.errorRate, storageGrowth: record.storageGrowth })
   } catch (err) {
     console.error('Thresholds POST error', err)
     return NextResponse.json({ error: 'Failed to save thresholds' }, { status: 500 })
