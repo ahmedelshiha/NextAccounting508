@@ -30,8 +30,11 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
-    if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
-      return new NextResponse('Unauthorized', { status: 401 })
+    if (!ctx || !ctx.userId) {
+      return respond.unauthorized()
+    }
+    if (!hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
+      return respond.forbidden('Forbidden')
     }
 
     const { searchParams } = new URL(request.url)
