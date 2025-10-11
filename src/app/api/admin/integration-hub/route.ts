@@ -42,7 +42,7 @@ export const PUT = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
     const before = await service.get(tenantId).catch(()=>null)
-    const saved = await service.update(tenantId, parsed.data, ctx.userId as string)
+    const saved = await service.update(tenantId, parsed.data, ctx.userId)
     try {
       const actorUserId = ctx.userId ? String(ctx.userId) : undefined
       const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
