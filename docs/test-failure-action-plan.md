@@ -531,3 +531,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-12: Priority 1.8 (Inject Bootstraps) — Injected test bootstraps into key failing suites: tests/team-management.routes.test.ts and tests/admin-rbac-comprehensive.test.ts to stabilize RBAC and team-management tests.
 - 2025-10-12: Priority 1.9 (Services Tests) — Injected services bootstrap into tests/admin-services.route.test.ts and tests/admin-services.clone.route.test.ts to stabilize services-related tests.
 - 2025-10-12: Priority 1.10 (Bookings Tests) — Injected bookings bootstrap into tests/bookings.id.route.test.ts to stabilize booking-related tests.
+- 2025-10-12: Priority 1.11 (Service Requests Tests) — Injected service-requests bootstrap into export and route tests (tests/admin-service-requests.export.test.ts, tests/admin-service-requests.route.test.ts, tests/api/admin-service-requests.contract.test.ts, tests/portal-service-requests.route.test.ts, tests/portal-service-requests.export.test.ts).
