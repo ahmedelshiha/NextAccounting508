@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
@@ -15,7 +16,7 @@ export const GET = withTenantContext(async (request: Request) => {
     // Apply rate limiting
     const ip = getClientIp(request as unknown as Request)
     const rl = await applyRateLimit(`admin-team-management:${ip}`, 60, 60_000)
-    if (!rl.allowed) {
+    if (rl && rl.allowed === false) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
 

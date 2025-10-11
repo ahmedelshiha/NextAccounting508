@@ -84,6 +84,22 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }))
 
+// Provide safe defaults for rate limiting in tests while preserving actual exports
+vi.mock('@/lib/rate-limit', async () => {
+  const actual: any = await vi.importActual('@/lib/rate-limit').catch(() => ({}))
+  const applyRateLimit = vi.fn(async (_key: string, limit = 20, windowMs = 60_000) => ({
+    allowed: true,
+    backend: 'memory',
+    count: 0,
+    limit,
+    remaining: limit,
+    resetAt: Date.now() + windowMs,
+  }))
+  const rateLimitAsync = vi.fn(async () => true)
+  const getClientIp = (_req: Request) => 'test'
+  return { ...actual, applyRateLimit, rateLimitAsync, getClientIp }
+})
+
 // Ensure tests use the mock Prisma client to avoid hard DB dependencies
 if (!process.env.PRISMA_MOCK) process.env.PRISMA_MOCK = 'true'
 
