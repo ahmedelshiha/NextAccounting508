@@ -63,7 +63,8 @@ export const POST = withTenantContext(async (_request: NextRequest) => {
     }
 
     if (!record) {
-      return NextResponse.json({ error: 'Data store unavailable' }, { status: 503 })
+      memoryThreshold = { responseTime, errorRate, storageGrowth }
+      return NextResponse.json(memoryThreshold)
     }
 
     return NextResponse.json({ responseTime: record.responseTime, errorRate: record.errorRate, storageGrowth: record.storageGrowth })
