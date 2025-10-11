@@ -19,7 +19,7 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     // Minimal implementation for tests
