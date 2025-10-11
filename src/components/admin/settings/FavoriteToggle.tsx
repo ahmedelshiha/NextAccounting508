@@ -41,6 +41,7 @@ export default function FavoriteToggle({ settingKey, route, label, initiallyPinn
         if (ok) setPinned(false)
       }
       onChange?.(!pinned)
+      try { window.dispatchEvent(new Event('favorites:updated')) } catch {}
     } finally {
       setWorking(false)
     }
