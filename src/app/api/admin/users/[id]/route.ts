@@ -14,9 +14,8 @@ export const PATCH = withTenantContext(async (request: NextRequest, context: { p
   try {
     const ctx = requireTenantContext()
     const role = ctx.role ?? ''
-    if (!ctx.userId || !hasPermission(role, PERMISSIONS.USERS_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!ctx.userId) return respond.unauthorized()
+    if (!hasPermission(role, PERMISSIONS.USERS_MANAGE)) return respond.forbidden('Forbidden')
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {

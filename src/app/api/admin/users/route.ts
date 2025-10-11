@@ -22,9 +22,8 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     const role = ctx.role ?? ''
-    if (!ctx.userId || !hasPermission(role, PERMISSIONS.USERS_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!ctx.userId) return respond.unauthorized()
+    if (!hasPermission(role, PERMISSIONS.USERS_MANAGE)) return respond.forbidden('Forbidden')
 
     let useFallback = false
     try {
