@@ -8,6 +8,7 @@ import { NextRequest } from 'next/server'
 import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
 import prisma from '@/lib/prisma'
 import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
@@ -38,6 +39,9 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       if (!ok) return stepUpChallenge()
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const body = await request.json().catch(() => ({}))
     const parsed = SecurityComplianceSettingsSchema.partial().safeParse(body)
     if (!parsed.success) {
@@ -47,9 +51,28 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     const updated = await service.upsert(tenantId, parsed.data)
 
     try {
-      await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'securityCompliance', resource: 'security-settings', before: before || null, after: updated || null } })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'securityCompliance',
+        resource: 'security-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
-    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'security-settings', details: { category: 'securityCompliance' } } }) } catch {}
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'security-settings',
+        details: { category: 'securityCompliance' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
 
     return NextResponse.json(updated)
   } catch (e) {
