@@ -8,6 +8,9 @@ import { respond } from '@/lib/api-response'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
+// In-memory fallback for CI/test environments where prisma model may be mocked or unavailable
+let memoryThreshold: { responseTime: number; errorRate: number; storageGrowth: number } | null = null
+
 export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
