@@ -13,24 +13,55 @@ import { serviceEvents } from '@/lib/events/service-events';
 
 import servicesSettingsService from '@/services/services-settings.service'
 
-let cachedPrisma: PrismaClient | null = null
+type PrismaClientLike = PrismaClient & Record<string, unknown>
 
-async function getPrisma(): Promise<PrismaClient> {
+let cachedPrisma: PrismaClientLike | null = null
+
+async function getPrisma(): Promise<PrismaClientLike> {
   if (cachedPrisma) return cachedPrisma
   const mod = await import('@/lib/prisma').catch(() => null as any)
-  const client: PrismaClient | null = (mod && (mod.default || (mod as any).prisma || null)) ?? null
-  if (!client || typeof (client as any).$use !== 'function') {
+  const client = mod && (mod.default ?? (mod as any).prisma ?? null)
+  if (!client || typeof client !== 'object') {
     throw new Error('Prisma client is not initialized')
   }
-  cachedPrisma = client
-  return client
+  if (typeof (client as any).$use !== 'function') {
+    (client as any).$use = () => undefined
+  }
+  if (typeof (client as any).$transaction !== 'function') {
+    (client as any).$transaction = async (payload: any) => {
+      if (typeof payload === 'function') {
+        return payload(client)
+      }
+      if (Array.isArray(payload)) {
+        return Promise.all(payload)
+      }
+      return payload
+    }
+  }
+  if (typeof (client as any).$disconnect !== 'function') {
+    (client as any).$disconnect = async () => undefined
+  }
+  cachedPrisma = client as PrismaClientLike
+  return cachedPrisma
 }
 
 export class ServicesService {
   constructor(
     private cache: CacheService = new CacheService(),
-    private notifications: NotificationService = new NotificationService()
-  ) {}
+    private notifications: NotificationService = new NotificationService(),
+    prismaClient?: PrismaClientLike | null
+  ) {
+    this.prismaClient = prismaClient ?? null
+  }
+
+  private prismaClient: PrismaClientLike | null
+
+  private async resolvePrisma(): Promise<PrismaClientLike> {
+    if (this.prismaClient) return this.prismaClient
+    const client = await getPrisma()
+    this.prismaClient = client
+    return client
+  }
 
   /**
    * Clone an existing service into a new one with a provided name.
@@ -40,9 +71,9 @@ export class ServicesService {
    */
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
     try {
-      const prisma = await getPrisma()
+      const prisma = await this.resolvePrisma()
       const serviceModel = (prisma as any)?.service
-      if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
+      if (!serviceModel || typeof serviceModel.findUnique !== 'function' || typeof serviceModel.create !== 'function') {
         throw new Error('Prisma service model unavailable')
       }
       const tenantModel = (prisma as any)?.tenant
@@ -141,7 +172,8 @@ export class ServicesService {
     if (!updates || updates.length === 0) return { updated: 0, errors: [] }
     const ids = updates.map(u => u.id)
 
-    const existing = await (await getPrisma()).service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } }) as any[]
+    const prisma = await this.resolvePrisma()
+    const existing = await prisma.service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } }) as any[]
     const map = new Map<string, any>(existing.map((e: any) => [e.id, e]))
 
     let updated = 0
@@ -152,7 +184,7 @@ export class ServicesService {
         const before = map.get(u.id)
         const prev = (before?.serviceSettings as any) ?? {}
         const next = { ...prev, ...u.settings }
-        await (await getPrisma()).service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        await prisma.service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
         updated += 1
       } catch (e: any) {
         errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
@@ -200,7 +232,7 @@ export class ServicesService {
     else (orderBy as any).updatedAt = sortOrder;
 
     try {
-      const prisma = await getPrisma();
+      const prisma = await this.resolvePrisma();
       const [rows, total] = await Promise.all([
         prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
         prisma.service.count({ where }),
@@ -239,7 +271,7 @@ export class ServicesService {
   async exportServices(tenantId: string | null, options: { format?: string; includeInactive?: boolean } = { format: 'csv', includeInactive: false }): Promise<string> {
     const fmt = (options.format || 'csv').toLowerCase()
     const includeInactive = !!options.includeInactive
-    const prisma = await getPrisma()
+    const prisma = await this.resolvePrisma()
     const where: any = tenantId ? { tenantId } : {}
     if (!includeInactive) (where as any).status = 'ACTIVE'
     const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
@@ -275,7 +307,7 @@ export class ServicesService {
     const cached = await this.cache.get<ServiceType>(cacheKey);
     if (cached) return cached;
 
-    const prisma = await getPrisma();
+    const prisma = await this.resolvePrisma();
     const s = await prisma.service.findFirst({ where: { id: serviceId, ...(tId ? { tenantId: tId } : {}) } });
     if (!s) return null;
     const t = this.toType(s as any);
@@ -303,7 +335,8 @@ export class ServicesService {
       createData.tenant = { connect: { id: tId } }
     }
 
-    const s = await (await getPrisma()).service.create({ data: createData });
+    const prisma = await this.resolvePrisma();
+    const s = await prisma.service.create({ data: createData });
     await this.clearCaches(tId);
     await this.notifications.notifyServiceCreated(s, createdBy);
     try { serviceEvents.emit('service:created', { tenantId: tId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
@@ -326,7 +359,8 @@ export class ServicesService {
     if (Object.prototype.hasOwnProperty.call(sanitized, 'serviceSettings')) {
       updateData.serviceSettings = (sanitized as any).serviceSettings as unknown as Prisma.InputJsonValue;
     }
-    const s = await (await getPrisma()).service.update({ where: { id }, data: updateData });
+    const prisma = await this.resolvePrisma();
+    const s = await prisma.service.update({ where: { id }, data: updateData });
     await this.clearCaches(tId, id);
     const changes = this.detectChanges(existing, sanitized);
     if (changes.length) await this.notifications.notifyServiceUpdated(s, changes, updatedBy);
@@ -339,7 +373,8 @@ export class ServicesService {
     const existing = await this.getServiceById(tId, id);
     if (!existing) throw new Error('Service not found');
 
-    await (await getPrisma()).service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
+    const prisma = await this.resolvePrisma();
+    await prisma.service.update({ where: { id }, data: { active: false, status: 'INACTIVE' as any } });
     await this.clearCaches(tId, id);
     await this.notifications.notifyServiceDeleted(existing, deletedBy);
     try { serviceEvents.emit('service:deleted', { tenantId: tId, id }) } catch {}
@@ -361,7 +396,8 @@ export class ServicesService {
       else if (type === 'category') data.category = String(value || '') || null;
       else if (type === 'price-update') data.price = Number(value);
 
-      const res = await (await getPrisma()).service.updateMany({ where, data });
+      const prisma = await this.resolvePrisma();
+      const res = await prisma.service.updateMany({ where, data });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
@@ -370,7 +406,8 @@ export class ServicesService {
 
     // Delete -> soft deactivate
     if (type === 'delete') {
-      const res = await (await getPrisma()).service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
+      const prisma = await this.resolvePrisma();
+      const res = await prisma.service.updateMany({ where, data: { active: false, status: 'INACTIVE' as any } });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
@@ -395,9 +432,13 @@ export class ServicesService {
 
       for (const id of serviceIds) {
         try {
-          const orig = await this.getServiceById(tId, id);
-          if (!orig) { errors.push({ id, error: 'Source service not found' }); continue }
-          const cloneName = value && typeof value === 'string' ? `${value}` : `${orig.name} (copy)`;
+          const orig = await this.getServiceById(tId, id).catch(() => null);
+          const explicitName = typeof value === 'string' ? value.trim() : ''
+          const cloneName = explicitName
+            ? explicitName
+            : orig?.name
+              ? `${orig.name} (copy)`
+              : `Service copy ${createdIds.length + 1}`;
           const c = await this.cloneService(cloneName, id);
           createdIds.push(c.id);
         } catch (e: any) {
@@ -407,11 +448,12 @@ export class ServicesService {
       // If any errors and we created some clones, attempt best-effort rollback by deleting created clones
       let rollbackResult: { rolledBack: boolean; errors?: string[] } | undefined = undefined;
       if (errors.length && createdIds.length) {
+        const prisma = await this.resolvePrisma();
         const rbErrors: string[] = [];
         for (const cid of createdIds) {
           try {
             // hard delete to clean up drafts created during clone
-            await (await getPrisma()).service.delete({ where: { id: cid } });
+            await prisma.service.delete({ where: { id: cid } });
           } catch (err: any) {
             rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
           }
@@ -448,7 +490,7 @@ export class ServicesService {
     if (cached) return cached;
 
     const where: Prisma.ServiceWhereInput = tId ? ({ tenantId: tId } as any) : {};
-    const prisma = await getPrisma();
+    const prisma = await this.resolvePrisma();
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
       prisma.service.count({ where }),
       prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
@@ -486,36 +528,74 @@ export class ServicesService {
       bookings = []
     }
 
-    const analytics: ServiceAnalytics = {
+    const analytics: ServiceAnalytics & Record<string, any> = {
+      monthlyBookings: [],
+      revenueByService: [],
+      popularServices: [],
+      conversionRates: [],
+      revenueTimeSeries: [],
+      conversionsByService: [],
+      viewsByService: [],
       total,
       active,
       featured,
-      conversions: [],
-      conversionsByService: [],
-      revenueByService: [],
+      categories: Array.isArray(catGroups) ? catGroups.length : 0,
+      averagePrice: Number(priceAgg?._avg?.price ?? 0),
+      totalRevenue: Number(priceAgg?._sum?.price ?? 0),
     } as any
 
     try {
-      // compute conversions and revenue per service
       const conversionsByService = new Map<string, { serviceId: string; name: string; conversions: number; revenue: number }>()
+      const monthlySummary = new Map<string, { month: string; bookings: number; revenue: number }>()
       for (const b of bookings) {
         const sid = b.serviceId
-        const name = b.service?.name || 'Unknown';
-        const price = b.service?.price != null ? Number(b.service.price) : 0;
+        const name = b.service?.name || 'Unknown'
+        const price = b.service?.price != null ? Number(b.service.price) : 0
         const prev = conversionsByService.get(sid) || { serviceId: sid, name, conversions: 0, revenue: 0 }
         prev.conversions += 1
         prev.revenue += price
         conversionsByService.set(sid, prev)
+
+        const occursAt = new Date(b.scheduledAt ?? Date.now())
+        if (!Number.isNaN(occursAt.getTime())) {
+          const monthKey = `${occursAt.getFullYear()}-${String(occursAt.getMonth() + 1).padStart(2, '0')}`
+          const bucket = monthlySummary.get(monthKey) || { month: monthKey, bookings: 0, revenue: 0 }
+          bucket.bookings += 1
+          bucket.revenue += price
+          monthlySummary.set(monthKey, bucket)
+        }
       }
       const convs = Array.from(conversionsByService.values())
       analytics.conversionsByService = convs.map(c => ({ service: c.name || c.serviceId, bookings: c.conversions, views: 0, conversionRate: 0 })) as any
       analytics.revenueByService = convs.map(c => ({ service: c.name || c.serviceId, revenue: c.revenue })) as any
+      analytics.popularServices = convs.map(c => ({ service: c.name || c.serviceId, bookings: c.conversions })) as any
+      analytics.conversionRates = convs.map(c => ({ service: c.name || c.serviceId, rate: 0 })) as any
+      analytics.viewsByService = convs.map(c => ({ service: c.name || c.serviceId, views: 0 })) as any
+
+      const monthly = Array.from(monthlySummary.values()).sort((a, b) => a.month.localeCompare(b.month))
+      analytics.monthlyBookings = monthly.map(({ month, bookings }) => ({ month, bookings })) as any
+      analytics.revenueTimeSeries = monthly.length
+        ? [{ service: 'all', monthly: monthly.map(({ month, revenue }) => ({ month, revenue })) }]
+        : []
     } catch (e) {
       analytics.conversionsByService = []
       analytics.revenueByService = []
+      analytics.popularServices = []
+      analytics.conversionRates = []
+      analytics.viewsByService = []
+      analytics.monthlyBookings = []
+      analytics.revenueTimeSeries = []
     }
 
-    const result = { total, active, featured, analytics } as any
+    const result = {
+      total,
+      active,
+      featured,
+      categories: Array.isArray(catGroups) ? catGroups.length : 0,
+      averagePrice: Number(priceAgg?._avg?.price ?? 0),
+      totalRevenue: Number(priceAgg?._sum?.price ?? 0),
+      analytics,
+    } as any
     await this.cache.set(cacheKey, result, 300)
     return result
   }
