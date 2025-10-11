@@ -71,9 +71,9 @@ export class ServicesService {
    */
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
     try {
-      const prisma = await getPrisma()
+      const prisma = await this.resolvePrisma()
       const serviceModel = (prisma as any)?.service
-      if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
+      if (!serviceModel || typeof serviceModel.findUnique !== 'function' || typeof serviceModel.create !== 'function') {
         throw new Error('Prisma service model unavailable')
       }
       const tenantModel = (prisma as any)?.tenant
