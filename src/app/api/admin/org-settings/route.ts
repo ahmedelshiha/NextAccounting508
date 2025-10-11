@@ -109,7 +109,7 @@ export const PUT = withTenantContext(async (req: Request) => {
     try {
       const actorUserId = ctx.userId ? String(ctx.userId) : undefined
       const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
-        tenantId: ctx.tenantId,
+        tenantId,
         category: 'organization',
         resource: 'org-settings',
         ...(actorUserId ? { userId: actorUserId } : {}),
