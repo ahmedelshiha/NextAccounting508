@@ -41,12 +41,18 @@ export class ServicesService {
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
     try {
       const prisma = await getPrisma()
-      const src = await prisma.service.findUnique({ where: { id: fromId } })
+      const serviceModel = (prisma as any)?.service
+      if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
+        throw new Error('Prisma service model unavailable')
+      }
+      const tenantModel = (prisma as any)?.tenant
+
+      const src = await serviceModel.findUnique({ where: { id: fromId } })
       if (!src || typeof src !== 'object') throw new Error('Source service not found or malformed')
 
       let tenantId: string | null = (src as any).tenantId ?? null
-      if (!tenantId) {
-        const t = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+      if (!tenantId && tenantModel && typeof tenantModel.findFirst === 'function') {
+        const t = await tenantModel.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
         tenantId = t?.id || null
         if (!tenantId) throw new Error('Tenant context required to clone service')
       }
