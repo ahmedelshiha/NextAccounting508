@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 export const POST = withTenantContext(async (request: Request, context: any) => {
   const params = context?.params || context
