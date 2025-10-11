@@ -25,6 +25,10 @@ const mkItem = (id: string, createdAt: string, scheduledAt?: string) => ({
   scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
 })
 
+// Apply service-requests bootstrap
+import setupServiceRequests from './setup/serviceRequests.setup'
+setupServiceRequests()
+
 vi.mock('@/lib/prisma', () => ({
   default: {
     serviceRequest: {

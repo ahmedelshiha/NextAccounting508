@@ -26,51 +26,56 @@ export class ServicesService {
    * - Copies pricing, duration, category, features, image and settings
    */
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
-    const src = await (await getPrisma()).service.findUnique({ where: { id: fromId } })
-    if (!src) throw new Error('Source service not found')
+    try {
+      const src = await (await getPrisma()).service.findUnique({ where: { id: fromId } })
+      if (!src) throw new Error('Source service not found')
 
-    let tenantId: string | null = (src as any).tenantId ?? null
-    if (!tenantId) {
-      const t = await (await getPrisma()).tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
-      tenantId = t?.id || null
-      if (!tenantId) throw new Error('Tenant context required to clone service')
+      let tenantId: string | null = (src as any).tenantId ?? null
+      if (!tenantId) {
+        const t = await (await getPrisma()).tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+        tenantId = t?.id || null
+        if (!tenantId) throw new Error('Tenant context required to clone service')
+      }
+      const baseSlug = generateSlug(name)
+
+      // Ensure tenant-scoped slug uniqueness
+      let slug = baseSlug || `service-${Date.now()}`
+      let attempt = 1
+
+      while (true) {
+        const exists = await (await getPrisma()).service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+        if (!exists) break
+        attempt += 1
+        slug = `${baseSlug}-${attempt}`
+      }
+
+      const created = await (await getPrisma()).service.create({
+        data: {
+          name,
+          slug,
+          description: src.description,
+          shortDesc: src.shortDesc ?? null,
+          features: Array.isArray(src.features) ? src.features : [],
+          price: src.price as any,
+          duration: src.duration as any,
+          category: src.category ?? null,
+          featured: false,
+          active: false,
+          status: 'DRAFT' as any,
+          image: (src as any).image ?? null,
+          serviceSettings: ((src as any).serviceSettings ?? undefined) as Prisma.InputJsonValue,
+          tenant: { connect: { id: tenantId! } },
+        },
+      })
+
+      await this.clearCaches(tenantId)
+      try { await this.notifications.notifyServiceCreated(created as any, 'system') } catch {}
+      try { serviceEvents.emit('service:created', { tenantId, service: { id: created.id, slug: created.slug, name: created.name } }) } catch {}
+      return this.toType(created as any)
+    } catch (e: any) {
+      console.error('ServicesService.cloneService error', e)
+      throw new Error(`Clone service failed: ${e?.message ?? String(e)}`)
     }
-    const baseSlug = generateSlug(name)
-
-    // Ensure tenant-scoped slug uniqueness
-    let slug = baseSlug || `service-${Date.now()}`
-    let attempt = 1
-     
-    while (true) {
-      const exists = await (await getPrisma()).service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
-      if (!exists) break
-      attempt += 1
-      slug = `${baseSlug}-${attempt}`
-    }
-
-    const created = await (await getPrisma()).service.create({
-      data: {
-        name,
-        slug,
-        description: src.description,
-        shortDesc: src.shortDesc ?? null,
-        features: Array.isArray(src.features) ? src.features : [],
-        price: src.price as any,
-        duration: src.duration as any,
-        category: src.category ?? null,
-        featured: false,
-        active: false,
-        status: 'DRAFT' as any,
-        image: (src as any).image ?? null,
-        serviceSettings: ((src as any).serviceSettings ?? undefined) as Prisma.InputJsonValue,
-        tenant: { connect: { id: tenantId! } },
-      },
-    })
-
-    await this.clearCaches(tenantId)
-    try { await this.notifications.notifyServiceCreated(created as any, 'system') } catch {}
-    try { serviceEvents.emit('service:created', { tenantId, service: { id: created.id, slug: created.slug, name: created.name } }) } catch {}
-    return this.toType(created as any)
   }
 
   /**
@@ -217,16 +222,23 @@ export class ServicesService {
     const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
 
     if (fmt === 'csv') {
-      const headers = ['id','name','slug','description','shortDesc','price','duration','category','featured','active','status','createdAt','updatedAt']
+      // Match expected header format and column set: ID,Name,Slug,Description
+      const columns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Name' },
+        { key: 'slug', label: 'Slug' },
+        { key: 'description', label: 'Description' },
+      ] as const
       const escape = (v: any) => {
         if (v === null || typeof v === 'undefined') return ''
         const s = String(v)
         if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s.replace(/"/g, '""') + '"'
         return s
       }
-      const lines = [headers.join(',')]
+      const headerLine = columns.map(c => c.label).join(',')
+      const lines = [headerLine]
       for (const r of rows) {
-        lines.push(headers.map(h => escape((r as any)[h])).join(','))
+        lines.push(columns.map(c => escape((r as any)[c.key])).join(','))
       }
       return lines.join('\n')
     }

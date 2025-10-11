@@ -25,6 +25,10 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
+// Apply bookings bootstrap
+import setupBookings from './setup/bookings.setup'
+setupBookings()
+
 describe('api/bookings/[id] route', () => {
   beforeEach(() => {
     db.bookings = [

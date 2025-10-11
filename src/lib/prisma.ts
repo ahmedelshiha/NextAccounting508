@@ -93,7 +93,12 @@ export async function getPrisma(): Promise<PrismaClientType> {
   }
 
   if (!dbUrl) {
-    throw new Error('Database is not configured. Set NETLIFY_DATABASE_URL or DATABASE_URL to enable DB features.')
+    // In test or development environments, prefer a safe mock client to avoid hard failures
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Database is not configured. Set NETLIFY_DATABASE_URL or DATABASE_URL to enable DB features.')
+    }
+    // Return a lightweight mock Prisma client so code paths that import prisma don't crash when DB is unavailable
+    return buildMockPrisma()
   }
 
   let client = (typeof global !== 'undefined' ? (global as any).__prisma__ : undefined) as

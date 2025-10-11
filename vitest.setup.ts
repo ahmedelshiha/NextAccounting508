@@ -70,26 +70,50 @@ vi.mock('@prisma/client', () => ({
   },
 }))
 
+// Global Next.js navigation mocks for component tests
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/',
+}))
+
+// Ensure tests use the mock Prisma client to avoid hard DB dependencies
+if (!process.env.PRISMA_MOCK) process.env.PRISMA_MOCK = 'true'
+
 // Provide a safe default proxy for '@/lib/prisma' so tests that import prisma do not crash when DB is not configured
-vi.mock('@/lib/prisma', () => {
-  const handler: ProxyHandler<any> = {
-    get(_t, prop) {
-      // return a model proxy which returns noop async functions for common methods
-      if (typeof prop === 'string') {
-        const modelProxy = new Proxy({}, {
-          get() {
-            return async (..._args: any[]) => {
-              // default safe responses
-              return null
+vi.mock('@/lib/prisma', async () => {
+  try {
+    // Prefer the project-level mock implementation so tests can manipulate mock behavior
+    const mockMod = await import('./__mocks__/prisma')
+    // Export as default to match prisma default export
+    return { default: mockMod.default }
+  } catch (err) {
+    const handler: ProxyHandler<any> = {
+      get(_t, prop) {
+        // return a model proxy which returns noop async functions for common methods
+        if (typeof prop === 'string') {
+          const modelProxy = new Proxy({}, {
+            get() {
+              return async (..._args: any[]) => {
+                // default safe responses
+                return null
+              }
             }
-          }
-        })
-        return modelProxy
+          })
+          return modelProxy
+        }
+        return undefined
       }
-      return undefined
     }
+    return { default: new Proxy({}, handler) }
   }
-  return { default: new Proxy({}, handler) }
 })
 
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
@@ -142,6 +166,20 @@ vi.mock('@/lib/auth', async () => {
     },
   }
 })
+
+// Reset mocks between tests and expose mock helpers
+try {
+  const { resetPrismaMock, mockPrisma } = await import('./__mocks__/prisma')
+  // Reset prisma mock before each test to ensure isolated behavior
+  beforeEach(() => {
+    try { resetPrismaMock() } catch {}
+    try { vi.resetAllMocks() } catch {}
+  })
+  // Expose helper on globalThis for tests to use programmatically
+  ;(globalThis as any).prismaMock = mockPrisma
+} catch (err) {
+  // ignore if mocks not available
+}
 
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
