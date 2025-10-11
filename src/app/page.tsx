@@ -4,7 +4,6 @@ import { ServicesSection } from '@/components/home/services-section'
 import { TestimonialsSection } from '@/components/home/testimonials-section'
 import { Suspense } from 'react'
 import { BlogSection } from '@/components/home/blog-section'
-import { TrustSection } from '@/components/home/TrustSection'
 import { QuickWinsSection } from '@/components/home/quick-wins'
 import { FinalCTASection } from '@/components/home/final-cta'
 import { cookies } from 'next/headers'
@@ -22,7 +21,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <main>
       {useCompact ? <CompactHero /> : <HeroSection />}
       <ServicesSection />
-      <TrustSection />
       <TestimonialsSection />
       <QuickWinsSection />
       <FinalCTASection />
