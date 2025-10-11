@@ -526,3 +526,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-11: Priority 1.3 (Prisma Test Mocks) — Enabled PRISMA_MOCK and wired vitest setup to use project __mocks__/prisma mock for stable DB-less tests (vitest.setup.ts).
 - 2025-10-11: Priority 1.4 (Prisma Mock Helpers) — Added automatic resetPrismaMock and vi.resetAllMocks before each test and exposed global prismaMock for programmatic overrides (vitest.setup.ts).
 - 2025-10-12: Priority 1.5 (Mock Presets) — Added tests/helpers/mockPresets.ts with helper functions to configure common model mocks for team management, services, bookings, and service requests.
+- 2025-10-12: Priority 1.6 (Targeted Mock Suites) — Added tests/helpers/targetedMocks.ts with ready-to-use presets for team management, services, bookings, and service-requests to stabilize failing suites.
