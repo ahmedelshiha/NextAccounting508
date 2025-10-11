@@ -232,7 +232,7 @@ export class ServicesService {
     else (orderBy as any).updatedAt = sortOrder;
 
     try {
-      const prisma = await getPrisma();
+      const prisma = await this.resolvePrisma();
       const [rows, total] = await Promise.all([
         prisma.service.findMany({ where, orderBy, skip: offset, take: limit }),
         prisma.service.count({ where }),
