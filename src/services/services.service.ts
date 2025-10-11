@@ -396,7 +396,8 @@ export class ServicesService {
       else if (type === 'category') data.category = String(value || '') || null;
       else if (type === 'price-update') data.price = Number(value);
 
-      const res = await (await getPrisma()).service.updateMany({ where, data });
+      const prisma = await this.resolvePrisma();
+      const res = await prisma.service.updateMany({ where, data });
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
