@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-const getPrisma = async () => (await import('@/lib/prisma')).default as any;
+import type { PrismaClient } from '@prisma/client'
 import { queryTenantRaw } from '@/lib/db-raw';
 import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
@@ -12,6 +12,19 @@ import { createHash } from 'crypto';
 import { serviceEvents } from '@/lib/events/service-events';
 
 import servicesSettingsService from '@/services/services-settings.service'
+
+let cachedPrisma: PrismaClient | null = null
+
+async function getPrisma(): Promise<PrismaClient> {
+  if (cachedPrisma) return cachedPrisma
+  const mod = await import('@/lib/prisma').catch(() => null as any)
+  const client: PrismaClient | null = (mod && (mod.default || (mod as any).prisma || null)) ?? null
+  if (!client || typeof (client as any).$use !== 'function') {
+    throw new Error('Prisma client is not initialized')
+  }
+  cachedPrisma = client
+  return client
+}
 
 export class ServicesService {
   constructor(
