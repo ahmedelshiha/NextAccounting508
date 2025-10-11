@@ -217,16 +217,23 @@ export class ServicesService {
     const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
 
     if (fmt === 'csv') {
-      const headers = ['id','name','slug','description','shortDesc','price','duration','category','featured','active','status','createdAt','updatedAt']
+      // Match expected header format and column set: ID,Name,Slug,Description
+      const columns = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Name' },
+        { key: 'slug', label: 'Slug' },
+        { key: 'description', label: 'Description' },
+      ] as const
       const escape = (v: any) => {
         if (v === null || typeof v === 'undefined') return ''
         const s = String(v)
         if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s.replace(/"/g, '""') + '"'
         return s
       }
-      const lines = [headers.join(',')]
+      const headerLine = columns.map(c => c.label).join(',')
+      const lines = [headerLine]
       for (const r of rows) {
-        lines.push(headers.map(h => escape((r as any)[h])).join(','))
+        lines.push(columns.map(c => escape((r as any)[c.key])).join(','))
       }
       return lines.join('\n')
     }
