@@ -28,7 +28,7 @@ export const GET = withTenantContext(async (_req: NextRequest, context: { params
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   try {
