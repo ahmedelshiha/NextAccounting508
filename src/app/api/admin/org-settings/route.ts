@@ -107,28 +107,28 @@ export const PUT = withTenantContext(async (req: Request) => {
 
     // Persist change diff and audit event (best-effort)
     try {
-      await prisma.settingChangeDiff.create({
-        data: {
-          tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : undefined,
-          category: 'organization',
-          resource: 'org-settings',
-          before: beforeData as any,
-          after: normalized as any,
-        },
-      })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId: ctx.tenantId,
+        category: 'organization',
+        resource: 'org-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      diffPayload.before = beforeData as Prisma.InputJsonValue
+      diffPayload.after = normalized as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
 
     try {
-      await prisma.auditEvent.create({
-        data: {
-          tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : undefined,
-          type: 'settings.update',
-          resource: 'org-settings',
-          details: { category: 'organization' } as any,
-        },
-      })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId: ctx.tenantId,
+        type: 'settings.update',
+        resource: 'org-settings',
+        details: { category: 'organization' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
     } catch {}
 
     try {
