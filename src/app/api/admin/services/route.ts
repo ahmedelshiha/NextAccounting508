@@ -49,7 +49,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     {
       const key = `services-list:${ip}`
       const rl = await applyRateLimit(key, 100, 60_000)
-      if (!rl.allowed) {
+      if (rl && rl.allowed === false) {
         try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
@@ -115,7 +115,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     {
       const key = `services-create:${ip}`
       const rl = await applyRateLimit(key, 10, 60_000)
-      if (!rl.allowed) {
+      if (rl && rl.allowed === false) {
         try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
