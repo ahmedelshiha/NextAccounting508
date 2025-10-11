@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { runDiagnostics, exportSettings, importSettings } from '@/services/settings.service'
 import Link from 'next/link'
 import { getFavorites, removeFavorite } from '@/services/favorites.service'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 const RecentChanges = lazy(() => import('./RecentChanges'))
 
@@ -30,6 +31,12 @@ function PinnedSettingsList() {
   }, [])
 
   React.useEffect(() => { load() }, [load])
+
+  React.useEffect(() => {
+    const handler = () => { load() }
+    window.addEventListener('favorites:updated', handler as any)
+    return () => { window.removeEventListener('favorites:updated', handler as any) }
+  }, [load])
 
   if (loading) {
     return (
@@ -65,6 +72,7 @@ function SettingsOverviewInner() {
   const [running, setRunning] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [manageOpen, setManageOpen] = useState(false)
 
   const handleRunDiagnostics = useCallback(async () => {
     try {
@@ -202,13 +210,73 @@ function SettingsOverviewInner() {
             <PinnedSettingsList />
           </div>
           <div className="mt-4 flex justify-end">
-            <Button type="button" aria-label="Manage pinned settings">Manage</Button>
+            <Button type="button" aria-label="Manage pinned settings" onClick={() => setManageOpen(true)}>Manage</Button>
           </div>
         </SettingsCard>
       </div>
 
+      <Dialog open={manageOpen} onOpenChange={setManageOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Pinned Settings</DialogTitle>
+            <DialogDescription>Pin or unpin your frequently used settings.</DialogDescription>
+          </DialogHeader>
+          <ManagePinnedSettings onClose={() => setManageOpen(false)} />
+          <DialogFooter>
+            <Button type="button" variant="secondary" aria-label="Close manage pinned settings" onClick={() => setManageOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </SettingsShell>
   )
 }
+
+function ManagePinnedSettings({ onClose }: { onClose?: () => void }) {
+  const [items, setItems] = React.useState<Array<{ settingKey: string; route: string; label: string }>>([])
+  const [loading, setLoading] = React.useState(true)
+
+  const load = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await getFavorites()
+      setItems(data.map(d => ({ settingKey: d.settingKey, route: d.route, label: d.label })))
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => { load() }, [load])
+
+  const handleUnpin = async (settingKey: string) => {
+    const ok = await removeFavorite(settingKey)
+    if (ok) {
+      setItems(prev => prev.filter(i => i.settingKey !== settingKey))
+      try { window.dispatchEvent(new Event('favorites:updated')) } catch {}
+    }
+  }
+
+  if (loading) return <div className="p-4 text-sm text-gray-600">Loading…</div>
+
+  if (!items.length) return <div className="p-4 text-sm text-muted-foreground">No pinned settings.</div>
+
+  return (
+    <div className="p-4">
+      <ul className="space-y-2">
+        {items.map(it => (
+          <li key={it.settingKey} className="flex items-center justify-between">
+            <Link href={it.route} onClick={onClose} className="text-sm text-gray-700 hover:underline">{it.label}</Link>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-blue-100 text-blue-800">Pinned</Badge>
+              <Button variant="outline" size="sm" onClick={() => handleUnpin(it.settingKey)} aria-label={`Unpin ${it.label}`}>Unpin</Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+export { PinnedSettingsList, ManagePinnedSettings }
 
 export default React.memo(SettingsOverviewInner)
