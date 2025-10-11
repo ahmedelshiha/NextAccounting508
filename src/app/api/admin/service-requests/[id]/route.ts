@@ -71,7 +71,7 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   const ip = getClientIp(req)
