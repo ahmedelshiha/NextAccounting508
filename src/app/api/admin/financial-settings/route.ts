@@ -8,7 +8,6 @@ import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
 import prisma from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
-import { jsonDiff } from '@/lib/diff'
 
 export const GET = withTenantContext(async () => {
   try {
@@ -46,7 +45,6 @@ export const PUT = withTenantContext(async (req: Request) => {
 
     // Persist change diff and audit event (best-effort)
     try {
-      const changes = jsonDiff(before || {}, saved || {})
       const actorUserId = ctx.userId ? String(ctx.userId) : undefined
       const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
         tenantId,
