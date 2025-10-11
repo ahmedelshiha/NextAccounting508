@@ -5,7 +5,6 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
-import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -90,7 +89,7 @@ export const GET = withTenantContext(async (request: Request) => {
     })
 
     const teamManagement = {
-      teamMembers: teamMembers.map((member) => ({
+      teamMembers: teamMembers.map((member: any) => ({
         id: member.id,
         userId: member.userId || null,
         name: member.name,
@@ -105,8 +104,8 @@ export const GET = withTenantContext(async (request: Request) => {
       })),
       stats: {
         total: teamMembers.length,
-        available: teamMembers.filter(m => m.isAvailable).length,
-        departments: [...new Set(teamMembers.map(m => m.department).filter(Boolean))],
+        available: teamMembers.filter((m: any) => m.isAvailable).length,
+        departments: [...new Set(teamMembers.map((m: any) => m.department).filter(Boolean))],
       }
     }
 
