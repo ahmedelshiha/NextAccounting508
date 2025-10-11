@@ -36,7 +36,7 @@ export const GET = withTenantContext(async (request, { params }: { params: { id:
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const { id } = params
