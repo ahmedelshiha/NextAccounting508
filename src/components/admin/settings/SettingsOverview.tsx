@@ -277,4 +277,6 @@ function ManagePinnedSettings({ onClose }: { onClose?: () => void }) {
   )
 }
 
+export { PinnedSettingsList, ManagePinnedSettings }
+
 export default React.memo(SettingsOverviewInner)
