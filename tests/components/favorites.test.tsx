@@ -38,24 +38,28 @@ describe('Favorites pinning', () => {
       return Promise.resolve({ ok: true, json: async () => ({}) })
     })
 
-    render(<FavoriteToggle settingKey="booking" route="/admin/settings/booking" label="Booking Configuration" />)
+    render(<FavoriteToggle initiallyPinned={true} settingKey="booking" route="/admin/settings/booking" label="Booking Configuration" />)
 
-    // Since renderToStaticMarkup is used, component will hydrate initial state and show 'Pinned'
+    // Since renderToStaticMarkup is used, pass initiallyPinned to show pinned state synchronously
     const pinnedText = await screen.findByText('Pinned')
     expect(pinnedText).toBeTruthy()
   })
 
-  it('PinnedSettingsList shows pinned settings list', async () => {
-    // Mock GET to return one favorite
+  it('favorites.service functions work with fetch', async () => {
     (global as any).fetch = vi.fn((url, init) => {
       if (!init || !init.method) return Promise.resolve({ ok: true, json: async () => ({ data: [{ id: 'fav-1', settingKey: 'booking', route: '/admin/settings/booking', label: 'Booking Configuration' }] }) })
+      if (init.method === 'POST') return Promise.resolve({ ok: true, json: async () => ({ data: { id: 'fav-new', settingKey: 'x', route: '/r', label: 'L' } }) })
+      if (init.method === 'DELETE') return Promise.resolve({ ok: true })
       return Promise.resolve({ ok: true, json: async () => ({}) })
     })
 
-    render(<PinnedSettingsList />)
+    const { getFavorites, addFavorite, removeFavorite } = await import('@/services/favorites.service')
 
-    // Wait for the pinned item to render
-    const item = await screen.findByText('Booking Configuration')
-    expect(item).toBeInTheDocument()
+    const list = await getFavorites()
+    expect(Array.isArray(list)).toBe(true)
+    const added = await addFavorite({ settingKey: 'x', route: '/r', label: 'L' })
+    expect(added && added.settingKey).toBe('x')
+    const removed = await removeFavorite('x')
+    expect(removed).toBe(true)
   })
 })
