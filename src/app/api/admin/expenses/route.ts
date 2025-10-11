@@ -7,6 +7,7 @@ import { parseListQuery } from '@/schemas/list-query'
 import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const EXPENSE_STATUSES = ['PENDING', 'APPROVED', 'REIMBURSED', 'REJECTED'] as const
 
@@ -45,7 +46,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx?.userId || !hasPermission(ctx.role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
@@ -126,7 +127,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     if (!hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
@@ -178,7 +179,7 @@ export const DELETE = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx?.userId || !hasPermission(ctx.role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
