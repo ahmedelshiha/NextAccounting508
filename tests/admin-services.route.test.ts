@@ -19,6 +19,10 @@ vi.mock('@/lib/services/utils', () => ({
   sanitizeServiceData: (d: any) => d,
 }))
 
+// Apply services test bootstrap
+import setupServices from './setup/services.setup'
+setupServices()
+
 // In-memory mock DB for services
 const db: any = {
   services: [
