@@ -271,7 +271,7 @@ export class ServicesService {
   async exportServices(tenantId: string | null, options: { format?: string; includeInactive?: boolean } = { format: 'csv', includeInactive: false }): Promise<string> {
     const fmt = (options.format || 'csv').toLowerCase()
     const includeInactive = !!options.includeInactive
-    const prisma = await getPrisma()
+    const prisma = await this.resolvePrisma()
     const where: any = tenantId ? { tenantId } : {}
     if (!includeInactive) (where as any).status = 'ACTIVE'
     const rows = await prisma.service.findMany({ where, orderBy: { updatedAt: 'desc' } })
