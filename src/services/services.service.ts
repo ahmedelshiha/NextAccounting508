@@ -172,7 +172,8 @@ export class ServicesService {
     if (!updates || updates.length === 0) return { updated: 0, errors: [] }
     const ids = updates.map(u => u.id)
 
-    const existing = await (await getPrisma()).service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } }) as any[]
+    const prisma = await this.resolvePrisma()
+    const existing = await prisma.service.findMany({ where: { id: { in: ids }, ...(tenantId ? { tenantId } : {}) } as any, select: { id: true, serviceSettings: true } }) as any[]
     const map = new Map<string, any>(existing.map((e: any) => [e.id, e]))
 
     let updated = 0
@@ -183,7 +184,7 @@ export class ServicesService {
         const before = map.get(u.id)
         const prev = (before?.serviceSettings as any) ?? {}
         const next = { ...prev, ...u.settings }
-        await (await getPrisma()).service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
+        await prisma.service.update({ where: { id: u.id }, data: { serviceSettings: next as any } })
         updated += 1
       } catch (e: any) {
         errors.push({ id: u.id, error: String(e?.message || 'Failed to update settings') })
