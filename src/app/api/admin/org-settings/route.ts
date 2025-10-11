@@ -137,7 +137,7 @@ export const PUT = withTenantContext(async (req: Request) => {
     } catch {}
 
     try {
-      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId: ctx.tenantId } })
+      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId } })
     } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })
