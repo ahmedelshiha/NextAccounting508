@@ -122,7 +122,7 @@ export const PUT = withTenantContext(async (req: Request) => {
     try {
       const actorUserId = ctx.userId ? String(ctx.userId) : undefined
       const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
-        tenantId: ctx.tenantId,
+        tenantId,
         type: 'settings.update',
         resource: 'org-settings',
         details: { category: 'organization' } as Prisma.InputJsonValue,
