@@ -192,10 +192,7 @@ export class ServicesService {
             FROM "services"
             WHERE "tenantId" = ${tId}
           `, tId)
-        : await queryTenantRaw<any>`
-            SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
-            FROM "services"
-          `;
+        : [] as any[];
       let items = all.map(this.toType);
       // Apply basic filters client-side
       const basicFilters: any = { search, category, featured, status };
