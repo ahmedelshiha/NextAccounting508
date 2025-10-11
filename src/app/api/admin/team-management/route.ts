@@ -4,6 +4,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import prisma from '@/lib/prisma'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
