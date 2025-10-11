@@ -33,7 +33,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const body = await request.json()
