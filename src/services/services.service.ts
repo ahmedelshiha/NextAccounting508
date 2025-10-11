@@ -27,15 +27,17 @@ export class ServicesService {
    */
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
     try {
-      const src = await (await getPrisma()).service.findUnique({ where: { id: fromId } })
-      if (!src) throw new Error('Source service not found')
+      const prisma = await getPrisma()
+      const src = await prisma.service.findUnique({ where: { id: fromId } })
+      if (!src || typeof src !== 'object') throw new Error('Source service not found or malformed')
 
       let tenantId: string | null = (src as any).tenantId ?? null
       if (!tenantId) {
-        const t = await (await getPrisma()).tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+        const t = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
         tenantId = t?.id || null
         if (!tenantId) throw new Error('Tenant context required to clone service')
       }
+
       const baseSlug = generateSlug(name)
 
       // Ensure tenant-scoped slug uniqueness
@@ -43,28 +45,29 @@ export class ServicesService {
       let attempt = 1
 
       while (true) {
-        const exists = await (await getPrisma()).service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+        const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
         if (!exists) break
         attempt += 1
         slug = `${baseSlug}-${attempt}`
       }
 
-      const created = await (await getPrisma()).service.create({
+      const created = await prisma.service.create({
         data: {
           name,
           slug,
-          description: src.description,
-          shortDesc: src.shortDesc ?? null,
-          features: Array.isArray(src.features) ? src.features : [],
-          price: src.price as any,
-          duration: src.duration as any,
-          category: src.category ?? null,
+          description: (src as any).description ?? null,
+          shortDesc: (src as any).shortDesc ?? null,
+          features: Array.isArray((src as any).features) ? (src as any).features : [],
+          price: (src as any).price as any ?? null,
+          duration: (src as any).duration as any ?? null,
+          category: (src as any).category ?? null,
           featured: false,
           active: false,
           status: 'DRAFT' as any,
           image: (src as any).image ?? null,
           serviceSettings: ((src as any).serviceSettings ?? undefined) as Prisma.InputJsonValue,
-          tenant: { connect: { id: tenantId! } },
+          // tenant connect is required; we validated tenantId above
+          tenant: tenantId ? { connect: { id: tenantId } } : undefined,
         },
       })
 
@@ -74,6 +77,7 @@ export class ServicesService {
       return this.toType(created as any)
     } catch (e: any) {
       console.error('ServicesService.cloneService error', e)
+      // Preserve original error message while providing context for mock-based failures
       throw new Error(`Clone service failed: ${e?.message ?? String(e)}`)
     }
   }
