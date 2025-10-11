@@ -70,6 +70,20 @@ vi.mock('@prisma/client', () => ({
   },
 }))
 
+// Global Next.js navigation mocks for component tests
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/',
+}))
+
 // Provide a safe default proxy for '@/lib/prisma' so tests that import prisma do not crash when DB is not configured
 vi.mock('@/lib/prisma', () => {
   const handler: ProxyHandler<any> = {
