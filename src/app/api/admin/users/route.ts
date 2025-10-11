@@ -43,8 +43,8 @@ export const GET = withTenantContext(async (request: Request) => {
     }
 
     try {
-      const users = await prisma.user.findMany({ where: tenantFilter(tenantId), orderBy: { createdAt: 'desc' }, select: { id: true, name: true, email: true, role: true, createdAt: true, _count: { select: { bookings: true } } } })
-      const mapped = users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt, totalBookings: u._count.bookings }))
+      const users = (await prisma.user.findMany({ where: tenantFilter(tenantId), orderBy: { createdAt: 'desc' }, select: { id: true, name: true, email: true, role: true, createdAt: true, _count: { select: { bookings: true } } } })) || []
+      const mapped = (Array.isArray(users) ? users : []).map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, createdAt: u.createdAt, totalBookings: (u as any)._count?.bookings ?? 0 }))
       const etag = '"' + createHash('sha1').update(JSON.stringify({ t: mapped.length, ids: mapped.map(u=>u.id), up: mapped.map(u=>u.createdAt) })).digest('hex') + '"'
       const ifNoneMatch = request.headers.get('if-none-match')
       if (ifNoneMatch && ifNoneMatch === etag) {
