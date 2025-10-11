@@ -7,6 +7,7 @@ const hasDb = !!process.env.NETLIFY_DATABASE_URL
 import { tenantFilter } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
