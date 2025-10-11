@@ -9,7 +9,7 @@ export const GET = withTenantContext(async () => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
 
   let unsub: any = null
