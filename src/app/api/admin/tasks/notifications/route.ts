@@ -35,7 +35,7 @@ export const GET = withTenantContext(async (request?: Request) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
   if (hasDb) {
     try {
@@ -63,8 +63,8 @@ export const PATCH = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    return respond.forbidden('Forbidden')
+  }
     const body = await request.json().catch(() => ({}))
 
     if (hasDb) {
