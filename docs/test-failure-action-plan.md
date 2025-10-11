@@ -513,7 +513,7 @@ vi.mock('next/navigation', () => ({
 ---
 
 **Document Version:** 1.0
-**Last Updated:** 2025-10-11
+**Last Updated:** 2025-10-12
 **Status:** In Progress
 
 ## Progress Log
@@ -579,9 +579,9 @@ vi.mock('next/navigation', () => ({
 - **Notes**: Non-invasive change; next steps are adding unit tests for withTenantContext and auditing admin routes for correct wrapper usage. Proceeding to Priority 2.2 (RBAC audit) next.
 
 ### Priority 2.2: RBAC Audit & Permission Responses - **Status**: ✅ In Progress
-- **Date**: 2025-10-11 14:35:00
+- **Date**: 2025-10-12 14:35:00
 - **Actions Taken**:
-  - Audited core admin routes and standardized permission-denied behavior to return 403 Forbidden when an authenticated user lacks permissions.
+  - Audited core admin routes and standardized permission-denied behavior to return 403 Forbidden when an authenticated user lacks permissions and 401 for unauthenticated requests.
   - Updated many admin endpoints to use the centralized response helper `respond.forbidden('Forbidden')` or `respond.unauthorized()` where appropriate.
 - **Files Modified (partial list)**:
   - `src/app/api/admin/tasks/route.ts`
@@ -601,9 +601,22 @@ vi.mock('next/navigation', () => ({
   - `src/app/api/admin/export/route.ts`
   - `src/app/api/admin/tasks/export/route.ts`
   - `src/app/api/admin/service-requests/export/route.ts`
-  - `src/app/api/admin/tasks/templates/route.ts`
-  - `src/app/api/admin/tasks/notifications/route.ts`
-  - `src/app/api/admin/tasks/bulk/route.ts`
-  - `src/app/api/admin/tasks/stream/route.ts`
-  - `src/app/api/admin/tasks/route.ts`
-- **Notes**: Partial audit applied to many task-related and admin endpoints. Continue sweeping remaining admin routes to normalize responses. After completion, run targeted tests for admin RBAC scenarios.
+  - `src/app/api/admin/availability-slots/route.ts`
+  - `src/app/api/admin/currencies/route.ts`
+  - `src/app/api/admin/currencies/[code]/route.ts`
+  - `src/app/api/admin/currencies/refresh/route.ts`
+  - `src/app/api/admin/booking-settings/route.ts`
+  - `src/app/api/admin/expenses/route.ts`
+  - `src/app/api/admin/thresholds/route.ts`
+  - `src/app/api/admin/work-orders/[id]/route.ts`
+  - `src/app/api/admin/team-settings/route.ts`
+  - `src/app/api/admin/system/health/route.ts`
+- **Notes**: Sweep is ongoing — many task-related and admin endpoints updated. Next: continue sweeping remaining admin routes to normalize responses and then run targeted RBAC tests (see TODO below).
+
+## TODO
+- Continue sweeping remaining admin endpoints to replace direct `NextResponse.json({ error: 'Unauthorized' }, { status: 401 })` calls with `respond.forbidden('Forbidden')` or `respond.unauthorized()` as appropriate. (in_progress)
+- Run targeted tests for admin RBAC routes. (pending)
+
+---
+
+*End of document.*
