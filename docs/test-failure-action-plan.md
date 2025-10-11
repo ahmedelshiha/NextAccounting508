@@ -546,3 +546,20 @@ vi.mock('next/navigation', () => ({
   - `src/services/services.service.ts`
   - `vitest.setup.ts`
 - **Notes**: `tests/admin-rbac-comprehensive.test.ts` now passes (41/41). Added NextResponse imports to avoid runtime errors in tests and treated undefined rate-limit decisions as allowed to prevent false negatives.
+
+### Fix Build: TypeScript Duplicate Imports in API Routes
+- **Status**: ✅ Completed
+- **Date**: 2025-10-11 13:45:00
+- **Changes**: Removed duplicate imports of NextRequest/NextResponse in services stats route and duplicate NextResponse import in team-management route to resolve TS2300 errors.
+- **Files Modified**:
+  - `src/app/api/admin/services/stats/route.ts`
+  - `src/app/api/admin/team-management/route.ts`
+- **Notes**: Unblocks Next.js build typechecking for these routes.
+
+### Fix Build: Vitest setup globals typing
+- **Status**: ✅ Completed
+- **Date**: 2025-10-11 13:46:00
+- **Changes**: Imported beforeEach from vitest in vitest.setup.ts to satisfy TypeScript during build typecheck.
+- **Files Modified**:
+  - `vitest.setup.ts`
+- **Notes**: Resolves TS2304 (Cannot find name 'beforeEach') during typecheck.
