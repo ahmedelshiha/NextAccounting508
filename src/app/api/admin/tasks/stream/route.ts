@@ -3,6 +3,7 @@ import { subscribe } from '@/lib/realtime'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 export const GET = withTenantContext(async () => {
   const ctx = requireTenantContext()
