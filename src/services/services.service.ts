@@ -307,7 +307,7 @@ export class ServicesService {
     const cached = await this.cache.get<ServiceType>(cacheKey);
     if (cached) return cached;
 
-    const prisma = await getPrisma();
+    const prisma = await this.resolvePrisma();
     const s = await prisma.service.findFirst({ where: { id: serviceId, ...(tId ? { tenantId: tId } : {}) } });
     if (!s) return null;
     const t = this.toType(s as any);
