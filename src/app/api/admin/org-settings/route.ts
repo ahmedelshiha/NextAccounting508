@@ -51,8 +51,13 @@ export const PUT = withTenantContext(async (req: Request) => {
     try { Sentry.captureMessage('org-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
-  const scopedFilter = tenantFilter(ctx.tenantId)
-  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId: ctx.tenantId }
+  const tenantId = ctx.tenantId
+  if (!tenantId) {
+    try { Sentry.captureMessage('org-settings:missing_tenant', { level: 'warning' } as any) } catch {}
+    return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+  }
+  const scopedFilter = tenantFilter(tenantId)
+  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId }
   const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
   const rawData = {
