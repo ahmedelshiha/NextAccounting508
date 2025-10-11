@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/nextjs'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
+import { respond } from '@/lib/api-response'
 import { jsonDiff } from '@/lib/diff'
 import type { Prisma } from '@prisma/client'
 
@@ -13,7 +14,7 @@ export const GET = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
     const tenantId = ctx.tenantId
     const settings = await teamService.get(tenantId)
@@ -28,7 +29,7 @@ export const PUT = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_EDIT)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
     const tenantId = ctx.tenantId
     if (!tenantId) {
