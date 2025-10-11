@@ -530,3 +530,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-12: Priority 1.7 (Test Bootstraps) — Added tests/setup/* bootstraps (teamManagement.setup.ts, services.setup.ts, bookings.setup.ts) to make it trivial for failing suites to import and enable mocks.
 - 2025-10-12: Priority 1.8 (Inject Bootstraps) — Injected test bootstraps into key failing suites: tests/team-management.routes.test.ts and tests/admin-rbac-comprehensive.test.ts to stabilize RBAC and team-management tests.
 - 2025-10-12: Priority 1.9 (Services Tests) — Injected services bootstrap into tests/admin-services.route.test.ts and tests/admin-services.clone.route.test.ts to stabilize services-related tests.
+- 2025-10-12: Priority 1.10 (Bookings Tests) — Injected bookings bootstrap into tests/bookings.id.route.test.ts to stabilize booking-related tests.
