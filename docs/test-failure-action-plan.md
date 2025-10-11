@@ -518,3 +518,4 @@ vi.mock('next/navigation', () => ({
 
 ## Progress Log
 - 2025-10-11: Priority 3.1 (CSV Export Header) — Updated services CSV export headers to ID,Name,Slug,Description in src/services/services.service.ts. Next: align service-requests export.
+- 2025-10-11: Priority 8.1 (Next.js Router Mocks) — Added global next/navigation mocks in vitest.setup.ts to stabilize component tests.
