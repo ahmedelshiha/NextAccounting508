@@ -3,6 +3,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
@@ -12,7 +13,7 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
 
     const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
@@ -31,7 +32,7 @@ export const POST = withTenantContext(async (_request: NextRequest) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
 
     const body = await _request.json()
