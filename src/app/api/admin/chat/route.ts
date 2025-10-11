@@ -12,9 +12,8 @@ export const runtime = 'nodejs'
 export const POST = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
-  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE) || !ctx.userId) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  if (!ctx.userId) return respond.unauthorized()
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return respond.forbidden('Forbidden')
 
   const ip = getClientIp(request as unknown as Request)
   const rl = await applyRateLimit(`admin:chat:post:${ip}`, 30, 10_000)
