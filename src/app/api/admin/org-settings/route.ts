@@ -84,7 +84,7 @@ export const PUT = withTenantContext(async (req: Request) => {
   if (normalized.branding === null) normalized.branding = null
   if (normalized.legalLinks === null) normalized.legalLinks = null
 
-  const createData = { ...normalized, tenant: { connect: { id: ctx.tenantId } } }
+  const createData = { ...normalized, tenant: { connect: { id: tenantId } } }
   const updateData = { ...normalized }
 
   try {
