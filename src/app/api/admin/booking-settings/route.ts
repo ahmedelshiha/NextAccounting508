@@ -4,12 +4,13 @@ import service from '@/services/booking-settings.service'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 export const GET = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? ''
   if (!hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_VIEW)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
   try {
@@ -25,7 +26,7 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? ''
   if (!hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_EDIT)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
   const updates = await req.json().catch(() => null)
