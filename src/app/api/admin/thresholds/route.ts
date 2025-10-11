@@ -21,6 +21,7 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
 
     const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
     if (!threshold) {
+      if (memoryThreshold) return NextResponse.json(memoryThreshold)
       return NextResponse.json({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 })
     }
     return NextResponse.json({ responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth })
