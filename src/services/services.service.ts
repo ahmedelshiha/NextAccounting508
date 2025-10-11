@@ -444,11 +444,11 @@ export class ServicesService {
       // If any errors and we created some clones, attempt best-effort rollback by deleting created clones
       let rollbackResult: { rolledBack: boolean; errors?: string[] } | undefined = undefined;
       if (errors.length && createdIds.length) {
+        const prisma = await this.resolvePrisma();
         const rbErrors: string[] = [];
         for (const cid of createdIds) {
           try {
             // hard delete to clean up drafts created during clone
-            const prisma = await this.resolvePrisma();
             await prisma.service.delete({ where: { id: cid } });
           } catch (err: any) {
             rbErrors.push(`${cid}: ${String(err?.message || 'rollback failed')}`);
