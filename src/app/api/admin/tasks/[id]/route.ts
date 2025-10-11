@@ -100,7 +100,7 @@ export const DELETE = withTenantContext(async (request, { params }: { params: { 
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const { id } = params
