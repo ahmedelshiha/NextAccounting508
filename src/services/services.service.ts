@@ -56,6 +56,13 @@ export class ServicesService {
 
   private prismaClient: PrismaClientLike | null
 
+  private async resolvePrisma(): Promise<PrismaClientLike> {
+    if (this.prismaClient) return this.prismaClient
+    const client = await getPrisma()
+    this.prismaClient = client
+    return client
+  }
+
   /**
    * Clone an existing service into a new one with a provided name.
    * - Generates a unique, tenant-scoped slug
