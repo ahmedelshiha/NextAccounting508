@@ -523,3 +523,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-11: Priority 3.1 (Service Requests Export) — Capitalized headers in admin service-requests CSV export (src/app/api/admin/service-requests/export/route.ts).
 - 2025-10-11: Priority 1.1 (Prisma Init) — Added safe fallback to mock Prisma client when DATABASE_URL is not configured in non-production environments (src/lib/prisma.ts).
 - 2025-10-11: Priority 1.2 (ServicesService.cloneService) — Added top-level error handling to cloneService to surface clearer errors when DB or data issues occur (src/services/services.service.ts).
+- 2025-10-11: Priority 1.3 (Prisma Test Mocks) — Enabled PRISMA_MOCK and wired vitest setup to use project __mocks__/prisma mock for stable DB-less tests (vitest.setup.ts).
