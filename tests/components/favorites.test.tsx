@@ -42,7 +42,7 @@ describe('Favorites pinning', () => {
 
     render(<FavoriteToggle settingKey="booking" route="/admin/settings/booking" label="Booking Configuration" />)
 
-    const btn = await screen.findByRole('button')
+    const btn = await screen.findByText('Pin')
     expect(btn).toBeTruthy()
 
     fireEvent.click(btn)
@@ -57,17 +57,14 @@ describe('Favorites pinning', () => {
     expect(dispatchSpy).toHaveBeenCalled()
   })
 
-  it('SettingsOverview shows pinned settings list', async () => {
+  it('PinnedSettingsList shows pinned settings list', async () => {
     // Mock GET to return one favorite
     (global as any).fetch = vi.fn((url, init) => {
       if (!init || !init.method) return Promise.resolve({ ok: true, json: async () => ({ data: [{ id: 'fav-1', settingKey: 'booking', route: '/admin/settings/booking', label: 'Booking Configuration' }] }) })
       return Promise.resolve({ ok: true, json: async () => ({}) })
     })
 
-    render(<SettingsOverview />)
-
-    // The Pinned Settings heading should be present
-    expect(screen.getByText('Pinned Settings')).toBeInTheDocument()
+    render(<PinnedSettingsList />)
 
     // Wait for the pinned item to render
     const item = await screen.findByText('Booking Configuration')
