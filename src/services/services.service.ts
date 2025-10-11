@@ -48,8 +48,13 @@ async function getPrisma(): Promise<PrismaClientLike> {
 export class ServicesService {
   constructor(
     private cache: CacheService = new CacheService(),
-    private notifications: NotificationService = new NotificationService()
-  ) {}
+    private notifications: NotificationService = new NotificationService(),
+    prismaClient?: PrismaClientLike | null
+  ) {
+    this.prismaClient = prismaClient ?? null
+  }
+
+  private prismaClient: PrismaClientLike | null
 
   /**
    * Clone an existing service into a new one with a provided name.
