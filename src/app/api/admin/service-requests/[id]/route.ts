@@ -111,7 +111,7 @@ export const DELETE = withTenantContext(async (_req: NextRequest, context: { par
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_DELETE)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   const ip = getClientIp(_req)
