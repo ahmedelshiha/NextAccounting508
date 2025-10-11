@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '../../test-mocks/testing-lib
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
-import SettingsOverview from '@/components/admin/settings/SettingsOverview'
+import SettingsOverview, { PinnedSettingsList } from '@/components/admin/settings/SettingsOverview'
 
 describe('Favorites pinning', () => {
   let fetchMock: any
