@@ -64,13 +64,13 @@ export class ServicesService {
       let attempt = 1
 
       while (true) {
-        const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+        const exists = await serviceModel.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
         if (!exists) break
         attempt += 1
         slug = `${baseSlug}-${attempt}`
       }
 
-      const created = await prisma.service.create({
+      const created = await serviceModel.create({
         data: {
           name,
           slug,
