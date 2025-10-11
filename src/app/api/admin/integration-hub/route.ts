@@ -7,6 +7,7 @@ import service from '@/services/integration-settings.service'
 import * as Sentry from '@sentry/nextjs'
 import prisma from '@/lib/prisma'
 import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (request: Request) => {
   try {
@@ -30,6 +31,10 @@ export const PUT = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      try { Sentry.captureMessage('integration-hub:missing_tenant', { level: 'warning' } as any) } catch {}
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const body = await request.json().catch(()=>({}))
     const parsed = IntegrationHubSettingsSchema.safeParse(body)
     if (!parsed.success) {
@@ -37,9 +42,30 @@ export const PUT = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
     const before = await service.get(tenantId).catch(()=>null)
-    const saved = await service.update(tenantId, parsed.data, ctx.userId as string)
-    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'integrationHub', resource: 'integration-hub', before: before || null, after: saved || null } }) } catch {}
-    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'integration-hub', details: { category: 'integrationHub' } } }) } catch {}
+    const saved = await service.update(tenantId, parsed.data, ctx.userId)
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'integrationHub',
+        resource: 'integration-hub',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (saved !== null && saved !== undefined) diffPayload.after = saved as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'integration-hub',
+        details: { category: 'integrationHub' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
     return NextResponse.json({ settings: saved })
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}

@@ -51,8 +51,13 @@ export const PUT = withTenantContext(async (req: Request) => {
     try { Sentry.captureMessage('org-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
-  const scopedFilter = tenantFilter(ctx.tenantId)
-  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId: ctx.tenantId }
+  const tenantId = ctx.tenantId
+  if (!tenantId) {
+    try { Sentry.captureMessage('org-settings:missing_tenant', { level: 'warning' } as any) } catch {}
+    return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+  }
+  const scopedFilter = tenantFilter(tenantId)
+  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId }
   const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
   const rawData = {
@@ -79,7 +84,7 @@ export const PUT = withTenantContext(async (req: Request) => {
   if (normalized.branding === null) normalized.branding = null
   if (normalized.legalLinks === null) normalized.legalLinks = null
 
-  const createData = { ...normalized, tenant: { connect: { id: ctx.tenantId } } }
+  const createData = { ...normalized, tenant: { connect: { id: tenantId } } }
   const updateData = { ...normalized }
 
   try {
@@ -107,32 +112,32 @@ export const PUT = withTenantContext(async (req: Request) => {
 
     // Persist change diff and audit event (best-effort)
     try {
-      await prisma.settingChangeDiff.create({
-        data: {
-          tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : null,
-          category: 'organization',
-          resource: 'org-settings',
-          before: beforeData as any,
-          after: normalized as any,
-        },
-      })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'organization',
+        resource: 'org-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      diffPayload.before = beforeData as Prisma.InputJsonValue
+      diffPayload.after = normalized as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
 
     try {
-      await prisma.auditEvent.create({
-        data: {
-          tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : null,
-          type: 'settings.update',
-          resource: 'org-settings',
-          details: { category: 'organization' } as any,
-        },
-      })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'org-settings',
+        details: { category: 'organization' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
     } catch {}
 
     try {
-      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId: ctx.tenantId } })
+      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId } })
     } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })
