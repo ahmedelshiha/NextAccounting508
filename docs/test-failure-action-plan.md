@@ -570,3 +570,19 @@ vi.mock('next/navigation', () => ({
 - **Files Modified**:
   - `src/services/services.service.ts`
 - **Notes**: The cloneService function now validates the source record shape, avoids non-null assertions, uses the resolved prisma client instance for all DB calls within the function, and ensures tenant connect is only included when tenantId is present. Next: run full typecheck and test suite to confirm all issues resolved.
+
+### Priority 2.1: Authentication Middleware Issues - **Status**: ⚠️ In Progress
+- **Date**: 2025-10-11 14:10:00
+- **Actions Taken**:
+  - Reviewed `src/lib/api-wrapper.ts` (withTenantContext) to understand session resolution and auth enforcement logic.
+  - Confirmed wrapper returns 401 when requireAuth is true and session.user is missing; verified fallback flows for unauthenticated requests using x-tenant-id header.
+- **Planned Changes**:
+  1. Ensure next-auth session resolution is invoked with the proper request/context (pass request to getServerSession where applicable) so test mocks and real sessions behave consistently.
+  2. Add unit tests for withTenantContext covering: unauthenticated request -> 401, unauthenticated with x-tenant-id -> handler executed, insufficient roles -> 403.
+  3. Audit admin API route exports to ensure no route handlers are accidentally exported without withTenantContext wrapper (causes inverted 404/401 behavior in tests).
+  4. Harden error handling order so authentication checks always run before handler logic or route-not-found fallbacks.
+- **Files to Modify (planned)**:
+  - `src/lib/api-wrapper.ts`
+  - `src/app/api/*` (audit of admin routes)
+  - `tests/unit/api-wrapper.test.ts` (new tests)
+- **Notes**: I'll implement the non-invasive change to pass the request to next-auth's getServerSession in the wrapper next. After that, run typecheck/tests and update this entry to ✅ Completed or ❌ Blocked with details.
