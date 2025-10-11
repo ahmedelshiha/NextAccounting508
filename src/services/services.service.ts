@@ -486,7 +486,7 @@ export class ServicesService {
     if (cached) return cached;
 
     const where: Prisma.ServiceWhereInput = tId ? ({ tenantId: tId } as any) : {};
-    const prisma = await getPrisma();
+    const prisma = await this.resolvePrisma();
     const [total, active, featured, catGroups, priceAgg] = await Promise.all([
       prisma.service.count({ where }),
       prisma.service.count({ where: { ...where, status: 'ACTIVE' as any } }),
