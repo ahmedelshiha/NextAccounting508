@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock prisma before importing ServicesService
-const mockPrisma: any = {
+const mockPrisma = vi.hoisted(() => ({
   service: {
     count: vi.fn(),
     groupBy: vi.fn(),
@@ -21,7 +21,7 @@ const mockPrisma: any = {
   serviceView: {
     groupBy: vi.fn(),
   }
-}
+})) as any
 
 vi.mock('@/lib/prisma', () => ({ default: mockPrisma }))
 

@@ -1,5 +1,5 @@
 import type { Prisma } from '@prisma/client';
-const getPrisma = async () => (await import('@/lib/prisma')).default as any;
+import { Prisma, PrismaClient } from '@prisma/client'
 import { queryTenantRaw } from '@/lib/db-raw';
 import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
@@ -12,6 +12,19 @@ import { createHash } from 'crypto';
 import { serviceEvents } from '@/lib/events/service-events';
 
 import servicesSettingsService from '@/services/services-settings.service'
+
+let cachedPrisma: PrismaClient | null = null
+
+async function getPrisma(): Promise<PrismaClient> {
+  if (cachedPrisma) return cachedPrisma
+  const mod = await import('@/lib/prisma').catch(() => null as any)
+  const client: PrismaClient | null = (mod && (mod.default || (mod as any).prisma || null)) ?? null
+  if (!client || typeof (client as any).$use !== 'function') {
+    throw new Error('Prisma client is not initialized')
+  }
+  cachedPrisma = client
+  return client
+}
 
 export class ServicesService {
   constructor(
@@ -28,14 +41,23 @@ export class ServicesService {
   async cloneService(name: string, fromId: string): Promise<ServiceType> {
     try {
       const prisma = await getPrisma()
-      const src = await prisma.service.findUnique({ where: { id: fromId } })
+      const serviceModel = (prisma as any)?.service
+      if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
+        throw new Error('Prisma service model unavailable')
+      }
+      const tenantModel = (prisma as any)?.tenant
+
+      const src = await serviceModel.findUnique({ where: { id: fromId } })
       if (!src || typeof src !== 'object') throw new Error('Source service not found or malformed')
 
       let tenantId: string | null = (src as any).tenantId ?? null
-      if (!tenantId) {
-        const t = await prisma.tenant.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
+      if (!tenantId && tenantModel && typeof tenantModel.findFirst === 'function') {
+        const t = await tenantModel.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
         tenantId = t?.id || null
-        if (!tenantId) throw new Error('Tenant context required to clone service')
+      }
+
+      if (!tenantId) {
+        throw new Error('Tenant context required to clone service')
       }
 
       const baseSlug = generateSlug(name)
@@ -45,13 +67,13 @@ export class ServicesService {
       let attempt = 1
 
       while (true) {
-        const exists = await prisma.service.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
+        const exists = await serviceModel.findFirst({ where: { slug, ...(tenantId ? { tenantId } : {}) } as any })
         if (!exists) break
         attempt += 1
         slug = `${baseSlug}-${attempt}`
       }
 
-      const created = await prisma.service.create({
+      const created = await serviceModel.create({
         data: {
           name,
           slug,
