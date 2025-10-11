@@ -31,6 +31,10 @@ export const PUT = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      try { Sentry.captureMessage('integration-hub:missing_tenant', { level: 'warning' } as any) } catch {}
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const body = await request.json().catch(()=>({}))
     const parsed = IntegrationHubSettingsSchema.safeParse(body)
     if (!parsed.success) {
