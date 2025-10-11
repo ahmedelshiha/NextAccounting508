@@ -56,6 +56,26 @@ function createModelMock(): ModelMock {
   }
 }
 
+function ensurePrismaInternals(target: any) {
+  if (typeof target.$use !== 'function') {
+    target.$use = typeof vi !== 'undefined' && typeof vi.fn === 'function' ? vi.fn() : (() => undefined)
+  }
+  if (typeof target.$transaction !== 'function') {
+    target.$transaction = async (actions: any) => {
+      if (typeof actions === 'function') {
+        return actions(target)
+      }
+      if (Array.isArray(actions)) {
+        return Promise.all(actions)
+      }
+      return actions
+    }
+  }
+  if (typeof target.$disconnect !== 'function') {
+    target.$disconnect = async () => undefined
+  }
+}
+
 const mockPrisma: PrismaMock = new Proxy({}, {
   get(target, prop: string) {
     if (!(prop in target)) (target as any)[prop] = createModelMock()
@@ -63,10 +83,13 @@ const mockPrisma: PrismaMock = new Proxy({}, {
   }
 }) as unknown as PrismaMock
 
+ensurePrismaInternals(mockPrisma)
+
 function resetPrismaMock() {
   for (const k of Object.keys(mockPrisma)) {
     ;(mockPrisma as any)[k] = createModelMock()
   }
+  ensurePrismaInternals(mockPrisma)
 }
 
 function setModelMethod(model: string, method: keyof ModelMock, impl: PrismaModelMethod) {
