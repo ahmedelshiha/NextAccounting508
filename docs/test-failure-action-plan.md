@@ -528,3 +528,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-12: Priority 1.5 (Mock Presets) — Added tests/helpers/mockPresets.ts with helper functions to configure common model mocks for team management, services, bookings, and service requests.
 - 2025-10-12: Priority 1.6 (Targeted Mock Suites) — Added tests/helpers/targetedMocks.ts with ready-to-use presets for team management, services, bookings, and service-requests to stabilize failing suites.
 - 2025-10-12: Priority 1.7 (Test Bootstraps) — Added tests/setup/* bootstraps (teamManagement.setup.ts, services.setup.ts, bookings.setup.ts) to make it trivial for failing suites to import and enable mocks.
+- 2025-10-12: Priority 1.8 (Inject Bootstraps) — Injected test bootstraps into key failing suites: tests/team-management.routes.test.ts and tests/admin-rbac-comprehensive.test.ts to stabilize RBAC and team-management tests.
