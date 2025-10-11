@@ -16,7 +16,7 @@ export const GET = withTenantContext(async (request: Request) => {
   try {
     const ip = getClientIp(request as unknown as Request)
     const rl = await applyRateLimit(`admin-users-list:${ip}`, 60, 60_000)
-    if (!rl.allowed) {
+    if (rl && rl.allowed === false) {
       try { const { logAudit } = await import('@/lib/audit'); await logAudit({ action: 'security.ratelimit.block', details: { tenantId, ip, key: `admin-users-list:${ip}`, route: new URL(request.url).pathname } }) } catch {}
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
