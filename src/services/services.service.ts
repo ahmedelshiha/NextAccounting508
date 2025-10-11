@@ -524,36 +524,74 @@ export class ServicesService {
       bookings = []
     }
 
-    const analytics: ServiceAnalytics = {
+    const analytics: ServiceAnalytics & Record<string, any> = {
+      monthlyBookings: [],
+      revenueByService: [],
+      popularServices: [],
+      conversionRates: [],
+      revenueTimeSeries: [],
+      conversionsByService: [],
+      viewsByService: [],
       total,
       active,
       featured,
-      conversions: [],
-      conversionsByService: [],
-      revenueByService: [],
+      categories: Array.isArray(catGroups) ? catGroups.length : 0,
+      averagePrice: Number(priceAgg?._avg?.price ?? 0),
+      totalRevenue: Number(priceAgg?._sum?.price ?? 0),
     } as any
 
     try {
-      // compute conversions and revenue per service
       const conversionsByService = new Map<string, { serviceId: string; name: string; conversions: number; revenue: number }>()
+      const monthlySummary = new Map<string, { month: string; bookings: number; revenue: number }>()
       for (const b of bookings) {
         const sid = b.serviceId
-        const name = b.service?.name || 'Unknown';
-        const price = b.service?.price != null ? Number(b.service.price) : 0;
+        const name = b.service?.name || 'Unknown'
+        const price = b.service?.price != null ? Number(b.service.price) : 0
         const prev = conversionsByService.get(sid) || { serviceId: sid, name, conversions: 0, revenue: 0 }
         prev.conversions += 1
         prev.revenue += price
         conversionsByService.set(sid, prev)
+
+        const occursAt = new Date(b.scheduledAt ?? Date.now())
+        if (!Number.isNaN(occursAt.getTime())) {
+          const monthKey = `${occursAt.getFullYear()}-${String(occursAt.getMonth() + 1).padStart(2, '0')}`
+          const bucket = monthlySummary.get(monthKey) || { month: monthKey, bookings: 0, revenue: 0 }
+          bucket.bookings += 1
+          bucket.revenue += price
+          monthlySummary.set(monthKey, bucket)
+        }
       }
       const convs = Array.from(conversionsByService.values())
       analytics.conversionsByService = convs.map(c => ({ service: c.name || c.serviceId, bookings: c.conversions, views: 0, conversionRate: 0 })) as any
       analytics.revenueByService = convs.map(c => ({ service: c.name || c.serviceId, revenue: c.revenue })) as any
+      analytics.popularServices = convs.map(c => ({ service: c.name || c.serviceId, bookings: c.conversions })) as any
+      analytics.conversionRates = convs.map(c => ({ service: c.name || c.serviceId, rate: 0 })) as any
+      analytics.viewsByService = convs.map(c => ({ service: c.name || c.serviceId, views: 0 })) as any
+
+      const monthly = Array.from(monthlySummary.values()).sort((a, b) => a.month.localeCompare(b.month))
+      analytics.monthlyBookings = monthly.map(({ month, bookings }) => ({ month, bookings })) as any
+      analytics.revenueTimeSeries = monthly.length
+        ? [{ service: 'all', monthly: monthly.map(({ month, revenue }) => ({ month, revenue })) }]
+        : []
     } catch (e) {
       analytics.conversionsByService = []
       analytics.revenueByService = []
+      analytics.popularServices = []
+      analytics.conversionRates = []
+      analytics.viewsByService = []
+      analytics.monthlyBookings = []
+      analytics.revenueTimeSeries = []
     }
 
-    const result = { total, active, featured, analytics } as any
+    const result = {
+      total,
+      active,
+      featured,
+      categories: Array.isArray(catGroups) ? catGroups.length : 0,
+      averagePrice: Number(priceAgg?._avg?.price ?? 0),
+      totalRevenue: Number(priceAgg?._sum?.price ?? 0),
+      analytics,
+    } as any
     await this.cache.set(cacheKey, result, 300)
     return result
   }
