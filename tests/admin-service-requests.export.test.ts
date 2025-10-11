@@ -29,8 +29,6 @@ const mkItem = (id: string, createdAt: string, scheduledAt?: string) => ({
 import setupServiceRequests from './setup/serviceRequests.setup'
 setupServiceRequests()
 
-vi.mock('@/lib/prma', () => ({ default: {} }), { virtual: true })
-
 vi.mock('@/lib/prisma', () => ({
   default: {
     serviceRequest: {
