@@ -38,8 +38,8 @@ export const PUT = withTenantContext(async (request: Request) => {
     }
     const before = await service.get(tenantId).catch(()=>null)
     const saved = await service.update(tenantId, parsed.data, ctx.userId as string)
-    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, category: 'integrationHub', resource: 'integration-hub', before: before || null, after: saved || null } }) } catch {}
-    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : null, type: 'settings.update', resource: 'integration-hub', details: { category: 'integrationHub' } } }) } catch {}
+    try { await prisma.settingChangeDiff.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : undefined, category: 'integrationHub', resource: 'integration-hub', before: before || null, after: saved || null } }) } catch {}
+    try { await prisma.auditEvent.create({ data: { tenantId, userId: ctx.userId ? String(ctx.userId) : undefined, type: 'settings.update', resource: 'integration-hub', details: { category: 'integrationHub' } } }) } catch {}
     return NextResponse.json({ settings: saved })
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
