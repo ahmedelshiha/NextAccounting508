@@ -432,9 +432,13 @@ export class ServicesService {
 
       for (const id of serviceIds) {
         try {
-          const orig = await this.getServiceById(tId, id);
-          if (!orig) { errors.push({ id, error: 'Source service not found' }); continue }
-          const cloneName = value && typeof value === 'string' ? `${value}` : `${orig.name} (copy)`;
+          const orig = await this.getServiceById(tId, id).catch(() => null);
+          const explicitName = typeof value === 'string' ? value.trim() : ''
+          const cloneName = explicitName
+            ? explicitName
+            : orig?.name
+              ? `${orig.name} (copy)`
+              : `Service copy ${createdIds.length + 1}`;
           const c = await this.cloneService(cloneName, id);
           createdIds.push(c.id);
         } catch (e: any) {
