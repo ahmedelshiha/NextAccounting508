@@ -167,6 +167,20 @@ vi.mock('@/lib/auth', async () => {
   }
 })
 
+// Reset mocks between tests and expose mock helpers
+try {
+  const { resetPrismaMock, mockPrisma } = await import('./__mocks__/prisma')
+  // Reset prisma mock before each test to ensure isolated behavior
+  beforeEach(() => {
+    try { resetPrismaMock() } catch {}
+    try { vi.resetAllMocks() } catch {}
+  })
+  // Expose helper on globalThis for tests to use programmatically
+  ;(globalThis as any).prismaMock = mockPrisma
+} catch (err) {
+  // ignore if mocks not available
+}
+
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
   try {
