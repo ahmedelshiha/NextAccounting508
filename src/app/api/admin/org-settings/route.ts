@@ -110,7 +110,7 @@ export const PUT = withTenantContext(async (req: Request) => {
       await prisma.settingChangeDiff.create({
         data: {
           tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : null,
+          userId: ctx.userId ? String(ctx.userId) : undefined,
           category: 'organization',
           resource: 'org-settings',
           before: beforeData as any,
@@ -123,7 +123,7 @@ export const PUT = withTenantContext(async (req: Request) => {
       await prisma.auditEvent.create({
         data: {
           tenantId: ctx.tenantId,
-          userId: ctx.userId ? String(ctx.userId) : null,
+          userId: ctx.userId ? String(ctx.userId) : undefined,
           type: 'settings.update',
           resource: 'org-settings',
           details: { category: 'organization' } as any,
