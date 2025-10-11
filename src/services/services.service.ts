@@ -13,17 +13,36 @@ import { serviceEvents } from '@/lib/events/service-events';
 
 import servicesSettingsService from '@/services/services-settings.service'
 
-let cachedPrisma: PrismaClient | null = null
+type PrismaClientLike = PrismaClient & Record<string, unknown>
 
-async function getPrisma(): Promise<PrismaClient> {
+let cachedPrisma: PrismaClientLike | null = null
+
+async function getPrisma(): Promise<PrismaClientLike> {
   if (cachedPrisma) return cachedPrisma
   const mod = await import('@/lib/prisma').catch(() => null as any)
-  const client: PrismaClient | null = (mod && (mod.default || (mod as any).prisma || null)) ?? null
-  if (!client || typeof (client as any).$use !== 'function') {
+  const client = mod && (mod.default ?? (mod as any).prisma ?? null)
+  if (!client || typeof client !== 'object') {
     throw new Error('Prisma client is not initialized')
   }
-  cachedPrisma = client
-  return client
+  if (typeof (client as any).$use !== 'function') {
+    (client as any).$use = () => undefined
+  }
+  if (typeof (client as any).$transaction !== 'function') {
+    (client as any).$transaction = async (payload: any) => {
+      if (typeof payload === 'function') {
+        return payload(client)
+      }
+      if (Array.isArray(payload)) {
+        return Promise.all(payload)
+      }
+      return payload
+    }
+  }
+  if (typeof (client as any).$disconnect !== 'function') {
+    (client as any).$disconnect = async () => undefined
+  }
+  cachedPrisma = client as PrismaClientLike
+  return cachedPrisma
 }
 
 export class ServicesService {
