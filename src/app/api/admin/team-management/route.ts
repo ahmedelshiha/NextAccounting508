@@ -5,6 +5,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
