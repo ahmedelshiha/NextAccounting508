@@ -4,6 +4,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { logAudit } from '@/lib/audit'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
