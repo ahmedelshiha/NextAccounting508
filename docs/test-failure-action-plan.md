@@ -521,3 +521,4 @@ vi.mock('next/navigation', () => ({
 - 2025-10-11: Priority 3.1 (CSV Export Header) — Updated services CSV export headers to ID,Name,Slug,Description in src/services/services.service.ts. Next: align service-requests export.
 - 2025-10-11: Priority 8.1 (Next.js Router Mocks) — Added global next/navigation mocks in vitest.setup.ts to stabilize component tests.
 - 2025-10-11: Priority 3.1 (Service Requests Export) — Capitalized headers in admin service-requests CSV export (src/app/api/admin/service-requests/export/route.ts).
+- 2025-10-11: Priority 1.1 (Prisma Init) — Added safe fallback to mock Prisma client when DATABASE_URL is not configured in non-production environments (src/lib/prisma.ts).
