@@ -6,6 +6,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
