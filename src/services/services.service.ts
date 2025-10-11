@@ -54,7 +54,10 @@ export class ServicesService {
       if (!tenantId && tenantModel && typeof tenantModel.findFirst === 'function') {
         const t = await tenantModel.findFirst({ where: { slug: 'primary' }, select: { id: true } }).catch(() => null)
         tenantId = t?.id || null
-        if (!tenantId) throw new Error('Tenant context required to clone service')
+      }
+
+      if (!tenantId) {
+        throw new Error('Tenant context required to clone service')
       }
 
       const baseSlug = generateSlug(name)
