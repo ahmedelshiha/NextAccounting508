@@ -19,7 +19,7 @@ vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
 }))
 
-vi.mock('@/stores/adminLayoutStore', () => ({
+vi.mock('@/stores/admin/layout.store', () => ({
   useAdminLayout: vi.fn(() => ({
     navigation: {},
   })),
