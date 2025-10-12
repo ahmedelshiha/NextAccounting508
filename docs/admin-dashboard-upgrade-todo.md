@@ -240,13 +240,13 @@ To run locally instead, execute:
   - ✅ Config references E2E_BASE_URL and waits for server via curl loop
 - Notes: Trigger by pushing to main or opening a PR.
 
-### CI – pnpm version pin
+### CI – pnpm setup sourced from packageManager
 - Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Removed dynamic PNPM_VERSION detection and pinned pnpm@10.18.1 via pnpm/action-setup to match package.json packageManager.
+- Changes: Removed explicit pnpm version from pnpm/action-setup so it reads the exact version from package.json packageManager, preventing ERR_PNPM_BAD_PM_VERSION.
 - Files Modified: .github/workflows/playwright-e2e.yml
 - Testing:
-  - ✅ `pnpm --version` echoes 10.18.1 in CI
+  - ✅ `pnpm --version` printed and matches packageManager pin
 
 ### CI – pnpm setup via action and cache ordering
 - Status: ✅ Completed
