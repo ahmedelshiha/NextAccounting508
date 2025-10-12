@@ -248,6 +248,14 @@ To run locally instead, execute:
 - Testing:
   - ✅ `pnpm --version` printed and matches packageManager pin
 
+### E2E – Fix missing Playwright imports
+- Status: �� Completed
+- Date: 2025-10-12
+- Changes: Added `import { test, expect } from '@playwright/test'` to admin-settings-overview.spec.ts to avoid ReferenceError.
+- Files Modified: e2e/tests/admin-settings-overview.spec.ts
+- Testing:
+  - ✅ Test runner recognizes test/expect definitions
+
 ### CI – Start server without rebuilding
 - Status: ✅ Completed
 - Date: 2025-10-12
