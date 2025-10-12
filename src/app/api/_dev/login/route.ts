@@ -38,7 +38,10 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     )
   }
 
-  if (!process.env.NEXTAUTH_SECRET) {
+  // Allow a fallback secret during local/E2E runs so tests can use the dev login helper.
+  // In production we still require NEXTAUTH_SECRET to be set.
+  const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ?? (process.env.NODE_ENV === 'production' ? undefined : 'dev-e2e-secret')
+  if (!NEXTAUTH_SECRET) {
     return NextResponse.json(
       { success: false, error: 'NEXTAUTH_SECRET not configured' },
       { status: 500 },
@@ -140,7 +143,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       iat: Math.floor(Date.now() / 1000),
     }
 
-    const encoded = await encode({ token: tokenPayload as any, secret: process.env.NEXTAUTH_SECRET })
+    const encoded = await encode({ token: tokenPayload as any, secret: NEXTAUTH_SECRET })
     if (!encoded) {
       return NextResponse.json(
         { success: false, error: 'Failed to encode token' },
