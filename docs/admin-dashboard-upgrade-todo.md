@@ -68,31 +68,37 @@
 - [ ] Persist sidebar width/collapse settings and sync with keyboard shortcuts (`mod+b`, `mod+[`, `mod+]`).
 - [ ] Add responsive breakpoints using `useResponsive` and ensure smooth transitions.
 - [ ] Provide accessible labels, focus management, and tooltips for collapsed items.
+- [ ] Deliver design and behavior parity with `docs/NextAccounting Admin Dashboard.md` §4.1 and Moderniza Task 2.1.
 
 ### 4.2 Navigation Enhancements
 - [ ] Integrate registry-driven rendering with permission-aware sections and dynamic badges.
 - [ ] Implement drag-and-drop favorites/reordering hooks to feed customization workflows.
 - [ ] Ensure breadcrumbs, quick search, and recently visited panels all source from registry utilities.
+- [ ] Mirror interaction patterns described in `docs/NextAccounting Admin Dashboard.md` §3.2–§3.3 and Moderniza Task 2.2.
 
 ### 4.3 Header & User Profile Experience
 - [ ] Replace legacy “Preview Admin” header content with breadcrumbs, global actions, tenant switcher, notifications, and new profile dropdown.
 - [ ] Implement `UserProfileDropdown` with avatar fallbacks, role labels, account/setting shortcuts, theme switcher, status indicator, and sign-out.
 - [ ] Add status presence tracking (`online`, `away`, `busy`) tied to user activity.
 - [ ] Ensure keyboard navigation and ARIA roles for dropdown interactions.
+- [ ] Implement per `docs/NextAccounting Admin Dashboard.md` §4.2 directives and Moderniza Task 2.4.
 
 ### 4.4 Footer & System Health Surface
 - [ ] Create `/api/admin/system/health` endpoint checking database latency and future subsystems.
 - [ ] Build responsive footer with product info, system status pill, quick links, version metadata, and copyright.
 - [ ] Poll health endpoint every 60 s with graceful degradation handling.
+- [ ] Match health visibility expectations in `docs/NextAccounting Admin Dashboard.md` §4.4 and Moderniza Task 2.5.
 
 ### 4.5 Admin Data Provider & Fetch Optimization
 - [ ] Replace scattered `useUnifiedData` calls with `AdminDataProvider` aggregating stats via `/api/admin/stats/overview`.
 - [ ] Ensure SWR deduplication, refresh intervals, and real-time hooks reduce redundant network calls by ≥60%.
 - [ ] Update dashboards, sidebar badges, and analytics widgets to consume provider hooks (`useAdminStats`, `useAdminCounts`).
+- [ ] Follow shared data flow recommendations in `docs/NextAccounting Admin Dashboard.md` §3.3 Data Fetching Optimization and Moderniza Task 2.5.
 
 ### 4.6 Settings Drawer & Quick Actions
 - [ ] Design and implement global settings drawer accessible from header/footer, surfacing Favorites, Recently Updated, keyboard shortcuts, and command palette entry points.
 - [ ] Integrate registry metadata to populate drawer sections and maintain consistency with sidebar customization.
+- [ ] Ensure parity with quick-command vision outlined in `docs/NextAccounting Admin Dashboard.md` §4.6 and Moderniza Phase 2 scope.
 
 ## 5. Phase 3 – Personalization & Advanced Features (Weeks 6–8)
 ### 5.1 Menu Customization Workflow
