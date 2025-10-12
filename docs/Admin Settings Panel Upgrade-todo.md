@@ -54,11 +54,18 @@ Created: 2025-10-08
   - **Impact**: Faster access to frequently used areas; consistent UX via shared component
 
 ## 🚧 In Progress
-- [ ] Persist diffs on save for Organization Settings (org-settings); extend to other categories next
+- [x] Persist diffs on save for Organization Settings (org-settings)
   - Implemented SettingChangeDiff + AuditEvent on org-settings PUT; rollout plan to other settings endpoints
 - [ ] Unit tests for favorites service and SettingsSearch keyboard interactions
 
 ## 🔧 Next Steps
-- [ ] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, and system settings endpoints
+- [x] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, system, booking, and client settings endpoints
 - [ ] Add rate limiting to diff preview endpoint
 - [ ] Add FavoriteToggle initial pinned state hydration (optional)
+
+### Diff Persistence Rollout
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added SettingChangeDiff and AuditEvent persistence to client-settings and booking-settings; verified other categories already persisted.
+- Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
+- Notes: Will add rate limiting to diff preview endpoint next.

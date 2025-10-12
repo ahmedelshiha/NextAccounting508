@@ -194,3 +194,10 @@ To run locally instead, execute:
 - Files Modified: src/components/admin/layout/ClientOnlyAdminLayout.tsx
 - Files Added: tests/components/admin/route-announcer.dom.test.tsx
 - Notes: Uses existing RouteAnnouncer component with polite, atomic live region.
+
+### Settings Diff Persistence Rollout
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Implemented SettingChangeDiff and AuditEvent writes for client-settings and booking-settings; aligned with existing categories (analytics, communication, financial, security, system, task, team, services, org).
+- Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
+- Notes: Next: add rate limiting to diff preview endpoint.
