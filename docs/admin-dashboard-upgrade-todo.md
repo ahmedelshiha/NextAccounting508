@@ -56,3 +56,11 @@
 - Files Modified: src/components/admin/layout/AdminSidebar.tsx
 - Files Added: src/components/admin/layout/Sidebar/SidebarHeader.tsx, src/components/admin/layout/Sidebar/SidebarFooter.tsx, src/components/admin/layout/Sidebar/SidebarResizer.tsx, src/components/admin/layout/Sidebar/SidebarNav.tsx
 - Notes: No visual or behavioral changes; nav rendering logic moved to SidebarNav. Follow-ups: add unit tests for SidebarNav interactions and keyboard navigation.
+
+### Phase 2 – Sidebar Resize & Shortcuts
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Implemented keyboard shortcuts for sidebar (Mod+B toggle, Mod+[ collapse, Mod+] expand) with a lightweight hook that avoids adding new dependencies. SidebarResizer component added earlier supports mouse/touch resizing.
+- Files Modified: src/components/admin/layout/AdminSidebar.tsx
+- Files Added: src/hooks/admin/useSidebarShortcuts.ts
+- Notes: Chose to implement shortcuts without react-hotkeys-hook to avoid adding runtime dependency. Follow-ups: add e2e tests for drag/keyboard behaviors and document shortcut mappings in user help.
