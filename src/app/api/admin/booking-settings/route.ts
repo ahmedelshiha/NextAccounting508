@@ -15,6 +15,7 @@ export const GET = withTenantContext(async (req: NextRequest) => {
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
+  if (!tenantId) return respond.badRequest('Missing tenantId')
   try {
     let settings = await service.getBookingSettings(tenantId)
     if (!settings) settings = await service.createDefaultSettings(tenantId)
@@ -31,6 +32,7 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
+  if (!tenantId) return respond.badRequest('Missing tenantId')
   const updates = await req.json().catch(() => null)
   if (!updates || typeof updates !== 'object') return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   try {
@@ -47,8 +49,8 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
         resource: 'booking-settings',
         ...(actorUserId ? { userId: actorUserId } : {}),
       }
-      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
-      if (settings !== null && settings !== undefined) diffPayload.after = settings as Prisma.InputJsonValue
+      if (before !== null) diffPayload.before = (before as unknown) as Prisma.InputJsonValue
+      if (settings !== null && settings !== undefined) diffPayload.after = (settings as unknown) as Prisma.InputJsonValue
       await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
     try {

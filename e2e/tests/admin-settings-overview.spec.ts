@@ -1,3 +1,5 @@
+import { test, expect } from '@playwright/test'
+
 async function devLoginAndSetCookie(page: any, request: any, baseURL: string | undefined, email: string) {
   const base = baseURL || process.env.E2E_BASE_URL || 'http://localhost:3000'
   const res = await request.post(`${base}/api/_dev/login`, { data: { email } })
