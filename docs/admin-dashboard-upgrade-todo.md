@@ -263,6 +263,7 @@ To run locally instead, execute:
 - Files Modified: src/app/api/admin/booking-settings/route.ts
 - Testing:
   - ✅ Compiles with strict types; Prisma inputs now receive `tenantId: string`
+  - ✅ Cast `before`/`after` via `unknown` to satisfy Prisma.InputJsonValue
 
 ### Pre-flight Checks – Typecheck & Thresholds
 - Status: ❌ Blocked
