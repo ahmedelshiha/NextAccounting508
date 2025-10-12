@@ -76,3 +76,10 @@ Created: 2025-10-08
 - Changes: Enforced per-tenant+user rate limit (10/min) on diff preview endpoint with Redis-backed fallback to memory.
 - Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
 - Notes: Uses getClientIp fallback when userId missing; returns 429 on exceed.
+
+### Favorites & Search Tests
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added unit tests for favorites service (get/add/remove) and DOM tests for SettingsSearch keyboard interactions (Slash focus, Mod+K, arrow navigation, Enter).
+- Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
+- Notes: Mocks useSettingsSearchIndex and next/navigation router; no UI changes.

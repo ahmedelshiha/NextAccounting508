@@ -208,3 +208,10 @@ To run locally instead, execute:
 - Changes: Added per-tenant+user rate limiting (10/min) to /api/admin/settings/diff/preview via rateLimitAsync with Redis/memory backend.
 - Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
 - Notes: Returns 429 on exceed; uses IP fallback when userId absent.
+
+### Favorites & SettingsSearch Tests
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added tests for favorites service and SettingsSearch keyboard interactions.
+- Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
+- Notes: Increases confidence in settings UX; consider e2e for pinned items later.
