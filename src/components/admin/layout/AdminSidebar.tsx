@@ -2,40 +2,15 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { 
-  BarChart3,
-  Calendar,
-  Users,
-  Briefcase,
-  FileText,
-  CreditCard,
-  Receipt,
-  CheckSquare,
-  TrendingUp,
-  Settings,
-  UserCog,
-  Shield,
-  Upload,
-  Bell,
-  Mail,
-  HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  Home,
-  DollarSign,
-  Clock,
-  Target,
-  Building,
-  Zap
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Building } from 'lucide-react'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import SETTINGS_REGISTRY from '@/lib/settings/registry'
-import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import { hasPermission } from '@/lib/permissions'
 import { getNavigation } from '@/lib/admin/navigation-registry'
+import SidebarHeader from './Sidebar/SidebarHeader'
+import SidebarFooter from './Sidebar/SidebarFooter'
+import SidebarResizer from './Sidebar/SidebarResizer'
+import SidebarNav, { type NavItem } from './Sidebar/SidebarNav'
 
 interface NavigationItem {
   name: string
