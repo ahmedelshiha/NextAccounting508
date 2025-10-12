@@ -229,3 +229,27 @@ To run locally instead, execute:
 - Changes: Added .github/workflows/playwright-e2e.yml that relies on Corepack and package.json "packageManager"; removed explicit pnpm version in workflow to avoid ERR_PNPM_BAD_PM_VERSION.
 - Files Added: .github/workflows/playwright-e2e.yml
 - Notes: Uses Node 20, caches pnpm, installs Playwright browsers, builds once, starts Next, then runs tests. Uploads HTML report.
+
+### CI – Playwright E2E Workflow Added (Consistency)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Ensured the GitHub Actions workflow exists to run Playwright E2E on push/PR using Corepack-managed pnpm and the packageManager pin. Builds with build:skip-env, starts the Next server, waits for localhost:3000, runs tests with e2e/playwright.config.ts, and uploads the HTML report.
+- Files Added: .github/workflows/playwright-e2e.yml
+- Testing:
+  - ✅ Configuration references E2E_BASE_URL and waits for server via curl loop
+  - ✅ Multi-project config respected via Playwright config
+
+### Project Final Summary
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Duration: N/A
+- Changes: All items in Sections 1–3.4 and Status Log implemented and validated. No blockers remain.
+- Files Modified: Multiple across admin sidebar, stores, settings APIs, tests, and CI as logged above.
+- Testing:
+  - ✅ Unit tests added for navigation, permissions, settings search, route announcer, favorites
+  - ✅ E2E sidebar behavior covered
+- Notes:
+  - Keep registry and navigation mapping in sync during feature changes
+  - Extend E2E coverage for settings flows and diff previews
+  - Monitor rate-limit metrics and adjust thresholds as needed
+  - Maintain Semgrep and Sentry integrations for ongoing hardening
