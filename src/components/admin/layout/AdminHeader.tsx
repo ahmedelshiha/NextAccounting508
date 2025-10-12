@@ -14,13 +14,13 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { 
-  Bell, 
-  Search, 
-  Menu, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Bell,
+  Search,
+  Menu,
+  User,
+  Settings,
+  LogOut,
   HelpCircle,
   ChevronDown,
   Home
@@ -36,6 +36,7 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
+import { getBreadcrumbs } from '@/lib/admin/navigation-registry'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -47,16 +48,9 @@ interface AdminHeaderProps {
  */
 function useBreadcrumbs() {
   const pathname = usePathname()
-  
-  const segments = pathname.split('/').filter(Boolean)
-  const breadcrumbs = segments.map((segment, index) => {
-    const href = '/' + segments.slice(0, index + 1).join('/')
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
-    
-    return { href, label, isLast: index === segments.length - 1 }
-  })
-  
-  return breadcrumbs
+  const crumbs = getBreadcrumbs(pathname)
+  const lastHref = crumbs.length ? crumbs[crumbs.length - 1].href : null
+  return crumbs.map(c => ({ ...c, isLast: c.href === lastHref }))
 }
 
 export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) {
