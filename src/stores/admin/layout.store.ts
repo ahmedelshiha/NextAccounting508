@@ -163,6 +163,11 @@ export const useUIState = () => base((s) => ({
 export function useAdminLayoutSafe() {
   const store = base.getState()
   const isHydrated = base((s) => s.isHydrated)
+  // Call hooks unconditionally to satisfy react-hooks lint rule
+  const sidebarState = useSidebarState()
+  const navigationState = useNavigationState()
+  const uiState = useUIState()
+
   // Hydrate on client
   if (typeof window !== 'undefined' && !isHydrated) {
     // Trigger once per client mount
@@ -179,9 +184,9 @@ export function useAdminLayoutSafe() {
   }
 
   return {
-    sidebar: useSidebarState(),
-    navigation: useNavigationState(),
-    ui: useUIState(),
+    sidebar: sidebarState,
+    navigation: navigationState,
+    ui: uiState,
     isHydrated: true,
   }
 }
