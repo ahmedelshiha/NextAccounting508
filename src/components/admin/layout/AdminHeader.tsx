@@ -12,15 +12,15 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { 
-  Bell, 
-  Search, 
-  Menu, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Bell,
+  Search,
+  Menu,
+  User,
+  Settings,
+  LogOut,
   HelpCircle,
   ChevronDown,
   Home
@@ -36,6 +36,7 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
+import { getBreadcrumbs, searchNav } from '@/lib/admin/navigation-registry'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -47,16 +48,9 @@ interface AdminHeaderProps {
  */
 function useBreadcrumbs() {
   const pathname = usePathname()
-  
-  const segments = pathname.split('/').filter(Boolean)
-  const breadcrumbs = segments.map((segment, index) => {
-    const href = '/' + segments.slice(0, index + 1).join('/')
-    const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
-    
-    return { href, label, isLast: index === segments.length - 1 }
-  })
-  
-  return breadcrumbs
+  const crumbs = getBreadcrumbs(pathname)
+  const lastHref = crumbs.length ? crumbs[crumbs.length - 1].href : null
+  return crumbs.map(c => ({ ...c, isLast: c.href === lastHref }))
 }
 
 export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) {
@@ -64,12 +58,15 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
   const [searchQuery, setSearchQuery] = useState('')
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
+  const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      // TODO: Implement global search functionality
-      console.log('Searching for:', searchQuery)
+    const q = searchQuery.trim()
+    if (!q) return
+    const results = searchNav(q, 1)
+    if (results.length > 0) {
+      router.push(results[0].href)
     }
   }
 
@@ -98,9 +95,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
             <nav className="flex" aria-label="Breadcrumb">
               <ol className="flex items-center space-x-2 text-sm">
                 <li>
-                  <Link 
-                    href="/admin" 
+                  <Link
+                    href="/admin"
                     className="text-gray-500 hover:text-gray-700 flex items-center"
+                    aria-label="Overview"
+                    title="Overview"
                   >
                     <Home className="h-4 w-4" />
                   </Link>

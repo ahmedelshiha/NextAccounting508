@@ -15,7 +15,7 @@ import AdminHeader from './AdminHeader'
 import AdminFooter from './AdminFooter'
 import AdminErrorBoundary from './AdminErrorBoundary'
 import { useResponsive } from '@/hooks/admin/useResponsive'
-import { useAdminLayoutHydrationSafe } from '@/stores/adminLayoutStoreHydrationSafe'
+import { useAdminLayoutSafe } from '@/stores/admin/layout.store'
 import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
 
 /**
@@ -49,7 +49,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   
   // Get responsive state and layout management - ALWAYS call hooks at the top level
   const responsive = useResponsive()
-  const { sidebar, navigation, ui } = useAdminLayoutHydrationSafe()
+  const { sidebar, navigation, ui } = useAdminLayoutSafe()
   
   // Set client-side flag after hydration
   useEffect(() => {
