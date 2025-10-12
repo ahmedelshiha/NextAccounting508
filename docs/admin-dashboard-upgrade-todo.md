@@ -106,21 +106,25 @@
 - [ ] Build `MenuCustomizationModal` using `@dnd-kit` sortable lists for section/item ordering and visibility toggles.
 - [ ] Persist customizations per user, broadcast updates (`window.dispatchEvent('menu:updated')`), and sync sidebar state on changes.
 - [ ] Provide “Reset to default” pathway and optimistic UI feedback via toast notifications.
+- [ ] Adhere to personalization plan in `docs/NextAccounting Admin Dashboard.md` §4.1 Sidebar Customization (Opportunity Areas) and Moderniza Task 3.1–3.2.
 
 ### 5.2 Favorites & Recently Visited
 - [ ] Store favorites/recent routes in `NavigationFavorite` table plus local cache fallback for quick reads.
 - [ ] Surface favorites in sidebar footer and command palette.
 - [ ] Track recently visited items (max 10) with storage reconciliation between server and client.
+- [ ] Implement per personalization directives in `docs/NextAccounting Admin Dashboard.md` §2.5 and Moderniza Task 3.1.
 
 ### 5.3 Settings Experience Expansion
 - [ ] Audit `SETTINGS_REGISTRY` to cover all settings pages and ensure metadata completeness (icon, description, keywords).
 - [ ] Add missing panels highlighted in structure audit: Audit Logs, MFA management, Rate Limiting, Sentry integration toggles, Reminder concurrency controls.
 - [ ] Enhance `SettingsShell` with global search shortcut, save state indicators, and export/import controls leveraging existing API routes.
+- [ ] Align with modernization blueprint in `docs/NextAccounting Admin Dashboard.md` §5 and Moderniza Task 3.3.
 
 ### 5.4 Real-Time & Notifications Refinement
 - [ ] Limit SSE/WebSocket subscriptions to relevant modules via scoped `RealtimeProvider` contexts.
 - [ ] Convert heavy real-time features (e.g., chat, tasks) to lazy-loaded modules using dynamic imports.
 - [ ] Ensure badge counts and notifications respect customization visibility and permission scopes.
+- [ ] Follow performance guidance in `docs/NextAccounting Admin Dashboard.md` §2.4–§3.3 and Moderniza Task 3.4.
 
 ## 6. Phase 4 – Performance, Accessibility, & Hardening (Weeks 9–10)
 ### 6.1 Performance Optimization
@@ -128,29 +132,34 @@
 - [ ] Introduce route-level code splitting for analytics/tasks heavy components.
 - [ ] Defer non-critical scripts (e.g., monitoring widgets) and enable React Suspense boundaries.
 - [ ] Measure bundle size before/after to confirm ≥20% reduction.
+- [ ] Satisfy performance goals from `docs/NextAccounting Admin Dashboard.md` §2.5 and Moderniza Phase 4 objectives.
 
 ### 6.2 Accessibility & Internationalization
 - [ ] Run axe and manual audits to achieve WCAG 2.1 AA (focus traps, contrast, keyboard flows, aria labels).
 - [ ] Ensure RTL support for localized layouts, particularly in sidebar and header components.
 - [ ] Update locale files for new strings (en, ar, hi) and provide keys for customization UI.
+- [ ] Meet accessibility parameters listed in `docs/NextAccounting Admin Dashboard.md` §11 and Moderniza Phase 4 checklist.
 
 ### 6.3 Security & Compliance
 - [ ] Enforce permission checks on all new APIs (aggregation, menu customization, health checks).
 - [ ] Add audit logging for menu changes, personalization updates, and critical admin actions.
 - [ ] Review CSP and Sentry configurations to include new endpoints/components.
 - [ ] Validate persistence layer sanitization (menu customization JSON) and rate-limit endpoints where appropriate.
+- [ ] Implement per security directives in `docs/NextAccounting Admin Dashboard.md` §10 and Moderniza Phase 4.
 
 ### 6.4 Testing & QA Strategy
 - [ ] Expand unit tests for layout store, navigation registry, data provider, and menu customization workflows.
 - [ ] Add Playwright e2e coverage for critical admin paths (sidebar interactions, customization modal, profile dropdown, settings drawer, responsive breakpoints).
 - [ ] Integrate accessibility checks (`@axe-core/playwright`) into CI.
 - [ ] Implement regression tests for permission-based navigation and localization toggles.
+- [ ] Follow testing strategy outlined in `docs/NextAccounting Admin Dashboard.md` §8 and Moderniza Phase 4 guidance.
 
 ### 6.5 Deployment & Migration
 - [ ] Produce migration guide outlining rollout steps, fallback toggles, and support playbook.
 - [ ] Schedule staged deployment (internal beta → pilot tenants → full rollout) with telemetry monitoring.
 - [ ] Update documentation (`docs/NextAccounting Admin Dashboard*.md`) to reflect final architecture and user workflows.
 - [ ] Capture post-launch metrics and compare against success criteria.
+- [ ] Execute per migration instructions in `docs/NextAccounting Admin Dashboard.md` §13–§14 and Moderniza Phase 4 deliverables.
 
 ## 7. Cross-Cutting Workstreams
 - [ ] Maintain design tokens and existing visual styles while introducing new patterns (no regressions in color/shape).
