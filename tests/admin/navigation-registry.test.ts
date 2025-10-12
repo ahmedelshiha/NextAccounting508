@@ -22,7 +22,7 @@ describe('navigation-registry', () => {
 
   it('getBreadcrumbs maps known routes with registry labels and falls back for unknown segments', () => {
     const bc1 = getBreadcrumbs('/admin/invoices/sequences')
-    expect(bc1.map(b => b.label)).toEqual(['Admin', 'Invoices', 'Sequences'].filter(Boolean))
+    expect(bc1.map(b => b.label)).toEqual(['Overview', 'Invoices', 'Sequences'])
   })
 
   it('getBreadcrumbs returns empty array for empty path', () => {
