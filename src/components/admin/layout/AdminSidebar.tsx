@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Building } from 'lucide-react'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission } from '@/lib/permissions'
 import { getNavigation } from '@/lib/admin/navigation-registry'
