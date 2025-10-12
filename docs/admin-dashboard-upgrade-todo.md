@@ -25,35 +25,41 @@
 - [ ] Create dedicated feature branch and upgrade pipeline automation.
 - [ ] Install required dependencies (`@dnd-kit/*`, Radix primitives, `react-hotkeys-hook`, testing libraries, accessibility tooling).
 - [ ] Update package scripts for targeted unit, integration, e2e, and accessibility test runs.
+- [ ] Mirror `docs/NextAccounting Admin Dashboard Moderniza.md` Task 1.1 environment checklist to ensure parity.
 
 ### 3.2 Legacy Layout Removal
 - [ ] Locate and remove `app/admin/layout-nuclear.tsx` and `app/admin/page-nuclear.tsx` plus any residual imports.
 - [ ] Replace legacy references with canonical layout exports.
 - [ ] Verify build after removal and run smoke tests on `/admin/*` routes.
+- [ ] Satisfy architecture clean-up goals from `docs/NextAccounting Admin Dashboard.md` §3.1 and Moderniza Task 1.2.
 
 ### 3.3 Navigation Registry Consolidation
 - [ ] Implement `src/lib/admin/navigation-registry.ts` with full section/item metadata (labels, icons, permissions, badges, keywords, descriptions).
 - [ ] Remove hardcoded arrays from `AdminSidebar`, breadcrumbs, search, and any duplicated navigation definitions.
 - [ ] Ensure registry eliminates stale entries (e.g., remove Invoices “Templates” link) and normalizes URLs.
 - [ ] Add Jest/Vitest coverage for item lookup, permission filtering, search, breadcrumbs, favorites, and recent history utilities.
+- [ ] Align navigation model with consolidation requirements in `docs/NextAccounting Admin Dashboard.md` §3.2–§3.3 and Moderniza Task 1.3.
 
 ### 3.4 Layout Store Unification
 - [ ] Consolidate `adminLayoutStore`, `adminLayoutStoreHydrationSafe`, and `adminLayoutStoreSSRSafe` into a single Zustand store (`src/stores/admin/layout.store.ts`).
 - [ ] Preserve persisted keys (sidebar width, collapsed state, expanded groups, favorites, recent items) with hydration guards.
 - [ ] Refactor selectors (`useSidebarState`, `useNavigationState`, `useUIState`, etc.) to prevent unnecessary re-renders.
 - [ ] Delete obsolete store files and update all imports across components/pages/tests.
+- [ ] Execute per state management guidance in `docs/NextAccounting Admin Dashboard.md` §3.3 Problem 3 and Moderniza Task 1.4.
 
 ### 3.5 Layout Architecture Refactor
 - [ ] Rebuild admin layout flow: `app/admin/layout.tsx` (server auth) → `AdminLayoutClient` → `AdminLayoutShell`.
 - [ ] Introduce `AdminLayoutProvider` (for session, responsive state, data providers) and `AdminLayoutSkeleton` for suspense fallbacks.
 - [ ] Remove `ClientOnlyAdminLayout` and `AdminDashboardLayoutLazy` once shell is in place.
 - [ ] Resolve existing hydration mismatches (localStorage access, responsive detection, persisted stores).
+- [ ] Match unified architecture blueprint in `docs/NextAccounting Admin Dashboard.md` §3.1 Problem 1–2 and Moderniza Task 1.5.
 
 ### 3.6 Data Model & API Preparation
 - [ ] Add Prisma models for `MenuCustomization`, `NavigationFavorite`, `UserPreferences`, and `AuditLog` per modernization spec.
 - [ ] Create migration scripts and update Prisma Client.
 - [ ] Define seed scripts or defaults for menu customization and preferences.
 - [ ] Document schema changes and coordinate with DBA/ops teams.
+- [ ] Trace requirements to `docs/NextAccounting Admin Dashboard.md` §3.3 and Moderniza Task 1.6.
 
 ## 4. Phase 2 – Experience Modernization (Weeks 3–5)
 ### 4.1 Collapsible & Resizable Sidebar
