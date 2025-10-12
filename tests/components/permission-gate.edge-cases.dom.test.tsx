@@ -3,14 +3,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import { useSession } from 'next-auth/react'
 
 vi.mock('next-auth/react', () => ({
   useSession: vi.fn(() => ({ data: { user: {} } }))
 }))
 
 const mockUseSession = (role?: string | null) => {
-  const mod = require('next-auth/react')
-  mod.useSession.mockReturnValue({ data: { user: role ? { role } : {} } })
+  ;(useSession as unknown as { mockReturnValue: (v: any) => void }).mockReturnValue({ data: { user: role ? { role } : {} } })
 }
 
 describe('PermissionGate edge cases', () => {
