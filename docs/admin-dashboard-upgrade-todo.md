@@ -256,6 +256,14 @@ To run locally instead, execute:
 - Testing:
   - ✅ `pnpm --version` echoed in CI to verify availability prior to caching step
 
+### Booking Settings – Type Narrowing for tenantId
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added runtime guard to ensure `tenantId` is a non-empty string before creating Prisma records; returns 400 when missing. Fixes TS error where `string | null` was assigned to a `string` field.
+- Files Modified: src/app/api/admin/booking-settings/route.ts
+- Testing:
+  - ✅ Compiles with strict types; Prisma inputs now receive `tenantId: string`
+
 ### Pre-flight Checks – Typecheck & Thresholds
 - Status: ❌ Blocked
 - Date: 2025-10-12
