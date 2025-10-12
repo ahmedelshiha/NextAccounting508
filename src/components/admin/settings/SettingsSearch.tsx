@@ -31,12 +31,24 @@ export default function SettingsSearch({ className = '' }: { className?: string 
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const isEditableTarget = () => {
+        const ae = document.activeElement as HTMLElement | null
+        if (!ae) return false
+        const tag = ae.tagName?.toLowerCase()
+        const editable = (ae as any).isContentEditable
+        return editable || tag === 'input' || tag === 'textarea' || tag === 'select'
+      }
+
       const isModK = (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey))
-      if (isModK) {
+      const isSlash = (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey)
+
+      if (isModK || (isSlash && !isEditableTarget())) {
         e.preventDefault()
         inputRef.current?.focus()
         setOpen(true)
+        return
       }
+
       if (!open) return
       if (e.key === 'Escape') setOpen(false)
       if (e.key === 'ArrowDown') setActiveIndex((i) => Math.min(i + 1, results.length - 1))
