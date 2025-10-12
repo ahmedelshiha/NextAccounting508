@@ -240,13 +240,13 @@ To run locally instead, execute:
   - ✅ Config references E2E_BASE_URL and waits for server via curl loop
 - Notes: Trigger by pushing to main or opening a PR.
 
-### CI – pnpm setup via action
+### CI – pnpm setup via action and cache ordering
 - Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Replaced Corepack activation with `pnpm/action-setup@v4` using version from package.json `packageManager` for deterministic installation.
+- Changes: Ensured pnpm is installed before `actions/setup-node@v4` with `cache: pnpm`, which requires pnpm on PATH. Reordered steps and added cache-dependency-path to pnpm-lock.yaml.
 - Files Modified: .github/workflows/playwright-e2e.yml
 - Testing:
-  - ✅ `pnpm --version` echoed in CI to verify availability
+  - ✅ `pnpm --version` echoed in CI to verify availability prior to caching step
 
 ### Pre-flight Checks – Typecheck & Thresholds
 - Status: ❌ Blocked
