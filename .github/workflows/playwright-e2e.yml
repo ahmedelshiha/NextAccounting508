@@ -9,13 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Read pnpm version from packageManager
-        run: |
-          node -e "const pm=require('./package.json').packageManager||'pnpm@10.18.1'; const v=pm.split('@')[1]?.split('+')[0]||'10.18.1'; require('fs').appendFileSync(process.env.GITHUB_ENV, `PNPM_VERSION=${v}\n`);"
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: ${{ env.PNPM_VERSION }}
+          version: 10.18.1
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
