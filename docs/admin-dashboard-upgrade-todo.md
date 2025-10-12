@@ -65,6 +65,13 @@
 - Files Modified: docs/admin-dashboard-upgrade-todo.md
 - Notes: Tests validate group toggle behavior and keyboard shortcut handling (Mod+B, Mod+[ and Mod+]). Further work: add e2e tests for drag resize and keyboard workflow in Playwright.
 
+### Phase 2 – Sidebar Tests (Execution)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Executed new unit tests for SidebarNav and useSidebarShortcuts — all new tests passed locally via Vitest.
+- Files Added: tests/components/admin/sidebar-nav.dom.test.tsx, tests/hooks/useSidebarShortcuts.test.ts
+- Notes: Next: implement Playwright e2e test to validate drag resizing and keyboard shortcuts in a real browser environment.
+
 ### Phase 2 – Sidebar Resize & Shortcuts
 - Status: ✅ Completed
 - Date: 2025-10-12
