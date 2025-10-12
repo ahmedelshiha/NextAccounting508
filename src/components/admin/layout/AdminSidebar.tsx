@@ -237,59 +237,30 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         style={{ width: `${effectiveWidth}px` }}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200">
-            <Building className="h-8 w-8 text-blue-600" />
-            {!collapsedEffective && (
-              <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
-                <p className="text-xs text-gray-500">Admin Portal</p>
-              </div>
-            )}
-          </div>
+          <SidebarHeader collapsed={collapsedEffective} />
 
-          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
-            {navigation.map(section => {
-              const sectionItems = section.items.filter(item => hasAccess(item.permission))
-              if (sectionItems.length === 0) return null
+          <SidebarNav
+            navigation={navigation}
+            collapsed={collapsedEffective}
+            expandedSections={expandedSections}
+            onToggleSection={toggleSection}
+            isMobile={isMobile}
+            onClose={onClose}
+            hasAccess={hasAccess}
+            isActiveRoute={isActiveRoute}
+          />
 
-              return (
-                <div key={section.section}>
-                  {!collapsedEffective && (
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
-                  )}
-                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
-                    {sectionItems.map(item => renderNavigationItem(item))}
-                  </ul>
-                </div>
-              )
-            })}
-          </nav>
-
-          {!collapsedEffective && (
-            <div className="p-4 border-t border-gray-200">
-              <Link href="/admin/help" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100" onClick={isMobile ? onClose : undefined}>
-                <HelpCircle className="h-5 w-5 mr-3 text-gray-400" />
-                Help & Support
-              </Link>
-            </div>
-          )}
+          <SidebarFooter collapsed={collapsedEffective} onLinkClick={isMobile ? onClose : undefined} />
         </div>
 
-        {/* Resizer - only on desktop and when not collapsed */}
-        {!isMobile && !collapsedEffective && (
-          <div
-            ref={resizerRef}
-            role="separator"
-            aria-orientation="vertical"
-            tabIndex={0}
-            aria-valuenow={Math.round(sidebarWidth)}
-            onKeyDown={onResizerKeyDown}
-            onMouseDown={onResizerMouseDown}
-            onTouchStart={onResizerTouchStart}
-            className={`absolute top-0 right-0 h-full w-2 -mr-1 cursor-col-resize z-40`}>
-            <div className={`h-full w-0.5 mx-auto bg-transparent hover:bg-gray-200`}></div>
-          </div>
-        )}
+        <SidebarResizer
+          isMobile={isMobile}
+          collapsed={collapsedEffective}
+          sidebarWidth={sidebarWidth}
+          onKeyDown={onResizerKeyDown}
+          onMouseDown={onResizerMouseDown}
+          onTouchStart={onResizerTouchStart}
+        />
       </div>
     </>
   )
