@@ -77,6 +77,13 @@ Created: 2025-10-08
 - Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
 - Notes: Uses getClientIp fallback when userId missing; returns 429 on exceed.
 
+### FavoriteToggle Hydration
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Hydrated initial pinned state from sessionStorage cache; added cache updates in favorites service and event-driven sync to avoid flicker.
+- Files Modified: src/services/favorites.service.ts, src/components/admin/settings/FavoriteToggle.tsx
+- Notes: Keeps styles unchanged; listens to favorites:updated for cross-component sync.
+
 ### Favorites & Search Tests
 - Status: ✅ Completed
 - Date: 2025-10-12
