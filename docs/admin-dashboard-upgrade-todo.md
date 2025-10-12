@@ -151,6 +151,13 @@ To run locally instead, execute:
 - Files Added: docs/admin-navigation-mapping.md
 - Notes: Ensures sidebar/search/breadcrumbs consistency.
 
+### Navigation Search Tests
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added unit tests for searchNav to validate scoring order (exact, prefix, substring, keyword), empty query behavior, and result limiting.
+- Files Added: tests/admin/navigation-registry.search.test.ts
+- Notes: Complements existing breadcrumbs/flatten tests.
+
 ### Backend Readiness Confirmation
 - Status: ✅ Completed
 - Date: 2025-10-12
