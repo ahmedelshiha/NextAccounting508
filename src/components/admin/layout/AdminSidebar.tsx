@@ -12,14 +12,7 @@ import SidebarFooter from './Sidebar/SidebarFooter'
 import SidebarResizer from './Sidebar/SidebarResizer'
 import SidebarNav, { type NavItem } from './Sidebar/SidebarNav'
 
-interface NavigationItem {
-  name: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: string | number
-  permission?: string
-  children?: NavigationItem[]
-}
+interface NavigationItem extends NavItem {}
 
 interface AdminSidebarProps {
   // legacy and preferred prop names supported for compatibility
