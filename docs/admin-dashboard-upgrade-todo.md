@@ -91,11 +91,16 @@ To run locally instead, execute:
 ### Build Fixes Applied
 - Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Fixed ESLint errors found during Vercel build:
+- Changes: Fixed ESLint/TypeScript errors reported during Vercel build.
   - Removed an empty interface in src/components/admin/layout/AdminSidebar.tsx that caused @typescript-eslint/no-empty-object-type.
   - Adjusted src/stores/admin/layout.store.ts to call Zustand selector hooks unconditionally (useSidebarState, useNavigationState, useUIState) to satisfy react-hooks/rules-of-hooks, while preserving previous hydration fallback behavior.
+  - Fixed TypeScript errors in AdminSidebar by:
+    - Importing useRovingTabIndex from src/hooks/useRovingTabIndex
+    - Changing mapItem return type to NavItem to match SidebarNav types
+  - Restored legacy compatibility hook at src/stores/adminLayoutStoreSSRSafe.ts to satisfy imports from ClientOnlyAdminLayout.
 - Files Modified: src/components/admin/layout/AdminSidebar.tsx, src/stores/admin/layout.store.ts
-- Notes: I could not run eslint/CI locally in this environment due to policy restrictions, but the code changes address the reported lint issues. Please re-run the Vercel build or CI to verify.
+- Files Added: src/stores/adminLayoutStoreSSRSafe.ts
+- Notes: Please re-run the Vercel build; I couldn't run the build in this environment due to policy restrictions. If further TS errors appear, share the log and I'll address them immediately.
 
 ### Phase 2 – Sidebar Resize & Shortcuts
 - Status: ✅ Completed
