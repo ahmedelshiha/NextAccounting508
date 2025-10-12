@@ -48,3 +48,11 @@
 - Changes: Added edge case coverage for PermissionGate (array vs single, undefined role fallback) and permissions utilities (hasRole undefined inputs, hasPermission null/empty role, checkPermissions with duplicates).
 - Files Modified: tests/components/permission-gate.edge-cases.dom.test.tsx, tests/lib/permissions.edge-cases.test.ts
 - Notes: Validated existing API RBAC tests already cover TEAM_LEAD vs ADMIN differences for booking settings import/reset. No production code changes required.
+
+### Phase 2 – Sidebar Subcomponents (Initial Extraction)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Extracted AdminSidebar into subcomponents (header, nav, footer, resizer) keeping identical styles, ARIA, and behavior. Wired new components without altering layout.
+- Files Modified: src/components/admin/layout/AdminSidebar.tsx
+- Files Added: src/components/admin/layout/Sidebar/SidebarHeader.tsx, src/components/admin/layout/Sidebar/SidebarFooter.tsx, src/components/admin/layout/Sidebar/SidebarResizer.tsx, src/components/admin/layout/Sidebar/SidebarNav.tsx
+- Notes: No visual or behavioral changes; nav rendering logic moved to SidebarNav. Follow-ups: add unit tests for SidebarNav interactions and keyboard navigation.
