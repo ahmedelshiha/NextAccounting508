@@ -14,11 +14,11 @@ describe('SidebarNav', () => {
         items: [
           { name: 'Dashboard', href: '/admin', icon: Icon },
           {
-            name: 'Settings',
-            href: '/admin/settings',
+            name: 'Team',
+            href: '/admin/team',
             icon: Icon,
             children: [
-              { name: 'General', href: '/admin/settings/general', icon: Icon, permission: 'org.settings.view' },
+              { name: 'Members', href: '/admin/team/members', icon: Icon, permission: 'team.view' },
             ],
           },
         ],
