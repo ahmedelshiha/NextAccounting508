@@ -109,6 +109,13 @@ To run locally instead, execute:
 - Files Added: src/hooks/admin/useSidebarShortcuts.ts
 - Notes: Chose to implement shortcuts without react-hotkeys-hook to avoid adding runtime dependency. Follow-ups: add e2e tests for drag/keyboard behaviors and document shortcut mappings in user help.
 
+### Legacy Store Compatibility Shim
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Replaced legacy store implementation in src/stores/adminLayoutStore.ts with a thin compatibility layer that re-exports the unified store API from src/stores/admin/layout.store.ts (selectors and useAdminLayout). This eliminates duplicate state sources while keeping legacy imports working.
+- Files Modified: src/stores/adminLayoutStore.ts
+- Notes: SSRSafe wrapper remains as a small adapter. All new code should import from src/stores/admin/layout.store.ts directly.
+
 ### Release Cadence & Checkpoints
 - Status: ✅ Completed
 - Date: 2025-10-12
