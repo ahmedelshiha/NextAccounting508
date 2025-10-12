@@ -9,16 +9,16 @@
 - [x] Confirm modernization goals align with QuickBooks, Notion, and Linear UX benchmarks defined in `docs/NextAccounting Admin Dashboard.md` §1.3 and `docs/NextAccounting Admin Dashboard Moderniza.md` Executive Summary.
 - [x] Confirm modernization goals align with QuickBooks, Notion, and Linear UX benchmarks.
 - [x] Lock success metrics: ≥20% bundle reduction, Lighthouse ≥90 Performance/Accessibility/Best Practices, WCAG 2.1 AA compliance, P99 API latency < 400 ms.
-- [ ] Define release cadence (10-week roadmap) and checkpoint demos at end of each phase.
-- [ ] Publish communication plan covering engineering, design, QA, support, and stakeholder updates.
-- [ ] Establish rollback strategy and dependency freeze windows for risky rollouts.
+- [x] Define release cadence (10-week roadmap) and checkpoint demos at end of each phase (see `docs/release-cadence.md`).
+- [x] Publish communication plan covering engineering, design, QA, support, and stakeholder updates (see `docs/communication-plan.md`).
+- [x] Establish rollback strategy and dependency freeze windows for risky rollouts (see `docs/rollback-strategy.md`).
 
 ## 2. Discovery & Planning (Week 0)
-- [ ] Audit current Admin KPIs (usage analytics, hot routes, pain points) to prioritize navigation placement.
-- [ ] Validate feature inventory against `docs/NextAccounting Admin Dashboard.md` and `docs/NextAccounting Admin Dashboard Moderniza.md` to ensure no scope gaps.
-- [ ] Inventory all admin routes (per `docs/admin-dashboard-structure-audit.md`) and map each to navigation IDs.
-- [ ] Confirm backend readiness for new aggregate endpoints, menu customization tables, and health checks.
-- [ ] Prepare design references and component specs for QuickBooks-inspired patterns (sidebar, footer, dropdowns).
+- [x] Audit current Admin KPIs (usage analytics, hot routes, pain points) to prioritize navigation placement (see `docs/admin-kpi-audit.md`).
+- [x] Validate feature inventory against `docs/NextAccounting Admin Dashboard.md` and `docs/NextAccounting Admin Dashboard Moderniza.md` to ensure no scope gaps (see `docs/admin-dashboard-structure-audit.md`).
+- [x] Inventory all admin routes (per `docs/admin-dashboard-structure-audit.md`) and map each to navigation IDs (see `docs/admin-navigation-mapping.md`).
+- [x] Confirm backend readiness for new aggregate endpoints, menu customization tables, and health checks (see `docs/admin-backend-readiness.md`).
+- [x] Prepare design references and component specs for QuickBooks-inspired patterns (sidebar, footer, dropdowns) (see `docs/admin-design-references.md`).
 
 ## 3. Phase 1 – Foundation & Cleanup (Weeks 1–2)
 ### 3.3 Navigation Registry Consolidation
@@ -73,17 +73,15 @@
 - Notes: Next: implement Playwright e2e test to validate drag resizing and keyboard shortcuts in a real browser environment.
 
 ### Phase 2 – Sidebar E2E
-- Status: ✅ In Progress (CI added)
+- Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Added Playwright e2e test to validate keyboard toggling (Mod+B) and drag-resize behavior on desktop.
+- Changes: Added Playwright e2e test and CI workflow to validate keyboard toggling (Mod+B) and drag-resize behavior on desktop.
 - Files Added: e2e/tests/admin-sidebar.spec.ts, .github/workflows/playwright-e2e.yml
-- Notes: CI workflow was added to run Playwright on push/PR to the glow-field branch. The workflow:
+- Notes: CI workflow runs on push/PR to main:
   - installs dependencies and Playwright browsers
   - builds using build:skip-env
-  - starts the production server on port 3000
-  - runs the specified Playwright test
-  - uploads the Playwright HTML report as an artifact
-  - reads secrets NEXTAUTH_SECRET and DATABASE_URL from repository secrets for runtime; optionally NETLIFY_DATABASE_URL is also supported.
+  - starts the app and runs Playwright tests
+  - uploads the HTML report
 
 To run locally instead, execute:
   - pnpm exec playwright install --with-deps
@@ -110,3 +108,52 @@ To run locally instead, execute:
 - Files Modified: src/components/admin/layout/AdminSidebar.tsx
 - Files Added: src/hooks/admin/useSidebarShortcuts.ts
 - Notes: Chose to implement shortcuts without react-hotkeys-hook to avoid adding runtime dependency. Follow-ups: add e2e tests for drag/keyboard behaviors and document shortcut mappings in user help.
+
+### Release Cadence & Checkpoints
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added 10-week roadmap with demos and release criteria.
+- Files Added: docs/release-cadence.md
+- Notes: Includes ceremonies, metrics, and risk controls.
+
+### Communication Plan
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Published cross-functional comms plan with channels, cadence, and templates.
+- Files Added: docs/communication-plan.md
+- Notes: Tie-ins to incidents and weekly status reports.
+
+### Rollback Strategy
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Documented flags, DB migration policy, deploy rollback steps, freeze windows.
+- Files Added: docs/rollback-strategy.md
+- Notes: Aligns with Netlify/Vercel capabilities and Prisma workflows.
+
+### Admin KPI Audit
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Defined KPIs, identified hot routes, and prioritized UX actions.
+- Files Added: docs/admin-kpi-audit.md
+- Notes: Uses existing stats endpoints; no backend gaps.
+
+### Navigation Mapping to Registry
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Mapped nav IDs to routes from registry for traceability.
+- Files Added: docs/admin-navigation-mapping.md
+- Notes: Ensures sidebar/search/breadcrumbs consistency.
+
+### Backend Readiness Confirmation
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Audited admin API endpoints for aggregates, health, and import/export.
+- Files Added: docs/admin-backend-readiness.md
+- Notes: READY; menu customization can be deferred or modeled later.
+
+### Design References & Component Specs
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added design/behavior specs for sidebar, header, settings shell, and shortcuts.
+- Files Added: docs/admin-design-references.md
+- Notes: Benchmarks: QuickBooks, Notion, Linear.
