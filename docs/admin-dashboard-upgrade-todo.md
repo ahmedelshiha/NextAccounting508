@@ -83,6 +83,7 @@
   - starts the production server on port 3000
   - runs the specified Playwright test
   - uploads the Playwright HTML report as an artifact
+  - reads secrets NEXTAUTH_SECRET and DATABASE_URL from repository secrets for runtime; optionally NETLIFY_DATABASE_URL is also supported.
 
 To run locally instead, execute:
   - pnpm exec playwright install --with-deps
