@@ -41,3 +41,10 @@
 - Changes: Added unified store `src/stores/admin/layout.store.ts` with hydration-safe API; switched `AdminDashboardLayout` to `useAdminLayoutSafe`; removed legacy stores.
 - Files Modified: src/stores/admin/layout.store.ts, src/components/admin/layout/AdminDashboardLayout.tsx
 - Notes: Persisted keys: sidebarCollapsed, expandedGroups. Future: migrate any other consumers to selector hooks if needed.
+
+### Broaden Tests – Permissions Edge Cases
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added edge case coverage for PermissionGate (array vs single, undefined role fallback) and permissions utilities (hasRole undefined inputs, hasPermission null/empty role, checkPermissions with duplicates).
+- Files Modified: tests/components/permission-gate.edge-cases.dom.test.tsx, tests/lib/permissions.edge-cases.test.ts
+- Notes: Validated existing API RBAC tests already cover TEAM_LEAD vs ADMIN differences for booking settings import/reset. No production code changes required.
