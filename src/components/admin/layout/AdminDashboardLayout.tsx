@@ -15,7 +15,7 @@ import AdminHeader from './AdminHeader'
 import AdminFooter from './AdminFooter'
 import AdminErrorBoundary from './AdminErrorBoundary'
 import { useResponsive } from '@/hooks/admin/useResponsive'
-import { useAdminLayoutHydrationSafe } from '@/stores/adminLayoutStoreHydrationSafe'
+import { useAdminLayoutSafe } from '@/stores/admin/layout.store'
 import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
 
 /**
