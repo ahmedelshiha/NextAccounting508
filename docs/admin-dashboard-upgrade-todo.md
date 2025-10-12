@@ -88,6 +88,15 @@ To run locally instead, execute:
   - pnpm exec playwright install --with-deps
   - E2E_BASE_URL="http://localhost:3000" pnpm exec playwright test e2e/tests/admin-sidebar.spec.ts -c e2e/playwright.config.ts --project=chromium
 
+### Build Fixes Applied
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Fixed ESLint errors found during Vercel build:
+  - Removed an empty interface in src/components/admin/layout/AdminSidebar.tsx that caused @typescript-eslint/no-empty-object-type.
+  - Adjusted src/stores/admin/layout.store.ts to call Zustand selector hooks unconditionally (useSidebarState, useNavigationState, useUIState) to satisfy react-hooks/rules-of-hooks, while preserving previous hydration fallback behavior.
+- Files Modified: src/components/admin/layout/AdminSidebar.tsx, src/stores/admin/layout.store.ts
+- Notes: I could not run eslint/CI locally in this environment due to policy restrictions, but the code changes address the reported lint issues. Please re-run the Vercel build or CI to verify.
+
 ### Phase 2 – Sidebar Resize & Shortcuts
 - Status: ✅ Completed
 - Date: 2025-10-12
