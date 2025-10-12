@@ -15,6 +15,7 @@ export const GET = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 })
     const settings = await clientService.get(tenantId)
     return NextResponse.json(settings)
   } catch (e) {
@@ -30,6 +31,7 @@ export const PUT = withTenantContext(async (request: Request) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) return NextResponse.json({ error: 'Missing tenantId' }, { status: 400 })
     const body = await request.json().catch(() => ({}))
     const parsed = ClientManagementSettingsSchema.partial().safeParse(body)
     if (!parsed.success) {
@@ -46,8 +48,8 @@ export const PUT = withTenantContext(async (request: Request) => {
         resource: 'client-settings',
         ...(actorUserId ? { userId: actorUserId } : {}),
       }
-      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
-      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
+      if (before !== null) diffPayload.before = (before as unknown) as Prisma.InputJsonValue
+      if (updated !== null && updated !== undefined) diffPayload.after = (updated as unknown) as Prisma.InputJsonValue
       await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
     try {
