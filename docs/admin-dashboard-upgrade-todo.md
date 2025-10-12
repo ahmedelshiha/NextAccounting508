@@ -186,3 +186,11 @@ To run locally instead, execute:
 - Changes: Added '/' shortcut to focus SettingsSearch when not typing in an input/textarea/select or contentEditable, alongside existing Mod+K. Prevents conflict with text fields by checking activeElement and contentEditable.
 - Files Modified: src/components/admin/settings/SettingsSearch.tsx
 - Notes: Keeps existing styles intact and uses the same keyboard hint UI; only behavior extended.
+
+### Admin Route Announcer
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Integrated AccessibleRouteAnnouncer into ClientOnlyAdminLayout for screen-reader-friendly navigation announcements; added a unit test for the live region attributes.
+- Files Modified: src/components/admin/layout/ClientOnlyAdminLayout.tsx
+- Files Added: tests/components/admin/route-announcer.dom.test.tsx
+- Notes: Uses existing RouteAnnouncer component with polite, atomic live region.
