@@ -240,13 +240,13 @@ To run locally instead, execute:
   - ✅ Config references E2E_BASE_URL and waits for server via curl loop
 - Notes: Trigger by pushing to main or opening a PR.
 
-### CI – PNPM_VERSION extraction fix
+### CI – pnpm version pin
 - Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Replaced bash command substitution with a Node script that writes PNPM_VERSION directly to $GITHUB_ENV to avoid shell parsing errors.
+- Changes: Removed dynamic PNPM_VERSION detection and pinned pnpm@10.18.1 via pnpm/action-setup to match package.json packageManager.
 - Files Modified: .github/workflows/playwright-e2e.yml
 - Testing:
-  - ✅ Confirmed step no longer errors on parentheses
+  - ✅ `pnpm --version` echoes 10.18.1 in CI
 
 ### CI – pnpm setup via action and cache ordering
 - Status: ✅ Completed
