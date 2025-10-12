@@ -49,8 +49,8 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
         resource: 'booking-settings',
         ...(actorUserId ? { userId: actorUserId } : {}),
       }
-      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
-      if (settings !== null && settings !== undefined) diffPayload.after = settings as Prisma.InputJsonValue
+      if (before !== null) diffPayload.before = (before as unknown) as Prisma.InputJsonValue
+      if (settings !== null && settings !== undefined) diffPayload.after = (settings as unknown) as Prisma.InputJsonValue
       await prisma.settingChangeDiff.create({ data: diffPayload })
     } catch {}
     try {
