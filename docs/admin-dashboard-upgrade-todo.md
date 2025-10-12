@@ -72,6 +72,13 @@
 - Files Added: tests/components/admin/sidebar-nav.dom.test.tsx, tests/hooks/useSidebarShortcuts.test.ts
 - Notes: Next: implement Playwright e2e test to validate drag resizing and keyboard shortcuts in a real browser environment.
 
+### Phase 2 – Sidebar E2E
+- Status: ✅ In Progress
+- Date: 2025-10-12
+- Changes: Added Playwright e2e test to validate keyboard toggling (Mod+B) and drag-resize behavior on desktop.
+- Files Added: e2e/tests/admin-sidebar.spec.ts
+- Notes: Will run Playwright to validate; may require dev server to be running. If test environment lacks display or browsers, it may need CI execution.
+
 ### Phase 2 – Sidebar Resize & Shortcuts
 - Status: ✅ Completed
 - Date: 2025-10-12
