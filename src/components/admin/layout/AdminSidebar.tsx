@@ -2,49 +2,16 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { 
-  BarChart3,
-  Calendar,
-  Users,
-  Briefcase,
-  FileText,
-  CreditCard,
-  Receipt,
-  CheckSquare,
-  TrendingUp,
-  Settings,
-  UserCog,
-  Shield,
-  Upload,
-  Bell,
-  Mail,
-  HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  Home,
-  DollarSign,
-  Clock,
-  Target,
-  Building,
-  Zap
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import SETTINGS_REGISTRY from '@/lib/settings/registry'
-import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import { hasPermission } from '@/lib/permissions'
 import { getNavigation } from '@/lib/admin/navigation-registry'
+import SidebarHeader from './Sidebar/SidebarHeader'
+import SidebarFooter from './Sidebar/SidebarFooter'
+import SidebarResizer from './Sidebar/SidebarResizer'
+import SidebarNav, { type NavItem } from './Sidebar/SidebarNav'
+import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 
-interface NavigationItem {
-  name: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: string | number
-  permission?: string
-  children?: NavigationItem[]
-}
 
 interface AdminSidebarProps {
   // legacy and preferred prop names supported for compatibility
@@ -83,7 +50,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
-  const resizerRef = useRef<HTMLDivElement | null>(null)
 
   // Save width
   useEffect(() => {
@@ -192,7 +158,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const navigation = useMemo(() => {
     const sections = getNavigation({ userRole, counts })
-    const mapItem = (m: any): NavigationItem => ({
+    const mapItem = (m: any): NavItem => ({
       name: m.label,
       href: m.href,
       icon: m.icon,
@@ -244,108 +210,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     return hasPermission(userRole, permission as any)
   }
 
-  const renderNavigationItem = (item: NavigationItem, depth = 0) => {
-    if (!hasAccess(item.permission)) return null
-
-    const isActive = isActiveRoute(item.href)
-    const hasChildren = item.children && item.children.length > 0
-    const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
-    const isSettingsParent = item.href === '/admin/settings'
-
-    return (
-      <li key={item.href}>
-        <div className="relative">
-          {hasChildren ? (
-            isSettingsParent ? (
-              <div
-                aria-expanded={true}
-                data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => toggleSection(item.href.split('/').pop() || '')}
-                aria-expanded={isExpanded}
-                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-                data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    )}
-                  </>
-                )}
-              </button>
-            )
-          ) : (
-            <Link
-              href={item.href}
-              aria-current={isActive ? 'page' : undefined}
-              onClick={isMobile ? onClose : undefined}
-              data-roving
-              {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors ${isActive ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} ${depth > 0 ? 'ml-4' : ''}`}
-            >
-              <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              {!collapsedEffective && (
-                <>
-                  <span className="flex-1">{item.name}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="ml-2">{item.badge}</Badge>
-                  )}
-                </>
-              )}
-            </Link>
-          )}
-        </div>
-
-        {hasChildren && (isSettingsParent || isExpanded) && !collapsedEffective && (
-          <ul id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`} className="mt-1 space-y-1" role="group" aria-label={`${item.name} submenu`}>
-            {item.children!.map(child => renderNavigationItem(child, depth + 1))}
-          </ul>
-        )}
-      </li>
-    )
-  }
+  // Navigation item rendering is handled by SidebarNav subcomponent
 
   const roving = useRovingTabIndex()
 
@@ -370,59 +235,30 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         style={{ width: `${effectiveWidth}px` }}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200">
-            <Building className="h-8 w-8 text-blue-600" />
-            {!collapsedEffective && (
-              <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
-                <p className="text-xs text-gray-500">Admin Portal</p>
-              </div>
-            )}
-          </div>
+          <SidebarHeader collapsed={collapsedEffective} />
 
-          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
-            {navigation.map(section => {
-              const sectionItems = section.items.filter(item => hasAccess(item.permission))
-              if (sectionItems.length === 0) return null
+          <SidebarNav
+            navigation={navigation}
+            collapsed={collapsedEffective}
+            expandedSections={expandedSections}
+            onToggleSection={toggleSection}
+            isMobile={isMobile}
+            onClose={onClose}
+            hasAccess={hasAccess}
+            isActiveRoute={isActiveRoute}
+          />
 
-              return (
-                <div key={section.section}>
-                  {!collapsedEffective && (
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
-                  )}
-                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
-                    {sectionItems.map(item => renderNavigationItem(item))}
-                  </ul>
-                </div>
-              )
-            })}
-          </nav>
-
-          {!collapsedEffective && (
-            <div className="p-4 border-t border-gray-200">
-              <Link href="/admin/help" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100" onClick={isMobile ? onClose : undefined}>
-                <HelpCircle className="h-5 w-5 mr-3 text-gray-400" />
-                Help & Support
-              </Link>
-            </div>
-          )}
+          <SidebarFooter collapsed={collapsedEffective} onLinkClick={isMobile ? onClose : undefined} />
         </div>
 
-        {/* Resizer - only on desktop and when not collapsed */}
-        {!isMobile && !collapsedEffective && (
-          <div
-            ref={resizerRef}
-            role="separator"
-            aria-orientation="vertical"
-            tabIndex={0}
-            aria-valuenow={Math.round(sidebarWidth)}
-            onKeyDown={onResizerKeyDown}
-            onMouseDown={onResizerMouseDown}
-            onTouchStart={onResizerTouchStart}
-            className={`absolute top-0 right-0 h-full w-2 -mr-1 cursor-col-resize z-40`}>
-            <div className={`h-full w-0.5 mx-auto bg-transparent hover:bg-gray-200`}></div>
-          </div>
-        )}
+        <SidebarResizer
+          isMobile={isMobile}
+          collapsed={collapsedEffective}
+          sidebarWidth={sidebarWidth}
+          onKeyDown={onResizerKeyDown}
+          onMouseDown={onResizerMouseDown}
+          onTouchStart={onResizerTouchStart}
+        />
       </div>
     </>
   )
