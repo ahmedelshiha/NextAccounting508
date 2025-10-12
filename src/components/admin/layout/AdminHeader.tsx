@@ -12,7 +12,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   Bell,
@@ -36,7 +36,7 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
-import { getBreadcrumbs } from '@/lib/admin/navigation-registry'
+import { getBreadcrumbs, searchNav } from '@/lib/admin/navigation-registry'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -58,12 +58,15 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
   const [searchQuery, setSearchQuery] = useState('')
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
+  const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      // TODO: Implement global search functionality
-      console.log('Searching for:', searchQuery)
+    const q = searchQuery.trim()
+    if (!q) return
+    const results = searchNav(q, 1)
+    if (results.length > 0) {
+      router.push(results[0].href)
     }
   }
 

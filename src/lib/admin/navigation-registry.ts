@@ -34,6 +34,8 @@ export interface NavItemMeta {
   icon: IconType
   permission?: string
   badgeKey?: string
+  keywords?: string[]
+  description?: string
   children?: NavItemMeta[]
 }
 
@@ -47,7 +49,7 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
     key: 'dashboard',
     items: [
       { id: 'overview', label: 'Overview', href: '/admin', icon: Home },
-      { id: 'analytics', label: 'Analytics', href: '/admin/analytics', icon: BarChart3, permission: PERMISSIONS.ANALYTICS_VIEW },
+      { id: 'analytics', label: 'Analytics', href: '/admin/analytics', icon: BarChart3, permission: PERMISSIONS.ANALYTICS_VIEW, keywords: ['reports','charts','metrics'] },
       { id: 'reports', label: 'Reports', href: '/admin/reports', icon: TrendingUp, permission: PERMISSIONS.ANALYTICS_VIEW },
     ],
   },
@@ -110,6 +112,7 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
         label: 'Invoices',
         href: '/admin/invoices',
         icon: FileText,
+        keywords: ['billing','invoice','finance'],
         children: [
           { id: 'invoices_all', label: 'All Invoices', href: '/admin/invoices', icon: FileText },
           { id: 'invoices_sequences', label: 'Sequences', href: '/admin/invoices/sequences', icon: FileText },
@@ -162,6 +165,43 @@ export function getNavigation(params: { userRole?: string | null; counts?: Recor
     key: section.key,
     items: section.items.filter(i => allow(i.permission)).map(mapItem),
   }))
+}
+
+// Build a simple search index from the registry
+export type NavItemSearch = { href: string; label: string; section: string; keywords?: string[] }
+export function buildSearchIndex(): NavItemSearch[] {
+  const out: NavItemSearch[] = []
+  for (const section of NAVIGATION_SECTIONS) {
+    for (const item of section.items) {
+      out.push({ href: item.href, label: item.label, section: section.key, keywords: item.keywords })
+      if (item.children) {
+        for (const c of item.children) {
+          out.push({ href: c.href, label: c.label, section: section.key, keywords: c.keywords })
+        }
+      }
+    }
+  }
+  return out
+}
+
+export function searchNav(query: string, limit = 5): NavItemSearch[] {
+  const q = (query || '').trim().toLowerCase()
+  if (!q) return []
+  const idx = buildSearchIndex()
+  const scored: Array<{ s: number; item: NavItemSearch }> = []
+  for (const it of idx) {
+    const label = it.label.toLowerCase()
+    const kws = (it.keywords || []).map(k => k.toLowerCase())
+    let score = Number.POSITIVE_INFINITY
+    if (label === q) score = 0
+    else if (label.startsWith(q)) score = 0.25
+    else if (label.includes(q)) score = 0.5
+    else if (kws.some(k => k === q)) score = 0.6
+    else if (kws.some(k => k.includes(q))) score = 0.8
+    if (Number.isFinite(score)) scored.push({ s: score, item: it })
+  }
+  scored.sort((a, b) => a.s - b.s || a.item.label.localeCompare(b.item.label))
+  return scored.slice(0, limit).map(x => x.item)
 }
 
 // Flatten registry into a list of items including children
