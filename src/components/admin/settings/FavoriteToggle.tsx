@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Star, StarOff } from 'lucide-react'
-import { addFavorite, removeFavorite, getFavorites } from '@/services/favorites.service'
+import { addFavorite, removeFavorite, getFavorites, readFavoritesCachedMap } from '@/services/favorites.service'
 import { Button } from '@/components/ui/button'
 
 export default function FavoriteToggle({ settingKey, route, label, initiallyPinned = false, onChange }: {
