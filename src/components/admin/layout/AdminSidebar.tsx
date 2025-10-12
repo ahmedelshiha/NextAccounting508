@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -35,6 +35,7 @@ import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import { getNavigation } from '@/lib/admin/navigation-registry'
 
 interface NavigationItem {
   name: string
@@ -189,68 +190,26 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const userRole = (session?.user as any)?.role
 
-  const navigation: { section: string; items: NavigationItem[] }[] = [
-    {
-      section: 'dashboard',
-      items: [
-        { name: 'Overview', href: '/admin', icon: Home },
-        { name: 'Analytics', href: '/admin/analytics', icon: BarChart3, permission: PERMISSIONS.ANALYTICS_VIEW },
-        { name: 'Reports', href: '/admin/reports', icon: TrendingUp, permission: PERMISSIONS.ANALYTICS_VIEW },
-      ]
-    },
-    {
-      section: 'business',
-      items: [
-        { name: 'Bookings', href: '/admin/bookings', icon: Calendar, badge: counts?.pendingBookings, children: [
-          { name: 'All Bookings', href: '/admin/bookings', icon: Calendar },
-          { name: 'Calendar View', href: '/admin/calendar', icon: Calendar },
-          { name: 'Availability', href: '/admin/availability', icon: Clock },
-          { name: 'New Booking', href: '/admin/bookings/new', icon: Calendar },
-        ] },
-        { name: 'Clients', href: '/admin/clients', icon: Users, badge: counts?.newClients, children: [
-          { name: 'All Clients', href: '/admin/clients', icon: Users },
-          { name: 'Profiles', href: '/admin/clients/profiles', icon: Users },
-          { name: 'Invitations', href: '/admin/clients/invitations', icon: Mail },
-          { name: 'Add Client', href: '/admin/clients/new', icon: Users },
-        ] },
-        { name: 'Services', href: '/admin/services', icon: Briefcase, permission: PERMISSIONS.SERVICES_VIEW, children: [
-          { name: 'All Services', href: '/admin/services', icon: Briefcase },
-          { name: 'Categories', href: '/admin/services/categories', icon: Target },
-          { name: 'Analytics', href: '/admin/services/analytics', icon: BarChart3 },
-        ] },
-        { name: 'Service Requests', href: '/admin/service-requests', icon: FileText, badge: counts?.pendingServiceRequests, permission: PERMISSIONS.SERVICE_REQUESTS_READ_ALL },
-      ]
-    },
-    {
-      section: 'financial',
-      items: [
-        { name: 'Invoices', href: '/admin/invoices', icon: FileText, children: [
-          { name: 'All Invoices', href: '/admin/invoices', icon: FileText },
-          { name: 'Sequences', href: '/admin/invoices/sequences', icon: FileText },
-          { name: 'Templates', href: '/admin/invoices/templates', icon: FileText },
-        ] },
-        { name: 'Payments', href: '/admin/payments', icon: CreditCard },
-        { name: 'Expenses', href: '/admin/expenses', icon: Receipt },
-        { name: 'Taxes', href: '/admin/taxes', icon: DollarSign },
-      ]
-    },
-    {
-      section: 'operations',
-      items: [
-        { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare, badge: counts?.overdueTasks, permission: PERMISSIONS.TASKS_READ_ALL },
-        { name: 'Team', href: '/admin/team', icon: UserCog, permission: PERMISSIONS.TEAM_VIEW },
-        { name: 'Chat', href: '/admin/chat', icon: Mail },
-        { name: 'Reminders', href: '/admin/reminders', icon: Bell },
-      ]
-    },
-    {
-      section: 'system',
-      items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [] },
-        { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Zap },
-      ]
-    }
-  ]
+  const navigation = useMemo(() => {
+    const sections = getNavigation({ userRole, counts })
+    const mapItem = (m: any): NavigationItem => ({
+      name: m.label,
+      href: m.href,
+      icon: m.icon,
+      badge: m.badgeKey ? (counts as any)?.[m.badgeKey] : undefined,
+      permission: m.permission,
+      children: Array.isArray(m.children)
+        ? m.children.map((c: any) => ({
+            name: c.label,
+            href: c.href,
+            icon: c.icon,
+            badge: c.badgeKey ? (counts as any)?.[c.badgeKey] : undefined,
+            permission: c.permission,
+          }))
+        : undefined,
+    })
+    return sections.map((s: any) => ({ section: s.key, items: s.items.map(mapItem) }))
+  }, [userRole, counts])
 
   {/* Static link reference for telemetry test: <Link href="/admin/cron-telemetry">Cron Telemetry</Link> */}
 
