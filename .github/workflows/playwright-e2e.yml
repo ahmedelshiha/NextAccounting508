@@ -11,6 +11,10 @@ jobs:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NETLIFY_DATABASE_URL: ${{ secrets.NETLIFY_DATABASE_URL }}
 
     steps:
       - name: Checkout
