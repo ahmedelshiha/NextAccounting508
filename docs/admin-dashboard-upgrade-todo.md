@@ -215,3 +215,10 @@ To run locally instead, execute:
 - Changes: Added tests for favorites service and SettingsSearch keyboard interactions.
 - Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
 - Notes: Increases confidence in settings UX; consider e2e for pinned items later.
+
+### FavoriteToggle Hydration
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Implemented sessionStorage-backed initial state for FavoriteToggle with service-level cache and event sync to reduce flicker.
+- Files Modified: src/services/favorites.service.ts, src/components/admin/settings/FavoriteToggle.tsx
+- Notes: No style changes; uses favorites:updated event for coherence.
