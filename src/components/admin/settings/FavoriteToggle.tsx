@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Star, StarOff } from 'lucide-react'
-import { addFavorite, removeFavorite, getFavorites } from '@/services/favorites.service'
+import { addFavorite, removeFavorite, getFavorites, readFavoritesCachedMap } from '@/services/favorites.service'
 import { Button } from '@/components/ui/button'
 
 export default function FavoriteToggle({ settingKey, route, label, initiallyPinned = false, onChange }: {
@@ -12,21 +12,38 @@ export default function FavoriteToggle({ settingKey, route, label, initiallyPinn
   initiallyPinned?: boolean
   onChange?: (pinned: boolean) => void
 }) {
-  const [pinned, setPinned] = React.useState(initiallyPinned)
+  const [pinned, setPinned] = React.useState<boolean>(() => {
+    if (initiallyPinned) return true
+    try {
+      const map = readFavoritesCachedMap()
+      if (map && Object.prototype.hasOwnProperty.call(map, settingKey)) return Boolean(map[settingKey])
+    } catch {}
+    return false
+  })
   const [working, setWorking] = React.useState(false)
 
   React.useEffect(() => {
     let mounted = true
-    if (initiallyPinned) return
-    ;(async () => {
+    if (!initiallyPinned) {
+      ;(async () => {
+        try {
+          const items = await getFavorites()
+          if (!mounted) return
+          const found = Array.isArray(items) && items.some(i => i.settingKey === settingKey)
+          if (found) setPinned(true)
+        } catch {}
+      })()
+    }
+    const onUpdated = () => {
       try {
-        const items = await getFavorites()
-        if (!mounted) return
-        const found = Array.isArray(items) && items.some(i => i.settingKey === settingKey)
-        if (found) setPinned(true)
+        const map = readFavoritesCachedMap()
+        if (map && Object.prototype.hasOwnProperty.call(map, settingKey)) {
+          setPinned(Boolean(map[settingKey]))
+        }
       } catch {}
-    })()
-    return () => { mounted = false }
+    }
+    window.addEventListener('favorites:updated', onUpdated as any)
+    return () => { mounted = false; window.removeEventListener('favorites:updated', onUpdated as any) }
   }, [initiallyPinned, settingKey])
 
   const toggle = async () => {

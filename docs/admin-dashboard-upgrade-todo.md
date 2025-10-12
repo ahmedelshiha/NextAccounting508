@@ -194,3 +194,38 @@ To run locally instead, execute:
 - Files Modified: src/components/admin/layout/ClientOnlyAdminLayout.tsx
 - Files Added: tests/components/admin/route-announcer.dom.test.tsx
 - Notes: Uses existing RouteAnnouncer component with polite, atomic live region.
+
+### Settings Diff Persistence Rollout
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Implemented SettingChangeDiff and AuditEvent writes for client-settings and booking-settings; aligned with existing categories (analytics, communication, financial, security, system, task, team, services, org).
+- Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
+- Notes: Next: add rate limiting to diff preview endpoint.
+
+### Diff Preview Rate Limiting
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added per-tenant+user rate limiting (10/min) to /api/admin/settings/diff/preview via rateLimitAsync with Redis/memory backend.
+- Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
+- Notes: Returns 429 on exceed; uses IP fallback when userId absent.
+
+### Favorites & SettingsSearch Tests
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added tests for favorites service and SettingsSearch keyboard interactions.
+- Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
+- Notes: Increases confidence in settings UX; consider e2e for pinned items later.
+
+### FavoriteToggle Hydration
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Implemented sessionStorage-backed initial state for FavoriteToggle with service-level cache and event sync to reduce flicker.
+- Files Modified: src/services/favorites.service.ts, src/components/admin/settings/FavoriteToggle.tsx
+- Notes: No style changes; uses favorites:updated event for coherence.
+
+### CI – Fix PNPM Version Mismatch (Playwright E2E)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added .github/workflows/playwright-e2e.yml that relies on Corepack and package.json "packageManager"; removed explicit pnpm version in workflow to avoid ERR_PNPM_BAD_PM_VERSION.
+- Files Added: .github/workflows/playwright-e2e.yml
+- Notes: Uses Node 20, caches pnpm, installs Playwright browsers, builds once, starts Next, then runs tests. Uploads HTML report.

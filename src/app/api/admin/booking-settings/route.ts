@@ -5,6 +5,8 @@ import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { respond } from '@/lib/api-response'
+import prisma from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
@@ -35,7 +37,31 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
     const validated = await service.validateSettingsUpdate(tenantId, updates)
     if (!validated.isValid) return NextResponse.json({ error: 'Settings validation failed', errors: validated.errors, warnings: validated.warnings }, { status: 400 })
 
+    const before = await service.getBookingSettings(tenantId).catch(()=>null)
     const settings = await service.updateBookingSettings(tenantId, updates)
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'booking',
+        resource: 'booking-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (settings !== null && settings !== undefined) diffPayload.after = settings as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'booking-settings',
+        details: { category: 'booking' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
     try { await logAudit({ action: 'booking-settings:update', actorId: ctx.userId, details: { tenantId, updates } }) } catch {}
     return NextResponse.json({ settings, warnings: validated.warnings })
   } catch (e: any) {

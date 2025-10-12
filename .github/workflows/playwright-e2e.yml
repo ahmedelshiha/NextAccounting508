@@ -2,21 +2,28 @@ name: Playwright E2E
 
 on:
   pull_request:
-  push:
-    branches: [ main ]
+    paths:
+      - '**/*.ts'
+      - '**/*.tsx'
+      - 'e2e/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'next.config.mjs'
+      - 'vercel.json'
+      - '.github/workflows/playwright-e2e.yml'
 
 jobs:
   e2e:
+    name: e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      E2E_BASE_URL: http://localhost:3000
+      SKIP_ENV_VALIDATION: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,18 +31,38 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      # Use packageManager field from package.json via Corepack; do NOT pin pnpm in the workflow
+      - name: Enable Corepack (pnpm from packageManager)
+        run: corepack enable
 
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Print pnpm version
+        run: pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
 
       - name: Build (skip env validation)
         run: pnpm build:skip-env
-        env:
-          SKIP_ENV_VALIDATION: 'true'
 
-      - name: Run E2E tests
-        run: bash e2e/run-e2e.sh
-        env:
-          E2E_BASE_URL: ''
+      - name: Start Next.js
+        run: |
+          pnpm exec next start -p 3000 &> .next/start.log &
+          for i in {1..90}; do
+            if curl -sf http://localhost:3000 > /dev/null; then
+              echo "Server is up"; break
+            fi
+            sleep 1
+          done
+
+      - name: Run Playwright tests
+        run: pnpm exec playwright test -c e2e/playwright.config.ts --reporter=list,html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report

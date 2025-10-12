@@ -54,11 +54,39 @@ Created: 2025-10-08
   - **Impact**: Faster access to frequently used areas; consistent UX via shared component
 
 ## 🚧 In Progress
-- [ ] Persist diffs on save for Organization Settings (org-settings); extend to other categories next
+- [x] Persist diffs on save for Organization Settings (org-settings)
   - Implemented SettingChangeDiff + AuditEvent on org-settings PUT; rollout plan to other settings endpoints
 - [ ] Unit tests for favorites service and SettingsSearch keyboard interactions
 
 ## 🔧 Next Steps
-- [ ] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, and system settings endpoints
-- [ ] Add rate limiting to diff preview endpoint
-- [ ] Add FavoriteToggle initial pinned state hydration (optional)
+- [x] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, system, booking, and client settings endpoints
+- [x] Add rate limiting to diff preview endpoint
+- [x] Add FavoriteToggle initial pinned state hydration (optional)
+
+### Diff Persistence Rollout
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added SettingChangeDiff and AuditEvent persistence to client-settings and booking-settings; verified other categories already persisted.
+- Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
+- Notes: Completed. Next: finalize tests and docs polish.
+
+### Diff Preview Rate Limiting
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Enforced per-tenant+user rate limit (10/min) on diff preview endpoint with Redis-backed fallback to memory.
+- Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
+- Notes: Uses getClientIp fallback when userId missing; returns 429 on exceed.
+
+### FavoriteToggle Hydration
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Hydrated initial pinned state from sessionStorage cache; added cache updates in favorites service and event-driven sync to avoid flicker.
+- Files Modified: src/services/favorites.service.ts, src/components/admin/settings/FavoriteToggle.tsx
+- Notes: Keeps styles unchanged; listens to favorites:updated for cross-component sync.
+
+### Favorites & Search Tests
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added unit tests for favorites service (get/add/remove) and DOM tests for SettingsSearch keyboard interactions (Slash focus, Mod+K, arrow navigation, Enter).
+- Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
+- Notes: Mocks useSettingsSearchIndex and next/navigation router; no UI changes.
