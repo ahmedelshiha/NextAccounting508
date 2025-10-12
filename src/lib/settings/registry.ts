@@ -109,6 +109,38 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ServerCog,
     tabs: [],
     permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+  },
+  {
+    key: 'auditLogs',
+    label: 'Audit Logs',
+    route: '/admin/settings/audit-logs',
+    icon: ClipboardList,
+    tabs: [],
+    permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+  },
+  {
+    key: 'mfa',
+    label: 'Multi-factor Authentication',
+    route: '/admin/settings/mfa',
+    icon: ShieldCheck,
+    tabs: [],
+    permission: PERMISSIONS.SECURITY_COMPLIANCE_SETTINGS_VIEW,
+  },
+  {
+    key: 'rateLimiting',
+    label: 'Rate Limiting',
+    route: '/admin/settings/system/rate-limiting',
+    icon: ServerCog,
+    tabs: [],
+    permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+  },
+  {
+    key: 'sentry',
+    label: 'Sentry',
+    route: '/admin/settings/integrations/sentry',
+    icon: PlugZap,
+    tabs: [],
+    permission: PERMISSIONS.INTEGRATION_HUB_VIEW,
   }
 ]
 
