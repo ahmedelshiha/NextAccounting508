@@ -165,6 +165,14 @@ To run locally instead, execute:
 - Files Added: docs/admin-backend-readiness.md
 - Notes: READY; menu customization can be deferred or modeled later.
 
+### Shared Counts Provider
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added CountsProvider to fetch and share admin stats/counts across the dashboard, reducing duplicate network requests. Updated AdminProviders to include it and AdminSidebar to consume it.
+- Files Added: src/components/admin/providers/CountsProvider.tsx
+- Files Modified: src/components/admin/providers/AdminProviders.tsx, src/components/admin/layout/AdminSidebar.tsx
+- Notes: Uses existing useUnifiedData under the hood and revalidates on booking/service-request/task events.
+
 ### Design References & Component Specs
 - Status: ✅ Completed
 - Date: 2025-10-12

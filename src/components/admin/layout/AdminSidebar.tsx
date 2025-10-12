@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { useUnifiedData } from '@/hooks/useUnifiedData'
+import { useCounts } from '@/components/admin/providers/CountsProvider'
 import { hasPermission } from '@/lib/permissions'
 import { getNavigation } from '@/lib/admin/navigation-registry'
 import SidebarHeader from './Sidebar/SidebarHeader'
@@ -147,12 +147,8 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     } catch (e) {}
   }, [sidebarWidth])
 
-  // Fetch notification counts for badges
-  const { data: counts } = useUnifiedData({
-    key: 'stats/counts',
-    events: ['booking-created', 'service-request-created', 'task-created'],
-    revalidateOnEvents: true,
-  })
+  // Shared counts via provider to avoid duplicate fetches
+  const { counts } = useCounts()
 
   const userRole = (session?.user as any)?.role
 
