@@ -10,6 +10,7 @@ import SidebarHeader from './Sidebar/SidebarHeader'
 import SidebarFooter from './Sidebar/SidebarFooter'
 import SidebarResizer from './Sidebar/SidebarResizer'
 import SidebarNav, { type NavItem } from './Sidebar/SidebarNav'
+import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 
 
 interface AdminSidebarProps {
