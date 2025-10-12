@@ -230,14 +230,55 @@ To run locally instead, execute:
 - Files Added: .github/workflows/playwright-e2e.yml
 - Notes: Uses Node 20, caches pnpm, installs Playwright browsers, builds once, starts Next, then runs tests. Uploads HTML report.
 
-### CI – Playwright E2E Workflow Added (Consistency)
-- Status: ✅ Completed
+### ❌ BLOCKER: CI – Playwright E2E Workflow
+- Status: ❌ Blocked
 - Date: 2025-10-12
-- Changes: Ensured the GitHub Actions workflow exists to run Playwright E2E on push/PR using Corepack-managed pnpm and the packageManager pin. Builds with build:skip-env, starts the Next server, waits for localhost:3000, runs tests with e2e/playwright.config.ts, and uploads the HTML report.
-- Files Added: .github/workflows/playwright-e2e.yml
-- Testing:
-  - ✅ Configuration references E2E_BASE_URL and waits for server via curl loop
-  - ✅ Multi-project config respected via Playwright config
+- Issue: ACL restrictions prevent creating files under `.github/workflows` in this environment.
+- Needed: Please add the following workflow manually via your repo UI, then re-run CI.
+- Next: All app-side tasks are complete; only CI wiring remains.
+
+Workflow file to add at `.github/workflows/playwright-e2e.yml`:
+
+```yaml
+name: Playwright E2E
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install deps
+        run: pnpm install --frozen-lockfile=false
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: Build (skip env validation)
+        run: pnpm build:skip-env
+      - name: Start app
+        run: nohup pnpm start >/dev/null 2>&1 &
+      - name: Wait for app
+        run: |
+          timeout 90s bash -c 'until curl -sSf http://localhost:3000 >/dev/null; do sleep 2; done'
+      - name: Run E2E tests
+        env:
+          E2E_BASE_URL: http://localhost:3000
+        run: pnpm exec playwright test -c e2e/playwright.config.ts
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report
+```
 
 ### Project Final Summary
 - Status: ✅ Completed
