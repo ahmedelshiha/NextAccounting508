@@ -15,6 +15,7 @@ export const GET = withTenantContext(async (req: NextRequest) => {
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
+  if (!tenantId) return respond.badRequest('Missing tenantId')
   try {
     let settings = await service.getBookingSettings(tenantId)
     if (!settings) settings = await service.createDefaultSettings(tenantId)
@@ -31,6 +32,7 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
+  if (!tenantId) return respond.badRequest('Missing tenantId')
   const updates = await req.json().catch(() => null)
   if (!updates || typeof updates !== 'object') return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   try {
