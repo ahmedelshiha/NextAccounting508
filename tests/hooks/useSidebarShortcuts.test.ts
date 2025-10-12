@@ -1,11 +1,12 @@
 import React from 'react'
+import React from 'react'
 import { render } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import useSidebarShortcuts from '@/hooks/admin/useSidebarShortcuts'
 
 function TestHarness({ toggle, setCollapsed }: any) {
   useSidebarShortcuts({ toggleSidebar: toggle, setCollapsed })
-  return <div />
+  return React.createElement('div')
 }
 
 describe('useSidebarShortcuts', () => {
@@ -13,7 +14,7 @@ describe('useSidebarShortcuts', () => {
     const toggle = vi.fn()
     const setCollapsed = vi.fn()
 
-    render(<TestHarness toggle={toggle} setCollapsed={setCollapsed} />)
+    render(React.createElement(TestHarness, { toggle, setCollapsed }))
 
     // Mod+B
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', ctrlKey: true }))
