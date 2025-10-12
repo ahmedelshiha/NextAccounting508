@@ -158,7 +158,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const navigation = useMemo(() => {
     const sections = getNavigation({ userRole, counts })
-    const mapItem = (m: any): NavigationItem => ({
+    const mapItem = (m: any): NavItem => ({
       name: m.label,
       href: m.href,
       icon: m.icon,
