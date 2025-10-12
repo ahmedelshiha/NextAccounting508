@@ -92,9 +92,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
             <nav className="flex" aria-label="Breadcrumb">
               <ol className="flex items-center space-x-2 text-sm">
                 <li>
-                  <Link 
-                    href="/admin" 
+                  <Link
+                    href="/admin"
                     className="text-gray-500 hover:text-gray-700 flex items-center"
+                    aria-label="Overview"
+                    title="Overview"
                   >
                     <Home className="h-4 w-4" />
                   </Link>
