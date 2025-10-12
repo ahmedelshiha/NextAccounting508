@@ -201,3 +201,10 @@ To run locally instead, execute:
 - Changes: Implemented SettingChangeDiff and AuditEvent writes for client-settings and booking-settings; aligned with existing categories (analytics, communication, financial, security, system, task, team, services, org).
 - Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
 - Notes: Next: add rate limiting to diff preview endpoint.
+
+### Diff Preview Rate Limiting
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added per-tenant+user rate limiting (10/min) to /api/admin/settings/diff/preview via rateLimitAsync with Redis/memory backend.
+- Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
+- Notes: Returns 429 on exceed; uses IP fallback when userId absent.

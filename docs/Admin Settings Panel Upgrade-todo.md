@@ -60,7 +60,7 @@ Created: 2025-10-08
 
 ## 🔧 Next Steps
 - [x] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, system, booking, and client settings endpoints
-- [ ] Add rate limiting to diff preview endpoint
+- [x] Add rate limiting to diff preview endpoint
 - [ ] Add FavoriteToggle initial pinned state hydration (optional)
 
 ### Diff Persistence Rollout
@@ -68,4 +68,11 @@ Created: 2025-10-08
 - Date: 2025-10-12
 - Changes: Added SettingChangeDiff and AuditEvent persistence to client-settings and booking-settings; verified other categories already persisted.
 - Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
-- Notes: Will add rate limiting to diff preview endpoint next.
+- Notes: Completed. Next: finalize tests and docs polish.
+
+### Diff Preview Rate Limiting
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Enforced per-tenant+user rate limit (10/min) on diff preview endpoint with Redis-backed fallback to memory.
+- Files Modified: src/app/api/admin/settings/diff/preview/route.ts, src/lib/rate-limit.ts
+- Notes: Uses getClientIp fallback when userId missing; returns 429 on exceed.
