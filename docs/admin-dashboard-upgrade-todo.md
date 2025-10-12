@@ -222,3 +222,10 @@ To run locally instead, execute:
 - Changes: Implemented sessionStorage-backed initial state for FavoriteToggle with service-level cache and event sync to reduce flicker.
 - Files Modified: src/services/favorites.service.ts, src/components/admin/settings/FavoriteToggle.tsx
 - Notes: No style changes; uses favorites:updated event for coherence.
+
+### CI – Fix PNPM Version Mismatch (Playwright E2E)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added .github/workflows/playwright-e2e.yml that relies on Corepack and package.json "packageManager"; removed explicit pnpm version in workflow to avoid ERR_PNPM_BAD_PM_VERSION.
+- Files Added: .github/workflows/playwright-e2e.yml
+- Notes: Uses Node 20, caches pnpm, installs Playwright browsers, builds once, starts Next, then runs tests. Uploads HTML report.
