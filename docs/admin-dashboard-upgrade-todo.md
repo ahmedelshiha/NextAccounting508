@@ -57,6 +57,14 @@
 - Files Added: src/components/admin/layout/Sidebar/SidebarHeader.tsx, src/components/admin/layout/Sidebar/SidebarFooter.tsx, src/components/admin/layout/Sidebar/SidebarResizer.tsx, src/components/admin/layout/Sidebar/SidebarNav.tsx
 - Notes: No visual or behavioral changes; nav rendering logic moved to SidebarNav. Follow-ups: add unit tests for SidebarNav interactions and keyboard navigation.
 
+### Phase 2 – Sidebar Tests (Unit & Interaction)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added unit tests covering SidebarNav rendering, permission filtering, and a hook test for sidebar keyboard shortcuts.
+- Files Added: tests/components/admin/sidebar-nav.dom.test.tsx, tests/hooks/useSidebarShortcuts.test.ts
+- Files Modified: docs/admin-dashboard-upgrade-todo.md
+- Notes: Tests validate group toggle behavior and keyboard shortcut handling (Mod+B, Mod+[ and Mod+]). Further work: add e2e tests for drag resize and keyboard workflow in Playwright.
+
 ### Phase 2 – Sidebar Resize & Shortcuts
 - Status: ✅ Completed
 - Date: 2025-10-12
