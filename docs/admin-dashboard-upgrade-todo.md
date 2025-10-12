@@ -196,7 +196,7 @@ To run locally instead, execute:
 - Notes: Uses existing RouteAnnouncer component with polite, atomic live region.
 
 ### Settings Diff Persistence Rollout
-- Status: �� Completed
+- Status: ✅ Completed
 - Date: 2025-10-12
 - Changes: Implemented SettingChangeDiff and AuditEvent writes for client-settings and booking-settings; aligned with existing categories (analytics, communication, financial, security, system, task, team, services, org).
 - Files Modified: src/app/api/admin/client-settings/route.ts, src/app/api/admin/booking-settings/route.ts
@@ -249,7 +249,7 @@ To run locally instead, execute:
   - ✅ `pnpm --version` printed and matches packageManager pin
 
 ### E2E – Fix missing Playwright imports
-- Status: �� Completed
+- Status: ✅ Completed
 - Date: 2025-10-12
 - Changes: Added `import { test, expect } from '@playwright/test'` to admin-settings-overview.spec.ts to avoid ReferenceError.
 - Files Modified: e2e/tests/admin-settings-overview.spec.ts
