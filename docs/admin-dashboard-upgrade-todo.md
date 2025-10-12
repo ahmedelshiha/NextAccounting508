@@ -311,3 +311,20 @@ To run locally instead, execute:
   - Extend E2E coverage for settings flows and diff previews
   - Monitor rate-limit metrics and adjust thresholds as needed
   - Maintain Semgrep and Sentry integrations for ongoing hardening
+
+---
+### Verification – Navigation Registry & Sidebar
+
+**Status**: ✅ Completed  
+**Date**: 2025-10-12  
+**Duration**: 5m
+
+**Changes**: Verified AdminSidebar consumes centralized navigation registry and that the stale Invoices "Templates" link is removed via registry definition. Counts badges resolve through CountsProvider mapping to badgeKey.
+
+**Files Modified**: None
+
+**Testing**: 
+- ✅ Static inspection of src/components/admin/layout/AdminSidebar.tsx and SidebarNav.tsx
+- ✅ Confirmed registry at src/lib/admin/navigation-registry.ts excludes Templates
+
+**Notes**: Pre-flight checks remain blocked locally; rely on CI to validate.
