@@ -256,6 +256,14 @@ To run locally instead, execute:
 - Testing:
   - ✅ `pnpm --version` echoed in CI to verify availability prior to caching step
 
+### Client Settings – Type Narrowing + JSON Casts
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added tenantId non-empty guard in both GET and PUT handlers; cast `before`/`after` via `unknown` to satisfy Prisma.InputJsonValue.
+- Files Modified: src/app/api/admin/client-settings/route.ts
+- Testing:
+  - ✅ Type error resolved in CI build for client-settings diff writes
+
 ### Booking Settings – Type Narrowing for tenantId
 - Status: ✅ Completed
 - Date: 2025-10-12
