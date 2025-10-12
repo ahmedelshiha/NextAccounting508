@@ -328,3 +328,28 @@ To run locally instead, execute:
 - ✅ Confirmed registry at src/lib/admin/navigation-registry.ts excludes Templates
 
 **Notes**: Pre-flight checks remain blocked locally; rely on CI to validate.
+
+---
+### Merge Hydration-safe store wrappers into canonical store
+
+**Status**: ✅ Completed  
+**Date**: 2025-10-12  
+**Duration**: 2m
+
+**Changes**: Removed legacy wrapper files and consolidated onto the canonical store at `src/stores/admin/layout.store.ts`. Ensured the canonical store exposes selector hooks and the hydration-safe API (`useAdminLayoutSafe`, `useSidebarState`, `useNavigationState`, `useUIState`).
+
+**Files Removed**:
+- `src/stores/adminLayoutStore.ts` (deprecated compatibility shim)
+- `src/stores/adminLayoutStoreSSRSafe.ts` (deprecated SSRed compatibility shim)
+
+**Files Modified**:
+- `src/stores/admin/layout.store.ts` — canonical store already present and left as source of truth
+
+**Testing**:
+- ✅ Searched repository for references to removed files; none found.
+- ✅ Verified key consumers import from `src/stores/admin/layout.store.ts` (e.g., `AdminDashboardLayout`, `AdminSidebar`).
+
+**Notes**:
+- Pre-flight typecheck remains blocked locally; CI will validate build and types after push.
+- If CI reports any leftover imports to the removed files, I'll update them to the canonical path immediately.
+
