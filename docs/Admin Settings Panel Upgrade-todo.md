@@ -61,7 +61,7 @@ Created: 2025-10-08
 ## 🔧 Next Steps
 - [x] Roll out diff persistence and AuditEvent emission to financial, communication, team, tasks, services, analytics, integrations, security, system, booking, and client settings endpoints
 - [x] Add rate limiting to diff preview endpoint
-- [ ] Add FavoriteToggle initial pinned state hydration (optional)
+- [x] Add FavoriteToggle initial pinned state hydration (optional)
 
 ### Diff Persistence Rollout
 - Status: ✅ Completed
