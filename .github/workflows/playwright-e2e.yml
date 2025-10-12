@@ -1,66 +1,36 @@
 name: Playwright E2E
-
 on:
+  push:
+    branches: [ main, master ]
   pull_request:
-    paths:
-      - '**/*.ts'
-      - '**/*.tsx'
-      - 'e2e/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'next.config.mjs'
-      - 'vercel.json'
-      - '.github/workflows/playwright-e2e.yml'
-
+    branches: [ main, master ]
 jobs:
   e2e:
-    name: e2e
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      E2E_BASE_URL: http://localhost:3000
-      SKIP_ENV_VALIDATION: true
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'pnpm'
-
-      # Use packageManager field from package.json via Corepack; do NOT pin pnpm in the workflow
-      - name: Enable Corepack (pnpm from packageManager)
+      - name: Enable Corepack
         run: corepack enable
-
-      - name: Print pnpm version
-        run: pnpm --version
-
-      - name: Install dependencies
+      - name: Install deps
         run: pnpm install --frozen-lockfile=false
-
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps
-
       - name: Build (skip env validation)
         run: pnpm build:skip-env
-
-      - name: Start Next.js
+      - name: Start app
+        run: nohup pnpm start >/dev/null 2>&1 &
+      - name: Wait for app
         run: |
-          pnpm exec next start -p 3000 &> .next/start.log &
-          for i in {1..90}; do
-            if curl -sf http://localhost:3000 > /dev/null; then
-              echo "Server is up"; break
-            fi
-            sleep 1
-          done
-
-      - name: Run Playwright tests
-        run: pnpm exec playwright test -c e2e/playwright.config.ts --reporter=list,html
-
-      - name: Upload Playwright HTML report
+          timeout 90s bash -c 'until curl -sSf http://localhost:3000 >/dev/null; do sleep 2; done'
+      - name: Run E2E tests
+        env:
+          E2E_BASE_URL: http://localhost:3000
+        run: pnpm exec playwright test -c e2e/playwright.config.ts
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
