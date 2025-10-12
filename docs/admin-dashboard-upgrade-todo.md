@@ -74,7 +74,7 @@
 - [ ] Integrate registry-driven rendering with permission-aware sections and dynamic badges.
 - [ ] Implement drag-and-drop favorites/reordering hooks to feed customization workflows.
 - [ ] Ensure breadcrumbs, quick search, and recently visited panels all source from registry utilities.
-- [ ] Mirror interaction patterns described in `docs/NextAccounting Admin Dashboard.md` §3.2–§3.3 and Moderniza Task 2.2.
+- [ ] Mirror interaction patterns described in `docs/NextAccounting Admin Dashboard.md` §3.2��§3.3 and Moderniza Task 2.2.
 
 ### 4.3 Header & User Profile Experience
 - [ ] Replace legacy “Preview Admin” header content with breadcrumbs, global actions, tenant switcher, notifications, and new profile dropdown.
@@ -166,9 +166,11 @@
 - [ ] Coordinate content updates for help docs and in-app onboarding.
 - [ ] Align analytics tracking with new navigation paths and UI elements.
 - [ ] Ensure support and success teams receive enablement materials before public rollout.
+- [ ] Cross-verify with cross-functional guidelines in `docs/NextAccounting Admin Dashboard.md` §1.4, §7, and Moderniza cross-stream notes.
 
 ## 8. Tracking & Reporting
 - [ ] Use this TODO as the canonical implementation checklist; update statuses at least twice per week.
 - [ ] Log notable decisions, scope changes, and risks in project tracker.
 - [ ] Highlight blockers needing stakeholder input (dependencies, backend readiness, design feedback).
 - [ ] Archive artifacts (wireframes, diagrams, benchmarks) in project knowledge base upon completion.
+- [ ] Reflect reporting cadence defined in `docs/NextAccounting Admin Dashboard.md` §1.4 Timeline & Budget and Moderniza project governance.
