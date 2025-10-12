@@ -164,3 +164,10 @@ To run locally instead, execute:
 - Changes: Added design/behavior specs for sidebar, header, settings shell, and shortcuts.
 - Files Added: docs/admin-design-references.md
 - Notes: Benchmarks: QuickBooks, Notion, Linear.
+
+### SettingsSearch Shortcut Enhancement
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added '/' shortcut to focus SettingsSearch when not typing in an input/textarea/select or contentEditable, alongside existing Mod+K. Prevents conflict with text fields by checking activeElement and contentEditable.
+- Files Modified: src/components/admin/settings/SettingsSearch.tsx
+- Notes: Keeps existing styles intact and uses the same keyboard hint UI; only behavior extended.
