@@ -240,10 +240,10 @@ To run locally instead, execute:
   - ✅ Config references E2E_BASE_URL and waits for server via curl loop
 - Notes: Trigger by pushing to main or opening a PR.
 
-### CI – pnpm activation via Corepack
+### CI – pnpm setup via action
 - Status: ✅ Completed
 - Date: 2025-10-12
-- Changes: Updated CI to run `corepack prepare pnpm@<packageManager version> --activate` so pnpm is available on PATH.
+- Changes: Replaced Corepack activation with `pnpm/action-setup@v4` using version from package.json `packageManager` for deterministic installation.
 - Files Modified: .github/workflows/playwright-e2e.yml
 - Testing:
   - ✅ `pnpm --version` echoed in CI to verify availability
