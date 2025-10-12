@@ -24,7 +24,7 @@ vi.mock('@/hooks/admin/useResponsive', () => ({
   useResponsive: vi.fn(),
 }))
 
-vi.mock('@/stores/adminLayoutStore', () => ({
+vi.mock('@/stores/admin/layout.store', () => ({
   useAdminLayout: vi.fn(),
 }))
 
