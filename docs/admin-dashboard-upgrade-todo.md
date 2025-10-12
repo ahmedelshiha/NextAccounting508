@@ -248,6 +248,14 @@ To run locally instead, execute:
 - Testing:
   - ✅ `pnpm --version` printed and matches packageManager pin
 
+### CI – Start server without rebuilding
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Replaced `pnpm start` (which rebuilds) with `pnpm exec next start -p 3000` after prior build; extended wait to 180s and added log dump on failure.
+- Files Modified: .github/workflows/playwright-e2e.yml
+- Testing:
+  - ✅ curl readiness succeeds after build; on failure, logs are printed for debugging
+
 ### CI – pnpm setup via action and cache ordering
 - Status: ✅ Completed
 - Date: 2025-10-12
