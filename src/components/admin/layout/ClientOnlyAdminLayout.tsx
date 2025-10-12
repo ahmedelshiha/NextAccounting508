@@ -67,6 +67,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
           >
             Skip to main content
           </a>
+          <AccessibleRouteAnnouncer />
           {/* Desktop Sidebar */}
           <div className="hidden lg:block">
             <AdminSidebar 
