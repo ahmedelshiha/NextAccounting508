@@ -13,6 +13,7 @@
 import { ReactNode } from 'react'
 import { SWRConfig } from 'swr'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
+import { CountsProvider } from '@/components/admin/providers/CountsProvider'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
 import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
@@ -93,7 +94,9 @@ export function AdminProviders({ children }: AdminProvidersProps) {
             <PerformanceWrapper>
               <RoleSyncMount />
               <UXMonitor>
-                {children}
+                <CountsProvider>
+                  {children}
+                </CountsProvider>
               </UXMonitor>
             </PerformanceWrapper>
           </RealtimeProvider>
