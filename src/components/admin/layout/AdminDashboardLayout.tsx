@@ -49,7 +49,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   
   // Get responsive state and layout management - ALWAYS call hooks at the top level
   const responsive = useResponsive()
-  const { sidebar, navigation, ui } = useAdminLayoutHydrationSafe()
+  const { sidebar, navigation, ui } = useAdminLayoutSafe()
   
   // Set client-side flag after hydration
   useEffect(() => {
