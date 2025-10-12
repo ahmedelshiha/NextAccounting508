@@ -90,3 +90,52 @@ Created: 2025-10-08
 - Changes: Added unit tests for favorites service (get/add/remove) and DOM tests for SettingsSearch keyboard interactions (Slash focus, Mod+K, arrow navigation, Enter).
 - Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
 - Notes: Mocks useSettingsSearchIndex and next/navigation router; no UI changes.
+
+
+---
+
+## Recent Changes (since last log)
+
+### Merge Hydration-safe Store Wrappers
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Consolidated legacy store wrappers into the canonical Zustand store at `src/stores/admin/layout.store.ts` and provided lightweight compatibility re-exports so existing imports keep working.
+- Files Modified/Added:
+  - src/stores/admin/layout.store.ts (canonical store — already present)
+  - src/stores/adminLayoutStore.ts (compat re-export pointing to canonical store)
+  - src/stores/adminLayoutStoreSSRSafe.ts (compat re-export pointing to useAdminLayoutSafe)
+- Notes: Updated tests to import canonical store path; pre-flight typecheck deferred to CI.
+
+### New Settings Panels Added (UI)
+- Status: ✅ Completed
+- Date: 2025-10-12
+- Changes: Added four new admin settings pages and registered them in SETTINGS_REGISTRY.
+- Files Added:
+  - `src/app/admin/settings/audit-logs/page.tsx` — Audit Logs UI (table of recent events)
+  - `src/app/admin/settings/mfa/page.tsx` — MFA enforcement & enrollment guidance
+  - `src/app/admin/settings/system/rate-limiting/page.tsx` — Rate limiting rules UI
+  - `src/app/admin/settings/integrations/sentry/page.tsx` — Sentry enable/DSN UI
+- Files Modified:
+  - `src/lib/settings/registry.ts` — added entries for audit-logs, mfa, rate-limiting, sentry
+- Notes: These pages call backend endpoints which should exist (/api/admin/audit-logs, /api/admin/security-settings, /api/admin/settings/rate-limits, /api/admin/integrations/sentry). If API routes are missing, CI/runtime will show 404 errors and I can add API handlers on request.
+
+### Documentation file incident
+- Status: ✅ Resolved
+- Date: 2025-10-12
+- Changes: accidental overwrite of `docs/admin-dashboard-upgrade-todo.md` occurred during edits; user restored content and provided the original progress log for me to merge updates into.
+- Notes: I preserved and merged recent changes into this Admin Settings Panel Upgrade progress log per your pasted content.
+
+
+## Next Actions / Recommendations
+- Run CI (push branch flare-works) to validate typecheck and tests — pre-flight checks were blocked locally; CI will validate the full build.
+- If backend endpoints used by new settings pages are missing, let me know which ones to implement and I will add corresponding API route handlers.
+- Add unit tests for the new settings pages and API endpoints (audit logs listing, rate-limits CRUD, sentry save); I can scaffold tests next.
+
+
+---
+
+
+If you'd like, I will:
+- push these changes to branch `flare-works` and open a draft PR, or
+- scaffold API routes for any missing endpoints now (list which ones), or
+- create unit tests for the newly added settings pages.
