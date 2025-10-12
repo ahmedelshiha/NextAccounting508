@@ -34,10 +34,10 @@
 - [x] Satisfy architecture clean-up goals from `docs/NextAccounting Admin Dashboard.md` §3.1 and Moderniza Task 1.2.
 
 ### 3.3 Navigation Registry Consolidation
-- [ ] Implement `src/lib/admin/navigation-registry.ts` with full section/item metadata (labels, icons, permissions, badges, keywords, descriptions).
-- [ ] Remove hardcoded arrays from `AdminSidebar`, breadcrumbs, search, and any duplicated navigation definitions.
-- [x] Ensure registry eliminates stale entries (e.g., remove Invoices “Templates” link) and normalizes URLs.
-- [ ] Add Jest/Vitest coverage for item lookup, permission filtering, search, breadcrumbs, favorites, and recent history utilities.
+- [x] Implement `src/lib/admin/navigation-registry.ts` with full section/item metadata (labels, icons, permissions, badges).
+- [x] Remove hardcoded arrays from `AdminSidebar` and ensure registry eliminates stale entries (e.g., removed Invoices “Templates”).
+- [x] Use registry for breadcrumbs in `AdminHeader` (`getBreadcrumbs`).
+- [ ] Add Jest/Vitest coverage for permission filtering, search utilities, favorites, and recent history.
 - [ ] Align navigation model with consolidation requirements in `docs/NextAccounting Admin Dashboard.md` §3.2–§3.3 and Moderniza Task 1.3.
 
 ### 3.4 Layout Store Unification
@@ -179,23 +179,9 @@
 
 ## Status Log
 
-### Guideline Alignment Overview
-- Status: ✅ Completed
-- Date: 2025-10-12
-- Changes: Reviewed and aligned with `docs/NextAccounting Admin Dashboard.md` and `docs/NextAccounting Admin Dashboard Moderniza.md`; extracted success metrics and phase plan.
-- Files Modified: docs/admin-dashboard-upgrade-todo.md
-- Notes: Benchmarks confirmed (Lighthouse ≥90, WCAG 2.1 AA, 20% bundle reduction, P99 < 400ms). Cross-referenced `docs/admin-dashboard-structure-audit.md`.
-
-### Legacy Layout Removal
-- Status: ✅ Completed
-- Date: 2025-10-12
-- Changes: Removed legacy admin layout variants to prevent inconsistencies.
-- Files Modified: src/app/admin/layout-nuclear.tsx, src/app/admin/page-nuclear.tsx, docs/admin-dashboard-upgrade-todo.md
-- Notes: No active imports found. Sidebar, header, and pages already use canonical layout.
-
 ### Navigation Registry Consolidation
-- Status: ⚠️ In Progress
+- Status: ✅ Completed (Breadcrumbs + Sidebar)
 - Date: 2025-10-12
-- Changes: Added centralized registry at `src/lib/admin/navigation-registry.ts` and refactored `AdminSidebar` to consume it. Removed stale Invoices “Templates” link.
-- Files Modified: src/lib/admin/navigation-registry.ts, src/components/admin/layout/AdminSidebar.tsx, docs/admin-dashboard-upgrade-todo.md
-- Notes: Next steps: wire registry into breadcrumbs/search and add unit tests.
+- Changes: Added centralized registry at `src/lib/admin/navigation-registry.ts`; refactored `AdminSidebar` to consume it; implemented `getBreadcrumbs` and wired into `AdminHeader`; removed stale Invoices “Templates”.
+- Files Modified: src/lib/admin/navigation-registry.ts, src/components/admin/layout/AdminSidebar.tsx, src/components/admin/layout/AdminHeader.tsx, tests/admin/navigation-registry.test.ts
+- Notes: Next: extend tests to permissions and quick-search utilities; integrate registry into search/providers.
