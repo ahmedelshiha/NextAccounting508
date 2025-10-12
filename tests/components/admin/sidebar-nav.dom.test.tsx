@@ -39,8 +39,8 @@ describe('SidebarNav', () => {
     // Section heading
     expect(screen.getByText('Main')).toBeTruthy()
 
-    // Settings button present
-    const btn = screen.getByText('Settings')
+    // Team button present
+    const btn = screen.getByText('Team')
     expect(btn).toBeTruthy()
 
     fireEvent.click(btn)
