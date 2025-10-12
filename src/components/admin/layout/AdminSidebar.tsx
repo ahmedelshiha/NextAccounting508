@@ -50,7 +50,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
-  const resizerRef = useRef<HTMLDivElement | null>(null)
 
   // Save width
   useEffect(() => {
