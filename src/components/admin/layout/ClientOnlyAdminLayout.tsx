@@ -16,6 +16,7 @@ import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
 import AdminFooter from '@/components/admin/layout/AdminFooter'
+import AccessibleRouteAnnouncer from '@/components/providers/RouteAnnouncer'
 import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
 
 interface ClientOnlyAdminLayoutProps {
