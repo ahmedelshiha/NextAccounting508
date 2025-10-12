@@ -163,3 +163,51 @@ export function getNavigation(params: { userRole?: string | null; counts?: Recor
     items: section.items.filter(i => allow(i.permission)).map(mapItem),
   }))
 }
+
+// Flatten registry into a list of items including children
+export function flattenNavigation(sections: NavSection[] = NAVIGATION_SECTIONS): NavItemMeta[] {
+  const out: NavItemMeta[] = []
+  const walk = (items?: NavItemMeta[]) => {
+    if (!items) return
+    for (const it of items) {
+      out.push(it)
+      if (it.children && it.children.length) walk(it.children)
+    }
+  }
+  for (const s of sections) walk(s.items)
+  return out
+}
+
+// Build breadcrumbs for a given pathname using registry labels; fallback to title-cased segments
+export function getBreadcrumbs(pathname: string): Array<{ href: string; label: string }> {
+  try {
+    const segments = pathname.split('/').filter(Boolean)
+    const prefixes: string[] = []
+    for (let i = 0; i < segments.length; i++) {
+      const href = '/' + segments.slice(0, i + 1).join('/')
+      prefixes.push(href)
+    }
+
+    const items = flattenNavigation()
+    const labelFor = (href: string): string | null => {
+      const found = items.find(it => it.href === href)
+      return found ? found.label : null
+    }
+
+    const titleCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ')
+
+    const crumbs: Array<{ href: string; label: string }> = []
+    for (const href of prefixes) {
+      const reg = labelFor(href)
+      if (reg) {
+        crumbs.push({ href, label: reg })
+      } else {
+        const last = href.split('/').filter(Boolean).pop() || ''
+        if (last) crumbs.push({ href, label: titleCase(last) })
+      }
+    }
+    return crumbs
+  } catch {
+    return []
+  }
+}
