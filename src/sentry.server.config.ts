@@ -3,11 +3,13 @@ import { tenantContext } from '@/lib/tenant-context'
 
 // Minimal Sentry server config used by tests — register an event processor that enriches events
 // with tenant context when available. Keep initialization minimal to avoid side-effects in tests.
+console.debug('[sentry.server.config] loading')
 Sentry.init({
   // intentionally empty - tests mock Sentry APIs
 })
 
-Sentry.addEventProcessor((event: any) => {
+console.debug('[sentry.server.config] registering event processor')
+const processor = (event: any) => {
   try {
     const ctx = tenantContext.getContextOrNull()
     if (!ctx) return event
@@ -19,4 +21,9 @@ Sentry.addEventProcessor((event: any) => {
     // Defensive: if tenantContext APIs throw, do not break Sentry processing
     return event
   }
-})
+}
+
+Sentry.addEventProcessor(processor)
+
+// Expose for debugging
+;(globalThis as any).__sentry_processor = processor
