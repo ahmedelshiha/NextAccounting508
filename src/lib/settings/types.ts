@@ -37,8 +37,8 @@ export interface SettingsTab<Schema = any> {
   key: string
   label: string
   description?: string
-  // Permission required to view/edit this tab. Implementation may check this before rendering the tab or calling the API.
-  permission?: Permission
+  // Permission(s) required to view/edit this tab. Can be a single permission or an array.
+  permission?: Permission | Permission[]
   // Lightweight client helpers to fetch and persist data for the tab. Implementations should be provided by per-category modules.
   get?: (tenantId?: string) => Promise<Schema>
   put?: (payload: Schema, tenantId?: string) => Promise<Schema>
@@ -51,8 +51,8 @@ export interface SettingsCategory {
   // Icon is a React component that receives className (lucide-react compatible)
   icon?: ComponentType<any>
   tabs?: SettingsTab<any>[]
-  // Optional permission to control visibility in the registry-driven nav
-  permission?: Permission
+  // Optional permission(s) to control visibility in the registry-driven nav
+  permission?: Permission | Permission[]
 }
 
 // Re-export Zod type helper for convenience in category implementations
