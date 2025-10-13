@@ -14,10 +14,9 @@ vi.mock('@sentry/nextjs', () => {
 
 describe('Sentry tenant tagging (server)', () => {
   beforeEach(async () => {
-    vi.resetModules()
     capturedProcessor = null
-    // Re-import the config to register the processor
-    // Use dynamic import so our mock is applied first
+    // Re-import the config to register the processor (dynamic import may return cached module in some runtimes)
+    // Use dynamic import so our mock is applied first when possible
     await import('@/sentry.server.config')
   })
 
@@ -54,7 +53,10 @@ describe('Sentry tenant tagging (server)', () => {
 
   it('is a no-op when tenantContext is absent', async () => {
     const baseEvent: any = { level: 'error', message: 'boom', tags: {}, user: {} }
-    const result = (capturedProcessor as any)(structuredClone(baseEvent))
+    // Support environments where the mock may not re-register capturedProcessor on cached imports
+    const proc: any = (typeof capturedProcessor === 'function' ? capturedProcessor : (globalThis as any).__sentry_processor)
+    expect(typeof proc).toBe('function')
+    const result = proc(structuredClone(baseEvent))
     expect(result.tags.tenantId).toBeUndefined()
     expect(result.user.id).toBeUndefined()
   })
