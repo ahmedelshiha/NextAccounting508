@@ -15,9 +15,28 @@ export default function SettingsNavigation({ className = '' }: { className?: str
 
   const items = (Array.isArray(SETTINGS_REGISTRY) ? SETTINGS_REGISTRY : []).filter((c) => {
     if (!c) return false
-    // If the category has an explicit permission, honor it. Otherwise show by default.
-    const required = (c as any).permission as string | undefined
-    if (required) return perms.has(required as any)
+
+    const catPerm = (c as any).permission as string | string[] | undefined
+    if (catPerm) {
+      // allow array or single
+      if (Array.isArray(catPerm)) return catPerm.some((p) => perms.has(p))
+      return perms.has(catPerm as string)
+    }
+
+    // If no category-level permission, check tabs: if all tabs are restricted and unseen, hide the category
+    const tabs = c.tabs ?? []
+    if (Array.isArray(tabs) && tabs.length > 0) {
+      // visible if at least one tab has no permission or perms.has its permission
+      const anyVisible = tabs.some((t: any) => {
+        const tp = t.permission as string | string[] | undefined
+        if (!tp) return true
+        if (Array.isArray(tp)) return tp.some((p) => perms.has(p))
+        return perms.has(tp as string)
+      })
+      return anyVisible
+    }
+
+    // default to visible
     return true
   })
 
