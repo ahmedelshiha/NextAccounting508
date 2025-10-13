@@ -121,7 +121,7 @@ importers:
         version: 2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       stripe:
         specifier: ^19.1.0
-        version: 19.1.0(@types/node@20.19.19)
+        version: 19.1.0(@types/node@24.7.2)
       swr:
         specifier: ^2.3.6
         version: 2.3.6(react@19.1.0)
@@ -169,8 +169,8 @@ importers:
         specifier: ^3.7.1
         version: 3.7.1
       '@types/node':
-        specifier: ^20
-        version: 20.19.19
+        specifier: ^24
+        version: 24.7.2
       '@types/pg':
         specifier: ^8.11.6
         version: 8.15.5
@@ -2011,8 +2011,8 @@ packages:
   '@types/mysql@2.15.26':
     resolution: {integrity: sha512-DSLCOXhkvfS5WNNPbfn2KdICAmk8lLc+/PNvnPnF7gOdMZCxopXduqv0OQ13y/yA/zXTSikZZqVgybUxOEg6YQ==}
 
-  '@types/node@20.19.19':
-    resolution: {integrity: sha512-pb1Uqj5WJP7wrcbLU7Ru4QtA0+3kAXrkutGiD26wUKzSMgNNaPARTUDQmElUXp64kh3cWdou3Q0C7qwwxqSFmg==}
+  '@types/node@24.7.2':
+    resolution: {integrity: sha512-/NbVmcGTP+lj5oa4yiYxxeBjRivKQ5Ns1eSZeB99ExsEQ6rX5XYU1Zy/gGxY/ilqtD4Etx9mKyrPxZRetiahhA==}
 
   '@types/pg-pool@2.0.6':
     resolution: {integrity: sha512-TaAUE5rq2VQYxab5Ts7WZhKNmuN78Q6PiFonTDdpbx8a1H0M1vhy3rhiMjl+e2iHmogyMw7jZF4FrE6eJUy5HQ==}
@@ -4474,8 +4474,8 @@ packages:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+  undici-types@7.14.0:
+    resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
 
   unplugin@1.0.1:
     resolution: {integrity: sha512-aqrHaVBWW1JVKBHmGo33T5TxeL0qWzfvjWokObHA9bYmN7eNDkwOxmLjhioHl9878qDFMAaT51XNroRyuz7WxA==}
@@ -6443,7 +6443,7 @@ snapshots:
 
   '@types/connect@3.4.36':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
 
   '@types/eslint-scope@3.7.7':
     dependencies:
@@ -6465,11 +6465,11 @@ snapshots:
 
   '@types/mysql@2.15.26':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
 
-  '@types/node@20.19.19':
+  '@types/node@24.7.2':
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 7.14.0
 
   '@types/pg-pool@2.0.6':
     dependencies:
@@ -6477,19 +6477,19 @@ snapshots:
 
   '@types/pg@8.11.6':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       pg-protocol: 1.10.3
       pg-types: 4.1.0
 
   '@types/pg@8.15.5':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
   '@types/pg@8.6.1':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       pg-protocol: 1.10.3
       pg-types: 2.2.0
 
@@ -6505,7 +6505,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
 
   '@typescript-eslint/eslint-plugin@8.46.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3))(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
@@ -8043,7 +8043,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -9054,11 +9054,11 @@ snapshots:
     dependencies:
       acorn: 8.15.0
 
-  stripe@19.1.0(@types/node@20.19.19):
+  stripe@19.1.0(@types/node@24.7.2):
     dependencies:
       qs: 6.14.0
     optionalDependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
 
   strtok3@7.1.1:
     dependencies:
@@ -9232,7 +9232,7 @@ snapshots:
       has-symbols: 1.1.0
       which-boxed-primitive: 1.1.1
 
-  undici-types@6.21.0: {}
+  undici-types@7.14.0: {}
 
   unplugin@1.0.1:
     dependencies:
@@ -9302,14 +9302,14 @@ snapshots:
 
   uuid@9.0.1: {}
 
-  vite-node@0.34.6(@types/node@20.19.19)(lightningcss@1.30.1)(terser@5.44.0):
+  vite-node@0.34.6(@types/node@24.7.2)(lightningcss@1.30.1)(terser@5.44.0):
     dependencies:
       cac: 6.7.14
       debug: 4.4.3
       mlly: 1.8.0
       pathe: 1.1.2
       picocolors: 1.1.1
-      vite: 5.4.20(@types/node@20.19.19)(lightningcss@1.30.1)(terser@5.44.0)
+      vite: 5.4.20(@types/node@24.7.2)(lightningcss@1.30.1)(terser@5.44.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -9321,13 +9321,13 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.20(@types/node@20.19.19)(lightningcss@1.30.1)(terser@5.44.0):
+  vite@5.4.20(@types/node@24.7.2)(lightningcss@1.30.1)(terser@5.44.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.6
       rollup: 4.52.4
     optionalDependencies:
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       fsevents: 2.3.3
       lightningcss: 1.30.1
       terser: 5.44.0
@@ -9336,7 +9336,7 @@ snapshots:
     dependencies:
       '@types/chai': 4.3.20
       '@types/chai-subset': 1.3.6(@types/chai@4.3.20)
-      '@types/node': 20.19.19
+      '@types/node': 24.7.2
       '@vitest/expect': 0.34.6
       '@vitest/runner': 0.34.6
       '@vitest/snapshot': 0.34.6
@@ -9355,8 +9355,8 @@ snapshots:
       strip-literal: 1.3.0
       tinybench: 2.9.0
       tinypool: 0.7.0
-      vite: 5.4.20(@types/node@20.19.19)(lightningcss@1.30.1)(terser@5.44.0)
-      vite-node: 0.34.6(@types/node@20.19.19)(lightningcss@1.30.1)(terser@5.44.0)
+      vite: 5.4.20(@types/node@24.7.2)(lightningcss@1.30.1)(terser@5.44.0)
+      vite-node: 0.34.6(@types/node@24.7.2)(lightningcss@1.30.1)(terser@5.44.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       jsdom: 27.0.0(postcss@8.5.6)
