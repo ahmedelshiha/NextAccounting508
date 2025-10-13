@@ -108,17 +108,35 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       ? await prisma.tenant.findUnique({ where: { id: tenantIdOverride } })
       : await prisma.tenant.findUnique({ where: { slug: tenantSlug } })
 
-    const tenant = tenantCandidate ?? (await prisma.tenant.findFirst())
+    let tenant = tenantCandidate ?? (await prisma.tenant.findFirst())
+    // If no tenant exists in non-production, create a default tenant for E2E runs
+    if (!tenant && process.env.NODE_ENV !== 'production') {
+      tenant = await prisma.tenant.create({ data: { slug: tenantSlug, name: 'Primary (E2E)' } })
+    }
+
     const tenantId = tenant?.id ?? null
     const tenantSlugResolved = tenant?.slug ?? null
 
-    const user =
+    let user =
       (tenantId
         ? await prisma.user.findUnique({
             where: { tenantId_email: { tenantId, email } },
           })
         : null) ??
       (await prisma.user.findFirst({ where: { email } }))
+
+    // Create a dev user if missing in non-production to support E2E flows
+    if (!user && process.env.NODE_ENV !== 'production') {
+      user = await prisma.user.create({
+        data: {
+          tenantId: tenant!.id,
+          email,
+          name: 'Dev User',
+          skills: [],
+          role: 'SUPER_ADMIN',
+        },
+      })
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -129,6 +147,11 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
     const membership =
       tenantId ? await prisma.tenantMembership.findFirst({ where: { userId: user.id, tenantId } }) : null
+
+    // If no membership exists, create a default membership for the dev user (non-production only)
+    if (!membership && process.env.NODE_ENV !== 'production') {
+      await prisma.tenantMembership.create({ data: { userId: user.id, tenantId: tenant!.id, role: 'SUPER_ADMIN', isDefault: true } })
+    }
 
     const tokenPayload = {
       name: user.name,
