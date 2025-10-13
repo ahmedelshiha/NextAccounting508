@@ -77,20 +77,33 @@ export default function SettingsSearch({ className = '' }: { className?: string 
           <Slash className="h-3 w-3" />K
         </div>
 
-        {open && results.length > 0 && (
+        {open && (
           <div role="listbox" className="absolute z-40 mt-1 w-full rounded-md border bg-white shadow-sm">
-            {results.map((r, idx) => (
-              <button
-                key={r.key}
-                role="option"
-                aria-selected={idx === activeIndex}
-                onMouseDown={(e) => { e.preventDefault(); go(idx) }}
-                className={cn('w-full text-left px-3 py-2 text-sm hover:bg-gray-50', idx === activeIndex ? 'bg-gray-50' : '')}
-              >
-                <div className="font-medium text-gray-800 truncate">{r.label}</div>
-                <div className="text-xs text-gray-500 truncate">{r.route}</div>
-              </button>
-            ))}
+            {results.length > 0 ? (
+              results.map((r, idx) => (
+                <button
+                  key={r.key}
+                  role="option"
+                  aria-selected={idx === activeIndex}
+                  onMouseDown={(e) => { e.preventDefault(); go(idx) }}
+                  className={cn('w-full text-left px-3 py-2 text-sm hover:bg-gray-50', idx === activeIndex ? 'bg-gray-50' : '')}
+                >
+                  <div className="font-medium text-gray-800 truncate">{r.label}</div>
+                  <div className="text-xs text-gray-500 truncate">{r.route}</div>
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-gray-600">
+                {query.trim().length === 0 ? (
+                  <div className="flex items-center justify-between">
+                    <span>Type to search settings</span>
+                    <span className="text-xs text-gray-400">Press / or ⌘K</span>
+                  </div>
+                ) : (
+                  <div>No results found</div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

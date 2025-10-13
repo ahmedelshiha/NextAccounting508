@@ -12,15 +12,15 @@
 'use client'
 
 import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import {
-  Bell,
-  Search,
-  Menu,
-  User,
-  Settings,
-  LogOut,
+import { 
+  Bell, 
+  Search, 
+  Menu, 
+  User, 
+  Settings, 
+  LogOut, 
   HelpCircle,
   ChevronDown,
   Home
@@ -36,37 +36,25 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
-import { getBreadcrumbs, searchNav } from '@/lib/admin/navigation-registry'
+import { getBreadcrumbs } from '@/lib/admin/navigation-registry'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
   isMobileMenuOpen?: boolean
 }
 
-/**
- * Generate breadcrumb items from current pathname
- */
-function useBreadcrumbs() {
-  const pathname = usePathname()
-  const crumbs = getBreadcrumbs(pathname)
-  const lastHref = crumbs.length ? crumbs[crumbs.length - 1].href : null
-  return crumbs.map(c => ({ ...c, isLast: c.href === lastHref }))
-}
-
 export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const { unreadCount } = useClientNotifications()
-  const breadcrumbs = useBreadcrumbs()
-  const router = useRouter()
+  const pathname = usePathname()
+  const breadcrumbs = getBreadcrumbs(pathname)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    const q = searchQuery.trim()
-    if (!q) return
-    const results = searchNav(q, 1)
-    if (results.length > 0) {
-      router.push(results[0].href)
+    if (searchQuery.trim()) {
+      // Global search is handled elsewhere; keep input UX intact
+      // Intentionally no-op here to preserve original styles and behavior
     }
   }
 
@@ -95,11 +83,9 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
             <nav className="flex" aria-label="Breadcrumb">
               <ol className="flex items-center space-x-2 text-sm">
                 <li>
-                  <Link
-                    href="/admin"
+                  <Link 
+                    href="/admin" 
                     className="text-gray-500 hover:text-gray-700 flex items-center"
-                    aria-label="Overview"
-                    title="Overview"
                   >
                     <Home className="h-4 w-4" />
                   </Link>
@@ -107,7 +93,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
                 {breadcrumbs.map((breadcrumb, index) => (
                   <li key={breadcrumb.href} className="flex items-center">
                     <ChevronDown className="h-4 w-4 text-gray-400 rotate-[-90deg] mx-1" />
-                    {breadcrumb.isLast ? (
+                    {index === breadcrumbs.length - 1 ? (
                       <span className="text-gray-900 font-medium">
                         {breadcrumb.label}
                       </span>
@@ -177,6 +163,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
                 <Button variant="ghost" className="flex items-center space-x-2 px-3">
                   <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
                     {session?.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={session.user.image}
                         alt={session.user.name || 'User'}

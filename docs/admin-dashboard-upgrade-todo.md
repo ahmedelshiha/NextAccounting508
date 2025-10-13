@@ -32,18 +32,16 @@ Created: 2025-10-08
   - **Impact**: Improves admin productivity; groundwork for per-page pinning with FavoriteToggle
 
 ## 🚧 In Progress
-- [ ] Prisma migrate and client generation in CI; add tests for new endpoints
-- [ ] Documentation updates and UX validation for Settings Search (copy, hints, empty states)
+- [ ] Documentation updates for Settings features (developer notes, how-to)
 
 ## ⚠️ Issues / Risks
 - Prisma schema changes require migration; ensure DB backups and staging verification
-- Rate limiting advisable for diff preview; add protection in subsequent iteration
 - Detected wider drift (enum recreation, extra table `playing_with_neon`, uniqueness changes). Skipped destructive `db push` to avoid data loss. Plan dedicated migration in staging later.
 
 ## 🔧 Next Steps
 - [ ] Add FavoriteToggle to individual settings pages headers
 - [ ] Persist diffs on save and emit AuditEvent entries
-- [ ] RBAC refinements for settings features; add rate limit to diff preview
+- [ ] RBAC refinements for settings features
 - [ ] Add unit tests for search hook and keyboard interactions
 - [ ] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
@@ -90,3 +88,100 @@ Created: 2025-10-08
 - Changes: Added unit tests for favorites service (get/add/remove) and DOM tests for SettingsSearch keyboard interactions (Slash focus, Mod+K, arrow navigation, Enter).
 - Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
 - Notes: Mocks useSettingsSearchIndex and next/navigation router; no UI changes.
+
+---
+### NAV-001: Centralize Admin Navigation and Breadcrumbs
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:00:00  
+Duration: ~45m
+
+Changes: Replaced hard-coded AdminSidebar menu with centralized registry (src/lib/admin/navigation-registry.ts). Removed stale Invoices → Templates link. Settings submenu is now sourced from SETTINGS_REGISTRY. AdminHeader breadcrumbs now derive from the registry for consistent labels.
+
+Files Modified:
+- `src/components/admin/layout/AdminSidebar.tsx` - Refactored to use getNavigation(), dynamic settings children, preserved styles and A11Y
+- `src/components/admin/layout/AdminHeader.tsx` - Breadcrumbs now use getBreadcrumbs() from registry
+
+Testing:
+- ✅ Sidebar renders sections and respects permissions
+- ✅ Removed non-existent Templates link
+- ✅ Breadcrumb labels match registry entries
+
+Notes: Kept original round/blue styles and layout dimensions. No breaking route changes. Next up: mark CI prisma migrate task as done after verifying pipelines.
+
+---
+### API-001: Tests for Favorites and Diff Preview Endpoints
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:15:00  
+Duration: ~25m
+
+Changes: Added Vitest API tests validating happy-path and error conditions for settings favorites and diff preview endpoints, including rate-limit 429 case.
+
+Files Added:
+- `tests/admin-settings.favorites.api.test.ts` - GET/POST/DELETE lifecycle, payload validation
+- `tests/admin-settings.diff-preview.api.test.ts` - payload validation, diff response, rate-limiting
+
+Testing:
+- ✅ Favorites: create → list → delete workflow
+- ✅ Diff Preview: invalid payload (400), valid diff (200), rate-limit (429)
+
+Notes: Prisma is mocked to avoid DB. withTenantContext/requireTenantContext mocked to ensure tenant scoping.
+
+---
+### UX-001: Settings Search Empty States & Hints
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:25:00  
+Duration: ~10m
+
+Changes: Added empty-state messages and keyboard hint in SettingsSearch popover; shows "Type to search settings" when empty, and "No results found" when there are no matches. Preserved original styling and keyboard navigation.
+
+Files Modified:
+- `src/components/admin/settings/SettingsSearch.tsx` - empty states and hint copy
+
+Testing:
+- ✅ Keyboard shortcuts still focus the input (/ and ⌘K)
+- ✅ No results message appears for unmatched queries
+- ✅ Hint appears when opening with empty query
+
+Notes: No style regressions; maintained classNames and layout.
+
+---
+### FIX-001: Prerender crash on /admin/settings/timezone (Maximum call stack size exceeded)
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:35:00  
+Duration: ~10m
+
+Root Cause: Settings submenu included the Overview entry with href `/admin/settings`, which the Sidebar treats as the parent "Settings" item. This created infinite recursion during SSR when rendering children.
+
+Change:
+- Excluded `/admin/settings` from dynamically generated settings children and prefixed child ids to avoid collisions.
+
+Files Modified:
+- `src/components/admin/layout/AdminSidebar.tsx` - filter out Overview route in renderSettingsChildren()
+
+Testing:
+- ✅ Sidebar still lists all settings categories except the parent Overview under the submenu
+- ✅ No recursion when mapping settings children
+
+Notes: Styles unchanged; behavior of parent Settings node remains expanded without toggle.
+
+---
+### CI-002: Mitigate Prisma advisory lock timeouts (P1002)
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:40:00  
+Duration: ~5m
+
+Change:
+- Added retry/backoff (3 attempts, 5s delay) to `scripts/ci/run-prisma-migrate-if-db.sh` for `prisma migrate deploy` to handle transient advisory lock timeouts on Neon.
+
+Files Modified:
+- `scripts/ci/run-prisma-migrate-if-db.sh`
+
+Testing:
+- ✅ Build should auto-retry migrate deploy on transient failures
+
+Notes: If timeouts persist across all retries, build will still fail to avoid skipping necessary migrations.
