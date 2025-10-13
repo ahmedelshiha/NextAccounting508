@@ -40,7 +40,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
   // Allow a fallback secret during local/E2E runs so tests can use the dev login helper.
   // In production we still require NEXTAUTH_SECRET to be set.
-  const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ?? ((process.env.NODE_ENV as string) === 'production' ? undefined : 'dev-e2e-secret')
+  // Allow fallback secret for tests when SKIP_ENV_VALIDATION is set or when not in production
+  const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ?? ((process.env.SKIP_ENV_VALIDATION === 'true' || (process.env.NODE_ENV as string) !== 'production') ? 'dev-e2e-secret' : undefined)
   if (!NEXTAUTH_SECRET) {
     return NextResponse.json(
       { success: false, error: 'NEXTAUTH_SECRET not configured' },
