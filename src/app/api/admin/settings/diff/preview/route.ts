@@ -22,6 +22,15 @@ export const POST = withTenantContext(async (req: Request) => {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
+  // RBAC: require permission for the targeted settings category
+  try {
+    const target = (SETTINGS_REGISTRY || []).find((c: any) => c && (c.key === category || c.route === category))
+    const required = target?.permission as any
+    if (required && !hasPermission(ctx.role, required)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  } catch {}
+
   const changes = jsonDiff(before, after)
   return NextResponse.json({ ok: true, data: { category, count: changes.length, changes } })
 })
