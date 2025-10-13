@@ -96,10 +96,15 @@ export function withTenantContext(
           // Try passing the request to getServerSession (App Router signature); fall back if it errors.
           try {
             session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
-          } catch (_) {
+            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) returned', !!session)
+          } catch (err1) {
+            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) threw', err1 && err1.message)
             try {
               session = await naNext.getServerSession((authMod as any).authOptions)
-            } catch {}
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) returned', !!session)
+            } catch (err2) {
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) threw', err2 && err2.message)
+            }
           }
         } else {
           // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
@@ -108,17 +113,33 @@ export function withTenantContext(
             if (na && typeof na.getServerSession === 'function') {
               try {
                 session = await na.getServerSession(request as any, (authMod as any).authOptions)
-              } catch (_) {
-                session = await na.getServerSession((authMod as any).authOptions)
+                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) returned', !!session)
+              } catch (err3) {
+                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) threw', err3 && err3.message)
+                try {
+                  session = await na.getServerSession((authMod as any).authOptions)
+                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) returned', !!session)
+                } catch (err4) {
+                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) threw', err4 && err4.message)
+                }
               }
             }
-          } catch {}
+          } catch (err5) {
+            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth import threw', err5 && err5.message)
+          }
         }
-      } catch {
+      } catch (e) {
         session = null
+        if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] session resolution outer catch', e && e.message)
       }
 
       if (requireAuth && !session?.user) {
+        if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) {
+          try {
+            const cookieHeader = (request && (request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('cookie') : null
+            console.debug('[api-wrapper] rejecting request as unauthorized; request.url=', (request && (request as any).url) || null, 'cookie=', Boolean(cookieHeader))
+          } catch {}
+        }
         return attachRequestId(
           NextResponse.json(
             { error: 'Unauthorized', message: 'Authentication required' },
