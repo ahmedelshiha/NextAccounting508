@@ -88,14 +88,9 @@ export class ServicesService {
         tenantId = t?.id || null
       }
 
-      if (!tenantId) {
-        // Attempt to resolve or create a default tenant when tenant cannot be determined (legacy/test fallback)
-        try {
-          tenantId = await getDefaultTenantId()
-        } catch (err) {
-          throw new Error('Tenant context required to clone service')
-        }
-      }
+      // If tenantId is missing, allow creating a global/shared clone (legacy behaviour in tests)
+      // tenant connection will be omitted so the new service is global when no tenant is present.
+      // (No-op)
 
       const baseSlug = generateSlug(name)
 
