@@ -16,7 +16,7 @@ export default async function AdminOverviewPage() {
 
   const role = (session.user as any)?.role as string | undefined
   if (role === 'CLIENT') redirect('/portal')
-  if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) redirect('/admin/analytics')
+  if (!['ADMIN', 'TEAM_LEAD', 'SUPER_ADMIN'].includes(role || '')) redirect('/admin/analytics')
 
   // Hydrate initial KPI data server-side for faster first paint (do not throw on failures)
   let bookingsJson: any = null
