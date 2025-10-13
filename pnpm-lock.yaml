@@ -145,8 +145,8 @@ importers:
         specifier: ^3
         version: 3.3.1
       '@netlify/plugin-nextjs':
-        specifier: 5.13.3
-        version: 5.13.3
+        specifier: 5.13.5
+        version: 5.13.5
       '@playwright/test':
         specifier: ^1.49.0
         version: 1.56.0
@@ -884,8 +884,8 @@ packages:
     resolution: {integrity: sha512-OAs1xG+FfLX0LoRASpqzVntVV/RpYkgpI0VrUnw2u0Q1qiZUzcPffxRK8HF3gc4GjuhG5ahOEMJ9bswBiZPq0g==}
     engines: {node: ^14.16.0 || >=16.0.0}
 
-  '@netlify/plugin-nextjs@5.13.3':
-    resolution: {integrity: sha512-QIEsiTLEySyXroAOhstY01xROokOFojTkhzqhewQAMddbqDrVaCUI6w649R/1MJ0XcD6cB3se/dn8KJXh40HLw==}
+  '@netlify/plugin-nextjs@5.13.5':
+    resolution: {integrity: sha512-zuP4sqckaeJ8rtiNYwoOpQnEb/8E4Ewf+FJDxts2s6gfgmXGuk4W5ViKZtITWWjuzxqbxG+p4t20PXltIyeJBA==}
     engines: {node: '>=18.0.0'}
 
   '@netlify/serverless-functions-api@1.26.1':
@@ -2013,6 +2013,9 @@ packages:
 
   '@types/node@20.19.19':
     resolution: {integrity: sha512-pb1Uqj5WJP7wrcbLU7Ru4QtA0+3kAXrkutGiD26wUKzSMgNNaPARTUDQmElUXp64kh3cWdou3Q0C7qwwxqSFmg==}
+
+  '@types/node@20.19.21':
+    resolution: {integrity: sha512-CsGG2P3I5y48RPMfprQGfy4JPRZ6csfC3ltBZSRItG3ngggmNY/qs2uZKp4p9VbrpqNNSMzUZNFZKzgOGnd/VA==}
 
   '@types/pg-pool@2.0.6':
     resolution: {integrity: sha512-TaAUE5rq2VQYxab5Ts7WZhKNmuN78Q6PiFonTDdpbx8a1H0M1vhy3rhiMjl+e2iHmogyMw7jZF4FrE6eJUy5HQ==}
@@ -5280,7 +5283,7 @@ snapshots:
 
   '@netlify/node-cookies@0.1.0': {}
 
-  '@netlify/plugin-nextjs@5.13.3': {}
+  '@netlify/plugin-nextjs@5.13.5': {}
 
   '@netlify/serverless-functions-api@1.26.1':
     dependencies:
@@ -6468,6 +6471,10 @@ snapshots:
       '@types/node': 20.19.19
 
   '@types/node@20.19.19':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@20.19.21':
     dependencies:
       undici-types: 6.21.0
 
@@ -8043,7 +8050,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.19.19
+      '@types/node': 20.19.21
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
