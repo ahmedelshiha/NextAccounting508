@@ -1,4 +1,5 @@
 import React from 'react'
+import React from 'react'
 import type { ActionItem, IconType } from '@/types/dashboard'
 
 /**
@@ -80,17 +81,22 @@ export function validateIcon(icon: IconType | React.ReactNode, context: string =
     return { isValid: true, errors, warnings }
   }
 
-  // Check for React component objects (main cause of error #31)
-  if (typeof icon === 'object' && icon && '$$typeof' in icon) {
-    errors.push(`${context}: React component object detected - use component reference instead of JSX element`)
-    console.error(`🚨 ${context}: React component object passed as icon:`, {
-      iconType: typeof icon,
-      iconKeys: Object.keys(icon),
-      hasRender: 'render' in icon,
-      hasDisplayName: 'displayName' in icon,
-      suggestion: 'Pass the component reference (e.g., Plus) instead of JSX element (e.g., <Plus />)'
-    })
-    return { isValid: false, errors, warnings }
+  // Accept React forwardRef/memo component objects (common for icon libraries)
+  if (typeof icon === 'object' && icon && '$$typeof' in (icon as any)) {
+    const marker = (icon as any).$$typeof
+    const REACT_FORWARD_REF = typeof Symbol === 'function' ? Symbol.for('react.forward_ref') : null
+    const REACT_MEMO = typeof Symbol === 'function' ? Symbol.for('react.memo') : null
+    if ((marker === REACT_FORWARD_REF || marker === REACT_MEMO) && typeof (icon as any).render === 'function') {
+      return { isValid: true, errors, warnings }
+    }
+    // If it's an instantiated element (JSX), treat as valid but warn
+    if (React.isValidElement(icon)) {
+      warnings.push(`${context}: React element passed as icon - ensure it's intentional`)
+      return { isValid: true, errors, warnings }
+    }
+    // Unknown react exotic object
+    warnings.push(`${context}: Unknown React object passed as icon`)
+    return { isValid: true, errors, warnings }
   }
 
   // Check for function (IconType) - this is correct
