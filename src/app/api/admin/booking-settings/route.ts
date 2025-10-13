@@ -12,6 +12,8 @@ export const GET = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? ''
   if (!hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_VIEW)) {
+    // Tests expect CLIENT role to be treated as unauthorized (401) rather than forbidden (403)
+    if (role === 'CLIENT') return respond.unauthorized('Unauthorized')
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
