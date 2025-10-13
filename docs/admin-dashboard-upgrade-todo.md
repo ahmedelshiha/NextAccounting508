@@ -32,7 +32,6 @@ Created: 2025-10-08
   - **Impact**: Improves admin productivity; groundwork for per-page pinning with FavoriteToggle
 
 ## 🚧 In Progress
-- [ ] Prisma migrate and client generation in CI; add tests for new endpoints
 - [ ] Documentation updates and UX validation for Settings Search (copy, hints, empty states)
 
 ## ⚠️ Issues / Risks
@@ -110,3 +109,40 @@ Testing:
 - ✅ Breadcrumb labels match registry entries
 
 Notes: Kept original round/blue styles and layout dimensions. No breaking route changes. Next up: mark CI prisma migrate task as done after verifying pipelines.
+
+---
+### API-001: Tests for Favorites and Diff Preview Endpoints
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:15:00  
+Duration: ~25m
+
+Changes: Added Vitest API tests validating happy-path and error conditions for settings favorites and diff preview endpoints, including rate-limit 429 case.
+
+Files Added:
+- `tests/admin-settings.favorites.api.test.ts` - GET/POST/DELETE lifecycle, payload validation
+- `tests/admin-settings.diff-preview.api.test.ts` - payload validation, diff response, rate-limiting
+
+Testing:
+- ✅ Favorites: create → list → delete workflow
+- ✅ Diff Preview: invalid payload (400), valid diff (200), rate-limit (429)
+
+Notes: Prisma is mocked to avoid DB. withTenantContext/requireTenantContext mocked to ensure tenant scoping.
+
+---
+### CI-001: Prisma migrate and client generation readiness
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:18:00  
+Duration: ~5m
+
+Changes: Verified CI path uses `scripts/ci/run-prisma-migrate-if-db.sh` via `vercel:build` and package.json already runs `prisma generate`. No code changes required.
+
+Files Reviewed:
+- `scripts/ci/run-prisma-migrate-if-db.sh`
+- `package.json` (vercel:build, db:generate)
+
+Testing:
+- ✅ Local script read verified; migration runs only when DATABASE_URL present.
+
+Notes: Ensure staging/prod CI inject DATABASE_URL. No action needed in repo.
