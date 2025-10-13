@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 /**
  * RealtimeProvider establishes a Server-Sent Events (SSE) connection to
  * /api/admin/realtime and exposes a lightweight pub/sub API. Consumers may
