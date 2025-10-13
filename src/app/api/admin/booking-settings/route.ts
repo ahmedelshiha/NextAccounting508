@@ -31,6 +31,7 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? ''
   if (!hasPermission(role, PERMISSIONS.BOOKING_SETTINGS_EDIT)) {
+    if (role === 'CLIENT') return respond.unauthorized('Unauthorized')
     return respond.forbidden('Forbidden')
   }
   const tenantId = ctx.tenantId
