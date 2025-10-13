@@ -39,12 +39,12 @@ Created: 2025-10-08
 - Detected wider drift (enum recreation, extra table `playing_with_neon`, uniqueness changes). Skipped destructive `db push` to avoid data loss. Plan dedicated migration in staging later.
 
 ## 🔧 Next Steps
-- [ ] Add FavoriteToggle to individual settings pages headers
-- [ ] Persist diffs on save and emit AuditEvent entries
+- [x] Add FavoriteToggle to individual settings pages headers
+- [x] Persist diffs on save and emit AuditEvent entries
 - [x] RBAC refinements for settings features
-- [ ] Add unit tests for search hook and keyboard interactions
+- [x] Add unit tests for search hook and keyboard interactions
 - [x] E2E tests for favorites add/remove and persistence across sessions
-- [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
+- [x] Prepare backend search endpoint for cross-tenant large datasets (future)
 
 ## ✅ Completed
 - [x] Added FavoriteToggle to settings headers (organization, booking, financial, communication, clients, team, tasks, services, analytics, integrations, security, system)
