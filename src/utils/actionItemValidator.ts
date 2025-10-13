@@ -1,5 +1,6 @@
 import React from 'react'
-import React from 'react'
+import { isValidElement } from 'react'
+import type { ReactNode } from 'react'
 import type { ActionItem, IconType } from '@/types/dashboard'
 
 /**
@@ -73,7 +74,7 @@ export function validateActionItems(actions: ActionItem[], context: string = 'Ac
 /**
  * Validates icon prop to prevent React error #31
  */
-export function validateIcon(icon: IconType | React.ReactNode, context: string = 'Icon'): ValidationResult {
+export function validateIcon(icon: IconType | ReactNode, context: string = 'Icon'): ValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
 
@@ -90,7 +91,7 @@ export function validateIcon(icon: IconType | React.ReactNode, context: string =
       return { isValid: true, errors, warnings }
     }
     // If it's an instantiated element (JSX), treat as valid but warn
-    if (React.isValidElement(icon)) {
+    if (isValidElement(icon)) {
       warnings.push(`${context}: React element passed as icon - ensure it's intentional`)
       return { isValid: true, errors, warnings }
     }
@@ -112,7 +113,7 @@ export function validateIcon(icon: IconType | React.ReactNode, context: string =
   }
 
   // Check for valid React elements
-  if (React.isValidElement(icon)) {
+  if (isValidElement(icon)) {
     // This is generally okay, but log for monitoring
     warnings.push(`${context}: React element passed as icon - ensure it's intentional`)
     return { isValid: true, errors, warnings }
@@ -184,7 +185,7 @@ export function devValidateProps(props: any, componentName: string): void {
   // Check for common problematic patterns
   Object.entries(props).forEach(([key, value]) => {
     if (key.includes('icon') || key.includes('Icon')) {
-      const validation = validateIcon(value as IconType | React.ReactNode, `${componentName}.${key}`)
+      const validation = validateIcon(value as IconType | ReactNode, `${componentName}.${key}`)
       if (!validation.isValid) {
         console.error(`🚨 ${componentName}: Invalid icon prop "${key}":`, validation.errors)
       }
