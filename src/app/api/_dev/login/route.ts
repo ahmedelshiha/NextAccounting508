@@ -31,7 +31,7 @@ function getClientIp(request: NextRequest) {
  * Never available in production and optionally gated by DEV_LOGIN_TOKEN and DEV_LOGIN_ALLOWED_IPS.
  */
 export const POST = withTenantContext(async (request: NextRequest) => {
-  if (process.env.NODE_ENV === 'production') {
+  if ((process.env.NODE_ENV as string) === 'production') {
     return NextResponse.json(
       { success: false, error: 'Not allowed in production' },
       { status: 403 },
@@ -110,7 +110,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
     let tenant = tenantCandidate ?? (await prisma.tenant.findFirst())
     // If no tenant exists in non-production, create a default tenant for E2E runs
-    if (!tenant && process.env.NODE_ENV !== 'production') {
+    if (!tenant && (process.env.NODE_ENV as string) !== 'production') {
       tenant = await prisma.tenant.create({ data: { slug: tenantSlug, name: 'Primary (E2E)' } })
     }
 
@@ -126,7 +126,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       (await prisma.user.findFirst({ where: { email } }))
 
     // Create a dev user if missing in non-production to support E2E flows
-    if (!user && process.env.NODE_ENV !== 'production') {
+    if (!user && (process.env.NODE_ENV as string) !== 'production') {
       user = await prisma.user.create({
         data: {
           tenantId: tenant!.id,
@@ -149,7 +149,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
       tenantId ? await prisma.tenantMembership.findFirst({ where: { userId: user.id, tenantId } }) : null
 
     // If no membership exists, create a default membership for the dev user (non-production only)
-    if (!membership && process.env.NODE_ENV !== 'production') {
+    if (!membership && (process.env.NODE_ENV as string) !== 'production') {
       await prisma.tenantMembership.create({ data: { userId: user.id, tenantId: tenant!.id, role: 'SUPER_ADMIN', isDefault: true } })
     }
 
