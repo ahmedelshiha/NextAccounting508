@@ -19,8 +19,8 @@ export default function SettingsNavigation({ className = '' }: { className?: str
     const catPerm = (c as any).permission as string | string[] | undefined
     if (catPerm) {
       // allow array or single
-      if (Array.isArray(catPerm)) return catPerm.some((p) => perms.has(p))
-      return perms.has(catPerm as string)
+      if (Array.isArray(catPerm)) return catPerm.some((p) => perms.has(p as any))
+      return perms.has(catPerm as any)
     }
 
     // If no category-level permission, check tabs: if all tabs are restricted and unseen, hide the category
