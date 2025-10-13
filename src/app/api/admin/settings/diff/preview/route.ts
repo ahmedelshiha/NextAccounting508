@@ -33,5 +33,9 @@ export const POST = withTenantContext(async (req: Request) => {
   } catch {}
 
   const changes = jsonDiff(before, after)
+
+  // Audit: record diff preview request
+  try { await logAudit({ action: 'settings.diff.preview', actorId: String(ctx.userId), tenantId: ctx.tenantId, details: { category, count: changes.length } }) } catch (e) {}
+
   return NextResponse.json({ ok: true, data: { category, count: changes.length, changes } })
 })
