@@ -14,6 +14,7 @@ vi.mock('@sentry/nextjs', () => {
 
 describe('Sentry tenant tagging (server)', () => {
   beforeEach(async () => {
+    vi.resetModules()
     capturedProcessor = null
     // Re-import the config to register the processor
     // Use dynamic import so our mock is applied first
