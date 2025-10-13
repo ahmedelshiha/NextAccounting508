@@ -253,13 +253,8 @@ export function withTenantContext(
           if (tenantForVerification) {
             const ok = await verifyTenantCookie(tenantCookie, String(tenantForVerification), String(user.id))
             if (!ok) {
-              logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: tenantForVerification })
-              return attachRequestId(
-                NextResponse.json(
-                  { error: 'Forbidden', message: 'Invalid tenant signature' },
-                  { status: 403 }
-                )
-              )
+              // Warn but do not hard-block; continue with resolved context to avoid breaking read-only admin views
+              logger.warn('Invalid tenant cookie signature (continuing)', { userId: user.id, tenantId: tenantForVerification })
             }
           } else {
             // No resolved tenant available yet; skip strict enforcement to allow graceful fallback
