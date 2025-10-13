@@ -4,12 +4,50 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { hasPermission } from '@/lib/permissions'
+import Fuse from 'fuse.js'
 
 type SearchItem = {
+  id: string
   key: string
   label: string
   route: string
   category: string
+}
+
+let cachedFuse: Fuse<SearchItem> | null = null
+let cachedItems: SearchItem[] | null = null
+
+function buildIndex() {
+  const items: SearchItem[] = []
+  for (const cat of SETTINGS_REGISTRY) {
+    if (!cat) continue
+    items.push({ id: cat.key, key: cat.key, label: cat.label, route: cat.route, category: cat.key })
+    const tabs = cat.tabs ?? []
+    for (const tab of tabs) {
+      if (!tab) continue
+      const tabLabel = tab.label || tab.key
+      const tabRoute = (tab as any).route || `${cat.route}?tab=${tab.key}`
+      items.push({ id: `${cat.key}:${tab.key}`, key: `${cat.key}:${tab.key}`, label: `${cat.label} — ${tabLabel}`, route: tabRoute, category: cat.key })
+    }
+  }
+
+  const fuse = new Fuse(items, {
+    keys: ['label', 'key', 'category', 'route'],
+    includeScore: true,
+    threshold: 0.4,
+    ignoreLocation: true,
+    minMatchCharLength: 1,
+  })
+  cachedFuse = fuse
+  cachedItems = items
+  return { fuse, items }
+}
+
+function ensureIndex() {
+  if (!cachedFuse || !cachedItems) {
+    return buildIndex()
+  }
+  return { fuse: cachedFuse, items: cachedItems }
 }
 
 export const GET = withTenantContext(async (request: Request) => {
@@ -39,67 +77,64 @@ export const GET = withTenantContext(async (request: Request) => {
       )
     }
 
-    const qLower = q.toLowerCase()
-    const items: SearchItem[] = []
+    // Build or reuse index
+    const { fuse, items } = ensureIndex()
 
-    for (const cat of SETTINGS_REGISTRY) {
-      if (!cat) continue
-      // category-level permission check
+    // Filter items by permission and category first to reduce search space
+    const visibleItems = items.filter((it) => {
+      const cat = SETTINGS_REGISTRY.find((c) => c && c.key === it.category)
+      if (!cat) return false
       const catPerm = (cat as any).permission as string | string[] | undefined
       if (catPerm) {
         if (Array.isArray(catPerm)) {
           const ok = catPerm.some((p) => hasPermission(ctx.role ?? undefined, p as any))
-          if (!ok) continue
+          if (!ok) return false
         } else {
-          if (!hasPermission(ctx.role ?? undefined, catPerm as any)) continue
+          if (!hasPermission(ctx.role ?? undefined, catPerm as any)) return false
         }
       }
-
-      // include category as an item
-      items.push({ key: cat.key, label: cat.label, route: cat.route, category: cat.key })
-
-      // include tabs if present and visible
-      const tabs = cat.tabs ?? []
-      for (const tab of tabs) {
-        if (!tab) continue
-        const tabPerm = (tab as any).permission as string | string[] | undefined
-        if (tabPerm) {
-          if (Array.isArray(tabPerm)) {
-            const ok = tabPerm.some((p) => hasPermission(ctx.role ?? undefined, p as any))
-            if (!ok) continue
-          } else {
-            if (!hasPermission(ctx.role ?? undefined, tabPerm as any)) continue
+      // If this is a tab item, check tab permission
+      if (it.key.includes(':')) {
+        const parts = it.key.split(':')
+        const catKey = parts[0]
+        const tabKey = parts[1]
+        const catObj = SETTINGS_REGISTRY.find((c) => c && c.key === catKey)
+        const tabObj = catObj?.tabs?.find((t: any) => t.key === tabKey)
+        if (tabObj) {
+          const tabPerm = (tabObj as any).permission as string | string[] | undefined
+          if (tabPerm) {
+            if (Array.isArray(tabPerm)) {
+              const ok = tabPerm.some((p) => hasPermission(ctx.role ?? undefined, p as any))
+              if (!ok) return false
+            } else {
+              if (!hasPermission(ctx.role ?? undefined, tabPerm as any)) return false
+            }
           }
         }
-        const tabLabel = tab.label || tab.key
-        // prefer tab.route if provided, otherwise compose
-        const tabRoute = (tab as any).route || `${cat.route}?tab=${tab.key}`
-        items.push({ key: `${cat.key}:${tab.key}`, label: `${cat.label} — ${tabLabel}`, route: tabRoute, category: cat.key })
       }
+      if (categoryFilter && it.category !== categoryFilter) return false
+      return true
+    })
+
+    // If nothing visible, return empty
+    if (visibleItems.length === 0) {
+      return NextResponse.json({ ok: true, data: { items: [], total: 0, page, perPage } })
     }
 
-    // Optional category filter
-    const filteredByCategory = typeof categoryFilter === 'string' ? items.filter(i => i.category === categoryFilter) : items
+    // Run Fuse search on the visible items (create a transient fuse instance for subset)
+    const fuseSubset = new Fuse(visibleItems, {
+      keys: ['label', 'key', 'category', 'route'],
+      includeScore: true,
+      threshold: 0.45,
+      ignoreLocation: true,
+      minMatchCharLength: 1,
+    })
 
-    // Simple scoring: exact startsWith > includes > fuzzy by index. For now, use includes.
-    const scored = filteredByCategory
-      .map((it) => ({
-        item: it,
-        score: (() => {
-          const l = it.label.toLowerCase()
-          if (l === qLower) return 0
-          const idx = l.indexOf(qLower)
-          if (idx === 0) return 1
-          if (idx > 0) return 2 + idx
-          return 1000
-        })(),
-      }))
-      .filter(s => s.score < 1000)
-      .sort((a, b) => a.score - b.score)
-
-    const total = scored.length
+    const results = fuseSubset.search(q)
+    const mapped = results.map(r => ({ item: r.item, score: r.score ?? 0 }))
+    const total = mapped.length
     const start = (page - 1) * perPage
-    const slice = scored.slice(start, start + perPage).map(s => s.item)
+    const slice = mapped.slice(start, start + perPage).map(m => m.item)
 
     return NextResponse.json({ ok: true, data: { items: slice, total, page, perPage } })
   } catch (error: any) {
