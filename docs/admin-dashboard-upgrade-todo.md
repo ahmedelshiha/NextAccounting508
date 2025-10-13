@@ -118,13 +118,13 @@ Duration: ~25m
 
 Changes: Added Vitest API tests validating happy-path and error conditions for settings favorites and diff preview endpoints, including rate-limit 429 case.
 
-Files Added:
-- `tests/admin-settings.favorites.api.test.ts` - GET/POST/DELETE lifecycle, payload validation
-- `tests/admin-settings.diff-preview.api.test.ts` - payload validation, diff response, rate-limiting
+Files Added / Updated:
+- `tests/admin-settings.favorites.api.test.ts` - updated to assert audit logging on add/remove
+- `tests/admin-settings.diff-preview.api.test.ts` - updated to assert audit logging on valid preview and absence on rate-limit
 
 Testing:
-- ✅ Favorites: create → list → delete workflow
-- ✅ Diff Preview: invalid payload (400), valid diff (200), rate-limit (429)
+- ✅ Favorites: create → list → delete workflow, audit events validated
+- ✅ Diff Preview: invalid payload (400), valid diff (200) with audit, rate-limit (429) without audit
 
 Notes: Prisma is mocked to avoid DB. withTenantContext/requireTenantContext mocked to ensure tenant scoping.
 
