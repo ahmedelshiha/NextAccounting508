@@ -142,6 +142,8 @@ export const NAVIGATION_SECTIONS: NavSection[] = [
   },
 ]
 
+import SETTINGS_REGISTRY from '@/lib/settings/registry'
+
 export function getNavigation(params: { userRole?: string | null; counts?: Record<string, number | string | undefined> | null }) {
   const { userRole, counts } = params
 
@@ -150,14 +152,35 @@ export function getNavigation(params: { userRole?: string | null; counts?: Recor
     return hasPermission(userRole, perm as any)
   }
 
+  const buildSettingsChildren = (): NavItemMeta[] => {
+    try {
+      const children: NavItemMeta[] = []
+      for (const cat of SETTINGS_REGISTRY) {
+        // Exclude overview to avoid recursion in sidebar and breadcrumbs
+        if (cat.route === '/admin/settings') continue
+        if (!allow(cat.permission as any)) continue
+        children.push({
+          id: `settings_${cat.key}`,
+          label: cat.label,
+          href: cat.route,
+          icon: cat.icon as IconType,
+        })
+      }
+      return children
+    } catch {
+      return []
+    }
+  }
+
   const mapItem = (item: NavItemMeta): NavItemMeta => {
-    const badge = item.badgeKey ? (counts?.[item.badgeKey] as any) : undefined
-    const children = item.children?.filter(chi => allow(chi.permission)).map(mapItem)
+    const childrenBase = item.children?.filter(chi => allow(chi.permission)).map(mapItem)
+    const isSettings = item.id === 'settings' && item.href === '/admin/settings'
+    const settingsChildren = isSettings ? buildSettingsChildren() : undefined
+    const children = settingsChildren ?? childrenBase
+
     return {
       ...item,
-      // attach runtime-resolved badge as string|number if present
-      ...(badge ? { badgeKey: item.badgeKey } : {}),
-      ...(children ? { children } : {}),
+      ...(children && children.length ? { children } : {}),
     }
   }
 

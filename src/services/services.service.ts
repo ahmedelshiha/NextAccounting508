@@ -252,7 +252,8 @@ export class ServicesService {
             WHERE "tenantId" = ${tId}
           `, tId)
         : [] as any[];
-      let items = all.map(this.toType);
+      const safeAll = Array.isArray(all) ? all : (all ? Array.from(all as any) : []);
+      let items = safeAll.map((row: any) => this.toType(row));
       // Apply basic filters client-side
       const basicFilters: any = { search, category, featured, status };
       items = filterServices(items as any[], basicFilters) as any;

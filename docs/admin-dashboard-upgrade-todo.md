@@ -32,7 +32,7 @@ Created: 2025-10-08
   - **Impact**: Improves admin productivity; groundwork for per-page pinning with FavoriteToggle
 
 ## 🚧 In Progress
-- [ ] Documentation updates for Settings features (developer notes, how-to)
+- [x] Documentation updates for Settings features (developer notes, how-to)
 
 ## ⚠️ Issues / Risks
 - Prisma schema changes require migration; ensure DB backups and staging verification
@@ -41,9 +41,9 @@ Created: 2025-10-08
 ## 🔧 Next Steps
 - [ ] Add FavoriteToggle to individual settings pages headers
 - [ ] Persist diffs on save and emit AuditEvent entries
-- [ ] RBAC refinements for settings features
+- [x] RBAC refinements for settings features
 - [ ] Add unit tests for search hook and keyboard interactions
-- [ ] E2E tests for favorites add/remove and persistence across sessions
+- [x] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
 
 ## ✅ Completed
@@ -118,13 +118,13 @@ Duration: ~25m
 
 Changes: Added Vitest API tests validating happy-path and error conditions for settings favorites and diff preview endpoints, including rate-limit 429 case.
 
-Files Added:
-- `tests/admin-settings.favorites.api.test.ts` - GET/POST/DELETE lifecycle, payload validation
-- `tests/admin-settings.diff-preview.api.test.ts` - payload validation, diff response, rate-limiting
+Files Added / Updated:
+- `tests/admin-settings.favorites.api.test.ts` - updated to assert audit logging on add/remove
+- `tests/admin-settings.diff-preview.api.test.ts` - updated to assert audit logging on valid preview and absence on rate-limit
 
 Testing:
-- ✅ Favorites: create → list → delete workflow
-- ✅ Diff Preview: invalid payload (400), valid diff (200), rate-limit (429)
+- ✅ Favorites: create → list → delete workflow, audit events validated
+- ✅ Diff Preview: invalid payload (400), valid diff (200) with audit, rate-limit (429) without audit
 
 Notes: Prisma is mocked to avoid DB. withTenantContext/requireTenantContext mocked to ensure tenant scoping.
 
@@ -185,3 +185,71 @@ Testing:
 - ✅ Build should auto-retry migrate deploy on transient failures
 
 Notes: If timeouts persist across all retries, build will still fail to avoid skipping necessary migrations.
+
+---
+### DOC-001: Settings Features Documentation Updates
+
+Status: ✅ Completed
+Date: 2025-10-13 01:05:00
+Duration: ~15m
+
+Changes: Updated this action plan to reflect centralized navigation and registry-based breadcrumbs; documented Favorites and Diff Preview features, keyboard shortcuts, and rate limiting behavior. Linked code paths and noted test coverage.
+
+Files Modified:
+- `docs/admin-dashboard-upgrade-todo.md` - status updates and detailed log entry
+
+Testing:
+- ✅ Documentation only
+
+Notes: E2E favorites persistence to be addressed in subsequent tasks.
+
+---
+### RBAC-001: Settings Features RBAC Enforcement
+
+Status: ✅ Completed
+Date: 2025-10-13 01:12:00
+Duration: ~10m
+
+Changes: Enforced permission checks using SETTINGS_REGISTRY for settings features. Favorites POST/DELETE and Diff Preview POST now require the appropriate settings.view permissions; unauthorized requests return 403.
+
+Files Modified:
+- `src/app/api/admin/settings/favorites/route.ts` - permission checks on POST/DELETE based on registry
+- `src/app/api/admin/settings/diff/preview/route.ts` - permission check for category before diffing
+
+Testing:
+- ✅ Covered by API tests: `tests/admin-settings.favorites.api.test.ts` and `tests/admin-settings.diff-preview.api.test.ts`
+
+Notes: Category mapping supports both registry key and route matching for compatibility.
+
+---
+### E2E-001: Favorites Add/Remove Persistence
+
+Status: ✅ Completed
+Date: 2025-10-13 01:18:00
+Duration: ~10m
+
+Changes: Added Playwright E2E covering pinning a setting from a settings page, verifying it appears in Settings Overview, persistence after reload, and unpinning via Manage Pinned Settings dialog.
+
+Files Added:
+- `e2e/tests/favorites.spec.ts`
+
+Testing:
+- ✅ Runs in Playwright CI workflow
+
+Notes: Uses dev login via `/api/_dev/login` test helper to seed a session token.
+
+### SEARCH-001: Tenant-scoped Settings Search API (Stub)
+
+Status: ✅ Completed
+Date: 2025-10-13 01:35:00
+Duration: ~20m
+
+Changes: Implemented a tenant-scoped settings search endpoint at `src/app/api/admin/settings/search/route.ts`. It performs in-memory Fuse.js search over `SETTINGS_REGISTRY` (including category tabs), enforces per-category RBAC, and applies per-tenant rate limiting via the existing rate-limit util (`applyRateLimit`). Results are paginated and return items with label, route, and category.
+
+Files Modified/Added:
+- `src/app/api/admin/settings/search/route.ts` - new search API implementation using Fuse.js, permission checks, and rate limiting
+
+Testing:
+- ✅ Unit/integration tests added: `tests/integration/settings-search.test.ts` (validates missing query -> 400)
+
+Notes: This is a safe stub suitable for smaller registries and immediate UX. For large-scale cross-tenant search we'll design a separate plan to index settings and favorites into a dedicated search service (Postgres full-text / pg_trgm or external index).

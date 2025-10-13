@@ -32,6 +32,10 @@ vi.mock('@/lib/tenant-utils', () => ({
   requireTenantContext: vi.fn(() => ({ tenantId: 'tenant1', userId: 'admin1', role: 'ADMIN' })),
 }))
 
+// Mock audit logging
+const mockLogAudit = vi.fn(async () => true)
+vi.mock('@/lib/audit', () => ({ logAudit: (...args: any[]) => mockLogAudit(...args) }))
+
 const base = 'https://t.example.com'
 
 describe('admin/settings/diff/preview API', () => {
@@ -51,6 +55,10 @@ describe('admin/settings/diff/preview API', () => {
     expect(out.data.category).toBe('org')
     expect(out.data.count).toBeGreaterThan(0)
     expect(Array.isArray(out.data.changes)).toBe(true)
+
+    // audit should have been recorded
+    expect(mockLogAudit).toHaveBeenCalled()
+    expect(mockLogAudit.mock.calls[0][0]?.action).toBe('settings.diff.preview')
   })
 
   it('enforces rate limit (429)', async () => {
@@ -61,5 +69,8 @@ describe('admin/settings/diff/preview API', () => {
     const body = { category: 'org', before: { a: 1 }, after: { a: 2 } }
     const res: any = await mod.POST(new Request(`${base}/api/admin/settings/diff/preview`, { method: 'POST', body: JSON.stringify(body) }))
     expect(res.status).toBe(429)
+
+    // audit should not have been called when rate limited
+    expect(mockLogAudit).not.toHaveBeenCalled()
   })
 })
