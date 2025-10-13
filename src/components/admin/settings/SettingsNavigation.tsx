@@ -30,8 +30,8 @@ export default function SettingsNavigation({ className = '' }: { className?: str
       const anyVisible = tabs.some((t: any) => {
         const tp = t.permission as string | string[] | undefined
         if (!tp) return true
-        if (Array.isArray(tp)) return tp.some((p) => perms.has(p))
-        return perms.has(tp as string)
+        if (Array.isArray(tp)) return tp.some((p) => perms.has(p as any))
+        return perms.has(tp as any)
       })
       return anyVisible
     }
