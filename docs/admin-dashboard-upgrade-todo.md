@@ -43,7 +43,7 @@ Created: 2025-10-08
 - [ ] Persist diffs on save and emit AuditEvent entries
 - [x] RBAC refinements for settings features
 - [ ] Add unit tests for search hook and keyboard interactions
-- [ ] E2E tests for favorites add/remove and persistence across sessions
+- [x] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
 
 ## ✅ Completed
@@ -220,3 +220,20 @@ Testing:
 - ✅ Covered by API tests: `tests/admin-settings.favorites.api.test.ts` and `tests/admin-settings.diff-preview.api.test.ts`
 
 Notes: Category mapping supports both registry key and route matching for compatibility.
+
+---
+### E2E-001: Favorites Add/Remove Persistence
+
+Status: ✅ Completed
+Date: 2025-10-13 01:18:00
+Duration: ~10m
+
+Changes: Added Playwright E2E covering pinning a setting from a settings page, verifying it appears in Settings Overview, persistence after reload, and unpinning via Manage Pinned Settings dialog.
+
+Files Added:
+- `e2e/tests/favorites.spec.ts`
+
+Testing:
+- ✅ Runs in Playwright CI workflow
+
+Notes: Uses dev login via `/api/_dev/login` test helper to seed a session token.
