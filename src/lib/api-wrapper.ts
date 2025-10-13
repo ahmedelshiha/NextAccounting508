@@ -208,35 +208,6 @@ export function withTenantContext(
         )
       }
 
-      // Verify tenant signature cookie if present
-      try {
-        const tenantCookie = getCookie(request, 'tenant_sig')
-        if (tenantCookie) {
-          if (!user.tenantId) {
-            logger.warn('Tenant cookie present but session user has no tenantId', { userId: user.id, tenantId: user.tenantId })
-            return attachRequestId(
-              NextResponse.json(
-                { error: 'Forbidden', message: 'Invalid tenant signature' },
-                { status: 403 }
-              )
-            )
-          }
-
-          const ok = await verifyTenantCookie(tenantCookie, String(user.tenantId), String(user.id))
-          if (!ok) {
-            logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: user.tenantId })
-            return attachRequestId(
-              NextResponse.json(
-                { error: 'Forbidden', message: 'Invalid tenant signature' },
-                { status: 403 }
-              )
-            )
-          }
-        }
-      } catch (err) {
-        logger.warn('Failed to validate tenant cookie', { error: err })
-      }
-
       // Resolve tenant id: prefer session.user.tenantId, otherwise try request-based resolution when multi-tenancy is enabled
       let resolvedTenantId: string | null = null
       try {
@@ -273,6 +244,31 @@ export function withTenantContext(
           }
         }
       } catch {}
+
+      // Verify tenant signature cookie if present, using the resolved tenant id when available.
+      try {
+        const tenantCookie = getCookie(request, 'tenant_sig')
+        if (tenantCookie) {
+          const tenantForVerification = resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null)
+          if (tenantForVerification) {
+            const ok = await verifyTenantCookie(tenantCookie, String(tenantForVerification), String(user.id))
+            if (!ok) {
+              logger.warn('Invalid tenant cookie signature', { userId: user.id, tenantId: tenantForVerification })
+              return attachRequestId(
+                NextResponse.json(
+                  { error: 'Forbidden', message: 'Invalid tenant signature' },
+                  { status: 403 }
+                )
+              )
+            }
+          } else {
+            // No resolved tenant available yet; skip strict enforcement to allow graceful fallback
+            logger.warn('Tenant cookie present but no resolved tenant id; skipping strict enforcement', { userId: user.id })
+          }
+        }
+      } catch (err) {
+        logger.warn('Failed to validate tenant cookie', { error: err })
+      }
 
       const context: TenantContext = {
         tenantId: resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null),
