@@ -167,3 +167,21 @@ Testing:
 - ✅ No recursion when mapping settings children
 
 Notes: Styles unchanged; behavior of parent Settings node remains expanded without toggle.
+
+---
+### CI-002: Mitigate Prisma advisory lock timeouts (P1002)
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:40:00  
+Duration: ~5m
+
+Change:
+- Added retry/backoff (3 attempts, 5s delay) to `scripts/ci/run-prisma-migrate-if-db.sh` for `prisma migrate deploy` to handle transient advisory lock timeouts on Neon.
+
+Files Modified:
+- `scripts/ci/run-prisma-migrate-if-db.sh`
+
+Testing:
+- ✅ Build should auto-retry migrate deploy on transient failures
+
+Notes: If timeouts persist across all retries, build will still fail to avoid skipping necessary migrations.
