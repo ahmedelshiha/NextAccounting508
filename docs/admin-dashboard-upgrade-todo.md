@@ -36,7 +36,6 @@ Created: 2025-10-08
 
 ## ⚠️ Issues / Risks
 - Prisma schema changes require migration; ensure DB backups and staging verification
-- Rate limiting advisable for diff preview; add protection in subsequent iteration
 - Detected wider drift (enum recreation, extra table `playing_with_neon`, uniqueness changes). Skipped destructive `db push` to avoid data loss. Plan dedicated migration in staging later.
 
 ## 🔧 Next Steps
@@ -147,3 +146,24 @@ Testing:
 - ✅ Hint appears when opening with empty query
 
 Notes: No style regressions; maintained classNames and layout.
+
+---
+### FIX-001: Prerender crash on /admin/settings/timezone (Maximum call stack size exceeded)
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:35:00  
+Duration: ~10m
+
+Root Cause: Settings submenu included the Overview entry with href `/admin/settings`, which the Sidebar treats as the parent "Settings" item. This created infinite recursion during SSR when rendering children.
+
+Change:
+- Excluded `/admin/settings` from dynamically generated settings children and prefixed child ids to avoid collisions.
+
+Files Modified:
+- `src/components/admin/layout/AdminSidebar.tsx` - filter out Overview route in renderSettingsChildren()
+
+Testing:
+- ✅ Sidebar still lists all settings categories except the parent Overview under the submenu
+- ✅ No recursion when mapping settings children
+
+Notes: Styles unchanged; behavior of parent Settings node remains expanded without toggle.
