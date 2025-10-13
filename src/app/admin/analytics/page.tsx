@@ -27,7 +27,7 @@ export default async function AdminAnalyticsPage() {
     redirect('/portal')
   }
 
-  if (!['ADMIN', 'TEAM_LEAD'].includes(role || '')) {
+  if (!['ADMIN', 'TEAM_LEAD', 'SUPER_ADMIN'].includes(role || '')) {
     redirect('/admin')
   }
 
