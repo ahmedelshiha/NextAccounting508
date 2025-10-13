@@ -47,6 +47,10 @@ vi.mock('@/lib/tenant-utils', () => ({
   requireTenantContext: vi.fn(() => ({ tenantId: 'tenant1', userId: 'admin1', role: 'ADMIN' })),
 }))
 
+// Mock audit logging
+const mockLogAudit = vi.fn(async () => true)
+vi.mock('@/lib/audit', () => ({ logAudit: (...args: any[]) => mockLogAudit(...args) }))
+
 const base = 'https://t.example.com'
 
 describe('admin/settings/favorites API', () => {
@@ -79,12 +83,21 @@ describe('admin/settings/favorites API', () => {
     expect(added.ok).toBe(true)
     expect(added.data.settingKey).toBe('security')
 
+    // audit should have been called for add
+    expect(mockLogAudit).toHaveBeenCalled()
+    expect(mockLogAudit.mock.calls[0][0]?.action).toBe('settings.favorite.add')
+
     const list: any = await mod.GET(new Request(`${base}/api/admin/settings/favorites`))
     const listed = await list.json()
     expect(listed.data.length).toBe(1)
 
     const del: any = await mod.DELETE(new Request(`${base}/api/admin/settings/favorites?settingKey=security`, { method: 'DELETE' }))
     expect(del.status).toBe(200)
+
+    // audit should have been called for delete
+    expect(mockLogAudit).toHaveBeenCalled()
+    const calls = mockLogAudit.mock.calls.map(c => c[0]?.action)
+    expect(calls).toContain('settings.favorite.remove')
 
     const list2: any = await mod.GET(new Request(`${base}/api/admin/settings/favorites`))
     const listed2 = await list2.json()
