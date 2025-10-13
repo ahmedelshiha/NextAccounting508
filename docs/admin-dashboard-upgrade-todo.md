@@ -41,7 +41,7 @@ Created: 2025-10-08
 ## 🔧 Next Steps
 - [ ] Add FavoriteToggle to individual settings pages headers
 - [ ] Persist diffs on save and emit AuditEvent entries
-- [ ] RBAC refinements for settings features
+- [x] RBAC refinements for settings features
 - [ ] Add unit tests for search hook and keyboard interactions
 - [ ] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
@@ -201,4 +201,22 @@ Files Modified:
 Testing:
 - ✅ Documentation only
 
-Notes: RBAC refinements and E2E favorites persistence to be addressed in subsequent tasks.
+Notes: E2E favorites persistence to be addressed in subsequent tasks.
+
+---
+### RBAC-001: Settings Features RBAC Enforcement
+
+Status: ✅ Completed
+Date: 2025-10-13 01:12:00
+Duration: ~10m
+
+Changes: Enforced permission checks using SETTINGS_REGISTRY for settings features. Favorites POST/DELETE and Diff Preview POST now require the appropriate settings.view permissions; unauthorized requests return 403.
+
+Files Modified:
+- `src/app/api/admin/settings/favorites/route.ts` - permission checks on POST/DELETE based on registry
+- `src/app/api/admin/settings/diff/preview/route.ts` - permission check for category before diffing
+
+Testing:
+- ✅ Covered by API tests: `tests/admin-settings.favorites.api.test.ts` and `tests/admin-settings.diff-preview.api.test.ts`
+
+Notes: Category mapping supports both registry key and route matching for compatibility.
