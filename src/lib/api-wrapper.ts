@@ -57,6 +57,8 @@ export interface ApiWrapperOptions {
  * - Optionally enforces auth and role requirements.
  * - Establishes AsyncLocal tenant context for downstream code.
  */
+function _safeErr(e: unknown): string { try { if (e && typeof e === 'object' && 'message' in (e as any)) return String((e as any).message); return String(e) } catch { return 'unknown error' } }
+
 export function withTenantContext(
   handler: ApiHandler,
   options: ApiWrapperOptions = {}
@@ -98,12 +100,12 @@ export function withTenantContext(
             session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
             if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) returned', !!session)
           } catch (err1) {
-            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) threw', err1 && err1.message)
+            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) threw', _safeErr(err1))
             try {
               session = await naNext.getServerSession((authMod as any).authOptions)
               if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) returned', !!session)
             } catch (err2) {
-              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) threw', err2 && err2.message)
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) threw', _safeErr(err2))
             }
           }
         } else {
@@ -115,22 +117,22 @@ export function withTenantContext(
                 session = await na.getServerSession(request as any, (authMod as any).authOptions)
                 if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) returned', !!session)
               } catch (err3) {
-                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) threw', err3 && err3.message)
+                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) threw', _safeErr(err3))
                 try {
                   session = await na.getServerSession((authMod as any).authOptions)
                   if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) returned', !!session)
                 } catch (err4) {
-                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) threw', err4 && err4.message)
+                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) threw', _safeErr(err4))
                 }
               }
             }
           } catch (err5) {
-            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth import threw', err5 && err5.message)
+            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth import threw', _safeErr(err5))
           }
         }
       } catch (e) {
         session = null
-        if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] session resolution outer catch', e && e.message)
+        if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] session resolution outer catch', _safeErr(e))
       }
 
       if (requireAuth && !session?.user) {

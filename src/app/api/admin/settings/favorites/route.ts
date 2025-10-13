@@ -43,7 +43,7 @@ export const POST = withTenantContext(async (req: Request) => {
   })
 
   // Audit: record favorite add/update
-  try { await logAudit({ action: 'settings.favorite.add', actorId: String(ctx.userId), tenantId, details: { settingKey, route, label } }) } catch (e) {}
+  try { await logAudit({ action: 'settings.favorite.add', actorId: String(ctx.userId), details: { settingKey, route, label } }) } catch (e) {}
 
   return NextResponse.json({ ok: true, data: item })
 })
@@ -71,7 +71,7 @@ export const DELETE = withTenantContext(async (req: Request) => {
   })
 
   // Audit: record favorite removal
-  try { await logAudit({ action: 'settings.favorite.remove', actorId: String(ctx.userId), tenantId, details: { settingKey } }) } catch (e) {}
+  try { await logAudit({ action: 'settings.favorite.remove', actorId: String(ctx.userId), details: { settingKey } }) } catch (e) {}
 
   return NextResponse.json({ ok: true })
 })
