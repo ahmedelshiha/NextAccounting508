@@ -90,3 +90,23 @@ Created: 2025-10-08
 - Changes: Added unit tests for favorites service (get/add/remove) and DOM tests for SettingsSearch keyboard interactions (Slash focus, Mod+K, arrow navigation, Enter).
 - Files Added: tests/services/favorites.service.test.ts, tests/components/admin/settings-search.keyboard.dom.test.tsx
 - Notes: Mocks useSettingsSearchIndex and next/navigation router; no UI changes.
+
+---
+### NAV-001: Centralize Admin Navigation and Breadcrumbs
+
+Status: ✅ Completed  
+Date: 2025-10-13 00:00:00  
+Duration: ~45m
+
+Changes: Replaced hard-coded AdminSidebar menu with centralized registry (src/lib/admin/navigation-registry.ts). Removed stale Invoices → Templates link. Settings submenu is now sourced from SETTINGS_REGISTRY. AdminHeader breadcrumbs now derive from the registry for consistent labels.
+
+Files Modified:
+- `src/components/admin/layout/AdminSidebar.tsx` - Refactored to use getNavigation(), dynamic settings children, preserved styles and A11Y
+- `src/components/admin/layout/AdminHeader.tsx` - Breadcrumbs now use getBreadcrumbs() from registry
+
+Testing:
+- ✅ Sidebar renders sections and respects permissions
+- ✅ Removed non-existent Templates link
+- ✅ Breadcrumb labels match registry entries
+
+Notes: Kept original round/blue styles and layout dimensions. No breaking route changes. Next up: mark CI prisma migrate task as done after verifying pipelines.
