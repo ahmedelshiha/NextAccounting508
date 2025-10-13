@@ -5,6 +5,7 @@ import { jsonDiff } from '@/lib/diff'
 import { rateLimitAsync, getClientIp } from '@/lib/rate-limit'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import { hasPermission } from '@/lib/permissions'
+import { logAudit } from '@/lib/audit'
 
 export const POST = withTenantContext(async (req: Request) => {
   const ctx = requireTenantContext()
