@@ -239,8 +239,8 @@ export function withTenantContext(
           } catch {}
         }
 
-        // In test environments, fall back to creating/resolving a default tenant so tests that omit tenantId still work
-        if (!resolvedTenantId && (String(process.env.NODE_ENV) === 'test' || !!process.env.VITEST)) {
+        // If tenant resolution failed, fall back to a default tenant (legacy behavior). This ensures APIs work when session lacks tenantId.
+        if (!resolvedTenantId) {
           try {
             const { getDefaultTenantId } = await import('@/lib/default-tenant')
             resolvedTenantId = await getDefaultTenantId()
