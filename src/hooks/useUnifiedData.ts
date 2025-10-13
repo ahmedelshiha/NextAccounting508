@@ -1,5 +1,7 @@
 "use client"
 
+'use client'
+
 import useSWR, { SWRConfiguration, mutate as globalMutate } from "swr"
 import { useContext, useEffect, useMemo } from "react"
 import { RealtimeCtx } from "@/components/dashboard/realtime/RealtimeProvider"
