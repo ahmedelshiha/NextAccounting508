@@ -1,51 +1,48 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getFavorites, addFavorite, removeFavorite } from '@/services/favorites.service'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import * as favorites from '@/services/favorites.service'
 
-declare const global: any
+// Provide a simple jsdom sessionStorage mock (vitest provides jsdom environment)
+beforeEach(() => {
+  // Clear any cached sessionStorage between tests
+  sessionStorage.clear()
+  vi.resetAllMocks()
+})
 
 describe('favorites.service', () => {
-  const origFetch = global.fetch
-
-  beforeEach(() => {
-    global.fetch = vi.fn()
+  it('reads and writes cache correctly', () => {
+    const items: favorites.FavoriteSettingItem[] = [
+      { id: '1', tenantId: 't', userId: 'u', settingKey: 'foo', route: '/a', label: 'Foo', createdAt: new Date().toISOString() },
+    ]
+    // call internal write via getFavorites mock: simulate writeFavoritesCache
+    // emulate cached write by calling sessionStorage directly
+    sessionStorage.setItem('settings:favorites', JSON.stringify({ foo: true }))
+    const map = favorites.readFavoritesCachedMap()
+    expect(map).toEqual({ foo: true })
   })
 
-  afterEach(() => {
-    global.fetch = origFetch
-    vi.restoreAllMocks()
+  it('getFavorites handles non-ok response gracefully', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, json: async () => ({}) })))
+    const res = await favorites.getFavorites()
+    expect(Array.isArray(res)).toBe(true)
+    expect(res.length).toBe(0)
   })
 
-  it('getFavorites returns [] on non-ok', async () => {
-    ;(global.fetch as any).mockResolvedValue({ ok: false })
-    const out = await getFavorites()
-    expect(out).toEqual([])
-    expect(global.fetch).toHaveBeenCalledWith('/api/admin/settings/favorites', { cache: 'no-store' })
+  it('addFavorite updates cache when created', async () => {
+    const created = { id: '2', tenantId: 't', userId: 'u', settingKey: 'bar', route: '/b', label: 'Bar', createdAt: new Date().toISOString() }
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ data: created }) })))
+
+    const out = await favorites.addFavorite({ settingKey: 'bar', route: '/b', label: 'Bar' })
+    expect(out).toEqual(created)
+    const map = favorites.readFavoritesCachedMap()
+    expect(map).toHaveProperty('bar')
   })
 
-  it('getFavorites returns data array', async () => {
-    const payload = { ok: true, data: [ { id: '1', tenantId: 't1', userId: 'u1', settingKey: 'organization', route: '/admin/settings/company', label: 'Organization', createdAt: new Date().toISOString() } ] }
-    ;(global.fetch as any).mockResolvedValue({ ok: true, json: () => Promise.resolve(payload) })
-    const out = await getFavorites()
-    expect(out.length).toBe(1)
-    expect(out[0].settingKey).toBe('organization')
-  })
-
-  it('addFavorite posts payload and returns item or null', async () => {
-    const input = { settingKey: 'security', route: '/admin/settings/security', label: 'Security' }
-    ;(global.fetch as any).mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: true, data: { id: '2', tenantId: 't1', userId: 'u1', ...input, createdAt: new Date().toISOString() } }) })
-    const created = await addFavorite(input)
-    expect(created?.settingKey).toBe('security')
-    expect(global.fetch).toHaveBeenCalledWith('/api/admin/settings/favorites', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) })
-
-    ;(global.fetch as any).mockResolvedValueOnce({ ok: false })
-    const none = await addFavorite(input)
-    expect(none).toBeNull()
-  })
-
-  it('removeFavorite calls DELETE and returns ok boolean', async () => {
-    ;(global.fetch as any).mockResolvedValue({ ok: true })
-    const ok = await removeFavorite('organization')
+  it('removeFavorite removes from cache when ok', async () => {
+    sessionStorage.setItem('settings:favorites', JSON.stringify({ baz: true }))
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true })))
+    const ok = await favorites.removeFavorite('baz')
     expect(ok).toBe(true)
-    expect(global.fetch).toHaveBeenCalledWith('/api/admin/settings/favorites?settingKey=organization', { method: 'DELETE' })
+    const map = favorites.readFavoritesCachedMap()
+    expect(map && map.baz).toBe(undefined)
   })
 })

@@ -15,7 +15,7 @@ export const POST = withTenantContext(async (req: NextRequest) => {
   const ip = getClientIp(req as any)
   const key = `booking-settings:reset:${tenantId}:${ip}`
   const rl = await applyRateLimit(key, 2, 60_000)
-  if (!rl.allowed) {
+    if (!rl || rl.allowed === false) {
     try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId, ip, key, route: new URL(req.url).pathname } }) } catch {}
     return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
   }

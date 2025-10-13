@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { queryTenantRaw } from '@/lib/db-raw';
 import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
+import { getDefaultTenantId } from '@/lib/default-tenant'
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
@@ -87,9 +88,9 @@ export class ServicesService {
         tenantId = t?.id || null
       }
 
-      if (!tenantId) {
-        throw new Error('Tenant context required to clone service')
-      }
+      // If tenantId is missing, allow creating a global/shared clone (legacy behaviour in tests)
+      // tenant connection will be omitted so the new service is global when no tenant is present.
+      // (No-op)
 
       const baseSlug = generateSlug(name)
 

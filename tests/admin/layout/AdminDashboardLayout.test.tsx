@@ -9,7 +9,7 @@ import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout'
 import { useResponsive } from '@/hooks/admin/useResponsive'
-import { useAdminLayout } from '@/stores/adminLayoutStore'
+import { useAdminLayout } from '@/stores/admin/layout.store'
 
 // Mock dependencies
 vi.mock('next/navigation', () => ({
@@ -24,7 +24,7 @@ vi.mock('@/hooks/admin/useResponsive', () => ({
   useResponsive: vi.fn(),
 }))
 
-vi.mock('@/stores/adminLayoutStore', () => ({
+vi.mock('@/stores/admin/layout.store', () => ({
   useAdminLayout: vi.fn(),
 }))
 

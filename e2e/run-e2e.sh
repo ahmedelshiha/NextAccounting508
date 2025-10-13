@@ -24,10 +24,10 @@ start_local_server() {
   echo "Starting app for local testing..."
   # Prefer standalone server if available to avoid 'next start' warning and speed up boot
   if [ -f ".next/standalone/server.js" ]; then
-    NODE_ENV=production PORT=3000 node .next/standalone/server.js &
+    SKIP_ENV_VALIDATION=true NODE_ENV=production PORT=3000 node .next/standalone/server.js &
   else
     # Fall back to next start (assumes app already built by Netlify build step)
-    pnpm start &
+    SKIP_ENV_VALIDATION=true pnpm start &
   fi
   APP_PID=$!
   # Wait for server to respond (max 120s)

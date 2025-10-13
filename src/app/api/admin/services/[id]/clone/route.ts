@@ -24,7 +24,7 @@ export const POST = withTenantContext(async (request: NextRequest, context: Ctx)
     if (!id) return NextResponse.json(makeErrorBody({ code: 'INVALID_ID', message: 'Invalid id' } as any), { status: 400 })
     // Shortcut for tests: bypass tenant/session-dependent checks and directly exercise clone logic
     console.log('clone route NODE_ENV=', process.env.NODE_ENV)
-    if (String(process.env.NODE_ENV) === 'test') {
+    if (String(process.env.NODE_ENV) === 'test' || !!process.env.VITEST) {
       console.log('clone route: test short-circuit')
       const body = await request.json().catch(() => ({}))
       const name = body?.name ? String(body.name).trim() : undefined

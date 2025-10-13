@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// Ensure NEXTAUTH_SECRET is defined for local/E2E runs to allow /api/_dev/login helper to function
+process.env.NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET ?? 'e2e-test-secret'
+
 const isNetlify = Boolean(process.env.NETLIFY)
 
 export default defineConfig({

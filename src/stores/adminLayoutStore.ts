@@ -27,3 +27,5 @@ export const useAdminLayout = () => {
     ui: safe.ui,
   }
 }
+
+export default useAdminLayout
