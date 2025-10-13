@@ -3,6 +3,8 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { jsonDiff } from '@/lib/diff'
 import { rateLimitAsync, getClientIp } from '@/lib/rate-limit'
+import SETTINGS_REGISTRY from '@/lib/settings/registry'
+import { hasPermission } from '@/lib/permissions'
 
 export const POST = withTenantContext(async (req: Request) => {
   const ctx = requireTenantContext()
