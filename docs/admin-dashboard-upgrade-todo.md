@@ -237,3 +237,8 @@ Testing:
 - ✅ Runs in Playwright CI workflow
 
 Notes: Uses dev login via `/api/_dev/login` test helper to seed a session token.
+
+### ❌ BLOCKER: Backend Settings Search Endpoint
+**Issue**: Requires product decision on scope and performance constraints (cross-tenant data exposure rules, fields to index), and infra choices (full-text vs. trigram, rate limits).
+**Needed**: Confirm queryable fields, RBAC filtering strategy, expected result size and latency SLOs, and whether to leverage existing Prisma models or a materialized view.
+**Next**: Keep pending while we gather requirements; proceed with other items.
