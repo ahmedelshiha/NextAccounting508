@@ -32,7 +32,7 @@ Created: 2025-10-08
   - **Impact**: Improves admin productivity; groundwork for per-page pinning with FavoriteToggle
 
 ## 🚧 In Progress
-- [ ] Documentation updates and UX validation for Settings Search (copy, hints, empty states)
+- [ ] Documentation updates for Settings features (developer notes, how-to)
 
 ## ⚠️ Issues / Risks
 - Prisma schema changes require migration; ensure DB backups and staging verification
@@ -42,7 +42,7 @@ Created: 2025-10-08
 ## 🔧 Next Steps
 - [ ] Add FavoriteToggle to individual settings pages headers
 - [ ] Persist diffs on save and emit AuditEvent entries
-- [ ] RBAC refinements for settings features; add rate limit to diff preview
+- [ ] RBAC refinements for settings features
 - [ ] Add unit tests for search hook and keyboard interactions
 - [ ] E2E tests for favorites add/remove and persistence across sessions
 - [ ] Prepare backend search endpoint for cross-tenant large datasets (future)
@@ -130,19 +130,20 @@ Testing:
 Notes: Prisma is mocked to avoid DB. withTenantContext/requireTenantContext mocked to ensure tenant scoping.
 
 ---
-### CI-001: Prisma migrate and client generation readiness
+### UX-001: Settings Search Empty States & Hints
 
 Status: ✅ Completed  
-Date: 2025-10-13 00:18:00  
-Duration: ~5m
+Date: 2025-10-13 00:25:00  
+Duration: ~10m
 
-Changes: Verified CI path uses `scripts/ci/run-prisma-migrate-if-db.sh` via `vercel:build` and package.json already runs `prisma generate`. No code changes required.
+Changes: Added empty-state messages and keyboard hint in SettingsSearch popover; shows "Type to search settings" when empty, and "No results found" when there are no matches. Preserved original styling and keyboard navigation.
 
-Files Reviewed:
-- `scripts/ci/run-prisma-migrate-if-db.sh`
-- `package.json` (vercel:build, db:generate)
+Files Modified:
+- `src/components/admin/settings/SettingsSearch.tsx` - empty states and hint copy
 
 Testing:
-- ✅ Local script read verified; migration runs only when DATABASE_URL present.
+- ✅ Keyboard shortcuts still focus the input (/ and ⌘K)
+- ✅ No results message appears for unmatched queries
+- ✅ Hint appears when opening with empty query
 
-Notes: Ensure staging/prod CI inject DATABASE_URL. No action needed in repo.
+Notes: No style regressions; maintained classNames and layout.
