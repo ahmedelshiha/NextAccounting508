@@ -181,12 +181,15 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   }
 
   const renderSettingsChildren = () => {
-    const items = (SETTINGS_REGISTRY || []).filter(c => hasAccess((c as any).permission)).map((c: any) => ({
-      id: c.key,
-      label: c.label,
-      href: c.route,
-      icon: c.icon,
-    }))
+    const items = (SETTINGS_REGISTRY || [])
+      .filter((c: any) => c && c.route && c.route !== '/admin/settings')
+      .filter((c: any) => hasAccess(c.permission))
+      .map((c: any) => ({
+        id: `settings_${c.key}`,
+        label: c.label,
+        href: c.route,
+        icon: c.icon,
+      }))
     return items
   }
 
