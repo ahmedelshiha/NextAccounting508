@@ -4,6 +4,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import { hasPermission } from '@/lib/permissions'
+import { logAudit } from '@/lib/audit'
 
 export const GET = withTenantContext(async () => {
   const ctx = requireTenantContext()
@@ -40,6 +41,10 @@ export const POST = withTenantContext(async (req: Request) => {
     update: { route, label },
     create: { tenantId, userId: String(ctx.userId), settingKey, route, label },
   })
+
+  // Audit: record favorite add/update
+  try { await logAudit({ action: 'settings.favorite.add', actorId: String(ctx.userId), tenantId, details: { settingKey, route, label } }) } catch (e) {}
+
   return NextResponse.json({ ok: true, data: item })
 })
 
@@ -64,5 +69,9 @@ export const DELETE = withTenantContext(async (req: Request) => {
   await prisma.favoriteSetting.delete({
     where: { tenantId_userId_settingKey: { tenantId, userId: String(ctx.userId), settingKey } },
   })
+
+  // Audit: record favorite removal
+  try { await logAudit({ action: 'settings.favorite.remove', actorId: String(ctx.userId), tenantId, details: { settingKey } }) } catch (e) {}
+
   return NextResponse.json({ ok: true })
 })
