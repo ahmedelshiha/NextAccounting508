@@ -23,7 +23,7 @@ export default async function AdminOverviewPage() {
   let servicesJson: any = null
   let usersJson: any = null
   try {
-    const hdrs = headers()
+    const hdrs = await headers()
     const proto = hdrs.get('x-forwarded-proto') || 'http'
     const host = hdrs.get('host') || ''
     const origin = `${proto}://${host}`
