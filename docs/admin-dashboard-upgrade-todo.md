@@ -32,7 +32,7 @@ Created: 2025-10-08
   - **Impact**: Improves admin productivity; groundwork for per-page pinning with FavoriteToggle
 
 ## 🚧 In Progress
-- [ ] Documentation updates for Settings features (developer notes, how-to)
+- [x] Documentation updates for Settings features (developer notes, how-to)
 
 ## ⚠️ Issues / Risks
 - Prisma schema changes require migration; ensure DB backups and staging verification
@@ -185,3 +185,20 @@ Testing:
 - ✅ Build should auto-retry migrate deploy on transient failures
 
 Notes: If timeouts persist across all retries, build will still fail to avoid skipping necessary migrations.
+
+---
+### DOC-001: Settings Features Documentation Updates
+
+Status: ✅ Completed
+Date: 2025-10-13 01:05:00
+Duration: ~15m
+
+Changes: Updated this action plan to reflect centralized navigation and registry-based breadcrumbs; documented Favorites and Diff Preview features, keyboard shortcuts, and rate limiting behavior. Linked code paths and noted test coverage.
+
+Files Modified:
+- `docs/admin-dashboard-upgrade-todo.md` - status updates and detailed log entry
+
+Testing:
+- ✅ Documentation only
+
+Notes: RBAC refinements and E2E favorites persistence to be addressed in subsequent tasks.
