@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { queryTenantRaw } from '@/lib/db-raw';
 import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
+import { getDefaultTenantId } from '@/lib/default-tenant'
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
 import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
