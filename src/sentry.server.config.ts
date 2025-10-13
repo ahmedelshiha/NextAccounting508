@@ -9,6 +9,7 @@ Sentry.init({
 })
 
 console.debug('[sentry.server.config] registering event processor')
+console.debug('[sentry.server.config] addEventProcessor type=', typeof Sentry.addEventProcessor, 'isFunction=', typeof Sentry.addEventProcessor === 'function')
 const processor = (event: any) => {
   try {
     const ctx = tenantContext.getContextOrNull()
