@@ -14,7 +14,7 @@ export default async function AdminOverviewPage() {
   const session = await getSessionOrBypass()
   if (!session?.user) redirect('/login')
 
-  const role = (session.user as any)?.role as string | undefined
+  const role = typeof (session.user as any)?.role === 'string' ? (session.user as any).role.toUpperCase() : undefined
   if (role === 'CLIENT') redirect('/portal')
   if (!['ADMIN', 'TEAM_LEAD', 'SUPER_ADMIN'].includes(role || '')) redirect('/admin/analytics')
 

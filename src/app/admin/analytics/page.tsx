@@ -22,7 +22,7 @@ export default async function AdminAnalyticsPage() {
     redirect('/login')
   }
 
-  const role = (session.user as any)?.role as string | undefined
+  const role = typeof (session.user as any)?.role === 'string' ? (session.user as any).role.toUpperCase() : undefined
   if (role === 'CLIENT') {
     redirect('/portal')
   }
