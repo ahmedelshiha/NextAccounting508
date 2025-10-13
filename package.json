@@ -41,7 +41,9 @@
     "deploy:netlify": "netlify deploy --prod",
     "deploy:vercel": "vercel --prod",
     "check:duplicates": "node scripts/ci/check-duplicate-api-routes.js && node scripts/ci/check-critical-duplicates.js",
-    "validate:stateful-docs": "node scripts/verify_stateful_docs.js"
+    "validate:stateful-docs": "node scripts/verify_stateful_docs.js",
+    "db:verify:staging": "bash scripts/ci/verify-staging-migrations.sh",
+    "ci:verify:staging": "bash scripts/ci/verify-staging-migrations.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
