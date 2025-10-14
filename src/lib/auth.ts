@@ -13,6 +13,7 @@ const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_U
 
 // Lightweight fallback demo users when no DB is configured
 const demoUsers = [
+  { id: 'demo-super', name: 'Super Admin', email: 'superadmin@accountingfirm.com', password: 'superadmin123', role: 'SUPER_ADMIN' },
   { id: 'demo-admin', name: 'Admin User', email: 'admin@accountingfirm.com', password: 'admin123', role: 'ADMIN' },
   { id: 'demo-lead', name: 'Team Lead', email: 'lead@accountingfirm.com', password: 'lead123', role: 'TEAM_LEAD' },
   { id: 'demo-staff', name: 'Team Member', email: 'staff@accountingfirm.com', password: 'staff123', role: 'TEAM_MEMBER' },
