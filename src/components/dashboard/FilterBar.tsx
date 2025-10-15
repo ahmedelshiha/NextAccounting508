@@ -1,6 +1,7 @@
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import type { FilterConfig } from '@/types/dashboard'
 import { useTranslations } from '@/lib/i18n'
+import { Search, SlidersHorizontal, X } from 'lucide-react'
 
 export default function FilterBar({ filters, onFilterChange, onSearch, active = [], searchPlaceholder = '' }: { filters: FilterConfig[]; onFilterChange: (key: string, value: string) => void; onSearch?: (value: string) => void; active?: Array<{ key: string; label: string; value: string }>; searchPlaceholder?: string }) {
   const { t } = useTranslations()
