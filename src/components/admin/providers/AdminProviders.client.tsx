@@ -25,6 +25,7 @@ export default function AdminProvidersClient({ children, session }: AdminProvide
         value={{
           fetcher,
           revalidateOnFocus: false,
+          suspense: false,
           refreshInterval: 300000,
           errorRetryCount: 3,
           onError: (err) => {

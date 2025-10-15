@@ -89,7 +89,7 @@ export function AdminProviders({ children }: AdminProvidersProps) {
       )}
     >
       <ReactError31Boundary>
-        <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
+        <SWRConfig value={{ fetcher, revalidateOnFocus: false, suspense: false, errorRetryCount: 3 }}>
           <RealtimeProvider>
             <PerformanceWrapper>
               <RoleSyncMount />

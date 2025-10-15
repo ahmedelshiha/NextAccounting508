@@ -2,8 +2,9 @@ import { Metadata } from 'next'
 import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import AdminOverview from '@/components/admin/dashboard/AdminOverview'
-import AdminErrorBoundary from '@/components/admin/layout/AdminErrorBoundary'
+import AdminOverview from '@/components/admin/dashboard/AdminOverview\'\nimport AdminErrorBoundary from \'@/components/admin/layout/AdminErrorBoundary'
+import { Suspense } from 'react'
+import { LoadingSkeleton } from '@/components/admin/loading-skeleton'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard Overview',
@@ -79,13 +80,15 @@ export default async function AdminOverviewPage() {
 
   return (
     <AdminErrorBoundary>
-      <AdminOverview
-        initial={{
-          bookingsStats: bookingsJson ?? undefined,
-          servicesStats: servicesJson ?? undefined,
-          usersStats: usersJson ?? undefined,
-        }}
-      />
+      <Suspense fallback={<LoadingSkeleton type="dashboard" />}>
+        <AdminOverview
+          initial={{
+            bookingsStats: bookingsJson ?? undefined,
+            servicesStats: servicesJson ?? undefined,
+            usersStats: usersJson ?? undefined,
+          }}
+        />
+      </Suspense>
     </AdminErrorBoundary>
   )
 }
