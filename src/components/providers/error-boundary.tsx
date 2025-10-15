@@ -25,6 +25,15 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // Handle React Suspense missing boundary (minified error #185)
+    if (typeof error?.message === 'string' && error.message.includes('185')) {
+      console.error('Suspense boundary missing. Wrapping content in Suspense is required for async operations.')
+      return {
+        hasError: true,
+        error: new Error('Data loading error. Please refresh the page.')
+      }
+    }
+
     return {
       hasError: true,
       error

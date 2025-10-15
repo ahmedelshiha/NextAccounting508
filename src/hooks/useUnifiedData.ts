@@ -65,6 +65,7 @@ export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   const { data: raw, error, isValidating, mutate } = useSWR(path, effectiveFetcher, {
     fallbackData: initialData as any,
     revalidateOnFocus: false,
+    suspense: false,
     ...(swr || {})
   })
 

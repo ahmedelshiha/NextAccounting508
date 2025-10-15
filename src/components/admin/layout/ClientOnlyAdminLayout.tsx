@@ -10,13 +10,14 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
 import AdminFooter from '@/components/admin/layout/AdminFooter'
 import AccessibleRouteAnnouncer from '@/components/providers/RouteAnnouncer'
 import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
+import { LoadingSkeleton } from '@/components/admin/loading-skeleton'
 
 interface ClientOnlyAdminLayoutProps {
   children: React.ReactNode
@@ -57,8 +58,9 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
   }
 
   return (
-    <AdminProviders>
-      <div className="min-h-screen bg-gray-50 flex">
+    <Suspense fallback={<LoadingShell />}>
+      <AdminProviders>
+        <div className="min-h-screen bg-gray-50 flex">
         <a
           href="#admin-main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 focus:z-[60] rounded"
@@ -97,14 +99,39 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
           {/* Main Content */}
           <main id="admin-main-content" tabIndex={-1} className="flex-1 relative overflow-hidden" role="main" aria-label="Admin dashboard content">
             <div className="h-full overflow-auto">
-              {children}
+              <Suspense fallback={<LoadingSkeleton type="dashboard" />}>
+                {children}
+              </Suspense>
             </div>
           </main>
 
           {/* Footer */}
           <AdminFooter sidebarCollapsed={sidebarCollapsed} />
         </div>
+        </div>
+      </AdminProviders>
+    </Suspense>
+  )
+}
+
+function LoadingShell() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex">
+      <div className="w-64 bg-white border-r border-gray-200 p-4">
+        <div className="h-8 bg-gray-200 rounded mb-6 animate-pulse" />
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-10 bg-gray-100 rounded mb-2 animate-pulse" />
+        ))}
       </div>
-    </AdminProviders>
+      <div className="flex-1 p-8">
+        <div className="h-10 bg-gray-200 rounded w-1/3 mb-6 animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-white rounded-lg shadow animate-pulse" />
+          ))}
+        </div>
+        <div className="h-96 bg-white rounded-lg shadow animate-pulse" />
+      </div>
+    </div>
   )
 }
