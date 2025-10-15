@@ -10,13 +10,14 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
 import AdminFooter from '@/components/admin/layout/AdminFooter'
 import AccessibleRouteAnnouncer from '@/components/providers/RouteAnnouncer'
 import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
+import { LoadingSkeleton } from '@/components/admin/loading-skeleton'
 
 interface ClientOnlyAdminLayoutProps {
   children: React.ReactNode
@@ -97,7 +98,9 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
           {/* Main Content */}
           <main id="admin-main-content" tabIndex={-1} className="flex-1 relative overflow-hidden" role="main" aria-label="Admin dashboard content">
             <div className="h-full overflow-auto">
-              {children}
+              <Suspense fallback={<LoadingSkeleton type="dashboard" />}>
+                {children}
+              </Suspense>
             </div>
           </main>
 
