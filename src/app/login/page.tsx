@@ -33,10 +33,10 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        toast.error('Invalid email or password')
+        toast.error('Invalid email, password, or MFA code. If you are a super admin, enter your MFA code.')
       } else {
         toast.success('Signed in successfully!')
-        
+
         // Try to fetch the current user via internal API (uses credentials include)
         try {
           const res = await apiFetch('/api/users/me')
