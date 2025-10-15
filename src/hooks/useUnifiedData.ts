@@ -2,7 +2,7 @@
 
 'use client'
 
-import useSWR, { SWRConfiguration, mutate as globalMutate } from "swr"
+import useSWR, { SWRConfiguration, mutate as globalMutate, useSWRConfig } from "swr"
 import { useContext, useEffect, useMemo } from "react"
 import { RealtimeCtx } from "@/components/dashboard/realtime/RealtimeProvider"
 
@@ -55,7 +55,14 @@ export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   // Normalize to an API path; accept absolute/relative keys
   const path = useMemo(() => buildUnifiedPath(key, params), [key, JSON.stringify(params || {})])
 
-  const { data: raw, error, isValidating, mutate } = useSWR(path, undefined, {
+  const { fetcher: globalFetcher } = useSWRConfig()
+  const effectiveFetcher = (globalFetcher as any) ?? (async (url: string) => {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Request failed')
+    return res.json()
+  })
+
+  const { data: raw, error, isValidating, mutate } = useSWR(path, effectiveFetcher, {
     fallbackData: initialData as any,
     revalidateOnFocus: false,
     ...(swr || {})
