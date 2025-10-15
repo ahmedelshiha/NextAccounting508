@@ -22,7 +22,14 @@ export async function middleware(req: NextServer.NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
-    pathname === '/favicon.ico'
+    pathname === '/favicon.ico' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/site.webmanifest' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    pathname.startsWith('/images') ||
+    pathname.startsWith('/assets') ||
+    pathname.startsWith('/public')
   ) {
     return NextServer.NextResponse.next()
   }
