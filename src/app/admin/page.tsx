@@ -2,24 +2,8 @@ import { Metadata } from 'next'
 import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import dynamic from 'next/dynamic'
+import AdminOverview from '@/components/admin/dashboard/AdminOverview'
 import AdminErrorBoundary from '@/components/admin/layout/AdminErrorBoundary'
-
-const AdminOverview = dynamic(() => import('@/components/admin/dashboard/AdminOverview'), {
-  ssr: false,
-  loading: () => (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg border border-gray-200 p-8">
-          <div className="flex items-center gap-3 text-gray-600">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
-            <span>Loading…</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  ),
-})
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard Overview',
