@@ -71,7 +71,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const user = session?.user as any
-  const isAdminUser = ['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((user?.role as string) || '')
+  const isAdminUser = ['SUPER_ADMIN','ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((user?.role as string) || '')
 
   // prefer centralized settings when provider present
   const ctx = useOrgSettings()
@@ -191,7 +191,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                             Settings
                           </Link>
                         </DropdownMenuItem>
-                        {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
+                        {['SUPER_ADMIN','ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
                           <>
                             <DropdownMenuItem asChild>
                               <Link href="/admin" className="flex items-center">
@@ -303,7 +303,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
                         >
                           Settings
                         </Link>
-                        {['ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
+                        {['SUPER_ADMIN','ADMIN','TEAM_LEAD','TEAM_MEMBER'].includes((session?.user?.role as string) || '') && (
                           <>
                             <Link
                               href="/admin"
