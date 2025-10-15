@@ -36,10 +36,29 @@ export default async function AdminOverviewPage() {
     const reqId = hdrs.get('x-request-id')
     if (reqId) forwardHeaders['x-request-id'] = reqId
 
+    const TIMEOUT_MS = Number(process.env.ADMIN_SSR_FETCH_TIMEOUT_MS || 5000)
+
+    const safeFetch = async (url: string) => {
+      try {
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+        const res = await fetch(url, {
+          cache: 'no-store',
+          headers: forwardHeaders,
+          next: { revalidate: 0 },
+          signal: controller.signal,
+        })
+        clearTimeout(timer)
+        return res
+      } catch {
+        return new Response(null, { status: 504 })
+      }
+    }
+
     const [bookingsRes, servicesRes, usersRes] = await Promise.all([
-      fetch(`${origin}/api/admin/bookings/stats`, { cache: 'no-store', headers: forwardHeaders, next: { revalidate: 0 } }).catch(() => new Response(null, { status: 503 })),
-      fetch(`${origin}/api/admin/services/stats?range=90d`, { cache: 'no-store', headers: forwardHeaders, next: { revalidate: 0 } }).catch(() => new Response(null, { status: 503 })),
-      fetch(`${origin}/api/admin/stats/users?range=90d`, { cache: 'no-store', headers: forwardHeaders, next: { revalidate: 0 } }).catch(() => new Response(null, { status: 503 }))
+      safeFetch(`${origin}/api/admin/bookings/stats`),
+      safeFetch(`${origin}/api/admin/services/stats?range=90d`),
+      safeFetch(`${origin}/api/admin/stats/users?range=90d`)
     ])
 
     const [b, s, u] = await Promise.all([
