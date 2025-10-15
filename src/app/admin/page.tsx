@@ -36,7 +36,7 @@ export default async function AdminOverviewPage() {
     const reqId = hdrs.get('x-request-id')
     if (reqId) forwardHeaders['x-request-id'] = reqId
 
-    const TIMEOUT_MS = Number(process.env.ADMIN_SSR_FETCH_TIMEOUT_MS || 5000)
+    const TIMEOUT_MS = Number(process.env.ADMIN_SSR_FETCH_TIMEOUT_MS || 9000)
 
     const safeFetch = async (url: string) => {
       try {
@@ -51,7 +51,11 @@ export default async function AdminOverviewPage() {
         clearTimeout(timer)
         return res
       } catch {
-        return new Response(null, { status: 504 })
+        // Soft-fail to avoid SSR 504s and hydration mismatches; client will refetch
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
       }
     }
 
