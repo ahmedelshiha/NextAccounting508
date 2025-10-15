@@ -11,7 +11,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SessionProvider } from 'next-auth/react'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
