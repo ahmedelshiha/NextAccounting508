@@ -8,7 +8,7 @@
 
 'use client'
 
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useState, useEffect } from 'react'
 import type { AdminDashboardLayoutProps } from '@/types/admin/layout'
 
 // Lazy load heavy admin components
