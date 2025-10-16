@@ -72,26 +72,26 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
     // Send to performance monitoring if available
     if (typeof window !== 'undefined') {
-      const perfObserverSupported = 'PerformanceObserver' in window
-      if (perfObserverSupported) {
-        try {
-          const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
-          if (navigationTiming) {
-            const domInteractive = navigationTiming.domInteractive - navigationTiming.navigationStart
-            const hydrationMetrics = {
-              type: 'admin_dashboard_hydration',
-              domInteractive,
-              hydrationDuration,
-              timestamp: new Date().toISOString(),
-            }
+      try {
+        const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+        if (navigationTiming) {
+          const domInteractive = (navigationTiming as any).domInteractive || 0
+          const startTime = navigationTiming.startTime || 0
+          const timeToInteractive = domInteractive - startTime
 
-            if (domInteractive > 3000) {
-              console.warn('[Admin Dashboard] Slow hydration detected', hydrationMetrics)
-            }
+          const hydrationMetrics = {
+            type: 'admin_dashboard_hydration',
+            timeToInteractive,
+            hydrationDuration,
+            timestamp: new Date().toISOString(),
           }
-        } catch (e) {
-          // Silently fail if performance API not available
+
+          if (timeToInteractive > 3000) {
+            console.warn('[Admin Dashboard] Slow hydration detected', hydrationMetrics)
+          }
         }
+      } catch (e) {
+        // Silently fail if performance API not available
       }
     }
   }, [])
