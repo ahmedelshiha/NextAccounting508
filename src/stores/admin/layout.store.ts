@@ -161,32 +161,24 @@ export const useUIState = () => base((s) => ({
 }))
 
 export function useAdminLayoutSafe() {
-  const store = base.getState()
-  const isHydrated = base((s) => s.isHydrated)
-  // Call hooks unconditionally to satisfy react-hooks lint rule
+  // ALWAYS call hooks at the top level - unconditionally
   const sidebarState = useSidebarState()
   const navigationState = useNavigationState()
   const uiState = useUIState()
+  const isHydrated = base((s) => s.isHydrated)
 
-  // Hydrate on client
-  if (typeof window !== 'undefined' && !isHydrated) {
-    // Trigger once per client mount
-    Promise.resolve().then(() => base.getState().setHydrated(true))
-  }
-
-  if (!isHydrated) {
-    return {
-      sidebar: { collapsed: false, open: false, setCollapsed: () => {}, setOpen: () => {}, toggle: () => {}, expandedGroups: [], toggleGroup: () => {}, setExpandedGroups: () => {} },
-      navigation: { activeItem: null, setActiveItem: () => {} },
-      ui: { isLoading: false, error: null, setLoading: () => {}, setError: () => {} },
-      isHydrated: false,
+  // Hydrate on client - trigger once per client mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isHydrated) {
+      Promise.resolve().then(() => base.getState().setHydrated(true))
     }
-  }
+  }, [isHydrated])
 
+  // Return consistent object structure - always return the same type
   return {
     sidebar: sidebarState,
     navigation: navigationState,
     ui: uiState,
-    isHydrated: true,
+    isHydrated,
   }
 }
