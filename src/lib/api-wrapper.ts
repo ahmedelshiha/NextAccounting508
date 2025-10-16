@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
-import { verifyTenantCookie } from '@/lib/tenant-cookie'
 import { incrementMetric } from '@/lib/observability-helpers'
 
 /**
@@ -88,58 +87,69 @@ export function withTenantContext(
       }
       if (!(request as any).url) (request as any).url = 'http://localhost'
 
-      // Resolve session with robust fallbacks
+      const cookieHeaderValue =
+        request && (request as any).headers && typeof (request as any).headers.get === 'function'
+          ? ((request as any).headers.get('cookie') as string | null)
+          : null
+      const hasAuthCookie =
+        !!cookieHeaderValue &&
+        /next-auth\.session-token|__Secure-next-auth\.session-token|next-auth\.callback-url/i.test(cookieHeaderValue)
+      const shouldResolveSession =
+        requireAuth || requireSuperAdmin || requireTenantAdmin || allowedRoles.length > 0 || hasAuthCookie
+
       let session: any = null
-      try {
-        // Prefer next-auth/next for App Router
-        const naNext = await import('next-auth/next').catch(() => null as any)
-        const authMod = await import('@/lib/auth')
-        if (naNext?.getServerSession) {
-          // Try passing the request to getServerSession (App Router signature); fall back if it errors.
-          try {
-            session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
-            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) returned', !!session)
-          } catch (err1) {
-            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) threw', _safeErr(err1))
+
+      if (shouldResolveSession) {
+        try {
+          // Prefer next-auth/next for App Router
+          const naNext = await import('next-auth/next').catch(() => null as any)
+          const authMod = await import('@/lib/auth')
+          if (naNext?.getServerSession) {
+            // Try passing the request to getServerSession (App Router signature); fall back if it errors.
             try {
-              session = await naNext.getServerSession((authMod as any).authOptions)
-              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) returned', !!session)
-            } catch (err2) {
-              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) threw', _safeErr(err2))
-            }
-          }
-        } else {
-          // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
-          try {
-            const na = await import('next-auth').catch(() => null as any)
-            if (na && typeof na.getServerSession === 'function') {
+              session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) returned', !!session)
+            } catch (err1) {
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(request) threw', _safeErr(err1))
               try {
-                session = await na.getServerSession(request as any, (authMod as any).authOptions)
-                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) returned', !!session)
-              } catch (err3) {
-                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) threw', _safeErr(err3))
-                try {
-                  session = await na.getServerSession((authMod as any).authOptions)
-                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) returned', !!session)
-                } catch (err4) {
-                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) threw', _safeErr(err4))
-                }
+                session = await naNext.getServerSession((authMod as any).authOptions)
+                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) returned', !!session)
+              } catch (err2) {
+                if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] naNext.getServerSession(fallback) threw', _safeErr(err2))
               }
             }
-          } catch (err5) {
-            if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth import threw', _safeErr(err5))
+          } else {
+            // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
+            try {
+              const na = await import('next-auth').catch(() => null as any)
+              if (na && typeof na.getServerSession === 'function') {
+                try {
+                  session = await na.getServerSession(request as any, (authMod as any).authOptions)
+                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) returned', !!session)
+                } catch (err3) {
+                  if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(request) threw', _safeErr(err3))
+                  try {
+                    session = await na.getServerSession((authMod as any).authOptions)
+                    if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) returned', !!session)
+                  } catch (err4) {
+                    if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth.getServerSession(fallback) threw', _safeErr(err4))
+                  }
+                }
+              }
+            } catch (err5) {
+              if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] next-auth import threw', _safeErr(err5))
+            }
           }
+        } catch (e) {
+          session = null
+          if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] session resolution outer catch', _safeErr(e))
         }
-      } catch (e) {
-        session = null
-        if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) console.debug('[api-wrapper] session resolution outer catch', _safeErr(e))
       }
 
       if (requireAuth && !session?.user) {
         if (process.env.NODE_ENV === 'test' || process.env.DEBUG_API_WRAPPER) {
           try {
-            const cookieHeader = (request && (request as any).headers && typeof (request as any).headers.get === 'function') ? (request as any).headers.get('cookie') : null
-            console.debug('[api-wrapper] rejecting request as unauthorized; request.url=', (request && (request as any).url) || null, 'cookie=', Boolean(cookieHeader))
+            console.debug('[api-wrapper] rejecting request as unauthorized; request.url=', (request && (request as any).url) || null, 'cookie=', Boolean(cookieHeaderValue))
           } catch {}
         }
         return attachRequestId(
@@ -251,6 +261,7 @@ export function withTenantContext(
         if (tenantCookie) {
           const tenantForVerification = resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null)
           if (tenantForVerification) {
+            const { verifyTenantCookie } = await import('@/lib/tenant-cookie')
             const ok = await verifyTenantCookie(tenantCookie, String(tenantForVerification), String(user.id))
             if (!ok) {
               // Warn but do not hard-block; continue with resolved context to avoid breaking read-only admin views
