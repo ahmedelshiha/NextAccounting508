@@ -28,7 +28,7 @@ export function useRoleSync() {
       } catch {}
     })
     return () => { try { unsub() } catch {} }
-  }, [session?.user?.id])
+  }, [session?.user?.id, subscribeByTypes, update])
 }
 
 export default useRoleSync
