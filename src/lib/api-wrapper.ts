@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { tenantContext, TenantContext } from '@/lib/tenant-context'
 import { logger } from '@/lib/logger'
-import { verifyTenantCookie } from '@/lib/tenant-cookie'
 import { incrementMetric } from '@/lib/observability-helpers'
 
 /**
@@ -262,6 +261,7 @@ export function withTenantContext(
         if (tenantCookie) {
           const tenantForVerification = resolvedTenantId ?? (user && user.tenantId ? String(user.tenantId) : null)
           if (tenantForVerification) {
+            const { verifyTenantCookie } = await import('@/lib/tenant-cookie')
             const ok = await verifyTenantCookie(tenantCookie, String(tenantForVerification), String(user.id))
             if (!ok) {
               // Warn but do not hard-block; continue with resolved context to avoid breaking read-only admin views
