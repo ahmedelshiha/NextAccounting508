@@ -41,7 +41,10 @@ export const POST = withTenantContext(async (_request: NextRequest) => {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
     }
 
-    const existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } }).catch(() => null as any)
+    let existing: any = null
+    try {
+      existing = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
+    } catch {}
     let rec: any = null
     try {
       if (existing && (existing as any).id != null) {
