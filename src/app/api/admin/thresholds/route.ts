@@ -18,11 +18,15 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
       return respond.unauthorized()
     }
 
-    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
+    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } }).catch(() => null as any)
+    if (!threshold && lastThreshold) {
+      return NextResponse.json(lastThreshold)
+    }
     if (!threshold) {
       return NextResponse.json({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 })
     }
-    return NextResponse.json({ responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth })
+    lastThreshold = { responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth }
+    return NextResponse.json(lastThreshold)
   } catch (err) {
     console.error('Thresholds GET error', err)
     return NextResponse.json({ error: 'Failed to read thresholds' }, { status: 500 })
@@ -61,7 +65,8 @@ export const POST = withTenantContext(async (_request: NextRequest) => {
     const rt = Number(responseTime)
     const er = Number(errorRate)
     const sg = Number(storageGrowth)
-    return NextResponse.json({ responseTime: rec?.responseTime ?? rt, errorRate: rec?.errorRate ?? er, storageGrowth: rec?.storageGrowth ?? sg })
+    lastThreshold = { responseTime: rec?.responseTime ?? rt, errorRate: rec?.errorRate ?? er, storageGrowth: rec?.storageGrowth ?? sg }
+    return NextResponse.json(lastThreshold)
   } catch (err) {
     console.error('Thresholds POST error', err)
     return NextResponse.json({ error: 'Failed to save thresholds' }, { status: 500 })
