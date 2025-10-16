@@ -163,9 +163,9 @@ class AdminLayoutErrorBoundary extends React.Component<
  */
 const AdminDashboardLayoutLazy: React.FC<AdminDashboardLayoutProps> = (props) => {
   // Track if component is mounted to prevent hydration mismatches
-  const [isMounted, setIsMounted] = React.useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsMounted(true)
   }, [])
 
