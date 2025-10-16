@@ -41,17 +41,50 @@ class AdminErrorBoundary extends React.Component<AdminErrorBoundaryProps, AdminE
       errorInfo
     })
 
+    // Comprehensive error logging
+    const errorContext = {
+      timestamp: new Date().toISOString(),
+      errorType: error.constructor.name,
+      errorMessage: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      isHydrationError: error.message?.includes('Minified React error #185'),
+      isSSRMismatch: error.message?.includes('hydration'),
+      navigationTiming: typeof window !== 'undefined' ? {
+        navigationStart: performance.timing?.navigationStart,
+        domInteractive: performance.timing?.domInteractive,
+        domComplete: performance.timing?.domComplete,
+        loadEventEnd: performance.timing?.loadEventEnd,
+        hydrationTime: performance.timing?.domInteractive ? performance.timing.domInteractive - performance.timing.navigationStart : undefined,
+      } : null,
+    }
+
     // Log error details
-    console.error('Admin Dashboard Error:', error)
+    console.error('Admin Dashboard Error:', errorContext)
     console.error('Component Stack:', errorInfo.componentStack)
-    
+
     // Check if it's a hydration error (React Error #185)
-    if (error.message?.includes('Minified React error #185')) {
+    if (errorContext.isHydrationError) {
       console.error('🚨 HYDRATION MISMATCH DETECTED:', {
         error: error.message,
         stack: error.stack,
-        componentStack: errorInfo.componentStack
+        componentStack: errorInfo.componentStack,
+        timing: errorContext.navigationTiming,
+        suggestion: 'Check for conditional hook calls, inconsistent initial renders, or SSR/client mismatch'
       })
+
+      // Send to monitoring service if available
+      if (typeof window !== 'undefined' && (window as any).__sentry__) {
+        (window as any).Sentry?.captureException(error, {
+          tags: {
+            errorType: 'hydration_mismatch',
+            component: 'AdminDashboard'
+          },
+          contexts: {
+            error: errorContext
+          }
+        })
+      }
     }
   }
 
