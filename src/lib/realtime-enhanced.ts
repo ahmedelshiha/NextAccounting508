@@ -123,6 +123,10 @@ function createAdapterFromEnv(): PubSubAdapter {
         console.warn('Realtime PG transport requested but runtime is not Node — falling back to in-memory adapter')
         return new InMemoryPubSub()
       }
+      if (!((typeof process !== 'undefined' && (process.env.REALTIME_PG_URL || process.env.DATABASE_URL)))) {
+        console.warn('Realtime PG transport requested but no REALTIME_PG_URL/DATABASE_URL set — falling back to in-memory adapter')
+        return new InMemoryPubSub()
+      }
       try {
         return new PostgresPubSub()
       } catch (e) {
