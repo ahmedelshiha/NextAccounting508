@@ -8,6 +8,8 @@ import { respond } from '@/lib/api-response'
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
 
+let lastThreshold: { responseTime: number; errorRate: number; storageGrowth: number } | null = null
+
 export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
