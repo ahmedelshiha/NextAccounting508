@@ -43,51 +43,43 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   className = '',
 }) => {
   const pathname = usePathname()
-  
-  // Add client-side hydration check to prevent SSR issues
-  const [isClient, setIsClient] = useState(false)
-  
+
   // Get responsive state and layout management - ALWAYS call hooks at the top level
   const responsive = useResponsive()
   const { sidebar, navigation, ui } = useAdminLayoutSafe()
-  
-  // Set client-side flag after hydration
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
 
-  // HYDRATION-SAFE: Track if we're client-side and hydration is complete
+  // Single hydration flag to coordinate all client-side operations
   const [isHydrated, setIsHydrated] = useState(false)
-  
+
+  // Mark hydration complete after initial mount
   useEffect(() => {
-    // Only set hydrated flag after client-side mount is complete
     setIsHydrated(true)
   }, [])
 
-  // HYDRATION-SAFE: Sync responsive state with store ONLY after hydration
+  // Sync responsive state with store after hydration
   useEffect(() => {
-    if (!isHydrated) return // Prevent hydration mismatch
-    
-    const { isMobile, isTablet } = responsive
-    // Update store with current responsive state (only after hydration)
-    sidebar.setCollapsed(isMobile || isTablet ? true : sidebar.collapsed)
-  }, [isHydrated, responsive.breakpoint, responsive.isMobile, responsive.isTablet, sidebar])
+    if (!isHydrated) return
 
-  // HYDRATION-SAFE: Set active navigation item ONLY after hydration
+    const { isMobile, isTablet } = responsive
+    sidebar.setCollapsed(isMobile || isTablet ? true : sidebar.collapsed)
+  }, [isHydrated, responsive.isMobile, responsive.isTablet, sidebar])
+
+  // Set active navigation item after hydration
   useEffect(() => {
-    if (!isHydrated) return // Prevent hydration mismatch
-    
-    // Simple active item detection - can be enhanced with more sophisticated matching
+    if (!isHydrated) return
+
     const pathSegments = pathname.split('/').filter(Boolean)
     const activeItem = pathSegments.length > 1 ? pathSegments[1] : 'dashboard'
     navigation.setActiveItem(activeItem)
   }, [isHydrated, pathname, navigation])
 
-  // HYDRATION-SAFE: Initialize collapsed state ONLY after hydration
+  // Initialize collapsed state after hydration
   useEffect(() => {
-    if (!isHydrated || initialSidebarCollapsed === undefined) return // Prevent hydration mismatch
-    
-    sidebar.setCollapsed(initialSidebarCollapsed)
+    if (!isHydrated) return
+
+    if (initialSidebarCollapsed !== undefined) {
+      sidebar.setCollapsed(initialSidebarCollapsed)
+    }
   }, [isHydrated, initialSidebarCollapsed, sidebar])
 
   // Handle sidebar toggle
