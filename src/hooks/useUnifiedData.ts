@@ -78,8 +78,7 @@ export function useUnifiedData<T = any>(opts: UnifiedDataOptions<T>) {
   useEffect(() => {
     if (!revalidateOnEvents) return
     return subscribeByTypes(events, () => { void mutate() })
-     
-  }, [JSON.stringify(events), revalidateOnEvents, path])
+  }, [JSON.stringify(events), revalidateOnEvents, path, subscribeByTypes, mutate])
 
   return { data, error, isLoading, isValidating, refresh: () => mutate(), mutate: (v?: any) => mutate(v, { revalidate: true }), key: path, globalMutate }
 }
