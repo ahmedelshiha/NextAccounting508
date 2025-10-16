@@ -156,6 +156,8 @@ class EnhancedRealtimeService extends EventEmitter {
     const connectionId = Math.random().toString(36).slice(2)
     const types = new Set(eventTypes && eventTypes.length ? eventTypes : ['all'])
     this.connections.set(connectionId, { controller, userId, eventTypes: types })
+    // Lazily enable underlying transport when a real subscriber connects
+    try { (this.adapter as any)?.enable?.() } catch {}
     return connectionId
   }
 
