@@ -4,7 +4,6 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
-import { NextRequest, NextResponse } from 'next/server'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
