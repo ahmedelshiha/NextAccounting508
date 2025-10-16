@@ -152,15 +152,28 @@ class AdminLayoutErrorBoundary extends React.Component<
 
 /**
  * AdminDashboardLayoutLazy - Performance-optimized layout wrapper
- * 
+ *
  * This component implements:
  * - Code splitting for admin components
  * - Lazy loading with suspense boundaries
  * - Loading skeletons for better UX
  * - Error boundaries for resilient loading
  * - Performance monitoring hooks
+ * - Progressive hydration to reduce initial bundle size
  */
 const AdminDashboardLayoutLazy: React.FC<AdminDashboardLayoutProps> = (props) => {
+  // Track if component is mounted to prevent hydration mismatches
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Skip rendering until client-side to ensure consistent hydration
+  if (!isMounted) {
+    return <AdminLayoutSkeleton />
+  }
+
   return (
     <AdminLayoutErrorBoundary>
       <Suspense fallback={<AdminLayoutSkeleton />}>
