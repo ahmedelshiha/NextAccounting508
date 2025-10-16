@@ -11,18 +11,27 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { SessionProvider } from 'next-auth/react'
 import { SWRConfig } from 'swr'
 import { RealtimeProvider } from '@/components/dashboard/realtime/RealtimeProvider'
 import { CountsProvider } from '@/components/admin/providers/CountsProvider'
+import { AdminContextProvider } from '@/components/admin/providers/AdminContext'
 import { ErrorBoundary } from '@/components/providers/error-boundary'
 import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
+import { Toaster } from '@/components/ui/sonner'
 import useRoleSync from '@/hooks/useRoleSync'
 
 interface AdminProvidersProps {
   children: ReactNode
   session?: any
+}
+
+const swrFetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('Request failed')
+  return res.json()
 }
 
 /**
@@ -45,13 +54,7 @@ function PerformanceWrapper({ children }: { children: ReactNode }) {
  * Main admin providers wrapper that orchestrates all necessary contexts
  * for the admin dashboard functionality.
  */
-export function AdminProviders({ children }: AdminProvidersProps) {
-  const fetcher = async (url: string) => {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Request failed')
-    return res.json()
-  }
-
+export function AdminProviders({ children, session }: AdminProvidersProps) {
   return (
     <ErrorBoundary
       fallback={({ error, resetError }) => (
@@ -89,18 +92,23 @@ export function AdminProviders({ children }: AdminProvidersProps) {
       )}
     >
       <ReactError31Boundary>
-        <SWRConfig value={{ fetcher, revalidateOnFocus: false, suspense: false, errorRetryCount: 3 }}>
-          <RealtimeProvider>
-            <PerformanceWrapper>
-              <RoleSyncMount />
-              <UXMonitor>
-                <CountsProvider>
-                  {children}
-                </CountsProvider>
-              </UXMonitor>
-            </PerformanceWrapper>
-          </RealtimeProvider>
-        </SWRConfig>
+        <SessionProvider session={session}>
+          <SWRConfig value={{ fetcher: swrFetcher, revalidateOnFocus: false, suspense: false, errorRetryCount: 3 }}>
+            <AdminContextProvider>
+              <RealtimeProvider>
+                <PerformanceWrapper>
+                  <RoleSyncMount />
+                  <UXMonitor>
+                    <CountsProvider>
+                      {children}
+                      <Toaster richColors />
+                    </CountsProvider>
+                  </UXMonitor>
+                </PerformanceWrapper>
+              </RealtimeProvider>
+            </AdminContextProvider>
+          </SWRConfig>
+        </SessionProvider>
       </ReactError31Boundary>
     </ErrorBoundary>
   )

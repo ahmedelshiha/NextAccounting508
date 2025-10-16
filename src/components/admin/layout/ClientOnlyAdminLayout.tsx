@@ -59,7 +59,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
 
   return (
     <Suspense fallback={<LoadingShell />}>
-      <AdminProviders>
+      <AdminProviders session={session}>
         <div className="min-h-screen bg-gray-50 flex">
         <a
           href="#admin-main-content"
