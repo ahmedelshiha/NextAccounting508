@@ -4,6 +4,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { respond } from '@/lib/api-response'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const revalidate = 0
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,10 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
       return respond.unauthorized()
     }
 
-    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } }).catch(() => null as any)
+    let threshold: any = null
+    try {
+      threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
+    } catch {}
     if (!threshold && lastThreshold) {
       return NextResponse.json(lastThreshold)
     }
