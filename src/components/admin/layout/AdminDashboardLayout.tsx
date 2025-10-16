@@ -51,9 +51,49 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
   // Single hydration flag to coordinate all client-side operations
   const [isHydrated, setIsHydrated] = useState(false)
 
-  // Mark hydration complete after initial mount
+  // Mark hydration complete after initial mount with performance tracking
   useEffect(() => {
+    const hydrationStart = performance.now()
+
+    // Mark hydration complete
     setIsHydrated(true)
+
+    // Log hydration metrics for debugging slow hydration
+    const hydrationEnd = performance.now()
+    const hydrationDuration = hydrationEnd - hydrationStart
+
+    if (typeof window !== 'undefined' && hydrationDuration > 100) {
+      console.warn(`[Admin Dashboard] Hydration took ${hydrationDuration.toFixed(2)}ms`, {
+        componentName: 'AdminDashboardLayout',
+        hydrationTime: hydrationDuration,
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    // Send to performance monitoring if available
+    if (typeof window !== 'undefined') {
+      const perfObserverSupported = 'PerformanceObserver' in window
+      if (perfObserverSupported) {
+        try {
+          const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+          if (navigationTiming) {
+            const domInteractive = navigationTiming.domInteractive - navigationTiming.navigationStart
+            const hydrationMetrics = {
+              type: 'admin_dashboard_hydration',
+              domInteractive,
+              hydrationDuration,
+              timestamp: new Date().toISOString(),
+            }
+
+            if (domInteractive > 3000) {
+              console.warn('[Admin Dashboard] Slow hydration detected', hydrationMetrics)
+            }
+          }
+        } catch (e) {
+          // Silently fail if performance API not available
+        }
+      }
+    }
   }, [])
 
   // Sync responsive state with store after hydration
