@@ -137,7 +137,7 @@ const _api_GET = async (request: NextRequest) => {
     try { await logAudit({ action: 'security.ratelimit.block', details: { ip, key, route: new URL(request.url).pathname } }) } catch {}
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
   }
-  const sessionOrResponse = await requireAuth(['ADMIN', 'STAFF'])
+  const sessionOrResponse = await requireAuth(['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'])
   if (isResponse(sessionOrResponse)) return sessionOrResponse as NextResponse
   try {
     const { searchParams } = new URL(request.url)
