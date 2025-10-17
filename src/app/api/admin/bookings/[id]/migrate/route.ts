@@ -8,7 +8,7 @@ export const POST = withTenantContext(async (_request: NextRequest, context: { p
     const { id } = await context.params
     const ctx = requireTenantContext()
 
-    const allowed = ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'STAFF']
+    const allowed = ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN']
     if (!ctx.role || !allowed.includes(ctx.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     // Ensure booking exists and belongs to tenant (via client relation until tenantId is on Booking)
