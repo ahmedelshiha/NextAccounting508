@@ -15,7 +15,7 @@ export const GET = withTenantContext(async (request: NextRequest, context: { par
     const where: Prisma.PostWhereInput = { slug, ...(tenantFilter(tenantId) as any) }
 
     const role = tenantContext.getContextOrNull()?.role ?? null
-    if (!role || !['ADMIN', 'STAFF'].includes(role)) {
+    if (!role || !['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(role)) {
       where.published = true
     }
 
@@ -44,7 +44,7 @@ export const GET = withTenantContext(async (request: NextRequest, context: { par
 export const PUT = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
   try {
     const ctx = requireTenantContext()
-    if (!['ADMIN', 'STAFF'].includes(String(ctx.role || ''))) {
+    if (!['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(String(ctx.role || ''))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -128,7 +128,7 @@ export const PUT = withTenantContext(async (request: NextRequest, context: { par
     console.error('Error updating post:', error)
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 })
   }
-}, { allowedRoles: ['ADMIN', 'STAFF'] })
+}, { allowedRoles: ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'] })
 
 // DELETE /api/posts/[slug] - Delete post (admin only)
 export const DELETE = withTenantContext(async (request: NextRequest, context: { params: Promise<{ slug: string }> }) => {
