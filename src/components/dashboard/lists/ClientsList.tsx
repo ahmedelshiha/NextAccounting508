@@ -98,7 +98,7 @@ export default function ClientsList() {
   const setRoleBulk = async () => {
     if (!selectedIds.length) return
     const next = window.prompt(t('prompt.setRole'))?.toUpperCase()
-    if (!next || !['ADMIN','STAFF','CLIENT'].includes(next)) return
+    if (!next || !['ADMIN','TEAM_LEAD','TEAM_MEMBER','CLIENT','STAFF'].includes(next)) return
     for (const id of selectedIds) {
       await apiFetch(`/api/admin/users/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role: next }) })
     }
