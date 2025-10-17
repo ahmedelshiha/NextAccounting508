@@ -32,7 +32,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
   try {
     const role = ctx.role ?? undefined
-    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
+    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'SUPER_ADMIN') {
       const mod = await import('@/app/api/admin/service-requests/route')
       const resp: Response = await mod.GET(cloneRequestWithUrl(request, url) as any, {} as any)
       const data = await resp.json().catch(() => null)
@@ -89,7 +89,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   const url = new URL(request.url)
 
   try {
-    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'STAFF') {
+    if (role === 'ADMIN' || role === 'TEAM_LEAD' || role === 'TEAM_MEMBER' || role === 'SUPER_ADMIN') {
       basePayload.clientId = legacy?.clientId || ctx.userId
       if (legacy?.assignedTeamMemberId) (basePayload as any).assignedTeamMemberId = legacy.assignedTeamMemberId
       const mod = await import('@/app/api/admin/service-requests/route')
