@@ -67,7 +67,7 @@ export const PUT = withTenantContext(async (request: NextRequest, context: { par
     if (!existingBooking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
     const isOwner = existingBooking.clientId === ctx.userId
-    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(ctx.role ?? '')
+    const isAdminOrStaff = ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(ctx.role ?? '')
 
     if (!isOwner && !isAdminOrStaff) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -125,7 +125,7 @@ export const DELETE = withTenantContext(async (request: NextRequest, context: { 
     }
 
     const isOwner = booking.clientId === ctx.userId
-    const isAdminOrStaff = ['ADMIN', 'STAFF'].includes(ctx.role ?? '')
+    const isAdminOrStaff = ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(ctx.role ?? '')
 
     if (!isOwner && !isAdminOrStaff) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
