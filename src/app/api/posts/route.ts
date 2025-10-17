@@ -24,7 +24,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     // Determine role from tenant context when available
     const role = tenantContext.getContextOrNull()?.role ?? null
-    if (!role || !['ADMIN', 'STAFF'].includes(role)) {
+    if (!role || !['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(role)) {
       where.published = true
     } else if (published !== null) {
       where.published = published === 'true'
@@ -63,7 +63,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 export const POST = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
-    if (!['ADMIN', 'STAFF'].includes(String(ctx.role || ''))) {
+    if (!['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'].includes(String(ctx.role || ''))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -160,4 +160,4 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     console.error('Error creating post:', error)
     return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
   }
-}, { allowedRoles: ['ADMIN', 'STAFF'] })
+}, { allowedRoles: ['ADMIN', 'TEAM_LEAD', 'TEAM_MEMBER', 'SUPER_ADMIN'] })
