@@ -189,7 +189,7 @@ try {
   // Reset prisma mock before each test to ensure isolated behavior
   beforeEach(() => {
     try { resetPrismaMock() } catch {}
-    try { vi.resetAllMocks() } catch {}
+    try { vi.clearAllMocks() } catch {}
   })
   // Expose helper on globalThis for tests to use programmatically
   ;(globalThis as any).prismaMock = mockPrisma
