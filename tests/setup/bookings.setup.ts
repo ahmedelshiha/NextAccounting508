@@ -1,4 +1,5 @@
 import { setupBookingsMocks } from '../helpers/targetedMocks'
+import { beforeEach } from 'vitest'
 
 export function setupBookings(overrides: { bookings?: any[] } = {}) {
   return setupBookingsMocks(overrides)

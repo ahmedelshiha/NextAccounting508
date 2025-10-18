@@ -187,9 +187,10 @@ vi.mock('@/lib/auth', async () => {
 try {
   const { resetPrismaMock, mockPrisma } = await import('./__mocks__/prisma')
   // Reset prisma mock before each test to ensure isolated behavior
-  beforeEach(() => {
+  beforeEach(async () => {
     try { resetPrismaMock() } catch {}
     try { vi.resetAllMocks() } catch {}
+    try { const rl = await import('@/lib/rate-limit'); (rl as any)._resetRateLimitBucketsForTests?.() } catch {}
   })
   // Expose helper on globalThis for tests to use programmatically
   ;(globalThis as any).prismaMock = mockPrisma

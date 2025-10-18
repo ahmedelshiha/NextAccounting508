@@ -1,4 +1,5 @@
 import { setupTeamManagementMocks } from '../helpers/targetedMocks'
+import { beforeEach } from 'vitest'
 
 // Optional helper for tests to import and run setup
 export function setupTeamManagement(overrides: { members?: any[] } = {}) {

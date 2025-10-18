@@ -1,9 +1,10 @@
-import { setupServiceRequests } from '../helpers/targetedMocks'
+import { setupServiceRequestsMocks } from '../helpers/targetedMocks'
+import { beforeEach } from 'vitest'
 
 export default function autoSetupServiceRequests(overrides: { requests?: any[] } = {}) {
-  const data = setupServiceRequests(overrides)
+  const data = setupServiceRequestsMocks(overrides)
   beforeEach(() => {
-    setupServiceRequests(overrides)
+    setupServiceRequestsMocks(overrides)
   })
   return data
 }
