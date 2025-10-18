@@ -69,7 +69,7 @@ Phase 5 — Testing & Accessibility (1–2 days)
 - [ ] E2E or Playwright test: collapse/expand, resize, persistence across reloads
 - [ ] Validate tooltips appear on hover in collapsed mode and do not appear when expanded
 
-Phase 6 ��� Persistence to DB (optional / 1 day + backend)
+Phase 6 — Persistence to DB (optional / 1 day + backend)
 - [ ] Define API route for saving sidebar preferences per user (if required)
 - [ ] Save and load preference on mount; fallback to localStorage if API fails
 - [ ] Unit/integration tests for API interaction and fallback
@@ -222,13 +222,37 @@ Status summary (what's done vs remaining)
 - Remaining: Centralize state in Zustand, keyboard shortcuts, aria-live for sidebar state, tests, optional DB persistence, split components for maintainability, update animation duration if required.
 
 Updated Action Items (append to phased TODOs as immediate next steps)
-- [ ] Add Audit Findings section to docs/admin-sideba-todo.md (this section)
-- [ ] Create migration plan to move localStorage keys to zustand persist and implement migration logic
-- [ ] Implement useSidebarKeyboardShortcuts hook and wire in admin header or client layout
-- [ ] Add aria-live collapse/expand announcement in AdminSidebar or global live region
+- [x] Add Audit Findings section to docs/admin-sideba-todo.md (this section)
+- [x] Create migration plan to move localStorage keys to zustand persist and implement migration logic (implemented migration-read on store init)
+- [x] Implement useSidebarKeyboardShortcuts hook and wire in admin header or client layout (hook added and wired in ClientLayout)
+- [x] Add aria-live collapse/expand announcement in AdminSidebar or global live region (SidebarLiveRegion added and rendered in ClientLayout)
 - [ ] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants
 - [ ] Split AdminSidebar into smaller components and update imports across admin layouts
 - [ ] Add unit & integration tests for AdminSidebar
 
 
--- End of audit
+-- Implementation notes
+
+1) Zustand store created: src/stores/admin/layout.store.ts
+   - Reads legacy localStorage keys (admin:sidebar:width, admin:sidebar:collapsed, admin:sidebar:expanded) on initialization to migrate existing user preferences into the new persisted store key (admin-layout-storage).
+   - Persists only collapsed and width by default to avoid persisting ephemeral UI state.
+
+2) Selectors created: src/stores/admin/layout.store.selectors.ts
+   - Includes SSR-safe helper useSidebarStateSSR for components that render server-side.
+
+3) Keyboard shortcuts: src/hooks/admin/useSidebarKeyboardShortcuts.ts
+   - Implements Ctrl/Cmd+B to toggle, Ctrl/Cmd+[ to collapse, Ctrl/Cmd+] to expand.
+   - Hook wired in src/components/providers/client-layout.tsx so shortcuts are available app-wide in client context.
+
+4) Live region announcer: src/components/admin/layout/SidebarLiveRegion.tsx
+   - Announces "Sidebar collapsed" / "Sidebar expanded" when collapse state changes.
+   - Rendered in ClientLayout alongside the existing route announcer.
+
+5) AdminSidebar component updated to read/write width/collapsed from the zustand store when props are not provided (migration-friendly). Drag/keyboard resizing now updates the central store.
+
+Next steps (recommended immediate):
+- Update transition timing to 300ms and standardize animation constants across Sidebar and styles.
+- Split AdminSidebar into smaller components to match the design doc for clarity and testing.
+- Add unit/integration tests for the store and AdminSidebar behaviours.
+
+-- End of update
