@@ -71,7 +71,7 @@ Phase 5 — Testing & Accessibility (1–2 days)
 
 Phase 6 — Persistence to DB (optional / 1 day + backend)
 - [x] Define API route for saving sidebar preferences per user (if required) — implemented at src/app/api/admin/sidebar-preferences/route.ts
-- [ ] Save and load preference on mount; fallback to localStorage if API fails
+- [x] Save and load preference on mount; fallback to localStorage if API fails — client sync implemented in ClientLayout (fetch GET on auth, PUT on changes)
 - [ ] Unit/integration tests for API interaction and fallback
 
 Phase 7 — Documentation & Deployment (0.5 day)
