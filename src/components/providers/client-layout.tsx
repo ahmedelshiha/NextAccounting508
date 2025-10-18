@@ -12,6 +12,8 @@ const LiveChatWidget = dynamic(() => import('@/components/portal/LiveChatWidget'
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
 import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 import { useOrgSettings } from '@/components/providers/SettingsProvider'
+import { useSidebarKeyboardShortcuts } from '@/hooks/admin/useSidebarKeyboardShortcuts'
+import SidebarLiveRegion from '@/components/admin/layout/SidebarLiveRegion'
 
 interface ClientLayoutProps {
   children: React.ReactNode
