@@ -88,7 +88,7 @@ afterAll(async () => { await new Promise<void>((resolve) => server.close(() => r
 
 describe('Admin sidebar preferences API', () => {
   it('GET returns defaults when no DB entry', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     ;(prisma as any).sidebarPreferences.findUnique.mockResolvedValueOnce(null)
 
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'GET' })
