@@ -171,7 +171,7 @@ describe('Admin sidebar preferences API', () => {
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     expect(res.status).toBe(500)
     const json = await res.json().catch(() => null)
-    const msg = json?.error || json?.message || json?.data?.message
-    expect(String(msg || '')).toMatch(/Database not configured|Failed to update sidebar preferences/i)
+    const errMsg = (json && json.error && json.error.message) ? json.error.message : JSON.stringify(json || '')
+    expect(errMsg).toMatch(/Database not configured|Failed to update sidebar preferences/i)
   })
 })
