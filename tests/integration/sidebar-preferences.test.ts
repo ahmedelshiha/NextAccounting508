@@ -109,4 +109,25 @@ describe('Admin sidebar preferences API', () => {
     expect(data.collapsed).toBe(true)
     expect(data.width).toBe(200)
   })
+
+  it('GET returns 401 when unauthenticated', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'GET' })
+    expect(res.status).toBe(401)
+  })
+
+  it('PUT returns 401 when unauthenticated', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    const payload = { collapsed: true, width: 200 }
+    const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    expect(res.status).toBe(401)
+  })
+
+  it('PUT with invalid payload returns 400', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    // width below minimum (64) -> invalid
+    const invalid = { collapsed: true, width: 10 }
+    const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(invalid) })
+    expect(res.status).toBe(400)
+  })
 })
