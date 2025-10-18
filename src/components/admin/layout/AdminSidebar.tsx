@@ -35,6 +35,9 @@ import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import SidebarHeader from './SidebarHeader'
+import SidebarFooter from './SidebarFooter'
+import SidebarResizer from './SidebarResizer'
 
 interface NavigationItem {
   name: string
@@ -68,35 +71,25 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const MIN_WIDTH = 160
   const MAX_WIDTH = 420
 
-  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    try {
-      if (typeof window === 'undefined') return DEFAULT_WIDTH
-      const raw = window.localStorage.getItem('admin:sidebar:width')
-      if (raw) {
-        const parsed = parseInt(raw, 10)
-        if (!Number.isNaN(parsed)) return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, parsed))
-      }
-    } catch (e) {}
-    return DEFAULT_WIDTH
-  })
+  // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
+  // Use selectors to read/write width/collapsed state.
+  import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
+
+  const storeCollapsed = useSidebarCollapsed()
+  const storeWidth = useSidebarWidth()
+  const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
 
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
   const resizerRef = useRef<HTMLDivElement | null>(null)
 
-  // Save width
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:width', String(sidebarWidth))
-    } catch (e) {}
-  }, [sidebarWidth])
-
+  // Local drag handlers update the centralized store directly
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
       if (!dragRef.current) return
       const dx = e.clientX - dragRef.current.startX
       const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
+      storeSetWidth(newWidth)
     }
     function onMouseUp() {
       if (isDragging) setIsDragging(false)
@@ -115,7 +108,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       document.removeEventListener('mouseup', onMouseUp)
       document.body.style.cursor = ''
     }
-  }, [isDragging])
+  }, [isDragging, storeSetWidth])
 
   // Touch support
   useEffect(() => {
@@ -124,7 +117,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       const touch = e.touches[0]
       const dx = touch.clientX - dragRef.current.startX
       const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
+      storeSetWidth(newWidth)
     }
     function onTouchEnd() {
       if (isDragging) setIsDragging(false)
@@ -140,11 +133,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       document.removeEventListener('touchmove', onTouchMove)
       document.removeEventListener('touchend', onTouchEnd)
     }
-  }, [isDragging])
+  }, [isDragging, storeSetWidth])
 
   const startDrag = (clientX: number) => {
     if (collapsedEffective) return
-    dragRef.current = { startX: clientX, startWidth: sidebarWidth }
+    dragRef.current = { startX: clientX, startWidth: storeWidth }
     setIsDragging(true)
   }
 
@@ -159,26 +152,26 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const onResizerKeyDown = (e: React.KeyboardEvent) => {
     if (collapsedEffective) return
     if (e.key === 'ArrowLeft') {
-      setSidebarWidth(w => Math.max(MIN_WIDTH, w - 16))
+      storeSetWidth(Math.max(MIN_WIDTH, storeWidth - 16))
     } else if (e.key === 'ArrowRight') {
-      setSidebarWidth(w => Math.min(MAX_WIDTH, w + 16))
+      storeSetWidth(Math.min(MAX_WIDTH, storeWidth + 16))
     } else if (e.key === 'Home') {
-      setSidebarWidth(MIN_WIDTH)
+      storeSetWidth(MIN_WIDTH)
     } else if (e.key === 'End') {
-      setSidebarWidth(MAX_WIDTH)
+      storeSetWidth(MAX_WIDTH)
     }
   }
 
-  // Expand/collapse based on width threshold
+  // Expand/collapse based on width threshold - keep legacy behavior by writing to store
   useEffect(() => {
     try {
-      if (sidebarWidth <= 80) {
-        if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:collapsed', '1')
+      if (storeWidth <= 80) {
+        storeSetCollapsed(true)
       } else {
-        if (typeof window !== 'undefined') window.localStorage.removeItem('admin:sidebar:collapsed')
+        storeSetCollapsed(false)
       }
     } catch (e) {}
-  }, [sidebarWidth])
+  }, [storeWidth, storeSetCollapsed])
 
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
@@ -391,7 +384,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const roving = useRovingTabIndex()
 
   // Sidebar positioning classes preserved
-  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-150 flex`
+  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-300 flex`
 
   const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
 
@@ -408,18 +401,10 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         role="navigation"
         aria-label="Admin sidebar"
         className={`${baseSidebarClasses} ${isMobile ? mobileSidebarClasses : ''}`}
-        style={{ width: `${effectiveWidth}px` }}
+        style={{ width: `${effectiveWidth}px`, transition: 'width 300ms ease-in-out' }}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200">
-            <Building className="h-8 w-8 text-blue-600" />
-            {!collapsedEffective && (
-              <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
-                <p className="text-xs text-gray-500">Admin Portal</p>
-              </div>
-            )}
-          </div>
+          <SidebarHeader collapsed={collapsedEffective} />
 
           <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
@@ -439,30 +424,17 @@ export default function AdminSidebar(props: AdminSidebarProps) {
             })}
           </nav>
 
-          {!collapsedEffective && (
-            <div className="p-4 border-t border-gray-200">
-              <Link href="/admin/help" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100" onClick={isMobile ? onClose : undefined}>
-                <HelpCircle className="h-5 w-5 mr-3 text-gray-400" />
-                Help & Support
-              </Link>
-            </div>
-          )}
+          <SidebarFooter collapsed={collapsedEffective} isMobile={isMobile} onClose={onClose} />
         </div>
 
         {/* Resizer - only on desktop and when not collapsed */}
         {!isMobile && !collapsedEffective && (
-          <div
-            ref={resizerRef}
-            role="separator"
-            aria-orientation="vertical"
-            tabIndex={0}
-            aria-valuenow={Math.round(sidebarWidth)}
+          <SidebarResizer
+            ariaValueNow={Math.round(storeWidth)}
             onKeyDown={onResizerKeyDown}
             onMouseDown={onResizerMouseDown}
             onTouchStart={onResizerTouchStart}
-            className={`absolute top-0 right-0 h-full w-2 -mr-1 cursor-col-resize z-40`}>
-            <div className={`h-full w-0.5 mx-auto bg-transparent hover:bg-gray-200`}></div>
-          </div>
+          />
         )}
       </div>
     </>
