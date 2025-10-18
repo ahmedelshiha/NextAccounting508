@@ -14,7 +14,7 @@ vi.mock('@/lib/prisma', () => {
   return { default: mock, ...mock }
 })
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import * as naNext from 'next-auth/next'
 
 // Helper to read request body
 function readBody(req: http.IncomingMessage) {
