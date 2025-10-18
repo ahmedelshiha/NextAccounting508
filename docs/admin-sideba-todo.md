@@ -69,7 +69,7 @@ Phase 5 — Testing & Accessibility (1–2 days)
 - [ ] E2E or Playwright test: collapse/expand, resize, persistence across reloads
 - [ ] Validate tooltips appear on hover in collapsed mode and do not appear when expanded
 
-Phase 6 — Persistence to DB (optional / 1 day + backend)
+Phase 6 ��� Persistence to DB (optional / 1 day + backend)
 - [ ] Define API route for saving sidebar preferences per user (if required)
 - [ ] Save and load preference on mount; fallback to localStorage if API fails
 - [ ] Unit/integration tests for API interaction and fallback
@@ -138,3 +138,97 @@ Appendix — Quick File/Path Checklist
 ---
 
 Generated from docs/Sidebar Toggle-enhancement.md. Update this TODO with dates, assignees and PR links when work begins.
+
+## Audit Findings (codebase review)
+
+I audited related code in the repository and recorded findings, decisions, and recommended next steps below to preserve context and reasoning.
+
+Files reviewed (high level):
+- src/components/admin/layout/AdminSidebar.tsx
+- src/components/admin/layout/AdminDashboardLayout.tsx
+- src/components/admin/layout/ClientOnlyAdminLayout.tsx
+- src/components/providers/client-layout.tsx
+- src/components/providers/RouteAnnouncer.tsx
+- src/components/ui/navigation.tsx
+- src/app/layout.tsx
+- src/components/home/hero-section.tsx
+- src/app/page.tsx
+
+Key findings
+
+1) AdminSidebar exists and implements many features from the spec
+- Implemented: collapsed (icon-only) and expanded states, persisted width (localStorage key: `admin:sidebar:width`), resizer with mouse/touch/keyboard, mobile overlay/backdrop, badges (from useUnifiedData), permission checks, expandedSections persisted (`admin:sidebar:expanded`), roving tab-index support for keyboard navigation, aria attributes (role=navigation, aria-expanded, separator role for resizer).
+- Behaviour and defaults: DEFAULT_WIDTH = 256, COLLAPSED_WIDTH = 64, MIN/MAX = 160/420.
+- Transition uses Tailwind `duration-150` (150ms) in classNames; code also sets inline width style but no explicit 300ms CSS transition as the original doc required.
+
+Implication: Core sidebar functionality is present and largely aligns with the enhancement doc. Large portion of Phase 3 is already implemented; Phase 1 (Zustand store) was not implemented — component uses local state + localStorage instead of a central store.
+
+2) State management differs from the design doc
+- The repo uses component-local React state and localStorage keys (`admin:sidebar:width`, `admin:sidebar:collapsed`, `admin:sidebar:expanded`). The enhancement doc recommended a central Zustand store with selective persistence and an SSR-safe guard.
+
+Recommendation: For global control (keyboard shortcuts in Header, responsive auto-collapse, and server sync), migrate to the recommended Zustand store and selectors. Short-term, leave existing localStorage keys as compatibility shim or add migration code in the new store to read existing keys.
+
+3) Keyboard shortcuts and global actions
+- I did not find a global keyboard shortcuts hook for sidebar toggling (Ctrl/Cmd+B, Ctrl/Cmd+[). The AdminSidebar supports keyboard controls on the resizer but not global shortcuts. The header includes mobile toggle in Navigation, but not the admin-specific mobile toggle/shortcut.
+
+Action: Implement useSidebarKeyboardShortcuts hook (Phase 4) and wire it in an appropriate client-level component (AdminHeader or ClientOnlyAdminLayout). Ensure it uses the central store (after migration) or a bridge to component-local state.
+
+4) Accessibility & live region
+- RouteAnnouncer exists (AccessibleRouteAnnouncer) and announces document.title or pathname to screen readers. Layout includes a skip link. The Sidebar renders aria attributes and uses roving tab indexes.
+
+Gap: Announcing sidebar state changes (expanded/collapsed) to screen readers is not present; add an aria-live polite update when toggling collapse so screen reader users get feedback (e.g., "Sidebar collapsed" / "Sidebar expanded"). Use the existing RouteAnnouncer pattern or create a small LiveRegion component used by the AdminSidebar or the global layout.
+
+5) Animations & layout shift
+- Sidebar transition duration is currently 150ms. The doc requires 300ms. Also code uses a fixed element for the sidebar and content region can be handled by spacer in AdminDashboardLayout; verify AdminDashboardLayout uses a spacer to prevent layout shift.
+
+Action: Decide whether to standardize on 300ms and update Tailwind classes and inline transitions. Confirm AdminDashboardLayout provides the content spacer (it appears to pass sidebar.collapsed to AdminSidebar). If keeping 150ms is desired for snappier feel, update docs.
+
+6) Persistence & DB sync
+- No server persistence for user preferences observed. If server-side persistence is desired, create an API route and wire the store to sync when user is authenticated. For immediate rollout, localStorage is acceptable.
+
+7) Local storage schema and migration
+- Local keys used: `admin:sidebar:width`, `admin:sidebar:collapsed`, `admin:sidebar:expanded`. The enhancement doc proposed a single `admin-layout-storage` key using zustand persist partialize. Plan a migration path:
+  - On new store initialization, if old keys exist, copy values and delete old keys.
+  - Keep backward compatibility for a few releases.
+
+8) Tests coverage
+- There are no specific tests for the sidebar found. Add unit tests for resizing behavior, keyboard resizer, persistence, and an integration test for mobile overlay.
+
+9) Integration points
+- ClientLayout already hides top Navigation on admin routes and provides SessionProvider, Toaster, and AccessibleRouteAnnouncer. The AdminSidebar must integrate with AdminDashboardLayout and ClientOnlyAdminLayout, which already reference AdminSidebar; those integrations are present.
+
+10) Minor code observations
+- Some classNames use `duration-150` while comments and docs expect `ANIMATION.DURATION = 300` and `ease-in-out`. Update to consistent variables and use utility constants.
+- The AdminSidebar file is large — consider splitting into smaller components (Header, Footer, Nav, Resizer) to match the design doc and improve testability.
+
+Recommended next tasks (update of TODO list)
+- [ ] Mark Phase 3 as partially completed (AdminSidebar implemented). Move remaining items to "polish/migration":
+  - [ ] Split AdminSidebar into subcomponents (Header, Nav, Resizer, Footer) for clarity and reuse. Owner: frontend
+  - [ ] Replace component-local persistence with Zustand store and create migration logic to import existing localStorage keys. Owner: frontend
+  - [ ] Implement global keyboard shortcut hook and wire to store. Owner: frontend
+  - [ ] Add aria-live announcement for collapse/expand. Owner: accessibility
+  - [ ] Standardize animation duration to 300ms (or document intentional 150ms choice). Owner: frontend + design
+  - [ ] Add unit & integration tests for existing AdminSidebar behaviour (persistence, resizer keyboard, mobile overlay). Owner: QA/dev
+  - [ ] Add optional server persistence API and sync logic (phase 6). Owner: backend/frontend
+
+Decisions & rationale to keep for future thinking
+- Keep current localStorage keys during migration to avoid breaking existing users; migrate to unified store key only after copying data on first load.
+- Prefer Zustand for centralized control and better selector granularity (avoids prop drilling and duplicate state/conflicts between multiple admin layouts).
+- Announce collapse/expand actions via an aria-live region to satisfy accessibility acceptance criteria.
+- Use roving tab index for keyboard navigation (already present) — retain and add tests to validate behaviour.
+
+Status summary (what's done vs remaining)
+- Done: AdminSidebar component with core features; Resizer with mouse/touch/keyboard; permission-aware navigation and badges; mobile overlay/backdrop; skip link and route announcer in layout.
+- Remaining: Centralize state in Zustand, keyboard shortcuts, aria-live for sidebar state, tests, optional DB persistence, split components for maintainability, update animation duration if required.
+
+Updated Action Items (append to phased TODOs as immediate next steps)
+- [ ] Add Audit Findings section to docs/admin-sideba-todo.md (this section)
+- [ ] Create migration plan to move localStorage keys to zustand persist and implement migration logic
+- [ ] Implement useSidebarKeyboardShortcuts hook and wire in admin header or client layout
+- [ ] Add aria-live collapse/expand announcement in AdminSidebar or global live region
+- [ ] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants
+- [ ] Split AdminSidebar into smaller components and update imports across admin layouts
+- [ ] Add unit & integration tests for AdminSidebar
+
+
+-- End of audit
