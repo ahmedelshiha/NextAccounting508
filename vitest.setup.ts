@@ -7,6 +7,8 @@ import '@testing-library/jest-dom'
 
 // Ensure NEXTAUTH_SECRET for tenant cookie signing in tests
 if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = 'test-secret'
+// Ensure admin auth token for integration tests
+if (!process.env.ADMIN_AUTH_TOKEN) process.env.ADMIN_AUTH_TOKEN = 'test-admin-token'
 
 // Expose React globally for tests that perform SSR renders and rely on React being available
 ;(globalThis as any).React = React
