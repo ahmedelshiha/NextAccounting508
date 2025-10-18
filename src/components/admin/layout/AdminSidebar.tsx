@@ -398,7 +398,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         role="navigation"
         aria-label="Admin sidebar"
         className={`${baseSidebarClasses} ${isMobile ? mobileSidebarClasses : ''}`}
-        style={{ width: `${effectiveWidth}px` }}
+        style={{ width: `${effectiveWidth}px`, transition: 'width 300ms ease-in-out' }}
       >
         <div className="flex flex-col h-full w-full">
           <div className="flex items-center h-16 px-4 border-b border-gray-200">
