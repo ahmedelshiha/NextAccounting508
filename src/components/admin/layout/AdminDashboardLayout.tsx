@@ -216,19 +216,10 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
         {/* Admin Footer */}
         <AdminFooter
-          sidebarCollapsed={sidebar.collapsed}
+          sidebarCollapsed={sidebarCollapsed}
           isMobile={responsive.isMobile}
         />
       </div>
-
-      {/* Debug Info (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white text-xs p-2 rounded z-50 font-mono">
-          <div>Breakpoint: {responsive.breakpoint}</div>
-          <div>Sidebar: {sidebar.collapsed ? 'collapsed' : 'expanded'}</div>
-          <div>Mobile: {responsive.isMobile ? 'yes' : 'no'}</div>
-        </div>
-      )}
     </div>
     </AdminErrorBoundary>
   )
