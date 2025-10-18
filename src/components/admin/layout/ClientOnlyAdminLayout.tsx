@@ -59,16 +59,17 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
   return (
     <SessionProvider session={session}>
       <AdminProviders>
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50">
           <a
             href="#admin-main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-white focus:text-blue-600 focus:ring-2 focus:ring-blue-600 focus:px-3 focus:py-2 focus:z-[60] rounded"
           >
             Skip to main content
           </a>
-          {/* Desktop Sidebar */}
+
+          {/* Desktop Sidebar - using fixed positioning */}
           <div className="hidden lg:block">
-            <AdminSidebar 
+            <AdminSidebar
               isCollapsed={sidebarCollapsed}
               isMobile={false}
             />
@@ -82,14 +83,14 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
             />
           )}
 
-          {/* Main Content Area */}
+          {/* Main Content Area - accounts for fixed sidebar width */}
           <div
-            className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ease-in-out ${
+            className={`flex flex-col min-w-0 transition-all duration-300 ease-in-out h-screen lg:h-auto ${
               sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
             }`}
           >
             {/* Header */}
-            <AdminHeader 
+            <AdminHeader
               onMenuToggle={handleMobileMenuToggle}
               isMobileMenuOpen={isMobileMenuOpen}
             />
