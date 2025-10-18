@@ -203,6 +203,7 @@ export interface SystemHealthResponse {
     api: {
       status: string
       latency: number
+      error?: string
     }
   }
   timestamp: string
