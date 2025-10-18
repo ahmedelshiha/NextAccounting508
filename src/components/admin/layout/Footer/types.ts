@@ -11,15 +11,15 @@
  * Represents the health status of a single system component (database, Redis, API)
  */
 export interface HealthCheck {
-  /** Status of the check: 'operational' | 'degraded' | 'outage' */
-  status: 'operational' | 'degraded' | 'outage'
-  
+  /** Status of the check: 'operational' | 'degraded' | 'outage' | 'unknown' */
+  status: 'operational' | 'degraded' | 'outage' | 'unknown'
+
   /** Response latency in milliseconds */
   latency: number
-  
+
   /** Error message if check failed (optional) */
   error?: string
-  
+
   /** ISO timestamp of last successful check */
   lastChecked: string
 }
