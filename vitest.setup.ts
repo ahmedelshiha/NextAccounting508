@@ -196,6 +196,10 @@ try {
   })
   // Expose helper on globalThis for tests to use programmatically
   ;(globalThis as any).prismaMock = mockPrisma
+  // Also expose `prisma` globally for fixtures that reference it by name
+  try {
+    ;(globalThis as any).prisma = mockPrisma
+  } catch (e) {}
 } catch (err) {
   // ignore if mocks not available
 }
