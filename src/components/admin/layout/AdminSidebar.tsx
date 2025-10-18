@@ -421,30 +421,17 @@ export default function AdminSidebar(props: AdminSidebarProps) {
             })}
           </nav>
 
-          {!collapsedEffective && (
-            <div className="p-4 border-t border-gray-200">
-              <Link href="/admin/help" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100" onClick={isMobile ? onClose : undefined}>
-                <HelpCircle className="h-5 w-5 mr-3 text-gray-400" />
-                Help & Support
-              </Link>
-            </div>
-          )}
+          <SidebarFooter collapsed={collapsedEffective} isMobile={isMobile} onClose={onClose} />
         </div>
 
         {/* Resizer - only on desktop and when not collapsed */}
         {!isMobile && !collapsedEffective && (
-          <div
-            ref={resizerRef}
-            role="separator"
-            aria-orientation="vertical"
-            tabIndex={0}
-            aria-valuenow={Math.round(sidebarWidth)}
+          <SidebarResizer
+            ariaValueNow={Math.round(storeWidth)}
             onKeyDown={onResizerKeyDown}
             onMouseDown={onResizerMouseDown}
             onTouchStart={onResizerTouchStart}
-            className={`absolute top-0 right-0 h-full w-2 -mr-1 cursor-col-resize z-40`}>
-            <div className={`h-full w-0.5 mx-auto bg-transparent hover:bg-gray-200`}></div>
-          </div>
+          />
         )}
       </div>
     </>
