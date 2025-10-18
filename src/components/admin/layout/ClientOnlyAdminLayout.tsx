@@ -124,6 +124,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
             <AdminHeader
               onMenuToggle={handleMobileMenuToggle}
               isMobileMenuOpen={isMobileMenuOpen}
+              onSidebarToggle={handleSidebarToggle}
             />
 
             {/* Main Content */}
