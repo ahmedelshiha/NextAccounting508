@@ -387,7 +387,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
 
-  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : sidebarWidth
+  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : storeWidth
 
   return (
     <>
