@@ -63,112 +63,15 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  // Persisted sidebar width (desktop)
+  // Fixed sidebar width (desktop) - resizing disabled
   const DEFAULT_WIDTH = 256
   const COLLAPSED_WIDTH = 64
-  const MIN_WIDTH = 160
-  const MAX_WIDTH = 420
 
   // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
-  // Use selectors to read/write width/collapsed state.
+  // Use selectors to read/write collapsed state.
   // Always use store values for state; props are legacy compatibility only
   const storeCollapsed = useSidebarCollapsed()
-  const storeWidth = useSidebarWidth()
-  const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
-
-  const [isDragging, setIsDragging] = useState(false)
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
-  const resizerRef = useRef<HTMLDivElement | null>(null)
-
-  // Local drag handlers update the centralized store directly
-  useEffect(() => {
-    function onMouseMove(e: MouseEvent) {
-      if (!dragRef.current) return
-      const dx = e.clientX - dragRef.current.startX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      storeSetWidth(newWidth)
-    }
-    function onMouseUp() {
-      if (isDragging) setIsDragging(false)
-      dragRef.current = null
-      document.body.style.cursor = ''
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-    }
-    if (isDragging) {
-      document.addEventListener('mousemove', onMouseMove)
-      document.addEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = 'col-resize'
-    }
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = ''
-    }
-  }, [isDragging, storeSetWidth])
-
-  // Touch support
-  useEffect(() => {
-    function onTouchMove(e: TouchEvent) {
-      if (!dragRef.current) return
-      const touch = e.touches[0]
-      const dx = touch.clientX - dragRef.current.startX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      storeSetWidth(newWidth)
-    }
-    function onTouchEnd() {
-      if (isDragging) setIsDragging(false)
-      dragRef.current = null
-      document.removeEventListener('touchmove', onTouchMove)
-      document.removeEventListener('touchend', onTouchEnd)
-    }
-    if (isDragging) {
-      document.addEventListener('touchmove', onTouchMove)
-      document.addEventListener('touchend', onTouchEnd)
-    }
-    return () => {
-      document.removeEventListener('touchmove', onTouchMove)
-      document.removeEventListener('touchend', onTouchEnd)
-    }
-  }, [isDragging, storeSetWidth])
-
-  const startDrag = (clientX: number) => {
-    if (storeCollapsed) return
-    dragRef.current = { startX: clientX, startWidth: storeWidth }
-    setIsDragging(true)
-  }
-
-  const onResizerMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    startDrag(e.clientX)
-  }
-  const onResizerTouchStart = (e: React.TouchEvent) => {
-    startDrag(e.touches[0].clientX)
-  }
-
-  const onResizerKeyDown = (e: React.KeyboardEvent) => {
-    if (storeCollapsed) return
-    if (e.key === 'ArrowLeft') {
-      storeSetWidth(Math.max(MIN_WIDTH, storeWidth - 16))
-    } else if (e.key === 'ArrowRight') {
-      storeSetWidth(Math.min(MAX_WIDTH, storeWidth + 16))
-    } else if (e.key === 'Home') {
-      storeSetWidth(MIN_WIDTH)
-    } else if (e.key === 'End') {
-      storeSetWidth(MAX_WIDTH)
-    }
-  }
-
-  // Expand/collapse based on width threshold - keep legacy behavior by writing to store
-  useEffect(() => {
-    try {
-      if (storeWidth <= 80) {
-        storeSetCollapsed(true)
-      } else {
-        storeSetCollapsed(false)
-      }
-    } catch (e) {}
-  }, [storeWidth, storeSetCollapsed])
+  const { setCollapsed: storeSetCollapsed } = useSidebarActions()
 
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
