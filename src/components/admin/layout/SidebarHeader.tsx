@@ -18,7 +18,7 @@ export default function SidebarHeader({ collapsed }: SidebarHeaderProps) {
     <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 gap-2">
       <div className="flex items-center">
         <Building className="h-8 w-8 text-blue-600" />
-        {!collapsed && (
+        {!collapsedState && (
           <div className="ml-3">
             <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
             <p className="text-xs text-gray-500">Admin Portal</p>

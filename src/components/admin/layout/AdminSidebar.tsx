@@ -64,8 +64,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  const collapsedEffective = typeof isCollapsedProp === 'boolean' ? isCollapsedProp : (typeof collapsed === 'boolean' ? collapsed : false)
-
   // Persisted sidebar width (desktop)
   const DEFAULT_WIDTH = 256
   const COLLAPSED_WIDTH = 64
@@ -74,6 +72,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
   // Use selectors to read/write width/collapsed state.
+  // Always use store values for state; props are legacy compatibility only
   const storeCollapsed = useSidebarCollapsed()
   const storeWidth = useSidebarWidth()
   const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
@@ -135,7 +134,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   }, [isDragging, storeSetWidth])
 
   const startDrag = (clientX: number) => {
-    if (collapsedEffective) return
+    if (storeCollapsed) return
     dragRef.current = { startX: clientX, startWidth: storeWidth }
     setIsDragging(true)
   }
@@ -149,7 +148,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   }
 
   const onResizerKeyDown = (e: React.KeyboardEvent) => {
-    if (collapsedEffective) return
+    if (storeCollapsed) return
     if (e.key === 'ArrowLeft') {
       storeSetWidth(Math.max(MIN_WIDTH, storeWidth - 16))
     } else if (e.key === 'ArrowRight') {
@@ -293,7 +292,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
               <div
                 aria-expanded={true}
                 data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
+                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
                 className={`
                   w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
                   ${isActive
@@ -304,7 +303,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                 `}
               >
                 <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
+                {!storeCollapsed && (
                   <>
                     <span className="flex-1 text-left">{item.name}</span>
                     {item.badge && (
@@ -321,7 +320,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                 aria-expanded={isExpanded}
                 aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
                 data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
+                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
                 className={`
                   w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
                   ${isActive
@@ -332,7 +331,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                 `}
               >
                 <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
+                {!storeCollapsed && (
                   <>
                     <span className="flex-1 text-left">{item.name}</span>
                     {item.badge && (
@@ -355,11 +354,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
               aria-current={isActive ? 'page' : undefined}
               onClick={isMobile ? onClose : undefined}
               data-roving
-              {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
+              {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
               className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors ${isActive ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} ${depth > 0 ? 'ml-4' : ''}`}
             >
               <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              {!collapsedEffective && (
+              {!storeCollapsed && (
                 <>
                   <span className="flex-1">{item.name}</span>
                   {item.badge && (
@@ -371,7 +370,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
           )}
         </div>
 
-        {hasChildren && (isSettingsParent || isExpanded) && !collapsedEffective && (
+        {hasChildren && (isSettingsParent || isExpanded) && !storeCollapsed && (
           <ul id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`} className="mt-1 space-y-1" role="group" aria-label={`${item.name} submenu`}>
             {item.children!.map(child => renderNavigationItem(child, depth + 1))}
           </ul>
@@ -387,7 +386,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
 
-  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : storeWidth
+  const effectiveWidth = storeCollapsed ? COLLAPSED_WIDTH : storeWidth
 
   return (
     <>
@@ -403,7 +402,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         style={{ width: `${effectiveWidth}px`, transition: 'width 300ms ease-in-out' }}
       >
         <div className="flex flex-col h-full w-full">
-          <SidebarHeader collapsed={collapsedEffective} />
+          <SidebarHeader collapsed={storeCollapsed} />
 
           <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
@@ -412,7 +411,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
               return (
                 <div key={section.section}>
-                  {!collapsedEffective && (
+                  {!storeCollapsed && (
                     <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
                   )}
                   <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
@@ -423,11 +422,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
             })}
           </nav>
 
-          <SidebarFooter collapsed={collapsedEffective} isMobile={isMobile} onClose={onClose} />
+          <SidebarFooter collapsed={storeCollapsed} isMobile={isMobile} onClose={onClose} />
         </div>
 
         {/* Resizer - only on desktop and when not collapsed */}
-        {!isMobile && !collapsedEffective && (
+        {!isMobile && !storeCollapsed && (
           <SidebarResizer
             ariaValueNow={Math.round(storeWidth)}
             onKeyDown={onResizerKeyDown}
