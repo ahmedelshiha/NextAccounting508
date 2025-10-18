@@ -190,6 +190,7 @@ try {
   beforeEach(() => {
     try { resetPrismaMock() } catch {}
     try { vi.resetAllMocks() } catch {}
+    try { const rl = require('@/lib/rate-limit'); rl._resetRateLimitBucketsForTests?.() } catch {}
   })
   // Expose helper on globalThis for tests to use programmatically
   ;(globalThis as any).prismaMock = mockPrisma
