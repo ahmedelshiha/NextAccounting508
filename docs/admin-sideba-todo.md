@@ -227,7 +227,7 @@ Updated Action Items (append to phased TODOs as immediate next steps)
 - [x] Implement useSidebarKeyboardShortcuts hook and wire in admin header or client layout (hook added and wired in ClientLayout)
 - [x] Add aria-live collapse/expand announcement in AdminSidebar or global live region (SidebarLiveRegion added and rendered in ClientLayout)
 - [x] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants (updated AdminSidebar to 300ms easing)
-- [ ] Split AdminSidebar into smaller components and update imports across admin layouts
+- [x] Split AdminSidebar into smaller components and update imports across admin layouts (created SidebarHeader, SidebarFooter, SidebarResizer and integrated into AdminSidebar)
 - [ ] Add unit & integration tests for AdminSidebar
 
 
