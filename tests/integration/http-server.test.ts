@@ -183,7 +183,7 @@ describe('HTTP-level integration tests for auth flows', () => {
   })
 
   it('DELETE /api/bookings/:id cancels when authenticated owner and tenant matches', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).booking.findUnique.mockResolvedValueOnce({ id: 'b1', clientId: 'client1', tenantId: 't1', status: 'PENDING' })
     ;(prisma as any).booking.update.mockResolvedValueOnce({ id: 'b1', status: 'CANCELLED' })
 
@@ -194,7 +194,7 @@ describe('HTTP-level integration tests for auth flows', () => {
   })
 
   it('GET /api/portal/service-requests/export returns CSV for authenticated user', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).serviceRequest.findMany.mockResolvedValueOnce([
       { id: 'r1', title: 'Req 1', service: { name: 'S1' }, priority: 'MEDIUM', status: 'SUBMITTED', createdAt: new Date(), scheduledAt: null, bookingType: null }
     ])
@@ -209,7 +209,7 @@ describe('HTTP-level integration tests for auth flows', () => {
   })
 
   it('POST /api/portal/service-requests creates when authenticated (simulate client create)', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).service.findUnique.mockResolvedValue({ id: 'svc1', name: 'SVC', active: true, status: 'ACTIVE' })
     ;(prisma as any).serviceRequest.create.mockResolvedValueOnce({ id: 'new1', clientId: 'client1', serviceId: 'svc1' })
 
