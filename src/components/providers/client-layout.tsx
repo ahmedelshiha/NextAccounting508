@@ -234,6 +234,46 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
   // Global sidebar keyboard shortcuts
   useSidebarKeyboardShortcuts()
 
+  // Sidebar persistence: load from server on auth and sync updates
+  const { collapsed: storeCollapsed, width: storeWidth, expandedGroups: storeExpanded } = useSidebarState()
+  const { setCollapsed: storeSetCollapsed, setWidth: storeSetWidth, setExpandedGroups: storeSetExpanded } = useSidebarActions()
+
+  // Load preferences from server on session available
+  React.useEffect(() => {
+    let mounted = true
+    if (!session?.user) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/admin/sidebar-preferences')
+        if (!mounted) return
+        if (!res.ok) return
+        const json = await res.json()
+        const data = json?.data || json
+        if (!data) return
+        if (typeof data.collapsed === 'boolean') storeSetCollapsed(Boolean(data.collapsed))
+        if (typeof data.width === 'number') storeSetWidth(Number(data.width))
+        if (Array.isArray(data.expandedGroups)) storeSetExpanded(data.expandedGroups)
+      } catch (e) {
+        // ignore - fallback to localStorage is already handled by store migration
+      }
+    })()
+    return () => { mounted = false }
+  }, [session?.user, storeSetCollapsed, storeSetWidth, storeSetExpanded])
+
+  // Persist changes to server when authenticated
+  React.useEffect(() => {
+    if (!session?.user) return
+    const payload = { collapsed: storeCollapsed, width: storeWidth, expandedGroups: storeExpanded }
+    const t = setTimeout(() => {
+      fetch('/api/admin/sidebar-preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {})
+    }, 250)
+    return () => clearTimeout(t)
+  }, [session?.user, storeCollapsed, storeWidth, storeExpanded,])
+
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <AccessibleRouteAnnouncer />
