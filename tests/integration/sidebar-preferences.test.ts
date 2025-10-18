@@ -102,7 +102,7 @@ describe('Admin sidebar preferences API', () => {
 
   it('PUT upserts preferences and returns stored record and logs audit', async () => {
     // Mock successful upsert and audit
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     ;(prisma as any).sidebarPreferences.upsert.mockResolvedValueOnce({ userId: 'user1', collapsed: true, width: 200 })
 
     // Mock audit logger
@@ -138,7 +138,7 @@ describe('Admin sidebar preferences API', () => {
   })
 
   it('PUT with invalid payload returns 400', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     // width below minimum (64) -> invalid
     const invalid = { collapsed: true, width: 10 }
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(invalid) })
@@ -146,7 +146,7 @@ describe('Admin sidebar preferences API', () => {
   })
 
   it('PUT returns 500 when DB is not configured (DB message)', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     ;(prisma as any).sidebarPreferences.upsert.mockImplementationOnce(() => { throw new Error('Database is not configured') })
 
     const payload = { collapsed: false, width: 200 }
@@ -158,7 +158,7 @@ describe('Admin sidebar preferences API', () => {
   })
 
   it('PUT returns 500 when DB throws Prisma error code', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     const err: any = new Error('connect failed')
     err.code = 'P1001'
     ;(prisma as any).sidebarPreferences.upsert.mockImplementationOnce(() => { throw err })
