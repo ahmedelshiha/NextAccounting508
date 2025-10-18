@@ -38,6 +38,7 @@ import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 import SidebarHeader from './SidebarHeader'
 import SidebarFooter from './SidebarFooter'
 import SidebarResizer from './SidebarResizer'
+import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
 
 interface NavigationItem {
   name: string
