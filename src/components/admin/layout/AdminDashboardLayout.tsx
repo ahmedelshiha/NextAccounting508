@@ -158,7 +158,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         {/* Admin Header */}
         <AdminHeader
           onMenuToggle={handleSidebarToggle}
-          isMobileMenuOpen={sidebar.open}
+          isMobileMenuOpen={false}
         />
 
         {/* Scrollable Content */}
