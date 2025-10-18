@@ -411,7 +411,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         <div className="flex flex-col h-full w-full">
           <SidebarHeader collapsed={storeCollapsed} />
 
-          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
+          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-3' : 'px-4 py-6 space-y-8'}`} role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
               const sectionItems = section.items.filter(item => hasAccess(item.permission))
               if (sectionItems.length === 0) return null
@@ -421,7 +421,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                   {!storeCollapsed && (
                     <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
                   )}
-                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
+                  <ul className={`${storeCollapsed ? 'space-y-1' : 'space-y-1'}`} ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}
                   </ul>
                 </div>
