@@ -177,7 +177,7 @@ describe('HTTP-level integration tests for method-not-allowed and OPTIONS', () =
 // AUTHENTICATED / UNAUTHENTICATED FLOW TESTS
 describe('HTTP-level integration tests for auth flows', () => {
   it('DELETE /api/bookings/:id returns 401 when unauthenticated', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce(null as any)
     const res = await fetch(`${baseUrl}/api/bookings/b1`, { method: 'DELETE' })
     expect(res.status).toBe(401)
   })
