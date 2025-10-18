@@ -1,9 +1,11 @@
+import packageJson from '../../../package.json'
+
 /**
  * Admin Dashboard Version Utilities
- * 
+ *
  * Provides version and build information for the admin footer.
  * Detects app version from environment variables, package.json, or fallback defaults.
- * 
+ *
  * @module @/lib/admin/version
  */
 
