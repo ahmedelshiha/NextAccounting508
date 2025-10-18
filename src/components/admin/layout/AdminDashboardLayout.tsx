@@ -12,7 +12,7 @@ import React, { useEffect, useCallback, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
-import AdminFooter from './AdminFooter'
+import { AdminFooter } from './Footer'
 import AdminErrorBoundary from './AdminErrorBoundary'
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useSidebarCollapsed, useSidebarActions } from '@/stores/admin/layout.store.selectors'
@@ -176,10 +176,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         </main>
 
         {/* Admin Footer */}
-        <AdminFooter
-          sidebarCollapsed={sidebarCollapsed}
-          isMobile={responsive.isMobile}
-        />
+        <AdminFooter />
       </div>
     </div>
     </AdminErrorBoundary>

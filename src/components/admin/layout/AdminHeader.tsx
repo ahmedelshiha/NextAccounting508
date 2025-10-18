@@ -14,16 +14,17 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { 
-  Bell, 
-  Search, 
-  Menu, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Bell,
+  Search,
+  Menu,
+  User,
+  Settings,
+  LogOut,
   HelpCircle,
   ChevronDown,
-  Home
+  Home,
+  ChevronLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,6 +41,7 @@ import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
 interface AdminHeaderProps {
   onMenuToggle?: () => void
   isMobileMenuOpen?: boolean
+  onSidebarToggle?: () => void
 }
 
 /**
@@ -59,7 +61,7 @@ function useBreadcrumbs() {
   return breadcrumbs
 }
 
-export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) {
+export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarToggle }: AdminHeaderProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const { unreadCount } = useClientNotifications()
@@ -81,7 +83,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left section - Mobile menu + Breadcrumbs */}
+          {/* Left section - Mobile menu + Desktop sidebar toggle + Breadcrumbs */}
           <div className="flex items-center flex-1">
             {/* Mobile menu button */}
             <Button
@@ -92,6 +94,18 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHea
               aria-label="Toggle mobile menu"
             >
               <Menu className="h-5 w-5" />
+            </Button>
+
+            {/* Desktop sidebar collapse button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden lg:inline-flex mr-2"
+              onClick={onSidebarToggle}
+              aria-label="Toggle sidebar"
+              title="Collapse/Expand sidebar"
+            >
+              <ChevronLeft className="h-5 w-5" />
             </Button>
 
             {/* Breadcrumbs */}
