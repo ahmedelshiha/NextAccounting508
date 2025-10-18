@@ -226,7 +226,7 @@ Updated Action Items (append to phased TODOs as immediate next steps)
 - [x] Create migration plan to move localStorage keys to zustand persist and implement migration logic (implemented migration-read on store init)
 - [x] Implement useSidebarKeyboardShortcuts hook and wire in admin header or client layout (hook added and wired in ClientLayout)
 - [x] Add aria-live collapse/expand announcement in AdminSidebar or global live region (SidebarLiveRegion added and rendered in ClientLayout)
-- [ ] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants
+- [x] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants (updated AdminSidebar to 300ms easing)
 - [ ] Split AdminSidebar into smaller components and update imports across admin layouts
 - [ ] Add unit & integration tests for AdminSidebar
 
