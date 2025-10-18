@@ -41,6 +41,7 @@ import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
 interface AdminHeaderProps {
   onMenuToggle?: () => void
   isMobileMenuOpen?: boolean
+  onSidebarToggle?: () => void
 }
 
 /**
