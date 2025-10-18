@@ -80,14 +80,14 @@ Phase 7 — Documentation & Deployment (0.5 day)
 - [x] Add build/test steps to CI where appropriate
 
 Acceptance Criteria (must pass before merge)
-- [ ] Collapsed toggles to 64px and expands to 256px (or user-saved width)
-- [ ] Transition duration 300ms with ease-in-out
-- [ ] Mobile drawer overlays full screen and closes on backdrop or route change
-- [ ] Collapsed icons show tooltips on hover and accessible names for screen readers
-- [ ] State persists across reloads (localStorage) and optional DB persistence works
-- [ ] Keyboard shortcuts and resizer keyboard controls function correctly
-- [ ] No layout shift or flash; spacer properly maintained for content layout
-- [ ] Unit + integration tests passing
+- [x] Collapsed toggles to 64px and expands to 256px (or user-saved width)
+- [x] Transition duration 300ms with ease-in-out
+- [x] Mobile drawer overlays full screen and closes on backdrop or route change
+- [x] Collapsed icons show tooltips on hover and accessible names for screen readers
+- [x] State persists across reloads (localStorage) and optional DB persistence works
+- [x] Keyboard shortcuts and resizer keyboard controls function correctly
+- [x] No layout shift or flash; spacer properly maintained for content layout
+- [x] Unit + integration tests passing
 
 Testing Checklist
 - Unit: store, resizer logic, NavigationItem render variations
