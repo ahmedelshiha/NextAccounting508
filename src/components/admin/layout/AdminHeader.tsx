@@ -61,7 +61,7 @@ function useBreadcrumbs() {
   return breadcrumbs
 }
 
-export default function AdminHeader({ onMenuToggle, isMobileMenuOpen }: AdminHeaderProps) {
+export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarToggle }: AdminHeaderProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const { unreadCount } = useClientNotifications()
