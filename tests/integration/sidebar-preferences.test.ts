@@ -9,8 +9,12 @@ vi.mock('@/lib/prisma', () => {
   }
   return { default: mock, ...mock }
 })
+// Mock observability helpers (audit logger)
+vi.mock('@/lib/observability-helpers', () => ({ logAuditSafe: vi.fn() }))
+
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
+import { logAuditSafe } from '@/lib/observability-helpers'
 
 // Helper to read request body
 function readBody(req: http.IncomingMessage) {
