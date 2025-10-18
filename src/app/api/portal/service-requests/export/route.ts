@@ -33,7 +33,8 @@ export const GET = withTenantContext(async (req: NextRequest) => {
   const ip = getClientIp(req as any)
   const key = `portal:service-requests:export:${ip}`
   let exportLimit: any = { allowed: true }
-  if (process.env.NODE_ENV !== 'test') {
+  // Skip distributed rate limiting in test environments (Vitest or NODE_ENV=test)
+  if (!(process.env.NODE_ENV === 'test' || process.env.VITEST === 'true')) {
     exportLimit = await applyRateLimit(key, 3, 60_000)
   }
 
