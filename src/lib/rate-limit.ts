@@ -9,6 +9,10 @@ type RedisClient = {
 
 const localBuckets = new Map<string, LocalBucket>()
 
+export function _resetRateLimitBucketsForTests() {
+  try { localBuckets.clear() } catch {}
+}
+
 let redisReady = false
 let redisError: Error | null = null
 let redisCache: RedisClient | null = null
