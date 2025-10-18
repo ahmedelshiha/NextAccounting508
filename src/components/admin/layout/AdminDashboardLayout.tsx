@@ -176,10 +176,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
         </main>
 
         {/* Admin Footer */}
-        <AdminFooter
-          sidebarCollapsed={sidebarCollapsed}
-          isMobile={responsive.isMobile}
-        />
+        <AdminFooter />
       </div>
     </div>
     </AdminErrorBoundary>
