@@ -83,8 +83,8 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
           )}
 
           {/* Main Content Area */}
-          <div 
-            className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ${
+          <div
+            className={`flex flex-col flex-1 min-w-0 transition-all duration-300 ease-in-out ${
               sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
             }`}
           >
