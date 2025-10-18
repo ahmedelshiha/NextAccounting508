@@ -35,6 +35,9 @@ import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import SidebarHeader from './SidebarHeader'
+import SidebarFooter from './SidebarFooter'
+import SidebarResizer from './SidebarResizer'
 
 interface NavigationItem {
   name: string
