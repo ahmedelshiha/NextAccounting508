@@ -13,6 +13,7 @@ import AccessibleRouteAnnouncer from './RouteAnnouncer'
 import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 import { useOrgSettings } from '@/components/providers/SettingsProvider'
 import { useSidebarKeyboardShortcuts } from '@/hooks/admin/useSidebarKeyboardShortcuts'
+import { useSidebarState, useSidebarActions } from '@/stores/admin/layout.store.selectors'
 import SidebarLiveRegion from '@/components/admin/layout/SidebarLiveRegion'
 
 interface ClientLayoutProps {
