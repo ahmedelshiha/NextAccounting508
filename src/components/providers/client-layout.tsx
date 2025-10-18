@@ -231,9 +231,14 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
   const showPortalChat = pathname?.startsWith('/portal') || false
   const isAdminRoute = pathname?.startsWith('/admin') || false
 
+  // Global sidebar keyboard shortcuts
+  useSidebarKeyboardShortcuts()
+
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <AccessibleRouteAnnouncer />
+      {/* Announce sidebar collapse/expand changes for screen reader users */}
+      <SidebarLiveRegion />
       <div className="min-h-screen flex flex-col">
         {/* 
           CRITICAL NAVIGATION CONFLICT RESOLUTION:
