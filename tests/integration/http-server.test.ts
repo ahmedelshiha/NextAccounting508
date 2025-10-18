@@ -13,6 +13,11 @@ vi.mock('@/lib/prisma', () => {
   }
   return { default: mock, ...mock }
 })
+// Ensure applyRateLimit returns allowed by default for these tests
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return { ...actual, applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 0, limit: 3, remaining: 3, resetAt: Date.now() + 60000 })), getClientIp: (_req: any) => '127.0.0.1' }
+})
 import prisma from '@/lib/prisma'
 import * as naNext from 'next-auth/next'
 
