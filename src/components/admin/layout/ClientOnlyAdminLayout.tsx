@@ -25,9 +25,15 @@ interface ClientOnlyAdminLayoutProps {
 
 export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyAdminLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const { sidebarCollapsed, setSidebarCollapsed } = useAdminLayoutStoreSSRSafe()
-  
-  // Close mobile menu on route change (handled by useEffect listening to pathname changes)
+
+  // Ensure client-side rendering to avoid hydration mismatches
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [])
@@ -54,6 +60,10 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
 
   const handleSidebarToggle = () => {
     setSidebarCollapsed(!sidebarCollapsed)
+  }
+
+  if (!isClient) {
+    return <div className="min-h-screen bg-gray-50" />
   }
 
   return (
