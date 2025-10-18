@@ -25,49 +25,49 @@ Deliverables
 Phased TODOs
 
 Phase 0 — Preparation (1 day)
-- [ ] Review docs/Sidebar Toggle-enhancement.md and this TODO file (owner: dev)
-- [ ] Confirm design tokens and existing style variables (owner: dev)
-- [ ] Confirm available UI primitives (Tooltip, Badge, focus utilities) and import paths (owner: dev)
-- [ ] Verify tailwind/postcss config and classnames strategy (owner: dev)
+- [x] Review docs/Sidebar Toggle-enhancement.md and this TODO file (owner: dev)
+- [x] Confirm design tokens and existing style variables (owner: dev)
+- [x] Confirm available UI primitives (Tooltip, Badge, focus utilities) and import paths (owner: dev)
+- [x] Verify tailwind/postcss config and classnames strategy (owner: dev)
 
 Phase 1 — Store & Core API (1–2 days)
-- [ ] Create directory: src/stores/admin
-- [ ] Implement Zustand store: layout.store.ts
-  - Persist sidebar.collapsed and sidebar.width using createJSONStorage + SSR guard
-  - Actions: toggleSidebar, setCollapsed, setWidth, setMobileOpen, toggleGroup, setExpandedGroups
-  - Enforce width constraints (MIN / MAX)
-- [ ] Create selector helpers: layout.store.selectors.ts (individual selectors + SSR-safe hook)
-- [ ] Unit tests for store (initial state, toggle, setWidth bounds, persistence)
-- [ ] Ensure store works in server/client components (hydration guard)
+- [x] Create directory: src/stores/admin
+- [x] Implement Zustand store: layout.store.ts
+  - [x] Persist sidebar.collapsed and sidebar.width using createJSONStorage + SSR guard
+  - [x] Actions: toggleSidebar, setCollapsed, setWidth, setMobileOpen, toggleGroup, setExpandedGroups
+  - [x] Enforce width constraints (MIN / MAX)
+- [x] Create selector helpers: layout.store.selectors.ts (individual selectors + SSR-safe hook)
+- [x] Unit tests for store (initial state, toggle, setWidth bounds, persistence)
+- [x] Ensure store works in server/client components (hydration guard)
 
 Phase 2 — Constants, Types & Registry (0.5 day)
-- [ ] Add constants: SIDEBAR_WIDTHS, ANIMATION, BREAKPOINTS (src/components/admin/layout/Sidebar/constants.ts)
-- [ ] Add types: NavigationItem, SidebarContextValue (types.ts)
-- [ ] Confirm/extend NAVIGATION_REGISTRY or getNavigationByPermission usages
+- [x] Add constants: SIDEBAR_WIDTHS, ANIMATION, BREAKPOINTS (src/components/admin/layout/Sidebar/constants.ts)
+- [x] Add types: NavigationItem, SidebarContextValue (types.ts)
+- [x] Confirm/extend NAVIGATION_REGISTRY or getNavigationByPermission usages
 
 Phase 3 — Core Components (2–3 days)
-- [ ] AdminSidebar (client): skeleton, responsive behaviour, mobile backdrop, width handling
-- [ ] SidebarHeader: collapse/expand buttons, logo, mobile close, keyboard title attributes
-- [ ] SidebarNav: render navigation sections, permission checks, badges
-- [ ] NavigationItem: link vs group handling, collapsed tooltip behavior, active state, keyboard and focus styles
-- [ ] SidebarFooter: user summary, help links, tooltip in collapsed mode
-- [ ] SidebarResizer: drag/touch/keyboard support, min/max enforcement, prevent selection while dragging
-- [ ] Add aria attributes: aria-label, aria-expanded, role="separator" for resizer
+- [x] AdminSidebar (client): skeleton, responsive behaviour, mobile backdrop, width handling
+- [x] SidebarHeader: collapse/expand buttons, logo, mobile close, keyboard title attributes
+- [x] SidebarNav: render navigation sections, permission checks, badges
+- [x] NavigationItem: link vs group handling, collapsed tooltip behavior, active state, keyboard and focus styles
+- [x] SidebarFooter: user summary, help links, tooltip in collapsed mode
+- [x] SidebarResizer: drag/touch/keyboard support, min/max enforcement, prevent selection while dragging
+- [x] Add aria attributes: aria-label, aria-expanded, role="separator" for resizer
 
 Phase 4 — Integrations & UX polish (1–2 days)
-- [ ] useResponsive hook integration: auto-collapse on mobile/tablet
-- [ ] Keyboard shortcut hook: Ctrl/Cmd+B toggles, Ctrl/Cmd+[ collapses (respect mac vs windows)
-- [ ] Focus management: restore focus after expand, trap focus in mobile drawer when open
-- [ ] Tooltip timing: collapsed mode tooltip delay and content
-- [ ] Transition & performance: ensure width transitions are hardware-accelerated, avoid layout thrash
-- [ ] Desktop spacer element to avoid layout shifts when sidebar resizes
+- [x] useResponsive hook integration: auto-collapse on mobile/tablet
+- [x] Keyboard shortcut hook: Ctrl/Cmd+B toggles, Ctrl/Cmd+[ collapses (respect mac vs windows)
+- [x] Focus management: restore focus after expand, trap focus in mobile drawer when open
+- [x] Tooltip timing: collapsed mode tooltip delay and content
+- [x] Transition & performance: ensure width transitions are hardware-accelerated, avoid layout thrash
+- [x] Desktop spacer element to avoid layout shifts when sidebar resizes
 
 Phase 5 — Testing & Accessibility (1–2 days)
-- [ ] Unit tests for components (rendering collapsed/expanded; resizer keyboard events)
-- [ ] Integration tests: mobile drawer open/close, route change closes mobile drawer
-- [ ] Accessibility checks: Axe/pa11y scan, keyboard-only walkthrough, screen reader announcements
-- [ ] E2E or Playwright test: collapse/expand, resize, persistence across reloads
-- [ ] Validate tooltips appear on hover in collapsed mode and do not appear when expanded
+- [x] Unit tests for components (rendering collapsed/expanded; resizer keyboard events)
+- [x] Integration tests: mobile drawer open/close, route change closes mobile drawer
+- [x] Accessibility checks: Axe/pa11y scan, keyboard-only walkthrough, screen reader announcements
+- [x] E2E or Playwright test: collapse/expand, resize, persistence across reloads
+- [x] Validate tooltips appear on hover in collapsed mode and do not appear when expanded
 
 Phase 6 — Persistence to DB (optional / 1 day + backend)
 - [x] Define API route for saving sidebar preferences per user (if required) — implemented at src/app/api/admin/sidebar-preferences/route.ts
@@ -75,9 +75,9 @@ Phase 6 — Persistence to DB (optional / 1 day + backend)
 - [x] Unit/integration tests for API interaction and fallback (integration test added: tests/integration/sidebar-preferences.test.ts with scenarios: GET default, PUT success + audit logging, GET 401 unauthenticated, PUT 401 unauthenticated, PUT 400 invalid payload, PUT 500 DB errors)
 
 Phase 7 — Documentation & Deployment (0.5 day)
-- [ ] Add docs entry (this file) and inline code comments (where helpful)
-- [ ] Add acceptance criteria checklist to story/PR template
-- [ ] Add build/test steps to CI where appropriate
+- [x] Add docs entry (this file) and inline code comments (where helpful)
+- [x] Add acceptance criteria checklist to story/PR template
+- [x] Add build/test steps to CI where appropriate
 
 Acceptance Criteria (must pass before merge)
 - [ ] Collapsed toggles to 64px and expands to 256px (or user-saved width)
