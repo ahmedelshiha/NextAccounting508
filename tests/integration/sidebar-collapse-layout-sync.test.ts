@@ -21,7 +21,7 @@ const mockStoreState = {
   },
 }
 
-const mockStoreActions = {
+const createMockStoreActions = () => ({
   toggleSidebar: vi.fn(() => {
     mockStoreState.sidebar.collapsed = !mockStoreState.sidebar.collapsed
   }),
@@ -36,7 +36,9 @@ const mockStoreActions = {
   }),
   toggleGroup: vi.fn(),
   setExpandedGroups: vi.fn(),
-}
+})
+
+let mockStoreActions = createMockStoreActions()
 
 describe('Sidebar Collapse and Layout Sync (Integration)', () => {
   beforeEach(() => {
