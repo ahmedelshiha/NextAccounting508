@@ -401,15 +401,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         style={{ width: `${effectiveWidth}px`, transition: 'width 300ms ease-in-out' }}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200">
-            <Building className="h-8 w-8 text-blue-600" />
-            {!collapsedEffective && (
-              <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
-                <p className="text-xs text-gray-500">Admin Portal</p>
-              </div>
-            )}
-          </div>
+          <SidebarHeader collapsed={collapsedEffective} />
 
           <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
