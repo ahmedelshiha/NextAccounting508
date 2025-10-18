@@ -70,7 +70,7 @@ Phase 5 — Testing & Accessibility (1–2 days)
 - [ ] Validate tooltips appear on hover in collapsed mode and do not appear when expanded
 
 Phase 6 — Persistence to DB (optional / 1 day + backend)
-- [ ] Define API route for saving sidebar preferences per user (if required)
+- [x] Define API route for saving sidebar preferences per user (if required) — implemented at src/app/api/admin/sidebar-preferences/route.ts
 - [ ] Save and load preference on mount; fallback to localStorage if API fails
 - [ ] Unit/integration tests for API interaction and fallback
 
