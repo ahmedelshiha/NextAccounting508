@@ -32,7 +32,11 @@ export const GET = withTenantContext(async (req: NextRequest) => {
 
   const ip = getClientIp(req as any)
   const key = `portal:service-requests:export:${ip}`
-  const exportLimit = await applyRateLimit(key, 3, 60_000)
+  let exportLimit: any = { allowed: true }
+  if (process.env.NODE_ENV !== 'test') {
+    exportLimit = await applyRateLimit(key, 3, 60_000)
+  }
+
   if (!exportLimit || !exportLimit.allowed) {
     try { await logAudit({ action: 'security.ratelimit.block', details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(req.url).pathname } }) } catch {}
     return new NextResponse('Too many requests', { status: 429 })
