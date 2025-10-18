@@ -256,3 +256,20 @@ Next steps (recommended immediate):
 - Add unit/integration tests for the store and AdminSidebar behaviours.
 
 -- End of update
+
+## next.config.mjs inspection
+
+I inspected next.config.mjs for issues that could cause the dev server restart loop observed earlier. Findings:
+
+- No syntax errors found. The file uses withSentryConfig from @sentry/nextjs and sets sane defaults for images, headers, redirects, and experimental flags.
+- The config conditionally wraps withSentryConfig only in production; exports default configWithSentry which is valid for Next.js.
+- The restart messages in the dev logs were caused by file edits (Next detects changes to next.config.mjs and restarts). After the code edits made in this session, the dev server has stabilized and the proxy reports OK (200).
+
+Recommendation:
+
+- Avoid modifying next.config.mjs at runtime; changes require a server restart. Keep changes minimal and grouped to reduce restart churn.
+- If you need environment-based toggles, prefer reading process.env values and keeping the config file stable to avoid unnecessary restarts during development.
+
+Status: completed — no actionable fixes required.
+
+-- End of next.config.mjs inspection
