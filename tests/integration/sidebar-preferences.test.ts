@@ -96,9 +96,13 @@ describe('Admin sidebar preferences API', () => {
     expect(typeof data.width).toBe('number')
   })
 
-  it('PUT upserts preferences and returns stored record', async () => {
+  it('PUT upserts preferences and returns stored record and logs audit', async () => {
+    // Mock successful upsert and audit
     vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
     ;(prisma as any).sidebarPreferences.upsert.mockResolvedValueOnce({ userId: 'user1', collapsed: true, width: 200 })
+
+    // Mock audit logger
+    vi.mocked((await import('@/lib/observability-helpers')).logAuditSafe).mockResolvedValueOnce(undefined as any)
 
     const payload = { collapsed: true, width: 200 }
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -108,6 +112,12 @@ describe('Admin sidebar preferences API', () => {
     expect(data).toBeTruthy()
     expect(data.collapsed).toBe(true)
     expect(data.width).toBe(200)
+
+    // Verify audit was called
+    const { logAuditSafe } = await import('@/lib/observability-helpers')
+    expect(vi.mocked(logAuditSafe).mock.calls.length).toBeGreaterThanOrEqual(1)
+    const call = vi.mocked(logAuditSafe).mock.calls[0][0]
+    expect(call).toMatchObject({ action: 'preferences:update', actorId: 'user1' })
   })
 
   it('GET returns 401 when unauthenticated', async () => {
@@ -129,5 +139,31 @@ describe('Admin sidebar preferences API', () => {
     const invalid = { collapsed: true, width: 10 }
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(invalid) })
     expect(res.status).toBe(400)
+  })
+
+  it('PUT returns 500 when DB is not configured (DB message)', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    ;(prisma as any).sidebarPreferences.upsert.mockImplementationOnce(() => { throw new Error('Database is not configured') })
+
+    const payload = { collapsed: false, width: 200 }
+    const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    expect(res.status).toBe(500)
+    const json = await res.json().catch(() => null)
+    const msg = json?.error || json?.message || json?.data?.message
+    expect(String(msg || '')).toMatch(/Database not configured/i)
+  })
+
+  it('PUT returns 500 when DB throws Prisma error code', async () => {
+    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'user1' } } as any)
+    const err: any = new Error('connect failed')
+    err.code = 'P1001'
+    ;(prisma as any).sidebarPreferences.upsert.mockImplementationOnce(() => { throw err })
+
+    const payload = { collapsed: false, width: 200 }
+    const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    expect(res.status).toBe(500)
+    const json = await res.json().catch(() => null)
+    const msg = json?.error || json?.message || json?.data?.message
+    expect(String(msg || '')).toMatch(/Database not configured|Failed to update sidebar preferences/i)
   })
 })
