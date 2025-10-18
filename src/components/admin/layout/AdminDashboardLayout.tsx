@@ -148,19 +148,10 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
       {/* Admin Sidebar - Fixed positioning with responsive behavior */}
       <AdminSidebar
-        isCollapsed={sidebar.collapsed}
+        isCollapsed={sidebarCollapsed}
         isMobile={responsive.isMobile}
         onClose={handleMobileSidebarClose}
       />
-
-      {/* Mobile Backdrop */}
-      {responsive.isMobile && sidebar.open && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-          onClick={handleMobileSidebarClose}
-          aria-hidden="true"
-        />
-      )}
 
       {/* Main Content Area */}
       <div className={`min-h-full flex flex-col transition-all duration-300 ${getContentClasses()}`}>
