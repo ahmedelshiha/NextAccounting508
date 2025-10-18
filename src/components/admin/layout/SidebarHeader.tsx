@@ -1,6 +1,6 @@
 'use client'
 
-import { Building, ChevronsLeft, X } from 'lucide-react'
+import { Building, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useSidebarActions, useSidebarCollapsed } from '@/stores/admin/layout.store.selectors'
@@ -15,9 +15,9 @@ export default function SidebarHeader({ collapsed }: SidebarHeaderProps) {
   const { toggleSidebar, setCollapsed, setMobileOpen } = useSidebarActions()
 
   return (
-    <div className="header-container h-16 border-b border-gray-200 flex items-center justify-between transition-all duration-300">
+    <div className="header-container h-16 border-b border-gray-200 flex items-center justify-between transition-all duration-300 px-4">
       {!collapsedState ? (
-        <div className="expanded-header flex items-center justify-between w-full px-4 gap-3">
+        <div className="expanded-header flex items-center justify-between w-full gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-shrink-0">
               <Building className="h-8 w-8 text-blue-600" />
@@ -33,20 +33,18 @@ export default function SidebarHeader({ collapsed }: SidebarHeaderProps) {
             aria-label="Collapse sidebar"
             title="Collapse sidebar (Ctrl+B)"
           >
-            <ChevronsLeft className="w-4 h-4 text-gray-600" />
+            <Menu className="w-5 h-5 text-gray-600" />
           </button>
         </div>
       ) : (
-        <div className="collapsed-header flex flex-col items-center justify-center w-full h-full gap-0 px-2">
-          <button
-            onClick={() => setCollapsed(false)}
-            className="expand-btn flex items-center justify-center w-10 h-10 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg transition-colors flex-shrink-0"
-            aria-label="Expand sidebar"
-            title="Expand sidebar (Ctrl+B)"
-          >
-            <span className="text-white font-bold text-xs leading-none">NA</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setCollapsed(false)}
+          className="expand-btn w-full flex items-center justify-center p-2 hover:bg-gray-100 active:bg-gray-200 rounded-md transition-colors"
+          aria-label="Expand sidebar"
+          title="Expand sidebar (Ctrl+B)"
+        >
+          <Menu className="w-5 h-5 text-gray-600" />
+        </button>
       )}
 
       {isMobile && (
