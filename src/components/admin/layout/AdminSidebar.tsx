@@ -389,9 +389,9 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const roving = useRovingTabIndex()
 
   // Sidebar positioning classes preserved
-  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-300 flex`
+  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col`
 
-  const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
+  const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-xl transform transition-transform duration-300 ease-in-out' : ''
 
   const effectiveWidth = storeCollapsed ? COLLAPSED_WIDTH : storeWidth
 
