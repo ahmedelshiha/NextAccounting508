@@ -19,12 +19,18 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
       return respond.unauthorized()
     }
 
-    const threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
+    let threshold: any = null
+    try {
+      threshold = await prisma.healthThreshold.findFirst({ orderBy: { id: 'desc' as const } })
+    } catch {}
+    if (!threshold && memoryThreshold) {
+      return NextResponse.json(memoryThreshold)
+    }
     if (!threshold) {
-      if (memoryThreshold) return NextResponse.json(memoryThreshold)
       return NextResponse.json({ responseTime: 100, errorRate: 1.0, storageGrowth: 20.0 })
     }
-    return NextResponse.json({ responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth })
+    memoryThreshold = { responseTime: threshold.responseTime, errorRate: threshold.errorRate, storageGrowth: threshold.storageGrowth }
+    return NextResponse.json(memoryThreshold)
   } catch (err) {
     console.error('Thresholds GET error', err)
     return NextResponse.json({ error: 'Failed to read thresholds' }, { status: 500 })

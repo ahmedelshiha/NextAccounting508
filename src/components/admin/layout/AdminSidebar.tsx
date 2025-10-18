@@ -38,6 +38,7 @@ import useRovingTabIndex from '@/hooks/useRovingTabIndex'
 import SidebarHeader from './SidebarHeader'
 import SidebarFooter from './SidebarFooter'
 import SidebarResizer from './SidebarResizer'
+import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
 
 interface NavigationItem {
   name: string
@@ -73,8 +74,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
   // Use selectors to read/write width/collapsed state.
-  import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
-
   const storeCollapsed = useSidebarCollapsed()
   const storeWidth = useSidebarWidth()
   const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
@@ -388,7 +387,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
 
-  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : sidebarWidth
+  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : storeWidth
 
   return (
     <>

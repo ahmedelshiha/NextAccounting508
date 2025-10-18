@@ -421,6 +421,21 @@ model HealthThreshold {
   updatedAt     DateTime @updatedAt
 }
 
+// Admin sidebar preferences per user
+model SidebarPreferences {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  collapsed      Boolean  @default(false)
+  width          Int      @default(256)
+  mobileOpen     Boolean  @default(false)
+  expandedGroups String[] @default(["dashboard", "business"])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("sidebar_preferences")
+}
+
 // Currency models for multi-currency support
 model Currency {
   code        String   @id
