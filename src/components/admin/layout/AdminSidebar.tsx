@@ -68,35 +68,25 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const MIN_WIDTH = 160
   const MAX_WIDTH = 420
 
-  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    try {
-      if (typeof window === 'undefined') return DEFAULT_WIDTH
-      const raw = window.localStorage.getItem('admin:sidebar:width')
-      if (raw) {
-        const parsed = parseInt(raw, 10)
-        if (!Number.isNaN(parsed)) return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, parsed))
-      }
-    } catch (e) {}
-    return DEFAULT_WIDTH
-  })
+  // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
+  // Use selectors to read/write width/collapsed state.
+  import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
+
+  const storeCollapsed = useSidebarCollapsed()
+  const storeWidth = useSidebarWidth()
+  const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
 
   const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
   const resizerRef = useRef<HTMLDivElement | null>(null)
 
-  // Save width
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:width', String(sidebarWidth))
-    } catch (e) {}
-  }, [sidebarWidth])
-
+  // Local drag handlers update the centralized store directly
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
       if (!dragRef.current) return
       const dx = e.clientX - dragRef.current.startX
       const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
+      storeSetWidth(newWidth)
     }
     function onMouseUp() {
       if (isDragging) setIsDragging(false)
@@ -115,7 +105,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       document.removeEventListener('mouseup', onMouseUp)
       document.body.style.cursor = ''
     }
-  }, [isDragging])
+  }, [isDragging, storeSetWidth])
 
   // Touch support
   useEffect(() => {
@@ -124,7 +114,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       const touch = e.touches[0]
       const dx = touch.clientX - dragRef.current.startX
       const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
+      storeSetWidth(newWidth)
     }
     function onTouchEnd() {
       if (isDragging) setIsDragging(false)
@@ -140,11 +130,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       document.removeEventListener('touchmove', onTouchMove)
       document.removeEventListener('touchend', onTouchEnd)
     }
-  }, [isDragging])
+  }, [isDragging, storeSetWidth])
 
   const startDrag = (clientX: number) => {
     if (collapsedEffective) return
-    dragRef.current = { startX: clientX, startWidth: sidebarWidth }
+    dragRef.current = { startX: clientX, startWidth: storeWidth }
     setIsDragging(true)
   }
 
@@ -159,26 +149,26 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const onResizerKeyDown = (e: React.KeyboardEvent) => {
     if (collapsedEffective) return
     if (e.key === 'ArrowLeft') {
-      setSidebarWidth(w => Math.max(MIN_WIDTH, w - 16))
+      storeSetWidth(Math.max(MIN_WIDTH, storeWidth - 16))
     } else if (e.key === 'ArrowRight') {
-      setSidebarWidth(w => Math.min(MAX_WIDTH, w + 16))
+      storeSetWidth(Math.min(MAX_WIDTH, storeWidth + 16))
     } else if (e.key === 'Home') {
-      setSidebarWidth(MIN_WIDTH)
+      storeSetWidth(MIN_WIDTH)
     } else if (e.key === 'End') {
-      setSidebarWidth(MAX_WIDTH)
+      storeSetWidth(MAX_WIDTH)
     }
   }
 
-  // Expand/collapse based on width threshold
+  // Expand/collapse based on width threshold - keep legacy behavior by writing to store
   useEffect(() => {
     try {
-      if (sidebarWidth <= 80) {
-        if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:collapsed', '1')
+      if (storeWidth <= 80) {
+        storeSetCollapsed(true)
       } else {
-        if (typeof window !== 'undefined') window.localStorage.removeItem('admin:sidebar:collapsed')
+        storeSetCollapsed(false)
       }
     } catch (e) {}
-  }, [sidebarWidth])
+  }, [storeWidth, storeSetCollapsed])
 
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
