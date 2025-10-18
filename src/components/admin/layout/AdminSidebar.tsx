@@ -64,8 +64,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  const collapsedEffective = typeof isCollapsedProp === 'boolean' ? isCollapsedProp : (typeof collapsed === 'boolean' ? collapsed : false)
-
   // Persisted sidebar width (desktop)
   const DEFAULT_WIDTH = 256
   const COLLAPSED_WIDTH = 64
@@ -74,6 +72,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
   // Use selectors to read/write width/collapsed state.
+  // Always use store values for state; props are legacy compatibility only
   const storeCollapsed = useSidebarCollapsed()
   const storeWidth = useSidebarWidth()
   const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
