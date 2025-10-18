@@ -127,13 +127,13 @@ describe('Admin sidebar preferences API', () => {
   })
 
   it('GET returns 401 when unauthenticated', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce(null as any)
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'GET' })
     expect(res.status).toBe(401)
   })
 
   it('PUT returns 401 when unauthenticated', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce(null as any)
     const payload = { collapsed: true, width: 200 }
     const res = await fetch(`${baseUrl}/api/admin/sidebar-preferences`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     expect(res.status).toBe(401)
