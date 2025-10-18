@@ -433,14 +433,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         </div>
 
         {/* Resizer - only on desktop and when not collapsed */}
-        {!isMobile && !storeCollapsed && (
-          <SidebarResizer
-            ariaValueNow={Math.round(storeWidth)}
-            onKeyDown={onResizerKeyDown}
-            onMouseDown={onResizerMouseDown}
-            onTouchStart={onResizerTouchStart}
-          />
-        )}
+        {/* Resizer disabled - fixed width sidebar */}
       </div>
     </>
   )
