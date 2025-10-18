@@ -83,7 +83,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left section - Mobile menu + Breadcrumbs */}
+          {/* Left section - Mobile menu + Desktop sidebar toggle + Breadcrumbs */}
           <div className="flex items-center flex-1">
             {/* Mobile menu button */}
             <Button
@@ -94,6 +94,18 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
               aria-label="Toggle mobile menu"
             >
               <Menu className="h-5 w-5" />
+            </Button>
+
+            {/* Desktop sidebar collapse button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden lg:inline-flex mr-2"
+              onClick={onSidebarToggle}
+              aria-label="Toggle sidebar"
+              title="Collapse/Expand sidebar"
+            >
+              <ChevronLeft className="h-5 w-5" />
             </Button>
 
             {/* Breadcrumbs */}
