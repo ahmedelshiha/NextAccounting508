@@ -13,7 +13,7 @@ vi.mock('@/lib/prisma', () => {
 vi.mock('@/lib/observability-helpers', () => ({ logAuditSafe: vi.fn() }))
 
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import * as naNext from 'next-auth/next'
 import { logAuditSafe } from '@/lib/observability-helpers'
 
 // Helper to read request body
