@@ -45,7 +45,9 @@ describe('Sidebar Collapse and Layout Sync (Integration)', () => {
     // Reset mock state before each test
     mockStoreState.sidebar.collapsed = false
     mockStoreState.sidebar.width = 256
-    vi.clearAllMocks()
+    mockStoreState.sidebar.mobileOpen = false
+    mockStoreState.sidebar.expandedGroups = ['dashboard', 'business']
+    mockStoreActions = createMockStoreActions()
   })
 
   it('should have single unified store for sidebar state', () => {
