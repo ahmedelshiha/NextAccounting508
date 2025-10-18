@@ -74,8 +74,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
 
   // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
   // Use selectors to read/write width/collapsed state.
-  import { useSidebarWidth, useSidebarCollapsed, useSidebarActions, useExpandedGroups } from '@/stores/admin/layout.store.selectors'
-
   const storeCollapsed = useSidebarCollapsed()
   const storeWidth = useSidebarWidth()
   const { setWidth: storeSetWidth, setCollapsed: storeSetCollapsed, toggleGroup: storeToggleGroup } = useSidebarActions()
