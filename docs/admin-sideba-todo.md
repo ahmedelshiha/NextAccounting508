@@ -228,7 +228,7 @@ Updated Action Items (append to phased TODOs as immediate next steps)
 - [x] Add aria-live collapse/expand announcement in AdminSidebar or global live region (SidebarLiveRegion added and rendered in ClientLayout)
 - [x] Standardize animation duration and update tailwind classes/inline transition styles to match ANIMATION constants (updated AdminSidebar to 300ms easing)
 - [x] Split AdminSidebar into smaller components and update imports across admin layouts (created SidebarHeader, SidebarFooter, SidebarResizer and integrated into AdminSidebar)
-- [x] Add unit & integration tests for AdminSidebar (unit tests added for store and keyboard shortcuts; integration tests pending)
+- [x] Add unit & integration tests for AdminSidebar (unit tests added for store and keyboard shortcuts; Playwright E2E test added: e2e/tests/sidebar-toggle.spec.ts — integration tests pending further scenarios)
 
 
 -- Implementation notes
