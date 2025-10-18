@@ -14,16 +14,17 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { 
-  Bell, 
-  Search, 
-  Menu, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Bell,
+  Search,
+  Menu,
+  User,
+  Settings,
+  LogOut,
   HelpCircle,
   ChevronDown,
-  Home
+  Home,
+  ChevronLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
