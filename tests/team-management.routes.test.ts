@@ -6,6 +6,10 @@ vi.mock('@/lib/permissions', () => ({ hasPermission: () => true, PERMISSIONS: { 
 
 process.env.NETLIFY_DATABASE_URL = ''
 
+// Ensure team management mocks applied
+import setupTeamManagement from './setup/teamManagement.setup'
+setupTeamManagement()
+
 describe('api/admin/team-management routes (fallback)', () => {
   it('availability returns empty data when DB not configured', async () => {
     const { GET }: any = await import('@/app/api/admin/team-management/availability/route')

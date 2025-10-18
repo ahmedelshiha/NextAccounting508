@@ -51,8 +51,13 @@ export const PUT = withTenantContext(async (req: Request) => {
     try { Sentry.captureMessage('org-settings:validation_failed', { level: 'warning' } as any) } catch {}
     return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
   }
-  const scopedFilter = tenantFilter(ctx.tenantId)
-  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId: ctx.tenantId }
+  const tenantId = ctx.tenantId
+  if (!tenantId) {
+    try { Sentry.captureMessage('org-settings:missing_tenant', { level: 'warning' } as any) } catch {}
+    return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+  }
+  const scopedFilter = tenantFilter(tenantId)
+  const scope = Object.keys(scopedFilter).length > 0 ? scopedFilter : { tenantId }
   const existing = await prisma.organizationSettings.findFirst({ where: scope }).catch(() => null)
 
   const rawData = {
@@ -79,16 +84,60 @@ export const PUT = withTenantContext(async (req: Request) => {
   if (normalized.branding === null) normalized.branding = null
   if (normalized.legalLinks === null) normalized.legalLinks = null
 
-  const createData = { ...normalized, tenant: { connect: { id: ctx.tenantId } } }
+  const createData = { ...normalized, tenant: { connect: { id: tenantId } } }
   const updateData = { ...normalized }
 
   try {
+    const beforeData = existing ? {
+      name: existing.name ?? null,
+      tagline: existing.tagline ?? null,
+      description: existing.description ?? null,
+      industry: existing.industry ?? null,
+      contactEmail: existing.contactEmail ?? null,
+      contactPhone: existing.contactPhone ?? null,
+      address: existing.address ?? null,
+      defaultTimezone: existing.defaultTimezone ?? 'UTC',
+      defaultCurrency: existing.defaultCurrency ?? 'USD',
+      defaultLocale: existing.defaultLocale ?? 'en',
+      logoUrl: existing.logoUrl ?? null,
+      branding: existing.branding ?? null,
+      termsUrl: existing.termsUrl ?? null,
+      privacyUrl: existing.privacyUrl ?? null,
+      refundUrl: existing.refundUrl ?? null,
+    } : {}
+
     const saved = existing
       ? await prisma.organizationSettings.update({ where: { id: existing.id }, data: updateData as Prisma.OrganizationSettingsUpdateInput })
       : await prisma.organizationSettings.create({ data: createData as Prisma.OrganizationSettingsCreateInput })
 
+    // Persist change diff and audit event (best-effort)
     try {
-      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId: ctx.tenantId } })
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'organization',
+        resource: 'org-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      diffPayload.before = beforeData as Prisma.InputJsonValue
+      diffPayload.after = normalized as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'org-settings',
+        details: { category: 'organization' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
+
+    try {
+      await logAudit({ action: 'org-settings:update', actorId: ctx.userId, details: { tenantId } })
     } catch {}
 
     return NextResponse.json({ ok: true, settings: saved })

@@ -3,15 +3,14 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 // GET /api/admin/currencies - list all currencies
 export const GET = withTenantContext(async (_request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
-    if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) return respond.forbidden('Forbidden')
 
     const base = process.env.EXCHANGE_BASE_CURRENCY || 'USD'
     const currencies = await prisma.currency.findMany({ orderBy: { isDefault: 'desc' } })
@@ -34,7 +33,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const body = await request.json()

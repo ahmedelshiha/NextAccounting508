@@ -93,13 +93,24 @@ export function withTenantContext(
         const naNext = await import('next-auth/next').catch(() => null as any)
         const authMod = await import('@/lib/auth')
         if (naNext?.getServerSession) {
-          session = await naNext.getServerSession((authMod as any).authOptions)
+          // Try passing the request to getServerSession (App Router signature); fall back if it errors.
+          try {
+            session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
+          } catch (_) {
+            try {
+              session = await naNext.getServerSession((authMod as any).authOptions)
+            } catch {}
+          }
         } else {
           // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
           try {
             const na = await import('next-auth').catch(() => null as any)
             if (na && typeof na.getServerSession === 'function') {
-              session = await na.getServerSession((authMod as any).authOptions)
+              try {
+                session = await na.getServerSession(request as any, (authMod as any).authOptions)
+              } catch (_) {
+                session = await na.getServerSession((authMod as any).authOptions)
+              }
             }
           } catch {}
         }

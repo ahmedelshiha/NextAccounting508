@@ -4,6 +4,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { tenantFilter } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 function toCSV(rows: any[], headers: string[]) {
   const esc = (v: any) => {
@@ -24,7 +25,7 @@ export const GET = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const url = new URL(request.url)

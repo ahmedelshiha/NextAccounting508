@@ -26,7 +26,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     }
 
     const sp = new URL(request.url).searchParams
-    const format = sp.get('format') || 'csv'
+    const format = (sp.get('format') === 'json' ? 'json' : 'csv') as 'csv' | 'json'
     const includeInactive = sp.get('includeInactive') === 'true'
 
     const data = await svc.exportServices(ctx.tenantId, { format, includeInactive })

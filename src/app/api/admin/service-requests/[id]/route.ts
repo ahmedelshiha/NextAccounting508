@@ -28,7 +28,7 @@ export const GET = withTenantContext(async (_req: NextRequest, context: { params
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   try {
@@ -71,7 +71,7 @@ export const PATCH = withTenantContext(async (req: NextRequest, context: { param
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   const ip = getClientIp(req)
@@ -111,7 +111,7 @@ export const DELETE = withTenantContext(async (_req: NextRequest, context: { par
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_DELETE)) {
-    return respond.unauthorized()
+    return respond.forbidden('Forbidden')
   }
 
   const ip = getClientIp(_req)

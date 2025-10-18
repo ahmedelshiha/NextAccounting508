@@ -51,12 +51,12 @@ const _api_POST = async (request: NextRequest) => {
 }
 
 import { withTenantContext } from '@/lib/api-wrapper'
-export const POST = withTenantContext(_api_POST, { requireAuth: false })
-export const GET = withTenantContext(_api_GET, { requireAuth: false })
-
 // Only POST method is supported
 const _api_GET = async () => {
-  return NextResponse.json({ 
-    error: 'Method not allowed - Use POST to send metrics' 
+  return NextResponse.json({
+    error: 'Method not allowed - Use POST to send metrics'
   }, { status: 405 })
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

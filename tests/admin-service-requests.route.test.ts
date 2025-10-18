@@ -21,6 +21,10 @@ const db: any = {
   ],
 }
 
+// Apply service-requests bootstrap
+import setupServiceRequests from './setup/serviceRequests.setup'
+setupServiceRequests()
+
 vi.mock('@/lib/prisma', () => ({
   default: {
     serviceRequest: {

@@ -4,6 +4,9 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import servicesSettingsService, { flattenSettings } from '@/services/services-settings.service'
 import { ZodError } from 'zod'
+import prisma from '@/lib/prisma'
+import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 function jsonResponse(payload: any, status = 200) {
   return NextResponse.json(payload, { status })
@@ -35,7 +38,39 @@ export const POST = withTenantContext(async (request: Request) => {
       return jsonResponse({ ok: false, error: 'Invalid JSON body' }, 400)
     }
 
-    const saved = await servicesSettingsService.save(payload, ctx.tenantId ?? null)
+    const tenantId = ctx.tenantId
+    if (!tenantId) {
+      return jsonResponse({ ok: false, error: 'Tenant context missing' }, 400)
+    }
+
+    const before = await servicesSettingsService.getFlat(tenantId).catch(()=>null)
+    const saved = await servicesSettingsService.save(payload, tenantId)
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'serviceManagement',
+        resource: 'services-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (saved !== null && saved !== undefined) diffPayload.after = saved as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'services-settings',
+        details: { category: 'serviceManagement' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
+
     return jsonResponse({ ok: true, data: flattenSettings(saved) })
   } catch (error: any) {
     if (error instanceof ZodError) {

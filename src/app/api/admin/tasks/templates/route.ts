@@ -6,6 +6,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
@@ -21,7 +22,7 @@ export const GET = withTenantContext(async (request?: Request) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
   try {
     if (!hasDb) {
@@ -58,7 +59,7 @@ export const POST = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
     const body = await request.json().catch(() => ({}))
 
@@ -130,7 +131,7 @@ export const PATCH = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_CREATE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
     const body = await request.json().catch(() => ({}))
 
@@ -198,7 +199,7 @@ export const DELETE = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
     const url = new URL(request.url)
     const id = url.searchParams.get('id')

@@ -77,7 +77,7 @@ export const GET = withTenantContext(async (request: Request) => {
     ...tenantFilter(tenantId),
   }
 
-  const header = ['id','uuid','title','status','priority','clientName','clientEmail','serviceName','assignedTo','budgetMin','budgetMax','deadline','createdAt','scheduledAt','isBooking','bookingType']
+  const header = ['ID','UUID','Title','Status','Priority','ClientName','ClientEmail','ServiceName','AssignedTo','BudgetMin','BudgetMax','Deadline','CreatedAt','ScheduledAt','IsBooking','BookingType']
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({

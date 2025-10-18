@@ -5,12 +5,16 @@ import { TeamSettingsSchema } from '@/schemas/settings/team-management'
 import * as Sentry from '@sentry/nextjs'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import prisma from '@/lib/prisma'
+import { respond } from '@/lib/api-response'
+import { jsonDiff } from '@/lib/diff'
+import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
     const tenantId = ctx.tenantId
     const settings = await teamService.get(tenantId)
@@ -25,16 +29,47 @@ export const PUT = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
     if (!ctx.userId || !hasPermission(ctx.role || undefined, PERMISSIONS.TEAM_SETTINGS_EDIT)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.unauthorized()
     }
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      try { Sentry.captureMessage('team-settings:missing_tenant', { level: 'warning' } as any) } catch {}
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
     const body = await req.json().catch(() => ({}))
     const parsed = TeamSettingsSchema.partial().safeParse(body)
     if (!parsed.success) {
       try { Sentry.captureMessage('team-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+    const before = await teamService.get(tenantId).catch(()=>null)
     const updated = await teamService.upsert(tenantId, parsed.data)
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
+        tenantId,
+        category: 'teamManagement',
+        resource: 'team-settings',
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
+      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
+      await prisma.settingChangeDiff.create({ data: diffPayload })
+    } catch {}
+
+    try {
+      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
+      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
+        tenantId,
+        type: 'settings.update',
+        resource: 'team-settings',
+        details: { category: 'teamManagement' } as Prisma.InputJsonValue,
+        ...(actorUserId ? { userId: actorUserId } : {}),
+      }
+      await prisma.auditEvent.create({ data: auditPayload })
+    } catch {}
+
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { z } from 'zod'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const payload = z.object({
   income: z.number().min(0).max(100_000_000),

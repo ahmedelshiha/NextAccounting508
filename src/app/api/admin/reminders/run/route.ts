@@ -16,10 +16,10 @@ export const POST = withTenantContext(async (_req: NextRequest) => {
     const mod = await import('@/app/api/cron/reminders/route')
     const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET || ''
     const internalReq = new Request('https://internal/cron/reminders', { method: 'POST', headers: secret ? { 'x-cron-secret': secret } : {} as any })
-    const resp: any = await mod.POST(internalReq as any)
+    const resp: any = await mod.POST(internalReq as any, { params: {} } as any)
     const json = await resp.json().catch(() => null)
     return NextResponse.json(json, { status: 200 })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to trigger reminders' }, { status: 500 })
   }
-})
+}, { requireAuth: false })

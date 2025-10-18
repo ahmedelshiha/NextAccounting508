@@ -158,28 +158,6 @@ export function ServicesSection() {
           })}
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 sm:p-8">
-          <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-            Need a Custom Solution?
-          </h3>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Every business is unique. Let&apos;s discuss how we can tailor our services
-            to meet your specific accounting and financial needs.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild>
-              <Link href="/contact">
-                Get Custom Quote
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/services">
-                View All Services
-              </Link>
-            </Button>
-          </div>
-        </div>
       </div>
     </section>
   )
