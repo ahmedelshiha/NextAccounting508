@@ -284,6 +284,27 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
     const isSettingsParent = item.href === '/admin/settings'
 
+    const baseStyles = `
+      transition-all duration-200 flex items-center rounded-lg font-medium relative
+      group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
+    `
+
+    const expandedItemStyles = `
+      w-full px-3 py-2 text-sm
+      ${isActive
+        ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200'
+      }
+    `
+
+    const collapsedItemStyles = `
+      w-10 h-10 flex items-center justify-center flex-shrink-0
+      ${isActive
+        ? 'bg-blue-100 text-blue-600'
+        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+      }
+    `
+
     return (
       <li key={item.href}>
         <div className="relative">
@@ -293,16 +314,9 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                 aria-expanded={true}
                 data-roving
                 {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
+                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
               >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
                 {!storeCollapsed && (
                   <>
                     <span className="flex-1 text-left">{item.name}</span>
@@ -321,16 +335,9 @@ export default function AdminSidebar(props: AdminSidebarProps) {
                 aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
                 data-roving
                 {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
+                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
               >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
                 {!storeCollapsed && (
                   <>
                     <span className="flex-1 text-left">{item.name}</span>
@@ -355,12 +362,12 @@ export default function AdminSidebar(props: AdminSidebarProps) {
               onClick={isMobile ? onClose : undefined}
               data-roving
               {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors ${isActive ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} ${depth > 0 ? 'ml-4' : ''}`}
+              className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
             >
-              <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+              <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
               {!storeCollapsed && (
                 <>
-                  <span className="flex-1">{item.name}</span>
+                  <span className="flex-1 text-left">{item.name}</span>
                   {item.badge && (
                     <Badge variant="secondary" className="ml-2">{item.badge}</Badge>
                   )}
