@@ -108,18 +108,18 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
 
   // Calculate content area classes based on responsive state and sidebar state
   const getContentClasses = useCallback(() => {
-    const { isMobile, isTablet, isDesktop, sidebarWidth } = responsive
-    const { collapsed, open } = sidebar
+    const { isMobile, isTablet, isDesktop } = responsive
+    const { collapsed } = sidebar
 
     if (isMobile) {
       // On mobile, content takes full width (sidebar overlays)
       return 'ml-0'
     } else if (isTablet) {
-      // On tablet, content adjusts based on collapsed state
-      return collapsed ? 'ml-16' : 'ml-64'
+      // On tablet, content adjusts based on collapsed state with smooth transition
+      return `transition-all duration-300 ease-in-out ${collapsed ? 'ml-16' : 'ml-64'}`
     } else {
-      // On desktop, content has fixed margin for sidebar
-      return collapsed ? 'ml-16' : 'ml-64'
+      // On desktop, content has fixed margin for sidebar with smooth transition
+      return `transition-all duration-300 ease-in-out ${collapsed ? 'ml-16' : 'ml-64'}`
     }
   }, [responsive, sidebar])
 
