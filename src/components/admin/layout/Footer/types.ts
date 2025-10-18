@@ -74,15 +74,18 @@ export interface FooterLink {
 export interface AdminFooterProps {
   /** Additional CSS classes to apply to footer element */
   className?: string
-  
+
   /** Hide system health status display */
   hideHealth?: boolean
-  
+
   /** Hide environment badge (Production/Staging/Dev) */
   hideEnvironment?: boolean
-  
+
   /** Custom quick links to override defaults */
   customLinks?: FooterLink[]
+
+  /** Current sidebar collapsed state (optional) */
+  sidebarCollapsed?: boolean
 }
 
 /**
