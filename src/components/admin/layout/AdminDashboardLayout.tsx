@@ -96,9 +96,6 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
     }
   }, [responsive, sidebarCollapsed])
 
-  // Determine sidebar behavior
-  const sidebarBehavior = responsive.isMobile ? 'overlay' : 'fixed'
-
   // Show loading skeleton during SSR/hydration
   if (!isClient) {
     return (
@@ -116,7 +113,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({
             </div>
           </div>
         </div>
-        
+
         {/* Content Skeleton */}
         <div className="flex-1">
           <div className="h-16 bg-white border-b border-gray-200"></div>
