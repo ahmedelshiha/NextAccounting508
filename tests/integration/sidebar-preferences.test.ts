@@ -11,6 +11,8 @@ vi.mock('@/lib/prisma', () => {
 })
 // Mock observability helpers (audit logger)
 vi.mock('@/lib/observability-helpers', () => ({ logAuditSafe: vi.fn() }))
+// Mock next-auth/next getServerSession used by withTenantContext
+vi.mock('next-auth/next', () => ({ getServerSession: vi.fn() }))
 
 import prisma from '@/lib/prisma'
 import * as naNext from 'next-auth/next'
