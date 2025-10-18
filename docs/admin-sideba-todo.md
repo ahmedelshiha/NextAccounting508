@@ -285,3 +285,11 @@ I validated the dev server logs and proxy state via the dev server control tool.
 Conclusion: Dev server is reachable via the configured proxy port (3000). No port change required.
 
 -- End of Dev server status
+
+## Dev proxy adjustment
+
+The dev server proxy was reporting error earlier due to server restarts while I modified files. I verified the server is stable and responding on port 3000; no proxy port change is necessary.
+
+If you still see connectivity problems from your side, please refresh the preview or restart the dev server. Otherwise, leave the proxy as-is.
+
+-- End of Dev proxy adjustment
