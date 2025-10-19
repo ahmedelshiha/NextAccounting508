@@ -54,15 +54,15 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [x] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
 
 ## 5) Core Components → Build TODOs
-- [ ] Avatar (sizes sm/md/lg; status dot; image/initials)
-- [ ] UserInfo (compact/full; organization block; skeleton loading)
-- [ ] ThemeSubmenu (radio behavior; icon map; selected state)
-- [ ] EditableField (label/value/placeholder, verified badge, action chips, masked value, chevron)
-- [ ] VerificationBadge (sizes; success styling)
-- [ ] UserProfileDropdown (Radix menu, labels, separators, submenu, link handling, openPanel action, sign-out confirm)
-- [ ] ProfileManagementPanel (Dialog; sticky header tabs; lazy content; loading spinner)
-- [ ] ProfileTab (header icon, description; PROFILE_FIELDS mapping)
-- [ ] SecurityTab (header icon; rows for userId/email/password/phone/authenticator/2FA/passkeys/deviceSignIn/accountActivity)
+- [x] Avatar (sizes sm/md/lg; status dot; image/initials)
+- [x] UserInfo (compact/full; organization block; skeleton loading)
+- [x] ThemeSubmenu (radio behavior; icon map; selected state)
+- [x] EditableField (label/value/placeholder, verified badge, action chips, masked value, chevron)
+- [x] VerificationBadge (sizes; success styling)
+- [x] UserProfileDropdown (Radix menu, labels, separators, submenu, link handling, openPanel action, sign-out confirm)
+- [x] ProfileManagementPanel (Dialog; sticky header tabs; lazy content; loading spinner)
+- [x] ProfileTab (header icon, description; PROFILE_FIELDS mapping)
+- [x] SecurityTab (header icon; rows for userId/email/password/phone/authenticator/2FA/passkeys/deviceSignIn/accountActivity)
 
 ## 6) Success Criteria Checklist → Verification TODOs
 - [ ] Original features validated: avatar fallback, open/close, user info, theme switcher live, status indicator, links functional, keyboard nav, screen reader announcements, focus trap, click outside, responsive, sign out confirm, help links, CLS < 0.001, render time < 100ms
@@ -167,6 +167,12 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 01:06 UTC — ✅ Core components finalized.
+  - Summary: Completed Avatar sizes/status, UserInfo skeleton, ThemeSubmenu radios, EditableField actions/masked, VerificationBadge sizes; refined UserProfileDropdown; added sticky tabs and header icons; split Profile/Security tabs into inner components.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx
+    - src/components/admin/profile/ProfileManagementPanel.tsx
 
 - 2025-10-19 00:52 UTC — ✅ Theme hook and panel tab persistence.
   - Summary: Added custom useTheme wrapper to emit themechange and provide effectiveTheme; persisted last-active-tab for ProfileManagementPanel.
