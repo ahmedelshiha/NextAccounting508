@@ -1,9 +1,3 @@
-/* Minimal, non-invasive theme transition helpers */
 html {
   transition: background-color 150ms ease, color 150ms ease;
 }
-
-/****
- Using next-themes with attribute="class".
- The existing globals.css already defines .dark tokens, so we do not override them here.
-****/
