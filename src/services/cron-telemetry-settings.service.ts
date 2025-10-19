@@ -1,19 +1,25 @@
 import prisma from '@/lib/prisma'
 import { CronTelemetrySettings, CronTelemetrySettingsSchema } from '@/schemas/settings/cron-telemetry'
 
-const SETTINGS_KEY = 'cron_telemetry_config'
-
 export async function getCronTelemetrySettings(tenantId: string): Promise<CronTelemetrySettings> {
   try {
-    const setting = await prisma.orgSetting.findFirst({
-      where: { tenantId, key: SETTINGS_KEY },
+    const setting = await prisma.cronTelemetrySettings.findFirst({
+      where: { tenantId },
     })
 
     if (!setting) {
       return getDefaultSettings()
     }
 
-    const parsed = CronTelemetrySettingsSchema.safeParse(JSON.parse(setting.value))
+    const data: any = {
+      performance: setting.performance ? JSON.parse(JSON.stringify(setting.performance)) : undefined,
+      reliability: setting.reliability ? JSON.parse(JSON.stringify(setting.reliability)) : undefined,
+      monitoring: setting.monitoring ? JSON.parse(JSON.stringify(setting.monitoring)) : undefined,
+      status: setting.status ? JSON.parse(JSON.stringify(setting.status)) : undefined,
+      scheduling: setting.scheduling ? JSON.parse(JSON.stringify(setting.scheduling)) : undefined,
+    }
+
+    const parsed = CronTelemetrySettingsSchema.safeParse(data)
     return parsed.success ? parsed.data : getDefaultSettings()
   } catch (error) {
     console.error('Error loading cron telemetry settings:', error)
@@ -34,21 +40,30 @@ export async function updateCronTelemetrySettings(
       throw new Error(`Invalid settings: ${parsed.error.message}`)
     }
 
-    const existing = await prisma.orgSetting.findFirst({
-      where: { tenantId, key: SETTINGS_KEY },
+    const existing = await prisma.cronTelemetrySettings.findFirst({
+      where: { tenantId },
     })
 
     if (existing) {
-      await prisma.orgSetting.update({
+      await prisma.cronTelemetrySettings.update({
         where: { id: existing.id },
-        data: { value: JSON.stringify(parsed.data) },
+        data: {
+          performance: parsed.data.performance as any,
+          reliability: parsed.data.reliability as any,
+          monitoring: parsed.data.monitoring as any,
+          status: parsed.data.status as any,
+          scheduling: parsed.data.scheduling as any,
+        },
       })
     } else {
-      await prisma.orgSetting.create({
+      await prisma.cronTelemetrySettings.create({
         data: {
           tenantId,
-          key: SETTINGS_KEY,
-          value: JSON.stringify(parsed.data),
+          performance: parsed.data.performance as any,
+          reliability: parsed.data.reliability as any,
+          monitoring: parsed.data.monitoring as any,
+          status: parsed.data.status as any,
+          scheduling: parsed.data.scheduling as any,
         },
       })
     }
