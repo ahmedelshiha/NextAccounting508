@@ -18,24 +18,14 @@ import {
   Bell,
   Search,
   Menu,
-  User,
-  Settings,
-  LogOut,
-  ChevronDown,
   Home,
   ChevronLeft
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import QuickLinks from './Footer/QuickLinks'
+import UserProfileDropdown from './Header/UserProfileDropdown'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
