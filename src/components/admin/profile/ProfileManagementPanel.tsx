@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { useUserProfile } from "@/hooks/useUserProfile"
+import EditableField from "./EditableField"
+import { PROFILE_FIELDS, SECURITY_FIELDS } from "./constants"
 
 export interface ProfileManagementPanelProps {
   isOpen: boolean
