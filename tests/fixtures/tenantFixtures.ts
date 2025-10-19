@@ -1,6 +1,6 @@
-import prisma from '@/lib/prisma'
+import prismaDefault from '@/lib/prisma'
 
-const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
+const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || (prismaDefault as any)
 
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
