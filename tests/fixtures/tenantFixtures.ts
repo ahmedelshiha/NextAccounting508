@@ -27,7 +27,8 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
     // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
     const mockPrismaModule: any = require('../../__mocks__/prisma')
     if (mockPrismaModule && typeof mockPrismaModule.setModelMethod === 'function') {
-      mockPrismaModule.setModelMethod('service', 'findUnique', async ({ where } = {}) => {
+      mockPrismaModule.setModelMethod('service', 'findUnique', async (params: any = {}) => {
+        const where: any = params?.where
         if (where && where.id) {
           if (String(where.id) === String(svc.id)) return svc
         }
