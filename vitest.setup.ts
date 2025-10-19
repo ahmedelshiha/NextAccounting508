@@ -229,7 +229,7 @@ vi.mock('@/lib/tenant', async () => {
 
 // Mock tenant-context used by RLS helpers
 vi.mock('@/lib/tenant-context', async () => {
-  let currentContext: any = null
+  let currentContext: any = { tenantId: 'test-tenant', userId: 'test-user' }
 
   const tenantContext = {
     run: (ctx: any, cb: any) => {
@@ -256,8 +256,14 @@ vi.mock('@/lib/tenant-context', async () => {
     requireTenantId: () => {
       if (!currentContext || !currentContext.tenantId) throw new Error('Tenant context is missing tenant identifier')
       return currentContext.tenantId
-    }
+    },
+    // test helpers
+    _setContext: (ctx: any) => { currentContext = ctx },
+    _clearContext: () => { currentContext = null },
   }
+
+  // expose test helpers globally so tests can manipulate context directly
+  try { (globalThis as any).__testTenantContext = { set: tenantContext._setContext, clear: tenantContext._clearContext } } catch {}
 
   return { tenantContext }
 })
