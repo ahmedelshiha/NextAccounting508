@@ -1,7 +1,4 @@
 import { Book, Key, ShieldQuestion, Settings, HelpCircle, Keyboard } from "lucide-react"
-import type { UserMenuLink } from "./types"
-
-import { Settings, ShieldQuestion, Book, Key, HelpCircle, Keyboard } from "lucide-react"
 import { PERMISSIONS, type Permission } from "@/lib/permissions"
 import type { UserMenuLink } from "./types"
 
