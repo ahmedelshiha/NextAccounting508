@@ -16,13 +16,6 @@ import type { FooterLink } from './types'
 export const FOOTER_LINKS = {
   quickLinks: [
     {
-      id: 'analytics',
-      label: 'Analytics',
-      href: '/admin/analytics',
-      icon: 'BarChart3',
-      external: false,
-    },
-    {
       id: 'settings',
       label: 'Settings',
       href: '/admin/settings',
