@@ -21,6 +21,7 @@ export interface UserProfileDropdownProps {
   className?: string
   showStatus?: boolean
   onSignOut?: () => Promise<void> | void
+  onOpenProfilePanel?: () => void
   customLinks?: UserMenuLink[]
 }
 
@@ -53,6 +54,7 @@ export default function UserProfileDropdown({
   className,
   showStatus = true,
   onSignOut,
+  onOpenProfilePanel,
   customLinks,
 }: UserProfileDropdownProps) {
   const { data: session } = useSession()
@@ -98,6 +100,13 @@ export default function UserProfileDropdown({
             <UserInfo name={name} email={email} role={role} organization={organization} variant="full" />
           </div>
         </div>
+        {onOpenProfilePanel ? (
+          <div className="py-1 border-t border-gray-100">
+            <button type="button" onClick={() => onOpenProfilePanel()} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              Manage Profile
+            </button>
+          </div>
+        ) : null}
         <ThemeSubmenu />
         {/* Status selector */}
         {showStatus ? <StatusSelector /> : null}
