@@ -37,6 +37,7 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
+import QuickLinks from './Footer/QuickLinks'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
