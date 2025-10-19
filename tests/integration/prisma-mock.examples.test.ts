@@ -39,7 +39,7 @@ describe('Prisma mock examples', () => {
     vi.doMock('@/lib/tenant', () => ({ getTenantFromRequest: () => 't1', isMultiTenancyEnabled: () => true }))
 
     // Override booking model methods
-    setModelMethod('booking', 'findUnique', async ({ where }: any) => ({ id: where.id, clientId: 'client1', status: 'CONFIRMED', tenantId: 't1' }))
+    setModelMethod('booking', 'findUnique', async ({ where }: any) => ({ id: where.id, clientId: 'client1', status: 'CONFIRMED', tenantId: 'test-tenant' }))
     setModelMethod('booking', 'update', async ({ where, data }: any) => ({ id: where.id, status: data.status }))
     vi.doMock('@/lib/prisma', () => ({ default: (globalThis as any).prismaMock }))
 
