@@ -49,7 +49,7 @@ function EditableFieldComponent({
     try {
       await onSave(editValue)
       setIsEditing(false)
-    } catch (e) {
+    } catch (e: any) {
       setError(String(e?.message || e))
     } finally {
       setSaving(false)
