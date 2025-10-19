@@ -1,6 +1,4 @@
 import type { LucideIcon } from "lucide-react"
-
-import type { LucideIcon } from 'lucide-react'
 import type { Permission } from '@/lib/permissions'
 
 export interface UserMenuLink {
