@@ -123,7 +123,7 @@ function TabletFooter({
       {/* Left column */}
       <div className="space-y-3">
         <ProductInfo compact />
-        <QuickLinks links={customLinks} />
+        {/* Quick links moved to header */}
       </div>
 
       {/* Right column */}
