@@ -25,7 +25,9 @@ export default async function Page() {
         description="Monitor and configure cron reminder jobs"
         icon={Activity}
         loading={true}
-      />
+      >
+        <div />
+      </SettingsShell>
     }>
       <CronTelemetryContent />
     </Suspense>
