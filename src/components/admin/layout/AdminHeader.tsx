@@ -37,6 +37,7 @@ import {
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
+import QuickLinks from './Footer/QuickLinks'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -159,6 +160,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
           {/* Right section - Tenant + Notifications + User menu */}
           <div className="flex items-center space-x-4">
             <TenantSwitcher />
+            {/* Quick navigation icons (moved from footer) */}
+            <div className="hidden sm:flex items-center">
+              <QuickLinks compact />
+            </div>
+
             {/* Notifications */}
             <Button
               variant="ghost"

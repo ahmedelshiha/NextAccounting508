@@ -5,8 +5,6 @@ import prisma from '@/lib/prisma'
 import { formatISO } from 'date-fns'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
-import { PlugZap } from 'lucide-react'
-
 // Server component to display recent cron reminder telemetry for admins inside Settings shell.
 export default async function Page({ searchParams }: { searchParams?: { limit?: string } }) {
   const limit = Number(searchParams?.limit || '20')
@@ -87,7 +85,6 @@ export default async function Page({ searchParams }: { searchParams?: { limit?: 
     <SettingsShell
       title="Cron Reminders Telemetry"
       description="Recent cron reminder runs and per-tenant aggregates"
-      icon={PlugZap}
       sidebar={<SettingsNavigation />}
       showBackButton={true}
     >

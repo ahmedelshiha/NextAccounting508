@@ -14,7 +14,6 @@ import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
 import SystemStatus from './SystemStatus'
 import ProductInfo from './ProductInfo'
-import QuickLinks from './QuickLinks'
 import SupportLinks from './SupportLinks'
 import EnvironmentBadge from './EnvironmentBadge'
 import { FOOTER_BRANDING } from './constants'
@@ -43,9 +42,7 @@ function SimpleFooter({
       <div className="flex items-center gap-4 min-w-[200px]">
         <ProductInfo compact />
       </div>
-      <div className="flex-1 flex items-center justify-center min-w-[200px]">
-        <QuickLinks links={customLinks} compact />
-      </div>
+      <div className="flex-1 flex items-center justify-center min-w-[200px]" />
       <div className="flex items-center gap-3 min-w-[200px] justify-end">
         {!hideHealth && (
           <SystemStatus
@@ -126,7 +123,7 @@ function TabletFooter({
       {/* Left column */}
       <div className="space-y-3">
         <ProductInfo compact />
-        <QuickLinks links={customLinks} />
+        {/* Quick links moved to header */}
       </div>
 
       {/* Right column */}
@@ -179,7 +176,7 @@ function DesktopFooter({
       {/* Left column: Product info and quick links */}
       <div className="space-y-3 border-l pl-4">
         <ProductInfo />
-        <QuickLinks links={customLinks} />
+        {/* Quick links moved to header */}
       </div>
 
       {/* Center column: System status */}
