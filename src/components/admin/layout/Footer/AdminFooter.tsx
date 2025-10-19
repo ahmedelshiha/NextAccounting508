@@ -16,6 +16,7 @@ import SystemStatus from './SystemStatus'
 import ProductInfo from './ProductInfo'
 import SupportLinks from './SupportLinks'
 import EnvironmentBadge from './EnvironmentBadge'
+import QuickLinks from './QuickLinks'
 import { FOOTER_BRANDING } from './constants'
 import type { AdminFooterProps, FooterLink } from './types'
 
