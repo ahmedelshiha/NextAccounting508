@@ -85,7 +85,6 @@ export default async function Page({ searchParams }: { searchParams?: { limit?: 
     <SettingsShell
       title="Cron Reminders Telemetry"
       description="Recent cron reminder runs and per-tenant aggregates"
-      icon={PlugZap}
       sidebar={<SettingsNavigation />}
       showBackButton={true}
     >
