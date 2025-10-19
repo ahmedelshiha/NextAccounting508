@@ -149,4 +149,4 @@ function UserProfileDropdownComponent({
   )
 }
 
-export default UserProfileDropdownComponent
+export default memo(UserProfileDropdownComponent)
