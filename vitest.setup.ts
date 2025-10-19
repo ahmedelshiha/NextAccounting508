@@ -218,7 +218,17 @@ try {
 // Mock tenant utilities to provide tenant context for tests
 vi.mock('@/lib/tenant', async () => {
   return {
-    getTenantFromRequest: (_req?: any) => 'test-tenant',
+    getTenantFromRequest: (req?: any) => {
+      try {
+        if (!req) return 'test-tenant'
+        // NextRequest-like header accessor
+        const headerGet = req && req.headers && typeof req.headers.get === 'function' ? req.headers.get.bind(req.headers) : null
+        const candidate = headerGet ? headerGet('x-tenant-id') || headerGet('x-tenant') : (req && (req['x-tenant-id'] || req['x-tenant']))
+        return candidate || 'test-tenant'
+      } catch {
+        return 'test-tenant'
+      }
+    },
     isMultiTenancyEnabled: () => true,
     tenantContext: {
       getContextOrNull: () => ({ tenantId: 'test-tenant' }),
