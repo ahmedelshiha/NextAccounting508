@@ -15,6 +15,7 @@ export interface ProfileManagementPanelProps {
 
 export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile" }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
+  const { profile, loading } = useUserProfile()
 
   useEffect(() => setTab(defaultTab), [defaultTab])
 
@@ -30,14 +31,19 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
             <TabsTrigger value="security">Sign in & security</TabsTrigger>
           </TabsList>
           <TabsContent value="profile">
-            <div className="space-y-2">
-              {/* Fields will be rendered from constants in later steps */}
-              <p className="text-sm text-gray-600">Update your profile details.</p>
+            <div className="space-y-1">
+              {loading && <div className="animate-pulse h-4 bg-gray-100 rounded" />}
+              {!loading && PROFILE_FIELDS.map((f) => (
+                <EditableField key={f.key} label={f.label} value={(profile as any)?.[f.key]} placeholder={f.placeholder} verified={f.verified} masked={f.masked} />
+              ))}
             </div>
           </TabsContent>
           <TabsContent value="security">
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">Manage your security settings.</p>
+            <div className="space-y-1">
+              {loading && <div className="animate-pulse h-4 bg-gray-100 rounded" />}
+              {!loading && SECURITY_FIELDS.map((f) => (
+                <EditableField key={f.key} label={f.label} value={(profile as any)?.[f.key]} placeholder={f.placeholder} verified={f.verified} masked={f.masked} />
+              ))}
             </div>
           </TabsContent>
         </Tabs>
