@@ -182,3 +182,10 @@ Owner: Admin Team
     - src/components/admin/profile/types.ts
     - src/components/admin/profile/constants.ts
   - Notes: Reusing next-themes; ThemeSubmenu implements role="menuitemradio" with light/dark/system. No wiring into AdminHeader yet.
+
+- 2025-10-19 00:05 UTC — ✅ UserProfileDropdown v1 implemented and wired into AdminHeader.
+  - Summary: Replaced legacy menu with new dropdown; added sign-out confirmation; kept original spacing and QuickLinks; cleaned unused imports.
+  - Files:
+    - src/components/admin/layout/AdminHeader.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+  - Testing: basic render in header, open/close, theme menu visible, sign-out confirmation prompts.
