@@ -1,14 +1,16 @@
 import prisma from '@/lib/prisma'
 
+const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
+
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
-  await prisma.organizationSettings.deleteMany({ where: { tenantId } }).catch(() => {})
-  await prisma.service.deleteMany({ where: { tenantId } }).catch(() => {})
+  await (prisma as any).organizationSettings?.deleteMany?.({ where: { tenantId } }).catch(() => {})
+  await (prisma as any).service?.deleteMany?.({ where: { tenantId } }).catch(() => {})
 
-  const org = await prisma.organizationSettings.create({ data: { tenantId, name: `${tenantId} Org`, defaultTimezone: timezone } })
+  const org = await (prisma as any).organizationSettings.create({ data: { tenantId, name: `${tenantId} Org`, defaultTimezone: timezone } })
   if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('organizationSettings', org.id)
 
-  const svc = await prisma.service.create({ data: {
+  const svc = await (prisma as any).service.create({ data: {
     name: serviceName ?? 'Fixture Service',
     slug: serviceSlug ?? `fixture-${Date.now()}`,
     description: 'Seeded service for tests',
@@ -24,15 +26,15 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
 
 export async function cleanupTenant(tenantId: string) {
   try {
-    await prisma.service.deleteMany({ where: { tenantId } })
+    await (prisma as any).service?.deleteMany?.({ where: { tenantId } })
   } catch {}
   try {
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } })
+    await (prisma as any).organizationSettings?.deleteMany?.({ where: { tenantId } })
   } catch {}
   try {
     // Delete bookings for services that belong to this tenant
-    const svcs = await prisma.service.findMany({ where: { tenantId }, select: { id: true } }).catch(() => [])
-    const ids = svcs.map(s => s.id)
-    if (ids.length) await prisma.booking.deleteMany({ where: { serviceId: { in: ids } } })
+    const svcs = await (prisma as any).service?.findMany?.({ where: { tenantId }, select: { id: true } }).catch(() => [])
+    const ids = (svcs || []).map((s: any) => s.id)
+    if (ids.length) await (prisma as any).booking?.deleteMany?.({ where: { serviceId: { in: ids } } })
   } catch {}
 }
