@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { logAudit } from '@/lib/audit'
+import { NextResponse } from 'next/server'
 
 export const POST = withTenantContext(async (request: Request) => {
   try {

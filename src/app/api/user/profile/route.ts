@@ -3,6 +3,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { z } from 'zod'
 import { logAudit } from '@/lib/audit'
+import { NextResponse } from 'next/server'
 
 const putSchema = z.object({
   name: z.string().min(2).max(120).optional(),
