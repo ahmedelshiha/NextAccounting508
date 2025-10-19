@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { announce } from "@/lib/a11y"
 
 export type UserStatus = "online" | "away" | "busy"
 
