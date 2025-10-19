@@ -15,6 +15,7 @@ import UserInfo from "./UserProfileDropdown/UserInfo"
 import ThemeSubmenu from "./UserProfileDropdown/ThemeSubmenu"
 import type { UserMenuLink } from "./UserProfileDropdown/types"
 import { MENU_LINKS, HELP_LINKS } from "./UserProfileDropdown/constants"
+import { useUserStatus } from "@/hooks/useUserStatus"
 
 export interface UserProfileDropdownProps {
   className?: string
