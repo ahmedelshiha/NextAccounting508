@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { hasPermission } from "@/lib/permissions"
 import Avatar from "./UserProfileDropdown/Avatar"
 import UserInfo from "./UserProfileDropdown/UserInfo"
 import ThemeSubmenu from "./UserProfileDropdown/ThemeSubmenu"
