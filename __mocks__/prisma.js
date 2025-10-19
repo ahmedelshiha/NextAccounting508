@@ -7,9 +7,9 @@ function createModel() {
     findMany: async () => [],
     findFirst: async () => null,
     findUnique: async () => null,
-    create: async (data) => data,
+    create: async (data) => ({ id: String(Math.random()).slice(2), ...data }),
     update: async (data) => data,
-    upsert: async (opts) => opts.create || opts.update || null,
+    upsert: async (opts) => opts.create ? ({ id: String(Math.random()).slice(2), ...opts.create }) : (opts.update || null),
   }
 }
 
