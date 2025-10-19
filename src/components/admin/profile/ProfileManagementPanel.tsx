@@ -23,6 +23,13 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const [showMfaSetup, setShowMfaSetup] = useState(false)
 
   useEffect(() => setTab(defaultTab), [defaultTab])
+  useEffect(() => {
+    if (!isOpen) return
+    try {
+      const saved = window.localStorage.getItem('profile-panel-last-tab')
+      if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
+    } catch {}
+  }, [isOpen, defaultTab])
 
   const handleProfileSave = async (key: string, value: string) => {
     await update({ [key]: value })
@@ -51,7 +58,7 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
           <DialogHeader>
             <DialogTitle>Manage profile</DialogTitle>
           </DialogHeader>
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+          <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="security">Sign in & security</TabsTrigger>

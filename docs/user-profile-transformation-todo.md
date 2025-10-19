@@ -48,10 +48,10 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [x] Define types and constants (THEME_OPTIONS, STATUS_OPTIONS, MENU_LINKS, HELP_LINKS, TABS, PROFILE_FIELDS, SECURITY_FIELDS)
 
 ## 4) Hooks → Behavior TODOs
-- [ ] useTheme (system + localStorage + effective theme event)
-- [ ] useUserStatus (persisted status + auto-away timeout)
+- [x] useTheme (system + localStorage + effective theme event)
+- [x] useUserStatus (persisted status + auto-away timeout)
 - [x] useUserProfile (GET/PUT /api/user/profile; state & refresh)
-- [ ] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
+- [x] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
 
 ## 5) Core Components → Build TODOs
 - [ ] Avatar (sizes sm/md/lg; status dot; image/initials)
@@ -140,7 +140,7 @@ Completion Date: October 21, 2025, 19:45 UTC
   - [ ] Code-split ProfileManagementPanel; prefetch on hover/first open intent
   - [ ] Add skeleton placeholders for panel fields while loading
   - [ ] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state)
-  - [ ] Persist last-active-tab in localStorage
+  - [x] Persist last-active-tab in localStorage
 - Security & auditing
   - [ ] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
   - [x] Ensure CSRF protection on mutations where applicable
@@ -151,7 +151,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - Keyboard Shortcuts
   - [ ] Provide /admin/shortcuts page or modal; update Help link accordingly
 - Theme
-  - [ ] Emit a custom "themechange" event (or document next-themes behavior) for any consumers
+  - [x] Emit a custom "themechange" event (or document next-themes behavior) for any consumers
   - [ ] Test system-theme change listener (prefers-color-scheme) and persistence
 - Performance
   - [ ] Fix avatar container sizes to prevent CLS; pre-size images
@@ -167,6 +167,13 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 00:52 UTC — ✅ Theme hook and panel tab persistence.
+  - Summary: Added custom useTheme wrapper to emit themechange and provide effectiveTheme; persisted last-active-tab for ProfileManagementPanel.
+  - Files:
+    - src/hooks/useTheme.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/components/admin/profile/ProfileManagementPanel.tsx
 
 - 2025-10-19 00:36 UTC — 🔄 E2E test added for dropdown and panel.
   - Summary: Added Playwright test to open user menu and Manage Profile, verify dialog, and focus return.
@@ -241,7 +248,7 @@ Completion Date: October 21, 2025, 19:45 UTC
   - Files:
     - src/components/admin/profile/ProfileManagementPanel.tsx
 
-- 2025-10-19 00:14 UTC — ✅ API plan confirmed.
+- 2025-10-19 00:14 UTC �� ✅ API plan confirmed.
   - Summary: Reusing existing /api/users/me for profile read/update. 2FA flows will reuse existing endpoints /api/auth/mfa/enroll and /api/auth/mfa/verify. Email/phone verification endpoints deferred until scope confirmation.
 
 - 2025-10-19 00:16 UTC — �� Status selector added.

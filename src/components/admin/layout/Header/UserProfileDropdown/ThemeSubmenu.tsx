@@ -1,6 +1,6 @@
 "use client"
 
-import { useTheme } from "next-themes"
+import { useTheme } from "@/hooks/useTheme"
 import { Sun, Moon, Monitor } from "lucide-react"
 import { announce } from "@/lib/a11y"
 
