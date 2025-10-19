@@ -4,8 +4,11 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useUserProfile } from "@/hooks/useUserProfile"
+import { useSecuritySettings } from "@/hooks/useSecuritySettings"
 import EditableField from "./EditableField"
-import { PROFILE_FIELDS, SECURITY_FIELDS } from "./constants"
+import { PROFILE_FIELDS } from "./constants"
+import MfaSetupModal from "./MfaSetupModal"
+import { Loader2 } from "lucide-react"
 
 export interface ProfileManagementPanelProps {
   isOpen: boolean
@@ -15,39 +18,141 @@ export interface ProfileManagementPanelProps {
 
 export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile" }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
-  const { profile, loading } = useUserProfile()
+  const { profile, loading, update } = useUserProfile()
+  const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
+  const [showMfaSetup, setShowMfaSetup] = useState(false)
 
   useEffect(() => setTab(defaultTab), [defaultTab])
 
+  const handleProfileSave = async (key: string, value: string) => {
+    await update({ [key]: value })
+  }
+
+  const handleMfaSetup = async () => {
+    try {
+      const data = await enrollMfa()
+      if (data) {
+        setShowMfaSetup(true)
+      }
+    } catch (e) {
+      console.error("MFA setup failed:", e)
+    }
+  }
+
+  const handleMfaSetupClose = () => {
+    setShowMfaSetup(false)
+    clearMfaSetup()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Manage profile</DialogTitle>
-        </DialogHeader>
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-          <TabsList>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="security">Sign in & security</TabsTrigger>
-          </TabsList>
-          <TabsContent value="profile">
-            <div className="space-y-1">
-              {loading && <div className="animate-pulse h-4 bg-gray-100 rounded" />}
-              {!loading && PROFILE_FIELDS.map((f) => (
-                <EditableField key={f.key} label={f.label} value={(profile as any)?.[f.key]} placeholder={f.placeholder} verified={f.verified} masked={f.masked} />
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="security">
-            <div className="space-y-1">
-              {loading && <div className="animate-pulse h-4 bg-gray-100 rounded" />}
-              {!loading && SECURITY_FIELDS.map((f) => (
-                <EditableField key={f.key} label={f.label} value={(profile as any)?.[f.key]} placeholder={f.placeholder} verified={f.verified} masked={f.masked} />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage profile</DialogTitle>
+          </DialogHeader>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+            <TabsList>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="security">Sign in & security</TabsTrigger>
+            </TabsList>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="mt-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {PROFILE_FIELDS.map((f) => (
+                    <EditableField
+                      key={f.key}
+                      label={f.label}
+                      value={(profile as any)?.[f.key]}
+                      placeholder={f.placeholder}
+                      verified={f.verified}
+                      masked={f.masked}
+                      onSave={(val) => handleProfileSave(f.key, val)}
+                      description={f.key === "name" ? "Your full name as it appears in communications" : f.key === "email" ? "Your primary email address" : f.key === "organization" ? "Your organization name" : undefined}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Security Tab */}
+            <TabsContent value="security" className="mt-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* User ID - Read only */}
+                  <EditableField
+                    label="User ID"
+                    value={(profile as any)?.id || ""}
+                    placeholder="User ID"
+                    disabled
+                    description="Unique identifier for your account"
+                  />
+
+                  {/* Password field */}
+                  <EditableField
+                    label="Password"
+                    value="••••••••"
+                    masked
+                    placeholder="Set a password"
+                    onSave={(val) => {
+                      if (val) {
+                        return handleProfileSave("password", val)
+                      }
+                      return Promise.resolve()
+                    }}
+                    description="Change your login password"
+                  />
+
+                  {/* Two-Factor Authentication */}
+                  <EditableField
+                    label="Two-factor authentication"
+                    value={(profile as any)?.twoFactorEnabled ? "Enabled" : "Not enabled"}
+                    placeholder="Not set up"
+                    onSave={() => handleMfaSetup()}
+                    description="Add an extra layer of security to your account"
+                  />
+
+                  {/* Email Verification Status */}
+                  <EditableField
+                    label="Email verification"
+                    value={(profile as any)?.emailVerified ? "Verified" : "Not verified"}
+                    placeholder="Pending verification"
+                    verified={(profile as any)?.emailVerified}
+                    description="Confirm ownership of your email address"
+                  />
+
+                  {/* Session Information */}
+                  <EditableField
+                    label="Active sessions"
+                    value="1 active"
+                    disabled
+                    description="Devices where you're currently signed in"
+                  />
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* MFA Setup Modal */}
+      {showMfaSetup && mfaSetupData && (
+        <MfaSetupModal
+          isOpen={showMfaSetup}
+          onClose={handleMfaSetupClose}
+          setupData={mfaSetupData}
+        />
+      )}
+    </>
   )
 }
