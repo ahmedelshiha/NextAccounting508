@@ -178,54 +178,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </div>
 
             {/* User menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 px-3">
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    {session?.user?.image ? (
-                      <img
-                        src={session.user.image}
-                        alt={session.user.name || 'User'}
-                        className="h-8 w-8 rounded-full"
-                      />
-                    ) : (
-                      <User className="h-4 w-4 text-gray-600" />
-                    )}
-                  </div>
-                  <div className="hidden md:block text-left">
-                    <div className="text-sm font-medium text-gray-900">
-                      {session?.user?.name || 'Admin'}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {(session?.user as any)?.role || 'ADMIN'}
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/settings" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/settings" className="flex items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="flex items-center text-red-600 focus:text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfileDropdown onSignOut={handleSignOut} />
           </div>
         </div>
       </div>
