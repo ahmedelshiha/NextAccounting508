@@ -189,3 +189,9 @@ Owner: Admin Team
     - src/components/admin/layout/AdminHeader.tsx
     - src/components/admin/layout/Header/UserProfileDropdown.tsx
   - Testing: basic render in header, open/close, theme menu visible, sign-out confirmation prompts.
+
+- 2025-10-19 00:08 UTC — ✅ Core hooks added.
+  - Summary: Added useUserStatus (localStorage + auto-away) and useUserProfile (GET/PATCH /api/users/me) hooks.
+  - Files:
+    - src/hooks/useUserStatus.ts
+    - src/hooks/useUserProfile.ts
