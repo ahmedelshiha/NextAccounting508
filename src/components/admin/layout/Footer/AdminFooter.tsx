@@ -176,7 +176,7 @@ function DesktopFooter({
       {/* Left column: Product info and quick links */}
       <div className="space-y-3 border-l pl-4">
         <ProductInfo />
-        <QuickLinks links={customLinks} />
+        {/* Quick links moved to header */}
       </div>
 
       {/* Center column: System status */}
