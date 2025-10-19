@@ -279,8 +279,16 @@ vi.mock('@/lib/tenant-context', async () => {
 })
 
 // Mock tenant-utils requireTenantContext used across API routes
+// Allow individual tests to override by providing their own vi.mock() calls
+let _testTenantUtils: any = null
+
 vi.mock('@/lib/tenant-utils', async () => {
-  // try to use tenant-context mock to derive a dynamic requireTenantContext
+  // If a test has defined its own mock, use that instead
+  if (_testTenantUtils) {
+    return _testTenantUtils
+  }
+
+  // Default: try to use tenant-context mock to derive a dynamic requireTenantContext
   try {
     const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
     return {
@@ -308,6 +316,11 @@ vi.mock('@/lib/tenant-utils', async () => {
     }
   }
 })
+
+// Expose helper to allow tests to override tenant-utils mock
+;(globalThis as any).__setTestTenantUtils = (utils: any) => {
+  _testTenantUtils = utils
+}
 
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
