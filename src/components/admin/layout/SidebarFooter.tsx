@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { HelpCircle } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 interface SidebarFooterProps {
