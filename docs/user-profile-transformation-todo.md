@@ -73,7 +73,7 @@ Owner: Admin Team
 - [ ] src/app/api/user/verification/email/route.ts (POST send verification; generate/store token; send email)
 - [ ] src/app/api/user/security/authenticator/{setup?,index}.ts (POST setup returns QR/secret; DELETE remove)
 - [ ] Apply auth guards (getServerSession(authOptions)); error handling, 401/404/500 paths
-- [ ] Add rate limiting on mutation endpoints
+- [x] Add rate limiting on mutation endpoints
 
 ## 8) Database Schema (Prisma) → Migration TODOs
 - [ ] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
@@ -122,9 +122,9 @@ Owner: Admin Team
 
 ## 16) Enhancements & Gaps (added by review)
 - Accessibility & UX
-  - [ ] Return focus to trigger after dropdown/panel close
+  - [x] Return focus to trigger after dropdown/panel close
   - [x] Add aria-live status announcements for theme/status/profile save
-  - [ ] Ensure role="menuitemradio" and aria-checked on theme/status items
+  - [x] Ensure role="menuitemradio" and aria-checked on theme/status items
   - [ ] Modal: trap focus, make background inert; test mobile screen readers
 - Internationalization
   - [ ] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks
@@ -142,9 +142,9 @@ Owner: Admin Team
   - [ ] Persist last-active-tab in localStorage
 - Security & auditing
   - [ ] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
-  - [ ] Ensure CSRF protection on mutations where applicable
+  - [x] Ensure CSRF protection on mutations where applicable
 - RBAC/visibility
-  - [ ] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
+  - [x] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
 - Account activity
   - [ ] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
 - Keyboard Shortcuts
@@ -166,6 +166,20 @@ Owner: Admin Team
 ---
 
 ## Progress Log
+
+- 2025-10-19 00:34 UTC — ✅ Accessibility and security improvements.
+  - Summary: Added aria-live announcements; return focus to trigger; RBAC-filtered links; rate limiting and CSRF checks on profile endpoints.
+  - Files:
+    - src/lib/a11y.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/hooks/useUserStatus.ts
+    - src/hooks/useUserProfile.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/types.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/constants.ts
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/AdminHeader.tsx
+    - src/lib/security/csrf.ts
+    - src/app/api/users/me/route.ts
 
 - 2025-10-19 00:26 UTC — ✅ Dropdown wired to open ProfileManagementPanel.
   - Summary: Added Manage Profile action in menu and integrated panel state in AdminHeader.
