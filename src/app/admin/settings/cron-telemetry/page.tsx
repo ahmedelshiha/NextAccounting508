@@ -3,12 +3,13 @@ import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import prisma from '@/lib/prisma'
 import { formatISO } from 'date-fns'
-import SettingsShell from '@/components/admin/settings/SettingsShell'
-import SettingsNavigation from '@/components/admin/settings/SettingsNavigation'
-// Server component to display recent cron reminder telemetry for admins inside Settings shell.
+import SettingsShell, { SettingsSection, SettingsCard } from '@/components/admin/settings/SettingsShell'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
+import { AlertCircle, Activity } from 'lucide-react'
+
 export default async function Page({ searchParams }: { searchParams?: { limit?: string } }) {
   const limit = Number(searchParams?.limit || '20')
-  // Require admin analytics permission to view this page
+  
   const session = await getServerSession(authOptions)
   const role = (session?.user as any)?.role as string | undefined
   if (!session?.user || !hasPermission(role, PERMISSIONS.ANALYTICS_VIEW)) {
@@ -19,7 +20,6 @@ export default async function Page({ searchParams }: { searchParams?: { limit?: 
     )
   }
 
-  // Read recent audit health logs that contain reminders:batch_summary
   const logs = await prisma.healthLog.findMany({
     where: { service: 'AUDIT', message: { contains: 'reminders:batch_summary' } },
     orderBy: { checkedAt: 'desc' },
@@ -70,7 +70,6 @@ export default async function Page({ searchParams }: { searchParams?: { limit?: 
     }
   }
 
-  // Compute overall aggregates for display
   let totalProcessed = 0
   let totalSent = 0
   let totalFailed = 0
@@ -81,94 +80,161 @@ export default async function Page({ searchParams }: { searchParams?: { limit?: 
   }
   const averageErrorRate = totalProcessed > 0 ? (totalFailed / totalProcessed) : 0
 
+  const recentRunsDescription = `Last ${limit} cron reminder job executions with detailed metrics`
+
   return (
     <SettingsShell
       title="Cron Reminders Telemetry"
-      description="Recent cron reminder runs and per-tenant aggregates"
-      sidebar={<SettingsNavigation />}
+      description="Monitor recent cron reminder runs, delivery rates, and per-tenant performance metrics"
+      icon={Activity}
       showBackButton={true}
-    >
-      <div className="p-0">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-lg bg-white shadow">
-            <div className="text-sm text-gray-500">Runs fetched</div>
-            <div className="text-xl font-semibold">{runs.length}</div>
-          </div>
-          <div className="p-4 rounded-lg bg-white shadow">
-            <div className="text-sm text-gray-500">Total processed</div>
-            <div className="text-xl font-semibold">{totalProcessed}</div>
-          </div>
-          <div className="p-4 rounded-lg bg-white shadow">
-            <div className="text-sm text-gray-500">Average error rate</div>
-            <div className="text-xl font-semibold">{(averageErrorRate * 100).toFixed(2)}%</div>
-          </div>
+      actions={
+        <div className="flex items-center gap-2">
+          <FavoriteToggle 
+            settingKey="cronTelemetry" 
+            route="/admin/settings/cron-telemetry" 
+            label="Cron Telemetry" 
+          />
         </div>
+      }
+    >
+      <div className="space-y-6">
+        <SettingsSection 
+          title="Summary Metrics" 
+          description="Overview of recent cron reminder job executions"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SettingsCard>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Total Runs</p>
+                <p className="text-3xl font-bold">{runs.length}</p>
+              </div>
+            </SettingsCard>
 
-        <section className="mb-6">
-          <h2 className="text-lg font-medium mb-2">Recent Runs</h2>
-          <div className="overflow-auto rounded-lg border">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2">Run ID</th>
-                  <th className="px-4 py-2">Time</th>
-                  <th className="px-4 py-2">Processed</th>
-                  <th className="px-4 py-2">Sent</th>
-                  <th className="px-4 py-2">Failed</th>
-                  <th className="px-4 py-2">Duration (ms)</th>
-                  <th className="px-4 py-2">Global</th>
-                  <th className="px-4 py-2">Tenant</th>
-                  <th className="px-4 py-2">Err %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runs.map((r) => (
-                  <tr key={r.id} className="border-t">
-                    <td className="px-4 py-2">{String(r.id).slice(0,8)}</td>
-                    <td className="px-4 py-2">{r.at ? formatISO(new Date(r.at)) : '-'}</td>
-                    <td className="px-4 py-2">{r.processed}</td>
-                    <td className="px-4 py-2">{r.sent}</td>
-                    <td className="px-4 py-2">{r.failed}</td>
-                    <td className="px-4 py-2">{r.durationMs}</td>
-                    <td className="px-4 py-2">{r.effectiveGlobal}</td>
-                    <td className="px-4 py-2">{r.effectiveTenant}</td>
-                    <td className="px-4 py-2">{(Number(r.errorRate || 0) * 100).toFixed(2)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <SettingsCard>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Messages Processed</p>
+                <p className="text-3xl font-bold">{totalProcessed.toLocaleString()}</p>
+              </div>
+            </SettingsCard>
+
+            <SettingsCard>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Average Error Rate</p>
+                <p className={`text-3xl font-bold ${averageErrorRate > 0.05 ? 'text-red-600' : 'text-green-600'}`}>
+                  {(averageErrorRate * 100).toFixed(2)}%
+                </p>
+              </div>
+            </SettingsCard>
           </div>
-        </section>
+        </SettingsSection>
 
-        <section className="mb-6">
-          <h2 className="text-lg font-medium mb-2">Per-tenant Summary (aggregated)</h2>
-          <div className="overflow-auto rounded-lg border">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2">Tenant</th>
-                  <th className="px-4 py-2">Processed</th>
-                  <th className="px-4 py-2">Sent</th>
-                  <th className="px-4 py-2">Failed</th>
-                  <th className="px-4 py-2">Error %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(aggregatedTenants).map(([t, s]) => (
-                  <tr key={t} className="border-t">
-                    <td className="px-4 py-2 break-words w-48">{t}</td>
-                    <td className="px-4 py-2">{s.processed}</td>
-                    <td className="px-4 py-2">{s.sent}</td>
-                    <td className="px-4 py-2">{s.failed}</td>
-                    <td className="px-4 py-2">{s.processed > 0 ? ((s.failed / s.processed) * 100).toFixed(2) + '%' : '0.00%'}</td>
+        <SettingsSection 
+          title="Recent Runs" 
+          description={recentRunsDescription}
+        >
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Run ID</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Timestamp</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Processed</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Sent</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Failed</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Duration (ms)</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Error %</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {runs.length > 0 ? (
+                    runs.map((r) => (
+                      <tr key={r.id} className="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-mono text-xs">{String(r.id).slice(0, 8)}</td>
+                        <td className="px-4 py-3 text-sm">{r.at ? formatISO(new Date(r.at)) : '-'}</td>
+                        <td className="px-4 py-3 text-right">{r.processed}</td>
+                        <td className="px-4 py-3 text-right">{r.sent}</td>
+                        <td className="px-4 py-3 text-right">{r.failed}</td>
+                        <td className="px-4 py-3 text-right">{r.durationMs}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={r.errorRate > 0.05 ? 'text-red-600 font-medium' : ''}>
+                            {(Number(r.errorRate || 0) * 100).toFixed(2)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        No cron reminder runs found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </section>
+        </SettingsSection>
 
-        <div className="text-xs text-gray-500">Tip: tune REMINDERS_GLOBAL_CONCURRENCY, REMINDERS_TENANT_CONCURRENCY, and REMINDERS_BACKOFF_THRESHOLD in your envs based on these metrics.</div>
+        <SettingsSection 
+          title="Per-Tenant Summary" 
+          description="Aggregated statistics for each tenant across all runs"
+        >
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Tenant ID</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Processed</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Sent</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Failed</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground">Error %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(aggregatedTenants).length > 0 ? (
+                    Object.entries(aggregatedTenants).map(([t, s]) => (
+                      <tr key={t} className="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-mono text-xs break-all">{t}</td>
+                        <td className="px-4 py-3 text-right">{s.processed}</td>
+                        <td className="px-4 py-3 text-right">{s.sent}</td>
+                        <td className="px-4 py-3 text-right">{s.failed}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={s.processed > 0 && (s.failed / s.processed) > 0.05 ? 'text-red-600 font-medium' : ''}>
+                            {s.processed > 0 ? ((s.failed / s.processed) * 100).toFixed(2) : '0.00'}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                        No tenant data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </SettingsSection>
+
+        <SettingsCard className="bg-blue-50 border-blue-200">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-blue-900">Performance Tuning Tips</p>
+              <p className="text-sm text-blue-800">Adjust these environment variables based on the metrics above:</p>
+              <ul className="text-sm text-blue-800 list-disc list-inside space-y-1">
+                <li><code className="bg-blue-100 px-2 py-1 rounded text-xs">REMINDERS_GLOBAL_CONCURRENCY</code> - Control parallel job execution</li>
+                <li><code className="bg-blue-100 px-2 py-1 rounded text-xs">REMINDERS_TENANT_CONCURRENCY</code> - Limit tenant-level concurrency</li>
+                <li><code className="bg-blue-100 px-2 py-1 rounded text-xs">REMINDERS_BACKOFF_THRESHOLD</code> - Set backoff strategy for retries</li>
+              </ul>
+            </div>
+          </div>
+        </SettingsCard>
       </div>
     </SettingsShell>
   )
