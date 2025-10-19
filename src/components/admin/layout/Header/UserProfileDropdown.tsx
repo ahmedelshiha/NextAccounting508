@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, type Ref } from "react"
+import { useMemo, type Ref, memo } from "react"
 import { useSession } from "next-auth/react"
 import { ChevronDown, User as UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -51,7 +51,7 @@ function StatusSelector() {
   )
 }
 
-export default function UserProfileDropdown({
+function UserProfileDropdownComponent({
   className,
   showStatus = true,
   onSignOut,
@@ -148,3 +148,5 @@ export default function UserProfileDropdown({
     </DropdownMenu>
   )
 }
+
+export default memo(UserProfileDropdownComponent)

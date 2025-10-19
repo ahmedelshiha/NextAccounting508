@@ -10,4 +10,6 @@ export const SECURITY_FIELDS: ProfileFieldDef[] = [
   { key: "userId", label: "User ID", masked: false },
   { key: "password", label: "Password", masked: true },
   { key: "twoFactorEnabled", label: "Two-factor authentication" },
+  { key: "emailVerified", label: "Email verification" },
+  { key: "sessions", label: "Active sessions" },
 ]
