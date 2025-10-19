@@ -458,20 +458,20 @@ export default function CronTelemetryContent() {
               <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <span className="text-sm font-medium text-blue-900">Reminders Enabled</span>
                 <button
-                  onClick={() => updateSetting('status', 'remindersEnabled', !(pending.status?.remindersEnabled ?? settings.status.remindersEnabled))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.remindersEnabled ?? settings.status.remindersEnabled) ? 'bg-green-600' : 'bg-red-600'}`}
+                  onClick={() => updateSetting('status', 'remindersEnabled', !(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled) ? 'bg-green-600' : 'bg-red-600'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.remindersEnabled ?? settings.status.remindersEnabled) ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled) ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <span className="text-sm font-medium text-yellow-900">Maintenance Mode</span>
                 <button
-                  onClick={() => updateSetting('status', 'maintenanceMode', !(pending.status?.maintenanceMode ?? settings.status.maintenanceMode))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) ? 'bg-yellow-600' : 'bg-gray-200'}`}
+                  onClick={() => updateSetting('status', 'maintenanceMode', !(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) ? 'bg-yellow-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
