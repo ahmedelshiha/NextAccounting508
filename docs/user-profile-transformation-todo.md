@@ -82,9 +82,9 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [ ] prisma generate
 
 ## 9) Testing Strategy → Tests TODOs
-- [ ] Unit tests for UserProfileDropdown (render, initials, opens, Manage Profile, theme, status)
-- [ ] Unit tests for ProfileManagementPanel (default tab, switch to security, editable rows, verified badge)
-- [ ] E2E tests tests/e2e/user-profile.spec.ts (open dropdown, open panel, switch tabs, verification badges, theme set to dark, status change updates dot)
+- [x] Unit tests for UserProfileDropdown (render, initials, opens, Manage Profile, theme, status)
+- [x] Unit tests for ProfileManagementPanel (default tab, switch to security, editable rows, verified badge)
+- [x] E2E tests tests/e2e/user-profile.spec.ts (open dropdown, open panel, switch tabs, verification badges, theme set to dark, status change updates dot)
 
 ## 10) Deployment & Integration → Checklists TODOs
 - [ ] Pre-deployment: unit/E2E pass, migrations staged, env vars set, routes secured, CORS, rate limiting, error logging, email/SMS configured
@@ -101,7 +101,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 
 ## 12) Builder.io Integration → TODOs
 - [x] Create src/components/builder/UserProfileDropdownBuilder.tsx
-- [ ] Register with withBuilder; expose showStatus input; add metadata image/description
+- [x] Register with withBuilder; expose showStatus input; add metadata image/description
 
 ## 13) Git Workflow → Process TODOs
 - [ ] Create branch feature/user-profile-hybrid
@@ -167,6 +167,14 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:05 UTC — ✅ Tests and Builder integration updated.
+  - Summary: Added unit tests for dropdown and profile panel; ensured Theme/Status labels present; implemented optional Builder.io withBuilder registration that no-ops if SDK absent.
+  - Files:
+    - tests/admin/layout/UserProfileDropdown.test.tsx (expanded assertions)
+    - tests/admin/profile/ProfileManagementPanel.test.tsx (new)
+    - src/components/builder/UserProfileDropdownBuilder.tsx (optional withBuilder registration)
+  - Notes: Prisma migration remains blocked pending DATABASE_URL; E2E tests already present.
 
 - 2025-10-19 01:26 UTC — ✅ Success criteria verified.
   - Summary: Verified dropdown features, a11y (keyboard, aria-live, focus trap), responsive behavior, and profile panel flows via existing E2E tests. Performance targets tracked; CLS guarded by fixed avatar sizes; render times meet thresholds in staging.
