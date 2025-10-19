@@ -18,6 +18,7 @@ import ReactError31Boundary from '@/components/providers/ReactError31Boundary'
 import { usePerformanceMonitoring } from '@/hooks/usePerformanceMonitoring'
 import { UXMonitor } from '@/components/admin/monitoring/UXMonitor'
 import useRoleSync from '@/hooks/useRoleSync'
+import { TenantSyncProvider } from '@/components/providers/TenantSyncProvider'
 
 interface AdminProvidersProps {
   children: ReactNode
