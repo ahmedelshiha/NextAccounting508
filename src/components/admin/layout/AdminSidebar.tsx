@@ -139,8 +139,9 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     {
       section: 'system',
       items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [] },
-        { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Zap },
+        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [
+          { name: 'Cron Telemetry', href: '/admin/settings/cron-telemetry', icon: Zap }
+        ] },
       ]
     }
   ]
