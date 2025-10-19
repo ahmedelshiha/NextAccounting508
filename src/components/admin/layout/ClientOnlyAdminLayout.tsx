@@ -16,7 +16,7 @@ import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
 import AdminFooter from '@/components/admin/layout/AdminFooter'
-import { useAdminLayoutStoreSSRSafe } from '@/stores/adminLayoutStoreSSRSafe'
+import { useSidebarCollapsed, useSidebarActions } from '@/stores/admin/layout.store.selectors'
 
 interface ClientOnlyAdminLayoutProps {
   children: React.ReactNode
@@ -26,14 +26,15 @@ interface ClientOnlyAdminLayoutProps {
 export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyAdminLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const { sidebarCollapsed, setSidebarCollapsed } = useAdminLayoutStoreSSRSafe()
+  const sidebarCollapsed = useSidebarCollapsed()
+  const { setCollapsed } = useSidebarActions()
 
   // Ensure client-side rendering to avoid hydration mismatches
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Close mobile menu on route change
+  // Close mobile menu on initial mount or route changes (handled elsewhere)
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [])
@@ -59,7 +60,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
   }
 
   const handleSidebarToggle = () => {
-    setSidebarCollapsed(!sidebarCollapsed)
+    setCollapsed(!sidebarCollapsed)
   }
 
   if (!isClient) {
@@ -77,7 +78,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
             Skip to main content
           </a>
 
-          {/* Desktop Sidebar - using fixed positioning, always rendered */}
+          {/* Desktop Sidebar - fixed, always rendered */}
           <AdminSidebar
             isCollapsed={sidebarCollapsed}
             isMobile={false}
@@ -94,11 +95,11 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
             </div>
           )}
 
-          {/* Main Content Area - responds to sidebar collapse state via margin-left */}
+          {/* Main Content Area - bind spacing to unified sidebar state */}
           <div
-            className={`flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
+            className={`hidden lg:flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
               sidebarCollapsed ? 'ml-16' : 'ml-64'
-            } hidden lg:flex`}
+            }`}
           >
             {/* Header */}
             <AdminHeader
