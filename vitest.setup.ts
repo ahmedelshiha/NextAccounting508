@@ -217,14 +217,39 @@ vi.mock('@/lib/tenant', async () => {
 })
 
 // Mock tenant-context used by RLS helpers
-vi.mock('@/lib/tenant-context', async () => ({
-  tenantContext: {
-    run: (ctx: any, cb: any) => cb(),
-    getContextOrNull: () => ({ tenantId: 'test-tenant' }),
-    runWithTenant: async (_t: string, fn: any) => fn(),
-    getTenantId: () => 'test-tenant',
+vi.mock('@/lib/tenant-context', async () => {
+  let currentContext: any = null
+
+  const tenantContext = {
+    run: (ctx: any, cb: any) => {
+      const prev = currentContext
+      currentContext = ctx
+      try {
+        const result = cb()
+        if (result && typeof result.then === 'function') {
+          return result.finally(() => { currentContext = prev })
+        }
+        currentContext = prev
+        return result
+      } catch (err) {
+        currentContext = prev
+        throw err
+      }
+    },
+    getContextOrNull: () => currentContext,
+    getTenantId: () => currentContext?.tenantId ?? null,
+    runWithTenant: async (t: string, fn: any) => {
+      return tenantContext.run({ tenantId: t, timestamp: new Date() }, fn)
+    },
+    hasContext: () => currentContext !== null,
+    requireTenantId: () => {
+      if (!currentContext || !currentContext.tenantId) throw new Error('Tenant context is missing tenant identifier')
+      return currentContext.tenantId
+    }
   }
-}))
+
+  return { tenantContext }
+})
 
 // Mock tenant-utils requireTenantContext used across API routes
 vi.mock('@/lib/tenant-utils', async () => ({
