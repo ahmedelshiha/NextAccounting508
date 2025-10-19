@@ -69,11 +69,11 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [ ] QuickBooks features validated: Manage Profile opens panel, two tabs, editable rows, verification badges, action buttons, descriptions, 2FA/authenticator mgmt, passkeys, device sign-in, account activity, headers with icons, masked password, modal/drawer behavior, auto/manual save
 
 ## 7) API Implementation → Backend TODOs
-- [ ] src/app/api/user/profile/route.ts (GET session+prisma merge; PUT upsert profile; includes organization)
-- [ ] src/app/api/user/security/2fa/route.ts (POST toggle twoFactorEnabled)
-- [ ] src/app/api/user/verification/email/route.ts (POST send verification; generate/store token; send email)
-- [ ] src/app/api/user/security/authenticator/{setup?,index}.ts (POST setup returns QR/secret; DELETE remove)
-- [ ] Apply auth guards (getServerSession(authOptions)); error handling, 401/404/500 paths
+- [x] src/app/api/user/profile/route.ts (GET session+prisma merge; PUT upsert profile; includes organization)
+- [x] src/app/api/user/security/2fa/route.ts (POST toggle twoFactorEnabled)
+- [x] src/app/api/user/verification/email/route.ts (POST send verification; generate/store token; send email)
+- [x] src/app/api/user/security/authenticator/{setup?,index}.ts (POST setup returns QR/secret; DELETE remove)
+- [x] Apply auth guards (getServerSession(authOptions)); error handling, 401/404/500 paths
 - [x] Add rate limiting on mutation endpoints
 
 ## 8) Database Schema (Prisma) → Migration TODOs
@@ -167,6 +167,14 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 01:18 UTC — ✅ Backend APIs implemented for profile and security.
+  - Summary: Added /api/user/profile (GET/PUT), /api/user/security/2fa (POST), /api/user/security/authenticator (POST/DELETE); reusing tenant context guard, CSRF checks, rate limiting, and audit logs. Existing email verification routes already present.
+  - Files:
+    - src/app/api/user/profile/route.ts
+    - src/app/api/user/security/2fa/route.ts
+    - src/app/api/user/security/authenticator/route.ts
+    - src/app/api/user/verification/email/route.ts
 
 - 2025-10-19 01:06 UTC — ✅ Core components finalized.
   - Summary: Completed Avatar sizes/status, UserInfo skeleton, ThemeSubmenu radios, EditableField actions/masked, VerificationBadge sizes; refined UserProfileDropdown; added sticky tabs and header icons; split Profile/Security tabs into inner components.
