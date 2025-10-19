@@ -12,7 +12,6 @@
 
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
-import { FOOTER_BRANDING } from './constants'
 import SystemStatus from './SystemStatus'
 import ProductInfo from './ProductInfo'
 import QuickLinks from './QuickLinks'
