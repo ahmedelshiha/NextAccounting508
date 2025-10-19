@@ -206,7 +206,7 @@ export async function getAvailabilityForService(params: {
     console.warn('[getAvailabilityForService] prisma.service.findUnique not available in test environment')
     return { slots: [] as AvailabilitySlot[] }
   }
-  const svc = await serviceModel.findUnique({ where: { id: serviceId } })
+  let svc = await serviceModel.findUnique({ where: { id: serviceId } })
   console.log('[getAvailabilityForService] got service', !!svc)
   if (!svc) {
     try {
@@ -215,10 +215,6 @@ export async function getAvailabilityForService(params: {
         // use the seeded service when prisma mock instances differ across modules in tests
         // eslint-disable-next-line no-console
         console.warn('[getAvailabilityForService] using seeded service fallback for', serviceId)
-        // @ts-ignore
-        // assign to svc variable
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         svc = seeded
       }
     } catch {}

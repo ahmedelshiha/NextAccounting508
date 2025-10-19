@@ -279,33 +279,45 @@ vi.mock('@/lib/tenant-context', async () => {
 })
 
 // Mock tenant-utils requireTenantContext used across API routes
+// Use state management to allow per-test customization (especially for auth tests)
+const tenantUtilsState = { userId: 'test-user', role: 'ADMIN', tenantId: 'test-tenant' }
+;(globalThis as any).__tenantUtilsState = tenantUtilsState
+
 vi.mock('@/lib/tenant-utils', async () => {
   // try to use tenant-context mock to derive a dynamic requireTenantContext
+  let tcMod: any = null
   try {
-    const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
-    return {
-      requireTenantContext: () => {
-        try {
-          const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
-          return {
-            userId: ctx?.userId ?? 'test-user',
-            tenantId: ctx?.tenantId ?? 'test-tenant',
-            userEmail: 'test@example.com',
-            userName: 'Test User',
-            role: ctx?.role ?? 'ADMIN',
-            isSuperAdmin: ctx?.isSuperAdmin ?? true,
-          }
-        } catch {
-          return { userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }
+    tcMod = await import('@/lib/tenant-context').catch(() => null)
+  } catch {}
+
+  return {
+    requireTenantContext: () => {
+      try {
+        const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return {
+          userId: ctx?.userId ?? state.userId,
+          tenantId: ctx?.tenantId ?? state.tenantId,
+          userEmail: 'test@example.com',
+          userName: 'Test User',
+          role: ctx?.role ?? state.role,
+          isSuperAdmin: ctx?.isSuperAdmin ?? true,
         }
-      },
-      getTenantFilter: (_field = 'tenantId') => ({ tenantId: (tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : 'test-tenant') ?? 'test-tenant' }),
-    }
-  } catch (err) {
-    return {
-      requireTenantContext: () => ({ userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }),
-      getTenantFilter: (_field = 'tenantId') => ({ tenantId: 'test-tenant' }),
-    }
+      } catch {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return { userId: state.userId, tenantId: state.tenantId, userEmail: 'test@example.com', userName: 'Test User', role: state.role, isSuperAdmin: true }
+      }
+    },
+    getTenantFilter: (_field = 'tenantId') => {
+      try {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        const contextTenantId = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : null
+        return { tenantId: contextTenantId ?? state.tenantId }
+      } catch {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return { tenantId: state.tenantId }
+      }
+    },
   }
 })
 

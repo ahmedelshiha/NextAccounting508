@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest'
 // Mock prisma with in-memory store
 const thresholdsStore: any[] = []
 vi.mock('@/lib/prisma', () => ({
@@ -42,8 +42,22 @@ afterAll(async () => {
 })
 
 describe('Thresholds API (unit/integration style)', () => {
+  beforeEach(async () => {
+    // Reset context to authenticated admin by default
+    const state = (globalThis as any).__tenantUtilsState
+    if (state) {
+      state.userId = 'test-user'
+      state.role = 'ADMIN'
+    }
+  })
+
   it('returns 401 for unauthenticated GET and POST', async () => {
-    // Mock unauthenticated
+    // Mock unauthenticated by setting userId to null in global state
+    const state = (globalThis as any).__tenantUtilsState
+    if (state) {
+      state.userId = null
+      state.role = null
+    }
     mockedGetServerSession.mockResolvedValue(null)
 
     const resGet: any = await GET({} as any)

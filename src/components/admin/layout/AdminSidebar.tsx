@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { 
+import {
   BarChart3,
   Calendar,
   Users,
@@ -14,7 +14,6 @@ import {
   Receipt,
   CheckSquare,
   TrendingUp,
-  Settings,
   UserCog,
   Shield,
   Upload,
@@ -27,8 +26,7 @@ import {
   DollarSign,
   Clock,
   Target,
-  Building,
-  Zap
+  Building
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
@@ -135,13 +133,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         { name: 'Chat', href: '/admin/chat', icon: Mail },
         { name: 'Reminders', href: '/admin/reminders', icon: Bell },
       ]
-    },
-    {
-      section: 'system',
-      items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [] },
-        { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Zap },
-      ]
     }
   ]
 
@@ -184,7 +175,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     const isActive = isActiveRoute(item.href)
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
-    const isSettingsParent = item.href === '/admin/settings'
 
     const baseStyles = `
       transition-all duration-200 flex items-center rounded-lg font-medium relative
@@ -192,7 +182,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     `
 
     const expandedItemStyles = `
-      w-full px-3 py-2 text-sm
+      w-full px-3 py-1.5 text-sm
       ${isActive
         ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200'
@@ -211,52 +201,31 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       <li key={item.href}>
         <div className="relative">
           {hasChildren ? (
-            isSettingsParent ? (
-              <div
-                aria-expanded={true}
-                data-roving
-                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                {!storeCollapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => toggleSection(item.href.split('/').pop() || '')}
-                aria-expanded={isExpanded}
-                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-                data-roving
-                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                {!storeCollapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    )}
-                  </>
-                )}
-              </button>
-            )
+            <button
+              onClick={() => toggleSection(item.href.split('/').pop() || '')}
+              aria-expanded={isExpanded}
+              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+              data-roving
+              {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+              className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
+            >
+              <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+              {!storeCollapsed && (
+                <>
+                  <span className="flex-1 text-left">{item.name}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-2">
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  )}
+                </>
+              )}
+            </button>
           ) : (
             <Link
               href={item.href}
@@ -279,7 +248,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
           )}
         </div>
 
-        {hasChildren && (isSettingsParent || isExpanded) && !storeCollapsed && (
+        {hasChildren && isExpanded && !storeCollapsed && (
           <ul id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`} className="mt-1 space-y-1" role="group" aria-label={`${item.name} submenu`}>
             {item.children!.map(child => renderNavigationItem(child, depth + 1))}
           </ul>
@@ -313,7 +282,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         <div className="flex flex-col h-full w-full">
           <SidebarHeader collapsed={storeCollapsed} />
 
-          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-3' : 'px-4 py-6 space-y-8'}`} role="navigation" aria-label="Admin sidebar">
+          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-2' : 'px-4 py-4 space-y-4'}`} role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
               const sectionItems = section.items.filter(item => hasAccess(item.permission))
               if (sectionItems.length === 0) return null
@@ -321,7 +290,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
               return (
                 <div key={section.section}>
                   {!storeCollapsed && (
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
+                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{section.section}</h3>
                   )}
                   <ul className={`${storeCollapsed ? 'space-y-1' : 'space-y-1'}`} ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}

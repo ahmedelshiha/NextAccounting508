@@ -3,6 +3,7 @@ const modelDefaults = {}
 const modelStore = {}
 let viLib
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   viLib = require('vitest')
 } catch (err) {
   viLib = null

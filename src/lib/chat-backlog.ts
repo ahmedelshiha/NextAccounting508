@@ -19,4 +19,6 @@ export function _debug_reset() {
   for (const k of Object.keys(store)) delete store[k]
 }
 
-export default { enqueue, list, _debug_reset }
+const chatBacklog = { enqueue, list, _debug_reset }
+
+export default chatBacklog

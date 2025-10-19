@@ -11,32 +11,31 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, lazy, Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   Bell,
   Search,
   Menu,
-  User,
-  Settings,
-  LogOut,
-  HelpCircle,
-  ChevronDown,
   Home,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
-import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
+import QuickLinks from './Footer/QuickLinks'
+import UserProfileDropdown from './Header/UserProfileDropdown'
+import dynamic from 'next/dynamic'
+
+const ProfileManagementPanel = dynamic(
+  () => import('../profile/ProfileManagementPanel'),
+  {
+    loading: () => null,
+    ssr: false
+  }
+)
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -64,6 +63,8 @@ function useBreadcrumbs() {
 export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarToggle }: AdminHeaderProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileTriggerRef = useRef<HTMLButtonElement | null>(null)
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
 
@@ -156,9 +157,8 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </form>
           </div>
 
-          {/* Right section - Tenant + Notifications + User menu */}
+          {/* Right section - Notifications + User menu */}
           <div className="flex items-center space-x-4">
-            <TenantSwitcher />
             {/* Notifications */}
             <Button
               variant="ghost"
@@ -174,70 +174,17 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
               )}
             </Button>
 
-            {/* Help */}
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label="Help"
-              asChild
-            >
-              <Link href="/admin/help">
-                <HelpCircle className="h-5 w-5" />
-              </Link>
-            </Button>
+            {/* Quick navigation icons (moved from footer) */}
+            <div className="hidden sm:flex items-center">
+              <QuickLinks compact />
+            </div>
 
             {/* User menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 px-3">
-                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    {session?.user?.image ? (
-                      <img
-                        src={session.user.image}
-                        alt={session.user.name || 'User'}
-                        className="h-8 w-8 rounded-full"
-                      />
-                    ) : (
-                      <User className="h-4 w-4 text-gray-600" />
-                    )}
-                  </div>
-                  <div className="hidden md:block text-left">
-                    <div className="text-sm font-medium text-gray-900">
-                      {session?.user?.name || 'Admin'}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {(session?.user as any)?.role || 'ADMIN'}
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/settings" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/admin/settings" className="flex items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleSignOut}
-                  className="flex items-center text-red-600 focus:text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
           </div>
         </div>
       </div>
+      <ProfileManagementPanel isOpen={profileOpen} onClose={() => { setProfileOpen(false); try { profileTriggerRef.current?.focus() } catch {} }} defaultTab="profile" />
     </header>
   )
 }
