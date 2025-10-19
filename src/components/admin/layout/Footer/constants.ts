@@ -16,11 +16,11 @@ import type { FooterLink } from './types'
 export const FOOTER_LINKS = {
   quickLinks: [
     {
-      id: 'analytics',
-      label: 'Analytics',
-      href: '/admin/analytics',
-      icon: 'BarChart3',
-      external: false,
+      id: 'main-site',
+      label: 'Main Site',
+      href: '/',
+      icon: 'ExternalLink',
+      external: true,
     },
     {
       id: 'settings',
@@ -28,13 +28,6 @@ export const FOOTER_LINKS = {
       href: '/admin/settings',
       icon: 'Settings',
       external: false,
-    },
-    {
-      id: 'main-site',
-      label: 'Main Site',
-      href: '/',
-      icon: 'ExternalLink',
-      external: true,
     },
   ] as const satisfies readonly FooterLink[],
 

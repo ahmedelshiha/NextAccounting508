@@ -21,7 +21,6 @@ import {
   User,
   Settings,
   LogOut,
-  HelpCircle,
   ChevronDown,
   Home,
   ChevronLeft
@@ -36,7 +35,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
-import TenantSwitcher from '@/components/admin/layout/TenantSwitcher'
 import QuickLinks from './Footer/QuickLinks'
 
 interface AdminHeaderProps {
@@ -157,14 +155,8 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </form>
           </div>
 
-          {/* Right section - Tenant + Notifications + User menu */}
+          {/* Right section - Notifications + User menu */}
           <div className="flex items-center space-x-4">
-            <TenantSwitcher />
-            {/* Quick navigation icons (moved from footer) */}
-            <div className="hidden sm:flex items-center">
-              <QuickLinks compact />
-            </div>
-
             {/* Notifications */}
             <Button
               variant="ghost"
@@ -180,17 +172,10 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
               )}
             </Button>
 
-            {/* Help */}
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label="Help"
-              asChild
-            >
-              <Link href="/admin/help">
-                <HelpCircle className="h-5 w-5" />
-              </Link>
-            </Button>
+            {/* Quick navigation icons (moved from footer) */}
+            <div className="hidden sm:flex items-center">
+              <QuickLinks compact />
+            </div>
 
             {/* User menu */}
             <DropdownMenu>
