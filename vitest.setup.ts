@@ -38,9 +38,19 @@ vi.mock('next-auth', () => ({
 
 // Import centralized test setup that registers tenants and performs global cleanup
 import './tests/testSetup'
-vi.mock('next-auth/next', () => ({
-  getServerSession: vi.fn(async () => defaultSession),
-}))
+vi.mock('next-auth/next', () => {
+  try {
+    // If tests mock 'next-auth' via vi.doMock, require it here to delegate
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const na = require('next-auth')
+    if (na && typeof na.getServerSession === 'function') {
+      return { getServerSession: na.getServerSession }
+    }
+  } catch (err) {
+    // fall through
+  }
+  return { getServerSession: vi.fn(async () => defaultSession) }
+})
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: defaultSession, status: 'authenticated' }),
   signOut: vi.fn()
