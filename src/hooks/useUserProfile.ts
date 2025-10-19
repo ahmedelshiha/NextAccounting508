@@ -25,7 +25,8 @@ export function useUserProfile() {
       const res = await apiFetch('/api/users/me')
       if (!res.ok) throw new Error(`Failed to load profile (${res.status})`)
       const data = await res.json()
-      setProfile(data)
+      const next = (data && typeof data === 'object' && 'user' in data) ? (data as any).user : data
+      setProfile(next)
     } catch (e: any) {
       setError(String(e?.message || e))
     } finally {
@@ -40,8 +41,9 @@ export function useUserProfile() {
       const res = await apiFetch('/api/users/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) })
       if (!res.ok) throw new Error(`Failed to update profile (${res.status})`)
       const data = await res.json()
-      setProfile(data)
-      return data
+      const next = (data && typeof data === 'object' && 'user' in data) ? (data as any).user : data
+      setProfile(next)
+      return next
     } catch (e: any) {
       setError(String(e?.message || e))
       throw e
