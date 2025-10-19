@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { 
+import {
   BarChart3,
   Calendar,
   Users,
@@ -14,7 +14,6 @@ import {
   Receipt,
   CheckSquare,
   TrendingUp,
-  Settings,
   UserCog,
   Shield,
   Upload,
@@ -27,8 +26,7 @@ import {
   DollarSign,
   Clock,
   Target,
-  Building,
-  Zap
+  Building
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
@@ -177,7 +175,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     const isActive = isActiveRoute(item.href)
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
-    const isSettingsParent = item.href === '/admin/settings'
 
     const baseStyles = `
       transition-all duration-200 flex items-center rounded-lg font-medium relative
@@ -204,52 +201,31 @@ export default function AdminSidebar(props: AdminSidebarProps) {
       <li key={item.href}>
         <div className="relative">
           {hasChildren ? (
-            isSettingsParent ? (
-              <div
-                aria-expanded={true}
-                data-roving
-                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                {!storeCollapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => toggleSection(item.href.split('/').pop() || '')}
-                aria-expanded={isExpanded}
-                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-                data-roving
-                {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                {!storeCollapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    )}
-                  </>
-                )}
-              </button>
-            )
+            <button
+              onClick={() => toggleSection(item.href.split('/').pop() || '')}
+              aria-expanded={isExpanded}
+              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+              data-roving
+              {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+              className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
+            >
+              <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+              {!storeCollapsed && (
+                <>
+                  <span className="flex-1 text-left">{item.name}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-2">
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  )}
+                </>
+              )}
+            </button>
           ) : (
             <Link
               href={item.href}
@@ -272,7 +248,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
           )}
         </div>
 
-        {hasChildren && (isSettingsParent || isExpanded) && !storeCollapsed && (
+        {hasChildren && isExpanded && !storeCollapsed && (
           <ul id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`} className="mt-1 space-y-1" role="group" aria-label={`${item.name} submenu`}>
             {item.children!.map(child => renderNavigationItem(child, depth + 1))}
           </ul>
