@@ -256,7 +256,7 @@ export class ServicesService {
 
       // Dynamically import filter/sort helpers to avoid test mocks missing partial exports
       let filterFn: ((items: any[], filters: any) => any[]) | null = null
-      let sortFn: ((items: any[], sortBy: string, sortOrder: string) => any[]) | null = null
+      let sortFn: ((items: any[], sortBy: string, sortOrder?: 'asc' | 'desc') => any[]) | null = null
       try {
         const utils = await import('@/lib/services/utils')
         filterFn = utils.filterServices ?? null
