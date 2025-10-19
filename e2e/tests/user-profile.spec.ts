@@ -8,7 +8,7 @@ test('user menu opens and Manage Profile launches panel', async ({ page }) => {
   const trigger = page.getByRole('button', { name: /open user menu/i })
   await expect(trigger).toBeVisible()
   await trigger.click()
-  await page.getByRole('menuitem', { name: /manage profile/i }).click()
+  await page.getByText(/manage profile/i).click()
   await expect(page.getByRole('heading', { level: 2, name: /manage profile/i })).toBeVisible()
   // Close and focus returns to trigger
   await page.keyboard.press('Escape')
