@@ -167,6 +167,11 @@ Owner: Admin Team
 
 ## Progress Log
 
+- 2025-10-19 00:36 UTC — 🔄 E2E test added for dropdown and panel.
+  - Summary: Added Playwright test to open user menu and Manage Profile, verify dialog, and focus return.
+  - Files:
+    - e2e/tests/user-profile.spec.ts
+
 - 2025-10-19 00:34 UTC — ✅ Accessibility and security improvements.
   - Summary: Added aria-live announcements; return focus to trigger; RBAC-filtered links; rate limiting and CSRF checks on profile endpoints.
   - Files:
