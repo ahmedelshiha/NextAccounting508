@@ -219,8 +219,10 @@ vi.mock('@/lib/tenant', async () => {
 // Mock tenant-context used by RLS helpers
 vi.mock('@/lib/tenant-context', async () => ({
   tenantContext: {
+    run: (ctx: any, cb: any) => cb(),
     getContextOrNull: () => ({ tenantId: 'test-tenant' }),
     runWithTenant: async (_t: string, fn: any) => fn(),
+    getTenantId: () => 'test-tenant',
   }
 }))
 
