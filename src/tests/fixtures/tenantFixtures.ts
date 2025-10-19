@@ -25,15 +25,15 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
 
 export async function cleanupTenant(tenantId: string) {
   try {
-    await (prisma as any).service?.deleteMany?.({ where: { tenantId } })
+    await ((prisma as any).service?.deleteMany?.({ where: { tenantId } }))
   } catch {}
   try {
-    await (prisma as any).organizationSettings?.deleteMany?.({ where: { tenantId } })
+    await ((prisma as any).organizationSettings?.deleteMany?.({ where: { tenantId } }))
   } catch {}
   try {
     // Delete bookings for services that belong to this tenant
-    const svcs = await (prisma as any).service?.findMany?.({ where: { tenantId }, select: { id: true } }).catch(() => [])
+    const svcs = await ((prisma as any).service?.findMany?.({ where: { tenantId }, select: { id: true } }))?.catch(() => [])
     const ids = (svcs || []).map((s: any) => s.id)
-    if (ids.length) await (prisma as any).booking?.deleteMany?.({ where: { serviceId: { in: ids } } })
+    if (ids.length) await ((prisma as any).booking?.deleteMany?.({ where: { serviceId: { in: ids } } }))
   } catch {}
 }
