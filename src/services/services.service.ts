@@ -19,6 +19,20 @@ let cachedPrisma: PrismaClientLike | null = null
 
 async function getPrisma(): Promise<PrismaClientLike> {
   if (cachedPrisma) return cachedPrisma
+  // When running tests, prefer the centralized test mock to avoid race conditions with per-test vi.mock calls
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.PRISMA_MOCK === 'true') {
+      try {
+        const testMock = await import('../../tests/__mocks__/prisma').catch(() => null as any)
+        const client = testMock && (testMock.default ?? testMock.prisma ?? null)
+        if (client && typeof client === 'object') {
+          cachedPrisma = client as PrismaClientLike
+          return cachedPrisma
+        }
+      } catch {}
+    }
+  } catch {}
+
   const mod = await import('@/lib/prisma').catch(() => null as any)
   const client = mod && (mod.default ?? (mod as any).prisma ?? null)
   if (!client || typeof client !== 'object') {
