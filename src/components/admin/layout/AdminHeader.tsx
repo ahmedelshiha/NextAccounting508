@@ -159,10 +159,6 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
           {/* Right section - Tenant + Notifications + User menu */}
           <div className="flex items-center space-x-4">
             <TenantSwitcher />
-            {/* Quick navigation icons (moved from footer) */}
-            <div className="hidden sm:flex items-center">
-              <QuickLinks compact />
-            </div>
 
             {/* Notifications */}
             <Button
@@ -178,6 +174,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
                 </span>
               )}
             </Button>
+
+            {/* Quick navigation icons (moved from footer) */}
+            <div className="hidden sm:flex items-center">
+              <QuickLinks compact />
+            </div>
 
             {/* User menu */}
             <DropdownMenu>
