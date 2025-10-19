@@ -33,7 +33,7 @@ export default function MfaSetupModal({ isOpen, onClose, setupData }: MfaSetupMo
       if (success) {
         setStep("backup")
       }
-    } catch (e) {
+    } catch (e: any) {
       setVerifyError(String(e?.message || "Invalid code"))
     }
   }
