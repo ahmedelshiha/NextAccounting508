@@ -282,7 +282,7 @@ vi.mock('@/lib/tenant-context', async () => {
 vi.mock('@/lib/tenant-utils', async () => {
   // try to use tenant-context mock to derive a dynamic requireTenantContext
   try {
-    const tcMod: any = await vi.importActual('@/lib/tenant-context').catch(() => null)
+    const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
     return {
       requireTenantContext: () => {
         try {
