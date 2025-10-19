@@ -179,18 +179,6 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
               )}
             </Button>
 
-            {/* Help */}
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label="Help"
-              asChild
-            >
-              <Link href="/admin/help">
-                <HelpCircle className="h-5 w-5" />
-              </Link>
-            </Button>
-
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
