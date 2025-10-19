@@ -110,7 +110,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [ ] Push branch and open PR
 
 ## 14) Environment Variables → Config TODOs
-- [ ] NEXTAUTH_SECRET, NEXTAUTH_URL
+- [x] NEXTAUTH_SECRET, NEXTAUTH_URL
 - [ ] DATABASE_URL
 - [ ] SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
 - [ ] TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
@@ -167,6 +167,12 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:12 UTC — ✅ Env vars set.
+  - Summary: Configured NEXTAUTH_URL and NEXTAUTH_SECRET via environment; pending DATABASE_URL migration decision (force reset vs fresh DB).
+  - Files:
+    - n/a (env-only)
+  - Notes: Migration blocked on existing Neon data; requires prisma db push --force-reset or a clean database.
 
 - 2025-10-19 02:05 UTC — ✅ Tests and Builder integration updated.
   - Summary: Added unit tests for dropdown and profile panel; ensured Theme/Status labels present; implemented optional Builder.io withBuilder registration that no-ops if SDK absent.
