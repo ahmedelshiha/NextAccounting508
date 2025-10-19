@@ -19,7 +19,6 @@ import QuickLinks from './QuickLinks'
 import SupportLinks from './SupportLinks'
 import EnvironmentBadge from './EnvironmentBadge'
 import type { AdminFooterProps, FooterLink } from './types'
-import { usePathname } from 'next/navigation'
 
 /**
  * Simple compact footer layout used for Admin Settings pages
