@@ -108,7 +108,7 @@ export default function UserProfileDropdown({
         </div>
         {onOpenProfilePanel ? (
           <div className="py-1 border-t border-gray-100">
-            <button type="button" onClick={() => onOpenProfilePanel()} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+            <button type="button" role="menuitem" onClick={() => onOpenProfilePanel()} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
               Manage Profile
             </button>
           </div>
