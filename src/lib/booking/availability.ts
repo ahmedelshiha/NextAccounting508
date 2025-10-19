@@ -186,17 +186,22 @@ export async function getAvailabilityForService(params: {
   const { serviceId, from, to, slotMinutes, teamMemberId, options } = params
 
   console.log('[getAvailabilityForService] start', { serviceId, from: from.toISOString(), to: to.toISOString(), slotMinutes, teamMemberId })
-  // Safe model accessor: prefer the imported prisma, but fall back to test globals when mocks replace modules inconsistently
-  function getModel(name: string) {
+  // Safe model accessor: prefer a dynamic import of '@/lib/prisma' so we get whatever mock the test environment registered.
+  async function getModel(name: string) {
     try {
-      const p: any = (typeof prisma !== 'undefined' && prisma) || (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || (typeof globalThis !== 'undefined' && (globalThis as any).prismaMock)
-      if (!p) return null
-      return (p as any)[name] ?? null
+      const mod: any = await import('@/lib/prisma')
+      const p = (mod && (mod.default || mod))
+      if (p && (p as any)[name]) return (p as any)[name]
     } catch (err) {
-      return null
+      // ignore
     }
+    try {
+      const p2: any = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || (typeof globalThis !== 'undefined' && (globalThis as any).prismaMock)
+      if (p2 && p2[name]) return p2[name]
+    } catch {}
+    return null
   }
-  const serviceModel = getModel('service')
+  const serviceModel = await getModel('service')
   if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
     console.warn('[getAvailabilityForService] prisma.service.findUnique not available in test environment')
     return { slots: [] as AvailabilitySlot[] }
