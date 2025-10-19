@@ -10,12 +10,28 @@ function createModel() {
     create: async (data) => ({ id: String(Math.random()).slice(2), ...data }),
     update: async (data) => data,
     upsert: async (opts) => opts.create ? ({ id: String(Math.random()).slice(2), ...opts.create }) : (opts.update || null),
+    // Raw helpers (used by some code paths)
+    $queryRaw: async () => null,
+    $executeRaw: async () => null,
   }
 }
 
+// Provide a top-level mockPrisma object that returns model proxies and also
+// exposes $transaction so code using getPrisma().$transaction(...) works.
 const mockPrisma = new Proxy({}, {
   get(_, prop) {
     if (prop === '__isMock') return true
+    // Provide $transaction function which executes fn with a tx object
+    if (prop === '$transaction') {
+      return async (fn) => {
+        const tx = createModel()
+        // add tx.$queryRaw and $executeRaw implementations
+        tx.$queryRaw = async () => null
+        tx.$executeRaw = async () => null
+        return fn(tx)
+      }
+    }
+
     if (!(prop in modelDefaults)) modelDefaults[prop] = createModel()
     return modelDefaults[prop]
   }
