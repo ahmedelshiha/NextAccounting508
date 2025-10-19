@@ -233,66 +233,26 @@ export function AdminFooter({
     enabled: !hideHealth,
   })
 
-  // Select layout based on breakpoint
+  // Select layout based on breakpoint (kept for internal components)
   const isMobile = responsive.isMobile
   const isTablet = responsive.isTablet
-
-  // Use compact footer for admin settings pages to match sidebar footer height
-  const pathname = usePathname()
-  const isSettings = typeof pathname === 'string' && pathname.startsWith('/admin/settings')
 
   return (
     <footer
       role="contentinfo"
       aria-label="Admin footer"
-      className={`border-t border-gray-200 bg-white p-4 min-h-16 text-sm ${className}`}
+      className={`footer-container border-t border-gray-200 bg-white transition-all duration-300 p-4 text-sm ${className}`}
     >
       <div className="max-w-7xl mx-auto">
-        {isSettings ? (
-          <SimpleFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
-        ) : (
-          <>
-            {isMobile && (
-              <MobileFooter
-                health={health}
-                isLoading={isLoading}
-                error={error}
-                hideHealth={hideHealth}
-                hideEnvironment={hideEnvironment}
-                customLinks={customLinks}
-              />
-            )}
-
-            {!isMobile && isTablet && (
-              <TabletFooter
-                health={health}
-                isLoading={isLoading}
-                error={error}
-                hideHealth={hideHealth}
-                hideEnvironment={hideEnvironment}
-                customLinks={customLinks}
-              />
-            )}
-
-            {!isMobile && !isTablet && (
-              <DesktopFooter
-                health={health}
-                isLoading={isLoading}
-                error={error}
-                hideHealth={hideHealth}
-                hideEnvironment={hideEnvironment}
-                customLinks={customLinks}
-              />
-            )}
-          </>
-        )}
+        {/* Always use the compact/simple footer across all admin pages to match sidebar footer height */}
+        <SimpleFooter
+          health={health}
+          isLoading={isLoading}
+          error={error}
+          hideHealth={hideHealth}
+          hideEnvironment={hideEnvironment}
+          customLinks={customLinks}
+        />
       </div>
     </footer>
   )
