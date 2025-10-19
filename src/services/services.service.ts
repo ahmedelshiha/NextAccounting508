@@ -282,7 +282,7 @@ export class ServicesService {
       }
 
       if (!sortFn) {
-        sortFn = (items: any[], sBy: string, sOrder: string) => {
+        sortFn = (items: any[], sBy: string, sOrder: 'asc' | 'desc' = 'asc') => {
           const key = ['name','createdAt','updatedAt','price'].includes(sBy) ? sBy : 'updatedAt'
           const dir = sOrder === 'asc' ? 1 : -1
           return items.slice().sort((a: any, b: any) => {
