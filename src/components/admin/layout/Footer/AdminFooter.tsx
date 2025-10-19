@@ -19,6 +19,48 @@ import QuickLinks from './QuickLinks'
 import SupportLinks from './SupportLinks'
 import EnvironmentBadge from './EnvironmentBadge'
 import type { AdminFooterProps, FooterLink } from './types'
+import { usePathname } from 'next/navigation'
+
+/**
+ * Simple compact footer layout used for Admin Settings pages
+ */
+function SimpleFooter({
+  health,
+  isLoading,
+  error,
+  hideHealth,
+  hideEnvironment,
+  customLinks,
+}: {
+  health: any
+  isLoading: boolean
+  error: Error | null
+  hideHealth?: boolean
+  hideEnvironment?: boolean
+  customLinks?: FooterLink[]
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center gap-4 min-w-[200px]">
+        <ProductInfo compact />
+      </div>
+      <div className="flex-1 flex items-center justify-center min-w-[200px]">
+        <QuickLinks links={customLinks} compact />
+      </div>
+      <div className="flex items-center gap-3 min-w-[200px] justify-end">
+        {!hideHealth && (
+          <SystemStatus
+            health={health}
+            loading={isLoading}
+            error={error}
+            compact
+          />
+        )}
+        {!hideEnvironment && <EnvironmentBadge compact hideProduction />}
+      </div>
+    </div>
+  )
+}
 
 /**
  * Mobile footer layout
@@ -195,15 +237,19 @@ export function AdminFooter({
   const isMobile = responsive.isMobile
   const isTablet = responsive.isTablet
 
+  // Use compact footer for admin settings pages to match sidebar footer height
+  const pathname = usePathname()
+  const isSettings = typeof pathname === 'string' && pathname.startsWith('/admin/settings')
+
   return (
     <footer
       role="contentinfo"
       aria-label="Admin footer"
-      className={`border-t border-gray-200 bg-white py-4 px-6 text-sm ${className}`}
+      className={`border-t border-gray-200 bg-white p-4 min-h-16 text-sm ${className}`}
     >
       <div className="max-w-7xl mx-auto">
-        {isMobile && (
-          <MobileFooter
+        {isSettings ? (
+          <SimpleFooter
             health={health}
             isLoading={isLoading}
             error={error}
@@ -211,28 +257,41 @@ export function AdminFooter({
             hideEnvironment={hideEnvironment}
             customLinks={customLinks}
           />
-        )}
+        ) : (
+          <>
+            {isMobile && (
+              <MobileFooter
+                health={health}
+                isLoading={isLoading}
+                error={error}
+                hideHealth={hideHealth}
+                hideEnvironment={hideEnvironment}
+                customLinks={customLinks}
+              />
+            )}
 
-        {!isMobile && isTablet && (
-          <TabletFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
-        )}
+            {!isMobile && isTablet && (
+              <TabletFooter
+                health={health}
+                isLoading={isLoading}
+                error={error}
+                hideHealth={hideHealth}
+                hideEnvironment={hideEnvironment}
+                customLinks={customLinks}
+              />
+            )}
 
-        {!isMobile && !isTablet && (
-          <DesktopFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
+            {!isMobile && !isTablet && (
+              <DesktopFooter
+                health={health}
+                isLoading={isLoading}
+                error={error}
+                hideHealth={hideHealth}
+                hideEnvironment={hideEnvironment}
+                customLinks={customLinks}
+              />
+            )}
+          </>
         )}
       </div>
     </footer>
