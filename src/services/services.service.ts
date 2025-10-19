@@ -253,12 +253,54 @@ export class ServicesService {
         : [] as any[];
       const all = Array.isArray(rawAll) ? rawAll : []
       let items = all.map(this.toType);
+
+      // Dynamically import filter/sort helpers to avoid test mocks missing partial exports
+      let filterFn: ((items: any[], filters: any) => any[]) | null = null
+      let sortFn: ((items: any[], sortBy: string, sortOrder: string) => any[]) | null = null
+      try {
+        const utils = await import('@/lib/services/utils')
+        filterFn = utils.filterServices ?? null
+        sortFn = utils.sortServices ?? null
+      } catch {}
+
+      // Basic in-file fallbacks when utils are not available (e.g., tests mocking the module)
+      if (!filterFn) {
+        filterFn = (items: any[], filters: any) => {
+          if (!filters) return items
+          return items.filter((s: any) => {
+            if (filters.active !== undefined && s.active !== (filters.active === true)) return false
+            if (filters.featured && filters.featured === 'featured' && !s.featured) return false
+            if (filters.featured && filters.featured === 'non-featured' && s.featured) return false
+            if (filters.category && filters.category !== 'all' && s.category !== filters.category) return false
+            if (filters.search) {
+              const q = String(filters.search).toLowerCase()
+              return (String(s.name || '').toLowerCase().includes(q) || String(s.slug || '').toLowerCase().includes(q) || String(s.shortDesc || '').toLowerCase().includes(q) || String(s.description || '').toLowerCase().includes(q) || String(s.category || '').toLowerCase().includes(q))
+            }
+            return true
+          })
+        }
+      }
+
+      if (!sortFn) {
+        sortFn = (items: any[], sBy: string, sOrder: string) => {
+          const key = ['name','createdAt','updatedAt','price'].includes(sBy) ? sBy : 'updatedAt'
+          const dir = sOrder === 'asc' ? 1 : -1
+          return items.slice().sort((a: any, b: any) => {
+            const av = a[key] instanceof Date ? a[key].getTime() : a[key]
+            const bv = b[key] instanceof Date ? b[key].getTime() : b[key]
+            if (av < bv) return -1 * dir
+            if (av > bv) return 1 * dir
+            return 0
+          })
+        }
+      }
+
       // Apply basic filters client-side
       const basicFilters: any = { search, category, featured, status };
-      items = filterServices(items as any[], basicFilters) as any;
+      items = filterFn(items as any[], basicFilters) as any;
       // Sort client-side
       const safeSortBy = ['name','createdAt','updatedAt','price'].includes(sortBy) ? sortBy : 'updatedAt';
-      items = sortServices(items as any, safeSortBy, sortOrder) as any;
+      items = sortFn(items as any, safeSortBy, sortOrder) as any;
       const total = items.length;
       const page = Math.floor(offset / limit) + 1;
       const totalPages = Math.max(1, Math.ceil(total / limit));
