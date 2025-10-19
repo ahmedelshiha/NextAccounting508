@@ -103,6 +103,14 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     permission: PERMISSIONS.INTEGRATION_HUB_VIEW,
   },
   {
+    key: 'cronTelemetry',
+    label: 'Cron Telemetry',
+    route: '/admin/settings/cron-telemetry',
+    icon: PlugZap,
+    tabs: [],
+    permission: PERMISSIONS.ANALYTICS_VIEW,
+  },
+  {
     key: 'systemAdministration',
     label: 'System Administration',
     route: '/admin/settings/system',
