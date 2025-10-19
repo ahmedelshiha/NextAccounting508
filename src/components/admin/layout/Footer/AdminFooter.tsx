@@ -42,9 +42,7 @@ function SimpleFooter({
       <div className="flex items-center gap-4 min-w-[200px]">
         <ProductInfo compact />
       </div>
-      <div className="flex-1 flex items-center justify-center min-w-[200px]">
-        <QuickLinks links={customLinks} compact />
-      </div>
+      <div className="flex-1 flex items-center justify-center min-w-[200px]" />
       <div className="flex items-center gap-3 min-w-[200px] justify-end">
         {!hideHealth && (
           <SystemStatus
