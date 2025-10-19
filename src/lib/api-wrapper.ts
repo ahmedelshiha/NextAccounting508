@@ -96,10 +96,15 @@ export function withTenantContext(
           // Try passing the request to getServerSession (App Router signature); fall back if it errors.
           try {
             session = await naNext.getServerSession(request as any, (authMod as any).authOptions)
-          } catch (_) {
+            // Debug: log session from next-auth/next
+            try { console.log('[api-wrapper] naNext.getServerSession ->', JSON.stringify(session)) } catch {}
+          } catch (err) {
             try {
               session = await naNext.getServerSession((authMod as any).authOptions)
-            } catch {}
+              try { console.log('[api-wrapper] naNext.getServerSession(fallback) ->', JSON.stringify(session)) } catch {}
+            } catch(err2) {
+              try { console.log('[api-wrapper] naNext.getServerSession errors', String(err), String(err2)) } catch {}
+            }
           }
         } else {
           // Fallback to classic next-auth when next-auth/next is not available (tests may mock only next-auth)
@@ -108,14 +113,21 @@ export function withTenantContext(
             if (na && typeof na.getServerSession === 'function') {
               try {
                 session = await na.getServerSession(request as any, (authMod as any).authOptions)
-              } catch (_) {
-                session = await na.getServerSession((authMod as any).authOptions)
+                try { console.log('[api-wrapper] next-auth.getServerSession ->', JSON.stringify(session)) } catch {}
+              } catch (err) {
+                try {
+                  session = await na.getServerSession((authMod as any).authOptions)
+                  try { console.log('[api-wrapper] next-auth.getServerSession(fallback) ->', JSON.stringify(session)) } catch {}
+                } catch (err2) {
+                  try { console.log('[api-wrapper] next-auth.getServerSession errors', String(err), String(err2)) } catch {}
+                }
               }
             }
-          } catch {}
+          } catch(err) { try { console.log('[api-wrapper] import next-auth err', String(err)) } catch {} }
         }
-      } catch {
+      } catch (e) {
         session = null
+        try { console.log('[api-wrapper] session resolution top-level error', String(e)) } catch {}
       }
 
       if (requireAuth && !session?.user) {
