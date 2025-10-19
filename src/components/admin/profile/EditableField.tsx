@@ -165,3 +165,5 @@ function EditableFieldComponent({
     </button>
   )
 }
+
+export default memo(EditableFieldComponent)
