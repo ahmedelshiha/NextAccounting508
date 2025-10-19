@@ -216,6 +216,27 @@ vi.mock('@/lib/tenant', async () => {
   }
 })
 
+// Mock tenant-context used by RLS helpers
+vi.mock('@/lib/tenant-context', async () => ({
+  tenantContext: {
+    getContextOrNull: () => ({ tenantId: 'test-tenant' }),
+    runWithTenant: async (_t: string, fn: any) => fn(),
+  }
+}))
+
+// Mock tenant-utils requireTenantContext used across API routes
+vi.mock('@/lib/tenant-utils', async () => ({
+  requireTenantContext: () => ({
+    userId: 'test-user',
+    tenantId: 'test-tenant',
+    userEmail: 'test@example.com',
+    userName: 'Test User',
+    role: 'ADMIN',
+    isSuperAdmin: true,
+  }),
+  getTenantFilter: (_field = 'tenantId') => ({ tenantId: 'test-tenant' }),
+}))
+
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
   try {
