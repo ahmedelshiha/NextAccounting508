@@ -278,8 +278,37 @@ vi.mock('@/lib/tenant-context', async () => {
   return { tenantContext }
 })
 
-// Note: tenant-utils mock is defined per-test to allow tests to control behavior
-// Default mock is provided in tests/thresholds.test.ts and other integration tests
+// Mock tenant-utils requireTenantContext used across API routes
+// This provides a default behavior that tests can selectively override
+vi.mock('@/lib/tenant-utils', async () => {
+  // try to use tenant-context mock to derive a dynamic requireTenantContext
+  try {
+    const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
+    return {
+      requireTenantContext: () => {
+        try {
+          const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
+          return {
+            userId: ctx?.userId ?? 'test-user',
+            tenantId: ctx?.tenantId ?? 'test-tenant',
+            userEmail: 'test@example.com',
+            userName: 'Test User',
+            role: ctx?.role ?? 'ADMIN',
+            isSuperAdmin: ctx?.isSuperAdmin ?? true,
+          }
+        } catch {
+          return { userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }
+        }
+      },
+      getTenantFilter: (_field = 'tenantId') => ({ tenantId: (tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : 'test-tenant') ?? 'test-tenant' }),
+    }
+  } catch (err) {
+    return {
+      requireTenantContext: () => ({ userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }),
+      getTenantFilter: (_field = 'tenantId') => ({ tenantId: 'test-tenant' }),
+    }
+  }
+})
 
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
