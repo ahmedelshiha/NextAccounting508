@@ -22,6 +22,7 @@ export interface UserProfileDropdownProps {
   showStatus?: boolean
   onSignOut?: () => Promise<void> | void
   onOpenProfilePanel?: () => void
+  triggerRef?: Ref<HTMLButtonElement>
   customLinks?: UserMenuLink[]
 }
 
@@ -55,6 +56,7 @@ export default function UserProfileDropdown({
   showStatus = true,
   onSignOut,
   onOpenProfilePanel,
+  triggerRef,
   customLinks,
 }: UserProfileDropdownProps) {
   const { data: session } = useSession()
@@ -80,6 +82,7 @@ export default function UserProfileDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          ref={triggerRef as any}
           variant="ghost"
           className={cn("flex items-center gap-2 px-3", className)}
           aria-label="Open user menu"
