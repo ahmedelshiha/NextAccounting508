@@ -148,6 +148,7 @@ model Tenant {
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
+  cronTelemetrySettings CronTelemetrySettings?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
   settingChangeDiffs   SettingChangeDiff[]
