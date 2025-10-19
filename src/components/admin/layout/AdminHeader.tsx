@@ -155,10 +155,8 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </form>
           </div>
 
-          {/* Right section - Tenant + Notifications + User menu */}
+          {/* Right section - Notifications + User menu */}
           <div className="flex items-center space-x-4">
-            <TenantSwitcher />
-
             {/* Notifications */}
             <Button
               variant="ghost"
