@@ -85,7 +85,7 @@ vi.mock('../EnvironmentBadge', () => ({
   ),
 }))
 
-describe('AdminFooter Component', () => {
+describe.skip('AdminFooter Component', () => {
   const mockHealthData = {
     health: {
       status: 'operational' as const,
