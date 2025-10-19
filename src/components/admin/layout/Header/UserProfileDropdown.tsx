@@ -94,7 +94,7 @@ export default function UserProfileDropdown({
       <DropdownMenuContent align="end" className="w-72">
         <div className="p-3">
           <div className="flex items-center gap-3">
-            <Avatar name={name} src={image} size="md" showStatus={showStatus} status={useUserStatus().status} />
+            <Avatar name={name} src={image} size="md" showStatus={showStatus} status={userStatus} />
             <UserInfo name={name} email={email} role={role} organization={organization} variant="full" />
           </div>
         </div>
