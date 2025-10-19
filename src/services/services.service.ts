@@ -244,13 +244,14 @@ export class ServicesService {
       return result;
     } catch (e) {
       // Schema mismatch fallback: query raw rows and filter/sort/paginate in memory
-      const all = tId
+      const rawAll = tId
         ? await withTenantRLS(async (tx) => tx.$queryRaw<any>`
             SELECT "id","slug","name","description","shortDesc","price","duration","category","featured","active","status","image","createdAt","updatedAt"
             FROM "services"
             WHERE "tenantId" = ${tId}
-          `, tId)
+          `, tId).catch(() => [])
         : [] as any[];
+      const all = Array.isArray(rawAll) ? rawAll : []
       let items = all.map(this.toType);
       // Apply basic filters client-side
       const basicFilters: any = { search, category, featured, status };
