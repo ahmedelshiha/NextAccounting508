@@ -1,10 +1,5 @@
-let prisma: any
-if (typeof globalThis !== 'undefined' && (globalThis as any).prisma) {
-  prisma = (globalThis as any).prisma
-} else {
-  const { default: defaultPrisma } = await import('@/lib/prisma')
-  prisma = defaultPrisma
-}
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
 
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
