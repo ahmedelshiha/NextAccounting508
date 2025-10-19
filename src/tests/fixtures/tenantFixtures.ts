@@ -25,15 +25,27 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
 
 export async function cleanupTenant(tenantId: string) {
   try {
-    await ((prisma as any).service?.deleteMany?.({ where: { tenantId } }))
+    const serviceDeleteFn = (prisma as any).service?.deleteMany
+    if (serviceDeleteFn) {
+      await serviceDeleteFn({ where: { tenantId } })
+    }
   } catch {}
   try {
-    await ((prisma as any).organizationSettings?.deleteMany?.({ where: { tenantId } }))
+    const orgDeleteFn = (prisma as any).organizationSettings?.deleteMany
+    if (orgDeleteFn) {
+      await orgDeleteFn({ where: { tenantId } })
+    }
   } catch {}
   try {
     // Delete bookings for services that belong to this tenant
-    const svcs = await ((prisma as any).service?.findMany?.({ where: { tenantId }, select: { id: true } }))?.catch(() => [])
+    const serviceFindFn = (prisma as any).service?.findMany
+    const svcs = serviceFindFn ? await serviceFindFn({ where: { tenantId }, select: { id: true } }) : []
     const ids = (svcs || []).map((s: any) => s.id)
-    if (ids.length) await ((prisma as any).booking?.deleteMany?.({ where: { serviceId: { in: ids } } }))
+    if (ids.length) {
+      const bookingDeleteFn = (prisma as any).booking?.deleteMany
+      if (bookingDeleteFn) {
+        await bookingDeleteFn({ where: { serviceId: { in: ids } } })
+      }
+    }
   } catch {}
 }
