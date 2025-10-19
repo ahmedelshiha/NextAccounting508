@@ -1,6 +1,8 @@
 import { Book, Key, ShieldQuestion, Settings, HelpCircle, Keyboard } from "lucide-react"
 import type { UserMenuLink } from "./types"
 
+import { Settings, ShieldQuestion, Book, Key, HelpCircle, Keyboard } from "lucide-react"
+
 export const MENU_LINKS: UserMenuLink[] = [
   { label: "Settings", href: "/admin/settings", icon: Settings },
   { label: "Security & MFA", href: "/admin/settings/security", icon: ShieldQuestion },
