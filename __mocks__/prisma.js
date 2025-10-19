@@ -1,20 +1,43 @@
 // Simple JS Prisma mock with override helpers for tests
 const modelDefaults = {}
+const { vi } = (() => {
+  try { return require('vitest') } catch { return { vi: undefined } }
+})()
+
+function makeFn(fn) {
+  if (vi && typeof vi.fn === 'function') return vi.fn(fn)
+  // basic fallback mock-like function
+  const f = async (...args) => fn(...args)
+  f.mockResolvedValueOnce = (v) => { f._next = v }
+  const orig = f
+  return async (...args) => {
+    if (orig._next !== undefined) {
+      const v = orig._next
+      delete orig._next
+      return v
+    }
+    return fn(...args)
+  }
+}
 
 function createModel() {
   return {
-    deleteMany: async () => ({ count: 0 }),
-    findMany: async () => [],
-    findFirst: async () => null,
-    findUnique: async () => null,
-    create: async (data) => ({ id: String(Math.random()).slice(2), ...data }),
-    update: async (data) => data,
-    upsert: async (opts) => opts.create ? ({ id: String(Math.random()).slice(2), ...opts.create }) : (opts.update || null),
+    deleteMany: makeFn(async () => ({ count: 0 })),
+    findMany: makeFn(async () => []),
+    findFirst: makeFn(async () => null),
+    findUnique: makeFn(async () => null),
+    create: makeFn(async (data) => ({ id: String(Math.random()).slice(2), ...data })),
+    update: makeFn(async (data) => data),
+    upsert: makeFn(async (opts) => opts.create ? ({ id: String(Math.random()).slice(2), ...opts.create }) : (opts.update || null)),
     // Raw helpers (used by some code paths)
-    $queryRaw: async () => null,
-    $executeRaw: async () => null,
+    $queryRaw: makeFn(async () => null),
+    $executeRaw: makeFn(async () => null),
   }
 }
+
+// Initialize commonly used models so tests referencing them directly find mocked methods
+const commonModels = ['service','booking','serviceRequest','organizationSettings','availabilitySlot','teamMember','chatMessage','users','membership']
+for (const m of commonModels) modelDefaults[m] = createModel()
 
 // Provide a top-level mockPrisma object that returns model proxies and also
 // exposes $transaction so code using getPrisma().$transaction(...) works.
@@ -26,8 +49,8 @@ const mockPrisma = new Proxy({}, {
       return async (fn) => {
         const tx = createModel()
         // add tx.$queryRaw and $executeRaw implementations
-        tx.$queryRaw = async () => null
-        tx.$executeRaw = async () => null
+        tx.$queryRaw = makeFn(async () => null)
+        tx.$executeRaw = makeFn(async () => null)
         return fn(tx)
       }
     }
