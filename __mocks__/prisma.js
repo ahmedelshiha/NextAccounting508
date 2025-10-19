@@ -24,6 +24,15 @@ const mockPrisma = new Proxy({}, {
 function setModelMethod(modelName, methodName, fn) {
   if (!modelDefaults[modelName]) modelDefaults[modelName] = createModel()
   modelDefaults[modelName][methodName] = fn
+  try {
+    if (typeof globalThis !== 'undefined' && (globalThis).prismaMock) {
+      const gm = (globalThis).prismaMock
+      if (!gm[modelName]) gm[modelName] = createModel()
+      gm[modelName][methodName] = fn
+    }
+  } catch (err) {
+    // ignore
+  }
 }
 
 function resetPrismaMock() {
