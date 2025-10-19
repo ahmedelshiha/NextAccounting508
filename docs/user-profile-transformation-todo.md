@@ -200,3 +200,6 @@ Owner: Admin Team
   - Summary: Wired Tabs to render PROFILE_FIELDS and SECURITY_FIELDS with loading skeletons using useUserProfile.
   - Files:
     - src/components/admin/profile/ProfileManagementPanel.tsx
+
+- 2025-10-19 00:14 UTC — ✅ API plan confirmed.
+  - Summary: Reusing existing /api/users/me for profile read/update. 2FA flows will reuse existing endpoints /api/auth/mfa/enroll and /api/auth/mfa/verify. Email/phone verification endpoints deferred until scope confirmation.
