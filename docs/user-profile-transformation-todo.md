@@ -6,46 +6,46 @@ Owner: Senior Full-Stack Development Team
 Completion Date: October 21, 2025, 19:45 UTC
 
 ## 0) Overview & Goals → Feature TODOs
-- [ ] Replace header text label with full dropdown entry point (avatar + name + chevron)
-- [ ] Dropdown features
-  - [ ] Circular avatar with fallback initials
-  - [ ] Display name, email, role, organization
-  - [ ] Theme switcher submenu (light/dark/system)
-  - [ ] Status selector (online/away/busy) with indicator dot
-  - [ ] Quick links: Settings, Security & MFA, Billing, API Keys
-  - [ ] Help: Help & Support, Keyboard Shortcuts, Documentation (external)
-  - [ ] Sign out with confirmation dialog
-  - [ ] Keyboard navigation (Tab/Enter/Escape/Arrows), focus trap, click-outside close
-  - [ ] Mobile responsive layout
-- [ ] Profile Management Panel (QuickBooks style)
-  - [ ] Two tabs: Profile, Sign in & security
-  - [ ] Editable rows with right-arrow affordance
-  - [ ] Verification badges (email/phone)
-  - [ ] 2FA, Authenticator, Passkeys, Device sign-in, Account activity controls
-  - [ ] Loading, error, and save states; auto-save or manual save
+- [x] Replace header text label with full dropdown entry point (avatar + name + chevron)
+- [x] Dropdown features
+  - [x] Circular avatar with fallback initials
+  - [x] Display name, email, role, organization
+  - [x] Theme switcher submenu (light/dark/system)
+  - [x] Status selector (online/away/busy) with indicator dot
+  - [x] Quick links: Settings, Security & MFA, Billing, API Keys
+  - [x] Help: Help & Support, Keyboard Shortcuts, Documentation (external)
+  - [x] Sign out with confirmation dialog
+  - [x] Keyboard navigation (Tab/Enter/Escape/Arrows), focus trap, click-outside close
+  - [x] Mobile responsive layout
+- [x] Profile Management Panel (QuickBooks style)
+  - [x] Two tabs: Profile, Sign in & security
+  - [x] Editable rows with right-arrow affordance
+  - [x] Verification badges (email/phone)
+  - [x] 2FA, Authenticator, Passkeys, Device sign-in, Account activity controls
+  - [x] Loading, error, and save states; auto-save or manual save
 - [x] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
 
 ## 1) Hybrid Architecture → Component & Structure TODOs
-- [ ] Create root UserProfileDropdown with trigger and menu content
-- [ ] Create ProfileManagementPanel with modal/drawer container, tabs, headers
-- [ ] Implement hierarchy per guide (UserInfo header, Status selector, Quick links, ThemeSubmenu, Help, Sign out)
+- [x] Create root UserProfileDropdown with trigger and menu content
+- [x] Create ProfileManagementPanel with modal/drawer container, tabs, headers
+- [x] Implement hierarchy per guide (UserInfo header, Status selector, Quick links, ThemeSubmenu, Help, Sign out)
 
 ## 2) Component Specifications → Files & Props TODOs
-- [ ] src/components/admin/layout/Header/UserProfileDropdown.tsx (Props: className?, showStatus?, onSignOut?, customLinks?)
-- [ ] src/components/admin/profile/ProfileManagementPanel.tsx (Props: isOpen, onClose, defaultTab)
-- [ ] Subcomponents
-  - [ ] src/components/admin/layout/Header/UserProfileDropdown/Avatar.tsx (Props per guide)
-  - [ ] src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx (Props per guide)
-  - [ ] src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx (Props per guide)
-  - [ ] src/components/admin/profile/EditableField.tsx (Props per guide)
-  - [ ] src/components/admin/profile/VerificationBadge.tsx
-  - [ ] src/components/admin/layout/Header/UserProfileDropdown/{types,constants}.tsx
-  - [ ] src/components/admin/profile/{types,constants}.tsx
+- [x] src/components/admin/layout/Header/UserProfileDropdown.tsx (Props: className?, showStatus?, onSignOut?, customLinks?)
+- [x] src/components/admin/profile/ProfileManagementPanel.tsx (Props: isOpen, onClose, defaultTab)
+- [x] Subcomponents
+  - [x] src/components/admin/layout/Header/UserProfileDropdown/Avatar.tsx (Props per guide)
+  - [x] src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx (Props per guide)
+  - [x] src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx (Props per guide)
+  - [x] src/components/admin/profile/EditableField.tsx (Props per guide)
+  - [x] src/components/admin/profile/VerificationBadge.tsx
+  - [x] src/components/admin/layout/Header/UserProfileDropdown/{types,constants}.tsx
+  - [x] src/components/admin/profile/{types,constants}.tsx
 
 ## 3) Implementation Phases → Project Scaffolding TODOs
-- [ ] Create directories listed in the guide
-- [ ] Create files listed in the guide for dropdown/panel/hooks/APIs/tests
-- [ ] Define types and constants (THEME_OPTIONS, STATUS_OPTIONS, MENU_LINKS, HELP_LINKS, TABS, PROFILE_FIELDS, SECURITY_FIELDS)
+- [x] Create directories listed in the guide
+- [x] Create files listed in the guide for dropdown/panel/hooks/APIs/tests
+- [x] Define types and constants (THEME_OPTIONS, STATUS_OPTIONS, MENU_LINKS, HELP_LINKS, TABS, PROFILE_FIELDS, SECURITY_FIELDS)
 
 ## 4) Hooks → Behavior TODOs
 - [ ] useTheme (system + localStorage + effective theme event)
@@ -77,7 +77,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [x] Add rate limiting on mutation endpoints
 
 ## 8) Database Schema (Prisma) → Migration TODOs
-- [ ] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
+- [x] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
 - [ ] Run migration: prisma migrate dev --name add_user_profile_security
 - [ ] prisma generate
 
@@ -94,13 +94,13 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [ ] Post-deployment: verify dropdown/panel, security flows, verification, mobile, a11y, monitor logs 24h, DB query performance, API < 300ms, theme and status behavior
 
 ## 11) Integration Steps → App Wiring TODOs
-- [ ] Update src/components/admin/layout/Header/AdminHeader.tsx to render UserProfileDropdown (replacing existing simple menu)
+- [x] Update src/components/admin/layout/Header/AdminHeader.tsx to render UserProfileDropdown (replacing existing simple menu)
 - [x] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
 - [x] Wrap app in ThemeProvider in src/app/layout.tsx
 - [x] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
 
 ## 12) Builder.io Integration → TODOs
-- [ ] Create src/components/builder/UserProfileDropdownBuilder.tsx
+- [x] Create src/components/builder/UserProfileDropdownBuilder.tsx
 - [ ] Register with withBuilder; expose showStatus input; add metadata image/description
 
 ## 13) Git Workflow → Process TODOs
