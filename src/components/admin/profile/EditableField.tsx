@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import { useState, useCallback, useRef, useEffect, memo } from "react"
 import VerificationBadge from "./VerificationBadge"
 import { ChevronRight, X, Check, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
