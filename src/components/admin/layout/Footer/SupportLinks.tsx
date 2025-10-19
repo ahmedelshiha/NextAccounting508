@@ -38,6 +38,7 @@ export function SupportLinks({
   links = FOOTER_LINKS.supportLinks as unknown as FooterLink[],
   compact = false,
 }: SupportLinksProps) {
+  if (!links || links.length === 0) return null
   return (
     <div
       className={`flex gap-${compact ? '2' : '4'} flex-wrap`}

@@ -12,13 +12,54 @@
 
 import { useResponsive } from '@/hooks/admin/useResponsive'
 import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
-import { FOOTER_BRANDING } from './constants'
 import SystemStatus from './SystemStatus'
 import ProductInfo from './ProductInfo'
 import QuickLinks from './QuickLinks'
 import SupportLinks from './SupportLinks'
 import EnvironmentBadge from './EnvironmentBadge'
+import { FOOTER_BRANDING } from './constants'
 import type { AdminFooterProps, FooterLink } from './types'
+
+/**
+ * Simple compact footer layout used for Admin Settings pages
+ */
+function SimpleFooter({
+  health,
+  isLoading,
+  error,
+  hideHealth,
+  hideEnvironment,
+  customLinks,
+}: {
+  health: any
+  isLoading: boolean
+  error: Error | null
+  hideHealth?: boolean
+  hideEnvironment?: boolean
+  customLinks?: FooterLink[]
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-center gap-4 min-w-[200px]">
+        <ProductInfo compact />
+      </div>
+      <div className="flex-1 flex items-center justify-center min-w-[200px]">
+        <QuickLinks links={customLinks} compact />
+      </div>
+      <div className="flex items-center gap-3 min-w-[200px] justify-end">
+        {!hideHealth && (
+          <SystemStatus
+            health={health}
+            loading={isLoading}
+            error={error}
+            compact
+          />
+        )}
+        {!hideEnvironment && <EnvironmentBadge compact hideProduction />}
+      </div>
+    </div>
+  )
+}
 
 /**
  * Mobile footer layout
@@ -191,7 +232,7 @@ export function AdminFooter({
     enabled: !hideHealth,
   })
 
-  // Select layout based on breakpoint
+  // Select layout based on breakpoint (kept for internal components)
   const isMobile = responsive.isMobile
   const isTablet = responsive.isTablet
 
@@ -199,41 +240,18 @@ export function AdminFooter({
     <footer
       role="contentinfo"
       aria-label="Admin footer"
-      className={`border-t border-gray-200 bg-white py-4 px-6 text-sm ${className}`}
+      className={`footer-container border-t border-gray-200 bg-white transition-all duration-300 p-4 text-sm ${className}`}
     >
       <div className="max-w-7xl mx-auto">
-        {isMobile && (
-          <MobileFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
-        )}
-
-        {!isMobile && isTablet && (
-          <TabletFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
-        )}
-
-        {!isMobile && !isTablet && (
-          <DesktopFooter
-            health={health}
-            isLoading={isLoading}
-            error={error}
-            hideHealth={hideHealth}
-            hideEnvironment={hideEnvironment}
-            customLinks={customLinks}
-          />
-        )}
+        {/* Always use the compact/simple footer across all admin pages to match sidebar footer height */}
+        <SimpleFooter
+          health={health}
+          isLoading={isLoading}
+          error={error}
+          hideHealth={hideHealth}
+          hideEnvironment={hideEnvironment}
+          customLinks={customLinks}
+        />
       </div>
     </footer>
   )
