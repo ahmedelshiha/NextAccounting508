@@ -337,11 +337,17 @@ export class ServicesService {
     }
 
     const prisma = await this.resolvePrisma();
-    const s = await prisma.service.create({ data: createData });
-    await this.clearCaches(tId);
-    await this.notifications.notifyServiceCreated(s, createdBy);
-    try { serviceEvents.emit('service:created', { tenantId: tId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
-    return this.toType(s as any);
+    try { try { console.log('[services] createService tId ->', tId) } catch {}
+      try { console.log('[services] createService payload ->', JSON.stringify(createData)) } catch {}
+      const s = await prisma.service.create({ data: createData });
+      await this.clearCaches(tId);
+      await this.notifications.notifyServiceCreated(s, createdBy);
+      try { serviceEvents.emit('service:created', { tenantId: tId, service: { id: s.id, slug: s.slug, name: s.name } }) } catch {}
+      return this.toType(s as any);
+    } catch (e: any) {
+      console.error('services POST error', e)
+      throw e
+    }
   }
 
   async updateService(tenantId: string | null, id: string, data: Partial<ServiceFormData>, updatedBy: string): Promise<ServiceType> {
