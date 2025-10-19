@@ -278,8 +278,52 @@ vi.mock('@/lib/tenant-context', async () => {
   return { tenantContext }
 })
 
-// Note: tenant-utils is mocked in individual test files as needed to allow tests
-// to control authentication state and context. See tests/thresholds.test.ts for example.
+// Mock tenant-utils requireTenantContext used across API routes
+// Use state management to allow per-test customization (especially for auth tests)
+const tenantUtilsState = { userId: 'test-user', role: 'ADMIN', tenantId: 'test-tenant' }
+;(globalThis as any).__tenantUtilsState = tenantUtilsState
+
+vi.mock('@/lib/tenant-utils', async () => {
+  // try to use tenant-context mock to derive a dynamic requireTenantContext
+  try {
+    const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
+    return {
+      requireTenantContext: () => {
+        try {
+          const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
+          const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+          return {
+            userId: ctx?.userId ?? state.userId,
+            tenantId: ctx?.tenantId ?? state.tenantId,
+            userEmail: 'test@example.com',
+            userName: 'Test User',
+            role: ctx?.role ?? state.role,
+            isSuperAdmin: ctx?.isSuperAdmin ?? true,
+          }
+        } catch {
+          const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+          return { userId: state.userId, tenantId: state.tenantId, userEmail: 'test@example.com', userName: 'Test User', role: state.role, isSuperAdmin: true }
+        }
+      },
+      getTenantFilter: (_field = 'tenantId') => {
+        try {
+          const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
+          const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+          return { tenantId: (tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : state.tenantId) ?? state.tenantId }
+        } catch {
+          const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+          return { tenantId: state.tenantId }
+        }
+      },
+    }
+  } catch (err) {
+    const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+    return {
+      requireTenantContext: () => ({ userId: state.userId, tenantId: state.tenantId, userEmail: 'test@example.com', userName: 'Test User', role: state.role, isSuperAdmin: true }),
+      getTenantFilter: (_field = 'tenantId') => ({ tenantId: state.tenantId }),
+    }
+  }
+})
 
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
