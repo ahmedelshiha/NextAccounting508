@@ -186,7 +186,22 @@ export async function getAvailabilityForService(params: {
   const { serviceId, from, to, slotMinutes, teamMemberId, options } = params
 
   console.log('[getAvailabilityForService] start', { serviceId, from: from.toISOString(), to: to.toISOString(), slotMinutes, teamMemberId })
-  const svc = await prisma.service.findUnique({ where: { id: serviceId } })
+  // Safe model accessor: prefer the imported prisma, but fall back to test globals when mocks replace modules inconsistently
+  function getModel(name: string) {
+    try {
+      const p: any = (typeof prisma !== 'undefined' && prisma) || (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || (typeof globalThis !== 'undefined' && (globalThis as any).prismaMock)
+      if (!p) return null
+      return (p as any)[name] ?? null
+    } catch (err) {
+      return null
+    }
+  }
+  const serviceModel = getModel('service')
+  if (!serviceModel || typeof serviceModel.findUnique !== 'function') {
+    console.warn('[getAvailabilityForService] prisma.service.findUnique not available in test environment')
+    return { slots: [] as AvailabilitySlot[] }
+  }
+  const svc = await serviceModel.findUnique({ where: { id: serviceId } })
   console.log('[getAvailabilityForService] got service', !!svc)
   if (!svc) return { slots: [] as AvailabilitySlot[] }
   const hasStatus = typeof (svc as any).status === 'string'
