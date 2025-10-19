@@ -34,8 +34,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 
     // Clear MFA secret
     try {
-      const { clearUserMfaSecret } = await import("@/lib/mfa")
-      await clearUserMfaSecret(String(userId))
+      const { clearUserMfa } = await import("@/lib/mfa")
+      await clearUserMfa(String(userId))
     } catch (e) {
       console.error("Error clearing MFA secret:", e)
     }
