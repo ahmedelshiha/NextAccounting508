@@ -204,6 +204,18 @@ try {
   // ignore if mocks not available
 }
 
+// Mock tenant utilities to provide tenant context for tests
+vi.mock('@/lib/tenant', async () => {
+  return {
+    getTenantFromRequest: (_req?: any) => 'test-tenant',
+    isMultiTenancyEnabled: () => true,
+    tenantContext: {
+      getContextOrNull: () => ({ tenantId: 'test-tenant' }),
+      runWithTenant: async (tId: string, fn: any) => fn(),
+    },
+  }
+})
+
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
   try {
