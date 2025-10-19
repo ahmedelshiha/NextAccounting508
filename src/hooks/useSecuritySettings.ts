@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import apiFetch from "@/lib/api"
+import { apiFetch } from "@/lib/api"
 
 export interface MfaEnrollResponse {
   ok: boolean
