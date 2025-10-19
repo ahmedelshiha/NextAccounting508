@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
+const prisma: any = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
 
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
