@@ -51,7 +51,7 @@ function StatusSelector() {
   )
 }
 
-export default function UserProfileDropdown({
+function UserProfileDropdownComponent({
   className,
   showStatus = true,
   onSignOut,
