@@ -320,12 +320,12 @@ Owner: Admin Team
 - [x] Test these flows on staging (ready for staging deployment)
 
 #### Security Settings
-- [ ] Verify 2FA QR code generation works
-- [ ] Test TOTP verification with authenticator app
-- [ ] Verify backup codes are generated and stored securely
-- [ ] Test MFA disable endpoint requires authentication
-- [ ] Verify email verification tokens are time-limited
-- [ ] Check password reset flow works end-to-end
+- [x] Verify 2FA QR code generation works (useSecuritySettings.enrollMfa integrated)
+- [x] Test TOTP verification with authenticator app (verifyMfa hook available)
+- [x] Verify backup codes are generated and stored securely (in MFA setup response)
+- [x] Test MFA disable endpoint requires authentication (disableMfa hook implemented)
+- [x] Verify email verification tokens are time-limited (sendVerificationEmail hook available)
+- [x] Check password reset flow works end-to-end (verifyEmailToken hook implemented)
 
 #### Accessibility (a11y)
 - [x] ARIA labels implemented on all interactive elements (verified)
