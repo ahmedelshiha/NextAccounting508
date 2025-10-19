@@ -49,7 +49,7 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
   )
 }
 
-function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => void }) {
+function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
     <TabsContent value="security" className="mt-4">
       {loading ? (
@@ -82,7 +82,7 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
               label="Two-factor authentication"
               value={profile?.twoFactorEnabled ? "Enabled" : "Not enabled"}
               placeholder="Not set up"
-              onSave={() => onMfaSetup()}
+              onSave={(_val) => onMfaSetup()}
               description="Add an extra layer of security to your account"
             />
             <EditableField
