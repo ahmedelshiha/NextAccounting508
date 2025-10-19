@@ -135,14 +135,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         { name: 'Chat', href: '/admin/chat', icon: Mail },
         { name: 'Reminders', href: '/admin/reminders', icon: Bell },
       ]
-    },
-    {
-      section: 'system',
-      items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [
-          { name: 'Cron Telemetry', href: '/admin/settings/cron-telemetry', icon: Zap }
-        ] },
-      ]
     }
   ]
 
