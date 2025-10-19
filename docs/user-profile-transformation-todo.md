@@ -292,7 +292,10 @@ Owner: Admin Team
 - [ ] Verify no hardcoded secrets in git history
 
 #### Database & Migrations
-- [ ] Create Prisma migration: `prisma migrate dev --name add_user_profile`
+- [x] UserProfile model exists in prisma/schema.prisma (verified)
+- [x] Proper relations between User and UserProfile (verified)
+- [x] All required fields: organization, phoneNumber, twoFactorEnabled, twoFactorSecret, etc. (verified)
+- [ ] Create Prisma migration: `prisma migrate dev --name add_user_profile` (if schema changed)
 - [ ] Run `prisma generate` to regenerate Prisma client
 - [ ] Test migration on staging database
 - [ ] Verify UserProfile model is accessible in code
