@@ -38,6 +38,11 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
     // ignore if mock not present
   }
 
+  try {
+    ;(globalThis as any).__seededServices = (globalThis as any).__seededServices || {}
+    ;(globalThis as any).__seededServices[svc.id] = svc
+  } catch {}
+
   return svc
 }
 
