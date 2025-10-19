@@ -66,6 +66,8 @@ export default function UserProfileDropdown({
     return customLinks && customLinks.length ? customLinks : MENU_LINKS
   }, [customLinks])
 
+  const { status: userStatus } = useUserStatus()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
