@@ -22,10 +22,11 @@ export const POST = withTenantContext(async (request: NextRequest) => {
     const tenantKey = ctx.tenantId || 'global'
     const key = `bulk:${tenantKey}:${ip}`
     const rl = await applyRateLimit(key, 10, 60_000)
-    if (!rl.allowed) {
+    if (rl && rl.allowed === false) {
       try { await logAudit({ action: 'security.ratelimit.block', actorId: ctx.userId ?? null, details: { tenantId: ctx.tenantId ?? null, ip, key, route: new URL(request.url).pathname } }) } catch {}
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
     }
+    try { console.log('[services bulk] applyRateLimit ->', JSON.stringify(rl)) } catch {}
 
     const body = await request.json()
     const data = BulkActionSchema.parse(body)
