@@ -15,6 +15,10 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     }
 
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+    }
+
     const settings = await getCronTelemetrySettings(tenantId)
     return NextResponse.json(settings)
   } catch (e) {
