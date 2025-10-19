@@ -408,7 +408,7 @@ export default function CronTelemetryContent() {
                     min={0.1}
                     max={50}
                     step={0.1}
-                    value={pending.monitoring?.errorRateAlertThreshold ?? settings.monitoring.errorRateAlertThreshold ?? 5}
+                    value={pending.monitoring?.errorRateAlertThreshold ?? settings.monitoring?.errorRateAlertThreshold ?? 5}
                     onChange={(e) => updateSetting('monitoring', 'errorRateAlertThreshold', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -423,7 +423,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={10000}
-                    value={pending.monitoring?.failedCountAlertThreshold ?? settings.monitoring.failedCountAlertThreshold ?? 100}
+                    value={pending.monitoring?.failedCountAlertThreshold ?? settings.monitoring?.failedCountAlertThreshold ?? 100}
                     onChange={(e) => updateSetting('monitoring', 'failedCountAlertThreshold', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -438,7 +438,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={7}
                     max={365}
-                    value={pending.monitoring?.metricsRetentionDays ?? settings.monitoring.metricsRetentionDays ?? 30}
+                    value={pending.monitoring?.metricsRetentionDays ?? settings.monitoring?.metricsRetentionDays ?? 30}
                     onChange={(e) => updateSetting('monitoring', 'metricsRetentionDays', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -475,13 +475,13 @@ export default function CronTelemetryContent() {
                 </button>
               </div>
 
-              {(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) && (
+              {(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Maintenance Mode Message
                   </label>
                   <textarea
-                    value={pending.status?.maintenanceModeMessage ?? settings.status.maintenanceModeMessage ?? ''}
+                    value={pending.status?.maintenanceModeMessage ?? settings.status?.maintenanceModeMessage ?? ''}
                     onChange={(e) => updateSetting('status', 'maintenanceModeMessage', e.target.value)}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     rows={3}
