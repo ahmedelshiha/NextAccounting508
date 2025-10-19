@@ -269,6 +269,42 @@ vi.mock('@/lib/permissions', async () => {
 })
 
 // Polyfill Web File in Node test env
+
+// Mock Stripe package for tests that import 'stripe' to avoid network calls
+try {
+  vi.mock('stripe', () => {
+    class MockStripe {
+      constructor(_key?: string) {}
+      checkout = {
+        sessions: {
+          create: async (opts: any) => ({ id: `cs_${Math.random().toString(36).slice(2)}`, url: 'https://checkout.example.com', ...opts }),
+        },
+      }
+      webhooks = {
+        constructEvent: (_payload: any, _sig: any, _secret: any) => ({ id: `evt_${Math.random().toString(36).slice(2)}`, type: 'checkout.session.completed' }),
+      }
+    }
+    return { default: MockStripe }
+  })
+} catch {}
+
+// Mock offline queue/backlog helpers used in tests
+try {
+  const chatBacklogStore: Record<string, any[]> = {}
+  vi.mock('@/lib/chat-backlog', () => ({
+    enqueue: async (tenantId: string, msg: any) => {
+      const key = tenantId || 'default'
+      chatBacklogStore[key] = chatBacklogStore[key] || []
+      chatBacklogStore[key].push(msg)
+      return true
+    },
+    list: (tenantId?: string, limit = 50) => (chatBacklogStore[tenantId || 'default'] || []).slice(-limit),
+    _debug_store: chatBacklogStore,
+  }))
+} catch {}
+
+// Provide a safe default partial mock for rate-limit to ensure applyRateLimit exists in all tests
+// Polyfill Web File in Node test env
 if (typeof (globalThis as any).File === 'undefined') {
   class NodeFile extends Blob {
     name: string
