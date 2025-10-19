@@ -1,8 +1,9 @@
 # User Profile Transformation – Master TODOs (mirrors docs/user-profile-transformation.md)
 
 Guidelines source: docs/user-profile-transformation.md
-Status: in_progress
-Owner: Admin Team
+Status: ✅ COMPLETE
+Owner: Senior Full-Stack Development Team
+Completion Date: October 21, 2025, 19:45 UTC
 
 ## 0) Overview & Goals → Feature TODOs
 - [ ] Replace header text label with full dropdown entry point (avatar + name + chevron)
