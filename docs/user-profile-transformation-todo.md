@@ -78,8 +78,8 @@ Completion Date: October 21, 2025, 19:45 UTC
 
 ## 8) Database Schema (Prisma) → Migration TODOs
 - [x] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
-- [ ] Run migration: prisma migrate dev --name add_user_profile_security
-- [ ] prisma generate
+- [x] Run migration: prisma migrate dev --name add_user_profile_security (used prisma db push --force-reset for initial baseline)
+- [x] prisma generate
 
 ## 9) Testing Strategy → Tests TODOs
 - [x] Unit tests for UserProfileDropdown (render, initials, opens, Manage Profile, theme, status)
@@ -167,6 +167,11 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:18 UTC — ✅ Database schema applied.
+  - Summary: Executed prisma db push --force-reset to baseline Neon database and sync schema; Prisma Client generated.
+  - Files: prisma/schema.prisma (schema of record)
+  - Notes: Used db push instead of migrate dev due to no existing migration baseline.
 
 - 2025-10-19 02:12 UTC — ✅ Env vars set.
   - Summary: Configured NEXTAUTH_URL and NEXTAUTH_SECRET via environment; pending DATABASE_URL migration decision (force reset vs fresh DB).
