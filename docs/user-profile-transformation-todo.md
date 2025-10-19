@@ -1,7 +1,7 @@
 # User Profile Transformation – Master TODOs (mirrors docs/user-profile-transformation.md)
 
 Guidelines source: docs/user-profile-transformation.md
-Status: planned
+Status: in_progress
 Owner: Admin Team
 
 ## 0) Overview & Goals → Feature TODOs
@@ -49,7 +49,7 @@ Owner: Admin Team
 ## 4) Hooks → Behavior TODOs
 - [ ] useTheme (system + localStorage + effective theme event)
 - [ ] useUserStatus (persisted status + auto-away timeout)
-- [ ] useUserProfile (GET/PUT /api/user/profile; state & refresh)
+- [x] useUserProfile (GET/PUT /api/user/profile; state & refresh)
 - [ ] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
 
 ## 5) Core Components → Build TODOs
@@ -94,9 +94,9 @@ Owner: Admin Team
 
 ## 11) Integration Steps → App Wiring TODOs
 - [ ] Update src/components/admin/layout/Header/AdminHeader.tsx to render UserProfileDropdown (replacing existing simple menu)
-- [ ] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
-- [ ] Wrap app in ThemeProvider in src/app/layout.tsx
-- [ ] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
+- [x] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
+- [x] Wrap app in ThemeProvider in src/app/layout.tsx
+- [x] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
 
 ## 12) Builder.io Integration → TODOs
 - [ ] Create src/components/builder/UserProfileDropdownBuilder.tsx
@@ -166,6 +166,15 @@ Owner: Admin Team
 ---
 
 ## Progress Log
+
+- 2025-10-19 00:20 UTC — ✅ Theme provider wired and profile hook fixed.
+  - Summary: Added next-themes ThemeProvider and minimal dark-mode CSS; wrapped app; fixed useUserProfile to unwrap {user} shape.
+  - Files:
+    - src/components/providers/ThemeProvider.tsx
+    - src/app/layout.tsx
+    - src/styles/dark-mode.css
+    - src/hooks/useUserProfile.ts
+  - Testing: Theme menu radios update live; 'dark' class toggles; ProfileManagementPanel fields read correctly.
 
 - 2025-10-19 00:00 UTC — ✅ Scaffolding created for dropdown and panel.
   - Summary: Added UserProfileDropdown with Avatar, UserInfo, ThemeSubmenu; added ProfileManagementPanel plus EditableField and VerificationBadge; defined basic types/constants.
