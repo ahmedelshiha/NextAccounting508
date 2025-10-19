@@ -4,14 +4,8 @@ const prisma: any = prismaModule
 
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
-  try {
-    // @ts-expect-error - dynamic prisma client
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } })
-  } catch {}
-  try {
-    // @ts-expect-error - dynamic prisma client
-    await prisma.service.deleteMany({ where: { tenantId } })
-  } catch {}
+  try { await prisma.organizationSettings.deleteMany({ where: { tenantId } }) } catch {}
+  try { await prisma.service.deleteMany({ where: { tenantId } }) } catch {}
 
   const org = await prisma.organizationSettings.create({ data: { tenantId, name: `${tenantId} Org`, defaultTimezone: timezone } })
   if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('organizationSettings', org.id)
@@ -31,20 +25,11 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
 }
 
 export async function cleanupTenant(tenantId: string): Promise<void> {
+  try { await prisma.service.deleteMany({ where: { tenantId } }) } catch {}
+  try { await prisma.organizationSettings.deleteMany({ where: { tenantId } }) } catch {}
   try {
-    // @ts-expect-error - dynamic prisma client
-    await prisma.service.deleteMany({ where: { tenantId } })
-  } catch {}
-  try {
-    // @ts-expect-error - dynamic prisma client
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } })
-  } catch {}
-  try {
-    // Delete bookings for services that belong to this tenant
-    // @ts-expect-error - dynamic prisma client
     const svcs: any[] = await prisma.service.findMany({ where: { tenantId }, select: { id: true } })
     const ids = (svcs || []).map((s: any) => s.id)
-    // @ts-expect-error - dynamic prisma client
     if (ids.length) await prisma.booking.deleteMany({ where: { serviceId: { in: ids } } })
   } catch {}
 }
