@@ -90,7 +90,7 @@ export default function UserProfileDropdown({
         <div className="py-1 border-t border-gray-100">
           <button
             type="button"
-            onClick={() => onSignOut?.()}
+            onClick={() => { if (!onSignOut) return; const ok = typeof window !== 'undefined' ? window.confirm('Are you sure you want to sign out?') : true; if (ok) onSignOut(); }}
             className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
           >
             Sign out
