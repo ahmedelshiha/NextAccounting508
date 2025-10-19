@@ -5,7 +5,7 @@ import { withTenantRLS } from '@/lib/prisma-rls';
 import { resolveTenantId } from './tenant-utils'
 
 import type { Service as ServiceType, ServiceFormData, ServiceFilters, ServiceStats, ServiceAnalytics, BulkAction } from '@/types/services';
-import { validateSlugUniqueness, generateSlug, sanitizeServiceData, filterServices, sortServices } from '@/lib/services/utils';
+import { validateSlugUniqueness, generateSlug, sanitizeServiceData } from '@/lib/services/utils';
 import { CacheService } from '@/lib/cache.service';
 import { NotificationService } from '@/lib/notification.service';
 import { createHash } from 'crypto';
