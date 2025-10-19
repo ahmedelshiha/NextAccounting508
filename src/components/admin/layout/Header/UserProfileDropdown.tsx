@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, type Ref } from "react"
+import { useMemo, type Ref, memo } from "react"
 import { useSession } from "next-auth/react"
 import { ChevronDown, User as UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
