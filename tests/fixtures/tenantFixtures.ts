@@ -17,7 +17,7 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
     price: 100,
     duration: 60,
     tenant: { connect: { id: tenantId } },
-    businessHours: businessHours ?? { '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00' }
+    businessHours: businessHours ?? { '0': '09:00-17:00', '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00', '6': '09:00-17:00' }
   }})
   if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('service', svc.id)
 
