@@ -38,20 +38,20 @@ vi.mock('next-auth', () => ({
 
 // Import centralized test setup that registers tenants and performs global cleanup
 import './tests/testSetup'
-vi.mock('next-auth/next', () => ({
-  getServerSession: async (...args: any[]) => {
+vi.mock('next-auth/next', () => {
+  const fn = vi.fn(async (...args: any[]) => {
     try {
-      // Dynamic import ensures test-level vi.doMock('next-auth') overrides are respected
       const na = await import('next-auth')
       if (na && typeof (na as any).getServerSession === 'function') {
         return (na as any).getServerSession(...args)
       }
     } catch (err) {
-      // fall through to default
+      // fall through
     }
     return defaultSession
-  },
-}))
+  })
+  return { getServerSession: fn }
+})
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: defaultSession, status: 'authenticated' }),
   signOut: vi.fn()
