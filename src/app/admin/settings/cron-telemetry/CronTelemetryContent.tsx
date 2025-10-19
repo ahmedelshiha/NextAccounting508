@@ -241,7 +241,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={100}
-                    value={pending.performance?.globalConcurrency ?? settings.performance.globalConcurrency ?? 10}
+                    value={pending.performance?.globalConcurrency ?? settings.performance?.globalConcurrency ?? 10}
                     onChange={(e) => updateSetting('performance', 'globalConcurrency', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -256,7 +256,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={50}
-                    value={pending.performance?.tenantConcurrency ?? settings.performance.tenantConcurrency ?? 3}
+                    value={pending.performance?.tenantConcurrency ?? settings.performance?.tenantConcurrency ?? 3}
                     onChange={(e) => updateSetting('performance', 'tenantConcurrency', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -271,7 +271,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={10}
                     max={1000}
-                    value={pending.performance?.batchSize ?? settings.performance.batchSize ?? 100}
+                    value={pending.performance?.batchSize ?? settings.performance?.batchSize ?? 100}
                     onChange={(e) => updateSetting('performance', 'batchSize', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -287,7 +287,7 @@ export default function CronTelemetryContent() {
                     min={5000}
                     max={300000}
                     step={5000}
-                    value={pending.performance?.processingTimeoutMs ?? settings.performance.processingTimeoutMs ?? 60000}
+                    value={pending.performance?.processingTimeoutMs ?? settings.performance?.processingTimeoutMs ?? 60000}
                     onChange={(e) => updateSetting('performance', 'processingTimeoutMs', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -313,7 +313,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={10}
-                    value={pending.reliability?.maxRetries ?? settings.reliability.maxRetries ?? 3}
+                    value={pending.reliability?.maxRetries ?? settings.reliability?.maxRetries ?? 3}
                     onChange={(e) => updateSetting('reliability', 'maxRetries', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -329,7 +329,7 @@ export default function CronTelemetryContent() {
                     min={0.1}
                     max={100}
                     step={0.1}
-                    value={pending.reliability?.backoffThresholdPercent ?? settings.reliability.backoffThresholdPercent ?? 10}
+                    value={pending.reliability?.backoffThresholdPercent ?? settings.reliability?.backoffThresholdPercent ?? 10}
                     onChange={(e) => updateSetting('reliability', 'backoffThresholdPercent', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -345,7 +345,7 @@ export default function CronTelemetryContent() {
                     min={1.0}
                     max={10.0}
                     step={0.1}
-                    value={pending.reliability?.backoffMultiplier ?? settings.reliability.backoffMultiplier ?? 2.0}
+                    value={pending.reliability?.backoffMultiplier ?? settings.reliability?.backoffMultiplier ?? 2.0}
                     onChange={(e) => updateSetting('reliability', 'backoffMultiplier', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -361,7 +361,7 @@ export default function CronTelemetryContent() {
                     min={1000}
                     max={300000}
                     step={1000}
-                    value={pending.reliability?.maxBackoffMs ?? settings.reliability.maxBackoffMs ?? 60000}
+                    value={pending.reliability?.maxBackoffMs ?? settings.reliability?.maxBackoffMs ?? 60000}
                     onChange={(e) => updateSetting('reliability', 'maxBackoffMs', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
