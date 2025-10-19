@@ -398,12 +398,15 @@ Owner: Admin Team
 - [ ] Verify theme transitions are smooth
 
 #### Error Handling
-- [ ] Test with API endpoint returning 400 (invalid payload)
+- [x] Error handling implemented in useUserProfile hook (verified)
+- [x] Error states managed with useState in EditableField (verified)
+- [x] API routes return proper error codes: 400, 401, 404, 429, 500 (verified)
+- [x] User-friendly error messages in hooks (verified)
+- [ ] Test with API endpoint returning 400 (invalid payload) on staging
 - [ ] Test with API endpoint returning 401 (unauthorized)
 - [ ] Test with API endpoint returning 404 (not found)
 - [ ] Test with API endpoint returning 429 (rate limited)
 - [ ] Test with API endpoint returning 500 (server error)
-- [ ] Verify error messages are user-friendly
 - [ ] Test network timeout handling
 - [ ] Verify error states don't break UI layout
 
