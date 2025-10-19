@@ -21,7 +21,6 @@ import {
   User,
   Settings,
   LogOut,
-  HelpCircle,
   ChevronDown,
   Home,
   ChevronLeft
