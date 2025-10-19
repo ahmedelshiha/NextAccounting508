@@ -25,19 +25,11 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
 }
 
 export async function cleanupTenant(tenantId: string): Promise<void> {
+  try { await prisma.service.deleteMany({ where: { tenantId } }) } catch {}
+  try { await prisma.organizationSettings.deleteMany({ where: { tenantId } }) } catch {}
   try {
-    // @ts-expect-error - dynamic prisma client access
-    await prisma.service.deleteMany({ where: { tenantId } })
-  } catch {}
-  try {
-    // @ts-expect-error - dynamic prisma client access
-    await prisma.organizationSettings.deleteMany({ where: { tenantId } })
-  } catch {}
-  try {
-    // @ts-expect-error - dynamic prisma client access
     const svcs: any[] = await prisma.service.findMany({ where: { tenantId }, select: { id: true } })
     const ids = (svcs || []).map((s: any) => s.id)
-    // @ts-expect-error - dynamic prisma client access
     if (ids.length) await prisma.booking.deleteMany({ where: { serviceId: { in: ids } } })
   } catch {}
 }
