@@ -162,3 +162,23 @@ Owner: Admin Team
 - [ ] Storage strategy for extended profile fields (new model vs JSON extension)
 - [ ] Scope and timeline for phone verification, passkeys, device sign-in UI → API parity
 - [ ] Single shared menu across admin/portal vs role-specific variations
+
+---
+
+## Progress Log
+
+- 2025-10-19 00:00 UTC — ✅ Scaffolding created for dropdown and panel.
+  - Summary: Added UserProfileDropdown with Avatar, UserInfo, ThemeSubmenu; added ProfileManagementPanel plus EditableField and VerificationBadge; defined basic types/constants.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/Avatar.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/types.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/constants.ts
+    - src/components/admin/profile/ProfileManagementPanel.tsx
+    - src/components/admin/profile/EditableField.tsx
+    - src/components/admin/profile/VerificationBadge.tsx
+    - src/components/admin/profile/types.ts
+    - src/components/admin/profile/constants.ts
+  - Notes: Reusing next-themes; ThemeSubmenu implements role="menuitemradio" with light/dark/system. No wiring into AdminHeader yet.
