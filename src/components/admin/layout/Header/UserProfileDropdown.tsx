@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { hasPermission } from "@/lib/permissions"
 import Avatar from "./UserProfileDropdown/Avatar"
 import UserInfo from "./UserProfileDropdown/UserInfo"
 import ThemeSubmenu from "./UserProfileDropdown/ThemeSubmenu"
@@ -72,7 +73,7 @@ function UserProfileDropdownComponent({
     return raw.filter(l => {
       if (!l.permission) return true
       const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
-      try { const { hasPermission } = require('@/lib/permissions'); return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+      try { return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
     })
   }, [customLinks, role])
 

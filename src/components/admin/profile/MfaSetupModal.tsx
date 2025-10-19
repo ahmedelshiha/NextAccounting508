@@ -33,7 +33,7 @@ export default function MfaSetupModal({ isOpen, onClose, setupData }: MfaSetupMo
       if (success) {
         setStep("backup")
       }
-    } catch (e) {
+    } catch (e: any) {
       setVerifyError(String(e?.message || "Invalid code"))
     }
   }
@@ -67,7 +67,7 @@ export default function MfaSetupModal({ isOpen, onClose, setupData }: MfaSetupMo
               </p>
               <details className="text-sm">
                 <summary className="cursor-pointer text-blue-600 hover:text-blue-700">
-                  Can't scan? Enter this code instead
+                  Can&apos;t scan? Enter this code instead
                 </summary>
                 <code className="block mt-2 p-2 bg-gray-100 rounded text-xs break-all">
                   {setupData.secret}
@@ -75,7 +75,7 @@ export default function MfaSetupModal({ isOpen, onClose, setupData }: MfaSetupMo
               </details>
             </div>
             <Button onClick={() => setStep("verify")} className="w-full">
-              I've scanned the code
+              I&apos;ve scanned the code
             </Button>
           </div>
         )}
