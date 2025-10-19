@@ -309,14 +309,15 @@ Owner: Admin Team
 - [ ] Set up Twilio credentials if SMS verification is needed (future)
 
 #### API Security
-- [ ] Verify CSRF protection on /api/users/me PATCH endpoint
-- [ ] Verify rate limiting is active on all mutation endpoints
-- [ ] Test rate limiting thresholds: 20 changes/min on PATCH, 5 deletes/day on DELETE
-- [ ] Verify password hashing works correctly with bcryptjs
-- [ ] Test password verification flow with incorrect password
-- [ ] Verify email uniqueness constraint within tenant
-- [ ] Check for SQL injection prevention (Prisma provides this)
-- [ ] Test session invalidation after profile update
+- [x] CSRF protection implemented on /api/users/me PATCH endpoint (verified - isSameOrigin check)
+- [x] Rate limiting active on all mutation endpoints (verified - applyRateLimit calls)
+- [x] Rate limiting thresholds: 60/min GET, 20/min PATCH, 5/day DELETE (verified in code)
+- [x] Password hashing with bcryptjs (verified - bcrypt.hash and bcrypt.compare)
+- [x] Password verification flow with currentPassword requirement (verified in code)
+- [x] Email uniqueness constraint within tenant (verified - tenantId_email unique constraint)
+- [x] SQL injection prevention (verified - Prisma ORM prevents this)
+- [x] Session invalidation on profile update (verified - sessionVersion increment)
+- [ ] Test these flows on staging
 
 #### Security Settings
 - [ ] Verify 2FA QR code generation works
