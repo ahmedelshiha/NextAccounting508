@@ -203,3 +203,8 @@ Owner: Admin Team
 
 - 2025-10-19 00:14 UTC — ✅ API plan confirmed.
   - Summary: Reusing existing /api/users/me for profile read/update. 2FA flows will reuse existing endpoints /api/auth/mfa/enroll and /api/auth/mfa/verify. Email/phone verification endpoints deferred until scope confirmation.
+
+- 2025-10-19 00:16 UTC — ✅ Status selector added.
+  - Summary: Added StatusSelector in dropdown with aria-checked radios; hooked to useUserStatus; avatar dot reflects current status.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
