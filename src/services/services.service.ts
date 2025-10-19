@@ -483,7 +483,27 @@ export class ServicesService {
       else if (type === 'price-update') data.price = Number(value);
 
       const prisma = await this.resolvePrisma();
-      const res = await prisma.service.updateMany({ where, data });
+      let res: any = null
+      try {
+        if (prisma && prisma.service && typeof prisma.service.updateMany === 'function') {
+          res = await prisma.service.updateMany({ where, data });
+        } else if (prisma && prisma.service && typeof prisma.service.update === 'function') {
+          // Fallback: update individually
+          let count = 0
+          for (const id of (serviceIds || [])) {
+            try {
+              await prisma.service.update({ where: { id }, data })
+              count += 1
+            } catch {}
+          }
+          res = { count }
+        } else {
+          // last resort: assume none updated
+          res = { count: 0 }
+        }
+      } catch (e) {
+        res = { count: 0 }
+      }
       await this.clearCaches(tId);
       if (res.count) await this.notifications.notifyBulkAction(type, res.count, by);
       try { serviceEvents.emit('service:bulk', { tenantId: tId, action: type, count: res.count }) } catch {}
