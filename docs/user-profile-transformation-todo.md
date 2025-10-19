@@ -167,6 +167,11 @@ Owner: Admin Team
 
 ## Progress Log
 
+- 2025-10-19 00:23 UTC — ✅ Basic unit tests for dropdown and avatar.
+  - Summary: Added minimal tests asserting trigger render and avatar initials fallback.
+  - Files:
+    - tests/admin/layout/UserProfileDropdown.test.tsx
+
 - 2025-10-19 00:20 UTC — ✅ Theme provider wired and profile hook fixed.
   - Summary: Added next-themes ThemeProvider and minimal dark-mode CSS; wrapped app; fixed useUserProfile to unwrap {user} shape.
   - Files:
