@@ -15,35 +15,14 @@ vi.mock('@/lib/prisma', () => ({
 // Mock next-auth getServerSession before importing the route module.
 vi.mock('next-auth/next', () => ({ getServerSession: vi.fn() }))
 
-// Override the tenant-utils mock for this test to control userId
-vi.mock('@/lib/tenant-utils', () => {
-  let _userId: string | null = 'test-user'
-  let _role: string = 'ADMIN'
-  return {
-    requireTenantContext: () => {
-      if (_userId === null) {
-        return { tenantId: 'test-tenant', userId: null, role: null }
-      }
-      return { tenantId: 'test-tenant', userId: _userId, role: _role }
-    },
-    getTenantFilter: () => ({ tenantId: 'test-tenant' }),
-    __setTestUserId: (userId: string | null) => { _userId = userId },
-    __setTestRole: (role: string) => { _role = role }
-  }
-})
-
 let GET: any
 let POST: any
 let mockedGetServerSession: any
-let tenantUtils: any
 
 beforeAll(async () => {
   // Import the mocked getServerSession for control in tests
   const nextAuth = await import('next-auth/next')
   mockedGetServerSession = nextAuth.getServerSession
-
-  // Import tenant utils for controlling userId
-  tenantUtils = await import('@/lib/tenant-utils')
 
   // Import the route handlers after mocking
   const route = await import('@/app/api/admin/thresholds/route')
@@ -65,13 +44,20 @@ afterAll(async () => {
 describe('Thresholds API (unit/integration style)', () => {
   beforeEach(async () => {
     // Reset context to authenticated admin by default
-    tenantUtils.__setTestUserId('test-user')
-    tenantUtils.__setTestRole('ADMIN')
+    const state = (globalThis as any).__tenantUtilsState
+    if (state) {
+      state.userId = 'test-user'
+      state.role = 'ADMIN'
+    }
   })
 
   it('returns 401 for unauthenticated GET and POST', async () => {
-    // Mock unauthenticated by setting userId to null
-    tenantUtils.__setTestUserId(null)
+    // Mock unauthenticated by setting userId to null in global state
+    const state = (globalThis as any).__tenantUtilsState
+    if (state) {
+      state.userId = null
+      state.role = null
+    }
     mockedGetServerSession.mockResolvedValue(null)
 
     const resGet: any = await GET({} as any)
