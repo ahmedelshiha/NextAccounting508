@@ -148,3 +148,5 @@ function UserProfileDropdownComponent({
     </DropdownMenu>
   )
 }
+
+export default UserProfileDropdownComponent
