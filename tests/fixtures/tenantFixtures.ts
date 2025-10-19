@@ -24,7 +24,7 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
   // If the project-level prisma mock exposes setModelMethod, register a findUnique that returns this created service
   try {
     // require the project mock; path is relative to tests/fixtures
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+     
     const mockPrismaModule: any = require('../../__mocks__/prisma')
     if (mockPrismaModule && typeof mockPrismaModule.setModelMethod === 'function') {
       mockPrismaModule.setModelMethod('service', 'findUnique', async (params: any = {}) => {

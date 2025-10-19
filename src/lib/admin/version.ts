@@ -29,7 +29,7 @@ export function getAppVersion(): string {
   // Try to get from package.json (imported as JSON)
   try {
     // package.json is imported at build time; ensure resolveJsonModule is enabled in tsconfig
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+     
     if ((packageJson as any)?.version) {
       // Ensure version has leading 'v'
       const v = (packageJson as any).version as string
