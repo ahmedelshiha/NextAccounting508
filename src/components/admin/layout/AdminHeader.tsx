@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, lazy, Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
@@ -27,7 +27,15 @@ import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import QuickLinks from './Footer/QuickLinks'
 import UserProfileDropdown from './Header/UserProfileDropdown'
-import ProfileManagementPanel from '../profile/ProfileManagementPanel'
+import dynamic from 'next/dynamic'
+
+const ProfileManagementPanel = dynamic(
+  () => import('../profile/ProfileManagementPanel'),
+  {
+    loading: () => null,
+    ssr: false
+  }
+)
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
