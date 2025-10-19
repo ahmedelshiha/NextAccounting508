@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, type Ref } from "react"
 import { useSession } from "next-auth/react"
 import { ChevronDown, User as UserIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -21,6 +21,8 @@ export interface UserProfileDropdownProps {
   className?: string
   showStatus?: boolean
   onSignOut?: () => Promise<void> | void
+  onOpenProfilePanel?: () => void
+  triggerRef?: Ref<HTMLButtonElement>
   customLinks?: UserMenuLink[]
 }
 
@@ -53,6 +55,8 @@ export default function UserProfileDropdown({
   className,
   showStatus = true,
   onSignOut,
+  onOpenProfilePanel,
+  triggerRef,
   customLinks,
 }: UserProfileDropdownProps) {
   const { data: session } = useSession()
@@ -63,8 +67,14 @@ export default function UserProfileDropdown({
   const organization = (session?.user as any)?.organization as string | undefined
 
   const links = useMemo<UserMenuLink[]>(() => {
-    return customLinks && customLinks.length ? customLinks : MENU_LINKS
-  }, [customLinks])
+    const raw = customLinks && customLinks.length ? customLinks : MENU_LINKS
+    const roleStr = role || undefined
+    return raw.filter(l => {
+      if (!l.permission) return true
+      const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
+      try { const { hasPermission } = require('@/lib/permissions'); return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+    })
+  }, [customLinks, role])
 
   const { status: userStatus } = useUserStatus()
 
@@ -72,6 +82,7 @@ export default function UserProfileDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
+          ref={triggerRef as any}
           variant="ghost"
           className={cn("flex items-center gap-2 px-3", className)}
           aria-label="Open user menu"
@@ -98,6 +109,13 @@ export default function UserProfileDropdown({
             <UserInfo name={name} email={email} role={role} organization={organization} variant="full" />
           </div>
         </div>
+        {onOpenProfilePanel ? (
+          <div className="py-1 border-t border-gray-100">
+            <button type="button" role="menuitem" onClick={() => onOpenProfilePanel()} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              Manage Profile
+            </button>
+          </div>
+        ) : null}
         <ThemeSubmenu />
         {/* Status selector */}
         {showStatus ? <StatusSelector /> : null}

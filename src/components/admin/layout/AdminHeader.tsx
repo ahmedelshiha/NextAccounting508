@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
@@ -19,13 +19,15 @@ import {
   Search,
   Menu,
   Home,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useClientNotifications } from '@/hooks/useClientNotifications'
 import Link from 'next/link'
 import QuickLinks from './Footer/QuickLinks'
 import UserProfileDropdown from './Header/UserProfileDropdown'
+import ProfileManagementPanel from '../profile/ProfileManagementPanel'
 
 interface AdminHeaderProps {
   onMenuToggle?: () => void
@@ -53,6 +55,8 @@ function useBreadcrumbs() {
 export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarToggle }: AdminHeaderProps) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileTriggerRef = useRef<HTMLButtonElement | null>(null)
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
 
@@ -168,10 +172,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </div>
 
             {/* User menu */}
-            <UserProfileDropdown onSignOut={handleSignOut} />
+            <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
           </div>
         </div>
       </div>
+      <ProfileManagementPanel isOpen={profileOpen} onClose={() => { setProfileOpen(false); try { profileTriggerRef.current?.focus() } catch {} }} defaultTab="profile" />
     </header>
   )
 }

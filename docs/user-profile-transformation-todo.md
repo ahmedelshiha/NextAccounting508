@@ -1,7 +1,7 @@
 # User Profile Transformation – Master TODOs (mirrors docs/user-profile-transformation.md)
 
 Guidelines source: docs/user-profile-transformation.md
-Status: planned
+Status: in_progress
 Owner: Admin Team
 
 ## 0) Overview & Goals → Feature TODOs
@@ -22,7 +22,7 @@ Owner: Admin Team
   - [ ] Verification badges (email/phone)
   - [ ] 2FA, Authenticator, Passkeys, Device sign-in, Account activity controls
   - [ ] Loading, error, and save states; auto-save or manual save
-- [ ] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
+- [x] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
 
 ## 1) Hybrid Architecture → Component & Structure TODOs
 - [ ] Create root UserProfileDropdown with trigger and menu content
@@ -49,7 +49,7 @@ Owner: Admin Team
 ## 4) Hooks → Behavior TODOs
 - [ ] useTheme (system + localStorage + effective theme event)
 - [ ] useUserStatus (persisted status + auto-away timeout)
-- [ ] useUserProfile (GET/PUT /api/user/profile; state & refresh)
+- [x] useUserProfile (GET/PUT /api/user/profile; state & refresh)
 - [ ] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
 
 ## 5) Core Components → Build TODOs
@@ -73,7 +73,7 @@ Owner: Admin Team
 - [ ] src/app/api/user/verification/email/route.ts (POST send verification; generate/store token; send email)
 - [ ] src/app/api/user/security/authenticator/{setup?,index}.ts (POST setup returns QR/secret; DELETE remove)
 - [ ] Apply auth guards (getServerSession(authOptions)); error handling, 401/404/500 paths
-- [ ] Add rate limiting on mutation endpoints
+- [x] Add rate limiting on mutation endpoints
 
 ## 8) Database Schema (Prisma) → Migration TODOs
 - [ ] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
@@ -94,9 +94,9 @@ Owner: Admin Team
 
 ## 11) Integration Steps → App Wiring TODOs
 - [ ] Update src/components/admin/layout/Header/AdminHeader.tsx to render UserProfileDropdown (replacing existing simple menu)
-- [ ] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
-- [ ] Wrap app in ThemeProvider in src/app/layout.tsx
-- [ ] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
+- [x] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
+- [x] Wrap app in ThemeProvider in src/app/layout.tsx
+- [x] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
 
 ## 12) Builder.io Integration → TODOs
 - [ ] Create src/components/builder/UserProfileDropdownBuilder.tsx
@@ -122,9 +122,9 @@ Owner: Admin Team
 
 ## 16) Enhancements & Gaps (added by review)
 - Accessibility & UX
-  - [ ] Return focus to trigger after dropdown/panel close
-  - [ ] Add aria-live status announcements for theme/status/profile save
-  - [ ] Ensure role="menuitemradio" and aria-checked on theme/status items
+  - [x] Return focus to trigger after dropdown/panel close
+  - [x] Add aria-live status announcements for theme/status/profile save
+  - [x] Ensure role="menuitemradio" and aria-checked on theme/status items
   - [ ] Modal: trap focus, make background inert; test mobile screen readers
 - Internationalization
   - [ ] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks
@@ -142,9 +142,9 @@ Owner: Admin Team
   - [ ] Persist last-active-tab in localStorage
 - Security & auditing
   - [ ] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
-  - [ ] Ensure CSRF protection on mutations where applicable
+  - [x] Ensure CSRF protection on mutations where applicable
 - RBAC/visibility
-  - [ ] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
+  - [x] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
 - Account activity
   - [ ] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
 - Keyboard Shortcuts
@@ -166,6 +166,45 @@ Owner: Admin Team
 ---
 
 ## Progress Log
+
+- 2025-10-19 00:36 UTC — 🔄 E2E test added for dropdown and panel.
+  - Summary: Added Playwright test to open user menu and Manage Profile, verify dialog, and focus return.
+  - Files:
+    - e2e/tests/user-profile.spec.ts
+
+- 2025-10-19 00:34 UTC — ✅ Accessibility and security improvements.
+  - Summary: Added aria-live announcements; return focus to trigger; RBAC-filtered links; rate limiting and CSRF checks on profile endpoints.
+  - Files:
+    - src/lib/a11y.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/hooks/useUserStatus.ts
+    - src/hooks/useUserProfile.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/types.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/constants.ts
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/AdminHeader.tsx
+    - src/lib/security/csrf.ts
+    - src/app/api/users/me/route.ts
+
+- 2025-10-19 00:26 UTC — ✅ Dropdown wired to open ProfileManagementPanel.
+  - Summary: Added Manage Profile action in menu and integrated panel state in AdminHeader.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/AdminHeader.tsx
+
+- 2025-10-19 00:23 UTC — ✅ Basic unit tests for dropdown and avatar.
+  - Summary: Added minimal tests asserting trigger render and avatar initials fallback.
+  - Files:
+    - tests/admin/layout/UserProfileDropdown.test.tsx
+
+- 2025-10-19 00:20 UTC — ✅ Theme provider wired and profile hook fixed.
+  - Summary: Added next-themes ThemeProvider and minimal dark-mode CSS; wrapped app; fixed useUserProfile to unwrap {user} shape.
+  - Files:
+    - src/components/providers/ThemeProvider.tsx
+    - src/app/layout.tsx
+    - src/styles/dark-mode.css
+    - src/hooks/useUserProfile.ts
+  - Testing: Theme menu radios update live; 'dark' class toggles; ProfileManagementPanel fields read correctly.
 
 - 2025-10-19 00:00 UTC — ✅ Scaffolding created for dropdown and panel.
   - Summary: Added UserProfileDropdown with Avatar, UserInfo, ThemeSubmenu; added ProfileManagementPanel plus EditableField and VerificationBadge; defined basic types/constants.

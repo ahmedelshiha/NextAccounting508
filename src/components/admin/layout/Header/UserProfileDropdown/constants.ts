@@ -1,11 +1,15 @@
 import { Book, Key, ShieldQuestion, Settings, HelpCircle, Keyboard } from "lucide-react"
 import type { UserMenuLink } from "./types"
 
+import { Settings, ShieldQuestion, Book, Key, HelpCircle, Keyboard } from "lucide-react"
+import { PERMISSIONS, type Permission } from "@/lib/permissions"
+import type { UserMenuLink } from "./types"
+
 export const MENU_LINKS: UserMenuLink[] = [
   { label: "Settings", href: "/admin/settings", icon: Settings },
   { label: "Security & MFA", href: "/admin/settings/security", icon: ShieldQuestion },
-  { label: "Billing", href: "/admin/settings/financial", icon: Book },
-  { label: "API Keys", href: "/admin/settings/integrations", icon: Key },
+  { label: "Billing", href: "/admin/settings/financial", icon: Book, permission: PERMISSIONS.FINANCIAL_SETTINGS_VIEW },
+  { label: "API Keys", href: "/admin/settings/integrations", icon: Key, permission: PERMISSIONS.INTEGRATION_HUB_VIEW },
 ]
 
 export const HELP_LINKS: UserMenuLink[] = [

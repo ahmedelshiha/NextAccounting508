@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { announce } from "@/lib/a11y"
 
 export type UserStatus = "online" | "away" | "busy"
 
@@ -48,7 +49,7 @@ export function useUserStatus(options?: { autoAwayMs?: number }) {
     }
   }, [markActive])
 
-  const set = useCallback((s: UserStatus) => setStatus(s), [])
+  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`) } catch {} }, [])
 
   return { status, setStatus: set }
 }
