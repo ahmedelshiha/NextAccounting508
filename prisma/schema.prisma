@@ -148,6 +148,7 @@ model Tenant {
   integrationSettings  IntegrationSettings?
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
+  cronTelemetrySettings CronTelemetrySettings?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
   settingChangeDiffs   SettingChangeDiff[]
@@ -1401,4 +1402,23 @@ model SecuritySettings {
 
   @@index([tenantId])
   @@map("security_settings")
+}
+
+// Cron Telemetry settings per-tenant
+model CronTelemetrySettings {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  performance  Json?
+  reliability  Json?
+  monitoring   Json?
+  status       Json?
+  scheduling   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("cron_telemetry_settings")
 }
