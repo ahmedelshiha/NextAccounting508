@@ -73,7 +73,7 @@ function UserProfileDropdownComponent({
     return raw.filter(l => {
       if (!l.permission) return true
       const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
-      try { const { hasPermission } = require('@/lib/permissions'); return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+      try { return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
     })
   }, [customLinks, role])
 
