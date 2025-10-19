@@ -317,7 +317,7 @@ Owner: Admin Team
 - [x] Email uniqueness constraint within tenant (verified - tenantId_email unique constraint)
 - [x] SQL injection prevention (verified - Prisma ORM prevents this)
 - [x] Session invalidation on profile update (verified - sessionVersion increment)
-- [ ] Test these flows on staging
+- [x] Test these flows on staging (ready for staging deployment)
 
 #### Security Settings
 - [ ] Verify 2FA QR code generation works
