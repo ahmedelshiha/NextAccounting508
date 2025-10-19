@@ -89,16 +89,18 @@ export function AdminProviders({ children }: AdminProvidersProps) {
       )}
     >
       <ReactError31Boundary>
-        <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
-          <RealtimeProvider>
-            <PerformanceWrapper>
-              <RoleSyncMount />
-              <UXMonitor>
-                {children}
-              </UXMonitor>
-            </PerformanceWrapper>
-          </RealtimeProvider>
-        </SWRConfig>
+        <TenantSyncProvider>
+          <SWRConfig value={{ fetcher, revalidateOnFocus: false, errorRetryCount: 3 }}>
+            <RealtimeProvider>
+              <PerformanceWrapper>
+                <RoleSyncMount />
+                <UXMonitor>
+                  {children}
+                </UXMonitor>
+              </PerformanceWrapper>
+            </RealtimeProvider>
+          </SWRConfig>
+        </TenantSyncProvider>
       </ReactError31Boundary>
     </ErrorBoundary>
   )
