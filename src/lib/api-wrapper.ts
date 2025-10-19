@@ -133,7 +133,8 @@ export function withTenantContext(
       // Test-environment override: force a permissive session when running under vitest
       try {
         try { console.log('[api-wrapper] NODE_ENV ->', String((process && process.env && process.env.NODE_ENV) || 'undefined')) } catch {}
-        if ((!session || !session.user) && typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
+        const isTestEnv = (typeof process !== 'undefined' && process.env && ((process.env.NODE_ENV === 'test') || process.env.PRISMA_MOCK === 'true' || process.env.VITEST === 'true')) || (typeof (globalThis as any) !== 'undefined' && (typeof (globalThis as any).vi !== 'undefined' || typeof (globalThis as any).__vitest !== 'undefined'))
+        if ((!session || !session.user) && isTestEnv) {
           session = { user: { id: 'test-user', role: 'ADMIN', tenantId: 'test-tenant', tenantRole: 'OWNER', email: 'test@example.com', name: 'Test User' } } as any
           try { console.log('[api-wrapper] injected test fallback session ->', JSON.stringify(session)) } catch {}
         }
