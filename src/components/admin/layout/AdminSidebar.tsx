@@ -182,7 +182,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     `
 
     const expandedItemStyles = `
-      w-full px-3 py-2 text-sm
+      w-full px-3 py-1.5 text-sm
       ${isActive
         ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200'
@@ -282,7 +282,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         <div className="flex flex-col h-full w-full">
           <SidebarHeader collapsed={storeCollapsed} />
 
-          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-3' : 'px-4 py-6 space-y-8'}`} role="navigation" aria-label="Admin sidebar">
+          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-2' : 'px-4 py-4 space-y-4'}`} role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
               const sectionItems = section.items.filter(item => hasAccess(item.permission))
               if (sectionItems.length === 0) return null
@@ -290,7 +290,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
               return (
                 <div key={section.section}>
                   {!storeCollapsed && (
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
+                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{section.section}</h3>
                   )}
                   <ul className={`${storeCollapsed ? 'space-y-1' : 'space-y-1'}`} ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}
