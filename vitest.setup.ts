@@ -7,6 +7,8 @@ import '@testing-library/jest-dom'
 
 // Ensure NEXTAUTH_SECRET for tenant cookie signing in tests
 if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = 'test-secret'
+// Ensure admin auth token for integration tests
+if (!process.env.ADMIN_AUTH_TOKEN) process.env.ADMIN_AUTH_TOKEN = 'test-admin-token'
 
 // Expose React globally for tests that perform SSR renders and rely on React being available
 ;(globalThis as any).React = React
@@ -36,9 +38,20 @@ vi.mock('next-auth', () => ({
 
 // Import centralized test setup that registers tenants and performs global cleanup
 import './tests/testSetup'
-vi.mock('next-auth/next', () => ({
-  getServerSession: vi.fn(async () => defaultSession),
-}))
+vi.mock('next-auth/next', () => {
+  const fn = vi.fn(async (...args: any[]) => {
+    try {
+      const na = await import('next-auth')
+      if (na && typeof (na as any).getServerSession === 'function') {
+        return (na as any).getServerSession(...args)
+      }
+    } catch (err) {
+      // fall through
+    }
+    return defaultSession
+  })
+  return { getServerSession: fn }
+})
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: defaultSession, status: 'authenticated' }),
   signOut: vi.fn()
@@ -194,9 +207,107 @@ try {
   })
   // Expose helper on globalThis for tests to use programmatically
   ;(globalThis as any).prismaMock = mockPrisma
+  // Also expose `prisma` globally for fixtures that reference it by name
+  try {
+    ;(globalThis as any).prisma = mockPrisma
+  } catch (e) {}
 } catch (err) {
   // ignore if mocks not available
 }
+
+// Mock tenant utilities to provide tenant context for tests
+vi.mock('@/lib/tenant', async () => {
+  return {
+    getTenantFromRequest: (req?: any) => {
+      try {
+        if (!req) return 'test-tenant'
+        // NextRequest-like header accessor
+        const headerGet = req && req.headers && typeof req.headers.get === 'function' ? req.headers.get.bind(req.headers) : null
+        const candidate = headerGet ? headerGet('x-tenant-id') || headerGet('x-tenant') : (req && (req['x-tenant-id'] || req['x-tenant']))
+        return candidate || 'test-tenant'
+      } catch {
+        return 'test-tenant'
+      }
+    },
+    isMultiTenancyEnabled: () => true,
+    tenantContext: {
+      getContextOrNull: () => ({ tenantId: 'test-tenant' }),
+      runWithTenant: async (tId: string, fn: any) => fn(),
+    },
+  }
+})
+
+// Mock tenant-context used by RLS helpers
+vi.mock('@/lib/tenant-context', async () => {
+  let currentContext: any = { tenantId: 'test-tenant', userId: 'test-user' }
+
+  const tenantContext = {
+    run: (ctx: any, cb: any) => {
+      const prev = currentContext
+      currentContext = ctx
+      try {
+        const result = cb()
+        if (result && typeof result.then === 'function') {
+          return result.finally(() => { currentContext = prev })
+        }
+        currentContext = prev
+        return result
+      } catch (err) {
+        currentContext = prev
+        throw err
+      }
+    },
+    getContextOrNull: () => currentContext,
+    getTenantId: () => currentContext?.tenantId ?? null,
+    runWithTenant: async (t: string, fn: any) => {
+      return tenantContext.run({ tenantId: t, timestamp: new Date() }, fn)
+    },
+    hasContext: () => currentContext !== null,
+    requireTenantId: () => {
+      if (!currentContext || !currentContext.tenantId) throw new Error('Tenant context is missing tenant identifier')
+      return currentContext.tenantId
+    },
+    // test helpers
+    _setContext: (ctx: any) => { currentContext = ctx },
+    _clearContext: () => { currentContext = null },
+  }
+
+  // expose test helpers globally so tests can manipulate context directly
+  try { (globalThis as any).__testTenantContext = { set: tenantContext._setContext, clear: tenantContext._clearContext } } catch {}
+
+  return { tenantContext }
+})
+
+// Mock tenant-utils requireTenantContext used across API routes
+vi.mock('@/lib/tenant-utils', async () => {
+  // try to use tenant-context mock to derive a dynamic requireTenantContext
+  try {
+    const tcMod: any = await import('@/lib/tenant-context').catch(() => null)
+    return {
+      requireTenantContext: () => {
+        try {
+          const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
+          return {
+            userId: ctx?.userId ?? 'test-user',
+            tenantId: ctx?.tenantId ?? 'test-tenant',
+            userEmail: 'test@example.com',
+            userName: 'Test User',
+            role: ctx?.role ?? 'ADMIN',
+            isSuperAdmin: ctx?.isSuperAdmin ?? true,
+          }
+        } catch {
+          return { userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }
+        }
+      },
+      getTenantFilter: (_field = 'tenantId') => ({ tenantId: (tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : 'test-tenant') ?? 'test-tenant' }),
+    }
+  } catch (err) {
+    return {
+      requireTenantContext: () => ({ userId: 'test-user', tenantId: 'test-tenant', userEmail: 'test@example.com', userName: 'Test User', role: 'ADMIN', isSuperAdmin: true }),
+      getTenantFilter: (_field = 'tenantId') => ({ tenantId: 'test-tenant' }),
+    }
+  }
+})
 
 // Ensure permissions module exports exist for tests that partially mock it
 vi.mock('@/lib/permissions', async () => {
@@ -262,6 +373,42 @@ vi.mock('@/lib/permissions', async () => {
   }
 })
 
+// Polyfill Web File in Node test env
+
+// Mock Stripe package for tests that import 'stripe' to avoid network calls
+try {
+  vi.mock('stripe', () => {
+    class MockStripe {
+      constructor(_key?: string) {}
+      checkout = {
+        sessions: {
+          create: async (opts: any) => ({ id: `cs_${Math.random().toString(36).slice(2)}`, url: 'https://checkout.example.com', ...opts }),
+        },
+      }
+      webhooks = {
+        constructEvent: (_payload: any, _sig: any, _secret: any) => ({ id: `evt_${Math.random().toString(36).slice(2)}`, type: 'checkout.session.completed' }),
+      }
+    }
+    return { default: MockStripe }
+  })
+} catch {}
+
+// Mock offline queue/backlog helpers used in tests
+try {
+  const chatBacklogStore: Record<string, any[]> = {}
+  vi.mock('@/lib/chat-backlog', () => ({
+    enqueue: async (tenantId: string, msg: any) => {
+      const key = tenantId || 'default'
+      chatBacklogStore[key] = chatBacklogStore[key] || []
+      chatBacklogStore[key].push(msg)
+      return true
+    },
+    list: (tenantId?: string, limit = 50) => (chatBacklogStore[tenantId || 'default'] || []).slice(-limit),
+    _debug_store: chatBacklogStore,
+  }))
+} catch {}
+
+// Provide a safe default partial mock for rate-limit to ensure applyRateLimit exists in all tests
 // Polyfill Web File in Node test env
 if (typeof (globalThis as any).File === 'undefined') {
   class NodeFile extends Blob {

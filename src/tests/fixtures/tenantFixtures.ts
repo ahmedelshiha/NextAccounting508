@@ -1,6 +1,4 @@
-import prismaDefault from '@/lib/prisma'
-
-const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || (prismaDefault as any)
+const prisma = (typeof globalThis !== 'undefined' && (globalThis as any).prisma) || require('@/lib/prisma').default
 
 export async function seedTenantWithService(opts: { tenantId: string, timezone?: string, serviceSlug?: string, serviceName?: string, businessHours?: Record<string, string>, tx?: { registerCreated: (model:string,id:string)=>void } }) {
   const { tenantId, timezone = 'UTC', serviceSlug, serviceName, businessHours, tx } = opts
@@ -17,31 +15,9 @@ export async function seedTenantWithService(opts: { tenantId: string, timezone?:
     price: 100,
     duration: 60,
     tenant: { connect: { id: tenantId } },
-    businessHours: businessHours ?? { '0': '09:00-17:00', '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00', '6': '09:00-17:00' }
+    businessHours: businessHours ?? { '1': '09:00-17:00', '2': '09:00-17:00', '3': '09:00-17:00', '4': '09:00-17:00', '5': '09:00-17:00' }
   }})
   if (tx && typeof tx.registerCreated === 'function') tx.registerCreated('service', svc.id)
-
-  // If the project-level prisma mock exposes setModelMethod, register a findUnique that returns this created service
-  try {
-    // require the project mock; path is relative to tests/fixtures
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
-    const mockPrismaModule: any = require('../../__mocks__/prisma')
-    if (mockPrismaModule && typeof mockPrismaModule.setModelMethod === 'function') {
-      mockPrismaModule.setModelMethod('service', 'findUnique', async ({ where } = {}) => {
-        if (where && where.id) {
-          if (String(where.id) === String(svc.id)) return svc
-        }
-        return null
-      })
-    }
-  } catch (err) {
-    // ignore if mock not present
-  }
-
-  try {
-    ;(globalThis as any).__seededServices = (globalThis as any).__seededServices || {}
-    ;(globalThis as any).__seededServices[svc.id] = svc
-  } catch {}
 
   return svc
 }
