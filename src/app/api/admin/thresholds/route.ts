@@ -12,6 +12,9 @@ export const dynamic = 'force-dynamic'
 let memoryThreshold: { responseTime: number; errorRate: number; storageGrowth: number } | null = null
 
 export const GET = withTenantContext(async (_request: NextRequest) => {
+  // Auth is handled in the handler, not via wrapper
+  // This allows us to return 401 explicitly when auth fails
+}, { requireAuth: false })(async (_request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
