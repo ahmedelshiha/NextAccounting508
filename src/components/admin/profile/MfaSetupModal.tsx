@@ -75,7 +75,7 @@ export default function MfaSetupModal({ isOpen, onClose, setupData }: MfaSetupMo
               </details>
             </div>
             <Button onClick={() => setStep("verify")} className="w-full">
-              I've scanned the code
+              I&apos;ve scanned the code
             </Button>
           </div>
         )}
