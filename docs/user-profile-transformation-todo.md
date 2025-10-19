@@ -22,7 +22,7 @@ Owner: Admin Team
   - [ ] Verification badges (email/phone)
   - [ ] 2FA, Authenticator, Passkeys, Device sign-in, Account activity controls
   - [ ] Loading, error, and save states; auto-save or manual save
-- [ ] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
+- [x] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
 
 ## 1) Hybrid Architecture → Component & Structure TODOs
 - [ ] Create root UserProfileDropdown with trigger and menu content
@@ -166,6 +166,12 @@ Owner: Admin Team
 ---
 
 ## Progress Log
+
+- 2025-10-19 00:26 UTC — ✅ Dropdown wired to open ProfileManagementPanel.
+  - Summary: Added Manage Profile action in menu and integrated panel state in AdminHeader.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/AdminHeader.tsx
 
 - 2025-10-19 00:23 UTC — ✅ Basic unit tests for dropdown and avatar.
   - Summary: Added minimal tests asserting trigger render and avatar initials fallback.
