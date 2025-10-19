@@ -119,3 +119,46 @@ Owner: Admin Team
 - [ ] Consider reusing existing MFA endpoints (/api/auth/mfa/*) instead of adding parallel ones; reconcile API plan during implementation
 - [ ] If deferring new UserProfile model, scope UI to data available from /api/users/me and add extended fields later
 - [ ] Preserve existing styles and spacing in AdminHeader and ui/navigation; do not alter unrelated styling
+
+## 16) Enhancements & Gaps (added by review)
+- Accessibility & UX
+  - [ ] Return focus to trigger after dropdown/panel close
+  - [ ] Add aria-live status announcements for theme/status/profile save
+  - [ ] Ensure role="menuitemradio" and aria-checked on theme/status items
+  - [ ] Modal: trap focus, make background inert; test mobile screen readers
+- Internationalization
+  - [ ] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks
+- Status experience
+  - [ ] Listen to window online/offline and reflect offline status (read-only)
+  - [ ] Document auto-away behavior and provide "busy" override that disables auto-away
+- Toasts & errors
+  - [ ] Use Toaster to display success/error for profile/security actions; map common server errors
+- Hooks tests
+  - [ ] Unit tests for useUserStatus (auto-away, persistence), useUserProfile (loading/error/update), useSecuritySettings (processing, API paths)
+- Panel polish
+  - [ ] Code-split ProfileManagementPanel; prefetch on hover/first open intent
+  - [ ] Add skeleton placeholders for panel fields while loading
+  - [ ] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state)
+  - [ ] Persist last-active-tab in localStorage
+- Security & auditing
+  - [ ] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
+  - [ ] Ensure CSRF protection on mutations where applicable
+- RBAC/visibility
+  - [ ] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
+- Account activity
+  - [ ] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
+- Keyboard Shortcuts
+  - [ ] Provide /admin/shortcuts page or modal; update Help link accordingly
+- Theme
+  - [ ] Emit a custom "themechange" event (or document next-themes behavior) for any consumers
+  - [ ] Test system-theme change listener (prefers-color-scheme) and persistence
+- Performance
+  - [ ] Fix avatar container sizes to prevent CLS; pre-size images
+  - [ ] Defer non-critical icons; ensure dropdown bundle stays < 50KB gz
+- Analytics (optional)
+  - [ ] Track menu open, theme changes, status changes, profile saves for product analytics
+
+## 17) Open Decisions
+- [ ] Storage strategy for extended profile fields (new model vs JSON extension)
+- [ ] Scope and timeline for phone verification, passkeys, device sign-in UI → API parity
+- [ ] Single shared menu across admin/portal vs role-specific variations
