@@ -1,115 +1,121 @@
-# User Profile Transformation – Audit, Decisions, and Actionable TODOs
+# User Profile Transformation – Master TODOs (mirrors docs/user-profile-transformation.md)
 
+Guidelines source: docs/user-profile-transformation.md
 Status: planned
 Owner: Admin Team
-Last audit: current repo at commit time
 
-## Codebase Audit – What Exists vs. Guide Assumptions
+## 0) Overview & Goals → Feature TODOs
+- [ ] Replace header text label with full dropdown entry point (avatar + name + chevron)
+- [ ] Dropdown features
+  - [ ] Circular avatar with fallback initials
+  - [ ] Display name, email, role, organization
+  - [ ] Theme switcher submenu (light/dark/system)
+  - [ ] Status selector (online/away/busy) with indicator dot
+  - [ ] Quick links: Settings, Security & MFA, Billing, API Keys
+  - [ ] Help: Help & Support, Keyboard Shortcuts, Documentation (external)
+  - [ ] Sign out with confirmation dialog
+  - [ ] Keyboard navigation (Tab/Enter/Escape/Arrows), focus trap, click-outside close
+  - [ ] Mobile responsive layout
+- [ ] Profile Management Panel (QuickBooks style)
+  - [ ] Two tabs: Profile, Sign in & security
+  - [ ] Editable rows with right-arrow affordance
+  - [ ] Verification badges (email/phone)
+  - [ ] 2FA, Authenticator, Passkeys, Device sign-in, Account activity controls
+  - [ ] Loading, error, and save states; auto-save or manual save
+- [ ] Integration flow: dropdown “Manage Profile” opens panel (default tab configurable)
 
-1) Header/user menu
-- Existing: src/components/admin/layout/AdminHeader.tsx has a simple user dropdown (Profile, Settings, Sign Out) using shadcn/Radix DropdownMenu.
-- Existing: src/components/ui/navigation.tsx also renders a user menu for the marketing/portal header.
-- Gap: No advanced UserProfileDropdown component, no theme submenu, no status selector, no "Manage Profile" panel launcher.
+## 1) Hybrid Architecture → Component & Structure TODOs
+- [ ] Create root UserProfileDropdown with trigger and menu content
+- [ ] Create ProfileManagementPanel with modal/drawer container, tabs, headers
+- [ ] Implement hierarchy per guide (UserInfo header, Status selector, Quick links, ThemeSubmenu, Help, Sign out)
 
-2) Theme handling
-- Existing: next-themes is already used (e.g., src/components/ui/sonner.tsx). globals.css defines dark variant styles.
-- Gap: Custom useTheme hook and bespoke ThemeProvider from the guide are unnecessary; we should reuse next-themes and avoid duplicating theme state.
+## 2) Component Specifications → Files & Props TODOs
+- [ ] src/components/admin/layout/Header/UserProfileDropdown.tsx (Props: className?, showStatus?, onSignOut?, customLinks?)
+- [ ] src/components/admin/profile/ProfileManagementPanel.tsx (Props: isOpen, onClose, defaultTab)
+- [ ] Subcomponents
+  - [ ] src/components/admin/layout/Header/UserProfileDropdown/Avatar.tsx (Props per guide)
+  - [ ] src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx (Props per guide)
+  - [ ] src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx (Props per guide)
+  - [ ] src/components/admin/profile/EditableField.tsx (Props per guide)
+  - [ ] src/components/admin/profile/VerificationBadge.tsx
+  - [ ] src/components/admin/layout/Header/UserProfileDropdown/{types,constants}.tsx
+  - [ ] src/components/admin/profile/{types,constants}.tsx
 
-3) Security (2FA/MFA)
-- Existing: /api/auth/mfa/enroll and /api/auth/mfa/verify with lib/mfa.ts, storing secrets/backup codes in VerificationToken table.
-- Gap: Do NOT create /api/user/security/2fa; reuse existing endpoints for enrollment/verification. No per-user 2FA columns needed.
+## 3) Implementation Phases → Project Scaffolding TODOs
+- [ ] Create directories listed in the guide
+- [ ] Create files listed in the guide for dropdown/panel/hooks/APIs/tests
+- [ ] Define types and constants (THEME_OPTIONS, STATUS_OPTIONS, MENU_LINKS, HELP_LINKS, TABS, PROFILE_FIELDS, SECURITY_FIELDS)
 
-4) User profile API
-- Existing: /api/users/me supports GET and PATCH (name/email/password with validation and session invalidation). Tenant-aware via withTenantContext.
-- Gap: No /api/user/profile, and Prisma schema has no UserProfile model or profile fields like dateOfBirth/address/phone. Adding a new model would be invasive.
+## 4) Hooks → Behavior TODOs
+- [ ] useTheme (system + localStorage + effective theme event)
+- [ ] useUserStatus (persisted status + auto-away timeout)
+- [ ] useUserProfile (GET/PUT /api/user/profile; state & refresh)
+- [ ] useSecuritySettings (toggle 2FA, verify email/phone, setup/remove authenticator; processing states)
 
-5) Database (Prisma)
-- Existing: VerificationToken model present. No UserProfile model. Many tenant-scoped models; strong RLS/tenant concerns across code.
-- Decision: Defer schema changes. Start by wiring UI to existing /api/users/me for name/email/password. For email/phone verification UX, reuse VerificationToken and existing MFA endpoints where applicable; phone verification may be backlog.
+## 5) Core Components → Build TODOs
+- [ ] Avatar (sizes sm/md/lg; status dot; image/initials)
+- [ ] UserInfo (compact/full; organization block; skeleton loading)
+- [ ] ThemeSubmenu (radio behavior; icon map; selected state)
+- [ ] EditableField (label/value/placeholder, verified badge, action chips, masked value, chevron)
+- [ ] VerificationBadge (sizes; success styling)
+- [ ] UserProfileDropdown (Radix menu, labels, separators, submenu, link handling, openPanel action, sign-out confirm)
+- [ ] ProfileManagementPanel (Dialog; sticky header tabs; lazy content; loading spinner)
+- [ ] ProfileTab (header icon, description; PROFILE_FIELDS mapping)
+- [ ] SecurityTab (header icon; rows for userId/email/password/phone/authenticator/2FA/passkeys/deviceSignIn/accountActivity)
 
-6) UI primitives
-- Existing: shadcn/Radix dropdown-menu, dialog, button, etc. are present and widely used. Accessibility patterns already consistent.
-- Gap: New components (ProfileManagementPanel, ProfileTab, SecurityTab, EditableField, VerificationBadge) do not exist yet.
+## 6) Success Criteria Checklist → Verification TODOs
+- [ ] Original features validated: avatar fallback, open/close, user info, theme switcher live, status indicator, links functional, keyboard nav, screen reader announcements, focus trap, click outside, responsive, sign out confirm, help links, CLS < 0.001, render time < 100ms
+- [ ] QuickBooks features validated: Manage Profile opens panel, two tabs, editable rows, verification badges, action buttons, descriptions, 2FA/authenticator mgmt, passkeys, device sign-in, account activity, headers with icons, masked password, modal/drawer behavior, auto/manual save
 
-7) RBAC/tenancy
-- Existing: Most APIs/components assume tenant context; user flows should use withTenantContext, requireTenantContext, and audit logging where needed.
-- Action: Ensure any new API/UI interactions follow the same wrappers and logging.
+## 7) API Implementation → Backend TODOs
+- [ ] src/app/api/user/profile/route.ts (GET session+prisma merge; PUT upsert profile; includes organization)
+- [ ] src/app/api/user/security/2fa/route.ts (POST toggle twoFactorEnabled)
+- [ ] src/app/api/user/verification/email/route.ts (POST send verification; generate/store token; send email)
+- [ ] src/app/api/user/security/authenticator/{setup?,index}.ts (POST setup returns QR/secret; DELETE remove)
+- [ ] Apply auth guards (getServerSession(authOptions)); error handling, 401/404/500 paths
+- [ ] Add rate limiting on mutation endpoints
 
-## Key Decisions (to reduce risk and align with repo)
-- Use next-themes (no custom ThemeProvider/useTheme). Add a Theme submenu option that simply calls next-themes setTheme.
-- Replace AdminHeader and ui/navigation user menus with a shared UserProfileDropdown that: shows user info, theme submenu, help links, sign out, and opens ProfileManagementPanel.
-- Implement ProfileManagementPanel with two tabs (Profile/Security). Initially, editable items:
-  - Profile: name (PATCH /api/users/me). Date of birth/occupation/address shown as "Add …" placeholders but disabled until schema story is approved.
-  - Security: email (display/verify via future endpoint), password change (PATCH /api/users/me with currentPassword), MFA (use /api/auth/mfa/*), passkeys/device sign-in (defer/backlog with copy-only rows).
-- Do not introduce new Prisma models in phase 1. Revisit schema extension in a later phase behind a migration plan and tests.
+## 8) Database Schema (Prisma) → Migration TODOs
+- [ ] Extend prisma/schema.prisma with UserProfile, Organization relation includes, VerificationToken if absent
+- [ ] Run migration: prisma migrate dev --name add_user_profile_security
+- [ ] prisma generate
 
-## Updated Scope and Risks
-- Scope v1: UI + wiring to existing endpoints only. No DB migrations.
-- Risks: Some security flows (phone verification, passkeys) require new endpoints/DB; keep as backlog to avoid destabilizing RBAC/tenancy.
-- Mitigation: Clearly mark disabled/backlog items in UI with descriptions and non-interactive actions.
+## 9) Testing Strategy → Tests TODOs
+- [ ] Unit tests for UserProfileDropdown (render, initials, opens, Manage Profile, theme, status)
+- [ ] Unit tests for ProfileManagementPanel (default tab, switch to security, editable rows, verified badge)
+- [ ] E2E tests tests/e2e/user-profile.spec.ts (open dropdown, open panel, switch tabs, verification badges, theme set to dark, status change updates dot)
 
-## Updated TODOs (Phase-driven)
+## 10) Deployment & Integration → Checklists TODOs
+- [ ] Pre-deployment: unit/E2E pass, migrations staged, env vars set, routes secured, CORS, rate limiting, error logging, email/SMS configured
+- [ ] Code quality: TS strict, ESLint clean, Prettier, no console logs, error boundaries, loading states, Lighthouse a11y ≥ 95
+- [ ] Performance: analyze bundle (<50KB gz for dropdown), image optimization, lazy-load panel, avoid re-renders, memoization, FCP < 1.5s, TTI < 3s, CLS < 0.1
+- [ ] Security: XSS, CSRF for mutations, input validation, SQLi protection (Prisma), secrets masked, verification endpoints limited, sessions secure, 2FA correct
+- [ ] Post-deployment: verify dropdown/panel, security flows, verification, mobile, a11y, monitor logs 24h, DB query performance, API < 300ms, theme and status behavior
 
-### Phase 1 – Foundation & Shared Component
-- [ ] Create shared dropdown: src/components/admin/layout/UserProfileDropdown.tsx (uses shadcn Dropdown, next-themes, opens panel)
-- [ ] Subcomponents under src/components/admin/layout/UserProfileDropdown/
-  - [ ] Avatar.tsx (image/initials + optional status dot)
-  - [ ] UserInfo.tsx (compact/full blocks)
-  - [ ] ThemeSubmenu.tsx (calls next-themes setTheme)
-  - [ ] constants.ts and types.ts (menu/link metadata)
-- [ ] Integrate into AdminHeader (replace current user menu only, preserve existing styles/spacing)
-- [ ] Integrate into src/components/ui/navigation.tsx for site/portal header user menu
+## 11) Integration Steps → App Wiring TODOs
+- [ ] Update src/components/admin/layout/Header/AdminHeader.tsx to render UserProfileDropdown (replacing existing simple menu)
+- [ ] Create src/components/providers/ThemeProvider.tsx per guide (or reuse next-themes if preferred)
+- [ ] Wrap app in ThemeProvider in src/app/layout.tsx
+- [ ] Add src/styles/dark-mode.css and import; ensure transitions and overrides per guide
 
-### Phase 2 – Profile Management Panel (UI-first, minimal wiring)
-- [ ] Create panel container: src/components/admin/profile/ProfileManagementPanel.tsx (Dialog)
-- [ ] Tabs: src/components/admin/profile/ProfileTab.tsx and SecurityTab.tsx
-- [ ] Field rows: src/components/admin/profile/EditableField.tsx and VerificationBadge.tsx
-- [ ] Profile tab wiring (name only):
-  - [ ] Read: GET /api/users/me
-  - [ ] Update: PATCH /api/users/me (name)
-  - [ ] Placeholders (disabled) for dateOfBirth/occupation/address with helper copy
-- [ ] Security tab wiring:
-  - [ ] Display email; future "verify" action backlog
-  - [ ] Change password: PATCH /api/users/me with currentPassword validation (invoke modal flow)
-  - [ ] MFA: call /api/auth/mfa/enroll and /api/auth/mfa/verify
-  - [ ] Passkeys/device sign-in/account activity: display-only placeholders with descriptive text
+## 12) Builder.io Integration → TODOs
+- [ ] Create src/components/builder/UserProfileDropdownBuilder.tsx
+- [ ] Register with withBuilder; expose showStatus input; add metadata image/description
 
-### Phase 3 – Hooks/State
-- [ ] Create useUserStatus (localStorage + idle-away UI state only; no server persistence)
-- [ ] Create useUserProfile (reads /api/users/me, wraps update calls, handles loading/error)
-- [ ] Use next-themes useTheme directly (no custom hook/provider)
+## 13) Git Workflow → Process TODOs
+- [ ] Create branch feature/user-profile-hybrid
+- [ ] Stage files per components/profile/hooks/api/prisma
+- [ ] Compose detailed commit message describing features, components, hooks, APIs, tests (replace placeholder issue number with real one)
+- [ ] Push branch and open PR
 
-### Phase 4 – Tests
-- [ ] Unit: UserProfileDropdown (opens, shows info, theme submenu visible, manage profile opens panel)
-- [ ] Unit: ProfileManagementPanel (tab switch, editable rows render, disabled placeholders visible)
-- [ ] E2E: user-profile.spec (dropdown open, panel open, switch tabs, change theme, change status dot UI)
+## 14) Environment Variables → Config TODOs
+- [ ] NEXTAUTH_SECRET, NEXTAUTH_URL
+- [ ] DATABASE_URL
+- [ ] SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD
+- [ ] TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
 
-### Phase 5 – Accessibility & Performance
-- [ ] Ensure ARIA roles/labels, focus traps for dropdown/panel
-- [ ] No CLS in dropdown; lazy-load panel; memoize heavy subtrees
-
-### Phase 6 – Backlog (requires product/schema approval)
-- [ ] Decide storage for extended profile fields (dateOfBirth/occupation/address/phone)
-  - Option A: New UserProfile model (migration + tests)
-  - Option B: Extend existing User with JSON column for profile extras
-- [ ] Phone verification endpoints
-- [ ] Passkeys and device sign-in endpoints
-- [ ] Email verification endpoint reusing VerificationToken
-
-## Mapping Guide → Repo (Implementation Notes)
-- Theme: useTheme from next-themes; do not implement custom ThemeProvider.
-- 2FA: reuse /api/auth/mfa/* and lib/mfa.ts.
-- Profile updates: use /api/users/me (tenant-aware). Keep RBAC/tenancy wrappers for any new endpoints.
-- Admin headers: modify only the user menu section; keep existing layout/spacing and styles intact.
-- Dropdown components: use existing shadcn wrappers from src/components/ui/dropdown-menu.tsx and alert-dialog.tsx.
-
-## Environment & Security Checklist
-- [ ] NEXTAUTH_* and DATABASE_URL configured
-- [ ] Keep secrets out of logs/commits; no console.log in production paths
-- [ ] Rate-limit any future verification endpoints
-- [ ] Add audit logs when updating profile/security (follow existing logAudit patterns)
-
-## Open Questions
-- Which storage approach for extended profile fields is preferred (A vs. B)?
-- Do we require phone verification in v1 or defer?
-- Should the navigation header (public/portal) expose the same full menu as admin, or a reduced variant?
+## 15) Repo Alignment Notes (for our codebase)
+- [ ] If reusing next-themes, adapt ThemeSubmenu to use existing theme provider; otherwise add ThemeProvider per guide
+- [ ] Consider reusing existing MFA endpoints (/api/auth/mfa/*) instead of adding parallel ones; reconcile API plan during implementation
+- [ ] If deferring new UserProfile model, scope UI to data available from /api/users/me and add extended fields later
+- [ ] Preserve existing styles and spacing in AdminHeader and ui/navigation; do not alter unrelated styling
