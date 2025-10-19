@@ -3,11 +3,17 @@ const modelDefaults = {}
 const modelStore = {}
 let viLib
 try {
-  viLib = require('vitest')
+  viLib = (async () => {
+    try {
+      return await import('vitest')
+    } catch {
+      return null
+    }
+  })()
 } catch (err) {
   viLib = null
 }
-const vi = viLib ? viLib.vi || viLib : (typeof globalThis !== 'undefined' ? globalThis.vi : undefined)
+const vi = typeof globalThis !== 'undefined' ? globalThis.vi : undefined
 
 function makeFn(fn) {
   if (vi && typeof vi.fn === 'function') return vi.fn(fn)

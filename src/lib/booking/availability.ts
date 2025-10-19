@@ -215,10 +215,7 @@ export async function getAvailabilityForService(params: {
         // use the seeded service when prisma mock instances differ across modules in tests
         // eslint-disable-next-line no-console
         console.warn('[getAvailabilityForService] using seeded service fallback for', serviceId)
-        // @ts-ignore
-        // assign to svc variable
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error - assign to svc variable
         svc = seeded
       }
     } catch {}
