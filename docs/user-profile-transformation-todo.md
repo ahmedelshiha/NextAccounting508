@@ -162,3 +162,49 @@ Owner: Admin Team
 - [ ] Storage strategy for extended profile fields (new model vs JSON extension)
 - [ ] Scope and timeline for phone verification, passkeys, device sign-in UI → API parity
 - [ ] Single shared menu across admin/portal vs role-specific variations
+
+---
+
+## Progress Log
+
+- 2025-10-19 00:00 UTC — ✅ Scaffolding created for dropdown and panel.
+  - Summary: Added UserProfileDropdown with Avatar, UserInfo, ThemeSubmenu; added ProfileManagementPanel plus EditableField and VerificationBadge; defined basic types/constants.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/Avatar.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/UserInfo.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown/types.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/constants.ts
+    - src/components/admin/profile/ProfileManagementPanel.tsx
+    - src/components/admin/profile/EditableField.tsx
+    - src/components/admin/profile/VerificationBadge.tsx
+    - src/components/admin/profile/types.ts
+    - src/components/admin/profile/constants.ts
+  - Notes: Reusing next-themes; ThemeSubmenu implements role="menuitemradio" with light/dark/system. No wiring into AdminHeader yet.
+
+- 2025-10-19 00:05 UTC — ✅ UserProfileDropdown v1 implemented and wired into AdminHeader.
+  - Summary: Replaced legacy menu with new dropdown; added sign-out confirmation; kept original spacing and QuickLinks; cleaned unused imports.
+  - Files:
+    - src/components/admin/layout/AdminHeader.tsx
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
+  - Testing: basic render in header, open/close, theme menu visible, sign-out confirmation prompts.
+
+- 2025-10-19 00:08 UTC — ✅ Core hooks added.
+  - Summary: Added useUserStatus (localStorage + auto-away) and useUserProfile (GET/PATCH /api/users/me) hooks.
+  - Files:
+    - src/hooks/useUserStatus.ts
+    - src/hooks/useUserProfile.ts
+
+- 2025-10-19 00:12 UTC — ✅ ProfileManagementPanel integrated with hooks and fields.
+  - Summary: Wired Tabs to render PROFILE_FIELDS and SECURITY_FIELDS with loading skeletons using useUserProfile.
+  - Files:
+    - src/components/admin/profile/ProfileManagementPanel.tsx
+
+- 2025-10-19 00:14 UTC — ✅ API plan confirmed.
+  - Summary: Reusing existing /api/users/me for profile read/update. 2FA flows will reuse existing endpoints /api/auth/mfa/enroll and /api/auth/mfa/verify. Email/phone verification endpoints deferred until scope confirmation.
+
+- 2025-10-19 00:16 UTC — ✅ Status selector added.
+  - Summary: Added StatusSelector in dropdown with aria-checked radios; hooked to useUserStatus; avatar dot reflects current status.
+  - Files:
+    - src/components/admin/layout/Header/UserProfileDropdown.tsx
