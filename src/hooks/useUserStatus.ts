@@ -48,7 +48,7 @@ export function useUserStatus(options?: { autoAwayMs?: number }) {
     }
   }, [markActive])
 
-  const set = useCallback((s: UserStatus) => setStatus(s), [])
+  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; (await import('@/lib/a11y')).announce(`Status set to ${lbl}`) } catch {} }, [])
 
   return { status, setStatus: set }
 }

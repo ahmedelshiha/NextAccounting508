@@ -65,8 +65,14 @@ export default function UserProfileDropdown({
   const organization = (session?.user as any)?.organization as string | undefined
 
   const links = useMemo<UserMenuLink[]>(() => {
-    return customLinks && customLinks.length ? customLinks : MENU_LINKS
-  }, [customLinks])
+    const raw = customLinks && customLinks.length ? customLinks : MENU_LINKS
+    const roleStr = role || undefined
+    return raw.filter(l => {
+      if (!l.permission) return true
+      const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
+      try { const { hasPermission } = require('@/lib/permissions'); return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+    })
+  }, [customLinks, role])
 
   const { status: userStatus } = useUserStatus()
 

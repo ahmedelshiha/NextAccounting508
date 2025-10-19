@@ -13,9 +13,17 @@ const patchSchema = z.object({
   currentPassword: z.string().optional()
 })
 
-export const GET = withTenantContext(async (_request: NextRequest) => {
+export const GET = withTenantContext(async (request: Request) => {
   try {
     const ctx = requireTenantContext()
+
+    // Rate limit: 60 req/min per IP
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(request as unknown as Request)
+      const rl = await applyRateLimit(`user:me:get:${ip}`, 60, 60_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    } catch {}
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
     if (!hasDb) {
@@ -37,9 +45,20 @@ export const GET = withTenantContext(async (_request: NextRequest) => {
   }
 })
 
-export const PATCH = withTenantContext(async (request: NextRequest) => {
+export const PATCH = withTenantContext(async (request: Request) => {
   try {
     const ctx = requireTenantContext()
+
+    // CSRF: enforce same-origin for mutations
+    try { const { isSameOrigin } = await import('@/lib/security/csrf'); if (!isSameOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 }) } catch {}
+
+    // Rate limit: 20 changes/min per IP
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(request as unknown as Request)
+      const rl = await applyRateLimit(`user:me:patch:${ip}`, 20, 60_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    } catch {}
 
     const json = await request.json().catch(() => ({}))
     const parsed = patchSchema.safeParse(json)
@@ -109,9 +128,20 @@ export const PATCH = withTenantContext(async (request: NextRequest) => {
   }
 })
 
-export const DELETE = withTenantContext(async (request: NextRequest) => {
+export const DELETE = withTenantContext(async (request: Request) => {
   try {
     const ctx = requireTenantContext()
+
+    // CSRF: enforce same-origin for mutations
+    try { const { isSameOrigin } = await import('@/lib/security/csrf'); if (!isSameOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 }) } catch {}
+
+    // Rate limit: 5 deletes/day per IP window (simulate with long window)
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(request as unknown as Request)
+      const rl = await applyRateLimit(`user:me:delete:${ip}`, 5, 86_400_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    } catch {}
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL)
     if (!hasDb) {

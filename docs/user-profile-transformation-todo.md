@@ -123,7 +123,7 @@ Owner: Admin Team
 ## 16) Enhancements & Gaps (added by review)
 - Accessibility & UX
   - [ ] Return focus to trigger after dropdown/panel close
-  - [ ] Add aria-live status announcements for theme/status/profile save
+  - [x] Add aria-live status announcements for theme/status/profile save
   - [ ] Ensure role="menuitemradio" and aria-checked on theme/status items
   - [ ] Modal: trap focus, make background inert; test mobile screen readers
 - Internationalization

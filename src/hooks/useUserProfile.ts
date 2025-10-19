@@ -43,6 +43,7 @@ export function useUserProfile() {
       const data = await res.json()
       const next = (data && typeof data === 'object' && 'user' in data) ? (data as any).user : data
       setProfile(next)
+      try { const { announce } = await import('@/lib/a11y'); announce('Profile updated') } catch {}
       return next
     } catch (e: any) {
       setError(String(e?.message || e))

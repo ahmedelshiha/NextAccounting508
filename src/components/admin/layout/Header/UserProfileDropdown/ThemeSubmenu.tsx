@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes"
 import { Sun, Moon, Monitor } from "lucide-react"
+import { announce } from "@/lib/a11y"
 
 const options = [
   { value: "light", label: "Light", Icon: Sun },
@@ -21,7 +22,7 @@ export default function ThemeSubmenu() {
             key={value}
             role="menuitemradio"
             aria-checked={checked}
-            onClick={() => setTheme(value)}
+            onClick={() => { setTheme(value); try { announce(`Theme set to ${label}`) } catch {} }}
             className={
               "w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 " +
               (checked ? "text-gray-900" : "text-gray-700")

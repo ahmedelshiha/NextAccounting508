@@ -11,7 +11,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
@@ -56,6 +56,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState('')
   const [profileOpen, setProfileOpen] = useState(false)
+  const profileTriggerRef = useRef<HTMLButtonElement | null>(null)
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
 
@@ -171,11 +172,11 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </div>
 
             {/* User menu */}
-            <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} />
+            <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
           </div>
         </div>
       </div>
-      <ProfileManagementPanel isOpen={profileOpen} onClose={() => setProfileOpen(false)} defaultTab="profile" />
+      <ProfileManagementPanel isOpen={profileOpen} onClose={() => { setProfileOpen(false); try { profileTriggerRef.current?.focus() } catch {} }} defaultTab="profile" />
     </header>
   )
 }
