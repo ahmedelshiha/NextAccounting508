@@ -17,7 +17,7 @@ export interface EditableFieldProps {
   description?: string
 }
 
-export default function EditableField({
+function EditableFieldComponent({
   label,
   value,
   placeholder,
