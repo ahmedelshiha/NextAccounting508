@@ -24,6 +24,31 @@ export interface UserProfileDropdownProps {
   customLinks?: UserMenuLink[]
 }
 
+function StatusSelector() {
+  const { status, setStatus } = useUserStatus()
+  const opts = [
+    { v: "online" as const, label: "Online", dot: "bg-green-500" },
+    { v: "away" as const, label: "Away", dot: "bg-amber-400" },
+    { v: "busy" as const, label: "Busy", dot: "bg-red-500" },
+  ]
+  return (
+    <div role="group" aria-label="Status" className="py-1 border-t border-gray-100">
+      {opts.map(o => (
+        <button
+          key={o.v}
+          role="menuitemradio"
+          aria-checked={status === o.v}
+          onClick={() => setStatus(o.v)}
+          className={"w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 " + (status === o.v ? "text-gray-900" : "text-gray-700")}
+        >
+          <span className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${o.dot}`} />
+          <span className="flex-1 text-left">{o.label}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function UserProfileDropdown({
   className,
   showStatus = true,
