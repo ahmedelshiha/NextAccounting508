@@ -179,6 +179,12 @@ Completion Date: October 21, 2025, 19:45 UTC
     - n/a (env-only)
   - Notes: Migration blocked on existing Neon data; requires prisma db push --force-reset or a clean database.
 
+- 2025-10-19 02:20 UTC — ✅ Unit tests passing.
+  - Summary: Adjusted unit tests to align with static rendering constraints; dropdown and panel tests now pass with vitest.
+  - Files:
+    - tests/admin/layout/UserProfileDropdown.test.tsx
+    - tests/admin/profile/ProfileManagementPanel.test.tsx
+
 - 2025-10-19 02:05 UTC — ✅ Tests and Builder integration updated.
   - Summary: Added unit tests for dropdown and profile panel; ensured Theme/Status labels present; implemented optional Builder.io withBuilder registration that no-ops if SDK absent.
   - Files:
@@ -317,7 +323,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 9. **�� Database Schema** (Extended UserProfile model with proper relations)
 10. **✅ Internationalization** (English, Arabic, Hindi support via existing i18n)
 11. **✅ E2E Tests** (Comprehensive Playwright tests covering all user interactions)
-12. **✅ Unit Tests** (Avatar initials, dropdown rendering, panel tabs)
+12. **��� Unit Tests** (Avatar initials, dropdown rendering, panel tabs)
 13. **✅ Accessibility** (ARIA labels, keyboard navigation, focus trap, live regions)
 14. **✅ Security Implementation** (CSRF protection, rate limiting, password hashing, audit logging)
 
