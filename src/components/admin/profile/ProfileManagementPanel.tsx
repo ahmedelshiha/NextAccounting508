@@ -49,6 +49,7 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
   )
 }
 
+import AccountActivity from './AccountActivity'
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
     <TabsContent value="security" className="mt-4">
@@ -99,6 +100,7 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
               description="Devices where you're currently signed in"
             />
           </div>
+          <AccountActivity />
         </>
       )}
     </TabsContent>
