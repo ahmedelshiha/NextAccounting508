@@ -180,7 +180,9 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
             </div>
 
             {/* User menu */}
-            <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
+            <div onMouseEnter={() => { try { void import('../profile/ProfileManagementPanel') } catch {} }}>
+              <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => setProfileOpen(true)} triggerRef={profileTriggerRef} />
+            </div>
           </div>
         </div>
       </div>
