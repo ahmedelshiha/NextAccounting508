@@ -130,7 +130,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - Internationalization
   - [ ] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks
 - Status experience
-  - [ ] Listen to window online/offline and reflect offline status (read-only)
+  - [x] Listen to window online/offline and reflect offline status (read-only)
   - [ ] Document auto-away behavior and provide "busy" override that disables auto-away
 - Toasts & errors
   - [ ] Use Toaster to display success/error for profile/security actions; map common server errors
@@ -167,6 +167,11 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:25 UTC — ✅ Status offline/online handling.
+  - Summary: Updated useUserStatus to listen to online/offline events and set away when offline (busy preserved), auto-resume on activity/online.
+  - Files:
+    - src/hooks/useUserStatus.ts
 
 - 2025-10-19 02:18 UTC — ✅ Database schema applied.
   - Summary: Executed prisma db push --force-reset to baseline Neon database and sync schema; Prisma Client generated.
