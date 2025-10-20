@@ -55,7 +55,7 @@ export function useUserStatus(options?: { autoAwayMs?: number }) {
     }
   }, [markActive, status])
 
-  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`) } catch {} }, [])
+  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`); const { toast } = require('sonner'); toast.success(`Status: ${lbl}`) } catch {} }, [])
 
   return { status, setStatus: set }
 }
