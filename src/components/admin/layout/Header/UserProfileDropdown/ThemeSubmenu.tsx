@@ -3,6 +3,7 @@
 import { useTheme } from "@/hooks/useTheme"
 import { Sun, Moon, Monitor } from "lucide-react"
 import { announce } from "@/lib/a11y"
+import { toast } from "sonner"
 
 const options = [
   { value: "light", label: "Light", Icon: Sun },
