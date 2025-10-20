@@ -133,7 +133,7 @@ Completion Date: October 21, 2025, 19:45 UTC
   - [x] Listen to window online/offline and reflect offline status (read-only)
   - [ ] Document auto-away behavior and provide "busy" override that disables auto-away
 - Toasts & errors
-  - [ ] Use Toaster to display success/error for profile/security actions; map common server errors
+  - [x] Use Toaster to display success/error for profile/security actions; map common server errors
 - Hooks tests
   - [ ] Unit tests for useUserStatus (auto-away, persistence), useUserProfile (loading/error/update), useSecuritySettings (processing, API paths)
 - Panel polish
@@ -149,7 +149,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - Account activity
   - [ ] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
 - Keyboard Shortcuts
-  - [ ] Provide /admin/shortcuts page or modal; update Help link accordingly
+  - [x] Provide /admin/shortcuts page or modal; update Help link accordingly
 - Theme
   - [x] Emit a custom "themechange" event (or document next-themes behavior) for any consumers
   - [ ] Test system-theme change listener (prefers-color-scheme) and persistence
@@ -167,6 +167,14 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:28 UTC — ✅ Toasts and keyboard shortcuts page.
+  - Summary: Added toasts for profile updates, theme and status changes; created /admin/shortcuts and verified HELP_LINKS points to it.
+  - Files:
+    - src/hooks/useUserProfile.ts
+    - src/components/admin/layout/Header/UserProfileDropdown/ThemeSubmenu.tsx
+    - src/hooks/useUserStatus.ts
+    - src/app/admin/shortcuts/page.tsx
 
 - 2025-10-19 02:25 UTC — ✅ Status offline/online handling.
   - Summary: Updated useUserStatus to listen to online/offline events and set away when offline (busy preserved), auto-resume on activity/online.
