@@ -1,4 +1,4 @@
-import { render, screen } from '../../test-mocks/testing-library-react'
+import { render, screen } from '../../../test-mocks/testing-library-react'
 import ProfileManagementPanel from '@/components/admin/profile/ProfileManagementPanel'
 
 describe('ProfileManagementPanel', () => {
