@@ -116,10 +116,10 @@ Completion Date: October 21, 2025, 19:45 UTC
 - [x] TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER (future enhancement)
 
 ## 15) Repo Alignment Notes (for our codebase)
-- [ ] If reusing next-themes, adapt ThemeSubmenu to use existing theme provider; otherwise add ThemeProvider per guide
-- [ ] Consider reusing existing MFA endpoints (/api/auth/mfa/*) instead of adding parallel ones; reconcile API plan during implementation
-- [ ] If deferring new UserProfile model, scope UI to data available from /api/users/me and add extended fields later
-- [ ] Preserve existing styles and spacing in AdminHeader and ui/navigation; do not alter unrelated styling
+- [x] If reusing next-themes, adapt ThemeSubmenu to use existing theme provider; otherwise add ThemeProvider per guide (Implemented: using next-themes with custom ThemeProvider wrapper)
+- [x] Consider reusing existing MFA endpoints (/api/auth/mfa/*) instead of adding parallel ones; reconcile API plan during implementation (Implemented: reusing existing MFA endpoints)
+- [x] If deferring new UserProfile model, scope UI to data available from /api/users/me and add extended fields later (Implemented: UserProfile model added with extended fields; backward compatible)
+- [x] Preserve existing styles and spacing in AdminHeader and ui/navigation; do not alter unrelated styling (Verified: AdminHeader styling preserved, only added UserProfileDropdown component)
 
 ## 16) Enhancements & Gaps (added by review)
 - Accessibility & UX
