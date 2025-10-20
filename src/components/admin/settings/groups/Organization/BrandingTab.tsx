@@ -51,7 +51,7 @@ export default function BrandingTab(){
         <div className="flex items-center space-x-3">
           <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center overflow-hidden">
             {pending.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <img src={pending.logoUrl} alt={`${orgName} logo`} className="h-10 w-10 object-cover" />
             ) : (
               <span className="text-white font-bold text-sm">{initials}</span>

@@ -511,7 +511,7 @@ export default function TeamManagement({ hideHeader = false }: { hideHeader?: bo
         const members = Array.isArray(data.teamMembers) ? data.teamMembers : []
 
         // Load availability metrics (availabilityPercentage per member)
-        let availabilityById: Record<string, number> = {}
+        const availabilityById: Record<string, number> = {}
         try {
           const availRes = await fetch('/api/admin/team-management/availability', { cache: 'no-store' })
           const availJson = await availRes.json().catch(() => ({} as any))

@@ -94,7 +94,7 @@ export function Navigation({ orgName = 'Accounting Firm', orgLogoUrl }: { orgNam
             <Link href="/" aria-label={`${orgName} home`} className="flex items-center space-x-2">
               <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center overflow-hidden">
                 {orgLogoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                   
                   <img src={orgLogoUrl} alt={`${orgName} logo`} className="h-8 w-8 object-cover" />
                 ) : (
                   <span className="text-white font-bold text-sm">{(orgName || 'A').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>
