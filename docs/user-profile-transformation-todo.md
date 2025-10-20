@@ -137,7 +137,7 @@ Completion Date: October 21, 2025, 19:45 UTC
 - Hooks tests
   - [ ] Unit tests for useUserStatus (auto-away, persistence), useUserProfile (loading/error/update), useSecuritySettings (processing, API paths)
 - Panel polish
-  - [ ] Code-split ProfileManagementPanel; prefetch on hover/first open intent
+  - [x] Code-split ProfileManagementPanel; prefetch on hover/first open intent
   - [ ] Add skeleton placeholders for panel fields while loading
   - [ ] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state)
   - [x] Persist last-active-tab in localStorage
@@ -167,6 +167,11 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:34 UTC — ✅ Panel prefetch on hover.
+  - Summary: Added chunk prefetch for ProfileManagementPanel on hover over user menu to reduce first-open latency.
+  - Files:
+    - src/components/admin/layout/AdminHeader.tsx
 
 - 2025-10-19 02:32 UTC — ✅ Audit logs + Account activity viewer.
   - Summary: Ensured audit logging on profile updates and MFA flows; added /api/user/audit-logs and rendered recent activity in Security tab.
