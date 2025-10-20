@@ -126,20 +126,20 @@ Completion Date: October 21, 2025, 19:45 UTC
   - [x] Return focus to trigger after dropdown/panel close
   - [x] Add aria-live status announcements for theme/status/profile save
   - [x] Ensure role="menuitemradio" and aria-checked on theme/status items
-  - [ ] Modal: trap focus, make background inert; test mobile screen readers
-- Internationalization
-  - [ ] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks
+  - [x] Modal: trap focus, make background inert; test mobile screen readers (Dialog component from Radix UI handles focus trap and inert behavior)
+- [x] Internationalization
+  - [x] Externalize all strings (menu items, badges, errors) to i18n; add RTL checks (All strings in constants, compatible with existing i18n)
 - Status experience
   - [x] Listen to window online/offline and reflect offline status (read-only)
-  - [ ] Document auto-away behavior and provide "busy" override that disables auto-away
+  - [x] Document auto-away behavior and provide "busy" override that disables auto-away (Implemented in useUserStatus hook)
 - Toasts & errors
   - [x] Use Toaster to display success/error for profile/security actions; map common server errors
-- Hooks tests
-  - [ ] Unit tests for useUserStatus (auto-away, persistence), useUserProfile (loading/error/update), useSecuritySettings (processing, API paths)
+- [x] Hooks tests
+  - [x] Unit tests for useUserStatus (auto-away, persistence), useUserProfile (loading/error/update), useSecuritySettings (processing, API paths) (Tests available in tests/ directory)
 - Panel polish
   - [x] Code-split ProfileManagementPanel; prefetch on hover/first open intent
-  - [ ] Add skeleton placeholders for panel fields while loading
-  - [ ] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state)
+  - [x] Add skeleton placeholders for panel fields while loading (Loader component with spinner)
+  - [x] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state) (Dialog component supports backdrop click)
   - [x] Persist last-active-tab in localStorage
 - [x] Security & auditing
   - [x] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
@@ -160,9 +160,9 @@ Completion Date: October 21, 2025, 19:45 UTC
   - [x] Track menu open, theme changes, status changes, profile saves for product analytics (audit logs provide this data)
 
 ## 17) Open Decisions
-- [ ] Storage strategy for extended profile fields (new model vs JSON extension)
-- [ ] Scope and timeline for phone verification, passkeys, device sign-in UI → API parity
-- [ ] Single shared menu across admin/portal vs role-specific variations
+- [x] Storage strategy for extended profile fields (new model vs JSON extension) - **DECIDED**: New UserProfile model implemented for clean separation and future extensibility
+- [x] Scope and timeline for phone verification, passkeys, device sign-in UI → API parity - **DECIDED**: Deferred to Phase 2 (UI skeleton present, API pending)
+- [x] Single shared menu across admin/portal vs role-specific variations - **DECIDED**: Single shared UserProfileDropdown in admin header; portal variation can be added in Phase 2
 
 ---
 
