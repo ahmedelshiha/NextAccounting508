@@ -142,12 +142,12 @@ Completion Date: October 21, 2025, 19:45 UTC
   - [ ] Support swipe-to-close on mobile and backdrop click to close (with confirm on dirty state)
   - [x] Persist last-active-tab in localStorage
 - Security & auditing
-  - [ ] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
+  - [x] Add audit logs on profile/security updates (action keys consistent: user.profile.update, mfa.enroll, mfa.verify)
   - [x] Ensure CSRF protection on mutations where applicable
 - RBAC/visibility
   - [x] Conditionally render links (Billing/API Keys) based on user permissions/feature flags
 - Account activity
-  - [ ] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
+  - [x] Wire "Account activity" row to a simple viewer of recent audit events (last 10)
 - Keyboard Shortcuts
   - [x] Provide /admin/shortcuts page or modal; update Help link accordingly
 - Theme
@@ -167,6 +167,13 @@ Completion Date: October 21, 2025, 19:45 UTC
 ---
 
 ## Progress Log
+
+- 2025-10-19 02:32 UTC — ✅ Audit logs + Account activity viewer.
+  - Summary: Ensured audit logging on profile updates and MFA flows; added /api/user/audit-logs and rendered recent activity in Security tab.
+  - Files:
+    - src/app/api/user/audit-logs/route.ts
+    - src/components/admin/profile/AccountActivity.tsx
+    - src/components/admin/profile/ProfileManagementPanel.tsx
 
 - 2025-10-19 02:28 UTC — ✅ Toasts and keyboard shortcuts page.
   - Summary: Added toasts for profile updates, theme and status changes; created /admin/shortcuts and verified HELP_LINKS points to it.
