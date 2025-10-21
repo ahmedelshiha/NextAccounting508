@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import useSWR from 'swr'
 import { apiFetch } from '@/lib/api'
-import { UserPreferences } from '@/schemas/user-profile'
+import { UserPreferences, PreferencesSchema } from '@/schemas/user-profile'
 
 /**
  * Custom hook for fetching and caching user preferences
@@ -33,7 +33,20 @@ const defaultOptions: UseUserPreferencesOptions = {
 async function fetchPreferences(): Promise<UserPreferences> {
   const res = await apiFetch('/api/user/preferences')
   if (!res.ok) {
+    // Try to parse error body for logging
     const data = await res.json().catch(() => ({}))
+    // If server error (500), return safe defaults so UI remains functional
+    if (res.status === 500) {
+      try {
+        console.warn('Preferences fetch failed (500), using defaults', data)
+        // PreferencesSchema.parse will apply defaults defined in the schema
+        return PreferencesSchema.parse({})
+      } catch (schemaErr) {
+        console.error('Failed to construct default preferences from schema', schemaErr)
+        throw new Error(data.error || `Failed to fetch preferences (${res.status})`)
+      }
+    }
+    // For other client errors, surface the message
     throw new Error(data.error || `Failed to fetch preferences (${res.status})`)
   }
   return res.json()
