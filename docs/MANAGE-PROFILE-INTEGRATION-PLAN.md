@@ -374,7 +374,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
-└──────────────────────┬──────────────────────────────────────────┘
+└────��─────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
           │            │            │
@@ -389,7 +389,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     └────────────┘ └─────────┘ └─────────────┘
           │           │            │
     ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
-    │  User DB   │ │ User DB  │ │UserProfile  │
+    │  User DB   │ �� User DB  │ │UserProfile  │
     │ (name,     │ │(password,│ │  DB         │
     │  email)    │ │  2fa)    │ │(timezone,   │
     │            │ │          │ │ prefs)      │
@@ -462,7 +462,7 @@ ProfileManagementPanel
 ├── SecurityTab (existing)
 ├── PreferencesTab (NEW)
 │   ├── BookingNotificationsSection
-│   └── LocalizationSection
+���   └── LocalizationSection
 ├── CommunicationTab (NEW - admin only)
 │   ├── EmailSettingsSection
 │   ├── SmsSettingsSection
@@ -894,6 +894,9 @@ After migration, these become:
 ---
 
 ## Progress Log
+- 2025-10-21 14:00 UTC — ✅ Completed
+  - Summary: Ran migration on staging database. Result: { created: 0, updated: 0, skipped: 0 }.
+  - Notes: No BookingPreferences records present to migrate. Verified Prisma client generation succeeded.
 - 2025-10-21 13:40 UTC — ✅ Completed
   - Summary: Created migration and rollback scripts to move BookingPreferences into UserProfile fields and added package scripts to run them.
   - Files Modified:
