@@ -89,6 +89,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     const tenantId = ctx.tenantId
 
     if (!userEmail || !tenantId) {
+      console.error('Preferences PUT: Missing email or tenantId', {
+        hasEmail: !!userEmail,
+        hasTenantId: !!tenantId,
+      })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
