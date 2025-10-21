@@ -40,33 +40,18 @@ export const PUT = withTenantContext(async (req: Request) => {
       try { Sentry.captureMessage('team-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
-    const before = await teamService.get(tenantId).catch(()=>null)
+    const before = await teamService.get(tenantId).catch(() => null)
     const updated = await teamService.upsert(tenantId, parsed.data)
 
-    try {
-      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
-      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
-        tenantId,
-        category: 'teamManagement',
-        resource: 'team-settings',
-        ...(actorUserId ? { userId: actorUserId } : {}),
-      }
-      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
-      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
-      await prisma.settingChangeDiff.create({ data: diffPayload })
-    } catch {}
-
-    try {
-      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
-      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
-        tenantId,
-        type: 'settings.update',
-        resource: 'team-settings',
-        details: { category: 'teamManagement' } as Prisma.InputJsonValue,
-        ...(actorUserId ? { userId: actorUserId } : {}),
-      }
-      await prisma.auditEvent.create({ data: auditPayload })
-    } catch {}
+    // Persist change diff and audit event
+    await persistSettingChangeDiff({
+      tenantId,
+      category: 'teamManagement',
+      resource: 'team-settings',
+      userId: ctx.userId,
+      before,
+      after: updated,
+    })
 
     return NextResponse.json(updated)
   } catch (e) {
