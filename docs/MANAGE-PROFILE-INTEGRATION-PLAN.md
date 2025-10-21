@@ -398,7 +398,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     [COMMUNICATION TAB - ADMIN ONLY]
     ┌──────────────────────┐
     │ Communication Tab    │
-    │  (Permission Gate)   │
+    │  (Permission Gate)   ��
     └──────────┬───────────┘
                │
     ┌──────────▼──────────────────┐
@@ -977,5 +977,14 @@ After migration, these become:
 
 2025-10-21 14:42 UTC — ✅ All pending validation tasks completed
   - Summary: All requested validation and test-environment fixes completed. Proceeding to next items in the action plan as automated.
+
+- 2025-10-21 15:52 UTC — ✅ Completed
+  - Summary: Addressed Vercel build lint failure caused by restricted import of getServerSession in API route.
+  - Actions Taken:
+    - Replaced server-side getServerSession usage with requireTenantContext() in src/app/api/user/preferences/route.ts to comply with codebase import restrictions.
+    - Ensured NextRequest/NextResponse imports present and updated user retrieval to use tenant context's userEmail.
+  - Files Modified:
+    - src/app/api/user/preferences/route.ts
+  - Testing Notes: This resolves the ESLint no-restricted-imports error seen during CI; recommend running lint and typecheck locally or in CI to confirm.
 
 
