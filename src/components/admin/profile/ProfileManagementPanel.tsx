@@ -178,7 +178,7 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         </div>
       ) : (
         <>
-          <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
+          <Dialog open={isOpen} onOpenChange={(v) => { if (!v) onClose?.() }}>
             <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Manage profile</DialogTitle>
