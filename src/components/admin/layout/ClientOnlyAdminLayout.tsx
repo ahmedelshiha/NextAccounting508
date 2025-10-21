@@ -69,7 +69,8 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
   }
 
   return (
-    <SessionProvider session={session}>
+    <ThemeProvider>
+      <SessionProvider session={session}>
       <AdminProviders>
         <div className="min-h-screen bg-gray-50 relative">
           <a
@@ -142,5 +143,6 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
         </div>
       </AdminProviders>
     </SessionProvider>
+    </ThemeProvider>
   )
 }
