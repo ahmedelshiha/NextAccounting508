@@ -1,6 +1,4 @@
-import dynamic from 'next/dynamic'
-
-const ProfileManagementPanel = dynamic(() => import('@/components/admin/profile/ProfileManagementPanel'), { ssr: false })
+import ProfileManagementPanel from '@/components/admin/profile/ProfileManagementPanel'
 
 export default function AdminProfilePage() {
   return (
