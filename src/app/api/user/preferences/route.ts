@@ -7,9 +7,18 @@ import { withTenantContext } from '@/lib/api-wrapper'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const ctx = requireTenantContext()
-    const userEmail = ctx.userEmail
-    const tenantId = ctx.tenantId
+    let ctx
+    try {
+      ctx = requireTenantContext()
+    } catch (contextError) {
+      console.error('Preferences GET: Failed to get tenant context', {
+        error: contextError instanceof Error ? contextError.message : String(contextError),
+      })
+      return NextResponse.json({ error: 'Tenant context error' }, { status: 500 })
+    }
+
+    const userEmail = ctx?.userEmail
+    const tenantId = ctx?.tenantId
 
     if (!userEmail || !tenantId) {
       console.error('Preferences GET: Missing email or tenantId', {
