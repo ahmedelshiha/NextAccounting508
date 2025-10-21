@@ -13,8 +13,13 @@ vi.mock('@/lib/prisma', () => {
   }
   return { default: mock, ...mock }
 })
+// Ensure applyRateLimit returns allowed by default for these tests
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return { ...actual, applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 0, limit: 3, remaining: 3, resetAt: Date.now() + 60000 })), getClientIp: (_req: any) => '127.0.0.1' }
+})
 import prisma from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
+import * as naNext from 'next-auth/next'
 
 // Helper to read request body
 function readBody(req: http.IncomingMessage) {
@@ -177,13 +182,13 @@ describe('HTTP-level integration tests for method-not-allowed and OPTIONS', () =
 // AUTHENTICATED / UNAUTHENTICATED FLOW TESTS
 describe('HTTP-level integration tests for auth flows', () => {
   it('DELETE /api/bookings/:id returns 401 when unauthenticated', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce(null as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce(null as any)
     const res = await fetch(`${baseUrl}/api/bookings/b1`, { method: 'DELETE' })
     expect(res.status).toBe(401)
   })
 
   it('DELETE /api/bookings/:id cancels when authenticated owner and tenant matches', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).booking.findUnique.mockResolvedValueOnce({ id: 'b1', clientId: 'client1', tenantId: 't1', status: 'PENDING' })
     ;(prisma as any).booking.update.mockResolvedValueOnce({ id: 'b1', status: 'CANCELLED' })
 
@@ -194,7 +199,7 @@ describe('HTTP-level integration tests for auth flows', () => {
   })
 
   it('GET /api/portal/service-requests/export returns CSV for authenticated user', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).serviceRequest.findMany.mockResolvedValueOnce([
       { id: 'r1', title: 'Req 1', service: { name: 'S1' }, priority: 'MEDIUM', status: 'SUBMITTED', createdAt: new Date(), scheduledAt: null, bookingType: null }
     ])
@@ -209,7 +214,7 @@ describe('HTTP-level integration tests for auth flows', () => {
   })
 
   it('POST /api/portal/service-requests creates when authenticated (simulate client create)', async () => {
-    vi.mocked(getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
+    vi.mocked(naNext.getServerSession).mockResolvedValueOnce({ user: { id: 'client1' } } as any)
     ;(prisma as any).service.findUnique.mockResolvedValue({ id: 'svc1', name: 'SVC', active: true, status: 'ACTIVE' })
     ;(prisma as any).serviceRequest.create.mockResolvedValueOnce({ id: 'new1', clientId: 'client1', serviceId: 'svc1' })
 

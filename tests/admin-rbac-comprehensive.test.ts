@@ -26,6 +26,14 @@ vi.mock('@/lib/rate-limit', async () => {
   }
 })
 
+// Preload common test bootstraps to stabilize endpoint behaviors
+import autoSetupServices from './setup/services.setup'
+import autoSetupTeamManagement from './setup/teamManagement.setup'
+
+// Apply default presets
+autoSetupServices()
+autoSetupTeamManagement()
+
 vi.mock('@/lib/tenant', () => ({
   getTenantFromRequest: () => null,
   tenantFilter: () => ({})

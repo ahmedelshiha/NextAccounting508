@@ -17,7 +17,7 @@ describe('Prisma mock examples', () => {
     mockSessionClient('client1')
 
     const items = [
-      { id: 'sr-x', title: 'Example Item', priority: 'MEDIUM', status: 'SUBMITTED', createdAt: new Date('2024-01-01T00:00:00Z'), scheduledAt: null, bookingType: '', service: { name: 'Example' }, clientId: 'client1', tenantId: 't1' }
+      { id: 'sr-x', title: 'Example Item', priority: 'MEDIUM', status: 'SUBMITTED', createdAt: new Date('2024-01-01T00:00:00Z'), scheduledAt: null, bookingType: '', service: { name: 'Example' }, clientId: 'client1', tenantId: 'test-tenant' }
     ]
 
     // Use setModelMethod to override the shared mock implementation for a single test
@@ -39,7 +39,7 @@ describe('Prisma mock examples', () => {
     vi.doMock('@/lib/tenant', () => ({ getTenantFromRequest: () => 't1', isMultiTenancyEnabled: () => true }))
 
     // Override booking model methods
-    setModelMethod('booking', 'findUnique', async ({ where }: any) => ({ id: where.id, clientId: 'client1', status: 'CONFIRMED', tenantId: 't1' }))
+    setModelMethod('booking', 'findUnique', async ({ where }: any) => ({ id: where.id, clientId: 'client1', status: 'CONFIRMED', tenantId: 'test-tenant' }))
     setModelMethod('booking', 'update', async ({ where, data }: any) => ({ id: where.id, status: data.status }))
     vi.doMock('@/lib/prisma', () => ({ default: (globalThis as any).prismaMock }))
 

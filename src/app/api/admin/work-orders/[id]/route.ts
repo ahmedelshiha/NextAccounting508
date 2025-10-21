@@ -6,6 +6,7 @@ import { z } from 'zod'
 import type { Prisma, RequestPriority, WorkOrderStatus } from '@prisma/client'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -37,7 +38,7 @@ export const GET = withTenantContext(async (request: NextRequest, context: { par
   const canReadAll = hasPermission(role, PERMISSIONS.TASKS_READ_ALL)
   const canReadAssigned = hasPermission(role, PERMISSIONS.TASKS_READ_ASSIGNED)
   if (!ctx.userId || (!canReadAll && !canReadAssigned)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const { id } = await context.params
@@ -60,7 +61,7 @@ export const PUT = withTenantContext(async (request: NextRequest, context: { par
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const { id } = await context.params
@@ -112,7 +113,7 @@ export const DELETE = withTenantContext(async (request: NextRequest, context: { 
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!ctx.userId || !hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const { id } = await context.params

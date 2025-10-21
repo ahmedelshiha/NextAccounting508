@@ -4,6 +4,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { tenantFilter } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const hasDb = !!process.env.NETLIFY_DATABASE_URL
 
@@ -11,7 +12,7 @@ export const GET = withTenantContext(async (request?: Request) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
   if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.forbidden('Forbidden')
   }
   try {
     if (!hasDb) {

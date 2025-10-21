@@ -5,6 +5,7 @@ import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 type ClientSettings = {
   registration: any
@@ -140,6 +141,7 @@ export default function ClientManagementSettingsPage() {
           <PermissionGate permission={PERMISSIONS.CLIENT_SETTINGS_EDIT}>
             <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
           </PermissionGate>
+          <FavoriteToggle settingKey="clientManagement" route="/admin/settings/clients" label="Client Management" />
         </div>
       )}>
         <div className="px-4">

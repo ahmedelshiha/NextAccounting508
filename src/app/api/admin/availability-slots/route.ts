@@ -5,6 +5,7 @@ import { tenantFilter, isMultiTenancyEnabled } from '@/lib/tenant'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext, getTenantFilter } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -25,7 +26,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const tenantId = ctx.tenantId
@@ -60,7 +61,7 @@ export const POST = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const tenantId = ctx.tenantId
@@ -94,7 +95,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const tenantId = ctx.tenantId
@@ -129,7 +130,7 @@ export const DELETE = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role as string | undefined
   if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return respond.unauthorized()
   }
 
   const tenantId = ctx.tenantId

@@ -5,6 +5,7 @@ import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, SelectField, Toggle, NumberField } from '@/components/admin/settings/FormField'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 export default function CommunicationSettingsPage(){
   const [active, setActive] = useState('email')
@@ -85,6 +86,7 @@ export default function CommunicationSettingsPage(){
             <PermissionGate permission={PERMISSIONS.COMMUNICATION_SETTINGS_EDIT}>
               <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button>
             </PermissionGate>
+            <FavoriteToggle settingKey="communication" route="/admin/settings/communication" label="Communication" />
           </div>
         )}
       >

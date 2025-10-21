@@ -25,6 +25,7 @@ export type SettingsCategoryKey =
   | 'communication'
   | 'securityCompliance'
   | 'integrationHub'
+  | 'cronTelemetry'
   | 'serviceRequests'
   | 'systemAdministration'
 

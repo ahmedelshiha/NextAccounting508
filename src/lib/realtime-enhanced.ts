@@ -33,22 +33,35 @@ class PostgresPubSub implements PubSubAdapter { public name = 'postgres'
   private listenClient: any
   private pool: any
   private reconnecting = false
+  private initialized = false
+  private initPromise: Promise<void> | null = null
   constructor() {
     this.channel = sanitizeChannel(String(process.env.REALTIME_PG_CHANNEL || 'realtime_events'))
     this.url = process.env.REALTIME_PG_URL || process.env.DATABASE_URL
-    this.init().catch((e) => { console.error('Realtime PG init error', e) })
   }
+  /** Exposed for consumers that want to start the listener explicitly (e.g., on first SSE subscribe) */
+  enable() { void this.ensureInit() }
   onMessage(handler: (event: RealtimeEvent) => void) {
     this.handlers.add(handler)
+    // Do not auto-connect here to avoid triggering DB connections during build/trace
   }
-  async init() {
+  private async ensureInit() {
+    if (this.initialized) return
+    if (!this.initPromise) {
+      this.initPromise = this.init().finally(() => { this.initialized = true })
+    }
+    return this.initPromise
+  }
+  private async init() {
     try {
       const pg = await import('pg')
       const { Client, Pool } = pg as any
       this.pool = new Pool({ connectionString: this.url })
       await this.startListener(Client)
     } catch (e) {
+      // Surface once at runtime when actually used
       console.error('Realtime PG adapter init failed', e)
+      throw e
     }
   }
   private async startListener(ClientCtor: any) {
@@ -79,6 +92,7 @@ class PostgresPubSub implements PubSubAdapter { public name = 'postgres'
   }
   async publish(event: RealtimeEvent) {
     try {
+      await this.ensureInit()
       if (!this.pool) return
       const payload = JSON.stringify(event)
       await this.pool.query('SELECT pg_notify($1, $2)', [this.channel, payload])
@@ -107,6 +121,10 @@ function createAdapterFromEnv(): PubSubAdapter {
     case 'neon':
       if (!isNodeRuntime()) {
         console.warn('Realtime PG transport requested but runtime is not Node — falling back to in-memory adapter')
+        return new InMemoryPubSub()
+      }
+      if (!((typeof process !== 'undefined' && (process.env.REALTIME_PG_URL || process.env.DATABASE_URL)))) {
+        console.warn('Realtime PG transport requested but no REALTIME_PG_URL/DATABASE_URL set — falling back to in-memory adapter')
         return new InMemoryPubSub()
       }
       try {
@@ -138,6 +156,8 @@ class EnhancedRealtimeService extends EventEmitter {
     const connectionId = Math.random().toString(36).slice(2)
     const types = new Set(eventTypes && eventTypes.length ? eventTypes : ['all'])
     this.connections.set(connectionId, { controller, userId, eventTypes: types })
+    // Lazily enable underlying transport when a real subscriber connects
+    try { (this.adapter as any)?.enable?.() } catch {}
     return connectionId
   }
 

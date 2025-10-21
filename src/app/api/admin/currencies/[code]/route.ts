@@ -3,13 +3,14 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 export const PATCH = withTenantContext(async (request: NextRequest, context: { params: Promise<{ code: string }> }) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TEAM_MANAGE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const params = await context.params

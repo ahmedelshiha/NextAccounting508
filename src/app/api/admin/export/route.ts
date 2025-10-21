@@ -4,6 +4,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { logAudit } from '@/lib/audit'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -29,8 +30,11 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
-    if (!ctx || !ctx.userId || !hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
-      return new NextResponse('Unauthorized', { status: 401 })
+    if (!ctx || !ctx.userId) {
+      return respond.unauthorized()
+    }
+    if (!hasPermission(role, PERMISSIONS.ANALYTICS_EXPORT)) {
+      return respond.forbidden('Forbidden')
     }
 
     const { searchParams } = new URL(request.url)

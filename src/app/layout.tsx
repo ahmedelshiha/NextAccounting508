@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
 import { SettingsProvider } from '@/components/providers/SettingsProvider'
+import '@/styles/dark-mode.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -76,9 +77,9 @@ export default async function RootLayout({
         </a>
         <TranslationProvider initialLocale={orgLocale as any}>
           <SettingsProvider initialSettings={{ name: orgName, logoUrl: orgLogoUrl ?? null, contactEmail: contactEmail ?? null, contactPhone: contactPhone ?? null, legalLinks: legalLinks ?? null, defaultLocale: orgLocale }}>
-            <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
-              {children}
-            </ClientLayout>
+              <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
+                {children}
+              </ClientLayout>
           </SettingsProvider>
         </TranslationProvider>
 

@@ -30,7 +30,7 @@ async function getSubtleCrypto(): Promise<SubtleCrypto | null> {
 
   const proc = (globalThis as any).process
   if (proc?.versions?.node) {
-    const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
+    const moduleNames = ['node:crypto', 'crypto']
     for (const candidate of moduleNames) {
       try {
         const nodeCrypto: any = await import(candidate)
@@ -47,7 +47,7 @@ async function loadNodeCrypto(): Promise<typeof import('crypto') | null> {
   const proc = (globalThis as any).process
   if (!proc?.versions?.node) return null
 
-  const moduleNames = [[ 'node', 'crypto' ].join(':'), ['cr', 'ypto'].join('')]
+  const moduleNames = ['node:crypto', 'crypto']
   for (const candidate of moduleNames) {
     try {
       return await import(candidate) as typeof import('crypto')
