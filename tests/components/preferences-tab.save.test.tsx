@@ -4,13 +4,14 @@ import React from 'react'
 import PreferencesTab from '@/components/admin/profile/PreferencesTab'
 
 vi.mock('@/lib/api', () => ({
+  __esModule: true,
   apiFetch: vi.fn(async (_url: string, opts?: RequestInit) => ({ ok: true, json: async () => ({ ok: true, ...(opts && opts.body ? JSON.parse(opts.body as string) : {}) }) }))
 }))
 
 describe('PreferencesTab', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // mock initial fetch load
-    const mod = require('@/lib/api')
+    const mod = await import('@/lib/api')
     ;(mod.apiFetch as any).mockResolvedValueOnce({ ok: true, json: async () => ({ timezone: 'UTC', preferredLanguage: 'en', reminderHours: [24,2] }) })
   })
 
@@ -18,7 +19,7 @@ describe('PreferencesTab', () => {
     render(<PreferencesTab loading={false} />)
     const btn = await screen.findByRole('button', { name: /save preferences/i })
     fireEvent.click(btn)
-    const mod = require('@/lib/api')
-    expect(mod.apiFetch).toHaveBeenCalledWith('/api/user/preferences', expect.objectContaining({ method: 'PUT' }))
+    const mod = await import('@/lib/api')
+    expect((mod as any).apiFetch).toHaveBeenCalledWith('/api/user/preferences', expect.objectContaining({ method: 'PUT' }))
   })
 })

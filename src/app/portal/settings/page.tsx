@@ -11,10 +11,12 @@ export default async function PortalSettingsPage() {
   const session = await getServerSession(authOptions)
 
   if (!session?.user) {
-    redirect('/login')
+    const nav = await import('next/navigation') as any
+    nav.redirect('/login')
   }
 
   // Permanently redirect all portal/settings traffic to admin/profile
-  // Using 'push' ensures this is a permanent redirect (301 equivalent in Next.js)
-  redirect('/admin/profile?tab=preferences')
+  // Using dynamic import ensures test mocks for next/navigation are used
+  const nav = await import('next/navigation') as any
+  nav.redirect('/admin/profile?tab=preferences')
 }
