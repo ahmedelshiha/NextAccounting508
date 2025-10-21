@@ -54,6 +54,7 @@ function EditableFieldComponent({
   verified,
   masked,
   disabled = false,
+  fieldType = 'text',
   onSave,
   onVerify,
   description,
@@ -74,6 +75,14 @@ function EditableFieldComponent({
 
   const handleSave = useCallback(async () => {
     if (!onSave) return
+
+    // Validate before saving
+    const validationError = getValidationError(fieldType, editValue)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setSaving(true)
     setError(null)
     try {
@@ -84,7 +93,7 @@ function EditableFieldComponent({
     } finally {
       setSaving(false)
     }
-  }, [editValue, onSave])
+  }, [editValue, onSave, fieldType])
 
   const handleCancel = useCallback(() => {
     setEditValue(value || "")
