@@ -35,19 +35,26 @@ function StatusSelector() {
     { v: "busy" as const, label: "Busy", dot: "bg-red-500" },
   ]
   return (
-    <div role="group" aria-label="Status" className="py-1 border-t border-gray-100">
-      {opts.map(o => (
-        <button
-          key={o.v}
-          role="menuitemradio"
-          aria-checked={status === o.v}
-          onClick={() => setStatus(o.v)}
-          className={"w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 " + (status === o.v ? "text-gray-900" : "text-gray-700")}
-        >
-          <span className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${o.dot}`} />
-          <span className="flex-1 text-left">{o.label}</span>
-        </button>
-      ))}
+    <div role="group" aria-label="Status" className="px-3 py-2 border-t border-gray-100">
+      <div className="flex gap-2 items-center justify-start">
+        {opts.map(o => (
+          <button
+            key={o.v}
+            role="menuitemradio"
+            aria-checked={status === o.v}
+            onClick={() => setStatus(o.v)}
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors",
+              status === o.v
+                ? "bg-gray-200 text-gray-900 font-medium"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-150"
+            )}
+          >
+            <span className={`h-2 w-2 rounded-full ${o.dot}`} />
+            <span>{o.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
