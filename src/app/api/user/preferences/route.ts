@@ -34,12 +34,23 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     const email = userEmail as string
     const tid = tenantId as string
 
-    const user = await prisma.user.findFirst({
-      where: { email: email, tenantId: tid },
-      include: { userProfile: true },
-    })
+    let user
+    try {
+      user = await prisma.user.findFirst({
+        where: { email: email, tenantId: tid },
+        include: { userProfile: true },
+      })
+    } catch (dbError) {
+      console.error('Preferences GET: Database query failed', {
+        email,
+        tenantId: tid,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      })
+      throw dbError
+    }
 
     if (!user) {
+      console.warn('Preferences GET: User not found', { email, tenantId: tid })
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
