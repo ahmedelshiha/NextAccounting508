@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: Props) {
 
   // Pass session to client layout for initialization
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="light">
       <ClientOnlyAdminLayout session={session}>
         {children}
       </ClientOnlyAdminLayout>
