@@ -12,6 +12,7 @@ export default function UserProfileDropdownBuilder({ showStatus = true }: UserPr
   useEffect(() => {
     void (async () => {
       try {
+        // @ts-ignore - @builder.io/react is optional and may not be installed
         const mod: any = await import('@builder.io/react')
         const withBuilder = mod?.withBuilder
         if (typeof withBuilder === 'function') {
