@@ -96,10 +96,18 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
 export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const ctx = requireTenantContext()
+    let ctx
+    try {
+      ctx = requireTenantContext()
+    } catch (contextError) {
+      console.error('Preferences PUT: Failed to get tenant context', {
+        error: contextError instanceof Error ? contextError.message : String(contextError),
+      })
+      return NextResponse.json({ error: 'Tenant context error' }, { status: 500 })
+    }
 
-    const userEmail = ctx.userEmail
-    const tenantId = ctx.tenantId
+    const userEmail = ctx?.userEmail
+    const tenantId = ctx?.tenantId
 
     if (!userEmail || !tenantId) {
       console.error('Preferences PUT: Missing email or tenantId', {
