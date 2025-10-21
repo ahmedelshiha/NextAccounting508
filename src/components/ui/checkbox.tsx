@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as React from 'react'
+import React from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
