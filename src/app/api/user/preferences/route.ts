@@ -215,6 +215,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       })
     } catch {}
 
+    const reminderHoursArray = Array.isArray(updatedProfile.reminderHours)
+      ? (updatedProfile.reminderHours as number[])
+      : [24, 2]
+
     const preferences = {
       timezone: updatedProfile.timezone || 'UTC',
       preferredLanguage: updatedProfile.preferredLanguage || 'en',
@@ -224,7 +228,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       bookingEmailCancellation: updatedProfile.bookingEmailCancellation ?? true,
       bookingSmsReminder: updatedProfile.bookingSmsReminder ?? false,
       bookingSmsConfirmation: updatedProfile.bookingSmsConfirmation ?? false,
-      reminderHours: Array.isArray(updatedProfile.reminderHours) ? updatedProfile.reminderHours : [24, 2],
+      reminderHours: reminderHoursArray,
     }
 
     return NextResponse.json(preferences)
