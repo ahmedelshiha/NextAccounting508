@@ -140,9 +140,20 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Reminder hours must be between 1 and 720' }, { status: 400 })
     }
 
-    const user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
+    let user
+    try {
+      user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
+    } catch (dbError) {
+      console.error('Preferences PUT: Database query failed', {
+        email,
+        tenantId: tid,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      })
+      throw dbError
+    }
 
     if (!user) {
+      console.warn('Preferences PUT: User not found', { email, tenantId: tid })
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
