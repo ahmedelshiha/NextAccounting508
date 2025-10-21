@@ -100,6 +100,17 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     )
   }
 
+  if (loadError) {
+    return (
+      <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
+        {loadError}
+        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+          Retry
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="mt-4 space-y-6">
       <div>
