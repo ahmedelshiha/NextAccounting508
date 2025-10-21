@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
-export async function GET(request: Request) {
+export const GET = withTenantContext(async (request: Request) => {
   try {
-    const session = await Promise.race([
-      // attempt to get server session but don't block too long
-      (getServerSession as any)(authOptions),
-      new Promise((resolve) => setTimeout(() => resolve(null), 500)),
-    ]) as any
+    // requireTenantContext reads tenant+user info initialized by withTenantContext
+    const ctx = requireTenantContext()
+    const userEmail = ctx?.userEmail ?? null
+    const tenantId = ctx?.tenantId ?? null
 
     let dbOk = false
     let dbError: string | null = null
     try {
-      // quick lightweight DB check
-      // use a minimal call to avoid heavy load
-      const c = await prisma.user.count({ take: 1 } as any)
+      // lightweight DB check
+      // use a simple count scoped to tenant when possible
+      const where: any = tenantId ? { tenantId } : {}
+      await prisma.user.count({ where })
       dbOk = true
     } catch (err: any) {
       dbOk = false
@@ -25,8 +25,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      hasSession: !!session?.user,
-      user: session?.user ? { id: session.user.id, email: session.user.email, tenantId: session.user.tenantId } : null,
+      hasSession: !!userEmail,
+      user: userEmail ? { email: userEmail, tenantId } : null,
       dbOk,
       dbError,
     })
@@ -34,4 +34,4 @@ export async function GET(request: Request) {
     console.error('Debug session route error', err)
     return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 })
   }
-}
+})
