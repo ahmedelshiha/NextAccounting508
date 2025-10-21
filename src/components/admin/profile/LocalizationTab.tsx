@@ -7,34 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiFetch } from '@/lib/api'
+import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
   timezone: string
   preferredLanguage: string
 }
-
-const TIMEZONES = [
-  'UTC',
-  'US/Eastern',
-  'US/Central',
-  'US/Mountain',
-  'US/Pacific',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Bangkok',
-  'Asia/Singapore',
-  'Asia/Tokyo',
-  'Australia/Sydney',
-]
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'hi', label: 'हिन्दी' },
-]
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const [saving, setSaving] = useState(false)
@@ -118,12 +96,18 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           Timezone
         </Label>
         <p className="text-xs text-gray-600 mb-2">Select your timezone for accurate appointment times</p>
-        <Select value={data.timezone} onValueChange={(value) => setData((prev) => ({ ...prev, timezone: value }))}>
+        <Select value={data.timezone} onValueChange={(value) => {
+          if (isValidTimezone(value)) {
+            setData((prev) => ({ ...prev, timezone: value }))
+          } else {
+            toast.error('Invalid timezone')
+          }
+        }}>
           <SelectTrigger id="timezone" className="mt-2">
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
-            {TIMEZONES.map((tz) => (
+            {COMMON_TIMEZONES.map((tz) => (
               <SelectItem key={tz} value={tz}>
                 {tz}
               </SelectItem>
