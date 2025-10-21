@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 export interface ProfileManagementPanelProps {
   isOpen: boolean
   onClose?: () => void
-  defaultTab?: "profile" | "security" | "preferences" | "communication" | "notifications"
+  defaultTab?: "profile" | "security" | "preferences" | "communication" | "notifications" | "booking" | "localization"
   inline?: boolean
   fullPage?: boolean
 }
