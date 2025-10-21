@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 export interface ProfileManagementPanelProps {
   isOpen: boolean
   onClose?: () => void
-  defaultTab?: "profile" | "security" | "preferences" | "communication" | "notifications"
+  defaultTab?: "profile" | "security" | "preferences" | "communication" | "notifications" | "booking" | "localization"
   inline?: boolean
   fullPage?: boolean
 }
@@ -55,6 +55,8 @@ import AccountActivity from './AccountActivity'
 import PreferencesTab from './PreferencesTab'
 import CommunicationTab from './CommunicationTab'
 import NotificationsTab from './NotificationsTab'
+import BookingNotificationsTab from './BookingNotificationsTab'
+import LocalizationTab from './LocalizationTab'
 import PermissionGate from '@/components/PermissionGate'
 import { useSession } from 'next-auth/react'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
@@ -124,14 +126,14 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const { data: session } = useSession()
   const role = (session?.user as any)?.role as string | undefined
   const canSeeCommunication = hasPermission(role, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)
-  const showNotificationsTab = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_PROFILE_DEBUG_TABS === '1')
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
     if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
-      if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
+      const validTabs = ['profile', 'security', 'booking', 'localization', 'preferences', 'communication', 'notifications']
+      if (!defaultTab && saved && validTabs.includes(saved)) setTab(saved as any)
     } catch {}
   }, [isOpen, defaultTab, fullPage])
 
@@ -158,15 +160,14 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const TabsBlock = (
     <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
       <div className="sticky top-0 bg-white z-10 pt-1">
-        <TabsList>
+        <TabsList className="grid w-full gap-0">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
+          <TabsTrigger value="booking">Booking Notifications</TabsTrigger>
+          <TabsTrigger value="localization">Localization</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           {canSeeCommunication && (
             <TabsTrigger value="communication">Communication</TabsTrigger>
-          )}
-          {showNotificationsTab && (
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           )}
         </TabsList>
       </div>
@@ -178,17 +179,18 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         onPasswordSave={(val) => handleProfileSave('password', val)}
         onMfaSetup={handleMfaSetup}
       />
+      <TabsContent value="booking" className="mt-4">
+        <BookingNotificationsTab loading={loading} />
+      </TabsContent>
+      <TabsContent value="localization" className="mt-4">
+        <LocalizationTab loading={loading} />
+      </TabsContent>
       <PreferencesTab loading={loading} />
       {canSeeCommunication && (
         <TabsContent value="communication" className="mt-4">
           <PermissionGate permission={PERMISSIONS.COMMUNICATION_SETTINGS_VIEW}>
             <CommunicationTab />
           </PermissionGate>
-        </TabsContent>
-      )}
-      {showNotificationsTab && (
-        <TabsContent value="notifications" className="mt-4">
-          <NotificationsTab />
         </TabsContent>
       )}
     </Tabs>

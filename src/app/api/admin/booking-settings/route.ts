@@ -42,14 +42,16 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
     try { await logAudit({ action: 'booking-settings:update', actorId: ctx.userId, details: { tenantId, updates } }) } catch {}
 
     // Persist change diff and audit event
-    await persistSettingChangeDiff({
-      tenantId,
-      category: 'booking',
-      resource: 'booking-settings',
-      userId: ctx.userId,
-      before,
-      after: settings,
-    })
+    if (tenantId) {
+      await persistSettingChangeDiff({
+        tenantId,
+        category: 'booking',
+        resource: 'booking-settings',
+        userId: ctx.userId,
+        before,
+        after: settings,
+      })
+    }
 
     return NextResponse.json({ settings, warnings: validated.warnings })
   } catch (e: any) {
