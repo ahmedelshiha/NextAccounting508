@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -38,16 +38,13 @@ const LANGUAGES = [
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
     preferredLanguage: 'en',
   })
 
-  useEffect(() => {
-    loadPreferences()
-  }, [])
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     try {
       const res = await apiFetch('/api/user/preferences')
       if (res.ok) {
@@ -56,11 +53,20 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           timezone: json.timezone || 'UTC',
           preferredLanguage: json.preferredLanguage || 'en',
         })
+        setLoadError(null)
+      } else {
+        setLoadError('Failed to load preferences')
       }
     } catch (err) {
       console.error('Failed to load preferences:', err)
+      setLoadError('Failed to load preferences')
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadPreferences()
+  }, [loadPreferences])
+
 
   const handleSave = async () => {
     setSaving(true)
@@ -73,6 +79,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
 
       if (res.ok) {
         toast.success('Localization settings saved')
+        setLoadError(null)
       } else {
         const err = await res.json().catch(() => ({}))
         toast.error(err.error?.message || 'Failed to save settings')
