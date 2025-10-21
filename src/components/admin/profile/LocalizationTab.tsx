@@ -11,7 +11,7 @@ import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
   timezone: string
-  preferredLanguage: string
+  preferredLanguage: 'en' | 'ar' | 'hi'
 }
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {

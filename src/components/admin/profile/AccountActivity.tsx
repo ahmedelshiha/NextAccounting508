@@ -21,6 +21,7 @@ interface PaginationResponse {
   page: number
   pageSize: number
   pages: number
+  error?: string
 }
 
 const PAGE_SIZE = 20

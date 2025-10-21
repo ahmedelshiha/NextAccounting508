@@ -48,10 +48,8 @@ export function useUserPreferences(options: UseUserPreferencesOptions = {}) {
     {
       revalidateOnFocus: mergedOptions.revalidateOnFocus,
       revalidateOnReconnect: mergedOptions.revalidateOnReconnect,
-      dedupingInterval: mergedOptions.dedupingInterval,
-      focusThrottleInterval: mergedOptions.focusThrottleInterval,
-      // Cache for 5 minutes by default
       dedupingInterval: 300_000,
+      focusThrottleInterval: mergedOptions.focusThrottleInterval,
     }
   )
 
