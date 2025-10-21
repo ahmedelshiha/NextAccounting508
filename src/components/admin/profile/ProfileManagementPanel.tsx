@@ -178,17 +178,18 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         onPasswordSave={(val) => handleProfileSave('password', val)}
         onMfaSetup={handleMfaSetup}
       />
+      <TabsContent value="booking" className="mt-4">
+        <BookingNotificationsTab loading={loading} />
+      </TabsContent>
+      <TabsContent value="localization" className="mt-4">
+        <LocalizationTab loading={loading} />
+      </TabsContent>
       <PreferencesTab loading={loading} />
       {canSeeCommunication && (
         <TabsContent value="communication" className="mt-4">
           <PermissionGate permission={PERMISSIONS.COMMUNICATION_SETTINGS_VIEW}>
             <CommunicationTab />
           </PermissionGate>
-        </TabsContent>
-      )}
-      {showNotificationsTab && (
-        <TabsContent value="notifications" className="mt-4">
-          <NotificationsTab />
         </TabsContent>
       )}
     </Tabs>
