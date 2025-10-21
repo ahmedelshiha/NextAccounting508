@@ -12,6 +12,12 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     const tenantId = ctx.tenantId
 
     if (!userEmail || !tenantId) {
+      console.error('Preferences GET: Missing email or tenantId', {
+        hasEmail: !!userEmail,
+        hasTenantId: !!tenantId,
+        email: userEmail,
+        tenantId,
+      })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -28,12 +34,23 @@ export const GET = withTenantContext(async (request: NextRequest) => {
     const email = userEmail as string
     const tid = tenantId as string
 
-    const user = await prisma.user.findFirst({
-      where: { email: email, tenantId: tid },
-      include: { userProfile: true },
-    })
+    let user
+    try {
+      user = await prisma.user.findFirst({
+        where: { email: email, tenantId: tid },
+        include: { userProfile: true },
+      })
+    } catch (dbError) {
+      console.error('Preferences GET: Database query failed', {
+        email,
+        tenantId: tid,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      })
+      throw dbError
+    }
 
     if (!user) {
+      console.warn('Preferences GET: User not found', { email, tenantId: tid })
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -53,9 +70,12 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     return NextResponse.json(preferences)
   } catch (error) {
-    console.error('Error fetching preferences:', error)
+    console.error('Error fetching preferences:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
-      { error: 'Failed to fetch preferences' },
+      { error: 'Failed to fetch preferences', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
@@ -69,6 +89,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     const tenantId = ctx.tenantId
 
     if (!userEmail || !tenantId) {
+      console.error('Preferences PUT: Missing email or tenantId', {
+        hasEmail: !!userEmail,
+        hasTenantId: !!tenantId,
+      })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -116,9 +140,20 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Reminder hours must be between 1 and 720' }, { status: 400 })
     }
 
-    const user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
+    let user
+    try {
+      user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
+    } catch (dbError) {
+      console.error('Preferences PUT: Database query failed', {
+        email,
+        tenantId: tid,
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      })
+      throw dbError
+    }
 
     if (!user) {
+      console.warn('Preferences PUT: User not found', { email, tenantId: tid })
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -173,9 +208,12 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
 
     return NextResponse.json(preferences)
   } catch (error) {
-    console.error('Error updating preferences:', error)
+    console.error('Error updating preferences:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
-      { error: 'Failed to update preferences' },
+      { error: 'Failed to update preferences', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
