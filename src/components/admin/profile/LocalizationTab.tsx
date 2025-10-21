@@ -97,7 +97,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           Preferred Language
         </Label>
         <p className="text-xs text-gray-600 mb-2">Choose your preferred language for communications</p>
-        <Select value={data.preferredLanguage} onValueChange={(value) => setData((prev) => ({ ...prev, preferredLanguage: value }))}>
+        <Select value={data.preferredLanguage} onValueChange={(value) => setData((prev) => ({ ...prev, preferredLanguage: value as 'en' | 'ar' | 'hi' }))}>
           <SelectTrigger id="language" className="mt-2">
             <SelectValue placeholder="Select language" />
           </SelectTrigger>

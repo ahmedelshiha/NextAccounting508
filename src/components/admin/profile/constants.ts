@@ -20,6 +20,36 @@ export const LANGUAGES = [
 export const VALID_LANGUAGES = ['en', 'ar', 'hi']
 
 /**
+ * Profile fields configuration for EditableField component
+ */
+export const PROFILE_FIELDS = [
+  {
+    key: 'name',
+    label: 'Full Name',
+    placeholder: 'Enter your full name',
+    verified: false,
+    masked: false,
+    fieldType: 'text' as const,
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    placeholder: 'Enter your email address',
+    verified: false,
+    masked: false,
+    fieldType: 'email' as const,
+  },
+  {
+    key: 'organization',
+    label: 'Organization',
+    placeholder: 'Enter your organization name',
+    verified: false,
+    masked: false,
+    fieldType: 'text' as const,
+  },
+]
+
+/**
  * Reminder hours configuration
  */
 export const REMINDER_HOURS = [24, 12, 6, 2]

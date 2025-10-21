@@ -134,9 +134,9 @@ export type ReminderConfig = z.infer<typeof ReminderConfigSchema>
  */
 
 export const RemindersSettingsSchema = z.object({
-  bookings: ReminderConfigSchema.default({}),
-  invoices: ReminderConfigSchema.default({}),
-  tasks: ReminderConfigSchema.default({}),
+  bookings: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
+  invoices: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
+  tasks: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
 })
 
 export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
@@ -147,12 +147,12 @@ export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
  */
 
 export const CommunicationSettingsSchema = z.object({
-  email: EmailSettingsSchema.default({}),
-  sms: SmsSettingsSchema.default({}),
-  liveChat: LiveChatSettingsSchema.default({}),
-  notificationDigest: NotificationDigestSchema.default({}),
-  newsletters: NewslettersSettingsSchema.default({}),
-  reminders: RemindersSettingsSchema.default({}),
+  email: EmailSettingsSchema.default(() => ({ transactionalEnabled: true, marketingEnabled: false, complianceBccEnabled: false })),
+  sms: SmsSettingsSchema.default(() => ({ provider: 'none' as 'none' | 'twilio' | 'plivo' | 'nexmo' | 'messagebird', transactionalEnabled: false, marketingEnabled: false, fallbackToEmail: true })),
+  liveChat: LiveChatSettingsSchema.default(() => ({ enabled: false, provider: 'none' as 'none' | 'intercom' | 'drift' | 'zendesk' | 'livechat', routing: 'round_robin' as 'round_robin' | 'least_busy' | 'first_available' | 'manual', workingHoursTimezone: 'UTC', escalationEmails: [] })),
+  notificationDigest: NotificationDigestSchema.default(() => ({ timezone: 'UTC' })),
+  newsletters: NewslettersSettingsSchema.default(() => ({ enabled: false, doubleOptIn: true, topics: [] })),
+  reminders: RemindersSettingsSchema.default(() => ({ bookings: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] }, invoices: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] }, tasks: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] } })),
 })
 
 export type CommunicationSettings = z.infer<typeof CommunicationSettingsSchema>
