@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme"
 import { Sun, Moon, Monitor } from "lucide-react"
 import { announce } from "@/lib/a11y"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 const options = [
   { value: "light", label: "Light", Icon: Sun },
@@ -14,26 +15,40 @@ const options = [
 export default function ThemeSubmenu() {
   const { theme, setTheme } = useTheme()
 
+  const handleThemeChange = (value: typeof options[number]["value"]) => {
+    setTheme(value)
+    try {
+      const label = options.find(o => o.value === value)?.label || value
+      announce(`Theme set to ${label}`)
+      toast.success(`Theme: ${label}`)
+    } catch {}
+  }
+
   return (
-    <div role="group" aria-label="Theme" className="py-1 border-t border-gray-100">
-      {options.map(({ value, label, Icon }) => {
-        const checked = (theme || "system") === value
-        return (
-          <button
-            key={value}
-            role="menuitemradio"
-            aria-checked={checked}
-            onClick={() => { setTheme(value); try { announce(`Theme set to ${label}`) } catch {} }}
-            className={
-              "w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 " +
-              (checked ? "text-gray-900" : "text-gray-700")
-            }
-          >
-            <Icon className="mr-2 h-4 w-4" />
-            <span className="flex-1 text-left">{label}</span>
-          </button>
-        )
-      })}
+    <div role="group" aria-label="Theme" className="px-3 py-2 border-t border-gray-100">
+      <div className="flex gap-2 items-center justify-start">
+        {options.map(({ value, label, Icon }) => {
+          const checked = (theme || "system") === value
+          return (
+            <button
+              key={value}
+              role="menuitemradio"
+              aria-checked={checked}
+              onClick={() => handleThemeChange(value)}
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors",
+                checked
+                  ? "bg-gray-200 text-gray-900 font-medium"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-150"
+              )}
+              title={`Switch to ${label} theme`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{label}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
