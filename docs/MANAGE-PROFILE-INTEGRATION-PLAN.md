@@ -273,7 +273,7 @@ This document outlines the plan to consolidate user account settings from `/port
 
 ### Phase 2: Communication Settings (Optional but Recommended)
 **Priority:** MEDIUM
-**Status:** In Progress
+**Status:** Completed
 **Timeline:** 2-3 weeks
 **Scope:** Admin-only communication channel configuration
 **Permission Gate:** Admin/Team Lead only
@@ -374,7 +374,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
-└──────────────────────┬──────────────────────────────────────────┘
+└──────────────────────┬───��──────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
           │            │            │
@@ -419,7 +419,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ### Existing Endpoints (Reuse)
 - `GET/PUT /api/user/profile` ✅
 - `POST /api/user/security/2fa` ✅
-- `GET/PUT /api/admin/communication-settings` ✅
+- `GET/PUT /api/admin/communication-settings` ��
 - `GET /api/portal/settings/booking-preferences` ✅
 - `PUT /api/portal/settings/booking-preferences` ✅
 
