@@ -12,6 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate limit: 60 requests/minute per IP
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(request as unknown as Request)
+      const rl = await applyRateLimit(`user:preferences:get:${ip}`, 60, 60_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    } catch {}
+
     const email = userEmail as string
     const tid = tenantId as string
 
@@ -58,6 +66,14 @@ export async function PUT(request: NextRequest) {
     if (!userEmail || !tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Rate limit: 20 writes/minute per IP
+    try {
+      const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
+      const ip = getClientIp(request as unknown as Request)
+      const rl = await applyRateLimit(`user:preferences:put:${ip}`, 20, 60_000)
+      if (rl && rl.allowed === false) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+    } catch {}
 
     const email = userEmail as string
     const tid = tenantId as string

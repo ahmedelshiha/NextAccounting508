@@ -1,53 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { apiFetch } from '@/lib/api'
+import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
   timezone: string
   preferredLanguage: string
 }
 
-const TIMEZONES = [
-  'UTC',
-  'US/Eastern',
-  'US/Central',
-  'US/Mountain',
-  'US/Pacific',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Bangkok',
-  'Asia/Singapore',
-  'Asia/Tokyo',
-  'Australia/Sydney',
-]
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'hi', label: 'हिन्दी' },
-]
-
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
     preferredLanguage: 'en',
   })
 
-  useEffect(() => {
-    loadPreferences()
-  }, [])
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     try {
       const res = await apiFetch('/api/user/preferences')
       if (res.ok) {
@@ -56,11 +31,20 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           timezone: json.timezone || 'UTC',
           preferredLanguage: json.preferredLanguage || 'en',
         })
+        setLoadError(null)
+      } else {
+        setLoadError('Failed to load preferences')
       }
     } catch (err) {
       console.error('Failed to load preferences:', err)
+      setLoadError('Failed to load preferences')
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadPreferences()
+  }, [loadPreferences])
+
 
   const handleSave = async () => {
     setSaving(true)
@@ -73,6 +57,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
 
       if (res.ok) {
         toast.success('Localization settings saved')
+        setLoadError(null)
       } else {
         const err = await res.json().catch(() => ({}))
         toast.error(err.error?.message || 'Failed to save settings')
@@ -93,6 +78,17 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     )
   }
 
+  if (loadError) {
+    return (
+      <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
+        {loadError}
+        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+          Retry
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="mt-4 space-y-6">
       <div>
@@ -100,12 +96,18 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           Timezone
         </Label>
         <p className="text-xs text-gray-600 mb-2">Select your timezone for accurate appointment times</p>
-        <Select value={data.timezone} onValueChange={(value) => setData((prev) => ({ ...prev, timezone: value }))}>
+        <Select value={data.timezone} onValueChange={(value) => {
+          if (isValidTimezone(value)) {
+            setData((prev) => ({ ...prev, timezone: value }))
+          } else {
+            toast.error('Invalid timezone')
+          }
+        }}>
           <SelectTrigger id="timezone" className="mt-2">
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
-            {TIMEZONES.map((tz) => (
+            {COMMON_TIMEZONES.map((tz) => (
               <SelectItem key={tz} value={tz}>
                 {tz}
               </SelectItem>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -31,12 +31,9 @@ export default function BookingNotificationsTab({ loading }: { loading: boolean 
     bookingSmsConfirmation: false,
     reminderHours: [24, 2],
   })
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadPreferences()
-  }, [])
-
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     try {
       const res = await apiFetch('/api/user/preferences')
       if (res.ok) {
@@ -50,11 +47,20 @@ export default function BookingNotificationsTab({ loading }: { loading: boolean 
           bookingSmsConfirmation: json.bookingSmsConfirmation ?? false,
           reminderHours: Array.isArray(json.reminderHours) ? json.reminderHours : [24, 2],
         })
+        setLoadError(null)
+      } else {
+        setLoadError('Failed to load preferences')
       }
     } catch (err) {
       console.error('Failed to load preferences:', err)
+      setLoadError('Failed to load preferences')
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadPreferences()
+  }, [loadPreferences])
+
 
   const handleSave = async () => {
     setSaving(true)
@@ -77,6 +83,25 @@ export default function BookingNotificationsTab({ loading }: { loading: boolean 
     } finally {
       setSaving(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
+        {loadError}
+        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+          Retry
+        </button>
+      </div>
+    )
   }
 
   const toggleReminderHour = (hour: number) => {
