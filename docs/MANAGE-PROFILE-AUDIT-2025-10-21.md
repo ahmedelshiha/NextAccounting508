@@ -64,7 +64,7 @@ API LAYER:
 │ POST/DEL /api/user/security/authenticator                  │
 │ POST     /api/auth/mfa/enroll                              │
 │ POST     /api/auth/mfa/verify                              │
-└────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────���──────────────┘
 ```
 
 ---
@@ -311,16 +311,16 @@ API LAYER:
 
 ---
 
-## Bugs Summary
+## Bugs Summary — RESOLUTION STATUS
 
-| ID | Severity | Component | Issue | Impact |
-|----|-----------|-----------|--------------------------------------------|---------|
-| B1 | 🔴 High | useUserProfile | `refresh` dependency causes issues | May not update profile data consistently |
-| B2 | 🔴 High | BookingNotificationsTab | Missing `useCallback` in `loadPreferences` | Infinite loop potential |
-| B3 | 🔴 High | LocalizationTab | Same infinite loop issue | Preference load failures |
-| B4 | 🟠 Medium | `/api/user/preferences` | Hardcoded timezone validation | Outdated timezone support |
-| B5 | 🟠 Medium | EditableField | No email validation | Invalid emails accepted |
-| B6 | 🟡 Low | CommunicationTab | Missing error handling for import | Silent failure possible |
+| ID | Severity | Component | Issue | Status | Resolution |
+|----|-----------|-----------|--------------------------------------------|---------|----------|
+| B1 | 🔴 High | useUserProfile | `refresh` dependency causes issues | ✅ FIXED | Proper useCallback implementation |
+| B2 | 🔴 High | BookingNotificationsTab | Missing `useCallback` in `loadPreferences` | ✅ FIXED | Integrated useUserPreferences hook with SWR |
+| B3 | 🔴 High | LocalizationTab | Same infinite loop issue | ✅ FIXED | Integrated useUserPreferences hook with SWR |
+| B4 | 🟠 Medium | `/api/user/preferences` | Hardcoded timezone validation | ✅ FIXED | IANA timezone validation via Intl API |
+| B5 | 🟠 Medium | EditableField | No email validation | ✅ FIXED | Email regex + character count validation |
+| B6 | 🟡 Low | CommunicationTab | Missing error handling for import | ✅ FIXED | Comprehensive error handling for import/export |
 
 ---
 
