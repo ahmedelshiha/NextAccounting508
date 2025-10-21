@@ -65,6 +65,10 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     // Return preferences from user profile
     const profile = user.userProfile
+    const reminderHoursArray = Array.isArray(profile?.reminderHours)
+      ? (profile.reminderHours as number[])
+      : [24, 2]
+
     const preferences = {
       timezone: profile?.timezone || 'UTC',
       preferredLanguage: profile?.preferredLanguage || 'en',
@@ -74,7 +78,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       bookingEmailCancellation: profile?.bookingEmailCancellation ?? true,
       bookingSmsReminder: profile?.bookingSmsReminder ?? false,
       bookingSmsConfirmation: profile?.bookingSmsConfirmation ?? false,
-      reminderHours: Array.isArray(profile?.reminderHours) ? profile!.reminderHours : [24, 2],
+      reminderHours: reminderHoursArray,
     }
 
     return NextResponse.json(preferences)
