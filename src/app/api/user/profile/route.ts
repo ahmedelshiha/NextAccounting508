@@ -49,7 +49,7 @@ export const GET = withTenantContext(async (request: Request) => {
     return NextResponse.json({ user: merged })
   } catch (err) {
     console.error('GET /api/user/profile error', err)
-    return NextResponse.json({ error: 'Failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
   }
 })
 
