@@ -2,7 +2,7 @@
 ## Audit & Design Document
 
 **Date Created:** 2025-01-XX  
-**Status:** Ready for Review  
+**Status:** In Progress  
 **Priority:** High
 
 ---
@@ -782,8 +782,8 @@ After migration, these become:
 ```
 
 **Action Items:**
-- [ ] Verify `/api/user/preferences` endpoint created
-- [ ] Verify `/api/user/profile` exists & works
+- [x] Verify `/api/user/preferences` endpoint created
+- [x] Verify `/api/user/profile` exists & works
 - [ ] OfflineQueueInspector → move to admin (Notifications tab)
 - [ ] RealtimeConnectionPanel → move to admin (Notifications tab)
 
@@ -886,6 +886,17 @@ After migration, these become:
 
 ---
 
-**Document Owner:** [Your Name]  
-**Last Updated:** 2025-01-XX  
+**Document Owner:** [Your Name]
+**Last Updated:** 2025-10-21
 **Version:** 1.0
+
+---
+
+## Progress Log
+- 2025-10-21 13:00 UTC — ✅ Completed
+  - Summary: Updated navigation links to point to /admin/profile?tab=preferences, ensured admin profile respects tab query, and verified preferences API and redirect exist.
+  - Files Modified:
+    - src/components/ui/navigation.tsx
+    - src/components/tax/deadline-tracker.tsx
+    - src/app/admin/profile/page.tsx
+  - Testing Notes: Manually verified links route to Preferences tab; redirect from /portal/settings is active; Preferences tab loads and saves via /api/user/preferences.
