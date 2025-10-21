@@ -6,9 +6,7 @@ import service from '@/services/security-settings.service'
 import { SecurityComplianceSettingsSchema } from '@/schemas/settings/security-compliance'
 import { NextRequest } from 'next/server'
 import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
-import prisma from '@/lib/prisma'
-import { jsonDiff } from '@/lib/diff'
-import type { Prisma } from '@prisma/client'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
@@ -47,32 +45,18 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
-    const before = await service.get(tenantId).catch(()=>null)
+    const before = await service.get(tenantId).catch(() => null)
     const updated = await service.upsert(tenantId, parsed.data)
 
-    try {
-      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
-      const diffPayload: Prisma.SettingChangeDiffUncheckedCreateInput = {
-        tenantId,
-        category: 'securityCompliance',
-        resource: 'security-settings',
-        ...(actorUserId ? { userId: actorUserId } : {}),
-      }
-      if (before !== null) diffPayload.before = before as Prisma.InputJsonValue
-      if (updated !== null && updated !== undefined) diffPayload.after = updated as Prisma.InputJsonValue
-      await prisma.settingChangeDiff.create({ data: diffPayload })
-    } catch {}
-    try {
-      const actorUserId = ctx.userId ? String(ctx.userId) : undefined
-      const auditPayload: Prisma.AuditEventUncheckedCreateInput = {
-        tenantId,
-        type: 'settings.update',
-        resource: 'security-settings',
-        details: { category: 'securityCompliance' } as Prisma.InputJsonValue,
-        ...(actorUserId ? { userId: actorUserId } : {}),
-      }
-      await prisma.auditEvent.create({ data: auditPayload })
-    } catch {}
+    // Persist change diff and audit event
+    await persistSettingChangeDiff({
+      tenantId,
+      category: 'securityCompliance',
+      resource: 'security-settings',
+      userId: ctx.userId,
+      before,
+      after: updated,
+    })
 
     return NextResponse.json(updated)
   } catch (e) {
