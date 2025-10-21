@@ -1,10 +1,11 @@
-import ProfileManagementPanel from '@/components/admin/profile/ProfileManagementPanel'
+import dynamic from 'next/dynamic'
 
-export default async function AdminProfilePage() {
+const ProfileManagementPanel = dynamic(() => import('@/components/admin/profile/ProfileManagementPanel'), { ssr: false })
+
+export default function AdminProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       {/* Render the profile management as a normal page */}
-      {/* @ts-expect-error Server->Client dynamic: component is client */}
       <ProfileManagementPanel isOpen={true} onClose={() => {}} defaultTab="profile" inline />
     </div>
   )
