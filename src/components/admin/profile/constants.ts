@@ -1,55 +1,15 @@
 /**
  * Profile Management Constants
- * Common timezone list and validation utilities
+ * Common values and validation utilities
+ * Note: Core validation moved to src/schemas/user-profile.ts
  */
 
-export const COMMON_TIMEZONES = [
-  'UTC',
-  'US/Eastern',
-  'US/Central',
-  'US/Mountain',
-  'US/Pacific',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Asia/Dubai',
-  'Asia/Kolkata',
-  'Asia/Bangkok',
-  'Asia/Singapore',
-  'Asia/Tokyo',
-  'Australia/Sydney',
-]
+import { getCommonTimezones, isValidTimezone, getAvailableTimezones } from '@/schemas/user-profile'
 
-/**
- * Validate timezone using Intl API (IANA timezone database)
- * More robust than hardcoded list
- */
-export function isValidTimezone(tz: string): boolean {
-  try {
-    // If Intl API doesn't throw, timezone is valid
-    Intl.DateTimeFormat(undefined, { timeZone: tz })
-    return true
-  } catch (e) {
-    return false
-  }
-}
+// Re-export from central schema location
+export { isValidTimezone, getAvailableTimezones }
 
-/**
- * Get all available timezones (if supported by environment)
- * Falls back to common timezones if not available
- */
-export function getAvailableTimezones(): string[] {
-  // Check if Intl.supportedValuesOf is available (Node.js 18+, modern browsers)
-  if (typeof Intl.supportedValuesOf === 'function') {
-    try {
-      return (Intl.supportedValuesOf as any)('timeZone') as string[]
-    } catch {
-      // Fallback if not supported
-      return COMMON_TIMEZONES
-    }
-  }
-  return COMMON_TIMEZONES
-}
+export const COMMON_TIMEZONES = getCommonTimezones()
 
 export const LANGUAGES = [
   { code: 'en', label: 'English' },

@@ -1,76 +1,52 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { apiFetch } from '@/lib/api'
+import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
   timezone: string
-  preferredLanguage: string
+  preferredLanguage: 'en' | 'ar' | 'hi'
 }
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
+  const { preferences, loading: preferencesLoading, error: preferencesError, updatePreferences, refetch } = useUserPreferences()
   const [saving, setSaving] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
     preferredLanguage: 'en',
   })
 
-  const loadPreferences = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/user/preferences')
-      if (res.ok) {
-        const json = await res.json()
-        setData({
-          timezone: json.timezone || 'UTC',
-          preferredLanguage: json.preferredLanguage || 'en',
-        })
-        setLoadError(null)
-      } else {
-        setLoadError('Failed to load preferences')
-      }
-    } catch (err) {
-      console.error('Failed to load preferences:', err)
-      setLoadError('Failed to load preferences')
-    }
-  }, [])
-
+  // Sync hook data to component state
   useEffect(() => {
-    loadPreferences()
-  }, [loadPreferences])
+    if (preferences) {
+      setData({
+        timezone: preferences.timezone || 'UTC',
+        preferredLanguage: preferences.preferredLanguage || 'en',
+      })
+    }
+  }, [preferences])
 
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await apiFetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (res.ok) {
-        toast.success('Localization settings saved')
-        setLoadError(null)
-      } else {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error?.message || 'Failed to save settings')
-      }
+      await updatePreferences(data)
+      toast.success('Localization settings saved')
     } catch (err) {
       console.error('Save error:', err)
-      toast.error('Failed to save settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save settings')
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
+  if (loading || preferencesLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -78,11 +54,11 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     )
   }
 
-  if (loadError) {
+  if (preferencesError) {
     return (
       <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
-        {loadError}
-        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+        {preferencesError instanceof Error ? preferencesError.message : 'Failed to load preferences'}
+        <button onClick={refetch} className="ml-2 underline hover:no-underline">
           Retry
         </button>
       </div>
