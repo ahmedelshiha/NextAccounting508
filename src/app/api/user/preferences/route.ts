@@ -70,9 +70,12 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     return NextResponse.json(preferences)
   } catch (error) {
-    console.error('Error fetching preferences:', error)
+    console.error('Error fetching preferences:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
-      { error: 'Failed to fetch preferences' },
+      { error: 'Failed to fetch preferences', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
