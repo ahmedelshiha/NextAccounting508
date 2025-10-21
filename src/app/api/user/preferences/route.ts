@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
