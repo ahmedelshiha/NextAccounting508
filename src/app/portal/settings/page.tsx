@@ -1,19 +1,10 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { apiFetch } from '@/lib/api'
-import { toast } from 'sonner'
-import Link from 'next/link'
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import OfflineQueueInspector from '@/components/portal/OfflineQueueInspector'
-import RealtimeConnectionPanel from '@/components/portal/RealtimeConnectionPanel'
-import { signOut } from 'next-auth/react'
-import { useTranslations } from '@/lib/i18n'
+export const metadata = {
+  title: 'Redirecting to Profile Settings',
+}
 
 function BookingPreferencesForm() {
   const { t } = useTranslations()
