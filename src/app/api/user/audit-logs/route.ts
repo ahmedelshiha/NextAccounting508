@@ -16,16 +16,34 @@ export const GET = withTenantContext(async (request: Request) => {
     } catch {}
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
-    if (!hasDb) return NextResponse.json({ data: [] })
+    if (!hasDb) return NextResponse.json({ data: [], total: 0, page: 1, pageSize: 20 })
 
-    const rows = await prisma.auditLog.findMany({
-      where: { userId: String(ctx.userId || '') },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: { id: true, action: true, resource: true, metadata: true, ipAddress: true, userAgent: true, createdAt: true },
+    // Parse pagination parameters
+    const url = new URL(request.url)
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'))
+    const pageSize = Math.min(100, Math.max(1, parseInt(url.searchParams.get('pageSize') || '20')))
+    const skip = (page - 1) * pageSize
+
+    const [rows, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where: { userId: String(ctx.userId || '') },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+        select: { id: true, action: true, resource: true, metadata: true, ipAddress: true, userAgent: true, createdAt: true },
+      }),
+      prisma.auditLog.count({
+        where: { userId: String(ctx.userId || '') },
+      }),
+    ])
+
+    return NextResponse.json({
+      data: rows,
+      total,
+      page,
+      pageSize,
+      pages: Math.ceil(total / pageSize),
     })
-
-    return NextResponse.json({ data: rows })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to load activity' }, { status: 500 })
   }
