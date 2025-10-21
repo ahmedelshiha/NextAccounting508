@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import apiFetch from "@/lib/api"
+import { apiFetch } from "@/lib/api"
+import { toast } from "sonner"
 
 export interface UserProfile {
   id?: string
@@ -44,6 +45,7 @@ export function useUserProfile() {
       const next = (data && typeof data === 'object' && 'user' in data) ? (data as any).user : data
       setProfile(next)
       try { const { announce } = await import('@/lib/a11y'); announce('Profile updated') } catch {}
+      try { toast.success('Profile updated') } catch {}
       return next
     } catch (e: any) {
       setError(String(e?.message || e))
@@ -53,7 +55,9 @@ export function useUserProfile() {
     }
   }, [])
 
-  useEffect(() => { refresh() }, [refresh])
+  useEffect(() => {
+    refresh()
+  }, [])
 
   return { profile, loading, error, refresh, update }
 }

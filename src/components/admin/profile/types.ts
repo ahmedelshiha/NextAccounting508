@@ -1,4 +1,4 @@
-export type PanelTab = "profile" | "security"
+export type PanelTab = "profile" | "security" | "communication" | "notifications"
 
 export interface ProfileFieldDef {
   key: string

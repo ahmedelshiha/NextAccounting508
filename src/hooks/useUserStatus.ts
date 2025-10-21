@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import { announce } from "@/lib/a11y"
 
 export type UserStatus = "online" | "away" | "busy"
@@ -37,19 +38,25 @@ export function useUserStatus(options?: { autoAwayMs?: number }) {
     const onVis = () => markActive()
     const onMove = () => markActive()
     const onKey = () => markActive()
+    const onOnline = () => markActive()
+    const onOffline = () => { if (status !== "busy") setStatus("away") }
     document.addEventListener("visibilitychange", onVis)
     window.addEventListener("mousemove", onMove)
     window.addEventListener("keydown", onKey)
+    window.addEventListener("online", onOnline)
+    window.addEventListener("offline", onOffline)
     markActive()
     return () => {
       document.removeEventListener("visibilitychange", onVis)
       window.removeEventListener("mousemove", onMove)
       window.removeEventListener("keydown", onKey)
+      window.removeEventListener("online", onOnline)
+      window.removeEventListener("offline", onOffline)
       if (timer.current) clearTimeout(timer.current)
     }
-  }, [markActive])
+  }, [markActive, status])
 
-  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`) } catch {} }, [])
+  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`); toast.success(`Status: ${lbl}`) } catch {} }, [])
 
   return { status, setStatus: set }
 }

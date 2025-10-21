@@ -85,6 +85,7 @@ vi.mock('@prisma/client', () => ({
 
 // Global Next.js navigation mocks for component tests
 vi.mock('next/navigation', () => ({
+  __esModule: true,
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -95,6 +96,8 @@ vi.mock('next/navigation', () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/',
+  // Server-side redirect helper used in app routers
+  redirect: vi.fn(),
 }))
 
 // Provide safe defaults for rate limiting in tests while preserving actual exports
@@ -166,12 +169,12 @@ vi.mock('@/lib/auth', async () => {
           if (modA && typeof modA.getServerSession === 'function') {
             const res = await modA.getServerSession()
             // Debug output to diagnose why some tests see no session
-            // eslint-disable-next-line no-console
+             
             console.log('[vitest.setup] getSessionOrBypass -> next-auth.getServerSession returned:', res)
             return res
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
+           
           console.log('[vitest.setup] import next-auth failed', err && (err as any).message)
         }
         // Some tests or code import 'next-auth/next'
@@ -179,16 +182,16 @@ vi.mock('@/lib/auth', async () => {
           const modB = await import('next-auth/next')
           if (modB && typeof modB.getServerSession === 'function') {
             const res = await modB.getServerSession()
-            // eslint-disable-next-line no-console
+             
             console.log('[vitest.setup] getSessionOrBypass -> next-auth/next.getServerSession returned:', res)
             return res
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
+           
           console.log('[vitest.setup] import next-auth/next failed', err && (err as any).message)
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.log('[vitest.setup] getSessionOrBypass unexpected error', err && (err as any).message)
       }
       return null

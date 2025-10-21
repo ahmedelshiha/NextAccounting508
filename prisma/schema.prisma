@@ -84,6 +84,20 @@ model UserProfile {
   loginAttempts       Int       @default(0)
   lockoutUntil        DateTime?
   metadata            Json?
+
+  // Preference fields
+  timezone            String?   @default("UTC")
+  preferredLanguage   String?   @default("en")
+
+  // Booking notification preferences
+  bookingEmailConfirm      Boolean?  @default(true)
+  bookingEmailReminder     Boolean?  @default(true)
+  bookingEmailReschedule   Boolean?  @default(true)
+  bookingEmailCancellation Boolean?  @default(true)
+  bookingSmsReminder       Boolean?  @default(false)
+  bookingSmsConfirmation   Boolean?  @default(false)
+  reminderHours            Int[]     @default([24, 2])
+
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

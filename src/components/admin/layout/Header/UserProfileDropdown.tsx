@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { hasPermission } from "@/lib/permissions"
 import Avatar from "./UserProfileDropdown/Avatar"
 import UserInfo from "./UserProfileDropdown/UserInfo"
 import ThemeSubmenu from "./UserProfileDropdown/ThemeSubmenu"
@@ -34,19 +35,35 @@ function StatusSelector() {
     { v: "busy" as const, label: "Busy", dot: "bg-red-500" },
   ]
   return (
-    <div role="group" aria-label="Status" className="py-1 border-t border-gray-100">
-      {opts.map(o => (
-        <button
-          key={o.v}
-          role="menuitemradio"
-          aria-checked={status === o.v}
-          onClick={() => setStatus(o.v)}
-          className={"w-full flex items-center px-3 py-2 text-sm hover:bg-gray-50 " + (status === o.v ? "text-gray-900" : "text-gray-700")}
-        >
-          <span className={`mr-2 inline-block h-2.5 w-2.5 rounded-full ${o.dot}`} />
-          <span className="flex-1 text-left">{o.label}</span>
-        </button>
-      ))}
+    <div role="group" aria-label="Status" className="px-3 py-2 border-t border-gray-100">
+      <div className="flex flex-col gap-2">
+        {opts.map(o => {
+          const checked = status === o.v
+          return (
+            <button
+              key={o.v}
+              role="menuitemradio"
+              aria-checked={checked}
+              onClick={() => setStatus(o.v)}
+              className={cn(
+                "flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md transition-all text-sm",
+                checked
+                  ? "bg-gradient-to-r from-slate-50 to-white text-gray-900 ring-1 ring-slate-200 shadow-sm"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`inline-block h-3 w-3 rounded-full ${o.dot}`} />
+                <span className="font-medium">{o.label}</span>
+              </div>
+
+              <div className="flex items-center">
+                {checked ? <svg className="h-4 w-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : null}
+              </div>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -72,7 +89,7 @@ function UserProfileDropdownComponent({
     return raw.filter(l => {
       if (!l.permission) return true
       const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
-      try { const { hasPermission } = require('@/lib/permissions'); return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+      try { return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
     })
   }, [customLinks, role])
 
@@ -89,7 +106,7 @@ function UserProfileDropdownComponent({
         >
           <div className="relative h-8 w-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
             {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
+               
               <img src={image} alt={name} className="h-full w-full object-cover" />
             ) : (
               <UserIcon className="h-4 w-4 text-gray-600" />

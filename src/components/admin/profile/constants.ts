@@ -1,15 +1,31 @@
-import type { ProfileFieldDef } from "./types"
+/**
+ * Profile Management Constants
+ * Common values and validation utilities
+ * Note: Core validation moved to src/schemas/user-profile.ts
+ */
 
-export const PROFILE_FIELDS: ProfileFieldDef[] = [
-  { key: "name", label: "Full name", placeholder: "Add your name" },
-  { key: "email", label: "Email", placeholder: "Add email", verified: true },
-  { key: "organization", label: "Organization", placeholder: "Add organization" },
+import { getCommonTimezones, isValidTimezone, getAvailableTimezones } from '@/schemas/user-profile'
+
+// Re-export from central schema location
+export { isValidTimezone, getAvailableTimezones }
+
+export const COMMON_TIMEZONES = getCommonTimezones()
+
+export const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'hi', label: 'हिन्दी' },
 ]
 
-export const SECURITY_FIELDS: ProfileFieldDef[] = [
-  { key: "userId", label: "User ID", masked: false },
-  { key: "password", label: "Password", masked: true },
-  { key: "twoFactorEnabled", label: "Two-factor authentication" },
-  { key: "emailVerified", label: "Email verification" },
-  { key: "sessions", label: "Active sessions" },
-]
+export const VALID_LANGUAGES = ['en', 'ar', 'hi']
+
+/**
+ * Reminder hours configuration
+ */
+export const REMINDER_HOURS = [24, 12, 6, 2]
+
+/**
+ * Valid reminder hours range: 1-720 hours (1 minute to 30 days)
+ */
+export const REMINDER_HOURS_MIN = 1
+export const REMINDER_HOURS_MAX = 720

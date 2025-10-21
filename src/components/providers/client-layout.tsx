@@ -232,6 +232,15 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
   const showPortalChat = pathname?.startsWith('/portal') || false
   const isAdminRoute = pathname?.startsWith('/admin') || false
 
+  // Ensure dark theme is only applied within admin dashboard
+  useEffect(() => {
+    try {
+      if (!isAdminRoute && typeof document !== 'undefined') {
+        document.documentElement.classList.remove('dark')
+      }
+    } catch {}
+  }, [isAdminRoute])
+
   // Global sidebar keyboard shortcuts
   useSidebarKeyboardShortcuts()
 
