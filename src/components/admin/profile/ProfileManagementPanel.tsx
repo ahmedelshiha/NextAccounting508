@@ -15,6 +15,7 @@ export interface ProfileManagementPanelProps {
   onClose?: () => void
   defaultTab?: "profile" | "security"
   inline?: boolean
+  fullPage?: boolean
 }
 
 function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: any; onSave: (key: string, value: string) => Promise<void> }) {
