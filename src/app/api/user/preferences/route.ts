@@ -89,9 +89,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-    })
+    const user = await prisma.user.findFirst({ where: { email: userEmail, tenantId: ctx.tenantId } })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
