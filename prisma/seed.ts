@@ -73,14 +73,16 @@ async function main() {
   const staffPlain = genPasswordFromEnv('SEED_STAFF_PASSWORD')
   const clientPlain = genPasswordFromEnv('SEED_CLIENT_PASSWORD')
   const leadPlain = genPasswordFromEnv('SEED_LEAD_PASSWORD')
+  const superadminPlain = genPasswordFromEnv('SEED_SUPERADMIN_PASSWORD')
 
   const adminPassword = await bcrypt.hash(adminPlain, 12)
   const staffPassword = await bcrypt.hash(staffPlain, 12)
   const clientPassword = await bcrypt.hash(clientPlain, 12)
   const leadPassword = await bcrypt.hash(leadPlain, 12)
+  const superadminPassword = await bcrypt.hash(superadminPlain, 12)
 
   // Create users inside a transaction to ensure consistency
-  const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
+  const [admin, staff, client1, client2, lead, superadmin] = await prisma.$transaction(async (tx) => {
     const a = await tx.user.upsert({
       where: { tenantId_email: { tenantId: defaultTenant.id, email: 'admin@accountingfirm.com' } },
       update: {},
@@ -146,10 +148,27 @@ async function main() {
       },
     })
 
-    return [a, s, c1, c2, l]
+    const sa = await tx.user.upsert({
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'superadmin@accountingfirm.com' } },
+      update: {
+        password: superadminPassword,
+        role: 'SUPER_ADMIN',
+        emailVerified: new Date(),
+      },
+      create: {
+        tenantId: defaultTenant.id,
+        email: 'superadmin@accountingfirm.com',
+        name: 'Super Admin',
+        password: superadminPassword,
+        role: 'SUPER_ADMIN',
+        emailVerified: new Date(),
+      },
+    })
+
+    return [a, s, c1, c2, l, sa]
   })
 
-  console.log('✅ Users created')
+  console.log('✅ Users created (including SUPER_ADMIN)')
 
   // Create or ensure Team Members linked to staff/lead users
   let tmStaff = await prisma.teamMember.findFirst({ where: { userId: staff.id } })
@@ -893,10 +912,12 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
-  console.log('Admin: admin@accountingfirm.com / admin123')
-  console.log('Staff: staff@accountingfirm.com / staff123')
-  console.log('Client 1: client1@example.com / client123')
-  console.log('Client 2: client2@example.com / client123')
+  console.log(`SUPER_ADMIN: superadmin@accountingfirm.com / ${superadminPlain}`)
+  console.log(`Admin: admin@accountingfirm.com / ${adminPlain}`)
+  console.log(`Staff: staff@accountingfirm.com / ${staffPlain}`)
+  console.log(`Client 1: client1@example.com / ${clientPlain}`)
+  console.log(`Client 2: client2@example.com / ${clientPlain}`)
+  console.log(`Lead: lead@accountingfirm.com / ${leadPlain}`)
 }
 
 // Exported function for smoke tests
