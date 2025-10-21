@@ -85,6 +85,7 @@ vi.mock('@prisma/client', () => ({
 
 // Global Next.js navigation mocks for component tests
 vi.mock('next/navigation', () => ({
+  __esModule: true,
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -95,6 +96,8 @@ vi.mock('next/navigation', () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/',
+  // Server-side redirect helper used in app routers
+  redirect: vi.fn(),
 }))
 
 // Provide safe defaults for rate limiting in tests while preserving actual exports
