@@ -5,9 +5,8 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { FinancialSettingsSchema } from '@/schemas/settings/financial'
 import service from '@/services/financial-settings.service'
 import { logAudit } from '@/lib/audit'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 import * as Sentry from '@sentry/nextjs'
-import prisma from '@/lib/prisma'
-import type { Prisma } from '@prisma/client'
 
 export const GET = withTenantContext(async () => {
   try {
