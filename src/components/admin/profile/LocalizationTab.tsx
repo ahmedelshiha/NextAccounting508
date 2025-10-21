@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { apiFetch } from '@/lib/api'
+import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
@@ -15,35 +15,22 @@ interface LocalizationData {
 }
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
+  const { preferences, loading: preferencesLoading, error: preferencesError, updatePreferences, refetch } = useUserPreferences()
   const [saving, setSaving] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
     preferredLanguage: 'en',
   })
 
-  const loadPreferences = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/user/preferences')
-      if (res.ok) {
-        const json = await res.json()
-        setData({
-          timezone: json.timezone || 'UTC',
-          preferredLanguage: json.preferredLanguage || 'en',
-        })
-        setLoadError(null)
-      } else {
-        setLoadError('Failed to load preferences')
-      }
-    } catch (err) {
-      console.error('Failed to load preferences:', err)
-      setLoadError('Failed to load preferences')
-    }
-  }, [])
-
+  // Sync hook data to component state
   useEffect(() => {
-    loadPreferences()
-  }, [loadPreferences])
+    if (preferences) {
+      setData({
+        timezone: preferences.timezone || 'UTC',
+        preferredLanguage: preferences.preferredLanguage || 'en',
+      })
+    }
+  }, [preferences])
 
 
   const handleSave = async () => {
