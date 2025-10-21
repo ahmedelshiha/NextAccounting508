@@ -12,9 +12,39 @@ export interface EditableFieldProps {
   verified?: boolean
   masked?: boolean
   disabled?: boolean
+  fieldType?: 'text' | 'email' | 'password'
   onSave?: (newValue: string) => Promise<void>
   onVerify?: () => Promise<void>
   description?: string
+}
+
+/**
+ * Validate email format
+ */
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+/**
+ * Get validation error message for field type
+ */
+function getValidationError(fieldType: string | undefined, value: string): string | null {
+  if (!value) return null
+
+  if (fieldType === 'email' && !isValidEmail(value)) {
+    return 'Invalid email address'
+  }
+
+  if (fieldType === 'text' && value.length < 2) {
+    return 'Must be at least 2 characters'
+  }
+
+  if (fieldType === 'text' && value.length > 200) {
+    return 'Must be less than 200 characters'
+  }
+
+  return null
 }
 
 function EditableFieldComponent({
