@@ -182,7 +182,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
 
             {/* User menu */}
             <div onMouseEnter={() => { try { void import('../profile/ProfileManagementPanel') } catch {} }}>
-              <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => { try { const router = useRouter(); router.push('/admin/profile') } catch { } }} triggerRef={profileTriggerRef} />
+              <UserProfileDropdown onSignOut={handleSignOut} onOpenProfilePanel={() => { try { router.push('/admin/profile') } catch { } }} triggerRef={profileTriggerRef} />
             </div>
           </div>
         </div>
