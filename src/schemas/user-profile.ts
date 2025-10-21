@@ -134,9 +134,9 @@ export type ReminderConfig = z.infer<typeof ReminderConfigSchema>
  */
 
 export const RemindersSettingsSchema = z.object({
-  bookings: ReminderConfigSchema.default({}),
-  invoices: ReminderConfigSchema.default({}),
-  tasks: ReminderConfigSchema.default({}),
+  bookings: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'], templateId: undefined })),
+  invoices: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'], templateId: undefined })),
+  tasks: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'], templateId: undefined })),
 })
 
 export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
@@ -147,12 +147,12 @@ export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
  */
 
 export const CommunicationSettingsSchema = z.object({
-  email: EmailSettingsSchema.default({}),
-  sms: SmsSettingsSchema.default({}),
-  liveChat: LiveChatSettingsSchema.default({}),
-  notificationDigest: NotificationDigestSchema.default({}),
-  newsletters: NewslettersSettingsSchema.default({}),
-  reminders: RemindersSettingsSchema.default({}),
+  email: EmailSettingsSchema.default(() => ({ transactionalEnabled: true, marketingEnabled: false, complianceBccEnabled: false })),
+  sms: SmsSettingsSchema.default(() => ({ provider: 'none', transactionalEnabled: false, marketingEnabled: false, fallbackToEmail: true })),
+  liveChat: LiveChatSettingsSchema.default(() => ({ enabled: false, provider: 'none', routing: 'round_robin', workingHoursTimezone: 'UTC', escalationEmails: [] })),
+  notificationDigest: NotificationDigestSchema.default(() => ({ timezone: 'UTC' })),
+  newsletters: NewslettersSettingsSchema.default(() => ({ enabled: false, doubleOptIn: true, topics: [] })),
+  reminders: RemindersSettingsSchema.default(() => ({ bookings: { enabled: true, offsetHours: 24, channels: ['email'] }, invoices: { enabled: true, offsetHours: 24, channels: ['email'] }, tasks: { enabled: true, offsetHours: 24, channels: ['email'] } })),
 })
 
 export type CommunicationSettings = z.infer<typeof CommunicationSettingsSchema>
