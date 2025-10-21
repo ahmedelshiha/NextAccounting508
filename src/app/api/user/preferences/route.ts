@@ -50,11 +50,23 @@ export const GET = withTenantContext(async (request: NextRequest) => {
         include: { userProfile: true },
       })
     } catch (dbError) {
+      const dbMsg = dbError instanceof Error ? dbError.message : String(dbError)
       console.error('Preferences GET: Database query failed', {
         email,
         tenantId: tid,
-        error: dbError instanceof Error ? dbError.message : String(dbError),
+        error: dbMsg,
       })
+      // If DB is not configured in production, return safe defaults so UI can still function
+      if (dbMsg.includes('Database is not configured')) {
+        try {
+          const defaults = PreferencesSchema.parse({})
+          console.warn('Preferences GET: Returning fallback defaults due to missing DB')
+          return NextResponse.json(defaults)
+        } catch (schemaErr) {
+          console.error('Preferences GET: Failed to construct defaults from schema', schemaErr)
+          return NextResponse.json({ error: 'Database not configured' }, { status: 503 })
+        }
+      }
       throw dbError
     }
 
@@ -165,11 +177,15 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     try {
       user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
     } catch (dbError) {
+      const dbMsg = dbError instanceof Error ? dbError.message : String(dbError)
       console.error('Preferences PUT: Database query failed', {
         email,
         tenantId: tid,
-        error: dbError instanceof Error ? dbError.message : String(dbError),
+        error: dbMsg,
       })
+      if (dbMsg.includes('Database is not configured')) {
+        return NextResponse.json({ error: 'Database is not configured' }, { status: 503 })
+      }
       throw dbError
     }
 
