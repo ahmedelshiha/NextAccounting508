@@ -53,10 +53,14 @@ export async function PUT(request: NextRequest) {
     const ctx = requireTenantContext()
 
     const userEmail = ctx.userEmail
+    const tenantId = ctx.tenantId
 
-    if (!userEmail) {
+    if (!userEmail || !tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const email = userEmail as string
+    const tid = tenantId as string
 
     const body = await request.json()
     const {
