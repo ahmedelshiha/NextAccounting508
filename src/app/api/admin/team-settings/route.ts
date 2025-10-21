@@ -5,10 +5,8 @@ import { TeamSettingsSchema } from '@/schemas/settings/team-management'
 import * as Sentry from '@sentry/nextjs'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import prisma from '@/lib/prisma'
 import { respond } from '@/lib/api-response'
-import { jsonDiff } from '@/lib/diff'
-import type { Prisma } from '@prisma/client'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 
 export const GET = withTenantContext(async (req: Request) => {
   try {
