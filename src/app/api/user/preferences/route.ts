@@ -7,9 +7,18 @@ import { withTenantContext } from '@/lib/api-wrapper'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
-    const ctx = requireTenantContext()
-    const userEmail = ctx.userEmail
-    const tenantId = ctx.tenantId
+    let ctx
+    try {
+      ctx = requireTenantContext()
+    } catch (contextError) {
+      console.error('Preferences GET: Failed to get tenant context', {
+        error: contextError instanceof Error ? contextError.message : String(contextError),
+      })
+      return NextResponse.json({ error: 'Tenant context error' }, { status: 500 })
+    }
+
+    const userEmail = ctx?.userEmail
+    const tenantId = ctx?.tenantId
 
     if (!userEmail || !tenantId) {
       console.error('Preferences GET: Missing email or tenantId', {
@@ -56,6 +65,10 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     // Return preferences from user profile
     const profile = user.userProfile
+    const reminderHoursArray = Array.isArray(profile?.reminderHours)
+      ? (profile.reminderHours as number[])
+      : [24, 2]
+
     const preferences = {
       timezone: profile?.timezone || 'UTC',
       preferredLanguage: profile?.preferredLanguage || 'en',
@@ -65,7 +78,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       bookingEmailCancellation: profile?.bookingEmailCancellation ?? true,
       bookingSmsReminder: profile?.bookingSmsReminder ?? false,
       bookingSmsConfirmation: profile?.bookingSmsConfirmation ?? false,
-      reminderHours: Array.isArray(profile?.reminderHours) ? profile!.reminderHours : [24, 2],
+      reminderHours: reminderHoursArray,
     }
 
     return NextResponse.json(preferences)
@@ -83,10 +96,18 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
 export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const ctx = requireTenantContext()
+    let ctx
+    try {
+      ctx = requireTenantContext()
+    } catch (contextError) {
+      console.error('Preferences PUT: Failed to get tenant context', {
+        error: contextError instanceof Error ? contextError.message : String(contextError),
+      })
+      return NextResponse.json({ error: 'Tenant context error' }, { status: 500 })
+    }
 
-    const userEmail = ctx.userEmail
-    const tenantId = ctx.tenantId
+    const userEmail = ctx?.userEmail
+    const tenantId = ctx?.tenantId
 
     if (!userEmail || !tenantId) {
       console.error('Preferences PUT: Missing email or tenantId', {
@@ -194,6 +215,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       })
     } catch {}
 
+    const reminderHoursArray = Array.isArray(updatedProfile.reminderHours)
+      ? (updatedProfile.reminderHours as number[])
+      : [24, 2]
+
     const preferences = {
       timezone: updatedProfile.timezone || 'UTC',
       preferredLanguage: updatedProfile.preferredLanguage || 'en',
@@ -203,7 +228,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       bookingEmailCancellation: updatedProfile.bookingEmailCancellation ?? true,
       bookingSmsReminder: updatedProfile.bookingSmsReminder ?? false,
       bookingSmsConfirmation: updatedProfile.bookingSmsConfirmation ?? false,
-      reminderHours: Array.isArray(updatedProfile.reminderHours) ? updatedProfile.reminderHours : [24, 2],
+      reminderHours: reminderHoursArray,
     }
 
     return NextResponse.json(preferences)
