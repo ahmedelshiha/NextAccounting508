@@ -12,7 +12,6 @@
 
 import { useState, useEffect } from 'react'
 import { SessionProvider } from 'next-auth/react'
-import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import AdminProviders from '@/components/admin/providers/AdminProviders'
 import AdminHeader from '@/components/admin/layout/AdminHeader'
 import AdminSidebar from '@/components/admin/layout/AdminSidebar'
@@ -69,8 +68,7 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
   }
 
   return (
-    <ThemeProvider>
-      <SessionProvider session={session}>
+    <SessionProvider session={session}>
       <AdminProviders>
         <div className="min-h-screen bg-gray-50 relative">
           <a
@@ -143,6 +141,5 @@ export default function ClientOnlyAdminLayout({ children, session }: ClientOnlyA
         </div>
       </AdminProviders>
     </SessionProvider>
-    </ThemeProvider>
   )
 }
