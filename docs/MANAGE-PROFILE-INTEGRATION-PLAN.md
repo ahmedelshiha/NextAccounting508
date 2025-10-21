@@ -374,11 +374,11 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
-└────��─────────────────┬──────────────────────────────────────────┘
+└─────────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
           │            │            │
-    ┌─────���──────┐ ┌──▼──────┐ ┌──▼──────────┐
+    ┌──────────────┐ ┌──▼──────┐ ┌──▼──────────┐
     │  Profile   │ │Security │ │Preferences │
     │   Tab      │ │  Tab    │ │   Tab      │
     └─────┬──────┘ └──┬──────┘ └──┬─────────┘
@@ -389,7 +389,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     └────────────┘ └─────────┘ └─────────────┘
           │           │            │
     ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
-    │  User DB   │ �� User DB  │ │UserProfile  │
+    │  User DB   │ │ User DB  │ │UserProfile  │
     │ (name,     │ │(password,│ │  DB         │
     │  email)    │ │  2fa)    │ │(timezone,   │
     │            │ │          │ │ prefs)      │
@@ -406,7 +406,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     │        settings             │
     └──────────┬──────────────────┘
                │
-    ┌─��────────▼──────────────────┐
+    ┌──────────▼──────────────────┐
     │ Admin Communication DB      │
     │ (email, sms, chat, etc.)    │
     └─────────────────────────────┘
@@ -462,7 +462,7 @@ ProfileManagementPanel
 ├── SecurityTab (existing)
 ├── PreferencesTab (NEW)
 │   ├── BookingNotificationsSection
-���   └── LocalizationSection
+│   └── LocalizationSection
 ├── CommunicationTab (NEW - admin only)
 │   ├── EmailSettingsSection
 │   ├── SmsSettingsSection
@@ -920,3 +920,13 @@ After migration, these become:
     - src/components/tax/deadline-tracker.tsx
     - src/app/admin/profile/page.tsx
   - Testing Notes: Manually verified links route to Preferences tab; redirect from /portal/settings is active; Preferences tab loads and saves via /api/user/preferences.
+- 2025-10-21 14:10 UTC — ✅ Completed
+  - Summary: Extended PanelTab types to include preferences/communication/notifications to align with implemented tabs.
+  - Files Modified:
+    - src/components/admin/profile/types.ts
+  - Testing Notes: Types align with AdminProfile tab handling; no runtime changes required.
+- 2025-10-21 14:12 UTC — ✅ Completed
+  - Summary: Fixed missing import for redirect in portal settings to ensure server-side redirect works reliably.
+  - Files Modified:
+    - src/app/portal/settings/page.tsx
+  - Testing Notes: Redirect unit test should pass; server redirect works for authenticated users.
