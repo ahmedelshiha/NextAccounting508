@@ -304,7 +304,7 @@ This document outlines the plan to consolidate user account settings from `/port
 ## Data Flow Architecture
 
 ```
-┌───────────────────���─────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
 └──────────────────────┬──────────────────────────────────────────┘
@@ -319,7 +319,7 @@ This document outlines the plan to consolidate user account settings from `/port
     ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
     │ /api/user/ │ │/api/user│ │ /api/user/  │
     │  profile   │ │/security│ │preferences  │
-    └──────���─────┘ └─────────┘ └─────────────┘
+    └────────────┘ └─────────┘ └─────────────┘
           │           │            │
     ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
     │  User DB   │ │ User DB  │ │UserProfile  │
@@ -461,13 +461,297 @@ const tabVisibility = {
 
 ---
 
-## Migration Path for Existing Users
+## Migration & Retirement Strategy: `/portal/settings` → `/admin/profile`
 
-### Consideration
-If users currently have data in portal settings, need to:
-1. Migrate existing preferences to new schema
-2. Ensure backward compatibility during transition
-3. Update portal settings page to redirect to admin profile
+### Decision: Migrate & Retire (Phase 3 - Mandatory)
+The old `/portal/settings` page will be **deprecated and removed** after successful migration to `/admin/profile`.
+
+### Timeline
+- **Week 1-2:** Phase 1 implementation (Preferences tab)
+- **Week 3-4:** Phase 2 implementation (Communication tab) - Optional
+- **Week 5:** Phase 3 - Migration & Retirement
+  - Deploy redirect
+  - Monitor usage
+  - Remove old page
+
+---
+
+### Phase 3: Migration & Retirement Plan
+
+#### Step 1: Data Migration (Pre-Deployment)
+
+**Migrate existing portal settings data:**
+
+```sql
+-- Migrate booking preferences from UserProfile to new structure
+UPDATE user_profiles
+SET
+  timezone = COALESCE(timezone, 'UTC'),
+  preferred_language = COALESCE(preferred_language, 'en'),
+  booking_email_confirm = true,  -- Default from portal settings
+  booking_email_reminder = true,
+  booking_email_reschedule = true,
+  booking_email_cancellation = true,
+  booking_sms_reminder = false,
+  booking_sms_confirmation = false,
+  reminder_hours = ARRAY[24, 2]
+WHERE timezone IS NULL;
+```
+
+**Verification script:**
+- Count migrated records
+- Validate no data loss
+- Check for any failed migrations
+
+---
+
+#### Step 2: Redirect Implementation
+
+**Old URL → New URL:**
+
+```typescript
+// src/app/portal/settings/page.tsx (REPLACE ENTIRE FILE)
+
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+
+export const metadata = {
+  title: 'Redirecting to Profile Settings',
+}
+
+export default async function PortalSettingsPage() {
+  const session = await getServerSession()
+
+  if (!session?.user) {
+    redirect('/login')
+  }
+
+  // Redirect all portal/settings traffic to admin/profile
+  redirect('/admin/profile?tab=preferences')
+}
+```
+
+**Why this approach:**
+- SEO friendly (server-side redirect)
+- Users with bookmarks auto-redirected
+- Explicit tab hint (preferences)
+- No broken links
+
+---
+
+#### Step 3: Update Navigation & Links
+
+**Remove from Portal Navigation:**
+- Remove "Settings" link from portal sidebar/header
+- Remove any internal links to `/portal/settings`
+
+**Files to update:**
+```
+src/components/portal/navigation.tsx (if exists)
+src/app/portal/layout.tsx (remove settings nav item)
+src/components/ui/navigation.tsx (remove settings link)
+```
+
+**Search & Replace:**
+```bash
+# Find all references to /portal/settings
+grep -r "portal/settings" src/
+
+# Replace with /admin/profile
+sed -i 's|/portal/settings|/admin/profile|g' src/**/*.tsx
+```
+
+---
+
+#### Step 4: User Communication Plan
+
+**Pre-Migration (1 week before):**
+- In-app notification banner on `/portal/settings`:
+  > "Your account settings have moved! [Learn more](#) | [Go to new settings](#/admin/profile)"
+- Email notification to all portal users
+- Update help/FAQ documentation
+
+**During Migration (deployment day):**
+- Display info toast on redirect:
+  > "Your settings have moved to a new, improved interface!"
+- Keep redirect active for 30 days with analytics
+
+**Post-Migration (30 days after):**
+- Remove old `/portal/settings` route entirely
+- Update any remaining links
+- Archive old documentation
+
+---
+
+#### Step 5: Database Cleanup
+
+**After 30-day grace period:**
+
+```sql
+-- Remove deprecated columns from portal_settings table (if exists)
+-- Only after confirming all data migrated to user_profiles
+
+ALTER TABLE user_profiles
+DROP COLUMN IF EXISTS booking_preferences_json;  -- If separate column exists
+
+-- Archive old portal_settings table (if exists)
+-- RENAME TABLE portal_settings TO portal_settings_archived;
+```
+
+---
+
+#### Step 6: Testing Strategy
+
+**Pre-deployment Testing:**
+
+1. **Migration verification:**
+   - [ ] All portal user preferences migrated
+   - [ ] No null values in required fields
+   - [ ] Timezone data preserved
+   - [ ] Language preferences intact
+
+2. **Redirect testing:**
+   - [ ] `/portal/settings` → `/admin/profile?tab=preferences` works
+   - [ ] HTTP 301 status (permanent redirect)
+   - [ ] Bookmarks still work
+   - [ ] Deep links work
+
+3. **Permission testing:**
+   - [ ] Portal clients can access redirected page
+   - [ ] All tabs visible (no permission issues)
+   - [ ] Settings load correctly
+   - [ ] Can save preferences
+
+4. **E2E tests:**
+   ```typescript
+   test('portal settings redirect', async ({ page }) => {
+     await page.goto('/portal/settings')
+     await expect(page).toHaveURL(/\/admin\/profile/)
+   })
+
+   test('migrated preferences load', async ({ page }) => {
+     await page.goto('/admin/profile?tab=preferences')
+     // Verify timezone loaded correctly
+     // Verify booking preferences visible
+   })
+   ```
+
+---
+
+#### Step 7: Monitoring & Rollback Plan
+
+**Post-Deployment Monitoring (7 days):**
+- Track `/portal/settings` redirect traffic
+- Monitor error rates on `/admin/profile`
+- Check analytics for user confusion
+- Monitor session/auth issues
+
+**Rollback Scenario:**
+If critical issues found:
+1. Revert redirect (bring back old page)
+2. Keep both URLs active for 30 days
+3. Fix issues on admin profile
+4. Re-attempt migration
+
+**Rollback command:**
+```bash
+git revert <commit-hash>  # Revert redirect changes
+```
+
+---
+
+### Phase 3 Implementation Tasks
+
+**Task List:**
+- [ ] Database migration script created & tested
+- [ ] Redirect page created
+- [ ] Navigation links updated
+- [ ] User communication drafted
+- [ ] E2E tests written
+- [ ] Staging deployment & testing
+- [ ] Pre-deployment checklist complete
+- [ ] Production deployment
+- [ ] Analytics monitoring setup
+- [ ] 30-day grace period management
+- [ ] Old page removal
+- [ ] Documentation updated
+- [ ] Post-mortem & lessons learned
+
+---
+
+### Files to be Retired/Removed
+
+**Delete these after 30-day period:**
+```
+src/app/portal/settings/page.tsx (becomes redirect only for 30 days)
+src/components/portal/SettingsForm.tsx (if exists)
+src/components/portal/settings/ (entire directory if exists)
+tests/e2e/portal-settings.spec.ts (test for old page)
+```
+
+**Archive these:**
+- Documentation about old portal settings
+- Old API endpoints (if unique to portal)
+
+---
+
+### Dependency Check
+
+**Portal Settings Dependencies:**
+```
+/portal/settings depends on:
+├── /api/portal/settings/booking-preferences
+├── /api/users/me
+├── useTranslations hook
+├── OfflineQueueInspector component
+├── RealtimeConnectionPanel component
+└── Portal layout wrapper
+
+After migration, these become:
+├── /api/user/preferences (NEW)
+├── /api/user/profile (EXISTING)
+├── useTranslations hook (KEEP)
+├── Admin profile components (REUSE)
+└── Admin layout wrapper (REUSE)
+```
+
+**Action Items:**
+- [ ] Verify `/api/user/preferences` endpoint created
+- [ ] Verify `/api/user/profile` exists & works
+- [ ] OfflineQueueInspector → move to admin (Notifications tab)
+- [ ] RealtimeConnectionPanel → move to admin (Notifications tab)
+
+---
+
+### Success Criteria for Phase 3
+
+- ✅ All portal users redirected to admin profile
+- ✅ No data loss during migration
+- ✅ User preferences accessible and editable
+- ✅ Old page removed (after grace period)
+- ✅ Zero broken links
+- ✅ Analytics show successful redirect
+- ✅ No user support tickets related to migration
+- ✅ Documentation updated
+
+---
+
+### Communication Timeline
+
+**T-7 days:** Email notification to users
+> "Your account settings are moving to our new admin interface for a better experience. On [DATE], /portal/settings will redirect to the new location."
+
+**T-1 day:** In-app banner warning
+> "Settings moving tomorrow! Your preferences will be automatically migrated."
+
+**T+0 (Deployment):** Toast notification
+> "Your settings have moved! Check out the new interface at /admin/profile"
+
+**T+7 days:** Follow-up email
+> "New settings page live! Here's how to use it. Questions? Contact support."
+
+**T+30 days:** Removal notice
+> "Old /portal/settings page removed. All settings now at /admin/profile"
 
 ---
 
