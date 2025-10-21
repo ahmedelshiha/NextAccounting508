@@ -6,9 +6,7 @@ import service from '@/services/security-settings.service'
 import { SecurityComplianceSettingsSchema } from '@/schemas/settings/security-compliance'
 import { NextRequest } from 'next/server'
 import { verifySuperAdminStepUp, stepUpChallenge } from '@/lib/security/step-up'
-import prisma from '@/lib/prisma'
-import { jsonDiff } from '@/lib/diff'
-import type { Prisma } from '@prisma/client'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
