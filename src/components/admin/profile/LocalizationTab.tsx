@@ -36,28 +36,17 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await apiFetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (res.ok) {
-        toast.success('Localization settings saved')
-        setLoadError(null)
-      } else {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error?.message || 'Failed to save settings')
-      }
+      await updatePreferences(data)
+      toast.success('Localization settings saved')
     } catch (err) {
       console.error('Save error:', err)
-      toast.error('Failed to save settings')
+      toast.error(err instanceof Error ? err.message : 'Failed to save settings')
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
+  if (loading || preferencesLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -65,11 +54,11 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     )
   }
 
-  if (loadError) {
+  if (preferencesError) {
     return (
       <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
-        {loadError}
-        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+        {preferencesError instanceof Error ? preferencesError.message : 'Failed to load preferences'}
+        <button onClick={refetch} className="ml-2 underline hover:no-underline">
           Retry
         </button>
       </div>
