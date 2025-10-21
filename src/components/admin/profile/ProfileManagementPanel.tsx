@@ -108,7 +108,7 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
   )
 }
 
-export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile" }: ProfileManagementPanelProps) {
+export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
   const { profile, loading, update } = useUserProfile()
   const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
