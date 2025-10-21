@@ -132,7 +132,8 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
     if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
-      if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
+      const validTabs = ['profile', 'security', 'booking', 'localization', 'preferences', 'communication', 'notifications']
+      if (!defaultTab && saved && validTabs.includes(saved)) setTab(saved as any)
     } catch {}
   }, [isOpen, defaultTab, fullPage])
 
