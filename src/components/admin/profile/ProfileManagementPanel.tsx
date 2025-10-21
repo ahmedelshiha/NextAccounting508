@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 export interface ProfileManagementPanelProps {
   isOpen: boolean
   onClose?: () => void
-  defaultTab?: "profile" | "security" | "preferences"
+  defaultTab?: "profile" | "security" | "preferences" | "communication" | "notifications"
   inline?: boolean
   fullPage?: boolean
 }
@@ -53,6 +53,11 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
 
 import AccountActivity from './AccountActivity'
 import PreferencesTab from './PreferencesTab'
+import CommunicationTab from './CommunicationTab'
+import NotificationsTab from './NotificationsTab'
+import PermissionGate from '@/components/PermissionGate'
+import { useSession } from 'next-auth/react'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
@@ -116,6 +121,10 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const { profile, loading, update } = useUserProfile()
   const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
   const [showMfaSetup, setShowMfaSetup] = useState(false)
+  const { data: session } = useSession()
+  const role = (session?.user as any)?.role as string | undefined
+  const canSeeCommunication = hasPermission(role, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)
+  const showNotificationsTab = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_PROFILE_DEBUG_TABS === '1')
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
@@ -153,6 +162,12 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
+          {canSeeCommunication && (
+            <TabsTrigger value="communication">Communication</TabsTrigger>
+          )}
+          {showNotificationsTab && (
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          )}
         </TabsList>
       </div>
 
@@ -164,6 +179,18 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         onMfaSetup={handleMfaSetup}
       />
       <PreferencesTab loading={loading} />
+      {canSeeCommunication && (
+        <TabsContent value="communication" className="mt-4">
+          <PermissionGate permission={PERMISSIONS.COMMUNICATION_SETTINGS_VIEW}>
+            <CommunicationTab />
+          </PermissionGate>
+        </TabsContent>
+      )}
+      {showNotificationsTab && (
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationsTab />
+        </TabsContent>
+      )}
     </Tabs>
   )
 

@@ -273,6 +273,7 @@ This document outlines the plan to consolidate user account settings from `/port
 
 ### Phase 2: Communication Settings (Optional but Recommended)
 **Priority:** MEDIUM
+**Status:** In Progress
 **Timeline:** 2-3 weeks
 **Scope:** Admin-only communication channel configuration
 **Permission Gate:** Admin/Team Lead only
@@ -405,7 +406,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     │        settings             │
     └──────────┬──────────────────┘
                │
-    ┌──────────▼──────────────────┐
+    ┌─��────────▼──────────────────┐
     │ Admin Communication DB      │
     │ (email, sms, chat, etc.)    │
     └─────────────────────────────┘
@@ -893,6 +894,15 @@ After migration, these become:
 ---
 
 ## Progress Log
+- 2025-10-21 13:20 UTC — ✅ Completed
+  - Summary: Added Communication tab (admin-only) with export/import/save and permission gating. Added optional Notifications tab with OfflineQueueInspector and RealtimeConnectionPanel behind feature flag. Integrated both into ProfileManagementPanel.
+  - Files Modified:
+    - src/components/admin/profile/CommunicationTab.tsx (new)
+    - src/components/admin/profile/NotificationsTab.tsx (new)
+    - src/components/admin/profile/ProfileManagementPanel.tsx (updated)
+    - tests/components/preferences-tab.save.test.tsx (new)
+    - tests/pages/portal-settings.redirect.test.ts (new)
+  - Testing Notes: Unit tests cover preferences save and redirect behavior; manual check for permission-gated Communication tab.
 - 2025-10-21 13:00 UTC — ✅ Completed
   - Summary: Updated navigation links to point to /admin/profile?tab=preferences, ensured admin profile respects tab query, and verified preferences API and redirect exist.
   - Files Modified:
