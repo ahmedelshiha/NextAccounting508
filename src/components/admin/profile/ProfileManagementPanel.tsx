@@ -52,6 +52,8 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
 }
 
 import AccountActivity from './AccountActivity'
+import PreferencesTab from './PreferencesTab'
+
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
     <TabsContent value="security" className="mt-4">
