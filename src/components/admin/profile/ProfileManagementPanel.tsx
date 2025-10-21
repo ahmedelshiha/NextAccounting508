@@ -109,7 +109,7 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
   )
 }
 
-export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false }: ProfileManagementPanelProps) {
+export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false, fullPage = false }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
   const { profile, loading, update } = useUserProfile()
   const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
@@ -117,12 +117,12 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
       if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
     } catch {}
-  }, [isOpen, defaultTab])
+  }, [isOpen, defaultTab, fullPage])
 
   const handleProfileSave = async (key: string, value: string) => {
     await update({ [key]: value })
@@ -162,6 +162,44 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
       />
     </Tabs>
   )
+
+  if (fullPage) {
+    return (
+      <>
+        <div className="min-h-screen bg-background">
+          <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 max-w-7xl">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-semibold truncate">Manage profile</h1>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    Update your personal information and security settings
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="bg-white rounded-lg border shadow-sm p-6">
+              {TabsBlock}
+            </div>
+          </div>
+        </div>
+
+        {/* MFA Setup Modal */}
+        {showMfaSetup && mfaSetupData && (
+          <MfaSetupModal
+            isOpen={showMfaSetup}
+            onClose={handleMfaSetupClose}
+            setupData={mfaSetupData}
+          />
+        )}
+      </>
+    )
+  }
 
   return (
     <>
