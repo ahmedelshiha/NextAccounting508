@@ -12,7 +12,7 @@
 'use client'
 
 import { useRef, useState, lazy, Suspense } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import {
   Bell,
