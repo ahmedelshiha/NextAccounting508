@@ -11,11 +11,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-      include: {
-        profile: true,
-      },
+    const user = await prisma.user.findFirst({
+      where: { email: userEmail, tenantId: ctx.tenantId },
+      include: { userProfile: true },
     })
 
     if (!user) {
@@ -23,18 +21,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Return preferences from user profile
+    const profile = user.userProfile
     const preferences = {
-      timezone: user.profile?.timezone || 'UTC',
-      preferredLanguage: user.profile?.preferredLanguage || 'en',
-      bookingEmailConfirm: user.profile?.bookingEmailConfirm ?? true,
-      bookingEmailReminder: user.profile?.bookingEmailReminder ?? true,
-      bookingEmailReschedule: user.profile?.bookingEmailReschedule ?? true,
-      bookingEmailCancellation: user.profile?.bookingEmailCancellation ?? true,
-      bookingSmsReminder: user.profile?.bookingSmsReminder ?? false,
-      bookingSmsConfirmation: user.profile?.bookingSmsConfirmation ?? false,
-      reminderHours: Array.isArray(user.profile?.reminderHours)
-        ? user.profile.reminderHours
-        : [24, 2],
+      timezone: profile?.timezone || 'UTC',
+      preferredLanguage: profile?.preferredLanguage || 'en',
+      bookingEmailConfirm: profile?.bookingEmailConfirm ?? true,
+      bookingEmailReminder: profile?.bookingEmailReminder ?? true,
+      bookingEmailReschedule: profile?.bookingEmailReschedule ?? true,
+      bookingEmailCancellation: profile?.bookingEmailCancellation ?? true,
+      bookingSmsReminder: profile?.bookingSmsReminder ?? false,
+      bookingSmsConfirmation: profile?.bookingSmsConfirmation ?? false,
+      reminderHours: Array.isArray(profile?.reminderHours) ? profile!.reminderHours : [24, 2],
     }
 
     return NextResponse.json(preferences)
