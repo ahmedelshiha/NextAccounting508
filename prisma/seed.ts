@@ -73,11 +73,13 @@ async function main() {
   const staffPlain = genPasswordFromEnv('SEED_STAFF_PASSWORD')
   const clientPlain = genPasswordFromEnv('SEED_CLIENT_PASSWORD')
   const leadPlain = genPasswordFromEnv('SEED_LEAD_PASSWORD')
+  const superadminPlain = genPasswordFromEnv('SEED_SUPERADMIN_PASSWORD')
 
   const adminPassword = await bcrypt.hash(adminPlain, 12)
   const staffPassword = await bcrypt.hash(staffPlain, 12)
   const clientPassword = await bcrypt.hash(clientPlain, 12)
   const leadPassword = await bcrypt.hash(leadPlain, 12)
+  const superadminPassword = await bcrypt.hash(superadminPlain, 12)
 
   // Create users inside a transaction to ensure consistency
   const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
