@@ -52,27 +52,17 @@ export default function BookingNotificationsTab({ loading }: { loading: boolean 
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await apiFetch('/api/user/preferences', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (res.ok) {
-        toast.success('Booking notification preferences saved')
-      } else {
-        const err = await res.json().catch(() => ({}))
-        toast.error(err.error?.message || 'Failed to save preferences')
-      }
+      await updatePreferences(data)
+      toast.success('Booking notification preferences saved')
     } catch (err) {
       console.error('Save preferences error:', err)
-      toast.error('Failed to save preferences')
+      toast.error(err instanceof Error ? err.message : 'Failed to save preferences')
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
+  if (loading || preferencesLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -80,11 +70,11 @@ export default function BookingNotificationsTab({ loading }: { loading: boolean 
     )
   }
 
-  if (loadError) {
+  if (preferencesError) {
     return (
       <div className="text-sm text-red-600 p-4 bg-red-50 rounded">
-        {loadError}
-        <button onClick={loadPreferences} className="ml-2 underline hover:no-underline">
+        {preferencesError instanceof Error ? preferencesError.message : 'Failed to load preferences'}
+        <button onClick={refetch} className="ml-2 underline hover:no-underline">
           Retry
         </button>
       </div>
