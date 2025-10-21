@@ -129,14 +129,88 @@ export const ReminderConfigSchema = z.object({
 export type ReminderConfig = z.infer<typeof ReminderConfigSchema>
 
 /**
+ * Type-safe factory functions for complex Zod schema defaults
+ * These ensure proper type inference for array and union types
+ */
+
+function createEmailSettings(): z.infer<typeof EmailSettingsSchema> {
+  return {
+    transactionalEnabled: true,
+    marketingEnabled: false,
+    complianceBccEnabled: false,
+  }
+}
+
+function createSmsSettings(): z.infer<typeof SmsSettingsSchema> {
+  return {
+    provider: 'none' as 'none' | 'twilio' | 'plivo' | 'nexmo' | 'messagebird',
+    transactionalEnabled: false,
+    marketingEnabled: false,
+    fallbackToEmail: true,
+  }
+}
+
+function createLiveChatSettings(): z.infer<typeof LiveChatSettingsSchema> {
+  return {
+    enabled: false,
+    provider: 'none' as 'none' | 'intercom' | 'drift' | 'zendesk' | 'livechat',
+    routing: 'round_robin' as 'round_robin' | 'least_busy' | 'first_available' | 'manual',
+    workingHoursTimezone: 'UTC',
+    escalationEmails: [],
+  }
+}
+
+function createNotificationDigest(): z.infer<typeof NotificationDigestSchema> {
+  return {
+    timezone: 'UTC',
+  }
+}
+
+function createNewslettersSettings(): z.infer<typeof NewslettersSettingsSchema> {
+  return {
+    enabled: false,
+    doubleOptIn: true,
+    topics: [],
+  }
+}
+
+function createReminderConfig(): z.infer<typeof ReminderConfigSchema> {
+  return {
+    enabled: true,
+    offsetHours: 24,
+    channels: ['email'] as ('email' | 'sms' | 'push')[],
+  }
+}
+
+function createRemindersSettings(): z.infer<typeof RemindersSettingsSchema> {
+  return {
+    bookings: {
+      enabled: true,
+      offsetHours: 24,
+      channels: ['email'] as ('email' | 'sms' | 'push')[],
+    },
+    invoices: {
+      enabled: true,
+      offsetHours: 24,
+      channels: ['email'] as ('email' | 'sms' | 'push')[],
+    },
+    tasks: {
+      enabled: true,
+      offsetHours: 24,
+      channels: ['email'] as ('email' | 'sms' | 'push')[],
+    },
+  }
+}
+
+/**
  * Reminders Settings Schema
  * Admin-only reminders configuration for bookings, invoices, tasks
  */
 
 export const RemindersSettingsSchema = z.object({
-  bookings: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
-  invoices: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
-  tasks: ReminderConfigSchema.default(() => ({ enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[], templateId: undefined })),
+  bookings: ReminderConfigSchema,
+  invoices: ReminderConfigSchema,
+  tasks: ReminderConfigSchema,
 })
 
 export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
@@ -147,12 +221,12 @@ export type RemindersSettings = z.infer<typeof RemindersSettingsSchema>
  */
 
 export const CommunicationSettingsSchema = z.object({
-  email: EmailSettingsSchema.default(() => ({ transactionalEnabled: true, marketingEnabled: false, complianceBccEnabled: false })),
-  sms: SmsSettingsSchema.default(() => ({ provider: 'none' as 'none' | 'twilio' | 'plivo' | 'nexmo' | 'messagebird', transactionalEnabled: false, marketingEnabled: false, fallbackToEmail: true })),
-  liveChat: LiveChatSettingsSchema.default(() => ({ enabled: false, provider: 'none' as 'none' | 'intercom' | 'drift' | 'zendesk' | 'livechat', routing: 'round_robin' as 'round_robin' | 'least_busy' | 'first_available' | 'manual', workingHoursTimezone: 'UTC', escalationEmails: [] })),
-  notificationDigest: NotificationDigestSchema.default(() => ({ timezone: 'UTC' })),
-  newsletters: NewslettersSettingsSchema.default(() => ({ enabled: false, doubleOptIn: true, topics: [] })),
-  reminders: RemindersSettingsSchema.default(() => ({ bookings: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] }, invoices: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] }, tasks: { enabled: true, offsetHours: 24, channels: ['email'] as ('email' | 'push' | 'sms')[] } })),
+  email: EmailSettingsSchema.default(createEmailSettings),
+  sms: SmsSettingsSchema.default(createSmsSettings),
+  liveChat: LiveChatSettingsSchema.default(createLiveChatSettings),
+  notificationDigest: NotificationDigestSchema.default(createNotificationDigest),
+  newsletters: NewslettersSettingsSchema.default(createNewslettersSettings),
+  reminders: RemindersSettingsSchema.default(createRemindersSettings),
 })
 
 export type CommunicationSettings = z.infer<typeof CommunicationSettingsSchema>

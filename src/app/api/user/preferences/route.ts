@@ -3,8 +3,9 @@ import prisma from '@/lib/prisma'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { PreferencesSchema, isValidTimezone } from '@/schemas/user-profile'
 import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const userEmail = ctx.userEmail
@@ -58,9 +59,9 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
-export async function PUT(request: NextRequest) {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
 
@@ -178,4 +179,4 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
