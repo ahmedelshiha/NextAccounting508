@@ -1,0 +1,175 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: {
+        profile: true,
+      },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Return preferences from user profile
+    const preferences = {
+      timezone: user.profile?.timezone || 'UTC',
+      preferredLanguage: user.profile?.preferredLanguage || 'en',
+      bookingEmailConfirm: user.profile?.bookingEmailConfirm ?? true,
+      bookingEmailReminder: user.profile?.bookingEmailReminder ?? true,
+      bookingEmailReschedule: user.profile?.bookingEmailReschedule ?? true,
+      bookingEmailCancellation: user.profile?.bookingEmailCancellation ?? true,
+      bookingSmsReminder: user.profile?.bookingSmsReminder ?? false,
+      bookingSmsConfirmation: user.profile?.bookingSmsConfirmation ?? false,
+      reminderHours: Array.isArray(user.profile?.reminderHours)
+        ? user.profile.reminderHours
+        : [24, 2],
+    }
+
+    return NextResponse.json(preferences)
+  } catch (error) {
+    console.error('Error fetching preferences:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const {
+      timezone,
+      preferredLanguage,
+      bookingEmailConfirm,
+      bookingEmailReminder,
+      bookingEmailReschedule,
+      bookingEmailCancellation,
+      bookingSmsReminder,
+      bookingSmsConfirmation,
+      reminderHours,
+    } = body
+
+    // Validate inputs
+    if (timezone && !isValidTimezone(timezone)) {
+      return NextResponse.json(
+        { error: { message: 'Invalid timezone' } },
+        { status: 400 }
+      )
+    }
+
+    if (preferredLanguage && !['en', 'ar', 'hi'].includes(preferredLanguage)) {
+      return NextResponse.json(
+        { error: { message: 'Invalid language' } },
+        { status: 400 }
+      )
+    }
+
+    if (reminderHours && !Array.isArray(reminderHours)) {
+      return NextResponse.json(
+        { error: { message: 'reminderHours must be an array' } },
+        { status: 400 }
+      )
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Update or create user profile with preferences
+    const updatedProfile = await prisma.userProfile.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        timezone: timezone || 'UTC',
+        preferredLanguage: preferredLanguage || 'en',
+        bookingEmailConfirm: bookingEmailConfirm ?? true,
+        bookingEmailReminder: bookingEmailReminder ?? true,
+        bookingEmailReschedule: bookingEmailReschedule ?? true,
+        bookingEmailCancellation: bookingEmailCancellation ?? true,
+        bookingSmsReminder: bookingSmsReminder ?? false,
+        bookingSmsConfirmation: bookingSmsConfirmation ?? false,
+        reminderHours: reminderHours || [24, 2],
+      },
+      update: {
+        ...(timezone && { timezone }),
+        ...(preferredLanguage && { preferredLanguage }),
+        ...(bookingEmailConfirm !== undefined && { bookingEmailConfirm }),
+        ...(bookingEmailReminder !== undefined && { bookingEmailReminder }),
+        ...(bookingEmailReschedule !== undefined && { bookingEmailReschedule }),
+        ...(bookingEmailCancellation !== undefined && { bookingEmailCancellation }),
+        ...(bookingSmsReminder !== undefined && { bookingSmsReminder }),
+        ...(bookingSmsConfirmation !== undefined && { bookingSmsConfirmation }),
+        ...(reminderHours && { reminderHours }),
+      },
+    })
+
+    const preferences = {
+      timezone: updatedProfile.timezone || 'UTC',
+      preferredLanguage: updatedProfile.preferredLanguage || 'en',
+      bookingEmailConfirm: updatedProfile.bookingEmailConfirm ?? true,
+      bookingEmailReminder: updatedProfile.bookingEmailReminder ?? true,
+      bookingEmailReschedule: updatedProfile.bookingEmailReschedule ?? true,
+      bookingEmailCancellation: updatedProfile.bookingEmailCancellation ?? true,
+      bookingSmsReminder: updatedProfile.bookingSmsReminder ?? false,
+      bookingSmsConfirmation: updatedProfile.bookingSmsConfirmation ?? false,
+      reminderHours: Array.isArray(updatedProfile.reminderHours)
+        ? updatedProfile.reminderHours
+        : [24, 2],
+    }
+
+    return NextResponse.json(preferences)
+  } catch (error) {
+    console.error('Error updating preferences:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * Validate timezone string
+ * This is a basic check - a production app might use a more robust library
+ */
+function isValidTimezone(tz: string): boolean {
+  const validTimezones = [
+    'UTC',
+    'US/Eastern',
+    'US/Central',
+    'US/Mountain',
+    'US/Pacific',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Asia/Dubai',
+    'Asia/Kolkata',
+    'Asia/Bangkok',
+    'Asia/Singapore',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+  ]
+  return validTimezones.includes(tz)
+}

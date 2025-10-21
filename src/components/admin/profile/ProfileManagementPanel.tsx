@@ -13,8 +13,9 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 export interface ProfileManagementPanelProps {
   isOpen: boolean
   onClose?: () => void
-  defaultTab?: "profile" | "security"
+  defaultTab?: "profile" | "security" | "preferences"
   inline?: boolean
+  fullPage?: boolean
 }
 
 function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: any; onSave: (key: string, value: string) => Promise<void> }) {
@@ -51,6 +52,8 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
 }
 
 import AccountActivity from './AccountActivity'
+import PreferencesTab from './PreferencesTab'
+
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
     <TabsContent value="security" className="mt-4">
@@ -108,7 +111,7 @@ function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading
   )
 }
 
-export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false }: ProfileManagementPanelProps) {
+export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "profile", inline = false, fullPage = false }: ProfileManagementPanelProps) {
   const [tab, setTab] = useState(defaultTab)
   const { profile, loading, update } = useUserProfile()
   const { enrollMfa, mfaSetupData, clearMfaSetup } = useSecuritySettings()
@@ -116,12 +119,12 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
       if (!defaultTab && (saved === 'profile' || saved === 'security')) setTab(saved as any)
     } catch {}
-  }, [isOpen, defaultTab])
+  }, [isOpen, defaultTab, fullPage])
 
   const handleProfileSave = async (key: string, value: string) => {
     await update({ [key]: value })
@@ -149,6 +152,7 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
         </TabsList>
       </div>
 
@@ -159,8 +163,47 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         onPasswordSave={(val) => handleProfileSave('password', val)}
         onMfaSetup={handleMfaSetup}
       />
+      <PreferencesTab loading={loading} />
     </Tabs>
   )
+
+  if (fullPage) {
+    return (
+      <>
+        <div className="min-h-screen bg-background">
+          <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 max-w-7xl">
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-semibold truncate">Manage profile</h1>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    Update your personal information and security settings
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+            <div className="bg-white rounded-lg border shadow-sm p-6">
+              {TabsBlock}
+            </div>
+          </div>
+        </div>
+
+        {/* MFA Setup Modal */}
+        {showMfaSetup && mfaSetupData && (
+          <MfaSetupModal
+            isOpen={showMfaSetup}
+            onClose={handleMfaSetupClose}
+            setupData={mfaSetupData}
+          />
+        )}
+      </>
+    )
+  }
 
   return (
     <>
