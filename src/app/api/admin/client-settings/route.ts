@@ -4,6 +4,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import clientService from '@/services/client-settings.service'
 import { ClientManagementSettingsSchema } from '@/schemas/settings/client-management'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 import * as Sentry from '@sentry/nextjs'
 
 export const GET = withTenantContext(async (request: Request) => {
@@ -34,7 +35,20 @@ export const PUT = withTenantContext(async (request: Request) => {
       try { Sentry.captureMessage('client-settings:validation_failed', { level: 'warning' } as any) } catch {}
       return NextResponse.json({ error: 'Invalid payload', details: parsed.error.format() }, { status: 400 })
     }
+
+    const before = await clientService.get(tenantId).catch(() => null)
     const updated = await clientService.upsert(tenantId, parsed.data)
+
+    // Persist change diff and audit event
+    await persistSettingChangeDiff({
+      tenantId,
+      category: 'client',
+      resource: 'client-settings',
+      userId: ctx.userId,
+      before,
+      after: updated,
+    })
+
     return NextResponse.json(updated)
   } catch (e) {
     try { Sentry.captureException(e as any) } catch {}
