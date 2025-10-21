@@ -1,3 +1,4 @@
+import prisma from '@/lib/prisma'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { NextResponse } from 'next/server'
