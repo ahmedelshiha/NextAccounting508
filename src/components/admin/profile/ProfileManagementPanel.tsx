@@ -159,15 +159,14 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const TabsBlock = (
     <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
       <div className="sticky top-0 bg-white z-10 pt-1">
-        <TabsList>
+        <TabsList className="grid w-full gap-0">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
+          <TabsTrigger value="booking">Booking Notifications</TabsTrigger>
+          <TabsTrigger value="localization">Localization</TabsTrigger>
           <TabsTrigger value="preferences">Preferences</TabsTrigger>
           {canSeeCommunication && (
             <TabsTrigger value="communication">Communication</TabsTrigger>
-          )}
-          {showNotificationsTab && (
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           )}
         </TabsList>
       </div>
