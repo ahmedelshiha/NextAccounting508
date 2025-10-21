@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import useSWR from 'swr'
 import { apiFetch } from '@/lib/api'
-import { UserPreferences } from '@/schemas/user-profile'
+import { UserPreferences, PreferencesSchema } from '@/schemas/user-profile'
 
 /**
  * Custom hook for fetching and caching user preferences
