@@ -767,7 +767,7 @@ tests/e2e/portal-settings.spec.ts (test for old page)
 **Portal Settings Dependencies:**
 ```
 /portal/settings depends on:
-├── /api/portal/settings/booking-preferences
+├���─ /api/portal/settings/booking-preferences
 ├── /api/users/me
 ├── useTranslations hook
 ├── OfflineQueueInspector component
@@ -930,3 +930,29 @@ After migration, these become:
   - Files Modified:
     - src/app/portal/settings/page.tsx
   - Testing Notes: Redirect unit test should pass; server redirect works for authenticated users.
+
+- 2025-10-21 14:37 UTC — ⚠️ In Progress
+  - Summary: Attempted to validate /api/user/preferences end-to-end by running unit tests for PreferencesTab and portal redirect.
+  - Actions Taken:
+    - Ran vitest for tests/components/preferences-tab.save.test.tsx and tests/pages/portal-settings.redirect.test.ts
+  - Results:
+    - PreferencesTab test failed due to module resolution error: unable to resolve "@radix-ui/react-checkbox" from src/components/ui/checkbox.tsx. This indicates a missing dev dependency in the test environment or a path alias issue.
+    - Redirect test failed because the test mock for next/navigation did not export the expected "redirect" when Page executed; vitest reported: No "redirect" export is defined on the "next/navigation" mock.
+  - Issues Encountered:
+    1. Missing package or incorrect import for @radix-ui/react-checkbox causing test transformation failure.
+    2. Mocking pattern for next/navigation needs adjustment to use vi.importActual or ensure proper named export.
+  - Next Steps / Recommendations:
+    - Add or mock @radix-ui/react-checkbox in the test environment, or adjust imports in src/components/ui/checkbox.tsx to match available packages.
+    - Update tests/pages/portal-settings.redirect.test.ts to mock next/navigation with vi.importActual and return a named redirect export, or adjust test harness.
+    - Re-run the vitest suite after fixing mocks and dependencies.
+  - Files Touched:
+    - (none) — no source changes made during validation attempt
+  - Status: Blocked by test environment issues (missing dependency & mock configuration)
+  - Follow-up Todo: Resolve test environment failures and re-run tests
+  - Testing Notes: Type-level validation via TypeScript may still pass; consider running "pnpm typecheck" while test issues are resolved.
+
+2025-10-21 14:40 UTC — 🔄 Needs Review
+  - Summary: Created follow-up todo to fix test environment and re-run tests.
+  - Next Action: Address missing dependency and mocking, then validate preferences API end-to-end and mark task completed.
+
+
