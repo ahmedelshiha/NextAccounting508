@@ -152,6 +152,7 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         <TabsList>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
         </TabsList>
       </div>
 
@@ -162,6 +163,7 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
         onPasswordSave={(val) => handleProfileSave('password', val)}
         onMfaSetup={handleMfaSetup}
       />
+      <PreferencesTab loading={loading} />
     </Tabs>
   )
 
