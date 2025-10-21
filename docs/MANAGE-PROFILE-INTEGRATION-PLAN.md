@@ -2,7 +2,7 @@
 ## Audit & Design Document
 
 **Date Created:** 2025-01-XX  
-**Status:** Ready for Review  
+**Status:** In Progress  
 **Priority:** High
 
 ---
@@ -273,6 +273,7 @@ This document outlines the plan to consolidate user account settings from `/port
 
 ### Phase 2: Communication Settings (Optional but Recommended)
 **Priority:** MEDIUM
+**Status:** Completed
 **Timeline:** 2-3 weeks
 **Scope:** Admin-only communication channel configuration
 **Permission Gate:** Admin/Team Lead only
@@ -373,7 +374,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
-└──────────────────────┬──────────────────────────────────────────┘
+└────��─────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
           │            │            │
@@ -388,7 +389,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     └────────────┘ └─────────┘ └─────────────┘
           │           │            │
     ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
-    │  User DB   │ │ User DB  │ │UserProfile  │
+    │  User DB   │ �� User DB  │ │UserProfile  │
     │ (name,     │ │(password,│ │  DB         │
     │  email)    │ │  2fa)    │ │(timezone,   │
     │            │ │          │ │ prefs)      │
@@ -405,7 +406,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     │        settings             │
     └──────────┬──────────────────┘
                │
-    ┌──────────▼──────────────────┐
+    ┌─��────────▼──────────────────┐
     │ Admin Communication DB      │
     │ (email, sms, chat, etc.)    │
     └─────────────────────────────┘
@@ -461,7 +462,7 @@ ProfileManagementPanel
 ├── SecurityTab (existing)
 ├── PreferencesTab (NEW)
 │   ├── BookingNotificationsSection
-│   └── LocalizationSection
+���   └── LocalizationSection
 ├── CommunicationTab (NEW - admin only)
 │   ├── EmailSettingsSection
 │   ├── SmsSettingsSection
@@ -782,8 +783,8 @@ After migration, these become:
 ```
 
 **Action Items:**
-- [ ] Verify `/api/user/preferences` endpoint created
-- [ ] Verify `/api/user/profile` exists & works
+- [x] Verify `/api/user/preferences` endpoint created
+- [x] Verify `/api/user/profile` exists & works
 - [ ] OfflineQueueInspector → move to admin (Notifications tab)
 - [ ] RealtimeConnectionPanel → move to admin (Notifications tab)
 
@@ -886,6 +887,36 @@ After migration, these become:
 
 ---
 
-**Document Owner:** [Your Name]  
-**Last Updated:** 2025-01-XX  
+**Document Owner:** [Your Name]
+**Last Updated:** 2025-10-21
 **Version:** 1.0
+
+---
+
+## Progress Log
+- 2025-10-21 14:00 UTC — ✅ Completed
+  - Summary: Ran migration on staging database. Result: { created: 0, updated: 0, skipped: 0 }.
+  - Notes: No BookingPreferences records present to migrate. Verified Prisma client generation succeeded.
+- 2025-10-21 13:40 UTC — ✅ Completed
+  - Summary: Created migration and rollback scripts to move BookingPreferences into UserProfile fields and added package scripts to run them.
+  - Files Modified:
+    - scripts/migrate-booking-preferences-to-user-profile.ts (new)
+    - scripts/rollback-user-profile-preferences.ts (new)
+    - package.json (scripts added)
+  - Next Steps: Run migration on staging, verify, then production; monitor and clean up after 30 days.
+- 2025-10-21 13:20 UTC — ✅ Completed
+  - Summary: Added Communication tab (admin-only) with export/import/save and permission gating. Added optional Notifications tab with OfflineQueueInspector and RealtimeConnectionPanel behind feature flag. Integrated both into ProfileManagementPanel.
+  - Files Modified:
+    - src/components/admin/profile/CommunicationTab.tsx (new)
+    - src/components/admin/profile/NotificationsTab.tsx (new)
+    - src/components/admin/profile/ProfileManagementPanel.tsx (updated)
+    - tests/components/preferences-tab.save.test.tsx (new)
+    - tests/pages/portal-settings.redirect.test.ts (new)
+  - Testing Notes: Unit tests cover preferences save and redirect behavior; manual check for permission-gated Communication tab.
+- 2025-10-21 13:00 UTC — ✅ Completed
+  - Summary: Updated navigation links to point to /admin/profile?tab=preferences, ensured admin profile respects tab query, and verified preferences API and redirect exist.
+  - Files Modified:
+    - src/components/ui/navigation.tsx
+    - src/components/tax/deadline-tracker.tsx
+    - src/app/admin/profile/page.tsx
+  - Testing Notes: Manually verified links route to Preferences tab; redirect from /portal/settings is active; Preferences tab loads and saves via /api/user/preferences.
