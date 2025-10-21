@@ -143,31 +143,51 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
     clearMfaSetup()
   }
 
+  const TabsBlock = (
+    <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
+      <div className="sticky top-0 bg-white z-10 pt-1">
+        <TabsList>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="security">Sign in & security</TabsTrigger>
+        </TabsList>
+      </div>
+
+      <ProfileTab loading={loading} profile={profile} onSave={handleProfileSave} />
+      <SecurityTab
+        loading={loading}
+        profile={profile}
+        onPasswordSave={(val) => handleProfileSave('password', val)}
+        onMfaSetup={handleMfaSetup}
+      />
+    </Tabs>
+  )
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Manage profile</DialogTitle>
-          </DialogHeader>
-          <Tabs value={tab} onValueChange={(v) => { setTab(v as any); try { window.localStorage.setItem('profile-panel-last-tab', v) } catch {} }}>
-            <div className="sticky top-0 bg-white z-10 pt-1">
-              <TabsList>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="security">Sign in & security</TabsTrigger>
-              </TabsList>
+      {inline ? (
+        <div className="max-w-3xl w-full mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="bg-white shadow rounded-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-lg font-semibold">Manage profile</h1>
+                <p className="text-sm text-gray-500">Update your personal information and security settings</p>
+              </div>
             </div>
-
-            <ProfileTab loading={loading} profile={profile} onSave={handleProfileSave} />
-            <SecurityTab
-              loading={loading}
-              profile={profile}
-              onPasswordSave={(val) => handleProfileSave('password', val)}
-              onMfaSetup={handleMfaSetup}
-            />
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+            {TabsBlock}
+          </div>
+        </div>
+      ) : (
+        <>
+          <Dialog open={isOpen} onOpenChange={(v) => (!v ? onClose() : null)}>
+            <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Manage profile</DialogTitle>
+              </DialogHeader>
+              {TabsBlock}
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       {/* MFA Setup Modal */}
       {showMfaSetup && mfaSetupData && (
