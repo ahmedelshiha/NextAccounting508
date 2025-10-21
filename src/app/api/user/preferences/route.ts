@@ -208,9 +208,12 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
 
     return NextResponse.json(preferences)
   } catch (error) {
-    console.error('Error updating preferences:', error)
+    console.error('Error updating preferences:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
-      { error: 'Failed to update preferences' },
+      { error: 'Failed to update preferences', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
