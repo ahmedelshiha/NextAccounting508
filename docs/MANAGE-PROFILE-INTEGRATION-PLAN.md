@@ -244,9 +244,10 @@ This document outlines the plan to consolidate user account settings from `/port
 
 ## Implementation Roadmap
 
-### Phase 1: Foundation (MVP)
-**Priority:** HIGH  
+### Phase 1: Foundation (MVP) ⭐ PRIORITY
+**Priority:** HIGH
 **Timeline:** 1-2 weeks
+**Scope:** Preferences tab with user preferences
 
 **Tasks:**
 1. Create new API endpoints:
@@ -270,9 +271,10 @@ This document outlines the plan to consolidate user account settings from `/port
 
 ---
 
-### Phase 2: Communication Settings (Optional)
-**Priority:** MEDIUM  
+### Phase 2: Communication Settings (Optional but Recommended)
+**Priority:** MEDIUM
 **Timeline:** 2-3 weeks
+**Scope:** Admin-only communication channel configuration
 **Permission Gate:** Admin/Team Lead only
 
 **Tasks:**
@@ -288,8 +290,9 @@ This document outlines the plan to consolidate user account settings from `/port
 ---
 
 ### Phase 3: Notifications System Tab (Optional)
-**Priority:** LOW  
+**Priority:** LOW
 **Timeline:** 1 week
+**Scope:** Debug/system monitoring
 **Permission Gate:** Optional (feature flag)
 
 **Tasks:**
@@ -298,6 +301,69 @@ This document outlines the plan to consolidate user account settings from `/port
 3. Feature flag for production visibility
 
 **Deliverable:** Optional "Notifications" system tab
+
+---
+
+### Phase 4: Migration & Retirement ⭐ MANDATORY
+**Priority:** HIGH (after Phase 1 validated)
+**Timeline:** 1 week
+**Scope:** Retire old `/portal/settings` page
+**Dependencies:** Phase 1 must be complete & tested first
+
+**Tasks:**
+1. Data migration:
+   - Migrate existing portal settings to UserProfile schema
+   - Verify no data loss
+   - Create rollback script
+
+2. Redirect implementation:
+   - Replace `/portal/settings/page.tsx` with redirect to `/admin/profile?tab=preferences`
+   - Implement 301 permanent redirect for SEO
+
+3. Update navigation:
+   - Remove "Settings" link from portal navigation
+   - Search & replace all `/portal/settings` references
+   - Update help documentation
+
+4. User communication:
+   - Draft email notification (7 days before)
+   - Create in-app banner
+   - Update FAQ/help docs
+
+5. Testing:
+   - Verify all data migrated correctly
+   - Test redirect behavior
+   - E2E tests for redirect
+   - Permission testing with portal users
+
+6. Monitoring (7-day post-deployment):
+   - Track redirect traffic
+   - Monitor error rates
+   - Check for user confusion
+
+7. Cleanup (after 30-day grace period):
+   - Remove old page file
+   - Archive old documentation
+   - Database cleanup (if separate table)
+
+**Deliverable:** Successful migration, old page removed, zero broken links
+
+---
+
+### Phase Timeline Summary
+
+```
+Week 1-2:  Phase 1 - Preferences Tab [DO THIS FIRST]
+           ↓
+Week 3-4:  Phase 2 - Communication Tab (optional)
+           ↓
+Week 5:    Phase 4 - Migration & Retirement [MANDATORY after Phase 1]
+           ↓
+Week 6-8:  Phase 3 - Notifications Tab (optional)
+
+Total: 5-8 weeks for all phases
+MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
+```
 
 ---
 
@@ -311,7 +377,7 @@ This document outlines the plan to consolidate user account settings from `/port
                        │
           ┌────────────┼────────────┐
           │            │            │
-    ┌─────▼──────┐ ┌──▼──────┐ ┌──▼──────────┐
+    ┌─────���──────┐ ┌──▼──────┐ ┌──▼──────────┐
     │  Profile   │ │Security │ │Preferences │
     │   Tab      │ │  Tab    │ │   Tab      │
     └─────┬──────┘ └──┬──────┘ └──┬─────────┘
