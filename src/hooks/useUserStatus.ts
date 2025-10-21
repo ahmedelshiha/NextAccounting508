@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import { announce } from "@/lib/a11y"
 
 export type UserStatus = "online" | "away" | "busy"
@@ -55,7 +56,7 @@ export function useUserStatus(options?: { autoAwayMs?: number }) {
     }
   }, [markActive, status])
 
-  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`); const { toast } = require('sonner'); toast.success(`Status: ${lbl}`) } catch {} }, [])
+  const set = useCallback((s: UserStatus) => { setStatus(s); try { const lbl = s === 'away' ? 'Away' : s === 'busy' ? 'Busy' : 'Online'; announce(`Status set to ${lbl}`); toast.success(`Status: ${lbl}`) } catch {} }, [])
 
   return { status, setStatus: set }
 }
