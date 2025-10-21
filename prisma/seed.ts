@@ -82,7 +82,7 @@ async function main() {
   const superadminPassword = await bcrypt.hash(superadminPlain, 12)
 
   // Create users inside a transaction to ensure consistency
-  const [admin, staff, client1, client2, lead] = await prisma.$transaction(async (tx) => {
+  const [admin, staff, client1, client2, lead, superadmin] = await prisma.$transaction(async (tx) => {
     const a = await tx.user.upsert({
       where: { tenantId_email: { tenantId: defaultTenant.id, email: 'admin@accountingfirm.com' } },
       update: {},
@@ -148,10 +148,27 @@ async function main() {
       },
     })
 
-    return [a, s, c1, c2, l]
+    const sa = await tx.user.upsert({
+      where: { tenantId_email: { tenantId: defaultTenant.id, email: 'superadmin@accountingfirm.com' } },
+      update: {
+        password: superadminPassword,
+        role: 'SUPER_ADMIN',
+        emailVerified: new Date(),
+      },
+      create: {
+        tenantId: defaultTenant.id,
+        email: 'superadmin@accountingfirm.com',
+        name: 'Super Admin',
+        password: superadminPassword,
+        role: 'SUPER_ADMIN',
+        emailVerified: new Date(),
+      },
+    })
+
+    return [a, s, c1, c2, l, sa]
   })
 
-  console.log('✅ Users created')
+  console.log('✅ Users created (including SUPER_ADMIN)')
 
   // Create or ensure Team Members linked to staff/lead users
   let tmStaff = await prisma.teamMember.findFirst({ where: { userId: staff.id } })
