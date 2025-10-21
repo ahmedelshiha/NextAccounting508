@@ -912,10 +912,12 @@ Effective cash flow management requires ongoing attention and planning. Regular 
 
   console.log('🎉 Seed completed successfully!')
   console.log('\n📋 Test Accounts:')
-  console.log('Admin: admin@accountingfirm.com / admin123')
-  console.log('Staff: staff@accountingfirm.com / staff123')
-  console.log('Client 1: client1@example.com / client123')
-  console.log('Client 2: client2@example.com / client123')
+  console.log(`SUPER_ADMIN: superadmin@accountingfirm.com / ${superadminPlain}`)
+  console.log(`Admin: admin@accountingfirm.com / ${adminPlain}`)
+  console.log(`Staff: staff@accountingfirm.com / ${staffPlain}`)
+  console.log(`Client 1: client1@example.com / ${clientPlain}`)
+  console.log(`Client 2: client2@example.com / ${clientPlain}`)
+  console.log(`Lead: lead@accountingfirm.com / ${leadPlain}`)
 }
 
 // Exported function for smoke tests
