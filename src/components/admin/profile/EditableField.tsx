@@ -126,6 +126,8 @@ function EditableFieldComponent({
   )
 
   if (isEditing) {
+    const charCount = editValue.length
+    const maxChars = 200
     return (
       <div className="border-t border-gray-100 first:border-t-0">
         <div className="px-3 py-3 space-y-2">
@@ -133,20 +135,30 @@ function EditableFieldComponent({
           {description && <p className="text-xs text-gray-500">{description}</p>}
           <input
             ref={inputRef}
-            type="text"
+            type={fieldType === 'password' ? 'password' : fieldType}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={saving}
+            maxLength={maxChars}
             className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
           />
-          {error && <div className="text-xs text-red-600">{error}</div>}
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              {error && <div className="text-xs text-red-600">{error}</div>}
+            </div>
+            {fieldType !== 'password' && (
+              <div className="text-xs text-gray-500 ml-2">
+                {charCount}/{maxChars}
+              </div>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={saving || editValue === value}
+              disabled={saving || editValue === value || !!error}
               className="flex-1"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
