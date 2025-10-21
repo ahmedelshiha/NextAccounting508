@@ -374,7 +374,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Manage Profile Page                         │
 │                      /admin/profile                             │
-└──────────────────────┬───��──────────────────────────────────────┘
+└──────────────────────┬──────────────────────────────────────────┘
                        │
           ┌────────────┼────────────┐
           │            │            │
@@ -419,7 +419,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
 ### Existing Endpoints (Reuse)
 - `GET/PUT /api/user/profile` ✅
 - `POST /api/user/security/2fa` ✅
-- `GET/PUT /api/admin/communication-settings` ��
+- `GET/PUT /api/admin/communication-settings` ✅
 - `GET /api/portal/settings/booking-preferences` ✅
 - `PUT /api/portal/settings/booking-preferences` ✅
 
@@ -894,6 +894,13 @@ After migration, these become:
 ---
 
 ## Progress Log
+- 2025-10-21 13:40 UTC — ✅ Completed
+  - Summary: Created migration and rollback scripts to move BookingPreferences into UserProfile fields and added package scripts to run them.
+  - Files Modified:
+    - scripts/migrate-booking-preferences-to-user-profile.ts (new)
+    - scripts/rollback-user-profile-preferences.ts (new)
+    - package.json (scripts added)
+  - Next Steps: Run migration on staging, verify, then production; monitor and clean up after 30 days.
 - 2025-10-21 13:20 UTC — ✅ Completed
   - Summary: Added Communication tab (admin-only) with export/import/save and permission gating. Added optional Notifications tab with OfflineQueueInspector and RealtimeConnectionPanel behind feature flag. Integrated both into ProfileManagementPanel.
   - Files Modified:
