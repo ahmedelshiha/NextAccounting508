@@ -67,6 +67,7 @@ export default function AdminHeader({ onMenuToggle, isMobileMenuOpen, onSidebarT
   const profileTriggerRef = useRef<HTMLButtonElement | null>(null)
   const { unreadCount } = useClientNotifications()
   const breadcrumbs = useBreadcrumbs()
+  const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
