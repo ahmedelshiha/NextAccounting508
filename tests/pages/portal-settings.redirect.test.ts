@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 
 vi.doMock('next/navigation', () => ({
+  __esModule: true,
   redirect: vi.fn(),
 }))
 
