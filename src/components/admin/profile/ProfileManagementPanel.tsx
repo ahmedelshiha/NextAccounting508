@@ -126,7 +126,6 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const { data: session } = useSession()
   const role = (session?.user as any)?.role as string | undefined
   const canSeeCommunication = hasPermission(role, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)
-  const showNotificationsTab = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_PROFILE_DEBUG_TABS === '1')
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
