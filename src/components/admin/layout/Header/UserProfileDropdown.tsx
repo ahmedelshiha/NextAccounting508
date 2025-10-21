@@ -36,24 +36,33 @@ function StatusSelector() {
   ]
   return (
     <div role="group" aria-label="Status" className="px-3 py-2 border-t border-gray-100">
-      <div className="flex gap-2 items-center justify-start">
-        {opts.map(o => (
-          <button
-            key={o.v}
-            role="menuitemradio"
-            aria-checked={status === o.v}
-            onClick={() => setStatus(o.v)}
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors",
-              status === o.v
-                ? "bg-gray-200 text-gray-900 font-medium"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-150"
-            )}
-          >
-            <span className={`h-2 w-2 rounded-full ${o.dot}`} />
-            <span>{o.label}</span>
-          </button>
-        ))}
+      <div className="flex flex-col gap-2">
+        {opts.map(o => {
+          const checked = status === o.v
+          return (
+            <button
+              key={o.v}
+              role="menuitemradio"
+              aria-checked={checked}
+              onClick={() => setStatus(o.v)}
+              className={cn(
+                "flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md transition-all text-sm",
+                checked
+                  ? "bg-gradient-to-r from-slate-50 to-white text-gray-900 ring-1 ring-slate-200 shadow-sm"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`inline-block h-3 w-3 rounded-full ${o.dot}`} />
+                <span className="font-medium">{o.label}</span>
+              </div>
+
+              <div className="flex items-center">
+                {checked ? <svg className="h-4 w-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : null}
+              </div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
