@@ -4,8 +4,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import {
   getLanguageByCode,
   deleteLanguage,
-  upsertLanguage,
-  toggleLanguageStatus
+  upsertLanguage
 } from '@/lib/language-registry'
 import { logAudit } from '@/lib/audit'
 import * as Sentry from '@sentry/nextjs'
