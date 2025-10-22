@@ -9,30 +9,40 @@ interface TranslationProviderProps {
   children: ReactNode
   initialLocale?: Locale
   initialGender?: GenderType
+  initialTranslations?: Record<string, string>
 }
 
 export function TranslationProvider({ children, initialLocale, initialGender }: TranslationProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale)
-  const [translations, setTranslations] = useState<Record<string, string>>(() => enTranslations)
-  const [isLoading, setIsLoading] = useState(true)
+  const [translations, setTranslations] = useState<Record<string, string>>(() => initialTranslations ?? enTranslations)
+  const [isLoading, setIsLoading] = useState<boolean>(!initialTranslations)
   const [currentGender, setGender] = useState<GenderType | undefined>(initialGender)
 
-  // Load translations when locale changes
+  // Load translations when locale changes — skip initial server-provided translations
   useEffect(() => {
+    let cancelled = false
     async function loadLocaleTranslations() {
       setIsLoading(true)
       try {
         const newTranslations = await loadTranslations(locale)
-        setTranslations(newTranslations)
+        if (!cancelled) setTranslations(newTranslations)
       } catch (error) {
         console.error('Failed to load translations:', error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
 
+    // If initialTranslations provided and locale matches initialLocale, skip fetching
+    if (initialTranslations && initialLocale === locale) {
+      setIsLoading(false)
+      // translations already set from initialTranslations
+      return () => { cancelled = true }
+    }
+
     loadLocaleTranslations()
-  }, [locale])
+    return () => { cancelled = true }
+  }, [locale, initialTranslations, initialLocale])
 
   // Detect and set initial locale on client side
   useEffect(() => {
