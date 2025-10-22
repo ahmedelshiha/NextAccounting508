@@ -54,10 +54,17 @@ P1 — High
     - Clear error handling with proper async/await flow
     - Comments clarify the optimistic update pattern and revalidation strategy
 
-- P1-2: API Hardening & rate-limit per-user
+- P1-2: API Hardening & rate-limit per-user (COMPLETED)
   - Files: src/app/api/user/preferences/route.ts, src/lib/rate-limit.ts
   - Description: Sanitize logged payloads (no PII). Add per-user rate-limiter key in addition to per-IP to avoid shared-IP false positives.
   - Acceptance criteria: Logs do not include raw PII; rate-limit triggers per-user.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Added `sanitizePayloadForLogging()` function that only exposes non-sensitive preference fields
+    - All console.error and Sentry captures now use sanitized payloads with only field keys, no values
+    - Added per-user rate limiting (40 writes/min) in addition to per-IP (20 writes/min)
+    - Per-user limit helps shared IPs avoid false positives while maintaining security
+    - Sentry captures include sanitized payload keys for debugging without exposing PII
 
 - P1-3: Locale mapping utility
   - Files: src/lib/locale.ts, update src/lib/cron/reminders.ts
