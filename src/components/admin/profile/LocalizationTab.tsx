@@ -137,10 +137,13 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           <SelectTrigger id="timezone" className={`mt-2 ${errors.timezone ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-64">
             {timezones.map((tz) => (
               <SelectItem key={tz.code} value={tz.code}>
-                {tz.label}
+                <span className="flex items-center gap-2">
+                  <span>{tz.label}</span>
+                  {tz.offset && <span className="text-xs text-gray-500">({tz.abbreviation})</span>}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
