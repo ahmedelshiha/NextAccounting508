@@ -171,6 +171,9 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const email = userEmail as string
+    const tid = tenantId as string
+
     // Rate limit: 20 writes/minute per IP, also per-user to avoid shared-IP false positives
     try {
       const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
@@ -207,9 +210,6 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
     } catch {}
-
-    const email = userEmail as string
-    const tid = tenantId as string
 
     const body = await request.json().catch(() => ({}))
 
