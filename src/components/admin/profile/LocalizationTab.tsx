@@ -42,7 +42,6 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     if (!VALID_LANGUAGES.includes(data.preferredLanguage)) nextErrors.preferredLanguage = 'Unsupported language'
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
-      toast.error('Please fix validation errors before saving')
       return
     }
 
@@ -59,7 +58,16 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     } catch (err) {
       console.error('Save error:', err)
       const msg = err instanceof Error ? err.message : 'Failed to save settings'
-      toast.error(msg)
+
+      // Parse server error messages to show inline field errors
+      if (msg.includes('timezone')) {
+        setErrors((prev) => ({ ...prev, timezone: msg }))
+      } else if (msg.includes('language') || msg.includes('preferredLanguage')) {
+        setErrors((prev) => ({ ...prev, preferredLanguage: msg }))
+      } else {
+        // Generic server error shown as toast
+        toast.error(msg)
+      }
     } finally {
       setSaving(false)
     }
