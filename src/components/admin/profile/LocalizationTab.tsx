@@ -42,7 +42,6 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     if (!VALID_LANGUAGES.includes(data.preferredLanguage)) nextErrors.preferredLanguage = 'Unsupported language'
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
-      toast.error('Please fix validation errors before saving')
       return
     }
 
@@ -59,7 +58,16 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     } catch (err) {
       console.error('Save error:', err)
       const msg = err instanceof Error ? err.message : 'Failed to save settings'
-      toast.error(msg)
+
+      // Parse server error messages to show inline field errors
+      if (msg.includes('timezone')) {
+        setErrors((prev) => ({ ...prev, timezone: msg }))
+      } else if (msg.includes('language') || msg.includes('preferredLanguage')) {
+        setErrors((prev) => ({ ...prev, preferredLanguage: msg }))
+      } else {
+        // Generic server error shown as toast
+        toast.error(msg)
+      }
     } finally {
       setSaving(false)
     }
@@ -94,11 +102,12 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         <Select value={data.timezone} onValueChange={(value) => {
           if (isValidTimezone(value)) {
             setData((prev) => ({ ...prev, timezone: value }))
+            setErrors((prev) => ({ ...prev, timezone: undefined }))
           } else {
-            toast.error('Invalid timezone')
+            setErrors((prev) => ({ ...prev, timezone: 'Invalid timezone' }))
           }
         }}>
-          <SelectTrigger id="timezone" className="mt-2">
+          <SelectTrigger id="timezone" className={`mt-2 ${errors.timezone ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
@@ -109,6 +118,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             ))}
           </SelectContent>
         </Select>
+        {errors.timezone && <p className="text-xs text-red-600 mt-1">{errors.timezone}</p>}
       </div>
 
       <div className="border-t pt-6">
@@ -116,8 +126,11 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           Preferred Language
         </Label>
         <p className="text-xs text-gray-600 mb-2">Choose your preferred language for communications</p>
-        <Select value={data.preferredLanguage} onValueChange={(value) => setData((prev) => ({ ...prev, preferredLanguage: value as 'en' | 'ar' | 'hi' }))}>
-          <SelectTrigger id="language" className="mt-2">
+        <Select value={data.preferredLanguage} onValueChange={(value) => {
+          setData((prev) => ({ ...prev, preferredLanguage: value as 'en' | 'ar' | 'hi' }))
+          setErrors((prev) => ({ ...prev, preferredLanguage: undefined }))
+        }}>
+          <SelectTrigger id="language" className={`mt-2 ${errors.preferredLanguage ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
           <SelectContent>
@@ -128,6 +141,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             ))}
           </SelectContent>
         </Select>
+        {errors.preferredLanguage && <p className="text-xs text-red-600 mt-1">{errors.preferredLanguage}</p>}
       </div>
 
       <div className="flex justify-end gap-3 border-t pt-6">
