@@ -281,14 +281,12 @@ This document outlines the plan to consolidate user account settings from `/port
 **Permission Gate:** Admin/Team Lead only
 
 **Tasks:**
-1. Create new "Communication" tab in ProfileManagementPanel
-2. Create CommunicationTab component
-3. Implement permission-based tab visibility
-4. Add export/import functionality (from admin/settings/communication)
-5. Create accordion sections for each communication channel
-6. Implement form validation & error handling
+1. Use existing /admin/settings/communication page for system-wide communication settings — do NOT add a duplicate Communication tab to ProfileManagementPanel.
+2. Ensure permission-based access remains enforced in the admin settings page and surface a link from the Manage Profile panel to `/admin/settings/communication` if helpful.
+3. Verify export/import functionality in `/admin/settings/communication` is complete and tested.
+4. Implement or confirm form validation & error handling in the admin settings page (Zod schemas and standardized error responses).
 
-**Deliverable:** Admin-only "Communication" tab for system-wide settings
+**Deliverable:** Admin-only communication settings hosted at `/admin/settings/communication`. The Communication tab has been removed from ProfileManagementPanel to avoid duplication.
 
 ---
 
@@ -390,7 +388,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     │  profile   │ │/security│ │preferences  │
     └────────────┘ └─────────┘ └��────────────┘
           │           │            │
-    ┌─────▼──────┐ ┌──▼──────┐ ┌──▼─────────���┐
+    ┌─────��──────┐ ┌──▼──────┐ ┌──▼─────────���┐
     │  User DB   │ │ User DB  │ │UserProfile  │
     │ (name,     │ │(password,│ │  DB         │
     │  email)    │ │  2fa)    │ │(timezone,   │
@@ -411,7 +409,7 @@ MVP: 1-2 weeks (Phase 1 only) → then migrate & retire
     ┌──────────▼──────────────────┐
     │ Admin Communication DB      │
     │ (email, sms, chat, etc.)    │
-    └─────────────────────────────┘
+    └────────────────────────────��┘
 ```
 
 ---
@@ -2131,7 +2129,7 @@ interface CommunicationSettings {
 The Manage Profile Integration Plan has been **fully implemented** with:
 - ✅ 3 new tabs (Profile, Security, Booking Notifications, Localization, Communication, Notifications)
 - ✅ Complete user preference management
-- ✅ Admin-only system settings
+- ��� Admin-only system settings
 - ✅ Data migration path from `/portal/settings`
 - ✅ Comprehensive security implementation
 - ✅ Production-ready code (with planned improvements)
