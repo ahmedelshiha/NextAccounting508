@@ -88,8 +88,33 @@ export const GET = withTenantContext(async (request: NextRequest) => {
 
     if (!user) {
       console.warn('Preferences GET: User not found', { email, tenantId: tid })
+
+      // Add breadcrumb for user not found
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user',
+          message: 'User not found when fetching preferences',
+          level: 'warning',
+          data: { email, tenantId: tid },
+        })
+      } catch {}
+
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+
+    // Add breadcrumb for successful fetch
+    try {
+      Sentry.addBreadcrumb({
+        category: 'user.preferences',
+        message: 'User preferences fetched',
+        level: 'info',
+        data: {
+          userId: user.id,
+          tenantId: tid,
+          hasProfile: !!user.userProfile,
+        },
+      })
+    } catch {}
 
     // Return preferences from user profile
     const profile = user.userProfile
