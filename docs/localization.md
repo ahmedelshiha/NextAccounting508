@@ -1033,9 +1033,20 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 
 ### 14.3 Phase 3: Server-Side & Performance (Weeks 9-12)
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
+**What was implemented:**
+- Server-side translation loader: src/lib/server/translations.ts (loads and flattens nested JSON)
+- API endpoint: GET /api/translations/[locale].json with Cache-Control: public, max-age=86400, immutable
+- RootLayout server-side loads translations and passes them to TranslationProvider via initialTranslations to avoid double-fetch/FOUC
+- TranslationProvider updated to accept initialTranslations and skip initial client fetch when provided
+
+
 **Goal:** Optimize translation delivery, server-side rendering, and caching.
 
 #### 14.3.1 Task: Server-Side Translation Loading
+
+**Status:** ✅ COMPLETED (2025-10-24)
 
 **Current State:** Translations loaded client-side; flash of untranslated content for slow clients.
 
