@@ -2,17 +2,20 @@
 
 import { useEffect, useState, ReactNode } from 'react'
 import { Locale, defaultLocale, loadTranslations, detectLocale, TranslationContext } from '@/lib/i18n'
+import { GenderType } from '@/lib/gender-rules'
 import enTranslations from '@/app/locales/en.json'
 
 interface TranslationProviderProps {
   children: ReactNode
   initialLocale?: Locale
+  initialGender?: GenderType
 }
 
-export function TranslationProvider({ children, initialLocale }: TranslationProviderProps) {
+export function TranslationProvider({ children, initialLocale, initialGender }: TranslationProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale)
   const [translations, setTranslations] = useState<Record<string, string>>(() => enTranslations)
   const [isLoading, setIsLoading] = useState(true)
+  const [currentGender, setGender] = useState<GenderType | undefined>(initialGender)
 
   // Load translations when locale changes
   useEffect(() => {
@@ -75,7 +78,9 @@ export function TranslationProvider({ children, initialLocale }: TranslationProv
   const contextValue = {
     locale,
     translations,
-    setLocale
+    setLocale,
+    currentGender,
+    setGender
   }
 
   // To avoid hydration mismatches, render children immediately and provide translations via context.

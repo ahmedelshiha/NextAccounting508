@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react'
 import enTranslations from '@/app/locales/en.json'
+import { GenderType, buildGenderKeyFallbacks } from '@/lib/gender-rules'
+import type { TranslationContextValue, TranslationParams } from '@/types/gender-translation'
 
 // Supported locales
 export const locales = ['en', 'ar', 'hi'] as const
@@ -30,50 +32,78 @@ export const localeConfig = {
   }
 } as const
 
-// Translation context
-export const TranslationContext = createContext<{
-  locale: Locale
-  translations: Record<string, string>
-  setLocale: (locale: Locale) => void
-}>({
+// Translation context with gender support
+export const TranslationContext = createContext<TranslationContextValue>({
   locale: defaultLocale,
   translations: enTranslations,
-  setLocale: () => {}
+  setLocale: () => {},
+  currentGender: undefined,
+  setGender: () => {}
 })
 
-// Hook to use translations
+// Hook to use translations with gender support
 export const useTranslations = () => {
   const context = useContext(TranslationContext)
   if (!context) {
     throw new Error('useTranslations must be used within a TranslationProvider')
   }
-  
-  const t = (key: string, params?: Record<string, string | number>) => {
-    let translation = context.translations[key] || key
-    
-    // Replace parameters in translation
+
+  const t = (key: string, params?: TranslationParams) => {
+    // Extract gender from params (if provided) or use context gender
+    const gender = params?.gender ?? context.currentGender
+
+    // Build fallback key chain for gender-aware lookup
+    const keyFallbacks = buildGenderKeyFallbacks(key, gender, context.locale as Locale)
+
+    // Find first available translation
+    let translation: string | undefined
+    for (const fallbackKey of keyFallbacks) {
+      if (fallbackKey in context.translations) {
+        translation = context.translations[fallbackKey]
+        break
+      }
+    }
+
+    // Fall back to key itself if no translation found
+    if (!translation) {
+      translation = key
+    }
+
+    // Replace parameters in translation (excluding special params)
     if (params) {
       Object.entries(params).forEach(([param, value]) => {
+        // Skip special parameters (gender, count)
+        if (param === 'gender' || param === 'count' || value === undefined) {
+          return
+        }
         translation = translation.replace(`{{${param}}}`, String(value))
       })
     }
-    
+
     return translation
   }
-  
+
   return {
     t,
     locale: context.locale,
     setLocale: context.setLocale,
-    dir: localeConfig[context.locale].dir
+    dir: localeConfig[context.locale].dir,
+    currentGender: context.currentGender,
+    setGender: context.setGender
   }
 }
 
 // Utility to load translations
 export async function loadTranslations(locale: Locale): Promise<Record<string, string>> {
   try {
-    const translations = await import(`@/app/locales/${locale}.json`)
-    return translations.default
+    const { flattenTranslations } = await import('@/lib/translation-utils')
+    const nestedTranslations = await import(`@/app/locales/${locale}.json`)
+    // Support both nested namespace structure and flat structure
+    const translations = nestedTranslations.default
+    const isNested = Object.values(translations).some(
+      (value) => typeof value === 'object' && value !== null
+    )
+    return isNested ? flattenTranslations(translations) : translations
   } catch {
     console.warn(`Failed to load translations for locale: ${locale}`)
     return {}
