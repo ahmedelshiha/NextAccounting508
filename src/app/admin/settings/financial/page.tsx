@@ -23,7 +23,7 @@ function FinancialSettingsContent() {
   useEffect(()=>{
     const t = searchParams.get('tab')
     if (t && tabs.some(tab=>tab.key===t)) setActive(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   },[])
 
   async function load(){

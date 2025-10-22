@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { authOptions, getSessionOrBypass } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import ClientOnlyAdminLayout from '@/components/admin/layout/ClientOnlyAdminLayout'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard - NextAccounting',
@@ -37,8 +38,10 @@ export default async function AdminLayout({ children }: Props) {
 
   // Pass session to client layout for initialization
   return (
-    <ClientOnlyAdminLayout session={session}>
-      {children}
-    </ClientOnlyAdminLayout>
+    <ThemeProvider defaultTheme="light">
+      <ClientOnlyAdminLayout session={session}>
+        {children}
+      </ClientOnlyAdminLayout>
+    </ThemeProvider>
   )
 }

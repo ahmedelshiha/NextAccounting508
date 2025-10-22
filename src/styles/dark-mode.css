@@ -1,0 +1,22 @@
+/* Smooth theme transitions */
+html {
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+/* Ensure theme buttons have proper contrast */
+[role="menuitemradio"][aria-checked="true"] {
+  font-weight: 500;
+}
+
+/* Smooth icon color transitions */
+html :not(svg):not(img) {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}

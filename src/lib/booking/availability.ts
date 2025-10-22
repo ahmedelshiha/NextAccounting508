@@ -213,7 +213,7 @@ export async function getAvailabilityForService(params: {
       const seeded = (globalThis as any).__seededServices?.[serviceId]
       if (seeded) {
         // use the seeded service when prisma mock instances differ across modules in tests
-        // eslint-disable-next-line no-console
+         
         console.warn('[getAvailabilityForService] using seeded service fallback for', serviceId)
         svc = seeded
       }

@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Language registry model for data-driven language configuration
+model Language {
+  code          String    @id @default("en") @db.VarChar(10)
+  name          String    @db.VarChar(100)
+  nativeName    String    @db.VarChar(100)
+  direction     String    @default("ltr") @db.VarChar(3) // "ltr" or "rtl"
+  flag          String?   @db.VarChar(5)
+  bcp47Locale   String    @db.VarChar(10) // e.g., "en-US", "ar-SA", "hi-IN"
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([enabled])
+  @@map("languages")
+}
+
 // User model for authentication and role management
 model User {
   id             String    @id @default(cuid())
@@ -62,11 +78,49 @@ model User {
   settingChangeDiffs SettingChangeDiff[]
   favoriteSettings   FavoriteSetting[]
   auditEvents        AuditEvent[]
+  userProfile        UserProfile?
 
   @@unique([tenantId, email])
   @@index([tenantId, role])
   @@index([tenantId, createdAt])
   @@map("users")
+}
+
+// User profile model for extended profile data
+model UserProfile {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  organization        String?
+  phoneNumber         String?
+  phoneNumberVerified DateTime?
+  twoFactorEnabled    Boolean   @default(false)
+  twoFactorSecret     String?
+  lastLoginAt         DateTime?
+  lastLoginIp         String?
+  loginAttempts       Int       @default(0)
+  lockoutUntil        DateTime?
+  metadata            Json?
+
+  // Preference fields
+  timezone            String?   @default("UTC")
+  preferredLanguage   String?   @default("en")
+
+  // Booking notification preferences
+  bookingEmailConfirm      Boolean?  @default(true)
+  bookingEmailReminder     Boolean?  @default(true)
+  bookingEmailReschedule   Boolean?  @default(true)
+  bookingEmailCancellation Boolean?  @default(true)
+  bookingSmsReminder       Boolean?  @default(false)
+  bookingSmsConfirmation   Boolean?  @default(false)
+  reminderHours            Int[]     @default([24, 2])
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_profiles")
 }
 
 // NextAuth Account model
@@ -154,6 +208,8 @@ model Tenant {
   settingChangeDiffs   SettingChangeDiff[]
   favoriteSettings     FavoriteSetting[]
   auditEvents          AuditEvent[]
+  translationKeys      TranslationKey[]
+  translationMetrics   TranslationMetrics[]
 
   @@index([status])
 }
@@ -1342,6 +1398,68 @@ model OrganizationSettings {
 
   @@index([tenantId])
   @@map("organization_settings")
+}
+
+// Translation key registry for Phase 4 analytics
+model TranslationKey {
+  id           String   @id @default(cuid())
+  tenantId     String
+  key          String   // e.g., "nav.home", "hero.headline"
+  namespace    String?  // e.g., "nav", "hero" (extracted from key prefix)
+  enTranslated Boolean  @default(true)  // English is always baseline
+  arTranslated Boolean  @default(false) // Arabic translation status
+  hiTranslated Boolean  @default(false) // Hindi translation status
+  lastUpdated  DateTime @updatedAt
+  addedAt      DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([tenantId, namespace])
+  @@index([tenantId, enTranslated])
+  @@index([tenantId, arTranslated])
+  @@index([tenantId, hiTranslated])
+  @@index([addedAt])
+  @@map("translation_keys")
+}
+
+// Translation metrics for Phase 4 analytics & trending
+model TranslationMetrics {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  date                  DateTime @db.Date // YYYY-MM-DD snapshot
+
+  // English (always 100%)
+  enTotal               Int      @default(0)
+  enTranslated          Int      @default(0)
+
+  // Arabic
+  arTotal               Int      @default(0)
+  arTranslated          Int      @default(0)
+
+  // Hindi
+  hiTotal               Int      @default(0)
+  hiTranslated          Int      @default(0)
+
+  // Aggregate metrics
+  totalUniqueKeys       Int      @default(0)
+  usersWithArabic       Int      @default(0) // Count from UserProfile.preferredLanguage
+  usersWithHindi        Int      @default(0)
+  usersWithEnglish      Int      @default(0)
+
+  // Calculated fields (for trending)
+  enCoveragePct         Decimal  @default(0) @db.Decimal(5, 2) // 0-100
+  arCoveragePct         Decimal  @default(0) @db.Decimal(5, 2)
+  hiCoveragePct         Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt             DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, date]) // One snapshot per day
+  @@index([tenantId, date])
+  @@index([date])
+  @@map("translation_metrics")
 }
 
 // Integration Hub settings per-tenant (no raw secrets stored)
