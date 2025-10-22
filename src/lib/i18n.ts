@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react'
 import enTranslations from '@/app/locales/en.json'
+import { GenderType, buildGenderKeyFallbacks } from '@/lib/gender-rules'
+import type { TranslationContextValue, TranslationParams } from '@/types/gender-translation'
 
 // Supported locales
 export const locales = ['en', 'ar', 'hi'] as const
@@ -30,15 +32,13 @@ export const localeConfig = {
   }
 } as const
 
-// Translation context
-export const TranslationContext = createContext<{
-  locale: Locale
-  translations: Record<string, string>
-  setLocale: (locale: Locale) => void
-}>({
+// Translation context with gender support
+export const TranslationContext = createContext<TranslationContextValue>({
   locale: defaultLocale,
   translations: enTranslations,
-  setLocale: () => {}
+  setLocale: () => {},
+  currentGender: undefined,
+  setGender: () => {}
 })
 
 // Hook to use translations
