@@ -1398,6 +1398,68 @@ model OrganizationSettings {
   @@map("organization_settings")
 }
 
+// Translation key registry for Phase 4 analytics
+model TranslationKey {
+  id           String   @id @default(cuid())
+  tenantId     String
+  key          String   // e.g., "nav.home", "hero.headline"
+  namespace    String?  // e.g., "nav", "hero" (extracted from key prefix)
+  enTranslated Boolean  @default(true)  // English is always baseline
+  arTranslated Boolean  @default(false) // Arabic translation status
+  hiTranslated Boolean  @default(false) // Hindi translation status
+  lastUpdated  DateTime @updatedAt
+  addedAt      DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([tenantId, namespace])
+  @@index([tenantId, enTranslated])
+  @@index([tenantId, arTranslated])
+  @@index([tenantId, hiTranslated])
+  @@index([addedAt])
+  @@map("translation_keys")
+}
+
+// Translation metrics for Phase 4 analytics & trending
+model TranslationMetrics {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  date                  DateTime @db.Date // YYYY-MM-DD snapshot
+
+  // English (always 100%)
+  enTotal               Int      @default(0)
+  enTranslated          Int      @default(0)
+
+  // Arabic
+  arTotal               Int      @default(0)
+  arTranslated          Int      @default(0)
+
+  // Hindi
+  hiTotal               Int      @default(0)
+  hiTranslated          Int      @default(0)
+
+  // Aggregate metrics
+  totalUniqueKeys       Int      @default(0)
+  usersWithArabic       Int      @default(0) // Count from UserProfile.preferredLanguage
+  usersWithHindi        Int      @default(0)
+  usersWithEnglish      Int      @default(0)
+
+  // Calculated fields (for trending)
+  enCoveragePct         Decimal  @default(0) @db.Decimal(5, 2) // 0-100
+  arCoveragePct         Decimal  @default(0) @db.Decimal(5, 2)
+  hiCoveragePct         Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt             DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, date]) // One snapshot per day
+  @@index([tenantId, date])
+  @@index([date])
+  @@map("translation_metrics")
+}
+
 // Integration Hub settings per-tenant (no raw secrets stored)
 model IntegrationSettings {
   id        String   @id @default(cuid())
