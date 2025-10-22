@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getTenantIdFromRequest } from '@/lib/auth/tenant'
-import { requirePermission } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 /**
  * GET /api/admin/translations/missing?language=ar&limit=50&offset=0
@@ -13,16 +13,14 @@ import { requirePermission } from '@/lib/permissions'
  * - offset: pagination offset (default: 0)
  * - namespace: filter by namespace (optional)
  */
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request) => {
   try {
-    const tenantId = await getTenantIdFromRequest(request)
-    if (!tenantId) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !ctx.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check permission
-    await requirePermission('SETTINGS_LANGUAGES_MANAGE', request)
-
+    const tenantId = ctx.tenantId
     const { searchParams } = new URL(request.url)
     const language = searchParams.get('language') || 'ar'
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 500)
@@ -63,7 +61,7 @@ export async function GET(request: NextRequest) {
           enTranslated: true,
           arTranslated: true,
           hiTranslated: true,
-          lastUpdated: true,
+          addedAt: true,
         },
         orderBy: { addedAt: 'desc' },
         take: limit,
@@ -89,4 +87,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})

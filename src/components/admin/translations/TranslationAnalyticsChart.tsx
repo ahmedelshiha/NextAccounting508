@@ -129,7 +129,7 @@ export default function TranslationAnalyticsChart() {
             {latest && (
               <div className="mt-2">
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {latest[lang.key as keyof typeof latest].toFixed(1)}%
+                  {((latest[lang.key as keyof typeof latest] as number) || 0).toFixed(1)}%
                 </p>
                 {trend && trend[lang.key as keyof typeof trend] !== undefined && (
                   <p

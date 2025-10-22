@@ -1,6 +1,6 @@
 // Central registry of settings categories used by the admin sidebar and settings pages.
 
-import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog } from 'lucide-react'
+import { Building2, Cog, Users, ClipboardList, ShieldCheck, CreditCard, LineChart, MessageSquare, PlugZap, ServerCog, Globe, BarChart3 } from 'lucide-react'
 import type { SettingsCategory } from './types'
 import { PERMISSIONS } from '@/lib/permissions'
 
@@ -117,6 +117,22 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     icon: ServerCog,
     tabs: [],
     permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
+  },
+  {
+    key: 'languages',
+    label: 'Languages',
+    route: '/admin/settings/languages',
+    icon: Globe,
+    tabs: [],
+    permission: PERMISSIONS.LANGUAGES_VIEW,
+  },
+  {
+    key: 'translationsManagement',
+    label: 'Translation Management',
+    route: '/admin/translations/dashboard',
+    icon: BarChart3,
+    tabs: [],
+    permission: PERMISSIONS.LANGUAGES_MANAGE,
   }
 ]
 

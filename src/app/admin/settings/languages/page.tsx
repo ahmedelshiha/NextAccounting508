@@ -90,6 +90,14 @@ export default function LanguagesSettingsPage(){
     if (loading) return <div className="text-gray-600">Loading...</div>
     return (
       <div className="space-y-6">
+        <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE} fallback={null}>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm text-blue-900 mb-3">Manage translation coverage and see which keys are missing translations.</p>
+            <a href="/admin/translations/dashboard" className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+              View Translation Dashboard
+            </a>
+          </div>
+        </PermissionGate>
         <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
           <div className="rounded-lg border bg-white p-4">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Add Language</h3>

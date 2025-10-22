@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getTenantIdFromRequest } from '@/lib/auth/tenant'
-import { requirePermission } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 /**
  * GET /api/admin/translations/recent?days=7&limit=50
@@ -11,16 +11,14 @@ import { requirePermission } from '@/lib/permissions'
  * - days: look back N days (default: 7)
  * - limit: max results (default: 50)
  */
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async (request) => {
   try {
-    const tenantId = await getTenantIdFromRequest(request)
-    if (!tenantId) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !ctx.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check permission
-    await requirePermission('SETTINGS_LANGUAGES_MANAGE', request)
-
+    const tenantId = ctx.tenantId
     const { searchParams } = new URL(request.url)
     const days = Math.min(parseInt(searchParams.get('days') || '7'), 90)
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 500)
@@ -71,4 +69,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
