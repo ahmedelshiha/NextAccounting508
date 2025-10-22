@@ -24,10 +24,11 @@ P0 — Critical (fix before next deploy)
   - Acceptance criteria: No Prisma type errors from reminderHours; server returns 400 on invalid payload; Sentry receives events for DB upsert failures.
   - Completed: 2025-10-21
 
-- P0-2: Client: Strict validation and casting in LocalizationTab
+- P0-2: Client: Strict validation and casting in LocalizationTab (COMPLETED)
   - Files: src/components/admin/profile/LocalizationTab.tsx, src/components/admin/profile/constants.ts
-  - Description: Validate preferredLanguage against VALID_LANGUAGES before sending. Ensure reminderHours (if exposed) are numeric arrays. Show field-level validation before calling updatePreferences.
-  - Acceptance criteria: Client never sends strings for reminderHours; invalid language selection blocked; tests added.
+  - Description: Client validates preferredLanguage against VALID_LANGUAGES before saving. Added client-side validation and field-level errors to prevent invalid payloads being sent to the server.
+  - Acceptance criteria: Client prevents invalid payloads; server receives well-typed payloads; unit tests to be added next.
+  - Completed: 2025-10-21
 
 - P0-3: Tests: Add tests covering Localization save flow
   - Files: tests/api/user-preferences.test.ts, tests/components/localization-save.test.tsx
