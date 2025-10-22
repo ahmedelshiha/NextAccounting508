@@ -1040,6 +1040,7 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 - API endpoint: GET /api/translations/[locale].json with Cache-Control: public, max-age=86400, immutable
 - RootLayout server-side loads translations and passes them to TranslationProvider via initialTranslations to avoid double-fetch/FOUC
 - TranslationProvider updated to accept initialTranslations and skip initial client fetch when provided
+- Server-component helpers: src/lib/server/useServerTranslations.ts and src/lib/server/server-translator.ts to load translations and provide `t()` inside server components
 
 
 **Goal:** Optimize translation delivery, server-side rendering, and caching.
@@ -1068,8 +1069,18 @@ t('messages.items', { count: 1 }) // "You have 1 item"
    - Prevents double-loading
 
 4. **Server Component Support**
-   - Create `useServerTranslations()` utility for server components
-   - Allows server-side JSX to use translations
+   - Implemented `useServerTranslations()` utility and `server-translator` to provide `t()` in server components
+   - Allows server-side JSX to use translations without client fetch (example below)
+
+   Example (server component):
+   ```ts
+   import { useServerTranslations } from '@/lib/server/useServerTranslations'
+
+   export default async function ServerHeader({ locale = 'hi' }) {
+     const { t } = await useServerTranslations(locale)
+     return <h1>{t('hero.headline')}</h1>
+   }
+   ```
 
 **Success Metrics:**
 - ✅ No flash of untranslated content (FOUC)
