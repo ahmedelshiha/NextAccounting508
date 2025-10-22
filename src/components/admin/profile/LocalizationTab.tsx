@@ -21,6 +21,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     timezone: 'UTC',
     preferredLanguage: 'en',
   })
+  const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
 
   // Sync hook data to component state
   useEffect(() => {
@@ -29,18 +30,36 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         timezone: preferences.timezone || 'UTC',
         preferredLanguage: preferences.preferredLanguage || 'en',
       })
+      setErrors({})
     }
   }, [preferences])
 
 
   const handleSave = async () => {
+    // Client-side validation
+    const nextErrors: typeof errors = {}
+    if (data.timezone && !isValidTimezone(data.timezone)) nextErrors.timezone = 'Invalid timezone'
+    if (!VALID_LANGUAGES.includes(data.preferredLanguage)) nextErrors.preferredLanguage = 'Unsupported language'
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
+      toast.error('Please fix validation errors before saving')
+      return
+    }
+
     setSaving(true)
     try {
-      await updatePreferences(data)
+      // Ensure payload types: reminderHours not part of this tab, but ensure fields are primitives
+      const payload = {
+        timezone: String(data.timezone || 'UTC'),
+        preferredLanguage: String(data.preferredLanguage || 'en') as 'en' | 'ar' | 'hi',
+      }
+      await updatePreferences(payload)
       toast.success('Localization settings saved')
+      setErrors({})
     } catch (err) {
       console.error('Save error:', err)
-      toast.error(err instanceof Error ? err.message : 'Failed to save settings')
+      const msg = err instanceof Error ? err.message : 'Failed to save settings'
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
