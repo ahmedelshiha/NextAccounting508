@@ -85,7 +85,7 @@ export function UserLocaleView({ userId, email }: UserLocaleViewProps) {
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-base">Communication Preferences</CardTitle>
-          <CardDescription>User's timezone and language settings</CardDescription>
+          <CardDescription>User&apos;s timezone and language settings</CardDescription>
         </CardHeader>
         <CardContent>
           {loading && (

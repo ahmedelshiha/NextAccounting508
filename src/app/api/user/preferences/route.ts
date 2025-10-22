@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { PreferencesSchema, isValidTimezone } from '@/schemas/user-profile'
+import { PreferencesSchema, isValidTimezone, createPreferencesSchema } from '@/schemas/user-profile'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import * as Sentry from '@sentry/nextjs'
+import { getEnabledLanguageCodes } from '@/lib/language-registry'
 
 /**
  * Sanitize request/response payloads for logging (remove PII)
@@ -171,6 +172,9 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const email = userEmail as string
+    const tid = tenantId as string
+
     // Rate limit: 20 writes/minute per IP, also per-user to avoid shared-IP false positives
     try {
       const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
@@ -208,13 +212,20 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       }
     } catch {}
 
-    const email = userEmail as string
-    const tid = tenantId as string
-
     const body = await request.json().catch(() => ({}))
 
-    // Validate using Zod schema
-    const validationResult = PreferencesSchema.safeParse(body)
+    // Validate using Zod schema with dynamic language codes
+    let validationResult
+    try {
+      const enabledLanguages = await getEnabledLanguageCodes()
+      const dynamicSchema = createPreferencesSchema(enabledLanguages)
+      validationResult = dynamicSchema.safeParse(body)
+    } catch (error) {
+      console.error('Failed to get enabled languages for validation', error)
+      // Fallback to static schema if language registry unavailable
+      validationResult = PreferencesSchema.safeParse(body)
+    }
+
     if (!validationResult.success) {
       const messages = validationResult.error.issues.map((i) => i.message).join('; ')
 
