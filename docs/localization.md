@@ -42,10 +42,17 @@ P0 — Critical (fix before next deploy)
 
 P1 — High
 
-- P1-1: Hook: Improve SWR rollback and revalidation
+- P1-1: Hook: Improve SWR rollback and revalidation (COMPLETED)
   - Files: src/hooks/useUserPreferences.ts
-  - Description: After failed optimistic update, rollback and revalidate from server (mutate(previousData, true) or call mutate()). Ensure stale closures don't cause incorrect rollback.
+  - Description: Improved error handling with proper rollback and revalidation from server. Added stale closure protection by explicitly capturing previousData before async operations.
   - Acceptance criteria: UI state matches server after failure; no flapping.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Added null check for `data` to prevent undefined state errors
+    - Capture `previousData` before optimistic update to avoid stale closure issues
+    - Changed rollback to use `mutate(previousData, true)` to revalidate from server after error
+    - Clear error handling with proper async/await flow
+    - Comments clarify the optimistic update pattern and revalidation strategy
 
 - P1-2: API Hardening & rate-limit per-user
   - Files: src/app/api/user/preferences/route.ts, src/lib/rate-limit.ts
