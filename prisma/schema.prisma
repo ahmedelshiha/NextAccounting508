@@ -208,6 +208,8 @@ model Tenant {
   settingChangeDiffs   SettingChangeDiff[]
   favoriteSettings     FavoriteSetting[]
   auditEvents          AuditEvent[]
+  translationKeys      TranslationKey[]
+  translationMetrics   TranslationMetrics[]
 
   @@index([status])
 }
