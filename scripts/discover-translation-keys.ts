@@ -40,26 +40,32 @@ interface AuditReport {
 /**
  * Extract translation keys from code using regex patterns
  * Matches: t('key'), t("key"), t(`key`)
+ * Filters out non-translation patterns (imports, paths, URLs, etc.)
  */
 function extractKeysFromCode(codeContent: string): Set<string> {
   const keys = new Set<string>()
-  
-  // Match t('key'), t("key"), t(`key`)
-  const patterns = [
-    /t\(['"`]([^'"`]+)['"`]\)/g,
-    /useTranslations\(\).*?\bt\(['"`]([^'"`]+)['"`]\)/gs,
-  ]
-  
-  for (const pattern of patterns) {
-    let match
-    while ((match = pattern.exec(codeContent)) !== null) {
-      const key = match[1]
-      if (key && !key.includes('${')) { // Skip template literals with variables
-        keys.add(key)
-      }
+
+  // Match t('key'), t("key"), t(`key`) with more specific pattern
+  // Translation keys typically follow: namespace.key or simple.key pattern
+  const pattern = /t\(['"`]([a-zA-Z0-9._-]+)['"`]\)/g
+
+  let match
+  while ((match = pattern.exec(codeContent)) !== null) {
+    const key = match[1]
+    // Additional validation to ensure it looks like a translation key
+    // Translation keys should not contain path separators like / and should follow dot notation
+    if (key &&
+        !key.includes('${') && // Skip template literals with variables
+        !key.includes('/') && // Skip paths
+        !key.includes(':') && // Skip URLs/imports
+        !key.includes('@') && // Skip module imports
+        !key.startsWith('.') && // Skip relative paths
+        key.length > 1 && // Skip single characters
+        /^[a-zA-Z0-9._-]+$/.test(key)) { // Only allow alphanumeric, dots, dashes
+      keys.add(key)
     }
   }
-  
+
   return keys
 }
 
