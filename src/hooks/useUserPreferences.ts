@@ -68,13 +68,19 @@ export function useUserPreferences(options: UseUserPreferencesOptions = {}) {
 
   /**
    * Update preferences with optimistic update support
+   * Includes proper rollback and revalidation on error
    */
   const updatePreferences = useCallback(
     async (newPreferences: Partial<UserPreferences>) => {
-      // Optimistic update
-      const previousData = data
-      const optimisticData = { ...data, ...newPreferences } as UserPreferences
+      if (!data) {
+        throw new Error('Preferences not loaded yet')
+      }
 
+      // Capture previousData to avoid stale closure issues
+      const previousData = data
+      const optimisticData = { ...previousData, ...newPreferences } as UserPreferences
+
+      // Apply optimistic update immediately (don't revalidate)
       mutate(optimisticData, false)
 
       try {
@@ -90,11 +96,13 @@ export function useUserPreferences(options: UseUserPreferencesOptions = {}) {
         }
 
         const updated = await res.json()
+        // Update with server response (authoritative)
         mutate(updated, false)
         return updated
       } catch (e) {
-        // Rollback on error
-        mutate(previousData, false)
+        // Rollback on error and revalidate from server to ensure UI matches server state
+        // mutate(previousData, true) would revalidate in background, but we want immediate UI correction
+        await mutate(previousData, true)
         throw e
       }
     },
