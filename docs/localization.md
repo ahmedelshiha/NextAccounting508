@@ -1599,4 +1599,24 @@ Q2 2026 (Weeks 13-20)
 
 ---
 
+## Next short-term tasks (immediate priorities)
+
+The following tasks are the recommended immediate next steps to complete Phase 2→3 work and harden the localization system. After each task is completed, update this document and mark the task done.
+
+- [ ] Add plural and gender variants to locale JSONs where counts/greetings are used (src/app/locales/*.json). Prioritize keys used in UI: hero.stats, dashboard metrics, offline queue messages, notifications, pagination strings.
+- [ ] Add unit tests for server translator (src/lib/server/server-translator.ts) and API tests for /api/translations/[locale] to ensure valid responses and cache headers.
+- [ ] Integrate scripts/test-i18n.ts into CI (GitHub Actions) to fail builds on parity or namespace shape mismatches.
+- [ ] Implement the translation QA engine (scripts/validate-translations.ts) to enforce placeholder parity, length rules, and basic quality checks in CI.
+- [ ] Build the Translation Management Dashboard (admin) to visualize coverage and missing keys (14.4.1). Expose API endpoints for coverage and missing keys.
+- [ ] Implement Crowdin (or alternative) sync helpers (src/lib/crowdin-sync.ts) and an automated CI job to sync translations between repo and translation platform.
+- [ ] Add visual regression testing for RTL and key locales (snapshot comparisons for critical pages: home, booking, admin dashboard).
+- [ ] Add monitoring and alerts for translation sync failures, FOUC regressions, and translation API errors (Sentry + monitoring hooks).
+- [ ] Populate sample server components with useServerTranslations to validate server rendering of translated content and measure render times.
+- [ ] Document the deployment/versioning strategy for translations (filename versioning or CDN invalidation) and add a simple release checklist for translation updates.
+
+Notes:
+- Prioritize CI integration for parity checks to prevent regressions from merges.
+- Start with tests and CI gating before bulk-updating locale JSONs so rollbacks are safe.
+- For Crowdin integration, prefer a staged sync (staging -> review -> production) with automated PRs for changes.
+
 **End of Enhancement Plan**
