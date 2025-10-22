@@ -205,7 +205,7 @@ export default function TranslationDashboardPage() {
             <div>
               <p className="font-medium">Review Missing Translations</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Check the "Missing Translations" section above for keys that need Arabic or Hindi translations.
+                Check the &quot;Missing Translations&quot; section above for keys that need Arabic or Hindi translations.
               </p>
             </div>
           </div>
