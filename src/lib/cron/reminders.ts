@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { sendBookingReminder } from '@/lib/email'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
+import { getBCP47Locale } from '@/lib/locale'
 
 export interface ReminderRunResult {
   success: boolean
