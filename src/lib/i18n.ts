@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react'
 import enTranslations from '@/app/locales/en.json'
+import { flattenTranslations } from '@/lib/translation-utils'
 import { GenderType, buildGenderKey } from '@/lib/gender-rules'
 import { getPluralForm } from '@/lib/i18n-plural'
 import type { TranslationContextValue, TranslationParams } from '@/types/gender-translation'
