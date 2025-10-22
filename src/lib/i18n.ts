@@ -96,8 +96,14 @@ export const useTranslations = () => {
 // Utility to load translations
 export async function loadTranslations(locale: Locale): Promise<Record<string, string>> {
   try {
-    const translations = await import(`@/app/locales/${locale}.json`)
-    return translations.default
+    const { flattenTranslations } = await import('@/lib/translation-utils')
+    const nestedTranslations = await import(`@/app/locales/${locale}.json`)
+    // Support both nested namespace structure and flat structure
+    const translations = nestedTranslations.default
+    const isNested = Object.values(translations).some(
+      (value) => typeof value === 'object' && value !== null
+    )
+    return isNested ? flattenTranslations(translations) : translations
   } catch {
     console.warn(`Failed to load translations for locale: ${locale}`)
     return {}
