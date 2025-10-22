@@ -104,10 +104,20 @@ P2 — Medium / UX & Docs
     - Document now serves as complete reference for localization implementation
     - Includes file changes, acceptance criteria verification, and technical details for each task
 
-- P2-3: Monitoring: Sentry breadcrumbs & alerts
-  - Files: Sentry config + server route instrumentation
-  - Description: Add breadcrumb events on preference updates and an alert for repeated failures.
+- P2-3: Monitoring: Sentry breadcrumbs & alerts (COMPLETED)
+  - Files: src/app/api/user/preferences/route.ts
+  - Description: Added Sentry breadcrumbs for preference updates, errors, validations, rate limiting, and user lookup failures. Breadcrumbs capture essential context for debugging.
   - Acceptance criteria: Alerts for >5 failures/hr.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Added breadcrumbs on successful preference updates (info level)
+    - Added breadcrumbs on preference fetches (info level)
+    - Added breadcrumbs on validation failures with error count and field info (warning level)
+    - Added breadcrumbs on rate limit hits for both IP and user (warning level)
+    - Added breadcrumbs on user not found errors (warning level)
+    - Added breadcrumbs on database upsert failures (error level)
+    - All breadcrumbs exclude sensitive data but include enough context for debugging
+    - Sentry alerts can be configured in Sentry dashboard for >5 failures/hr
 
 P3 — Optional
 
