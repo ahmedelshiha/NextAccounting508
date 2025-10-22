@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import enTranslations from '@/app/locales/en.json'
-import { GenderType, buildGenderKeyFallbacks } from '@/lib/gender-rules'
+import { GenderType, buildGenderKey } from '@/lib/gender-rules'
+import { getPluralForm } from '@/lib/i18n-plural'
 import type { TranslationContextValue, TranslationParams } from '@/types/gender-translation'
 
 // Supported locales
@@ -51,9 +52,33 @@ export const useTranslations = () => {
   const t = (key: string, params?: TranslationParams) => {
     // Extract gender from params (if provided) or use context gender
     const gender = params?.gender ?? context.currentGender
+    const count = typeof params?.count === 'number' ? params.count : undefined
 
-    // Build fallback key chain for gender-aware lookup
-    const keyFallbacks = buildGenderKeyFallbacks(key, gender, context.locale as Locale)
+    // Build fallback key chain supporting pluralization and gender
+    const fallbacks: string[] = []
+
+    if (typeof count === 'number') {
+      // Determine plural form for this locale
+      const pluralForm = getPluralForm(context.locale as Locale, count)
+      // Try combined plural + gender (e.g., key.one.female)
+      if (gender) {
+        fallbacks.push(`${key}.${pluralForm}.${gender}`)
+      }
+      // Try plural-only (e.g., key.one)
+      fallbacks.push(`${key}.${pluralForm}`)
+    }
+
+    // Gender-only fallback (e.g., key.female)
+    if (gender) {
+      const genderKey = buildGenderKey(key, gender, context.locale as Locale)
+      if (genderKey !== key) fallbacks.push(genderKey)
+    }
+
+    // Always include base key as last resort
+    fallbacks.push(key)
+
+    // Deduplicate while preserving order
+    const keyFallbacks = Array.from(new Set(fallbacks))
 
     // Find first available translation
     let translation: string | undefined
