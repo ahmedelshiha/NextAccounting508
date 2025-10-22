@@ -46,7 +46,14 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         if (!r.ok) throw new Error('failed')
         const d = await r.json()
         const list: TimezoneOption[] = Array.isArray(d?.data) ? d.data : []
-        if (!cancelled && list.length) setTimezones(list.map((t: any)=>({ code: String(t.code), label: String(t.label||t.code) })))
+        if (!cancelled && list.length) {
+          setTimezones(list.map((t: any) => ({
+            code: String(t.code),
+            label: String(t.label || t.code),
+            offset: String(t.offset || ''),
+            abbreviation: String(t.abbreviation || 'UTC'),
+          })))
+        }
       } catch {
         // fallback already set
       }
