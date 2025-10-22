@@ -11,12 +11,26 @@ interface PerformanceMetricPayload {
 const _api_POST = async (request: NextRequest) => {
   try {
     // Parse the performance metric data (accept anonymous submissions to avoid expensive auth checks)
-    const payload: PerformanceMetricPayload = await request.json()
+    let payload: PerformanceMetricPayload
+
+    try {
+      payload = await request.json()
+    } catch {
+      // sendBeacon sends data as blob/text; try parsing as text first
+      try {
+        const text = await request.text()
+        payload = JSON.parse(text)
+      } catch {
+        return NextResponse.json({
+          error: 'Invalid request body - must be valid JSON'
+        }, { status: 400 })
+      }
+    }
 
     // Basic validation - accommodate actual payload structure
     if (!payload.ts || !payload.path || !payload.type) {
-      return NextResponse.json({ 
-        error: 'Invalid metric data - missing required fields (ts, path, type)' 
+      return NextResponse.json({
+        error: 'Invalid metric data - missing required fields (ts, path, type)'
       }, { status: 400 })
     }
 
