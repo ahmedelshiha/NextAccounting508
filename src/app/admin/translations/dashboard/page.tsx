@@ -8,6 +8,7 @@ import TranslationCoverageChart from '@/components/admin/translations/Translatio
 import TranslationStatusCards from '@/components/admin/translations/TranslationStatusCards'
 import TranslationMissingKeys from '@/components/admin/translations/TranslationMissingKeys'
 import TranslationRecentKeys from '@/components/admin/translations/TranslationRecentKeys'
+import TranslationAnalyticsChart from '@/components/admin/translations/TranslationAnalyticsChart'
 
 interface TranslationStatus {
   timestamp: string
