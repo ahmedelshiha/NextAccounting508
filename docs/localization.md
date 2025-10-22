@@ -137,6 +137,49 @@
 
 ---
 
+## 0.1 PHASE 4 IMPLEMENTATION IN PROGRESS (2025-01-20)
+
+### 📋 Phase 4 Tasks & Status
+
+| Task ID | Task Name | Status | Files | Tests | Dependencies |
+|---------|-----------|--------|-------|-------|--------------|
+| 14.4.1 | Translation Key Discovery Script | 🔄 In Progress | `scripts/discover-translation-keys.ts` | TBD | None |
+| 14.4.2 | Translation Dashboard (UI + API) | 🔄 In Progress | `src/app/admin/translations/dashboard/page.tsx`, API routes | TBD | Language Registry |
+| 14.4.3 | Translation Analytics + Cron | 🔄 In Progress | Metrics service, cron job | TBD | DB schema |
+| DB Migration | TranslationKey & TranslationMetrics | 🔄 In Progress | Prisma migration file | - | None |
+| Optional | Crowdin Integration | ⏳ Pending | `src/lib/crowdin-sync.ts` | TBD | API key (if enabled) |
+
+### 🎯 Phase 4 Objectives
+
+1. **14.4.1: Translation Key Discovery**
+   - Scan codebase for all `t('key')` calls using AST/regex
+   - Generate audit report of missing/orphaned keys
+   - CI/CD integration to prevent incomplete translations
+   - **Success Metric:** No missed translation keys in code
+
+2. **14.4.2: Translation Management Dashboard**
+   - Admin UI showing coverage % per language
+   - List of untranslated/missing keys
+   - Recently added translation keys
+   - Translation velocity metrics
+   - **Success Metric:** Admin visibility into translation status
+
+3. **14.4.3: Translation Analytics + Crowdin**
+   - Daily metrics collection (coverage %, user distribution)
+   - Charts showing translation trends over time
+   - Optional Crowdin API sync for collaborative workflow
+   - **Success Metric:** Metrics tracked, trends visible
+
+### 📅 Implementation Schedule
+
+- **Today:** Create Prisma migrations + discover script
+- **Day 2:** Build dashboard UI + API endpoints
+- **Day 3:** Implement analytics + cron job
+- **Day 4:** Tests + Crowdin integration (optional)
+- **Day 5:** End-to-end testing + documentation
+
+---
+
 ## 1. Executive Summary
 
 This document consolidates the complete audit of localization and language control systems, current implementation status, security findings, and recommendations for future improvements. The codebase uses a **custom i18n implementation** (no third-party frameworks like i18next or react-intl) with **per-locale JSON files**, **React Context**, and **database-backed user preferences** for timezone and language selection.
@@ -233,7 +276,7 @@ t('footer.copyright', { year: 2025 })
 
 **Supported Features:**
 - Simple key-value translations ✅
-- Parameter substitution (via `{{param}}` syntax) ✅
+- Parameter substitution (via `{{param}}` syntax) ��
 - RTL support (document.dir, CSS class) ✅
 - localStorage persistence ✅
 - Browser language detection ✅
@@ -514,7 +557,7 @@ Script available: `scripts/test-i18n.ts`
 - ✅ P2-2: Documentation updates
 - �� P2-3: Sentry breadcrumbs and monitoring
 
-#### P3 �� Optional (1/1 completed)
+#### P3 — Optional (1/1 completed)
 - ✅ P3-1: Admin support view for user locales (permission-gated)
 
 ### Deployment Checklist
