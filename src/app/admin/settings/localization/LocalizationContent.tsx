@@ -504,10 +504,10 @@ export default function LocalizationContent() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-blue-900">Language Management Tips</p>
                   <ul className="text-sm text-blue-800 list-disc list-inside space-y-1">
-                    <li>English (en) cannot be deleted as it's the fallback language</li>
+                    <li>English (en) cannot be deleted as it&apos;s the fallback language</li>
                     <li>Use 2-letter ISO 639-1 codes (en, fr, ar) or 3-letter codes (zho, jpn)</li>
                     <li>BCP47 locale is used for date/number formatting - include region code (e.g., en-US, en-GB)</li>
-                    <li>Mark languages as "Featured" to highlight them in the language switcher</li>
+                    <li>Mark languages as &quot;Featured&quot; to highlight them in the language switcher</li>
                     <li>Enable/disable languages to control availability without deletion</li>
                   </ul>
                 </div>
@@ -565,7 +565,7 @@ export default function LocalizationContent() {
                     <label className="flex items-start justify-between gap-4">
                       <div>
                         <p className="font-medium text-gray-900">Persist Language Preference</p>
-                        <p className="text-sm text-gray-600">Save user's language choice to database</p>
+                        <p className="text-sm text-gray-600">Save user&apos;s language choice to database</p>
                       </div>
                       <Toggle
                         label=""
@@ -900,7 +900,7 @@ export default function LocalizationContent() {
                     <div className="flex-1">
                       <h4 className="font-semibold text-blue-900 mb-2">Automated Key Discovery</h4>
                       <p className="text-sm text-blue-800 mb-4">
-                        Scan your codebase for all <code className="bg-blue-100 px-2 py-1 rounded">t('key')</code> calls to identify:
+                        Scan your codebase for all <code className="bg-blue-100 px-2 py-1 rounded">t(&apos;key&apos;)</code> calls to identify:
                       </p>
                       <ul className="list-disc list-inside text-sm text-blue-800 space-y-1 mb-4">
                         <li>Keys in code but missing from translation files</li>
