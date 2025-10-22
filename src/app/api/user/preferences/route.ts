@@ -6,6 +6,21 @@ import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import * as Sentry from '@sentry/nextjs'
 
+/**
+ * Sanitize request/response payloads for logging (remove PII)
+ * Allows only non-sensitive fields
+ */
+function sanitizePayloadForLogging(payload: Record<string, any>): Record<string, any> {
+  const allowedFields = ['timezone', 'preferredLanguage', 'bookingEmailConfirm', 'bookingEmailReminder', 'bookingEmailReschedule', 'bookingEmailCancellation', 'bookingSmsReminder', 'bookingSmsConfirmation']
+  const sanitized: Record<string, any> = {}
+  for (const field of allowedFields) {
+    if (field in payload) {
+      sanitized[field] = payload[field]
+    }
+  }
+  return sanitized
+}
+
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     let ctx
