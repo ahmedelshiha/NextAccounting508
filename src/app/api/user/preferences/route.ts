@@ -257,6 +257,17 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
 
     if (!user) {
       console.warn('Preferences PUT: User not found', { tenantId: tid })
+
+      // Add breadcrumb for user not found
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user',
+          message: 'User not found when updating preferences',
+          level: 'warning',
+          data: { email: email, tenantId: tid },
+        })
+      } catch {}
+
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
