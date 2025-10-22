@@ -77,7 +77,9 @@ describe('getPluralForm', () => {
     })
 
     it('should handle modulo calculations with negative numbers', () => {
-      expect(getPluralForm('ar', -5)).toBe('many')
+      // Negative numbers are treated as their absolute value, so -5 becomes 5
+      // 5 % 100 = 5, which is in the 3-10 range, so 'few'
+      expect(getPluralForm('ar', -5)).toBe('few')
     })
 
     it('should return "many" for numbers ending in 11-99 (e.g., 111-199, 211-299)', () => {
