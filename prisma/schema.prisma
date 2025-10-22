@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Language registry model for data-driven language configuration
+model Language {
+  code          String    @id @default("en") @db.VarChar(10)
+  name          String    @db.VarChar(100)
+  nativeName    String    @db.VarChar(100)
+  direction     String    @default("ltr") @db.VarChar(3) // "ltr" or "rtl"
+  flag          String?   @db.VarChar(5)
+  bcp47Locale   String    @db.VarChar(10) // e.g., "en-US", "ar-SA", "hi-IN"
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([enabled])
+  @@map("languages")
+}
+
 // User model for authentication and role management
 model User {
   id             String    @id @default(cuid())
