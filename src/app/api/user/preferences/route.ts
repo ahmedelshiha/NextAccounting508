@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { PreferencesSchema, isValidTimezone } from '@/schemas/user-profile'
+import { PreferencesSchema, isValidTimezone, createPreferencesSchema } from '@/schemas/user-profile'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import * as Sentry from '@sentry/nextjs'
+import { getEnabledLanguageCodes } from '@/lib/language-registry'
 
 /**
  * Sanitize request/response payloads for logging (remove PII)
