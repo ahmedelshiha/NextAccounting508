@@ -334,50 +334,62 @@ export default function LocalizationContent() {
                 <div className="rounded-lg border bg-white p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Language</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <TextField
-                      label="Language Code"
-                      value={newLang.code}
-                      onChange={v => setNewLang(s => ({ ...s, code: v }))}
-                      placeholder="e.g. fr"
-                      description="2-3 letter language code (lowercase)"
-                    />
-                    <TextField
-                      label="English Name"
-                      value={newLang.name}
-                      onChange={v => setNewLang(s => ({ ...s, name: v }))}
-                      placeholder="e.g. French"
-                      description="How this language appears in English"
-                    />
-                    <TextField
-                      label="Native Name"
-                      value={newLang.nativeName}
-                      onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
-                      placeholder="e.g. Français"
-                      description="Language name in its native script"
-                    />
-                    <TextField
-                      label="BCP47 Locale"
-                      value={newLang.bcp47Locale}
-                      onChange={v => setNewLang(s => ({ ...s, bcp47Locale: v }))}
-                      placeholder="e.g. fr-FR"
-                      description="For date/number formatting"
-                    />
-                    <SelectField
-                      label="Text Direction"
-                      value={newLang.direction}
-                      onChange={v => setNewLang(s => ({ ...s, direction: v as 'ltr' | 'rtl' }))}
-                      options={[
-                        { value: 'ltr', label: 'Left-to-Right' },
-                        { value: 'rtl', label: 'Right-to-Left' },
-                      ]}
-                    />
-                    <TextField
-                      label="Flag Emoji"
-                      value={newLang.flag || ''}
-                      onChange={v => setNewLang(s => ({ ...s, flag: v }))}
-                      placeholder="e.g. 🇫🇷"
-                      maxLength={10}
-                    />
+                    <div>
+                      <TextField
+                        label="Language Code"
+                        value={newLang.code}
+                        onChange={v => setNewLang(s => ({ ...s, code: v }))}
+                        placeholder="e.g. fr"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">2-3 letter language code (lowercase)</p>
+                    </div>
+                    <div>
+                      <TextField
+                        label="English Name"
+                        value={newLang.name}
+                        onChange={v => setNewLang(s => ({ ...s, name: v }))}
+                        placeholder="e.g. French"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">How this language appears in English</p>
+                    </div>
+                    <div>
+                      <TextField
+                        label="Native Name"
+                        value={newLang.nativeName}
+                        onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
+                        placeholder="e.g. Français"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">Language name in its native script</p>
+                    </div>
+                    <div>
+                      <TextField
+                        label="BCP47 Locale"
+                        value={newLang.bcp47Locale}
+                        onChange={v => setNewLang(s => ({ ...s, bcp47Locale: v }))}
+                        placeholder="e.g. fr-FR"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">For date/number formatting</p>
+                    </div>
+                    <div>
+                      <SelectField
+                        label="Text Direction"
+                        value={newLang.direction}
+                        onChange={v => setNewLang(s => ({ ...s, direction: v as 'ltr' | 'rtl' }))}
+                        options={[
+                          { value: 'ltr', label: 'Left-to-Right' },
+                          { value: 'rtl', label: 'Right-to-Left' },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <TextField
+                        label="Flag Emoji"
+                        value={newLang.flag || ''}
+                        onChange={v => setNewLang(s => ({ ...s, flag: v }))}
+                        placeholder="e.g. 🇫🇷"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">Max 10 characters</p>
+                    </div>
                   </div>
                   <div className="flex gap-3 justify-end">
                     <button
