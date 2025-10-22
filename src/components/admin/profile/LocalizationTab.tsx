@@ -37,6 +37,23 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     }
   }, [preferences])
 
+  useEffect(() => {
+    let cancelled = false
+    async function loadTimezones(){
+      try {
+        const r = await fetch('/api/admin/timezones', { cache: 'force-cache' })
+        if (!r.ok) throw new Error('failed')
+        const d = await r.json()
+        const list: TimezoneOption[] = Array.isArray(d?.data) ? d.data : []
+        if (!cancelled && list.length) setTimezones(list.map((t: any)=>({ code: String(t.code), label: String(t.label||t.code) })))
+      } catch {
+        // fallback already set
+      }
+    }
+    loadTimezones()
+    return ()=>{ cancelled = true }
+  }, [])
+
 
   const handleSave = async () => {
     // Client-side validation
