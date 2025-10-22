@@ -258,12 +258,30 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       })
     } catch (dbErr) {
       const sanitizedPayload = sanitizePayloadForLogging(validationResult.data)
+      const errorMsg = dbErr instanceof Error ? dbErr.message : String(dbErr)
       console.error('Preferences PUT: Database upsert failed', {
         tenantId: tid,
         userId: user.id,
         payloadKeys: Object.keys(sanitizedPayload),
-        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+        error: errorMsg,
       })
+
+      // Add Sentry breadcrumb for failed update
+      try {
+        Sentry.addBreadcrumb({
+          category: 'user.preferences',
+          message: 'User preferences update failed',
+          level: 'error',
+          data: {
+            userId: user.id,
+            tenantId: tid,
+            fieldsUpdated: Object.keys(sanitizedPayload),
+            error: errorMsg,
+            errorType: 'database_upsert',
+          },
+        })
+      } catch {}
+
       Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(sanitizedPayload) } })
       return NextResponse.json({ error: 'Failed to update preferences: database error' }, { status: 500 })
     }
