@@ -26,7 +26,7 @@
   "hero.stats.satisfaction": "ग्राहक संतुष्ट��",
   
   "services.title": "हमारी पेशेवर सेवाएं",
-  "services.subtitle": "आपके व्यवसाय को फलने-फूलने में मदद करने के लिए डिज़ाइन किए गए व्यापक लेखांकन समाधान। बुककीपिंग से लेकर रणनीतिक सलाह तक, हमने आपको कवर किया है।",
+  "services.subtitle": "आपके व्यवसाय को फलने-फूलने में मदद करने के लिए डिज़ाइन किए गए व्यापक लेखांकन समाधान। बुककीपिंग से लेकर रणनीतिक सलाह तक, हमने आपक��� कवर किया है।",
   "services.cta.title": "कस्ट�� समाधान चाहिए?",
   "services.cta.subtitle": "हर व्यवसाय अनूठा है। आइए चर्चा करते हैं कि हम आपकी विशिष्ट लेखांकन और वित्तीय आवश्यकताओं को पूरा करने के लिए अपनी सेवाओं को कैसे तैयार कर सकते हैं।",
   "services.cta.primary": "कस्टम कोट प्राप्त करें",
@@ -58,7 +58,7 @@
   "footer.newsletter.description": "अपने इनबॉक्स में नवीनतम कर सुझाव और वित्तीय अंतर्दृष्टि प्राप्त करें।",
   "footer.newsletter.placeholder": "अपना ईमेल दर्ज करें",
   "footer.newsletter.subscribe": "सब्सक्राइब करें",
-  "footer.copyright": "© {{year}} अकाउंटिंग फर्म। सभी अधिकार सुरक्षित।",
+  "footer.copyright": "© {{year}} अकाउंटिंग फर्म। सभी अधिकार सुरक्��ित।",
   
   "auth.login.title": "अपने खाते में साइन इन करें",
   "auth.login.subtitle": "या एक नया खाता बनाएं",
@@ -77,7 +77,7 @@
   "auth.login.client": "ग्राहक:",
   
   "auth.register.title": "अपना खाता बनाएं",
-  "auth.register.subtitle": "या अपने मौजूदा खाते में साइन इन करें",
+  "auth.register.subtitle": "या अपने मौजूदा खाते में साइन इन ��रें",
   "auth.register.welcome": "आज ही शुरू करें",
   "auth.register.description": "हमारी लेखांकन सेवाओं तक पहुंचने के लिए अपना खाता बनाएं",
   "auth.register.name": "पूरा नाम",
@@ -92,7 +92,7 @@
   "auth.register.signInHere": "यहाँ साइन इन करें",
   
   "portal.welcome": "वापसी पर स्वागत है, {{name}}!",
-  "portal.subtitle": "अपनी नियुक्तियों का प्रबंधन करें और अपनी लेखांकन सेव�����ं देखें।",
+  "portal.subtitle": "अपनी नियुक्त���यों का प्रबंधन करें और अपनी लेखांकन सेव�����ं देखें।",
   "portal.bookNew": "नई सेवा बुक करें",
   "portal.scheduleConsultation": "परामर्श शेड्यूल करें",
   "portal.totalBookings": "कुल बुकिंग",
@@ -107,7 +107,7 @@
   "portal.bookAppointment": "नियुक्ति बुक करें",
   "portal.viewDetails": "विवरण देखें",
   "portal.viewAllAppointments": "सभी नियुक्तियां देखें",
-  "portal.view": "देखें",
+  "portal.view": "दे��ें",
   
   "booking.title": "अपना परामर्श बुक करें",
   "booking.subtitle": "हमारे लेखांकन विशेषज्ञों के साथ मीटिंग शेड्यूल करें",
@@ -129,7 +129,7 @@
   "contact.subject": "विषय",
   "contact.message": "संदेश",
   "contact.send": "संदेश भेजें",
-  "contact.sending": "भेजा जा रहा है...",
+  "contact.sending": "भेजा ���ा रहा है...",
   "contact.office": "हमारा कार्यालय",
   "contact.hours": "कार्यालय समय",
   "contact.mondayFriday": "सोमवार - शुक्रवार: सुबह 9:00 - शाम 6:00",
@@ -159,7 +159,7 @@
   "common.readMore": "और पढ़ें",
   "common.learnMore": "और जानें",
   "common.getStarted": "शुरू करें",
-  "common.tryAgain": "फिर कोशिश करें",
+  "common.tryAgain": "फ���र कोशिश करें",
   "common.comingSoon": "जल्द आ रहा ह��",
   "common.notFound": "नहीं मिला",
   "common.unauthorized": "अन��िकृत",
@@ -211,7 +211,7 @@
 
   "portal.offline.title": "ऑफ़लाइन कतार",
   "portal.offline.description": "ऑफ़लाइन होने पर कतारबद्ध सबमिशन। नेटवर्क वापस आने पर स्वचालित रूप से पुनः कोशिश करेगा।",
-  "portal.offline.empty": "कतार खाली है।",
+  "portal.offline.empty": "कतार ख���ली है।",
   "portal.offline.itemsQueued": "{{count}} आइटम कतार में",
   "portal.offline.when": "कब",
   "portal.offline.endpoint": "एंडपॉइंट",
@@ -243,7 +243,7 @@
   "portal.serviceRequests.view": "देखें",
   "portal.serviceRequests.searchPlaceholder": "अनुरोध खोजें...",
   "portal.serviceRequests.searchAria": "सेवा अनुरोध खोजें",
-  "portal.serviceRequests.selectAllStatus": "सभी स्थितियाँ",
+  "portal.serviceRequests.selectAllStatus": "सभी स्थितिया��",
   "portal.serviceRequests.selectBookingType": "बुकिंग प्रकार",
   "portal.serviceRequests.from": "से",
   "portal.serviceRequests.to": "तक",
@@ -452,7 +452,7 @@
   "portal.serviceRequests.form.attachmentsAria": "फ़ाइलें जोड़ें",
   "portal.serviceRequests.form.uploading": "अपलोड हो रहा है…",
   "portal.serviceRequests.form.attachmentsHelp": "अधिकतम {{max}} फ़ाइलें, प्रत्येक 10MB।",
-  "portal.serviceRequests.form.waitUploads": "सबमिट करने से पहले कृपया अपलोड पूरा होने तक प्रतीक्षा करें या फ़ाइलें हटाएँ।",
+  "portal.serviceRequests.form.waitUploads": "सबम���ट करने से पहले कृपया अपलोड पूरा होने तक प्रतीक्षा करें या फ़ाइलें हटाएँ।",
   "portal.serviceRequests.submitWithAppointment": "सबमिट करें और अपॉइंटमेंट अनुरोध करें",
   "portal.serviceRequests.submit": "अनुरोध सबमिट करें",
   "portal.serviceRequests.submitting": "सबमिट किया जा रहा है...",
@@ -465,7 +465,7 @@
   "portal.bookings.new.subtitle": "एक सेवा चुनें, समय चुनें और अपनी जानकारी दें।",
   "portal.bookings.backToAppointments": "अपॉइंटमेंट पर वापस जाएँ",
 
-  "portal.backToPortal": "पोर्टल पर वापस",
+  "portal.backToPortal": "पोर���टल पर वापस",
 
   "portal.settings.saved": "प्राथमिकताएँ सहेजी गईं",
   "portal.settings.saveFailed": "प्राथमिकताएँ सहेजने में विफल",
@@ -479,7 +479,7 @@
   "portal.account.passwordKeepPlaceholder": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें",
   "portal.account.confirmPassword": "पासवर्ड की पुष्टि करें",
   "portal.account.confirmPasswordPlaceholder": "नए पासवर्ड की पुष्टि करें",
-  "portal.account.currentPasswordLabel": "वर्तमान पासवर्ड (ईमेल या पासवर्ड बदलने के लिए आवश्यक)",
+  "portal.account.currentPasswordLabel": "वर्तमान पासवर्ड (ईमेल या पासवर्ड ���दलने के लिए आवश्यक)",
   "portal.account.currentPasswordPlaceholder": "अपना वर्तमान पासवर्ड दर्ज करें",
   "portal.account.saveChanges": "परिवर्तन सहेजें",
   "portal.account.saving": "सहेजा जा रहा है...",
@@ -499,7 +499,7 @@
   "portal.account.updateFailed": "प्रोफ़ाइल अपडेट करने में विफल",
   "portal.account.enterPasswordToConfirm": "कृपया पुष्टि करने के लिए अपना वर्तमान पासवर्ड दर्ज करें",
   "portal.account.deleted": "खाता हटाया गया",
-  "portal.account.deleteFailed": "खाता हटाने में विफल",
+  "portal.account.deleteFailed": "खाता हटाने में व���फल",
 
   "userProfile.menu.title": "उपयोगकर्ता मेनू",
   "userProfile.menu.settings": "सेटिंग्स",
@@ -538,7 +538,7 @@
   "userProfile.security.password": "पासवर्ड",
   "userProfile.security.passwordDesc": "अपना लॉगिन पासवर्ड बदल���ं",
   "userProfile.security.twoFactor": "दो-कारक प्रमाणीकरण",
-  "userProfile.security.twoFactorDesc": "अपने खाते में एक अतिरिक्त सुरक्षा परत जोड़ें",
+  "userProfile.security.twoFactorDesc": "अपने खाते में एक अतिरिक���त सुरक्षा परत जोड़ें",
   "userProfile.security.twoFactorEnabled": "सक्षम",
   "userProfile.security.twoFactorDisabled": "सक्षम नहीं",
   "userProfile.security.emailVerification": "ईमेल सत्यापन",
@@ -560,7 +560,7 @@
   "userProfile.mfa.copied": "कॉपी किया गया",
   "userProfile.mfa.done": "हो गया",
   "userProfile.mfa.enabled": "दो-कारक प्रमाणीकरण सक्षम किया गया",
-  "userProfile.mfa.disabled": "दो-कारक प्रमाणीकरण अक्षम किया गया",
+  "userProfile.mfa.disabled": "दो-का��क प्रमाणीकरण अक्षम किया गया",
   "userProfile.mfa.invalidCode": "कृपया एक 6-अंकीय कोड दर्ज करें",
 
   "userProfile.verification.verify": "सत्यापित करें",
@@ -571,6 +571,29 @@
   "userProfile.editable.save": "सहेजें",
   "userProfile.editable.cancel": "रद्द करें",
 
-  "userProfile.signOut.confirm": "क्या आप वाकई साइन आउट करना चाहते हैं?"
+  "userProfile.signOut.confirm": "क्या आप वाकई साइन आउट करना चाहते हैं?",
+
+  "greeting.welcome": "स्वागत है, {{name}}!",
+  "greeting.welcome.male": "स्वागत है, श्री {{name}}!",
+  "greeting.welcome.female": "स्वागत है, श्रीमती {{name}}!",
+  "greeting.welcome.neuter": "स्वागत है, {{name}}!",
+
+  "greeting.consultant": "आपके सलाहक���र",
+  "greeting.consultant.male": "आपके सलाहकार (वह/उसे)",
+  "greeting.consultant.female": "आपकी सलाहकार (वह/उसे)",
+  "greeting.consultant.neuter": "आपके सलाहकार",
+
+  "profile.accountType": "खाता प्रकार",
+  "profile.accountType.male": "आप एक पुरुष सलाहकार के रूप में पंजीकृत हैं",
+  "profile.accountType.female": "आप एक महिला सलाहकार के रूप में पंजीकृत हैं",
+  "profile.accountType.neuter": "आप एक सलाहकार के रूप में पंजीकृत हैं",
+
+  "notification.assigned": "आपको एक कार्य सौंपा गया है",
+  "notification.assigned.male": "{{assignee}} को एक कार्य सौंपा गया है, वह जल्द ही शुरू करेंगे",
+  "notification.assigned.female": "{{assignee}} को एक कार्य सौंपा गया है, वह जल्द ही शुरू करेंगी",
+
+  "email.greeting": "नमस्ते",
+  "email.greeting.male": "नमस्ते श्री {{name}}",
+  "email.greeting.female": "नमस्ते श्रीमती {{name}}"
 }
 
