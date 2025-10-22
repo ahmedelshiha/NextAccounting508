@@ -119,20 +119,12 @@ export const SETTINGS_REGISTRY: SettingsCategory[] = [
     permission: PERMISSIONS.SYSTEM_ADMIN_SETTINGS_VIEW,
   },
   {
-    key: 'languages',
-    label: 'Languages',
-    route: '/admin/settings/languages',
+    key: 'localization',
+    label: 'Localization & Languages',
+    route: '/admin/settings/localization',
     icon: Globe,
     tabs: [],
     permission: PERMISSIONS.LANGUAGES_VIEW,
-  },
-  {
-    key: 'translationsManagement',
-    label: 'Translation Management',
-    route: '/admin/translations/dashboard',
-    icon: BarChart3,
-    tabs: [],
-    permission: PERMISSIONS.LANGUAGES_MANAGE,
   }
 ]
 
