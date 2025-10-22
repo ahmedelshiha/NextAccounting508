@@ -94,6 +94,10 @@ export const PERMISSIONS = {
   // System Administration settings
   SYSTEM_ADMIN_SETTINGS_VIEW: 'system-admin.settings.view',
   SYSTEM_ADMIN_SETTINGS_EDIT: 'system-admin.settings.edit',
+
+  // Language management
+  LANGUAGES_VIEW: 'languages.view',
+  LANGUAGES_MANAGE: 'languages.manage',
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
