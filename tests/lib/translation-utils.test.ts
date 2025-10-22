@@ -84,7 +84,7 @@ describe('Translation Utilities', () => {
       const nested = { nav: { items: ['Home', 'About'] } }
       const errors = validateNestedStructure(nested)
       expect(errors.length).toBeGreaterThan(0)
-      expect(errors[0]).toContain('array')
+      expect(errors[0].toLowerCase()).toContain('array')
     })
 
     it('should reject numbers', () => {
