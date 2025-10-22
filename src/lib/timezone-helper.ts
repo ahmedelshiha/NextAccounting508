@@ -83,3 +83,15 @@ export function getTimezonesWithOffsets(now = new Date()): TimezoneOption[] {
   })
   return items
 }
+
+/**
+ * Get the user's default timezone based on their browser/system timezone
+ * Falls back to UTC if unavailable
+ */
+export function getDefaultTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return 'UTC'
+  }
+}
