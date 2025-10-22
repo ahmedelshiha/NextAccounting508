@@ -631,7 +631,7 @@ export function ProfilePage() {
 ## 12. Questions & Support
 
 **Q: How do I add a new language?**
-A: See Section 10 "Usage Examples ��� Add a New Language". Requires changes to 5 files + new translation JSON.
+A: See Section 10 "Usage Examples — Add a New Language". Requires changes to 5 files + new translation JSON.
 
 **Q: How do I change the default language?**
 A: Update `defaultLocale` in `src/lib/i18n.ts` and app layout's initial locale.
@@ -1480,7 +1480,7 @@ Q1 2026 (Weeks 5-12)
 │   └── 14.2.3 Namespace Support (Week 7-8)
 │
 ├── Phase 3: Server-Side & Performance (Weeks 9-12)
-│   ��── 14.3.1 Server-Side Translation Loading (Week 9-10)
+│   ├── 14.3.1 Server-Side Translation Loading (Week 9-10)
 │   ├── 14.3.2 Translation Caching Strategy (Week 10-11)
 │   └── 14.3.3 Translation Platform Integration (Week 11-12)
 │
@@ -1519,3 +1519,19 @@ Q2 2026 (Weeks 13-20)
 - Testing notes:
   - Manual: created a new language (fr), toggled enable, edited BCP47, and deleted; verified API responses and UI updates
   - Next steps: add unit tests for API handlers and e2e coverage in settings navigation
+
+### ✅ 2025-10-22 — 14.1.3 Enhanced Timezone Selector UX — Completed
+- Summary: Added server-side timezone API with UTC offsets and abbreviations; LocalizationTab now shows labeled options like "[UTC+05:30] Asia/Kolkata (IST)" with caching.
+- Files added:
+  - src/lib/timezone-helper.ts (offset calculation, abbreviation, labeling)
+  - src/app/api/admin/timezones/route.ts (GET with 24h cache)
+- Files updated:
+  - src/components/admin/profile/LocalizationTab.tsx (fetch and render enhanced timezone list; fallback to COMMON_TIMEZONES)
+- Key implementation details:
+  - No external dependencies; relies on Intl APIs and a common fallback list
+  - Sorted by offset for quicker scanning; resilient to environments without supportedValuesOf
+- Issues encountered:
+  - None
+- Testing notes:
+  - Manual: verified offsets/labels for New York, London, Berlin, Dubai, Kolkata, Tokyo; ensured fallback works offline
+  - Next steps: optional fuzzy search and regional grouping (nice-to-have)
