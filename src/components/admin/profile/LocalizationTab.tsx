@@ -18,6 +18,7 @@ interface LocalizationData {
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const { preferences, loading: preferencesLoading, error: preferencesError, updatePreferences, refetch } = useUserPreferences()
+  const { setLocale } = useTranslations()
   const [saving, setSaving] = useState(false)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
