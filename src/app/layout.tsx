@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
 import { SettingsProvider } from '@/components/providers/SettingsProvider'
+import { locales, type Locale } from '@/lib/i18n'
 import '@/styles/dark-mode.css'
 
 const inter = Inter({ subsets: ['latin'] })
