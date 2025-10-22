@@ -28,11 +28,11 @@ function pad(n: number): string { return n < 10 ? `0${n}` : `${n}` }
 
 /**
  * Get timezone offset in minutes using a more reliable approach.
- * Uses reference dates to calculate the offset and reduce floating-point errors.
+ * Uses Date.getTimezoneOffset concept but applies it to a specific timezone.
  */
 function getOffsetMinutes(tz: string, date = new Date()): number {
   try {
-    // Get the offset using Intl.DateTimeFormat with numeric format
+    // Format the date in the target timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: tz,
       year: 'numeric',
@@ -46,32 +46,32 @@ function getOffsetMinutes(tz: string, date = new Date()): number {
 
     const parts = formatter.formatToParts(date)
     const values: Record<string, number> = {}
-    
+
     for (const part of parts) {
       if (part.type !== 'literal') {
         values[part.type] = parseInt(part.value, 10)
       }
     }
 
-    // Reconstruct the local date/time components
-    const year = values.year
-    const month = values.month - 1 // JS months are 0-indexed
-    const day = values.day
-    const hours = values.hour
-    const minutes = values.minute
-    const seconds = values.second
+    // Extract timezone-adjusted components
+    const tzYear = values.year
+    const tzMonth = values.month - 1 // JS months are 0-indexed
+    const tzDay = values.day
+    const tzHours = values.hour
+    const tzMinutes = values.minute
+    const tzSeconds = values.second
 
-    // Create UTC date from the original date components
+    // Create a date object from the timezone-adjusted components (treating them as UTC)
+    const tzDate = new Date(Date.UTC(tzYear, tzMonth, tzDay, tzHours, tzMinutes, tzSeconds))
+
+    // Create a date object from the original UTC components
     const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()))
-    
-    // Create local date from the formatted components
-    const localDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds))
 
-    // Calculate the difference in milliseconds and convert to minutes
-    const diffMs = localDate.getTime() - utcDate.getTime()
+    // The offset is the difference between the two dates
+    const diffMs = tzDate.getTime() - utcDate.getTime()
     const diffMinutes = Math.round(diffMs / 60000)
 
-    return diffMinutes
+    return Number.isFinite(diffMinutes) ? diffMinutes : 0
   } catch {
     return 0
   }
@@ -79,9 +79,11 @@ function getOffsetMinutes(tz: string, date = new Date()): number {
 
 function formatOffset(mins: number): string {
   if (!isFinite(mins) || mins === 0) return 'UTC'
-  
-  const sign = mins >= 0 ? '+' : '-'
-  const abs = Math.abs(mins)
+
+  // Ensure mins is an integer
+  const intMins = Math.round(mins)
+  const sign = intMins >= 0 ? '+' : '-'
+  const abs = Math.abs(intMins)
   const h = Math.floor(abs / 60)
   const m = abs % 60
 
@@ -92,7 +94,7 @@ function formatOffset(mins: number): string {
   if (m === 0) {
     return `UTC${sign}${formattedHours}`
   }
-  
+
   return `UTC${sign}${formattedHours}:${formattedMinutes}`
 }
 
