@@ -79,9 +79,11 @@ function getOffsetMinutes(tz: string, date = new Date()): number {
 
 function formatOffset(mins: number): string {
   if (!isFinite(mins) || mins === 0) return 'UTC'
-  
-  const sign = mins >= 0 ? '+' : '-'
-  const abs = Math.abs(mins)
+
+  // Ensure mins is an integer
+  const intMins = Math.round(mins)
+  const sign = intMins >= 0 ? '+' : '-'
+  const abs = Math.abs(intMins)
   const h = Math.floor(abs / 60)
   const m = abs % 60
 
@@ -92,7 +94,7 @@ function formatOffset(mins: number): string {
   if (m === 0) {
     return `UTC${sign}${formattedHours}`
   }
-  
+
   return `UTC${sign}${formattedHours}:${formattedMinutes}`
 }
 
