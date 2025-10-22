@@ -4,6 +4,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { PreferencesSchema, isValidTimezone } from '@/schemas/user-profile'
 import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
+import * as Sentry from '@sentry/nextjs'
 
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
@@ -99,6 +100,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
+    Sentry.captureException(error as any)
     return NextResponse.json(
       { error: 'Failed to fetch preferences', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -168,9 +170,14 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Invalid timezone' }, { status: 400 })
     }
 
-    // Validate reminder hours are in valid range
-    if (reminderHours && reminderHours.some((h) => h < 1 || h > 720)) {
-      return NextResponse.json({ error: 'Reminder hours must be between 1 and 720' }, { status: 400 })
+    // Coerce reminderHours to numeric array (avoid Prisma type errors)
+    let normalizedReminderHours: number[] | undefined = undefined
+    if (Array.isArray(reminderHours)) {
+      const nums = reminderHours.map((h: any) => Number(h)).filter((n: number) => Number.isFinite(n))
+      if (nums.some((h: number) => h < 1 || h > 720)) {
+        return NextResponse.json({ error: 'Reminder hours must be between 1 and 720' }, { status: 400 })
+      }
+      normalizedReminderHours = nums
     }
 
     let user
@@ -179,10 +186,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     } catch (dbError) {
       const dbMsg = dbError instanceof Error ? dbError.message : String(dbError)
       console.error('Preferences PUT: Database query failed', {
-        email,
         tenantId: tid,
         error: dbMsg,
       })
+      Sentry.captureException(dbError as any, { extra: { tenantId: tid, payloadKeys: Object.keys(validationResult.data) } })
       if (dbMsg.includes('Database is not configured')) {
         return NextResponse.json({ error: 'Database is not configured' }, { status: 503 })
       }
@@ -190,7 +197,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     }
 
     if (!user) {
-      console.warn('Preferences PUT: User not found', { email, tenantId: tid })
+      console.warn('Preferences PUT: User not found', { tenantId: tid })
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
@@ -209,7 +216,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
           bookingEmailCancellation: bookingEmailCancellation ?? true,
           bookingSmsReminder: bookingSmsReminder ?? false,
           bookingSmsConfirmation: bookingSmsConfirmation ?? false,
-          reminderHours: reminderHours || [24, 2],
+          reminderHours: normalizedReminderHours ?? [24, 2],
         },
         update: {
           ...(timezone && { timezone }),
@@ -220,16 +227,17 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
           ...(bookingEmailCancellation !== undefined && { bookingEmailCancellation }),
           ...(bookingSmsReminder !== undefined && { bookingSmsReminder }),
           ...(bookingSmsConfirmation !== undefined && { bookingSmsConfirmation }),
-          ...(reminderHours && { reminderHours }),
+          ...(normalizedReminderHours && { reminderHours: normalizedReminderHours }),
         },
       })
     } catch (dbErr) {
       console.error('Preferences PUT: Database upsert failed', {
-        email,
         tenantId: tid,
-        payload: validationResult.data,
+        userId: user.id,
+        payloadKeys: Object.keys(validationResult.data),
         error: dbErr instanceof Error ? dbErr.message : String(dbErr),
       })
+      Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(validationResult.data) } })
       return NextResponse.json({ error: 'Failed to update preferences: database error' }, { status: 500 })
     }
 
@@ -264,6 +272,7 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
+    Sentry.captureException(error as any, { extra: { note: 'preferences.put' } })
     // Return more specific message for clients to diagnose; keep generic enough for production
     const msg = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
