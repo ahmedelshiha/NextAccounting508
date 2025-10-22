@@ -9,6 +9,8 @@ import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
+interface TimezoneOption { code: string; label: string }
+
 interface LocalizationData {
   timezone: string
   preferredLanguage: 'en' | 'ar' | 'hi'
@@ -22,6 +24,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
+  const [timezones, setTimezones] = useState<TimezoneOption[]>(COMMON_TIMEZONES.map(tz=>({ code: tz, label: tz })))
 
   // Sync hook data to component state
   useEffect(() => {
@@ -33,6 +36,23 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
       setErrors({})
     }
   }, [preferences])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadTimezones(){
+      try {
+        const r = await fetch('/api/admin/timezones', { cache: 'force-cache' })
+        if (!r.ok) throw new Error('failed')
+        const d = await r.json()
+        const list: TimezoneOption[] = Array.isArray(d?.data) ? d.data : []
+        if (!cancelled && list.length) setTimezones(list.map((t: any)=>({ code: String(t.code), label: String(t.label||t.code) })))
+      } catch {
+        // fallback already set
+      }
+    }
+    loadTimezones()
+    return ()=>{ cancelled = true }
+  }, [])
 
 
   const handleSave = async () => {
@@ -111,9 +131,9 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
-            {COMMON_TIMEZONES.map((tz) => (
-              <SelectItem key={tz} value={tz}>
-                {tz}
+            {timezones.map((tz) => (
+              <SelectItem key={tz.code} value={tz.code}>
+                {tz.label}
               </SelectItem>
             ))}
           </SelectContent>
