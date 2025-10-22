@@ -66,10 +66,18 @@ P1 — High
     - Per-user limit helps shared IPs avoid false positives while maintaining security
     - Sentry captures include sanitized payload keys for debugging without exposing PII
 
-- P1-3: Locale mapping utility
-  - Files: src/lib/locale.ts, update src/lib/cron/reminders.ts
-  - Description: Map short language codes ('en','ar','hi') to BCP47 (e.g., 'en' -> 'en-US') before formatting messages.
+- P1-3: Locale mapping utility (COMPLETED)
+  - Files: src/lib/locale.ts (new), src/lib/cron/reminders.ts
+  - Description: Created locale mapping utility to convert short language codes ('en','ar','hi') to BCP47 ('en-US','ar-SA','hi-IN'). Updated reminders cron to use BCP47 for Intl API formatting.
   - Acceptance criteria: Cron/emails render with correct locale formatting.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Created src/lib/locale.ts with getBCP47Locale() function
+    - Maps en→en-US, ar→ar-SA, hi→hi-IN
+    - Handles edge cases: null/undefined defaults to en-US, already-formatted BCP47 codes pass through
+    - Updated reminders.ts to use getBCP47Locale() before Intl API calls
+    - Email and SMS reminders now format dates/times correctly for user's language
+    - Added language validation and utility functions for future use
 
 P2 — Medium / UX & Docs
 
