@@ -58,6 +58,16 @@ export default async function RootLayout({
     legalLinks = eff.legalLinks ?? null
   } catch {}
 
+  // Load server-side translations to avoid client double-fetch and FOUC
+  let serverTranslations: Record<string, string> | undefined = undefined
+  try {
+    const { getServerTranslations } = await import('@/lib/server/translations')
+    serverTranslations = await getServerTranslations(orgLocale)
+  } catch (err) {
+    // If server-side loader fails, we fall back to client-side loading
+    serverTranslations = undefined
+  }
+
   return (
     <html lang={orgLocale}>
       <head>
@@ -75,7 +85,7 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <TranslationProvider initialLocale={orgLocale as any}>
+        <TranslationProvider initialLocale={orgLocale as any} initialTranslations={serverTranslations}>
           <SettingsProvider initialSettings={{ name: orgName, logoUrl: orgLogoUrl ?? null, contactEmail: contactEmail ?? null, contactPhone: contactPhone ?? null, legalLinks: legalLinks ?? null, defaultLocale: orgLocale }}>
               <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
                 {children}

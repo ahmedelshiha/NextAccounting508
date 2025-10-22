@@ -108,10 +108,10 @@ t('footer.copyright', { year: 2025 })
 - Browser language detection ✅
 
 **Limitations:**
-- ❌ Pluralization (requires external library or custom system)
-- ❌ Gender agreement in translations
+- ✅ Pluralization support implemented (Phase 2.1)
+- ✅ Gender-aware translations implemented (Phase 2.2)
 - ❌ Advanced formatting rules
-- ❌ Namespace support (all keys in single flat object)
+- ✅ Namespace (nested) support implemented (Phase 2.3)
 
 ### 3.3 Client-Side Implementation
 
@@ -896,6 +896,8 @@ EOF
 
 #### 14.2.1 Task: Pluralization Support
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
 **Current State:** No pluralization; message templates don't vary by count.
 
 **Implementation Options:**
@@ -954,6 +956,8 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 
 #### 14.2.2 Task: Gender-Aware Translations
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
 **Current State:** No gender agreement (important for Arabic where adjectives change).
 
 **Implementation:**
@@ -996,6 +1000,8 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 
 #### 14.2.3 Task: Namespace/Grouping Support
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
 **Current State:** All 1000+ keys in single flat object (difficult to navigate).
 
 **Implementation:**
@@ -1027,9 +1033,21 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 
 ### 14.3 Phase 3: Server-Side & Performance (Weeks 9-12)
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
+**What was implemented:**
+- Server-side translation loader: src/lib/server/translations.ts (loads and flattens nested JSON)
+- API endpoint: GET /api/translations/[locale].json with Cache-Control: public, max-age=86400, immutable
+- RootLayout server-side loads translations and passes them to TranslationProvider via initialTranslations to avoid double-fetch/FOUC
+- TranslationProvider updated to accept initialTranslations and skip initial client fetch when provided
+- Server-component helpers: src/lib/server/useServerTranslations.ts and src/lib/server/server-translator.ts to load translations and provide `t()` inside server components
+
+
 **Goal:** Optimize translation delivery, server-side rendering, and caching.
 
 #### 14.3.1 Task: Server-Side Translation Loading
+
+**Status:** ✅ COMPLETED (2025-10-24)
 
 **Current State:** Translations loaded client-side; flash of untranslated content for slow clients.
 
@@ -1051,8 +1069,18 @@ t('messages.items', { count: 1 }) // "You have 1 item"
    - Prevents double-loading
 
 4. **Server Component Support**
-   - Create `useServerTranslations()` utility for server components
-   - Allows server-side JSX to use translations
+   - Implemented `useServerTranslations()` utility and `server-translator` to provide `t()` in server components
+   - Allows server-side JSX to use translations without client fetch (example below)
+
+   Example (server component):
+   ```ts
+   import { useServerTranslations } from '@/lib/server/useServerTranslations'
+
+   export default async function ServerHeader({ locale = 'hi' }) {
+     const { t } = await useServerTranslations(locale)
+     return <h1>{t('hero.headline')}</h1>
+   }
+   ```
 
 **Success Metrics:**
 - ✅ No flash of untranslated content (FOUC)
@@ -1570,5 +1598,25 @@ Q2 2026 (Weeks 13-20)
 - 5-10% FTE for QA/testing localization in new features
 
 ---
+
+## Next short-term tasks (immediate priorities)
+
+The following tasks are the recommended immediate next steps to complete Phase 2→3 work and harden the localization system. After each task is completed, update this document and mark the task done.
+
+- [ ] Add plural and gender variants to locale JSONs where counts/greetings are used (src/app/locales/*.json). Prioritize keys used in UI: hero.stats, dashboard metrics, offline queue messages, notifications, pagination strings.
+- [x] Add unit tests for server translator (src/lib/server/server-translator.ts) and API tests for /api/translations/[locale] to ensure valid responses and cache headers.
+- [x] Integrate scripts/test-i18n.ts into CI (GitHub Actions) to fail builds on parity or namespace shape mismatches.
+- [ ] Implement the translation QA engine (scripts/validate-translations.ts) to enforce placeholder parity, length rules, and basic quality checks in CI.
+- [ ] Build the Translation Management Dashboard (admin) to visualize coverage and missing keys (14.4.1). Expose API endpoints for coverage and missing keys.
+- [ ] Implement Crowdin (or alternative) sync helpers (src/lib/crowdin-sync.ts) and an automated CI job to sync translations between repo and translation platform.
+- [ ] Add visual regression testing for RTL and key locales (snapshot comparisons for critical pages: home, booking, admin dashboard).
+- [ ] Add monitoring and alerts for translation sync failures, FOUC regressions, and translation API errors (Sentry + monitoring hooks).
+- [ ] Populate sample server components with useServerTranslations to validate server rendering of translated content and measure render times.
+- [ ] Document the deployment/versioning strategy for translations (filename versioning or CDN invalidation) and add a simple release checklist for translation updates.
+
+Notes:
+- Prioritize CI integration for parity checks to prevent regressions from merges.
+- Start with tests and CI gating before bulk-updating locale JSONs so rollbacks are safe.
+- For Crowdin integration, prefer a staged sync (staging -> review -> production) with automated PRs for changes.
 
 **End of Enhancement Plan**
