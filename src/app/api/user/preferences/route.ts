@@ -257,13 +257,14 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
         },
       })
     } catch (dbErr) {
+      const sanitizedPayload = sanitizePayloadForLogging(validationResult.data)
       console.error('Preferences PUT: Database upsert failed', {
         tenantId: tid,
         userId: user.id,
-        payloadKeys: Object.keys(validationResult.data),
+        payloadKeys: Object.keys(sanitizedPayload),
         error: dbErr instanceof Error ? dbErr.message : String(dbErr),
       })
-      Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(validationResult.data) } })
+      Sentry.captureException(dbErr as any, { extra: { tenantId: tid, userId: user.id, payloadKeys: Object.keys(sanitizedPayload) } })
       return NextResponse.json({ error: 'Failed to update preferences: database error' }, { status: 500 })
     }
 
