@@ -81,7 +81,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={orgLocale}>
+    <html lang={userLocale}>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/next.svg" />
@@ -97,7 +97,7 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <TranslationProvider initialLocale={orgLocale as any} initialTranslations={serverTranslations}>
+        <TranslationProvider initialLocale={userLocale as any} initialTranslations={serverTranslations}>
           <SettingsProvider initialSettings={{ name: orgName, logoUrl: orgLogoUrl ?? null, contactEmail: contactEmail ?? null, contactPhone: contactPhone ?? null, legalLinks: legalLinks ?? null, defaultLocale: orgLocale }}>
               <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
                 {children}
