@@ -27,7 +27,7 @@
   
   "services.title": "خدماتنا المهنية",
   "services.subtitle": "حلول محاسبية شاملة مصممة لمساعدة عملك على ا��ازدهار. من مسك الدفاتر إلى الاستشارات الاستراتيجية، نحن نغطي كل شيء.",
-  "services.cta.title": "تحتاج حل��ً مخصصاً؟",
+  "services.cta.title": "تحتاج حل��ً مخص��اً؟",
   "services.cta.subtitle": "كل عمل فريد. دعنا نناقش كيف يمكننا تخصيص خدماتنا لتلبية احتياجاتك المحاسبية والمالية المحددة.",
   "services.cta.primary": "احصل على عرض سعر مخصص",
   "services.cta.secondary": "اطلع على جميع الخدمات",
@@ -60,7 +60,7 @@
   "footer.newsletter.subscribe": "اشترك",
   "footer.copyright": "© {{year}} شركة المحاسبة. جميع الحقوق محفوظة.",
   
-  "auth.login.title": "سجل دخول�� إلى حسابك",
+  "auth.login.title": "سجل دخول�� إل�� حسابك",
   "auth.login.subtitle": "أو أنشئ حساباً جديداً",
   "auth.login.welcome": "مرحباً بعودتك",
   "auth.login.description": "أدخل بيانات اعتمادك للوصول إلى حسابك",
@@ -447,7 +447,7 @@
   "portal.serviceRequests.form.bookingType.emergency": "طوارئ",
   "portal.serviceRequests.form.bookingType.consultation": "استشارة",
   "portal.serviceRequests.form.attachments": "المرفقات",
-  "portal.serviceRequests.form.filesTooLarge": "تجاوزت بع�� الملفات 10 ميغابايت وتم تخطيها",
+  "portal.serviceRequests.form.filesTooLarge": "تجاوزت بع���� الملفات 10 ميغابايت وتم تخطيها",
   "portal.serviceRequests.form.maxFiles": "الحد الأقصى {{max}} ملفات",
   "portal.serviceRequests.form.attachmentsAria": "إرفاق ملفات",
   "portal.serviceRequests.form.uploading": "جاري الرفع…",
@@ -519,7 +519,7 @@
   "userProfile.theme.light": "فاتح",
   "userProfile.theme.dark": "مظلم",
   "userProfile.theme.system": "النظام",
-  "userProfile.theme.changed": "تم تغيير المظهر إلى {{theme}}",
+  "userProfile.theme.changed": "تم تغيير المظ��ر إلى {{theme}}",
 
   "userProfile.panel.title": "إدارة الملف الشخصي",
   "userProfile.panel.profileTab": "الملف الشخصي",
@@ -571,6 +571,26 @@
   "userProfile.editable.save": "حفظ",
   "userProfile.editable.cancel": "إلغاء",
 
-  "userProfile.signOut.confirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟"
+  "userProfile.signOut.confirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+
+  "greeting.welcome": "أهلا وسهلا {{name}}!",
+  "greeting.welcome.male": "أهلا وسهلا بك يا السيد {{name}}!",
+  "greeting.welcome.female": "أهلا وسهلا بك يا السيدة {{name}}!",
+
+  "greeting.consultant": "استشارك",
+  "greeting.consultant.male": "استشارك (يُضمر - ذكر)",
+  "greeting.consultant.female": "استشارتك (تُضمر - أنثى)",
+
+  "profile.accountType": "نوع الحساب",
+  "profile.accountType.male": "أنت مسجل كاستشاري ذكر",
+  "profile.accountType.female": "أنت مسجلة كاستشارية أنثى",
+
+  "notification.assigned": "تم تعيين مهمة لك",
+  "notification.assigned.male": "تم تعيين مهمة ل {{assignee}}، وسيبدأ قريباً",
+  "notification.assigned.female": "تم تعيين مهمة ل {{assignee}}، وستبدأ قريباً",
+
+  "email.greeting": "مرحبا",
+  "email.greeting.male": "مرحباً السيد {{name}}",
+  "email.greeting.female": "مرحباً السيدة {{name}}"
 }
 
