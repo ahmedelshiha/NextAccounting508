@@ -779,18 +779,24 @@ export default function LocalizationContent() {
                 <div className="rounded-lg border bg-white p-4">
                   <h4 className="font-semibold text-gray-900 mb-4">Crowdin Integration</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <TextField
-                      label="Project ID"
-                      type="password"
-                      placeholder="Your Crowdin project ID"
-                      description="Found in Crowdin project settings"
-                    />
-                    <TextField
-                      label="API Token"
-                      type="password"
-                      placeholder="Your Crowdin API token"
-                      description="Generate from Crowdin account settings"
-                    />
+                    <div>
+                      <TextField
+                        label="Project ID"
+                        value=""
+                        onChange={() => {}}
+                        placeholder="Your Crowdin project ID"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">Found in Crowdin project settings</p>
+                    </div>
+                    <div>
+                      <TextField
+                        label="API Token"
+                        value=""
+                        onChange={() => {}}
+                        placeholder="Your Crowdin API token"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">Generate from Crowdin account settings</p>
+                    </div>
                   </div>
                   <div className="mt-4 flex gap-3">
                     <button className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
