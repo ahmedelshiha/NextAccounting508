@@ -78,7 +78,9 @@ export function TranslationProvider({ children, initialLocale, initialGender }: 
   const contextValue = {
     locale,
     translations,
-    setLocale
+    setLocale,
+    currentGender,
+    setGender
   }
 
   // To avoid hydration mismatches, render children immediately and provide translations via context.
