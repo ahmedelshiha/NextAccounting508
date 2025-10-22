@@ -597,7 +597,7 @@ export default function LocalizationContent() {
                   <label className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900">Persist Language Choice</p>
-                      <p className="text-sm text-gray-500">Save user's language preference to localStorage</p>
+                      <p className="text-sm text-gray-500">Save user&apos;s language preference to localStorage</p>
                     </div>
                     <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
                   </label>
