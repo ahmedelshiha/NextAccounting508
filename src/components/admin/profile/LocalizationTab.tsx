@@ -24,6 +24,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
+  const [timezones, setTimezones] = useState<TimezoneOption[]>(COMMON_TIMEZONES.map(tz=>({ code: tz, label: tz })))
 
   // Sync hook data to component state
   useEffect(() => {
