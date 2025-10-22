@@ -1,4 +1,5 @@
 import { GenderType } from '@/lib/gender-rules'
+import type { Locale } from '@/lib/i18n'
 
 /**
  * Parameters passed to the translation function
@@ -28,9 +29,9 @@ export interface UseTranslationsReturn {
   /** Translation function */
   t: TranslationFunction
   /** Current locale */
-  locale: string
+  locale: Locale
   /** Function to change locale */
-  setLocale: (locale: string) => void
+  setLocale: (locale: Locale) => void
   /** Text direction (ltr or rtl) */
   dir: 'ltr' | 'rtl'
   /** Currently set gender (if any) */
@@ -43,9 +44,9 @@ export interface UseTranslationsReturn {
  * Context value for translation context
  */
 export interface TranslationContextValue {
-  locale: string
+  locale: Locale
   translations: Record<string, string>
-  setLocale: (locale: string) => void
+  setLocale: (locale: Locale) => void
   currentGender?: GenderType
   setGender?: (gender: GenderType | undefined) => void
 }

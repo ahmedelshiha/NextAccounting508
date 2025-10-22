@@ -1,22 +1,69 @@
-import { NextResponse } from 'next/server'
-import { withTenantContext } from '@/lib/api-wrapper'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { PERMISSIONS, hasPermission } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { toggleLanguageStatus } from '@/lib/language-registry'
+import { logAudit } from '@/lib/audit'
+import * as Sentry from '@sentry/nextjs'
 
-function json(payload: any, status = 200) { return NextResponse.json(payload, { status }) }
-
-export const PATCH = withTenantContext(async (_req: Request, { params }: { params: { code: string } }) => {
-  const ctx = requireTenantContext()
-  if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
-    return json({ ok: false, error: 'Forbidden' }, 403)
-  }
-  const code = String(params?.code || '').toLowerCase()
-  if (!code || !/^[a-z]{2}(-[a-z0-9-]+)?$/.test(code)) return json({ ok:false, error:'Invalid language code' }, 400)
+/**
+ * POST /api/admin/languages/[code]/toggle
+ * Toggle language enabled/disabled status (admin only)
+ */
+export const POST = withTenantContext(async (request: NextRequest, { params }: { params: { code: string } }) => {
   try {
+    const ctx = requireTenantContext()
+    if (!ctx.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const code = params.code
+
     const updated = await toggleLanguageStatus(code)
-    return json({ ok:true, data: updated })
-  } catch (err:any) {
-    return json({ ok:false, error: String(err?.message || 'Failed to toggle language status') }, 400)
+
+    // Log audit event
+    try {
+      await logAudit({
+        action: 'LANGUAGE_TOGGLED',
+        actorId: ctx.userId,
+        targetId: code,
+        details: { enabled: updated.enabled }
+      })
+    } catch (auditError) {
+      console.warn('Failed to log audit event:', auditError)
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'admin.languages',
+      message: 'Language toggled',
+      level: 'info',
+      data: { code, enabled: updated.enabled }
+    })
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+
+    if (errorMsg.includes('Cannot disable default language')) {
+      return NextResponse.json(
+        { error: 'Cannot disable default language (en)' },
+        { status: 400 }
+      )
+    }
+
+    if (errorMsg.includes('not found')) {
+      return NextResponse.json(
+        { error: `Language ${params.code} not found` },
+        { status: 404 }
+      )
+    }
+
+    console.error('Failed to toggle language:', error)
+    Sentry.captureException(error, {
+      tags: { endpoint: 'admin.languages.toggle', code: params.code }
+    })
+    return NextResponse.json(
+      { error: 'Failed to toggle language' },
+      { status: 500 }
+    )
   }
 })
