@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { useTranslations } from '@/lib/i18n'
+import { getDefaultTimezone } from '@/lib/timezone-helper'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
 interface TimezoneOption { code: string; label: string }
