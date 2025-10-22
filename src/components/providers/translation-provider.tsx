@@ -15,7 +15,7 @@ interface TranslationProviderProps {
 
 export function TranslationProvider({ children, initialLocale, initialGender, initialTranslations }: TranslationProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale)
-  const [translations, setTranslations] = useState<Record<string, string>>(() => initialTranslations ?? enTranslations)
+  const [translations, setTranslations] = useState<Record<string, string>>(() => initialTranslations ?? flattenTranslations(enTranslations as any))
   const [isLoading, setIsLoading] = useState<boolean>(!initialTranslations)
   const [currentGender, setGender] = useState<GenderType | undefined>(initialGender)
 
