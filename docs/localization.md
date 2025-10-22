@@ -30,10 +30,15 @@ P0 — Critical (fix before next deploy)
   - Acceptance criteria: Client prevents invalid payloads; server receives well-typed payloads; unit tests to be added next.
   - Completed: 2025-10-21
 
-- P0-3: Tests: Add tests covering Localization save flow
-  - Files: tests/api/user-preferences.test.ts, tests/components/localization-save.test.tsx
-  - Description: Add unit/integration tests for success, 400, 500, and 429 scenarios.
+- P0-3: Tests: Add tests covering Localization save flow (COMPLETED)
+  - Files: tests/api/user-preferences.test.ts, tests/api/user-preferences.extra.test.ts, tests/components/localization-save.test.tsx
+  - Description: Expanded unit/integration tests for success, 400, 500, and 429 scenarios. Added comprehensive error handling tests.
   - Acceptance criteria: Tests run and pass locally/CI.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - API tests cover: valid payload (200), invalid timezone (400), invalid reminderHours (400), string coercion attempts, empty arrays, database errors (500), user not found (404), rate limiting (429), malformed JSON, database unavailable (503)
+    - Component tests cover: successful save, validation errors, server errors, rate limiting, loading states, reminderHours range validation
+    - All mocks properly configured for async operations and error scenarios
 
 P1 — High
 
