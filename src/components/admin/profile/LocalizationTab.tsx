@@ -102,11 +102,12 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         <Select value={data.timezone} onValueChange={(value) => {
           if (isValidTimezone(value)) {
             setData((prev) => ({ ...prev, timezone: value }))
+            setErrors((prev) => ({ ...prev, timezone: undefined }))
           } else {
-            toast.error('Invalid timezone')
+            setErrors((prev) => ({ ...prev, timezone: 'Invalid timezone' }))
           }
         }}>
-          <SelectTrigger id="timezone" className="mt-2">
+          <SelectTrigger id="timezone" className={`mt-2 ${errors.timezone ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
@@ -117,6 +118,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             ))}
           </SelectContent>
         </Select>
+        {errors.timezone && <p className="text-xs text-red-600 mt-1">{errors.timezone}</p>}
       </div>
 
       <div className="border-t pt-6">
