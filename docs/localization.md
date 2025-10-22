@@ -81,10 +81,17 @@ P1 — High
 
 P2 — Medium / UX & Docs
 
-- P2-1: UX: Inline field errors in LocalizationTab
+- P2-1: UX: Inline field errors in LocalizationTab (COMPLETED)
   - Files: src/components/admin/profile/LocalizationTab.tsx
-  - Description: Replace generic toast with field-level messages when server returns validation errors.
+  - Description: Replaced generic toast with field-level inline error messages. Shows red border on fields with errors and displays error text below each field.
   - Acceptance criteria: Users see inline errors for timezone/language.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Added red border styling to SelectTrigger elements when field has errors
+    - Display error text inline below each field using error state
+    - Clear errors when user changes field value (improves UX)
+    - Server errors parsed to determine which field caused the error
+    - Generic server errors still shown as toast, field-specific errors shown inline
 
 - P2-2: Documentation: Update docs/localization.md with implementation notes and test results
   - Files: docs/localization.md
