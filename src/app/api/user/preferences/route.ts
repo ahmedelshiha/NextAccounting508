@@ -195,32 +195,43 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     }
 
     // Update or create user profile with preferences
-    const updatedProfile = await prisma.userProfile.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        timezone: timezone || 'UTC',
-        preferredLanguage: preferredLanguage || 'en',
-        bookingEmailConfirm: bookingEmailConfirm ?? true,
-        bookingEmailReminder: bookingEmailReminder ?? true,
-        bookingEmailReschedule: bookingEmailReschedule ?? true,
-        bookingEmailCancellation: bookingEmailCancellation ?? true,
-        bookingSmsReminder: bookingSmsReminder ?? false,
-        bookingSmsConfirmation: bookingSmsConfirmation ?? false,
-        reminderHours: reminderHours || [24, 2],
-      },
-      update: {
-        ...(timezone && { timezone }),
-        ...(preferredLanguage && { preferredLanguage }),
-        ...(bookingEmailConfirm !== undefined && { bookingEmailConfirm }),
-        ...(bookingEmailReminder !== undefined && { bookingEmailReminder }),
-        ...(bookingEmailReschedule !== undefined && { bookingEmailReschedule }),
-        ...(bookingEmailCancellation !== undefined && { bookingEmailCancellation }),
-        ...(bookingSmsReminder !== undefined && { bookingSmsReminder }),
-        ...(bookingSmsConfirmation !== undefined && { bookingSmsConfirmation }),
-        ...(reminderHours && { reminderHours }),
-      },
-    })
+    let updatedProfile
+    try {
+      updatedProfile = await prisma.userProfile.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          timezone: timezone || 'UTC',
+          preferredLanguage: preferredLanguage || 'en',
+          bookingEmailConfirm: bookingEmailConfirm ?? true,
+          bookingEmailReminder: bookingEmailReminder ?? true,
+          bookingEmailReschedule: bookingEmailReschedule ?? true,
+          bookingEmailCancellation: bookingEmailCancellation ?? true,
+          bookingSmsReminder: bookingSmsReminder ?? false,
+          bookingSmsConfirmation: bookingSmsConfirmation ?? false,
+          reminderHours: reminderHours || [24, 2],
+        },
+        update: {
+          ...(timezone && { timezone }),
+          ...(preferredLanguage && { preferredLanguage }),
+          ...(bookingEmailConfirm !== undefined && { bookingEmailConfirm }),
+          ...(bookingEmailReminder !== undefined && { bookingEmailReminder }),
+          ...(bookingEmailReschedule !== undefined && { bookingEmailReschedule }),
+          ...(bookingEmailCancellation !== undefined && { bookingEmailCancellation }),
+          ...(bookingSmsReminder !== undefined && { bookingSmsReminder }),
+          ...(bookingSmsConfirmation !== undefined && { bookingSmsConfirmation }),
+          ...(reminderHours && { reminderHours }),
+        },
+      })
+    } catch (dbErr) {
+      console.error('Preferences PUT: Database upsert failed', {
+        email,
+        tenantId: tid,
+        payload: validationResult.data,
+        error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+      })
+      return NextResponse.json({ error: 'Failed to update preferences: database error' }, { status: 500 })
+    }
 
     try {
       await logAudit({
@@ -253,8 +264,10 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
+    // Return more specific message for clients to diagnose; keep generic enough for production
+    const msg = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to update preferences', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: `Failed to update preferences: ${msg}` },
       { status: 500 }
     )
   }
