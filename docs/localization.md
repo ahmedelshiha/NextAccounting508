@@ -18,10 +18,11 @@ This document consolidates the previous audit of localization and language contr
 
 P0 — Critical (fix before next deploy)
 
-- P0-1: Server: Coerce reminderHours to numbers + robust validation
+- P0-1: Server: Coerce reminderHours to numbers + robust validation (COMPLETED)
   - Files: src/app/api/user/preferences/route.ts
-  - Description: Before calling prisma.upsert, coerce reminderHours values to Number and filter out invalid values. Return a clear 400 when the client payload is invalid. Catch Prisma type errors and log them to Sentry with minimal payload context.
+  - Description: Implemented coercion of reminderHours to numeric array, server-side validation of ranges, and Sentry capture for database errors. Database upsert uses normalizedReminderHours to avoid Prisma type errors.
   - Acceptance criteria: No Prisma type errors from reminderHours; server returns 400 on invalid payload; Sentry receives events for DB upsert failures.
+  - Completed: 2025-10-21
 
 - P0-2: Client: Strict validation and casting in LocalizationTab
   - Files: src/components/admin/profile/LocalizationTab.tsx, src/components/admin/profile/constants.ts
