@@ -232,8 +232,8 @@ describe('Gender-Aware Translation Integration', () => {
         Object.entries(requiredVariants).forEach(([locale, variants]) => {
           variants.forEach((variant) => {
             const fullKey = key + variant
-            // Just verify the key format is correct
-            expect(fullKey).toMatch(/^[a-z]+(\.[a-z]+)*(\.(male|female|neuter))?$/)
+            // Just verify the key format is correct - allows camelCase within segments
+            expect(fullKey).toMatch(/^[a-z]+(\.[a-zA-Z]+)*(\.(male|female|neuter))?$/)
           })
         })
       })
