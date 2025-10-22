@@ -28,6 +28,7 @@ export type SettingsCategoryKey =
   | 'cronTelemetry'
   | 'serviceRequests'
   | 'systemAdministration'
+  | 'localization'
   | 'languages'
   | 'translationsManagement'
 
