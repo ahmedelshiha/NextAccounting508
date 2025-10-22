@@ -126,8 +126,11 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           Preferred Language
         </Label>
         <p className="text-xs text-gray-600 mb-2">Choose your preferred language for communications</p>
-        <Select value={data.preferredLanguage} onValueChange={(value) => setData((prev) => ({ ...prev, preferredLanguage: value as 'en' | 'ar' | 'hi' }))}>
-          <SelectTrigger id="language" className="mt-2">
+        <Select value={data.preferredLanguage} onValueChange={(value) => {
+          setData((prev) => ({ ...prev, preferredLanguage: value as 'en' | 'ar' | 'hi' }))
+          setErrors((prev) => ({ ...prev, preferredLanguage: undefined }))
+        }}>
+          <SelectTrigger id="language" className={`mt-2 ${errors.preferredLanguage ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select language" />
           </SelectTrigger>
           <SelectContent>
@@ -138,6 +141,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             ))}
           </SelectContent>
         </Select>
+        {errors.preferredLanguage && <p className="text-xs text-red-600 mt-1">{errors.preferredLanguage}</p>}
       </div>
 
       <div className="flex justify-end gap-3 border-t pt-6">
