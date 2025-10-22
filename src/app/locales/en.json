@@ -498,6 +498,27 @@
   "portal.account.validation.currentPasswordRequired": "Current password is required to change email or password",
   "portal.account.updated": "Profile updated",
   "portal.account.updateFailed": "Failed to update profile",
+
+  "greeting.welcome": "Welcome, {{name}}!",
+  "greeting.welcome.male": "Welcome, Mr. {{name}}!",
+  "greeting.welcome.female": "Welcome, Ms. {{name}}!",
+
+  "greeting.consultant": "Your consultant",
+  "greeting.consultant.male": "Your consultant (He/Him)",
+  "greeting.consultant.female": "Your consultant (She/Her)",
+
+  "profile.accountType": "Account type",
+  "profile.accountType.male": "You are registered as a male consultant",
+  "profile.accountType.female": "You are registered as a female consultant",
+  "profile.accountType.neuter": "You are registered as a consultant",
+
+  "notification.assigned": "A task has been assigned to you",
+  "notification.assigned.male": "A task has been assigned to {{assignee}}, he will start soon",
+  "notification.assigned.female": "A task has been assigned to {{assignee}}, she will start soon",
+
+  "email.greeting": "Hello",
+  "email.greeting.male": "Hello Mr. {{name}}",
+  "email.greeting.female": "Hello Ms. {{name}}",
   "portal.account.enterPasswordToConfirm": "Please enter your current password to confirm",
   "portal.account.deleted": "Account deleted",
   "portal.account.deleteFailed": "Failed to delete account",
