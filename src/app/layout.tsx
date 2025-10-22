@@ -43,7 +43,7 @@ export default async function RootLayout({
   }
 
   // Load organization defaults with tenant scoping (server-side, no auth required for read)
-  let orgLocale = 'en'
+  let orgLocale: Locale = 'en'
   let orgName = 'Accounting Firm'
   let orgLogoUrl: string | null | undefined = null
   let contactEmail: string | null | undefined = null
@@ -51,7 +51,9 @@ export default async function RootLayout({
   let legalLinks: Record<string, string> | null | undefined = null
   try {
     const eff = await getEffectiveOrgSettingsFromHeaders()
-    orgLocale = eff.locale || 'en'
+    const locale = eff.locale || 'en'
+    // Validate locale is supported
+    orgLocale = locales.includes(locale as Locale) ? (locale as Locale) : 'en'
     orgName = eff.name || orgName
     orgLogoUrl = eff.logoUrl ?? null
     contactEmail = eff.contactEmail ?? null
@@ -60,7 +62,7 @@ export default async function RootLayout({
   } catch {}
 
   // Load user's preferred locale if authenticated
-  let userLocale = orgLocale
+  let userLocale: Locale = orgLocale
   if (session?.user?.email && session?.user?.tenantId) {
     try {
       const { getUserPreferredLocale } = await import('@/lib/server/get-user-preferred-locale')
