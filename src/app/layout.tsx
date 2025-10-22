@@ -58,11 +58,23 @@ export default async function RootLayout({
     legalLinks = eff.legalLinks ?? null
   } catch {}
 
+  // Load user's preferred locale if authenticated
+  let userLocale = orgLocale
+  if (session?.user?.email && session?.user?.tenantId) {
+    try {
+      const { getUserPreferredLocale } = await import('@/lib/server/get-user-preferred-locale')
+      userLocale = await getUserPreferredLocale(session.user.email, session.user.tenantId, orgLocale)
+    } catch {
+      // Silently fall back to organization locale on any error
+      userLocale = orgLocale
+    }
+  }
+
   // Load server-side translations to avoid client double-fetch and FOUC
   let serverTranslations: Record<string, string> | undefined = undefined
   try {
     const { getServerTranslations } = await import('@/lib/server/translations')
-    serverTranslations = await getServerTranslations(orgLocale)
+    serverTranslations = await getServerTranslations(userLocale)
   } catch (err) {
     // If server-side loader fails, we fall back to client-side loading
     serverTranslations = undefined
