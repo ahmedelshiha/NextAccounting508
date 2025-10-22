@@ -192,6 +192,21 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
     const validationResult = PreferencesSchema.safeParse(body)
     if (!validationResult.success) {
       const messages = validationResult.error.issues.map((i) => i.message).join('; ')
+
+      // Add breadcrumb for validation error
+      try {
+        Sentry.addBreadcrumb({
+          category: 'validation',
+          message: 'User preferences validation failed',
+          level: 'warning',
+          data: {
+            tenantId: tid,
+            errorCount: validationResult.error.issues.length,
+            errors: validationResult.error.issues.map((i) => ({ field: i.path.join('.'), code: i.code })),
+          },
+        })
+      } catch {}
+
       return NextResponse.json({ error: messages }, { status: 400 })
     }
 
