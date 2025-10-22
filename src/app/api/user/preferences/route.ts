@@ -214,8 +214,18 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
 
     const body = await request.json().catch(() => ({}))
 
-    // Validate using Zod schema
-    const validationResult = PreferencesSchema.safeParse(body)
+    // Validate using Zod schema with dynamic language codes
+    let validationResult
+    try {
+      const enabledLanguages = await getEnabledLanguageCodes()
+      const dynamicSchema = createPreferencesSchema(enabledLanguages)
+      validationResult = dynamicSchema.safeParse(body)
+    } catch (error) {
+      console.error('Failed to get enabled languages for validation', error)
+      // Fallback to static schema if language registry unavailable
+      validationResult = PreferencesSchema.safeParse(body)
+    }
+
     if (!validationResult.success) {
       const messages = validationResult.error.issues.map((i) => i.message).join('; ')
 
