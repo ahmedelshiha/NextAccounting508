@@ -37,7 +37,7 @@ export const localeConfig = {
 // Translation context with gender support
 export const TranslationContext = createContext<TranslationContextValue>({
   locale: defaultLocale,
-  translations: enTranslations,
+  translations: flattenTranslations(enTranslations as any),
   setLocale: () => {},
   currentGender: undefined,
   setGender: () => {}
