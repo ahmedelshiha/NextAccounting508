@@ -40,33 +40,81 @@ interface AuditReport {
 /**
  * Extract translation keys from code using regex patterns
  * Matches: t('key'), t("key"), t(`key`)
- * Filters out non-translation patterns (imports, paths, URLs, etc.)
+ * Filters out non-translation patterns (imports, paths, URLs, variable names, etc.)
  */
 function extractKeysFromCode(codeContent: string): Set<string> {
   const keys = new Set<string>()
 
-  // Match t('key'), t("key"), t(`key`) with more specific pattern
-  // Translation keys typically follow: namespace.key or simple.key pattern
+  // Match t('key'), t("key"), t(`key`)
   const pattern = /t\(['"`]([a-zA-Z0-9._-]+)['"`]\)/g
 
   let match
   while ((match = pattern.exec(codeContent)) !== null) {
     const key = match[1]
-    // Additional validation to ensure it looks like a translation key
-    // Translation keys should not contain path separators like / and should follow dot notation
-    if (key &&
-        !key.includes('${') && // Skip template literals with variables
-        !key.includes('/') && // Skip paths
-        !key.includes(':') && // Skip URLs/imports
-        !key.includes('@') && // Skip module imports
-        !key.startsWith('.') && // Skip relative paths
-        key.length > 1 && // Skip single characters
-        /^[a-zA-Z0-9._-]+$/.test(key)) { // Only allow alphanumeric, dots, dashes
-      keys.add(key)
-    }
+
+    // Validation logic to identify real translation keys
+    if (!isTranslationKey(key)) continue
+
+    keys.add(key)
   }
 
   return keys
+}
+
+/**
+ * Check if a string is likely a translation key (not a variable name, header, etc.)
+ * Real translation keys typically:
+ * - Contain at least one dot (namespace.key)
+ * - Use lowercase with dots and underscores
+ * - Don't match common variable names, HTTP headers, library names
+ */
+function isTranslationKey(key: string): boolean {
+  // Must contain at least one dot to be a namespace key
+  // or be in a list of known single-word keys
+  const knownSingleWords = new Set([
+    'Export', 'Failed', 'General', 'New', 'Saved', 'Refresh', 'Reply',
+    'USD', 'UTC', 'Export', 'Failed', 'Saved'
+  ])
+
+  // Common variable/parameter names to exclude
+  const excludeList = new Set([
+    'id', 'count', 'date', 'email', 'name', 'status', 'type', 'method',
+    'format', 'action', 'order', 'limit', 'offset', 'page', 'sort',
+    'currency', 'amount', 'category', 'entity', 'content', 'data',
+    'error', 'message', 'value', 'key', 'items', 'total', 'price',
+    'cost', 'fee', 'tax', 'rate', 'duration', 'time', 'start', 'end',
+    'from', 'to', 'filter', 'search', 'query', 'result', 'response',
+    'request', 'authorization', 'cookie', 'header', 'origin', 'host',
+    'en', 'ar', 'hi', 'ab', 'next', 'none', 'all', 'any', 'general',
+    'medium', 'input', 'div', 'folder', 'file', 'events', 'bookings',
+    'ioredis', 'crypto', 'pg', 'known-client'
+  ])
+
+  // HTTP headers and framework-specific terms
+  const headersList = new Set([
+    'content-type', 'if-modified-since', 'if-none-match', 'cf-connecting-ip'
+  ])
+
+  // Skip if it's in excluded list
+  if (excludeList.has(key) || headersList.has(key)) {
+    return false
+  }
+
+  // Must have a dot (namespace) to be a valid translation key, OR be in knownSingleWords
+  if (key.includes('.')) {
+    // Additional check: first part (namespace) should be lowercase or start with lowercase
+    const parts = key.split('.')
+    if (parts[0] && /^[a-z]/.test(parts[0])) {
+      return true
+    }
+  }
+
+  // Check if it's a known single-word translation
+  if (knownSingleWords.has(key)) {
+    return true
+  }
+
+  return false
 }
 
 /**
@@ -251,7 +299,7 @@ async function runAudit(): Promise<void> {
   
   // 7. Exit with error if issues found
   if (missingInFiles.length > 0) {
-    console.log(`\n⚠️  Action required: Add ${missingInFiles.length} missing keys to translation files`)
+    console.log(`\n⚠��  Action required: Add ${missingInFiles.length} missing keys to translation files`)
     if (missingInFiles.length <= 10) {
       console.log('   Missing keys:', missingInFiles.join(', '))
     }
