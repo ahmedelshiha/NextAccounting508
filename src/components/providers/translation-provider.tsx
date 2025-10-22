@@ -12,7 +12,7 @@ interface TranslationProviderProps {
   initialTranslations?: Record<string, string>
 }
 
-export function TranslationProvider({ children, initialLocale, initialGender }: TranslationProviderProps) {
+export function TranslationProvider({ children, initialLocale, initialGender, initialTranslations }: TranslationProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale)
   const [translations, setTranslations] = useState<Record<string, string>>(() => initialTranslations ?? enTranslations)
   const [isLoading, setIsLoading] = useState<boolean>(!initialTranslations)
