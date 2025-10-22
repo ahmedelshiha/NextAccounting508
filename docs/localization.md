@@ -42,11 +42,17 @@
 - ✅ Server-Side Translation Loading (14.3.1)
 - ✅ Cache Control Headers (14.3.2)
 
+**Phase 4: Analytics & Automation (In Progress):**
+- 🔄 Translation Management Dashboard (14.4.1)
+- 🔄 Automated Translation Key Discovery (14.4.2)
+- 🔄 Translation Analytics + Crowdin (14.4.3)
+
 **Infrastructure:**
 - ✅ API Endpoints for Language Management (CRUD)
 - ✅ API Endpoint for Timezone Data
 - ✅ Database Schema with Language Model
 - ✅ Comprehensive Test Suite (150+ test cases)
+- 🔄 TranslationKey & TranslationMetrics tables (Phase 4)
 
 ### 📝 Test Coverage
 
@@ -508,7 +514,7 @@ Script available: `scripts/test-i18n.ts`
 - ✅ P2-2: Documentation updates
 - �� P2-3: Sentry breadcrumbs and monitoring
 
-#### P3 — Optional (1/1 completed)
+#### P3 �� Optional (1/1 completed)
 - ✅ P3-1: Admin support view for user locales (permission-gated)
 
 ### Deployment Checklist
@@ -1661,7 +1667,7 @@ Q2 2026 (Weeks 13-20)
   - Manual: verified offsets/labels for New York, London, Berlin, Dubai, Kolkata, Tokyo; ensured fallback works offline
   - Next steps: optional fuzzy search and regional grouping (nice-to-have)
 
-### ✅ 2025-01-15 — COMPREHENSIVE IMPLEMENTATION COMPLETION ��� All Tasks Done
+### ✅ 2025-01-15 — COMPREHENSIVE IMPLEMENTATION COMPLETION — All Tasks Done
 - Summary: Verified all localization implementations and created missing API endpoints and comprehensive test suite. System is production-ready.
 - Implementation Status Verified:
   - ✅ Core i18n system with pluralization and gender-aware translations
