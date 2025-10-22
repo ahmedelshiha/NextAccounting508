@@ -108,8 +108,8 @@ t('footer.copyright', { year: 2025 })
 - Browser language detection ✅
 
 **Limitations:**
-- ❌ Pluralization (requires external library or custom system)
-- ❌ Gender agreement in translations
+- ✅ Pluralization support implemented (Phase 2.1)
+- ✅ Gender-aware translations implemented (Phase 2.2)
 - ❌ Advanced formatting rules
 - ✅ Namespace (nested) support implemented (Phase 2.3)
 
@@ -896,6 +896,8 @@ EOF
 
 #### 14.2.1 Task: Pluralization Support
 
+**Status:** ✅ COMPLETED (2025-10-24)
+
 **Current State:** No pluralization; message templates don't vary by count.
 
 **Implementation Options:**
@@ -953,6 +955,8 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 ---
 
 #### 14.2.2 Task: Gender-Aware Translations
+
+**Status:** ✅ COMPLETED (2025-10-24)
 
 **Current State:** No gender agreement (important for Arabic where adjectives change).
 
