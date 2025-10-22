@@ -40,27 +40,81 @@ interface AuditReport {
 /**
  * Extract translation keys from code using regex patterns
  * Matches: t('key'), t("key"), t(`key`)
+ * Filters out non-translation patterns (imports, paths, URLs, variable names, etc.)
  */
 function extractKeysFromCode(codeContent: string): Set<string> {
   const keys = new Set<string>()
-  
+
   // Match t('key'), t("key"), t(`key`)
-  const patterns = [
-    /t\(['"`]([^'"`]+)['"`]\)/g,
-    /useTranslations\(\).*?\bt\(['"`]([^'"`]+)['"`]\)/gs,
-  ]
-  
-  for (const pattern of patterns) {
-    let match
-    while ((match = pattern.exec(codeContent)) !== null) {
-      const key = match[1]
-      if (key && !key.includes('${')) { // Skip template literals with variables
-        keys.add(key)
-      }
+  const pattern = /t\(['"`]([a-zA-Z0-9._-]+)['"`]\)/g
+
+  let match
+  while ((match = pattern.exec(codeContent)) !== null) {
+    const key = match[1]
+
+    // Validation logic to identify real translation keys
+    if (!isTranslationKey(key)) continue
+
+    keys.add(key)
+  }
+
+  return keys
+}
+
+/**
+ * Check if a string is likely a translation key (not a variable name, header, etc.)
+ * Real translation keys typically:
+ * - Contain at least one dot (namespace.key)
+ * - Use lowercase with dots and underscores
+ * - Don't match common variable names, HTTP headers, library names
+ */
+function isTranslationKey(key: string): boolean {
+  // Must contain at least one dot to be a namespace key
+  // or be in a list of known single-word keys
+  const knownSingleWords = new Set([
+    'Export', 'Failed', 'General', 'New', 'Saved', 'Refresh', 'Reply',
+    'USD', 'UTC', 'Export', 'Failed', 'Saved'
+  ])
+
+  // Common variable/parameter names to exclude
+  const excludeList = new Set([
+    'id', 'count', 'date', 'email', 'name', 'status', 'type', 'method',
+    'format', 'action', 'order', 'limit', 'offset', 'page', 'sort',
+    'currency', 'amount', 'category', 'entity', 'content', 'data',
+    'error', 'message', 'value', 'key', 'items', 'total', 'price',
+    'cost', 'fee', 'tax', 'rate', 'duration', 'time', 'start', 'end',
+    'from', 'to', 'filter', 'search', 'query', 'result', 'response',
+    'request', 'authorization', 'cookie', 'header', 'origin', 'host',
+    'en', 'ar', 'hi', 'ab', 'next', 'none', 'all', 'any', 'general',
+    'medium', 'input', 'div', 'folder', 'file', 'events', 'bookings',
+    'ioredis', 'crypto', 'pg', 'known-client'
+  ])
+
+  // HTTP headers and framework-specific terms
+  const headersList = new Set([
+    'content-type', 'if-modified-since', 'if-none-match', 'cf-connecting-ip'
+  ])
+
+  // Skip if it's in excluded list
+  if (excludeList.has(key) || headersList.has(key)) {
+    return false
+  }
+
+  // Must have a dot (namespace) to be a valid translation key, OR be in knownSingleWords
+  if (key.includes('.')) {
+    // Additional check: first part (namespace) should be lowercase or start with lowercase
+    const parts = key.split('.')
+    if (parts[0] && /^[a-z]/.test(parts[0])) {
+      return true
     }
   }
-  
-  return keys
+
+  // Check if it's a known single-word translation
+  if (knownSingleWords.has(key)) {
+    return true
+  }
+
+  return false
 }
 
 /**
@@ -93,48 +147,46 @@ function loadKeysFromFile(filePath: string): Set<string> {
 }
 
 /**
- * Scan codebase for all t() calls
+ * Scan codebase for all t() calls with improved performance
  */
 async function scanCodebase(): Promise<Set<string>> {
-  const patterns = [
-    'src/**/*.{ts,tsx,js,jsx}',
-    'components/**/*.{ts,tsx,js,jsx}',
-    'lib/**/*.{ts,tsx,js,jsx}',
-    'hooks/**/*.{ts,tsx,js,jsx}',
-    'utils/**/*.{ts,tsx,js,jsx}',
-    'services/**/*.{ts,tsx,js,jsx}',
-  ]
-  
   const allKeys = new Set<string>()
-  
-  for (const pattern of patterns) {
-    try {
-      const files = await glob(pattern, {
-        ignore: [
-          'node_modules/**',
-          '.next/**',
-          'dist/**',
-          'build/**',
-          '**/*.test.{ts,tsx}',
-          '**/*.spec.{ts,tsx}',
-          '**/tests/**',
-        ],
-      })
-      
-      for (const file of files) {
-        try {
-          const content = fs.readFileSync(file, 'utf-8')
-          const keys = extractKeysFromCode(content)
-          keys.forEach(k => allKeys.add(k))
-        } catch (err) {
-          // Skip files that can't be read
-        }
+
+  try {
+    // Scan src directory recursively with better performance
+    const files = await glob('src/**/*.{ts,tsx}', {
+      ignore: [
+        'node_modules/**',
+        '.next/**',
+        'dist/**',
+        'build/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        '**/tests/**',
+        '**/.turbo/**',
+      ],
+      maxDepth: 20,
+    })
+
+    console.log(`   Found ${files.length} TypeScript files to scan`)
+
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(file, 'utf-8')
+
+        // Quick check to see if file contains 't(' before full parsing
+        if (!content.includes('t(')) continue
+
+        const keys = extractKeysFromCode(content)
+        keys.forEach(k => allKeys.add(k))
+      } catch (err) {
+        // Skip files that can't be read
       }
-    } catch (err) {
-      console.warn(`Pattern ${pattern} returned no results`)
     }
+  } catch (err) {
+    console.warn(`Failed to scan codebase: ${err instanceof Error ? err.message : String(err)}`)
   }
-  
+
   return allKeys
 }
 
@@ -247,7 +299,7 @@ async function runAudit(): Promise<void> {
   
   // 7. Exit with error if issues found
   if (missingInFiles.length > 0) {
-    console.log(`\n⚠️  Action required: Add ${missingInFiles.length} missing keys to translation files`)
+    console.log(`\n⚠��  Action required: Add ${missingInFiles.length} missing keys to translation files`)
     if (missingInFiles.length <= 10) {
       console.log('   Missing keys:', missingInFiles.join(', '))
     }

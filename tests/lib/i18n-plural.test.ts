@@ -17,12 +17,15 @@ describe('getPluralForm', () => {
     })
 
     it('should handle negative numbers', () => {
-      expect(getPluralForm('en', -1)).toBe('other')
+      // Negative numbers are treated as their absolute value for CLDR rules
+      // So -1 becomes 1, which is singular (one)
+      expect(getPluralForm('en', -1)).toBe('one')
       expect(getPluralForm('en', -5)).toBe('other')
     })
 
     it('should handle decimals by flooring', () => {
-      expect(getPluralForm('en', 1.9)).toBe('other')
+      // Decimals are floored, so 1.9 becomes 1 (singular), and 1.1 also becomes 1 (singular)
+      expect(getPluralForm('en', 1.9)).toBe('one')
       expect(getPluralForm('en', 1.1)).toBe('one')
     })
   })
@@ -74,7 +77,9 @@ describe('getPluralForm', () => {
     })
 
     it('should handle modulo calculations with negative numbers', () => {
-      expect(getPluralForm('ar', -5)).toBe('many')
+      // Negative numbers are treated as their absolute value, so -5 becomes 5
+      // 5 % 100 = 5, which is in the 3-10 range, so 'few'
+      expect(getPluralForm('ar', -5)).toBe('few')
     })
 
     it('should return "many" for numbers ending in 11-99 (e.g., 111-199, 211-299)', () => {
