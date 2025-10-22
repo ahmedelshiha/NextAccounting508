@@ -131,12 +131,21 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Rate limit: 20 writes/minute per IP
+    // Rate limit: 20 writes/minute per IP, also per-user to avoid shared-IP false positives
     try {
       const { applyRateLimit, getClientIp } = await import('@/lib/rate-limit')
       const ip = getClientIp(request as unknown as Request)
-      const rl = await applyRateLimit(`user:preferences:put:${ip}`, 20, 60_000)
-      if (rl && rl.allowed === false) {
+      const userId = ctx?.userId || 'anonymous'
+
+      // Check per-IP rate limit
+      const ipRateLimit = await applyRateLimit(`user:preferences:put:ip:${ip}`, 20, 60_000)
+      if (ipRateLimit && ipRateLimit.allowed === false) {
+        return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+      }
+
+      // Check per-user rate limit (more lenient to avoid blocking legitimate users on shared IPs)
+      const userRateLimit = await applyRateLimit(`user:preferences:put:user:${userId}`, 40, 60_000)
+      if (userRateLimit && userRateLimit.allowed === false) {
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
     } catch {}
