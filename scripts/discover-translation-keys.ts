@@ -99,48 +99,46 @@ function loadKeysFromFile(filePath: string): Set<string> {
 }
 
 /**
- * Scan codebase for all t() calls
+ * Scan codebase for all t() calls with improved performance
  */
 async function scanCodebase(): Promise<Set<string>> {
-  const patterns = [
-    'src/**/*.{ts,tsx,js,jsx}',
-    'components/**/*.{ts,tsx,js,jsx}',
-    'lib/**/*.{ts,tsx,js,jsx}',
-    'hooks/**/*.{ts,tsx,js,jsx}',
-    'utils/**/*.{ts,tsx,js,jsx}',
-    'services/**/*.{ts,tsx,js,jsx}',
-  ]
-  
   const allKeys = new Set<string>()
-  
-  for (const pattern of patterns) {
-    try {
-      const files = await glob(pattern, {
-        ignore: [
-          'node_modules/**',
-          '.next/**',
-          'dist/**',
-          'build/**',
-          '**/*.test.{ts,tsx}',
-          '**/*.spec.{ts,tsx}',
-          '**/tests/**',
-        ],
-      })
-      
-      for (const file of files) {
-        try {
-          const content = fs.readFileSync(file, 'utf-8')
-          const keys = extractKeysFromCode(content)
-          keys.forEach(k => allKeys.add(k))
-        } catch (err) {
-          // Skip files that can't be read
-        }
+
+  try {
+    // Scan src directory recursively with better performance
+    const files = await glob('src/**/*.{ts,tsx}', {
+      ignore: [
+        'node_modules/**',
+        '.next/**',
+        'dist/**',
+        'build/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        '**/tests/**',
+        '**/.turbo/**',
+      ],
+      maxDepth: 20,
+    })
+
+    console.log(`   Found ${files.length} TypeScript files to scan`)
+
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(file, 'utf-8')
+
+        // Quick check to see if file contains 't(' before full parsing
+        if (!content.includes('t(')) continue
+
+        const keys = extractKeysFromCode(content)
+        keys.forEach(k => allKeys.add(k))
+      } catch (err) {
+        // Skip files that can't be read
       }
-    } catch (err) {
-      console.warn(`Pattern ${pattern} returned no results`)
     }
+  } catch (err) {
+    console.warn(`Failed to scan codebase: ${err instanceof Error ? err.message : String(err)}`)
   }
-  
+
   return allKeys
 }
 
