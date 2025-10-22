@@ -637,17 +637,19 @@ export default function LocalizationContent() {
                     </label>
                   </div>
 
-                  <SelectField
-                    label="Missing Translation Behavior"
-                    value={orgSettings.missingTranslationBehavior}
-                    onChange={v => setOrgSettings(s => ({ ...s, missingTranslationBehavior: v as any }))}
-                    options={[
-                      { value: 'show-key', label: 'Show translation key (e.g., hero.headline)' },
-                      { value: 'show-fallback', label: 'Show fallback language translation' },
-                      { value: 'show-empty', label: 'Show empty string' },
-                    ]}
-                    description="What to display when a translation is missing"
-                  />
+                  <div>
+                    <SelectField
+                      label="Missing Translation Behavior"
+                      value={orgSettings.missingTranslationBehavior}
+                      onChange={v => setOrgSettings(s => ({ ...s, missingTranslationBehavior: v as any }))}
+                      options={[
+                        { value: 'show-key', label: 'Show translation key (e.g., hero.headline)' },
+                        { value: 'show-fallback', label: 'Show fallback language translation' },
+                        { value: 'show-empty', label: 'Show empty string' },
+                      ]}
+                    />
+                    <p className="text-xs text-gray-600 mt-1">What to display when a translation is missing</p>
+                  </div>
                 </div>
               </SettingsSection>
 
