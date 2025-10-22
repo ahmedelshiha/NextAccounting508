@@ -75,6 +75,10 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         preferredLanguage: String(data.preferredLanguage || 'en') as 'en' | 'ar' | 'hi',
       }
       await updatePreferences(payload)
+
+      // Update the UI locale immediately to reflect the language change
+      setLocale(payload.preferredLanguage as 'en' | 'ar' | 'hi')
+
       toast.success('Localization settings saved')
       setErrors({})
     } catch (err) {
