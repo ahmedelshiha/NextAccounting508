@@ -23,7 +23,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
   const { setLocale } = useTranslations()
   const [saving, setSaving] = useState(false)
   const [data, setData] = useState<LocalizationData>({
-    timezone: 'UTC',
+    timezone: getDefaultTimezone(),
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
