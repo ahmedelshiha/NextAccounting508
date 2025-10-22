@@ -1,21 +1,25 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SettingsShell, { SettingsSection, SettingsCard } from '@/components/admin/settings/SettingsShell'
 import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
 import Tabs from '@/components/admin/settings/Tabs'
-import { AlertCircle, Globe, Zap, BarChart3, Lightbulb } from 'lucide-react'
+import { AlertCircle, Globe, Zap, BarChart3, Lightbulb, Plus, Trash2, Edit2, Check, X, Eye, EyeOff, Star, Code2 } from 'lucide-react'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
+import { toast } from 'sonner'
 
 const tabs = [
-  { key: 'languages', label: 'Languages' },
+  { key: 'languages', label: 'Languages & Availability' },
+  { key: 'organization', label: 'Organization Settings' },
+  { key: 'user-preferences', label: 'User Language Control' },
+  { key: 'regional', label: 'Regional Formats' },
+  { key: 'integration', label: 'Translation Platforms' },
   { key: 'translations', label: 'Translation Dashboard' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'discovery', label: 'Key Discovery' },
-  { key: 'settings', label: 'Configuration' },
 ]
 
 interface LanguageRow {
@@ -26,25 +30,37 @@ interface LanguageRow {
   flag?: string
   bcp47Locale: string
   enabled: boolean
+  featured?: boolean
+  autoDetect?: boolean
 }
 
-interface TranslationStatus {
-  timestamp: string
-  summary: {
-    totalKeys: number
-    enCoveragePct: string
-    arCoveragePct: string
-    hiCoveragePct: string
-  }
-  coverage: Record<string, { translated: number; total: number; pct: number }>
-  userDistribution: Record<string, number>
+interface OrganizationLocalizationSettings {
+  defaultLanguage: string
+  fallbackLanguage: string
+  showLanguageSwitcher: boolean
+  persistLanguagePreference: boolean
+  autoDetectBrowserLanguage: boolean
+  allowUserLanguageOverride: boolean
+  enableRtlSupport: boolean
+  missingTranslationBehavior: 'show-key' | 'show-fallback' | 'show-empty'
+}
+
+interface RegionalFormat {
+  language: string
+  dateFormat: string
+  timeFormat: string
+  currencyCode: string
+  currencySymbol: string
+  numberFormat: string
+  decimalSeparator: string
+  thousandsSeparator: string
 }
 
 export default function LocalizationContent() {
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('languages')
 
-  // Language management state
+  // Core language management state
   const [languages, setLanguages] = useState<LanguageRow[]>([])
   const [newLang, setNewLang] = useState<LanguageRow>({
     code: '',
@@ -54,19 +70,36 @@ export default function LocalizationContent() {
     flag: '🌐',
     bcp47Locale: '',
     enabled: true,
+    featured: false,
   })
   const [editing, setEditing] = useState<Record<string, Partial<LanguageRow>>>({})
 
+  // Organization settings state
+  const [orgSettings, setOrgSettings] = useState<OrganizationLocalizationSettings>({
+    defaultLanguage: 'en',
+    fallbackLanguage: 'en',
+    showLanguageSwitcher: true,
+    persistLanguagePreference: true,
+    autoDetectBrowserLanguage: true,
+    allowUserLanguageOverride: true,
+    enableRtlSupport: true,
+    missingTranslationBehavior: 'show-fallback',
+  })
+
+  // Regional formats state
+  const [regionalFormats, setRegionalFormats] = useState<Record<string, RegionalFormat>>({})
+
   // Translation dashboard state
-  const [status, setStatus] = useState<TranslationStatus | null>(null)
+  const [status, setStatus] = useState<any>(null)
   const [missingKeys, setMissingKeys] = useState<any[]>([])
   const [recentKeys, setRecentKeys] = useState<any[]>([])
 
-  // General state
+  // UI state
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showAddLanguageForm, setShowAddLanguageForm] = useState(false)
 
   useEffect(() => {
     const t = searchParams.get('tab')
@@ -77,17 +110,23 @@ export default function LocalizationContent() {
     loadAll()
   }, [])
 
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      await Promise.all([loadLanguages(), loadTranslationStatus()])
+      await Promise.all([
+        loadLanguages(),
+        loadOrgSettings(),
+        loadRegionalFormats(),
+        loadTranslationStatus(),
+      ])
     } catch (e) {
       console.error('Failed to load data:', e)
+      setError('Failed to load localization settings')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   async function loadLanguages() {
     try {
@@ -96,32 +135,70 @@ export default function LocalizationContent() {
       if (!r.ok) throw new Error(d?.error || 'Failed to load languages')
       setLanguages(d.data || [])
     } catch (e: any) {
-      setError(e?.message || 'Failed to load languages')
+      console.error('Failed to load languages:', e)
+      throw e
+    }
+  }
+
+  async function loadOrgSettings() {
+    try {
+      const r = await fetch('/api/admin/org-settings/localization', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        setOrgSettings(prev => ({ ...prev, ...d.data }))
+      }
+    } catch (e) {
+      console.error('Failed to load org settings:', e)
+    }
+  }
+
+  async function loadRegionalFormats() {
+    try {
+      const r = await fetch('/api/admin/regional-formats', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        setRegionalFormats(d.data || {})
+      }
+    } catch (e) {
+      console.error('Failed to load regional formats:', e)
     }
   }
 
   async function loadTranslationStatus() {
     try {
       const r = await fetch('/api/admin/translations/status', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        setStatus(d)
+        const rMissing = await fetch('/api/admin/translations/missing?limit=10', { cache: 'no-store' })
+        if (rMissing.ok) setMissingKeys((await rMissing.json()).data || [])
+        const rRecent = await fetch('/api/admin/translations/recent?days=7&limit=10', { cache: 'no-store' })
+        if (rRecent.ok) setRecentKeys((await rRecent.json()).data || [])
+      }
+    } catch (e) {
+      console.error('Failed to load translation status:', e)
+    }
+  }
+
+  async function saveOrgSettings() {
+    setSaving(true)
+    setError(null)
+    try {
+      const r = await fetch('/api/admin/org-settings/localization', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orgSettings),
+      })
       const d = await r.json()
-      if (!r.ok) throw new Error(d?.error || 'Failed to load translation status')
-      setStatus(d)
-
-      // Load missing keys
-      const rMissing = await fetch('/api/admin/translations/missing?limit=10', { cache: 'no-store' })
-      if (rMissing.ok) {
-        const dMissing = await rMissing.json()
-        setMissingKeys(dMissing.data || [])
-      }
-
-      // Load recent keys
-      const rRecent = await fetch('/api/admin/translations/recent?days=7&limit=10', { cache: 'no-store' })
-      if (rRecent.ok) {
-        const dRecent = await rRecent.json()
-        setRecentKeys(dRecent.data || [])
-      }
+      if (!r.ok) throw new Error(d?.error || 'Failed to save organization settings')
+      toast.success('Organization settings saved')
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
     } catch (e: any) {
-      console.error('Failed to load translation data:', e)
+      setError(e?.message || 'Failed to save organization settings')
+      toast.error(e?.message || 'Failed to save settings')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -145,12 +222,14 @@ export default function LocalizationContent() {
         flag: '🌐',
         bcp47Locale: '',
         enabled: true,
+        featured: false,
       })
+      setShowAddLanguageForm(false)
       await loadLanguages()
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      toast.success('Language added successfully')
     } catch (e: any) {
       setError(e?.message || 'Failed to create language')
+      toast.error(e?.message || 'Failed to create language')
     } finally {
       setSaving(false)
     }
@@ -175,10 +254,10 @@ export default function LocalizationContent() {
         return next
       })
       await loadLanguages()
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      toast.success('Language updated')
     } catch (e: any) {
       setError(e?.message || 'Failed to update language')
+      toast.error(e?.message || 'Failed to update language')
     } finally {
       setSaving(false)
     }
@@ -194,8 +273,10 @@ export default function LocalizationContent() {
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to toggle language')
       await loadLanguages()
+      toast.success('Language status updated')
     } catch (e: any) {
-      setError(e?.message || 'Failed to toggle language')
+      setError(e?.message)
+      toast.error(e?.message)
     } finally {
       setSaving(false)
     }
@@ -209,68 +290,114 @@ export default function LocalizationContent() {
       const r = await fetch(`/api/admin/languages/${encodeURIComponent(code)}`, {
         method: 'DELETE',
       })
-      const d = await r.json().catch(() => ({}))
-      if (!r.ok) throw new Error((d as any)?.error || 'Failed to delete language')
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}))
+        throw new Error((d as any)?.error || 'Failed to delete language')
+      }
       await loadLanguages()
+      toast.success('Language deleted')
     } catch (e: any) {
-      setError(e?.message || 'Failed to delete language')
+      setError(e?.message)
+      toast.error(e?.message)
     } finally {
       setSaving(false)
     }
   }
 
   const body = useMemo(() => {
-    if (loading) return <div className="text-gray-600">Loading...</div>
+    if (loading) return <div className="text-gray-600 py-8 text-center">Loading...</div>
 
     return (
       <div className="space-y-6">
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
-        {/* Languages Tab */}
+        {/* ============ LANGUAGES & AVAILABILITY TAB ============ */}
         {activeTab === 'languages' && (
           <>
             <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
-              <div className="rounded-lg border bg-white p-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-4">Add New Language</h3>
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-                  <TextField
-                    label="Code"
-                    value={newLang.code}
-                    onChange={v => setNewLang(s => ({ ...s, code: v }))}
-                    placeholder="e.g. fr"
-                  />
-                  <TextField
-                    label="Name"
-                    value={newLang.name}
-                    onChange={v => setNewLang(s => ({ ...s, name: v }))}
-                    placeholder="French"
-                  />
-                  <TextField
-                    label="Native Name"
-                    value={newLang.nativeName}
-                    onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
-                    placeholder="Français"
-                  />
-                  <SelectField
-                    label="Direction"
-                    value={newLang.direction}
-                    onChange={v => setNewLang(s => ({ ...s, direction: v as 'ltr' | 'rtl' }))}
-                    options={[
-                      { value: 'ltr', label: 'LTR' },
-                      { value: 'rtl', label: 'RTL' },
-                    ]}
-                  />
-                  <TextField
-                    label="BCP47"
-                    value={newLang.bcp47Locale}
-                    onChange={v => setNewLang(s => ({ ...s, bcp47Locale: v }))}
-                    placeholder="fr-FR"
-                  />
-                  <div className="flex items-end">
+              {!showAddLanguageForm ? (
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowAddLanguageForm(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Language
+                  </button>
+                </div>
+              ) : (
+                <div className="rounded-lg border bg-white p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Language</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <TextField
+                      label="Language Code"
+                      value={newLang.code}
+                      onChange={v => setNewLang(s => ({ ...s, code: v }))}
+                      placeholder="e.g. fr"
+                      description="2-3 letter language code (lowercase)"
+                    />
+                    <TextField
+                      label="English Name"
+                      value={newLang.name}
+                      onChange={v => setNewLang(s => ({ ...s, name: v }))}
+                      placeholder="e.g. French"
+                      description="How this language appears in English"
+                    />
+                    <TextField
+                      label="Native Name"
+                      value={newLang.nativeName}
+                      onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
+                      placeholder="e.g. Français"
+                      description="Language name in its native script"
+                    />
+                    <TextField
+                      label="BCP47 Locale"
+                      value={newLang.bcp47Locale}
+                      onChange={v => setNewLang(s => ({ ...s, bcp47Locale: v }))}
+                      placeholder="e.g. fr-FR"
+                      description="For date/number formatting"
+                    />
+                    <SelectField
+                      label="Text Direction"
+                      value={newLang.direction}
+                      onChange={v => setNewLang(s => ({ ...s, direction: v as 'ltr' | 'rtl' }))}
+                      options={[
+                        { value: 'ltr', label: 'Left-to-Right' },
+                        { value: 'rtl', label: 'Right-to-Left' },
+                      ]}
+                    />
+                    <TextField
+                      label="Flag Emoji"
+                      value={newLang.flag || ''}
+                      onChange={v => setNewLang(s => ({ ...s, flag: v }))}
+                      placeholder="e.g. 🇫🇷"
+                      maxLength={10}
+                    />
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={() => {
+                        setShowAddLanguageForm(false)
+                        setNewLang({
+                          code: '',
+                          name: '',
+                          nativeName: '',
+                          direction: 'ltr',
+                          flag: '🌐',
+                          bcp47Locale: '',
+                          enabled: true,
+                          featured: false,
+                        })
+                      }}
+                      className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
                     <button
                       onClick={createLanguage}
                       disabled={
@@ -280,183 +407,428 @@ export default function LocalizationContent() {
                         !newLang.nativeName ||
                         !newLang.bcp47Locale
                       }
-                      className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 whitespace-nowrap"
+                      className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
                     >
                       {saving ? 'Adding...' : 'Add Language'}
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
             </PermissionGate>
 
             <div className="rounded-lg border bg-white overflow-hidden">
-              <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b bg-gray-50 text-xs font-semibold text-gray-600">
-                <div className="col-span-2">Code</div>
-                <div className="col-span-2">Name</div>
-                <div className="col-span-2">Native</div>
-                <div className="col-span-2">BCP47</div>
-                <div className="col-span-1">Dir</div>
-                <div className="col-span-1">Enabled</div>
-                <div className="col-span-2 text-right">Actions</div>
-              </div>
-              <div>
-                {languages.map(l => {
-                  const edit = editing[l.code] || {}
-                  const isEditing = !!editing[l.code]
-                  return (
-                    <div key={l.code} className="grid grid-cols-12 gap-2 px-4 py-2 border-b items-center last:border-b-0 hover:bg-gray-50">
-                      <div className="col-span-2 text-sm font-mono">{l.code}</div>
-                      <div className="col-span-2">
-                        {isEditing ? (
-                          <TextField
-                            label=""
-                            labelHidden
-                            value={edit.name ?? l.name}
-                            onChange={v => setEditing(p => ({ ...p, [l.code]: { ...edit, name: v } }))}
-                          />
-                        ) : (
-                          <div className="text-sm">{l.name}</div>
-                        )}
-                      </div>
-                      <div className="col-span-2">
-                        {isEditing ? (
-                          <TextField
-                            label=""
-                            labelHidden
-                            value={edit.nativeName ?? l.nativeName}
-                            onChange={v => setEditing(p => ({ ...p, [l.code]: { ...edit, nativeName: v } }))}
-                          />
-                        ) : (
-                          <div className="text-sm">{l.nativeName}</div>
-                        )}
-                      </div>
-                      <div className="col-span-2">
-                        {isEditing ? (
-                          <TextField
-                            label=""
-                            labelHidden
-                            value={edit.bcp47Locale ?? l.bcp47Locale}
-                            onChange={v => setEditing(p => ({ ...p, [l.code]: { ...edit, bcp47Locale: v } }))}
-                          />
-                        ) : (
-                          <div className="text-sm">{l.bcp47Locale}</div>
-                        )}
-                      </div>
-                      <div className="col-span-1">
-                        {isEditing ? (
-                          <SelectField
-                            label=""
-                            labelHidden
-                            value={edit.direction ?? l.direction}
-                            onChange={v =>
-                              setEditing(p => ({
-                                ...p,
-                                [l.code]: { ...edit, direction: v as 'ltr' | 'rtl' },
-                              }))
-                            }
-                            options={[
-                              { value: 'ltr', label: 'LTR' },
-                              { value: 'rtl', label: 'RTL' },
-                            ]}
-                          />
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                            {l.direction.toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="col-span-1">
-                        <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
-                          <Toggle label="" value={l.enabled} onChange={() => toggle(l.code)} />
-                        </PermissionGate>
-                        <PermissionGate
-                          permission={PERMISSIONS.LANGUAGES_MANAGE}
-                          fallback={
-                            <span
-                              className={`text-xs ${l.enabled ? 'text-green-600' : 'text-gray-500'}`}
-                            >
-                              {l.enabled ? 'Enabled' : 'Disabled'}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-gray-50">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Language</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Code</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Direction</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Enabled</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Featured</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {languages.map(lang => {
+                      const edit = editing[lang.code] || {}
+                      const isEditing = !!editing[lang.code]
+                      return (
+                        <tr key={lang.code} className="border-b last:border-b-0 hover:bg-gray-50">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{lang.flag || '🌐'}</span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{lang.name}</div>
+                                <div className="text-xs text-gray-600">{lang.nativeName}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <code className="text-sm font-mono text-gray-600">{lang.code}</code>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                              {lang.direction.toUpperCase()}
                             </span>
-                          }
-                        >
-                          <span />
-                        </PermissionGate>
-                      </div>
-                      <div className="col-span-2 text-right space-x-2">
-                        <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
-                          {!isEditing ? (
-                            <button
-                              onClick={() => setEditing(p => ({ ...p, [l.code]: {} }))}
-                              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 inline-block"
+                          </td>
+                          <td className="px-4 py-3">
+                            <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
+                              <Toggle
+                                label=""
+                                value={lang.enabled}
+                                onChange={() => toggle(lang.code)}
+                              />
+                            </PermissionGate>
+                            <PermissionGate
+                              permission={PERMISSIONS.LANGUAGES_MANAGE}
+                              fallback={
+                                <span className={`text-xs ${lang.enabled ? 'text-green-600' : 'text-gray-500'}`}>
+                                  {lang.enabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                              }
                             >
-                              Edit
-                            </button>
-                          ) : (
-                            <>
+                              <span />
+                            </PermissionGate>
+                          </td>
+                          <td className="px-4 py-3">
+                            {lang.featured ? (
+                              <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                            ) : (
+                              <Star className="h-4 w-4 text-gray-300" />
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
                               <button
-                                onClick={() => saveEdit(l.code)}
-                                disabled={saving}
-                                className="px-3 py-1.5 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 inline-block"
+                                onClick={() => remove(lang.code)}
+                                disabled={saving || lang.code === 'en'}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
                               >
-                                Save
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
                               </button>
-                              <button
-                                onClick={() =>
-                                  setEditing(p => {
-                                    const n = { ...p }
-                                    delete n[l.code]
-                                    return n
-                                  })
-                                }
-                                className="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 inline-block"
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={() => remove(l.code)}
-                            disabled={saving || l.code === 'en'}
-                            className="px-3 py-1.5 border border-red-300 rounded-md text-sm text-red-700 bg-white hover:bg-red-50 disabled:opacity-50 inline-block"
-                          >
-                            Delete
-                          </button>
-                        </PermissionGate>
-                      </div>
-                    </div>
-                  )
-                })}
+                            </PermissionGate>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
+
+            <SettingsCard className="bg-blue-50 border-blue-200">
+              <div className="flex gap-3">
+                <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-blue-900">Language Management Tips</p>
+                  <ul className="text-sm text-blue-800 list-disc list-inside space-y-1">
+                    <li>English (en) cannot be deleted as it's the fallback language</li>
+                    <li>Use 2-letter ISO 639-1 codes (en, fr, ar) or 3-letter codes (zho, jpn)</li>
+                    <li>BCP47 locale is used for date/number formatting - include region code (e.g., en-US, en-GB)</li>
+                    <li>Mark languages as "Featured" to highlight them in the language switcher</li>
+                    <li>Enable/disable languages to control availability without deletion</li>
+                  </ul>
+                </div>
+              </div>
+            </SettingsCard>
           </>
         )}
 
-        {/* Translation Dashboard Tab */}
+        {/* ============ ORGANIZATION SETTINGS TAB ============ */}
+        {activeTab === 'organization' && (
+          <>
+            <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
+              <SettingsSection title="Default Language Settings" description="Configure organization-wide language defaults">
+                <div className="space-y-4">
+                  <SelectField
+                    label="Default Language"
+                    value={orgSettings.defaultLanguage}
+                    onChange={v => setOrgSettings(s => ({ ...s, defaultLanguage: v }))}
+                    options={languages.filter(l => l.enabled).map(l => ({
+                      value: l.code,
+                      label: `${l.name} (${l.nativeName})`,
+                    }))}
+                    description="Language shown to new users and guests"
+                  />
+                  <SelectField
+                    label="Fallback Language"
+                    value={orgSettings.fallbackLanguage}
+                    onChange={v => setOrgSettings(s => ({ ...s, fallbackLanguage: v }))}
+                    options={languages.filter(l => l.enabled).map(l => ({
+                      value: l.code,
+                      label: `${l.name} (${l.nativeName})`,
+                    }))}
+                    description="Language used when translation is missing"
+                  />
+                </div>
+              </SettingsSection>
+
+              <SettingsSection title="User Language Control" description="Control how users interact with language settings">
+                <div className="space-y-4">
+                  <div className="rounded-lg border bg-white p-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">Show Language Switcher</p>
+                        <p className="text-sm text-gray-600">Display language selector in UI</p>
+                      </div>
+                      <Toggle
+                        label=""
+                        value={orgSettings.showLanguageSwitcher}
+                        onChange={v => setOrgSettings(s => ({ ...s, showLanguageSwitcher: v }))}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="rounded-lg border bg-white p-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">Persist Language Preference</p>
+                        <p className="text-sm text-gray-600">Save user's language choice to database</p>
+                      </div>
+                      <Toggle
+                        label=""
+                        value={orgSettings.persistLanguagePreference}
+                        onChange={v => setOrgSettings(s => ({ ...s, persistLanguagePreference: v }))}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="rounded-lg border bg-white p-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">Auto-Detect Browser Language</p>
+                        <p className="text-sm text-gray-600">Use browser language on first visit</p>
+                      </div>
+                      <Toggle
+                        label=""
+                        value={orgSettings.autoDetectBrowserLanguage}
+                        onChange={v => setOrgSettings(s => ({ ...s, autoDetectBrowserLanguage: v }))}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="rounded-lg border bg-white p-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">Allow Users to Override</p>
+                        <p className="text-sm text-gray-600">Let users change their language preference</p>
+                      </div>
+                      <Toggle
+                        label=""
+                        value={orgSettings.allowUserLanguageOverride}
+                        onChange={v => setOrgSettings(s => ({ ...s, allowUserLanguageOverride: v }))}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </SettingsSection>
+
+              <SettingsSection title="Internationalization" description="Advanced i18n settings">
+                <div className="space-y-4">
+                  <div className="rounded-lg border bg-white p-4">
+                    <label className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-gray-900">Enable RTL Support</p>
+                        <p className="text-sm text-gray-600">Automatically apply RTL styles for Arabic and Hebrew</p>
+                      </div>
+                      <Toggle
+                        label=""
+                        value={orgSettings.enableRtlSupport}
+                        onChange={v => setOrgSettings(s => ({ ...s, enableRtlSupport: v }))}
+                      />
+                    </label>
+                  </div>
+
+                  <SelectField
+                    label="Missing Translation Behavior"
+                    value={orgSettings.missingTranslationBehavior}
+                    onChange={v => setOrgSettings(s => ({ ...s, missingTranslationBehavior: v as any }))}
+                    options={[
+                      { value: 'show-key', label: 'Show translation key (e.g., hero.headline)' },
+                      { value: 'show-fallback', label: 'Show fallback language translation' },
+                      { value: 'show-empty', label: 'Show empty string' },
+                    ]}
+                    description="What to display when a translation is missing"
+                  />
+                </div>
+              </SettingsSection>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={saveOrgSettings}
+                  disabled={saving}
+                  className="px-6 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {saving ? 'Saving...' : 'Save Settings'}
+                </button>
+              </div>
+            </PermissionGate>
+          </>
+        )}
+
+        {/* ============ USER PREFERENCES TAB ============ */}
+        {activeTab === 'user-preferences' && (
+          <>
+            <SettingsSection title="User Language Preferences" description="Manage and monitor user language selections">
+              <div className="rounded-lg border bg-white p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Total Users</p>
+                    <p className="text-3xl font-bold text-gray-900">–</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Languages in Use</p>
+                    <p className="text-3xl font-bold text-gray-900">{languages.filter(l => l.enabled).length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border bg-white overflow-hidden">
+                <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b bg-gray-50 text-xs font-semibold text-gray-600">
+                  <div className="col-span-5">Language</div>
+                  <div className="col-span-4">Users</div>
+                  <div className="col-span-3 text-right">Percentage</div>
+                </div>
+                <div>
+                  {languages.map(lang => (
+                    <div key={lang.code} className="grid grid-cols-12 gap-2 px-4 py-3 border-b last:border-b-0 items-center hover:bg-gray-50">
+                      <div className="col-span-5">
+                        <div className="flex items-center gap-2">
+                          <span>{lang.flag || '🌐'}</span>
+                          <span className="text-sm font-medium">{lang.name}</span>
+                        </div>
+                      </div>
+                      <div className="col-span-4">
+                        <span className="text-sm text-gray-600">–</span>
+                      </div>
+                      <div className="col-span-3 text-right">
+                        <span className="text-sm text-gray-600">–</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </SettingsSection>
+          </>
+        )}
+
+        {/* ============ REGIONAL FORMATS TAB ============ */}
+        {activeTab === 'regional' && (
+          <>
+            <SettingsSection title="Regional Format Settings" description="Configure date, time, and number formats per language">
+              <div className="space-y-4">
+                {languages.filter(l => l.enabled).map(lang => (
+                  <div key={lang.code} className="rounded-lg border bg-white p-4">
+                    <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <span>{lang.flag || '🌐'}</span>
+                      {lang.name}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <TextField
+                        label="Date Format"
+                        value={regionalFormats[lang.code]?.dateFormat || 'MM/DD/YYYY'}
+                        onChange={v => {
+                          setRegionalFormats(p => ({
+                            ...p,
+                            [lang.code]: { ...p[lang.code], dateFormat: v },
+                          }))
+                        }}
+                        placeholder="MM/DD/YYYY"
+                        description="e.g., DD/MM/YYYY, YYYY-MM-DD"
+                      />
+                      <TextField
+                        label="Time Format"
+                        value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
+                        onChange={v => {
+                          setRegionalFormats(p => ({
+                            ...p,
+                            [lang.code]: { ...p[lang.code], timeFormat: v },
+                          }))
+                        }}
+                        placeholder="HH:MM AM"
+                      />
+                      <TextField
+                        label="Currency Code"
+                        value={regionalFormats[lang.code]?.currencyCode || 'USD'}
+                        onChange={v => {
+                          setRegionalFormats(p => ({
+                            ...p,
+                            [lang.code]: { ...p[lang.code], currencyCode: v },
+                          }))
+                        }}
+                        placeholder="USD"
+                        maxLength={3}
+                        description="ISO 4217 code"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SettingsSection>
+          </>
+        )}
+
+        {/* ============ INTEGRATION TAB ============ */}
+        {activeTab === 'integration' && (
+          <>
+            <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
+              <SettingsSection title="Translation Platform Integration" description="Connect to translation services">
+                <div className="rounded-lg border bg-white p-4">
+                  <h4 className="font-semibold text-gray-900 mb-4">Crowdin Integration</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField
+                      label="Project ID"
+                      type="password"
+                      placeholder="Your Crowdin project ID"
+                      description="Found in Crowdin project settings"
+                    />
+                    <TextField
+                      label="API Token"
+                      type="password"
+                      placeholder="Your Crowdin API token"
+                      description="Generate from Crowdin account settings"
+                    />
+                  </div>
+                  <div className="mt-4 flex gap-3">
+                    <button className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+                      Test Connection
+                    </button>
+                    <button className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
+                      Save Integration
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-blue-50 border-blue-200 p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">Sync Options</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3">
+                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <span className="text-sm text-blue-800">Auto-sync translations daily</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                      <span className="text-sm text-blue-800">Sync on code deployment</span>
+                    </label>
+                    <label className="flex items-center gap-3">
+                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <span className="text-sm text-blue-800">Create PRs for translations</span>
+                    </label>
+                  </div>
+                </div>
+              </SettingsSection>
+            </PermissionGate>
+          </>
+        )}
+
+        {/* ============ TRANSLATIONS TAB ============ */}
         {activeTab === 'translations' && status && (
           <>
             <SettingsSection title="Translation Coverage" description="Current translation status by language">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <SettingsCard>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Total Keys</p>
-                    <p className="text-3xl font-bold">{status.summary.totalKeys}</p>
+                    <p className="text-sm font-medium text-gray-600">Total Keys</p>
+                    <p className="text-3xl font-bold text-gray-900">{status.summary.totalKeys}</p>
                   </div>
                 </SettingsCard>
                 <SettingsCard>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">English</p>
-                    <p className="text-3xl font-bold">{status.summary.enCoveragePct}</p>
+                    <p className="text-sm font-medium text-gray-600">English</p>
+                    <p className="text-3xl font-bold text-green-600">{status.summary.enCoveragePct}</p>
                   </div>
                 </SettingsCard>
                 <SettingsCard>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">العربية</p>
+                    <p className="text-sm font-medium text-gray-600">العربية</p>
                     <p className="text-3xl font-bold">{status.summary.arCoveragePct}</p>
                   </div>
                 </SettingsCard>
                 <SettingsCard>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">हिन्दी</p>
+                    <p className="text-sm font-medium text-gray-600">हिन्दी</p>
                     <p className="text-3xl font-bold">{status.summary.hiCoveragePct}</p>
                   </div>
                 </SettingsCard>
@@ -464,172 +836,97 @@ export default function LocalizationContent() {
             </SettingsSection>
 
             {missingKeys.length > 0 && (
-              <SettingsSection title="Missing Translations" description="Keys that need translation">
+              <SettingsSection title="Missing Translations" description={`${missingKeys.length} keys need attention`}>
                 <div className="rounded-lg border bg-white overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-gray-50">
-                          <th className="px-4 py-3 text-left font-medium text-gray-600">Key</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-600">English</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-600">Arabic</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-600">Hindi</th>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="px-4 py-3 text-left font-medium text-gray-600">Key</th>
+                        <th className="px-4 py-3 text-center font-medium text-gray-600">EN</th>
+                        <th className="px-4 py-3 text-center font-medium text-gray-600">AR</th>
+                        <th className="px-4 py-3 text-center font-medium text-gray-600">HI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {missingKeys.slice(0, 10).map((key, idx) => (
+                        <tr key={idx} className="border-b last:border-b-0 hover:bg-gray-50">
+                          <td className="px-4 py-3 font-mono text-xs text-gray-700">{key.key}</td>
+                          <td className="px-4 py-3 text-center">
+                            <Check className="h-4 w-4 text-green-600 mx-auto" />
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {key.arTranslated ? (
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-600 mx-auto" />
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {key.hiTranslated ? (
+                              <Check className="h-4 w-4 text-green-600 mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-600 mx-auto" />
+                            )}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {missingKeys.map((key, idx) => (
-                          <tr key={idx} className="border-b last:border-b-0 hover:bg-gray-50">
-                            <td className="px-4 py-3 font-mono text-xs">{key.key}</td>
-                            <td className="px-4 py-3">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                ✓
-                              </span>
-                            </td>
-                            <td className="px-4 py-3">
-                              {key.arTranslated ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                  ✓
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                                  Missing
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {key.hiTranslated ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                  ✓
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                                  Missing
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </SettingsSection>
-            )}
-
-            {recentKeys.length > 0 && (
-              <SettingsSection title="Recently Added Keys" description="Keys added in the last 7 days">
-                <div className="rounded-lg border bg-white p-4">
-                  <ul className="space-y-2">
-                    {recentKeys.map((key, idx) => (
-                      <li key={idx} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                        <span className="font-mono text-sm">{key.key}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(key.addedAt).toLocaleDateString()}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </SettingsSection>
             )}
           </>
         )}
 
-        {/* Analytics Tab */}
+        {/* ============ ANALYTICS TAB ============ */}
         {activeTab === 'analytics' && (
-          <SettingsSection title="Translation Analytics" description="View trends and metrics">
-            <div className="rounded-lg border bg-white p-6 text-center text-gray-600">
-              <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-              <p>Translation analytics chart will be displayed here</p>
-              <p className="text-sm text-gray-500 mt-2">Historical trends and coverage metrics over time</p>
+          <SettingsSection title="Translation Analytics" description="Coming soon">
+            <div className="rounded-lg border bg-white p-12 text-center">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p className="text-gray-600">Analytics dashboard will be available soon</p>
+              <p className="text-sm text-gray-500 mt-2">Track translation progress and coverage trends</p>
             </div>
           </SettingsSection>
         )}
 
-        {/* Key Discovery Tab */}
+        {/* ============ DISCOVERY TAB ============ */}
         {activeTab === 'discovery' && (
-          <SettingsSection title="Translation Key Discovery" description="Scan code for translation keys">
-            <div className="space-y-4">
-              <div className="rounded-lg border bg-blue-50 p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Run Key Discovery Audit</h4>
-                <p className="text-sm text-blue-800 mb-4">
-                  Scan your codebase for all <code className="bg-blue-100 px-1 rounded">t(&apos;key&apos;)</code> calls and identify:
-                </p>
-                <ul className="list-disc list-inside text-sm text-blue-800 space-y-1 ml-2">
-                  <li>Keys in code but missing from translation files</li>
-                  <li>Orphaned keys in translation files not used in code</li>
-                  <li>Missing translations for Arabic and Hindi</li>
-                </ul>
-                <div className="mt-4">
-                  <button className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
-                    Run Discovery Audit
-                  </button>
-                </div>
-              </div>
-
-              <div className="rounded-lg border bg-white p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Manual Command</h4>
-                <p className="text-sm text-gray-600 mb-2">Run this command in your terminal:</p>
-                <code className="block bg-gray-100 px-3 py-2 rounded text-xs font-mono text-gray-800">
-                  npm run discover:keys
-                </code>
-              </div>
-            </div>
-          </SettingsSection>
-        )}
-
-        {/* Configuration Tab */}
-        {activeTab === 'settings' && (
           <>
-            <SettingsSection title="Localization Settings" description="Configure localization behavior">
+            <SettingsSection title="Translation Key Discovery" description="Scan your codebase for all translation keys">
               <div className="space-y-4">
-                <div className="rounded-lg border bg-white p-4">
-                  <label className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">Enable RTL Support</p>
-                      <p className="text-sm text-gray-500">Automatically apply RTL styles for Arabic</p>
+                <div className="rounded-lg border bg-blue-50 border-blue-200 p-6">
+                  <div className="flex gap-4">
+                    <Code2 className="h-6 w-6 text-blue-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-blue-900 mb-2">Automated Key Discovery</h4>
+                      <p className="text-sm text-blue-800 mb-4">
+                        Scan your codebase for all <code className="bg-blue-100 px-2 py-1 rounded">t('key')</code> calls to identify:
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-blue-800 space-y-1 mb-4">
+                        <li>Keys in code but missing from translation files</li>
+                        <li>Orphaned keys in JSON files not used in code</li>
+                        <li>Missing translations for Arabic and Hindi</li>
+                        <li>Unused or deprecated translation keys</li>
+                      </ul>
+                      <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
+                        <button className="px-6 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium">
+                          Run Discovery Audit
+                        </button>
+                      </PermissionGate>
                     </div>
-                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-                  </label>
+                  </div>
                 </div>
 
-                <div className="rounded-lg border bg-white p-4">
-                  <label className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">Persist Language Choice</p>
-                      <p className="text-sm text-gray-500">Save user&apos;s language preference to localStorage</p>
-                    </div>
-                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-                  </label>
-                </div>
-
-                <div className="rounded-lg border bg-white p-4">
-                  <label className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">Auto-Detect Browser Language</p>
-                      <p className="text-sm text-gray-500">Use browser language on first visit</p>
-                    </div>
-                    <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-                  </label>
-                </div>
+                <SettingsCard className="border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-2">Manual Audit</h4>
+                  <p className="text-sm text-gray-600 mb-3">Run this command in your terminal:</p>
+                  <code className="block bg-gray-900 text-gray-100 px-4 py-3 rounded font-mono text-sm overflow-x-auto">
+                    npm run discover:keys
+                  </code>
+                  <p className="text-xs text-gray-600 mt-3">Output: <code className="text-gray-700 bg-gray-100 px-2 py-1 rounded">translation-key-audit.json</code></p>
+                </SettingsCard>
               </div>
             </SettingsSection>
-
-            <SettingsCard className="bg-amber-50 border-amber-200">
-              <div className="flex gap-3">
-                <Lightbulb className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-amber-900">Translation Best Practices</p>
-                  <ul className="text-sm text-amber-800 list-disc list-inside space-y-1">
-                    <li>Keep translation keys short and descriptive</li>
-                    <li>Use namespacing (e.g., <code className="bg-amber-100 px-1 rounded">nav.home</code>) for organization</li>
-                    <li>Test RTL layouts thoroughly for Arabic translations</li>
-                    <li>Review gender-aware translations for languages that require them</li>
-                    <li>Run key discovery regularly to find missing translations</li>
-                  </ul>
-                </div>
-              </div>
-            </SettingsCard>
           </>
         )}
       </div>
@@ -645,36 +942,25 @@ export default function LocalizationContent() {
     recentKeys,
     saving,
     error,
+    orgSettings,
+    regionalFormats,
+    showAddLanguageForm,
   ])
 
   return (
     <SettingsShell
-      title="Localization & Languages"
-      description="Manage languages, translations, and localization settings for your organization"
+      title="Localization & Language Control"
+      description="Manage languages, translations, regional settings, and user language preferences"
       icon={Globe}
       showBackButton={true}
       saving={saving}
       saved={saved}
       actions={
-        <div className="flex items-center gap-2">
-          <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
-            {activeTab === 'discovery' && (
-              <button
-                onClick={() => {
-                  /* Handle discovery */
-                }}
-                className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Run Audit
-              </button>
-            )}
-          </PermissionGate>
-          <FavoriteToggle
-            settingKey="localization"
-            route="/admin/settings/localization"
-            label="Localization"
-          />
-        </div>
+        <FavoriteToggle
+          settingKey="localization"
+          route="/admin/settings/localization"
+          label="Localization Settings"
+        />
       }
       tabs={tabs}
       activeTab={activeTab}
