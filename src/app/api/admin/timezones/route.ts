@@ -1,16 +1,28 @@
 import { NextResponse } from 'next/server'
-import { withTenantContext } from '@/lib/api-wrapper'
-import { requireTenantContext } from '@/lib/tenant-utils'
-import { PERMISSIONS, hasPermission } from '@/lib/permissions'
 import { getTimezonesWithOffsets } from '@/lib/timezone-helper'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export const GET = withTenantContext(async (_req: Request) => {
-  const ctx = requireTenantContext()
-  if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.ORG_SETTINGS_VIEW)) {
-    return NextResponse.json({ ok:false, error:'Forbidden' }, { status: 403 })
+/**
+ * GET /api/admin/timezones
+ * Returns all available timezones with UTC offsets and abbreviations
+ * Used by LocalizationTab timezone selector
+ */
+export const GET = withTenantContext(async () => {
+  try {
+    const timezones = getTimezonesWithOffsets()
+    return NextResponse.json({
+      data: timezones,
+      count: timezones.length
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=86400, immutable'
+      }
+    })
+  } catch (error) {
+    console.error('Failed to fetch timezones:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch timezones' },
+      { status: 500 }
+    )
   }
-  const data = getTimezonesWithOffsets(new Date())
-  const res = NextResponse.json({ ok:true, data })
-  try { res.headers.set('Cache-Control', 'public, max-age=86400, immutable') } catch {}
-  return res
 })
