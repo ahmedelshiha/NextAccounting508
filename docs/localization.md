@@ -22,6 +22,10 @@
 | **TranslationProvider** | ✅ Complete | 1 file | - | Gender support, initialTranslations |
 | **LocalizationTab (UI)** | ✅ Complete | 1 file | - | Timezone/language selection |
 | **Timezone Utilities** | ✅ Complete | 1 file | - | Offset calculation, 400+ zones |
+| **Translation Key Discovery** | 🔄 In Progress | 1 file | - | AST scanner + key extractor |
+| **Translation Dashboard** | 🔄 In Progress | 2 files | - | Admin UI + API endpoints |
+| **Translation Analytics** | 🔄 In Progress | 3 files | - | Metrics collection + cron |
+| **Crowdin Integration** | ⏳ Pending | - | - | Optional platform sync |
 
 ### ✅ All Tasks Completed
 
@@ -1591,7 +1595,7 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 Q4 2025 (Weeks 1-4)
 ├── Phase 1→2 Transition
 │   ├── 14.1.1 Data-Driven Language Config (Week 1-2)
-│   ├��─ 14.1.2 Admin Language Management UI (Week 2-3)
+│   ├── 14.1.2 Admin Language Management UI (Week 2-3)
 │   └── 14.1.3 Enhanced Timezone Selector (Week 3-4)
 │
 Q1 2026 (Weeks 5-12)
@@ -1657,7 +1661,7 @@ Q2 2026 (Weeks 13-20)
   - Manual: verified offsets/labels for New York, London, Berlin, Dubai, Kolkata, Tokyo; ensured fallback works offline
   - Next steps: optional fuzzy search and regional grouping (nice-to-have)
 
-### ✅ 2025-01-15 — COMPREHENSIVE IMPLEMENTATION COMPLETION — All Tasks Done
+### ✅ 2025-01-15 — COMPREHENSIVE IMPLEMENTATION COMPLETION ��� All Tasks Done
 - Summary: Verified all localization implementations and created missing API endpoints and comprehensive test suite. System is production-ready.
 - Implementation Status Verified:
   - ✅ Core i18n system with pluralization and gender-aware translations
