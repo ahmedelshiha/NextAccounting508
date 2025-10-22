@@ -534,26 +534,30 @@ export default function LocalizationContent() {
             <PermissionGate permission={PERMISSIONS.LANGUAGES_MANAGE}>
               <SettingsSection title="Default Language Settings" description="Configure organization-wide language defaults">
                 <div className="space-y-4">
-                  <SelectField
-                    label="Default Language"
-                    value={orgSettings.defaultLanguage}
-                    onChange={v => setOrgSettings(s => ({ ...s, defaultLanguage: v }))}
-                    options={languages.filter(l => l.enabled).map(l => ({
-                      value: l.code,
-                      label: `${l.name} (${l.nativeName})`,
-                    }))}
-                    description="Language shown to new users and guests"
-                  />
-                  <SelectField
-                    label="Fallback Language"
-                    value={orgSettings.fallbackLanguage}
-                    onChange={v => setOrgSettings(s => ({ ...s, fallbackLanguage: v }))}
-                    options={languages.filter(l => l.enabled).map(l => ({
-                      value: l.code,
-                      label: `${l.name} (${l.nativeName})`,
-                    }))}
-                    description="Language used when translation is missing"
-                  />
+                  <div>
+                    <SelectField
+                      label="Default Language"
+                      value={orgSettings.defaultLanguage}
+                      onChange={v => setOrgSettings(s => ({ ...s, defaultLanguage: v }))}
+                      options={languages.filter(l => l.enabled).map(l => ({
+                        value: l.code,
+                        label: `${l.name} (${l.nativeName})`,
+                      }))}
+                    />
+                    <p className="text-xs text-gray-600 mt-1">Language shown to new users and guests</p>
+                  </div>
+                  <div>
+                    <SelectField
+                      label="Fallback Language"
+                      value={orgSettings.fallbackLanguage}
+                      onChange={v => setOrgSettings(s => ({ ...s, fallbackLanguage: v }))}
+                      options={languages.filter(l => l.enabled).map(l => ({
+                        value: l.code,
+                        label: `${l.name} (${l.nativeName})`,
+                      }))}
+                    />
+                    <p className="text-xs text-gray-600 mt-1">Language used when translation is missing</p>
+                  </div>
                 </div>
               </SettingsSection>
 
