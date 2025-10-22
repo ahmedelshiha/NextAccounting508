@@ -4,6 +4,7 @@ import { requireTenantContext } from '@/lib/tenant-utils'
 import { chatSchema, createChatMessage, broadcastChatMessage, chatBacklog } from '@/lib/chat'
 import { getClientIp, applyRateLimit } from '@/lib/rate-limit'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 
 export const runtime = 'nodejs'
 
@@ -11,9 +12,8 @@ export const runtime = 'nodejs'
 export const POST = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
-  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE) || !ctx.userId) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  if (!ctx.userId) return respond.unauthorized()
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_UPDATE)) return respond.forbidden('Forbidden')
 
   const ip = getClientIp(request as unknown as Request)
   const rl = await applyRateLimit(`admin:chat:post:${ip}`, 30, 10_000)
@@ -43,9 +43,8 @@ export const POST = withTenantContext(async (request: NextRequest) => {
 export const GET = withTenantContext(async (request: NextRequest) => {
   const ctx = requireTenantContext()
   const role = ctx.role ?? undefined
-  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL) || !ctx.userId) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
+  if (!ctx.userId) return respond.unauthorized()
+  if (!hasPermission(role, PERMISSIONS.SERVICE_REQUESTS_READ_ALL)) return respond.forbidden('Forbidden')
 
   const tenantId = ctx.tenantId ?? null
   const { searchParams } = new URL(request.url)

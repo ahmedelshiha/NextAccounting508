@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { z } from 'zod'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const payload = z.object({
   cost: z.number().min(0).max(100_000_000),
@@ -9,7 +10,7 @@ const payload = z.object({
   months: z.number().int().min(1).max(600),
 })
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   let body: unknown
   try {
     body = await req.json()
@@ -25,8 +26,8 @@ export async function POST(req: Request) {
   const roi = cost > 0 ? ((totalBenefit - cost) / cost) * 100 : 0
   const breakEvenMonths = monthlyBenefit > 0 ? Math.ceil(cost / monthlyBenefit) : null
   return NextResponse.json({ totalBenefit, roi, breakEvenMonths })
-}
+}, { requireAuth: false })
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   return NextResponse.json({ schema: 'POST { cost:number>=0, monthlyBenefit:number>=0, months:int>=1 } -> { totalBenefit:number, roi:number, breakEvenMonths:number|null }' })
-}
+}, { requireAuth: false })

@@ -8,7 +8,7 @@ interface PerformanceMetricPayload {
   [key: string]: any
 }
 
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   try {
     // Parse the performance metric data (accept anonymous submissions to avoid expensive auth checks)
     const payload: PerformanceMetricPayload = await request.json()
@@ -50,9 +50,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
+import { withTenantContext } from '@/lib/api-wrapper'
 // Only POST method is supported
-export async function GET() {
-  return NextResponse.json({ 
-    error: 'Method not allowed - Use POST to send metrics' 
+const _api_GET = async () => {
+  return NextResponse.json({
+    error: 'Method not allowed - Use POST to send metrics'
   }, { status: 405 })
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

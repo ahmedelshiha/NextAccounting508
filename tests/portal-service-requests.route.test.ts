@@ -33,6 +33,10 @@ vi.mock('@/lib/rate-limit', async () => {
   }
 })
 
+// Apply service-requests bootstrap
+import setupServiceRequests from './setup/serviceRequests.setup'
+setupServiceRequests()
+
 const db: any = {
   items: [
     { id: 'sr1', clientId: 'client1', serviceId: 'svc1', title: 'My request', description: null, priority: 'MEDIUM', createdAt: new Date().toISOString() },

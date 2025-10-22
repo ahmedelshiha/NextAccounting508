@@ -3,6 +3,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 import { tenantFilter } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
@@ -11,9 +12,8 @@ export const runtime = 'nodejs'
 export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
-    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ANALYTICS_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!ctx.userId) return respond.unauthorized()
+    if (!hasPermission(ctx.role, PERMISSIONS.ANALYTICS_VIEW)) return respond.forbidden('Forbidden')
 
     const { searchParams } = new URL(request.url)
     const tenantId = ctx.tenantId ?? null

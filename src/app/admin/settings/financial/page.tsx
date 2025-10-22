@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 function FinancialSettingsContent() {
   const [active, setActive] = useState('invoicing')
@@ -22,7 +23,7 @@ function FinancialSettingsContent() {
   useEffect(()=>{
     const t = searchParams.get('tab')
     if (t && tabs.some(tab=>tab.key===t)) setActive(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   },[])
 
   async function load(){
@@ -77,6 +78,7 @@ function FinancialSettingsContent() {
             <PermissionGate permission={PERMISSIONS.FINANCIAL_SETTINGS_EDIT}>
               <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">{saving? 'Saving...':'Save Changes'}</button>
             </PermissionGate>
+            <FavoriteToggle settingKey="financial" route="/admin/settings/financial" label="Financial Settings" />
           </div>
         )}
       >

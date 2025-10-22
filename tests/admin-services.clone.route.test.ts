@@ -14,6 +14,10 @@ vi.mock('@/services/services.service', () => ({
   }
 }))
 
+// Ensure services bootstrap for consistent find/count behavior
+import setupServices from '../setup/services.setup'
+setupServices()
+
 describe('api/admin/services/[id]/clone route', () => {
   it('clones a service and returns 201', async () => {
     const { POST }: any = await import('@/app/api/admin/services/[id]/clone/route')

@@ -4,6 +4,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { getTenantFilter, requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 const PriorityEnum = z.enum(['LOW','MEDIUM','HIGH'])
 const StatusEnum = z.enum(['OPEN','IN_PROGRESS','DONE'])
@@ -35,7 +36,7 @@ export const GET = withTenantContext(async (request, { params }: { params: { id:
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_READ_ALL)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const { id } = params
@@ -56,7 +57,7 @@ export const PATCH = withTenantContext(async (request, { params }: { params: { i
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const { id } = params
@@ -99,7 +100,7 @@ export const DELETE = withTenantContext(async (request, { params }: { params: { 
     const ctx = requireTenantContext()
     const role = ctx.role as string | undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_DELETE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const { id } = params

@@ -4,7 +4,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 vi.mock('next-auth', () => ({ getServerSession: vi.fn(async () => ({ user: { id: 'admin1', role: 'ADMIN' } })) }))
 vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 vi.mock('@/lib/permissions', () => ({ hasPermission: () => true, PERMISSIONS: {} }))
-vi.mock('@/lib/rate-limit', () => ({ getClientIp: () => '127.0.0.1', rateLimit: () => true }))
+vi.mock('@/lib/rate-limit', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+  return {
+    ...actual,
+    getClientIp: vi.fn(() => '127.0.0.1'),
+    rateLimit: vi.fn(() => true),
+    rateLimitAsync: vi.fn(async () => true),
+    applyRateLimit: vi.fn(async () => ({ allowed: true, backend: 'memory', count: 1, limit: 1, remaining: 0, resetAt: Date.now() + 1000 })),
+  }
+})
 vi.mock('@/lib/audit', () => ({ logAudit: vi.fn(async () => {}) }))
 vi.mock('@/lib/email', () => ({ sendEmail: vi.fn(async () => {}) }))
 vi.mock('@/lib/realtime-enhanced', () => ({ realtimeService: { emitTeamAssignment: vi.fn(() => {}), emitServiceRequestUpdate: vi.fn(() => {}), broadcastToUser: vi.fn(() => {}), emitAvailabilityUpdate: vi.fn(() => {}) } }))

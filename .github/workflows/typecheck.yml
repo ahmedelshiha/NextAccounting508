@@ -1,0 +1,59 @@
+name: Type Check
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Run TypeScript type check
+        run: pnpm typecheck
+
+      - name: Report Type Check Results
+        if: failure()
+        run: |
+          echo "## ❌ TypeScript Type Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please fix the TypeScript errors above and push again." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Common Issues:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Mutable array types: Use \`['email'] as ('email' | 'sms' | 'push')[]\` instead of \`as const\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Union type casting: Always cast to full union type, e.g., \`'none' as 'none' | 'twilio' | 'plivo'\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Component imports: Ensure all imports are properly exported from source files" >> $GITHUB_STEP_SUMMARY
+
+      - name: Report Type Check Success
+        if: success()
+        run: |
+          echo "## ✅ TypeScript Type Check Passed" >> $GITHUB_STEP_SUMMARY
+          echo "All type safety checks completed successfully!" >> $GITHUB_STEP_SUMMARY

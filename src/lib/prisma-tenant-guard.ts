@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger'
 import { tenantContext } from '@/lib/tenant-context'
 import { isMultiTenancyEnabled } from '@/lib/tenant'
+import { incrementMetric } from '@/lib/observability-helpers'
 import type { Prisma } from '@prisma/client'
 
 type TenantModelConfig = {
@@ -140,6 +141,7 @@ function assertTenantForCreate(
   for (const entry of records) {
     if (!entry || typeof entry !== 'object') {
       logger.error('Tenant guard blocked create due to malformed payload', { model, action, reason: 'non-object-record' })
+      incrementMetric('tenant_guard.error.create.malformed', { model: String(model), action: String(action) })
       throw new Error('Tenant guard: invalid create payload')
     }
     const record = entry as Record<string, unknown>
@@ -149,12 +151,14 @@ function assertTenantForCreate(
     if (!values.length) {
       if (allowNullForOptional && rawTenantValue == null) return
       logger.error('Tenant guard blocked create without tenantId', { model, action })
+      incrementMetric('tenant_guard.error.create.missing_tenant', { model: String(model), action: String(action) })
       throw new Error('Tenant guard: tenantId is required for tenant-scoped create')
     }
 
     for (const provided of values) {
       if (!allowDifferentTenant && provided !== expectedTenantId) {
         logger.error('Tenant guard blocked tenant mismatch on create', { model, action, expectedTenantId, providedTenantId: provided })
+        incrementMetric('tenant_guard.error.create.mismatch', { model: String(model), action: String(action) })
         throw new Error('Tenant guard: tenantId mismatch')
       }
     }
@@ -172,10 +176,12 @@ function assertTenantForBulkWhere(
   const values = collectTenantValues(where ?? {}, tenantField)
   if (!values.length) {
     logger.error('Tenant guard blocked bulk mutation without tenant scope', { model, action })
+    incrementMetric('tenant_guard.error.bulk.missing_scope', { model: String(model), action: String(action) })
     throw new Error('Tenant guard: bulk mutations require tenant filter')
   }
   if (!allowDifferentTenant && values.some(value => value !== expectedTenantId)) {
     logger.error('Tenant guard blocked mismatched tenant scope on bulk mutation', { model, action, expectedTenantId, providedTenantIds: values })
+    incrementMetric('tenant_guard.error.bulk.mismatch', { model: String(model), action: String(action) })
     throw new Error('Tenant guard: bulk mutation tenant mismatch')
   }
 }
@@ -184,6 +190,7 @@ function logReadWithoutTenant(model: string, action: GuardedAction, where: unkno
   const values = collectTenantValues(where ?? {}, tenantField)
   if (!values.length) {
     logger.warn('Tenant guard detected read without tenant constraint', { model, action, tenantId })
+    incrementMetric('tenant_guard.warn.read_without_tenant', { model: String(model), action: String(action) })
   }
 }
 
@@ -206,6 +213,7 @@ export function enforceTenantGuard(params: any): void {
   const context = tenantContext.getContextOrNull()
   if (!context || !context.tenantId) {
     logger.error('Tenant guard blocked operation due to missing tenant context', { model, action: params.action })
+    incrementMetric('tenant_guard.error.missing_context', { model: String(model), action: String(params.action) })
     throw new Error('Tenant guard: tenant context is required')
   }
 
@@ -243,6 +251,7 @@ export function enforceTenantGuard(params: any): void {
     const values = collectTenantValues(args?.where ?? {}, config.field)
     if (values.some(value => value !== context.tenantId)) {
       logger.error('Tenant guard blocked tenant mismatch on mutation', { model, action, expectedTenantId: context.tenantId, providedTenantIds: values })
+      incrementMetric('tenant_guard.error.mutation_mismatch', { model: String(model), action: String(action) })
       throw new Error('Tenant guard: tenant mismatch on mutation')
     }
   }

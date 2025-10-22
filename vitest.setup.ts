@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 import * as React from 'react'
 import fs from 'fs'
 
@@ -7,6 +7,8 @@ import '@testing-library/jest-dom'
 
 // Ensure NEXTAUTH_SECRET for tenant cookie signing in tests
 if (!process.env.NEXTAUTH_SECRET) process.env.NEXTAUTH_SECRET = 'test-secret'
+// Ensure admin auth token for integration tests
+if (!process.env.ADMIN_AUTH_TOKEN) process.env.ADMIN_AUTH_TOKEN = 'test-admin-token'
 
 // Expose React globally for tests that perform SSR renders and rely on React being available
 ;(globalThis as any).React = React
@@ -36,9 +38,20 @@ vi.mock('next-auth', () => ({
 
 // Import centralized test setup that registers tenants and performs global cleanup
 import './tests/testSetup'
-vi.mock('next-auth/next', () => ({
-  getServerSession: vi.fn(async () => defaultSession),
-}))
+vi.mock('next-auth/next', () => {
+  const fn = vi.fn(async (...args: any[]) => {
+    try {
+      const na = await import('next-auth')
+      if (na && typeof (na as any).getServerSession === 'function') {
+        return (na as any).getServerSession(...args)
+      }
+    } catch (err) {
+      // fall through
+    }
+    return defaultSession
+  })
+  return { getServerSession: fn }
+})
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: defaultSession, status: 'authenticated' }),
   signOut: vi.fn()
@@ -70,6 +83,71 @@ vi.mock('@prisma/client', () => ({
   },
 }))
 
+// Global Next.js navigation mocks for component tests
+vi.mock('next/navigation', () => ({
+  __esModule: true,
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/',
+  // Server-side redirect helper used in app routers
+  redirect: vi.fn(),
+}))
+
+// Provide safe defaults for rate limiting in tests while preserving actual exports
+vi.mock('@/lib/rate-limit', async () => {
+  const actual: any = await vi.importActual('@/lib/rate-limit').catch(() => ({}))
+  const applyRateLimit = vi.fn(async (_key: string, limit = 20, windowMs = 60_000) => ({
+    allowed: true,
+    backend: 'memory',
+    count: 0,
+    limit,
+    remaining: limit,
+    resetAt: Date.now() + windowMs,
+  }))
+  const rateLimitAsync = vi.fn(async () => true)
+  const getClientIp = (_req: Request) => 'test'
+  return { ...actual, applyRateLimit, rateLimitAsync, getClientIp }
+})
+
+// Ensure tests use the mock Prisma client to avoid hard DB dependencies
+if (!process.env.PRISMA_MOCK) process.env.PRISMA_MOCK = 'true'
+
+// Provide a safe default proxy for '@/lib/prisma' so tests that import prisma do not crash when DB is not configured
+vi.mock('@/lib/prisma', async () => {
+  try {
+    // Prefer the project-level mock implementation so tests can manipulate mock behavior
+    const mockMod = await import('./__mocks__/prisma')
+    // Export as default to match prisma default export
+    return { default: mockMod.default }
+  } catch (err) {
+    const handler: ProxyHandler<any> = {
+      get(_t, prop) {
+        // return a model proxy which returns noop async functions for common methods
+        if (typeof prop === 'string') {
+          const modelProxy = new Proxy({}, {
+            get() {
+              return async (..._args: any[]) => {
+                // default safe responses
+                return null
+              }
+            }
+          })
+          return modelProxy
+        }
+        return undefined
+      }
+    }
+    return { default: new Proxy({}, handler) }
+  }
+})
+
 // Provide a lightweight mock for '@/lib/auth' so tests that mock other auth modules still function
 vi.mock('@/lib/auth', async () => {
   let actual: any = {}
@@ -91,12 +169,12 @@ vi.mock('@/lib/auth', async () => {
           if (modA && typeof modA.getServerSession === 'function') {
             const res = await modA.getServerSession()
             // Debug output to diagnose why some tests see no session
-            // eslint-disable-next-line no-console
+             
             console.log('[vitest.setup] getSessionOrBypass -> next-auth.getServerSession returned:', res)
             return res
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
+           
           console.log('[vitest.setup] import next-auth failed', err && (err as any).message)
         }
         // Some tests or code import 'next-auth/next'
@@ -104,19 +182,144 @@ vi.mock('@/lib/auth', async () => {
           const modB = await import('next-auth/next')
           if (modB && typeof modB.getServerSession === 'function') {
             const res = await modB.getServerSession()
-            // eslint-disable-next-line no-console
+             
             console.log('[vitest.setup] getSessionOrBypass -> next-auth/next.getServerSession returned:', res)
             return res
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
+           
           console.log('[vitest.setup] import next-auth/next failed', err && (err as any).message)
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
+         
         console.log('[vitest.setup] getSessionOrBypass unexpected error', err && (err as any).message)
       }
       return null
+    },
+  }
+})
+
+// Reset mocks between tests and expose mock helpers
+try {
+  const { resetPrismaMock, mockPrisma } = await import('./__mocks__/prisma')
+  // Reset prisma mock before each test to ensure isolated behavior
+  beforeEach(async () => {
+    try { resetPrismaMock() } catch {}
+    try { vi.resetAllMocks() } catch {}
+    try { const rl = await import('@/lib/rate-limit'); (rl as any)._resetRateLimitBucketsForTests?.() } catch {}
+  })
+  // Expose helper on globalThis for tests to use programmatically
+  ;(globalThis as any).prismaMock = mockPrisma
+  // Also expose `prisma` globally for fixtures that reference it by name
+  try {
+    ;(globalThis as any).prisma = mockPrisma
+  } catch (e) {}
+} catch (err) {
+  // ignore if mocks not available
+}
+
+// Mock tenant utilities to provide tenant context for tests
+vi.mock('@/lib/tenant', async () => {
+  return {
+    getTenantFromRequest: (req?: any) => {
+      try {
+        if (!req) return 'test-tenant'
+        // NextRequest-like header accessor
+        const headerGet = req && req.headers && typeof req.headers.get === 'function' ? req.headers.get.bind(req.headers) : null
+        const candidate = headerGet ? headerGet('x-tenant-id') || headerGet('x-tenant') : (req && (req['x-tenant-id'] || req['x-tenant']))
+        return candidate || 'test-tenant'
+      } catch {
+        return 'test-tenant'
+      }
+    },
+    isMultiTenancyEnabled: () => true,
+    tenantContext: {
+      getContextOrNull: () => ({ tenantId: 'test-tenant' }),
+      runWithTenant: async (tId: string, fn: any) => fn(),
+    },
+  }
+})
+
+// Mock tenant-context used by RLS helpers
+vi.mock('@/lib/tenant-context', async () => {
+  let currentContext: any = { tenantId: 'test-tenant', userId: 'test-user' }
+
+  const tenantContext = {
+    run: (ctx: any, cb: any) => {
+      const prev = currentContext
+      currentContext = ctx
+      try {
+        const result = cb()
+        if (result && typeof result.then === 'function') {
+          return result.finally(() => { currentContext = prev })
+        }
+        currentContext = prev
+        return result
+      } catch (err) {
+        currentContext = prev
+        throw err
+      }
+    },
+    getContextOrNull: () => currentContext,
+    getTenantId: () => currentContext?.tenantId ?? null,
+    runWithTenant: async (t: string, fn: any) => {
+      return tenantContext.run({ tenantId: t, timestamp: new Date() }, fn)
+    },
+    hasContext: () => currentContext !== null,
+    requireTenantId: () => {
+      if (!currentContext || !currentContext.tenantId) throw new Error('Tenant context is missing tenant identifier')
+      return currentContext.tenantId
+    },
+    // test helpers
+    _setContext: (ctx: any) => { currentContext = ctx },
+    _clearContext: () => { currentContext = null },
+  }
+
+  // expose test helpers globally so tests can manipulate context directly
+  try { (globalThis as any).__testTenantContext = { set: tenantContext._setContext, clear: tenantContext._clearContext } } catch {}
+
+  return { tenantContext }
+})
+
+// Mock tenant-utils requireTenantContext used across API routes
+// Use state management to allow per-test customization (especially for auth tests)
+const tenantUtilsState = { userId: 'test-user', role: 'ADMIN', tenantId: 'test-tenant' }
+;(globalThis as any).__tenantUtilsState = tenantUtilsState
+
+vi.mock('@/lib/tenant-utils', async () => {
+  // try to use tenant-context mock to derive a dynamic requireTenantContext
+  let tcMod: any = null
+  try {
+    tcMod = await import('@/lib/tenant-context').catch(() => null)
+  } catch {}
+
+  return {
+    requireTenantContext: () => {
+      try {
+        const ctx = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull() : null
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return {
+          userId: ctx?.userId ?? state.userId,
+          tenantId: ctx?.tenantId ?? state.tenantId,
+          userEmail: 'test@example.com',
+          userName: 'Test User',
+          role: ctx?.role ?? state.role,
+          isSuperAdmin: ctx?.isSuperAdmin ?? true,
+        }
+      } catch {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return { userId: state.userId, tenantId: state.tenantId, userEmail: 'test@example.com', userName: 'Test User', role: state.role, isSuperAdmin: true }
+      }
+    },
+    getTenantFilter: (_field = 'tenantId') => {
+      try {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        const contextTenantId = tcMod?.tenantContext?.getContextOrNull ? tcMod.tenantContext.getContextOrNull()?.tenantId : null
+        return { tenantId: contextTenantId ?? state.tenantId }
+      } catch {
+        const state = (globalThis as any).__tenantUtilsState || tenantUtilsState
+        return { tenantId: state.tenantId }
+      }
     },
   }
 })
@@ -185,6 +388,42 @@ vi.mock('@/lib/permissions', async () => {
   }
 })
 
+// Polyfill Web File in Node test env
+
+// Mock Stripe package for tests that import 'stripe' to avoid network calls
+try {
+  vi.mock('stripe', () => {
+    class MockStripe {
+      constructor(_key?: string) {}
+      checkout = {
+        sessions: {
+          create: async (opts: any) => ({ id: `cs_${Math.random().toString(36).slice(2)}`, url: 'https://checkout.example.com', ...opts }),
+        },
+      }
+      webhooks = {
+        constructEvent: (_payload: any, _sig: any, _secret: any) => ({ id: `evt_${Math.random().toString(36).slice(2)}`, type: 'checkout.session.completed' }),
+      }
+    }
+    return { default: MockStripe }
+  })
+} catch {}
+
+// Mock offline queue/backlog helpers used in tests
+try {
+  const chatBacklogStore: Record<string, any[]> = {}
+  vi.mock('@/lib/chat-backlog', () => ({
+    enqueue: async (tenantId: string, msg: any) => {
+      const key = tenantId || 'default'
+      chatBacklogStore[key] = chatBacklogStore[key] || []
+      chatBacklogStore[key].push(msg)
+      return true
+    },
+    list: (tenantId?: string, limit = 50) => (chatBacklogStore[tenantId || 'default'] || []).slice(-limit),
+    _debug_store: chatBacklogStore,
+  }))
+} catch {}
+
+// Provide a safe default partial mock for rate-limit to ensure applyRateLimit exists in all tests
 // Polyfill Web File in Node test env
 if (typeof (globalThis as any).File === 'undefined') {
   class NodeFile extends Blob {

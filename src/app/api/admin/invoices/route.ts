@@ -3,6 +3,7 @@ import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { respond } from '@/lib/api-response'
 import { logAudit } from '@/lib/audit'
 import { parseListQuery } from '@/schemas/list-query'
 import { tenantFilter } from '@/lib/tenant'
@@ -17,9 +18,7 @@ export const GET = withTenantContext(async (request: NextRequest) => {
   try {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
-    if (!hasPermission(role, PERMISSIONS.TEAM_VIEW)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    if (!hasPermission(role, PERMISSIONS.TEAM_VIEW)) return respond.forbidden('Forbidden')
 
     const hasDb = Boolean(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL)
     if (!hasDb) return NextResponse.json({ error: 'Database not configured' }, { status: 501 })

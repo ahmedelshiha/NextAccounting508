@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   const now = Date.now()
   return NextResponse.json({
     success: true,
@@ -12,4 +13,4 @@ export async function GET() {
       { id: 'e3', type: 'scan_detected', message: 'Upload flagged by AV (lenient mode) and quarantined', timestamp: new Date(now - 1000 * 60 * 90).toISOString() },
     ]
   })
-}
+})

@@ -1,14 +1,14 @@
-import fs from 'fs'
-import path from 'path'
-import os from 'os'
+import * as nodeFs from 'node:fs'
+import * as nodeOs from 'node:os'
+import * as nodePath from 'node:path'
 
-const TMPDIR = process.env.NETLIFY_TEMP_DIR || process.env.TMPDIR || os.tmpdir()
-const FILE = path.resolve(TMPDIR, 'dev-fallbacks.json')
+const TMPDIR = process.env.NETLIFY_TEMP_DIR || process.env.TMPDIR || nodeOs.tmpdir()
+const FILE = nodePath.resolve(TMPDIR, 'dev-fallbacks.json')
 
 function readData() {
   try {
-    if (!fs.existsSync(FILE)) return { requests: {}, comments: {} }
-    const raw = fs.readFileSync(FILE, 'utf-8')
+    if (!nodeFs.existsSync(FILE)) return { requests: {}, comments: {} }
+    const raw = nodeFs.readFileSync(FILE, 'utf-8')
     return JSON.parse(raw)
   } catch {
     return { requests: {}, comments: {} }
@@ -17,9 +17,9 @@ function readData() {
 
 function writeData(data: any) {
   try {
-    const dir = path.dirname(FILE)
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(FILE, JSON.stringify(data), 'utf-8')
+    const dir = nodePath.dirname(FILE)
+    if (!nodeFs.existsSync(dir)) nodeFs.mkdirSync(dir, { recursive: true })
+    nodeFs.writeFileSync(FILE, JSON.stringify(data), 'utf-8')
   } catch {
     // ignore
   }

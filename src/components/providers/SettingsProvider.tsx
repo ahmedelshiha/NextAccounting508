@@ -52,7 +52,7 @@ export function SettingsProvider({ initialSettings, children }: { initialSetting
       window.removeEventListener('storage', onStorage)
       window.removeEventListener('org-settings-updated', onCustom as any)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   const value = useMemo(() => ({ settings, refresh }), [settings])

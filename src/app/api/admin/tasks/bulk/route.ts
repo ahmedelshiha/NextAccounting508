@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
+import { respond } from '@/lib/api-response'
 
 function mapStatusToDb(s?: string): any {
   if (!s) return undefined
@@ -25,7 +26,7 @@ export const POST = withTenantContext(async (request: Request) => {
     const ctx = requireTenantContext()
     const role = ctx.role ?? undefined
     if (!hasPermission(role, PERMISSIONS.TASKS_UPDATE)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return respond.forbidden('Forbidden')
     }
 
     const json = await request.json().catch(() => ({}))

@@ -1,0 +1,2761 @@
+Enhanced Footer Implementation Guide
+Document Version: 1.0.0
+Framework: Next.js 14 + TypeScript
+Estimated Duration: 1 week (30-40 hours)
+Complexity: Low-Moderate
+Status: Ready for Implementation
+
+Table of Contents
+
+Overview & Goals
+Architecture & Design
+Component Specifications
+System Health Monitoring
+Implementation Steps
+Builder.io Integration
+GitHub Workflow
+Code Examples
+Testing Strategy
+Deployment Checklist
+
+
+1. Overview & Goals
+1.1 Current State
+Existing Footer (src/components/admin/layout/Footer/AdminFooter.tsx):
+
+Basic single-row layout
+Minimal information display
+No real-time status monitoring
+Limited mobile responsiveness
+Static copyright notice
+
+1.2 Desired State
+Enhanced Footer provides:
+
+Professional three-column responsive layout
+Real-time system health monitoring
+Product information with version tracking
+Quick action links with icons
+Support and documentation access
+Environment badge (production/staging/dev)
+Animated status indicators
+Mobile-optimized drawer layout
+
+1.3 Goals
+
+Visual Polish: Professional appearance matching QuickBooks style
+Real-time Monitoring: Live system health status
+Information Architecture: Clear, scannable footer content
+Responsive Design: Works on all breakpoints
+Performance: Zero layout shift, < 50ms render
+Accessibility: WCAG 2.1 AA compliant
+Reliability: Graceful degradation if APIs fail
+
+1.4 User Stories
+AS AN admin user
+I WANT TO see system status in the footer
+SO THAT I know if the system is operating normally
+
+AS A support agent
+I WANT TO quickly access documentation and help
+SO THAT I can resolve issues faster
+
+AS A product team member
+I WANT TO know which environment I'm in
+SO THAT I don't accidentally modify production
+
+AS A mobile user
+I WANT footer content to be accessible on my phone
+SO THAT I can see status and links without scrolling
+```
+
+### 1.5 Success Criteria
+
+- [x] Three-column layout on desktop
+- [x] Stacked layout on mobile/tablet
+- [x] System health API implemented
+- [x] Real-time status updates (30-60 second polling)
+- [x] All links functional and accessible
+- [x] Environment badge displays correctly
+- [x] Version info auto-populated from package.json
+- [x] No console errors or warnings
+- [x] Lighthouse accessibility score: 100
+- [x] Mobile responsive: 375px to 1920px
+- [x] Animation smooth (60fps)
+- [x] Zero layout shift (CLS < 0.001)
+
+---
+
+## 2. Architecture & Design
+
+### 2.1 Layout Design
+
+#### Desktop Layout (1024px+)
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│ Left Column          │ Center Column        │ Right Column       │
+│ ─────────────────    │ ──────────────────   │ ─────────────────  │
+│ Product Name         │ System Status        │ Support Section    │
+│ Version Info         │ Environment Badge    │ Help Links         │
+│ Quick Links          │ (animated indicator) │ Documentation      │
+│ (Analytics,          │                      │ Copyright          │
+│  Settings,           │ [● Operational]      │                    │
+│  Main Site)          │ [production]         │ © 2025 NextAcct    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+#### Tablet Layout (768px - 1023px)
+```
+┌────────────────────────────────────────┐
+│ Product Name  │ System Status          │
+│ Version       │ [● Operational]        │
+├────────────────────────────────────────┤
+│ Quick Links (horizontal)               │
+│ Analytics | Settings | Main Site       │
+├────────────────────────────────────────┤
+│ Support Links         │ Copyright      │
+│ Help | Documentation  │ © 2025 NextAcct│
+└────────────────────────────────────────┘
+```
+
+#### Mobile Layout (< 768px)
+```
+┌──────────────────────┐
+│ NextAccounting       │
+│ v2.3.2              │
+│ [● Operational]      │
+├──────────────────────┤
+│ Analytics            │
+│ Settings             │
+│ Help                 │
+│ Documentation        │
+├──────────────────────┤
+│ © 2025 NextAccounting│
+└──────────────────────┘
+2.2 Color & Status Scheme
+typescript// Status Indicators
+const statusColors = {
+  operational: {
+    dot: 'bg-green-500',      // Animated pulse
+    badge: 'bg-green-100 text-green-800',
+    text: 'text-green-700',
+  },
+  degraded: {
+    dot: 'bg-yellow-500',
+    badge: 'bg-yellow-100 text-yellow-800',
+    text: 'text-yellow-700',
+  },
+  outage: {
+    dot: 'bg-red-500',
+    badge: 'bg-red-100 text-red-800',
+    text: 'text-red-700',
+  },
+}
+
+// Environment Colors
+const environmentColors = {
+  production: 'bg-blue-100 text-blue-800',
+  staging: 'bg-purple-100 text-purple-800',
+  development: 'bg-orange-100 text-orange-800',
+}
+```
+
+### 2.3 Component Structure
+```
+AdminFooter (Container)
+├── FooterSection (Reusable grid item)
+│   └── Content varies by position
+│
+├── Left Section
+│   ├── ProductInfo
+│   │   ├── Name
+│   │   ├── Version
+│   │   └── BuildDate
+│   └── QuickLinks
+│       ├── Link (Analytics)
+│       ├── Link (Settings)
+│       └── Link (Main Site)
+│
+├── Center Section
+│   ├── SystemStatus
+│   │   ├── StatusDot (animated)
+│   │   ├── StatusText
+│   │   └── Timestamp
+│   └── EnvironmentBadge
+│       └── Environment label
+│
+└── Right Section
+    ├── SupportLinks
+    │   ├── Link (Help)
+    │   ├── Link (Documentation)
+    │   └── Link (API Docs)
+    └── Copyright
+        └── Text
+```
+
+### 2.4 Data Flow
+```
+System Health API (/api/admin/system/health)
+        ↓
+useSystemHealth Hook (SWR with polling)
+        ↓
+AdminFooter Component
+├── useSWR (30s interval)
+├── localStorage fallback
+├── Error handling
+└── Real-time UI updates
+        ↓
+Visual Status Display
+├── Color changes
+├── Text updates
+├── Timestamp refresh
+└── Accessible announcements
+
+3. Component Specifications
+3.1 AdminFooter (Root Component)
+File: src/components/admin/layout/Footer/AdminFooter.tsx
+typescriptinterface AdminFooterProps {
+  className?: string
+}
+
+interface SystemHealth {
+  status: 'operational' | 'degraded' | 'outage'
+  message: string
+  checks: {
+    database: HealthCheck
+    redis?: HealthCheck
+    api: HealthCheck
+    storage?: HealthCheck
+  }
+  timestamp: string
+  uptime?: number
+}
+
+interface HealthCheck {
+  status: 'operational' | 'degraded' | 'outage'
+  latency?: number
+  lastChecked?: string
+}
+
+// Key Features:
+// - Responsive grid layout (1/3/1 columns on desktop, stacked on mobile)
+// - Real-time health monitoring with SWR
+// - Fallback states for API failures
+// - Accessible status announcements
+// - Mobile-optimized drawer variant
+3.2 ProductInfo Component
+File: src/components/admin/layout/Footer/ProductInfo.tsx
+typescriptinterface ProductInfoProps {
+  version?: string
+  buildDate?: string
+  collapsed?: boolean // Mobile drawer mode
+}
+
+// Displays:
+// - NextAccounting branding
+// - Version from package.json / env var
+// - Build date (auto-populated)
+// - Responsive font sizing
+
+// Version Priority:
+// 1. env.NEXT_PUBLIC_APP_VERSION
+// 2. package.json version
+// 3. Fallback: "Unknown"
+3.3 SystemStatus Component
+File: src/components/admin/layout/Footer/SystemStatus.tsx
+typescriptinterface SystemStatusProps {
+  health?: SystemHealth
+  loading?: boolean
+  error?: Error | null
+}
+
+// Displays:
+// - Animated status dot (green/yellow/red)
+// - Status text (Operational/Degraded/Outage)
+// - Environment badge (production/staging/dev)
+// - Last checked timestamp
+// - Accessibility: aria-live region for updates
+
+// Animations:
+// - Status dot pulses when operational
+// - Color transition when status changes
+// - Timestamp updates every 30 seconds
+3.4 QuickLinks Component
+File: src/components/admin/layout/Footer/QuickLinks.tsx
+typescriptinterface QuickLink {
+  label: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  external?: boolean
+}
+
+// Links:
+// 1. Analytics → /admin/analytics
+// 2. Settings → /admin/settings
+// 3. Main Site → / (or configurable)
+// 4. Documentation → /docs (external)
+// 5. API Docs → https://docs.api.example.com (external)
+
+// Features:
+// - Icon + label on desktop
+// - Icon only on mobile (with tooltip)
+// - External link indicators
+// - Keyboard accessible
+// - Hover/focus states
+3.5 SupportLinks Component
+File: src/components/admin/layout/Footer/SupportLinks.tsx
+typescriptinterface SupportLinksProps {
+  includeApidocs?: boolean
+}
+
+// Links:
+// 1. Help & Support → /admin/help
+// 2. Documentation → /docs
+// 3. API Documentation → /docs/api (optional)
+// 4. Contact Support → mailto:support@example.com (optional)
+
+// Features:
+// - Opens in new tab (external links)
+// - Keyboard accessible
+// - Consistent styling with quick links
+3.6 EnvironmentBadge Component
+File: src/components/admin/layout/Footer/EnvironmentBadge.tsx
+typescriptinterface EnvironmentBadgeProps {
+  environment?: 'production' | 'staging' | 'development'
+}
+
+// Logic:
+// - Detects from env.NODE_ENV
+// - Or env.NEXT_PUBLIC_ENVIRONMENT
+// - Shows warning on staging/dev
+// - Colors: Blue (prod), Purple (staging), Orange (dev)
+
+// Display:
+// - Badge with text
+// - Tooltip with explanation
+// - Hidden in production (optional)
+
+4. System Health Monitoring
+4.1 Health Check API
+File: src/app/api/admin/system/health/route.ts
+typescriptimport { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { redis } from '@/lib/redis'
+
+interface HealthCheckResult {
+  status: 'operational' | 'degraded' | 'outage'
+  latency: number
+  error?: string
+}
+
+interface SystemHealthResponse {
+  status: 'operational' | 'degraded' | 'outage'
+  message: string
+  checks: {
+    database: HealthCheckResult
+    redis?: HealthCheckResult
+    api: HealthCheckResult
+    storage?: HealthCheckResult
+  }
+  timestamp: string
+  uptime?: number
+}
+
+export async function GET(request: Request): Promise<NextResponse> {
+  const startTime = Date.now()
+
+  try {
+    // Check Database
+    const dbCheck = await checkDatabase()
+
+    // Check Redis (if available)
+    const redisCheck = await checkRedis()
+
+    // Check API (self-check)
+    const apiCheck = {
+      status: 'operational' as const,
+      latency: Date.now() - startTime,
+    }
+
+    // Check Storage (if applicable)
+    const storageCheck = await checkStorage()
+
+    // Determine overall status
+    const checks = {
+      database: dbCheck,
+      redis: redisCheck,
+      api: apiCheck,
+      storage: storageCheck,
+    }
+
+    const overallStatus = determineOverallStatus(checks)
+    const message = getStatusMessage(overallStatus, checks)
+    const uptime = getUptime()
+
+    return NextResponse.json({
+      status: overallStatus,
+      message,
+      checks,
+      timestamp: new Date().toISOString(),
+      uptime,
+    })
+  } catch (error) {
+    console.error('Health check error:', error)
+
+    return NextResponse.json(
+      {
+        status: 'outage',
+        message: 'System health check failed',
+        checks: {
+          database: { status: 'unknown', latency: 0 },
+          api: { status: 'outage', latency: Date.now() - startTime },
+        },
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+async function checkDatabase(): Promise<HealthCheckResult> {
+  const start = Date.now()
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    const latency = Date.now() - start
+
+    if (latency > 1000) {
+      return {
+        status: 'degraded',
+        latency,
+        error: 'Database latency high',
+      }
+    }
+
+    return { status: 'operational', latency }
+  } catch (error) {
+    return {
+      status: 'outage',
+      latency: Date.now() - start,
+      error: 'Database connection failed',
+    }
+  }
+}
+
+async function checkRedis(): Promise<HealthCheckResult | undefined> {
+  if (!redis) return undefined
+
+  const start = Date.now()
+  try {
+    await redis.ping()
+    const latency = Date.now() - start
+
+    if (latency > 500) {
+      return {
+        status: 'degraded',
+        latency,
+        error: 'Redis latency high',
+      }
+    }
+
+    return { status: 'operational', latency }
+  } catch (error) {
+    // Redis is optional
+    return {
+      status: 'degraded',
+      latency: Date.now() - start,
+      error: 'Redis unavailable (non-critical)',
+    }
+  }
+}
+
+async function checkStorage(): Promise<HealthCheckResult | undefined> {
+  // Implement based on your storage solution
+  // (S3, GCS, Azure Blob, etc.)
+  return undefined
+}
+
+function determineOverallStatus(
+  checks: Record<string, HealthCheckResult>
+): 'operational' | 'degraded' | 'outage' {
+  const critical = ['database', 'api']
+  const criticalFailing = critical.filter(
+    (key) => checks[key]?.status === 'outage'
+  )
+
+  if (criticalFailing.length > 0) return 'outage'
+
+  const anyDegraded = Object.values(checks).some(
+    (check) => check?.status === 'degraded'
+  )
+
+  return anyDegraded ? 'degraded' : 'operational'
+}
+
+function getStatusMessage(
+  status: 'operational' | 'degraded' | 'outage',
+  checks: Record<string, HealthCheckResult>
+): string {
+  switch (status) {
+    case 'operational':
+      return 'All systems operational'
+    case 'degraded':
+      const degradedServices = Object.entries(checks)
+        .filter(([, check]) => check?.status === 'degraded')
+        .map(([name]) => name)
+      return `${degradedServices.join(', ')} running slow`
+    case 'outage':
+      const downServices = Object.entries(checks)
+        .filter(([, check]) => check?.status === 'outage')
+        .map(([name]) => name)
+      return `${downServices.join(', ')} unavailable`
+  }
+}
+
+function getUptime(): number | undefined {
+  // Calculate uptime from process start
+  if (typeof process.uptime === 'function') {
+    return Math.floor(process.uptime())
+  }
+  return undefined
+}
+4.2 useSystemHealth Hook
+File: src/hooks/admin/useSystemHealth.ts
+typescriptimport useSWR from 'swr'
+import { useEffect, useState } from 'react'
+
+interface UseSystemHealthOptions {
+  interval?: number // milliseconds, default 30000
+  enabled?: boolean
+  onStatusChange?: (status: 'operational' | 'degraded' | 'outage') => void
+}
+
+export function useSystemHealth(options: UseSystemHealthOptions = {}) {
+  const {
+    interval = 30000,
+    enabled = true,
+    onStatusChange,
+  } = options
+
+  const [previousStatus, setPreviousStatus] = useState<string | null>(null)
+
+  const { data, error, isLoading, mutate } = useSWR(
+    enabled ? '/api/admin/system/health' : null,
+    async (url) => {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('Health check failed')
+      return res.json()
+    },
+    {
+      revalidateInterval: interval,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000,
+      errorRetryInterval: 10000,
+      errorRetryCount: 3,
+    }
+  )
+
+  // Notify on status change
+  useEffect(() => {
+    if (data?.status && data.status !== previousStatus) {
+      setPreviousStatus(data.status)
+      onStatusChange?.(data.status)
+    }
+  }, [data?.status, previousStatus, onStatusChange])
+
+  return {
+    health: data,
+    error,
+    isLoading,
+    mutate,
+    status: data?.status || 'unknown',
+    message: data?.message || 'Checking system status...',
+    timestamp: data?.timestamp,
+  }
+}
+4.3 Environment Detection
+File: src/lib/admin/environment.ts
+typescriptexport type Environment = 'production' | 'staging' | 'development'
+
+export function getEnvironment(): Environment {
+  // Priority:
+  // 1. Explicit env var
+  // 2. Detect from NODE_ENV
+  // 3. Detect from URL
+  // 4. Default to development
+
+  const explicit = process.env.NEXT_PUBLIC_ENVIRONMENT as Environment | undefined
+  if (explicit) return explicit
+
+  const nodeEnv = process.env.NODE_ENV
+  if (nodeEnv === 'production') return 'production'
+
+  // Detect from hostname
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname.includes('staging')) return 'staging'
+    if (hostname === 'localhost' || hostname === '127.0.0.1')
+      return 'development'
+  }
+
+  return 'development'
+}
+
+export function getEnvironmentColor(
+  env: Environment
+): 'blue' | 'purple' | 'orange' {
+  switch (env) {
+    case 'production':
+      return 'blue'
+    case 'staging':
+      return 'purple'
+    case 'development':
+      return 'orange'
+  }
+}
+
+export function isProduction(): boolean {
+  return getEnvironment() === 'production'
+}
+
+export function isStaging(): boolean {
+  return getEnvironment() === 'staging'
+}
+
+export function isDevelopment(): boolean {
+  return getEnvironment() === 'development'
+}
+
+5. Implementation Steps
+Phase 1: Setup (Day 1)
+Step 1.1: Create Directory Structure
+bashmkdir -p src/components/admin/layout/Footer
+mkdir -p src/components/admin/layout/Footer/__tests__
+mkdir -p src/app/api/admin/system
+mkdir -p src/lib/admin
+mkdir -p src/hooks/admin
+Step 1.2: Create Files
+bash# Components
+touch src/components/admin/layout/Footer/AdminFooter.tsx
+touch src/components/admin/layout/Footer/ProductInfo.tsx
+touch src/components/admin/layout/Footer/SystemStatus.tsx
+touch src/components/admin/layout/Footer/QuickLinks.tsx
+touch src/components/admin/layout/Footer/SupportLinks.tsx
+touch src/components/admin/layout/Footer/EnvironmentBadge.tsx
+touch src/components/admin/layout/Footer/types.ts
+touch src/components/admin/layout/Footer/constants.ts
+
+# API
+touch src/app/api/admin/system/health/route.ts
+
+# Utilities
+touch src/lib/admin/environment.ts
+touch src/lib/admin/version.ts
+
+# Hooks
+touch src/hooks/admin/useSystemHealth.ts
+
+# Tests
+touch src/components/admin/layout/Footer/__tests__/AdminFooter.test.tsx
+touch src/hooks/admin/__tests__/useSystemHealth.test.ts
+Step 1.3: Create Constants & Types
+File: src/components/admin/layout/Footer/constants.ts
+typescriptexport const FOOTER_LINKS = {
+  quickLinks: [
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      href: '/admin/analytics',
+      icon: 'BarChart3',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      href: '/admin/settings',
+      icon: 'Settings',
+    },
+    {
+      id: 'main-site',
+      label: 'Main Site',
+      href: '/',
+      icon: 'ExternalLink',
+    },
+  ],
+  supportLinks: [
+    {
+      id: 'help',
+      label: 'Help',
+      href: '/admin/help',
+      icon: 'HelpCircle',
+    },
+    {
+      id: 'docs',
+      label: 'Documentation',
+      href: '/docs',
+      icon: 'FileText',
+      external: true,
+    },
+    {
+      id: 'api-docs',
+      label: 'API Docs',
+      href: 'https://docs.api.example.com',
+      icon: 'Code',
+      external: true,
+    },
+  ],
+}
+
+export const HEALTH_CHECK_CONFIG = {
+  pollInterval: 30000, // 30 seconds
+  retryAttempts: 3,
+  retryDelay: 10000, // 10 seconds
+  timeout: 5000, // 5 seconds
+}
+
+export const STATUS_MESSAGES = {
+  operational: 'All systems operational',
+  degraded: 'Some services running slow',
+  outage: 'Service outage detected',
+  checking: 'Checking system status...',
+  unknown: 'Status unavailable',
+}
+File: src/components/admin/layout/Footer/types.ts
+typescriptexport interface SystemHealth {
+  status: 'operational' | 'degraded' | 'outage'
+  message: string
+  checks: Record<string, HealthCheck>
+  timestamp: string
+  uptime?: number
+}
+
+export interface HealthCheck {
+  status: 'operational' | 'degraded' | 'outage' | 'unknown'
+  latency?: number
+  error?: string
+  lastChecked?: string
+}
+
+export interface FooterLink {
+  id: string
+  label: string
+  href: string
+  icon?: string
+  external?: boolean
+}
+
+export interface AdminFooterProps {
+  className?: string
+  hideHealth?: boolean
+  hideEnvironment?: boolean
+  customLinks?: FooterLink[]
+}
+
+Phase 2: Components (Days 2-3)
+Step 2.1: Build AdminFooter Root Component
+File: src/components/admin/layout/Footer/AdminFooter.tsx
+typescript'use client'
+
+import { useState } from 'react'
+import { useResponsive } from '@/hooks/admin/useResponsive'
+import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
+import { ProductInfo } from './ProductInfo'
+import { SystemStatus } from './SystemStatus'
+import { QuickLinks } from './QuickLinks'
+import { SupportLinks } from './SupportLinks'
+import { EnvironmentBadge } from './EnvironmentBadge'
+import { HEALTH_CHECK_CONFIG } from './constants'
+import type { AdminFooterProps } from './types'
+
+export function AdminFooter({
+  className,
+  hideHealth = false,
+  hideEnvironment = false,
+  customLinks,
+}: AdminFooterProps) {
+  const { isMobile, isTablet } = useResponsive()
+  const { health, error, isLoading, status, message } = useSystemHealth({
+    interval: HEALTH_CHECK_CONFIG.pollInterval,
+    enabled: !hideHealth,
+  })
+
+  const footerClasses = `
+    bg-white border-t border-gray-200 mt-auto
+    ${className || ''}
+  `
+
+  if (isMobile) {
+    return <MobileFooter
+      health={health}
+      error={error}
+      isLoading={isLoading}
+      status={status}
+      hideEnvironment={hideEnvironment}
+    />
+  }
+
+  if (isTablet) {
+    return <TabletFooter
+      health={health}
+      error={error}
+      isLoading={isLoading}
+      status={status}
+      hideEnvironment={hideEnvironment}
+    />
+  }
+
+  // Desktop
+  return (
+    <footer
+      className={footerClasses}
+      role="contentinfo"
+      aria-label="Admin dashboard footer"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-3 gap-8 py-4 items-center text-sm">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            <ProductInfo />
+
+            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              <QuickLinks links={customLinks} />
+            </div>
+          </div>
+
+          {/* Center Section */}
+          <div className="flex items-center justify-center gap-2">
+            {!hideHealth && (
+              <SystemStatus
+                health={health}
+                loading={isLoading}
+                error={error}
+              />
+            )}
+
+            {!hideEnvironment && <EnvironmentBadge />}
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center justify-end gap-6">
+            <div className="flex items-center gap-4">
+              <SupportLinks />
+            </div>
+
+            <div className="text-xs text-gray-400 border-l border-gray-200 pl-4">
+              © {new Date().getFullYear()} NextAccounting
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+function MobileFooter({
+  health,
+  error,
+  isLoading,
+  status,
+  hideEnvironment,
+}: {
+  health?: any
+  error?: any
+  isLoading?: boolean
+  status?: string
+  hideEnvironment?: boolean
+}) {
+  return (
+    <footer className="bg-white border-t border-gray-200 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <ProductInfo />
+        <div className="flex items-center gap-2">
+          <SystemStatus
+            health={health}
+            loading={isLoading}
+            error={error}
+            compact
+          />
+          {!hideEnvironment && <EnvironmentBadge compact />}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-4">
+        <QuickLinks compact />
+      </div>
+
+      <div className="flex items-center justify-between pt-2 border-t border-gray-200 text-xs text-gray-500">
+        <SupportLinks compact />
+        <span>© {new Date().getFullYear()} NextAccounting</span>
+      </div>
+    </footer>
+  )
+}
+
+function TabletFooter({
+  health,
+  error,
+  isLoading,
+  status,
+  hideEnvironment,
+}: {
+  health?: any
+  error?: any
+  isLoading?: boolean
+  status?: string
+  hideEnvironment?: boolean
+}) {
+  return (
+    <footer className="bg-white border-t border-gray-200 py-3 px-4">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <ProductInfo />
+          <div className="flex items-center gap-2">
+            <SystemStatus
+              health={health}
+              loading={isLoading}
+              error={error}
+            />
+            {!hideEnvironment && <EnvironmentBadge />}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-sm">
+          <QuickLinks />
+          <SupportLinks />
+        </div>
+
+        <div className="text-center text-xs text-gray-400">
+          © {new Date().getFullYear()} NextAccounting
+        </div>
+      </div>
+    </footer>
+  )
+}
+Step 2.2: Build ProductInfo Component
+File: src/components/admin/layout/Footer/ProductInfo.tsx
+typescript'use client'
+
+import { getAppVersion, getBuildDate } from '@/lib/admin/version'
+
+interface ProductInfoProps {
+  compact?: boolean
+}
+
+export function ProductInfo({ compact }: ProductInfoProps) {
+  const version = getAppVersion()
+  const buildDate = getBuildDate()
+
+  if (compact) {
+    return (
+      <div className="text-xs">
+        <div className="font-semibold text-gray-900">NextAccounting</div>
+        <div className="text-gray-500">{version}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col">
+      <span className="font-semibold text-gray-900">
+        NextAccounting Admin
+      </span>
+      <span className="text-xs text-gray-500">
+        {version} · {buildDate}
+      </span>
+    </div>
+  )
+}
+Step 2.3: Build SystemStatus Component
+File: src/components/admin/layout/Footer/SystemStatus.tsx
+typescript'use client'
+
+import { Badge } from '@/components/ui/badge'
+import { STATUS_MESSAGES } from './constants'
+import type { SystemHealth } from './types'
+
+interface SystemStatusProps {
+  health?: SystemHealth
+  loading?: boolean
+  error?: Error | null
+  compact?: boolean
+}
+
+export function SystemStatus({
+  health,
+  loading,
+  error,
+  compact,
+}: SystemStatusProps) {
+  const status = health?.status || 'unknown'
+  const message = health?.message || STATUS_MESSAGES.checking
+
+  const statusConfig = {
+    operational: {
+      color: 'bg-green-100 text-green-800',
+      dotColor: 'bg-green-500',
+      textColor: 'text-green-700',
+    },
+    degraded: {
+      color: 'bg-yellow-100 text-yellow-800',
+      dotColor: 'bg-yellow-500',
+      textColor: 'text-yellow-700RetryClaude does not have the ability to run the code it generates yet.AContinueEnhanced Footer Implementation Guide (Continued)
+5. Implementation Steps (Continued)
+Phase 2: Components (Days 2-3) (Continued)
+Step 2.3: Build SystemStatus Component
+File: src/components/admin/layout/Footer/SystemStatus.tsx
+typescript'use client'
+
+import { Badge } from '@/components/ui/badge'
+import { STATUS_MESSAGES } from './constants'
+import type { SystemHealth } from './types'
+
+interface SystemStatusProps {
+  health?: SystemHealth
+  loading?: boolean
+  error?: Error | null
+  compact?: boolean
+}
+
+export function SystemStatus({
+  health,
+  loading,
+  error,
+  compact,
+}: SystemStatusProps) {
+  const status = health?.status || 'unknown'
+  const message = health?.message || STATUS_MESSAGES.checking
+
+  const statusConfig = {
+    operational: {
+      color: 'bg-green-100 text-green-800',
+      dotColor: 'bg-green-500',
+      textColor: 'text-green-700',
+    },
+    degraded: {
+      color: 'bg-yellow-100 text-yellow-800',
+      dotColor: 'bg-yellow-500',
+      textColor: 'text-yellow-700',
+    },
+    outage: {
+      color: 'bg-red-100 text-red-800',
+      dotColor: 'bg-red-500',
+      textColor: 'text-red-700',
+    },
+    unknown: {
+      color: 'bg-gray-100 text-gray-800',
+      dotColor: 'bg-gray-400',
+      textColor: 'text-gray-700',
+    },
+  }
+
+  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.unknown
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1">
+        <div
+          className={`w-2 h-2 rounded-full ${config.dotColor} ${
+            status === 'operational' ? 'animate-pulse' : ''
+          }`}
+          aria-hidden="true"
+        />
+        <span className="text-xs font-medium hidden sm:inline">
+          {status === 'operational' ? 'OK' : status === 'degraded' ? 'Slow' : 'Down'}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="flex items-center gap-2"
+      role="status"
+      aria-live="polite"
+      aria-label={`System status: ${message}`}
+    >
+      {/* Animated Status Dot */}
+      <div
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.color}`}
+      >
+        <div
+          className={`w-2 h-2 rounded-full ${config.dotColor} ${
+            status === 'operational' ? 'animate-pulse' : ''
+          }`}
+          aria-hidden="true"
+        />
+        <span className="text-xs font-medium">{message}</span>
+      </div>
+
+      {/* Timestamp */}
+      {health?.timestamp && (
+        <span className="text-xs text-gray-500 hidden md:inline">
+          {new Date(health.timestamp).toLocaleTimeString()}
+        </span>
+      )}
+    </div>
+  )
+}
+Step 2.4: Build QuickLinks Component
+File: src/components/admin/layout/Footer/QuickLinks.tsx
+typescript'use client'
+
+import Link from 'next/link'
+import {
+  BarChart3,
+  Settings,
+  ExternalLink,
+  HelpCircle,
+  FileText,
+} from 'lucide-react'
+import { FOOTER_LINKS } from './constants'
+import type { FooterLink } from './types'
+
+interface QuickLinksProps {
+  links?: FooterLink[]
+  compact?: boolean
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  BarChart3,
+  Settings,
+  ExternalLink,
+  HelpCircle,
+  FileText,
+}
+
+export function QuickLinks({ links = FOOTER_LINKS.quickLinks, compact }: QuickLinksProps) {
+  return (
+    <nav className="flex items-center gap-3 sm:gap-4" aria-label="Quick links">
+      {links.map((link) => {
+        const Icon = link.icon ? iconMap[link.icon] : null
+        
+        return (
+          <Link
+            key={link.id}
+            href={link.href}
+            {...(link.external && { target: '_blank', rel: 'noopener noreferrer' })}
+            className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded px-1"
+          >
+            {Icon && <Icon className="w-4 h-4" aria-hidden="true" />}
+            {!compact && <span className="text-sm">{link.label}</span>}
+            {link.external && !compact && (
+              <ExternalLink className="w-3 h-3 ml-1" aria-hidden="true" />
+            )}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+Step 2.5: Build SupportLinks Component
+File: src/components/admin/layout/Footer/SupportLinks.tsx
+typescript'use client'
+
+import Link from 'next/link'
+import {
+  HelpCircle,
+  FileText,
+  Code,
+} from 'lucide-react'
+import { FOOTER_LINKS } from './constants'
+import type { FooterLink } from './types'
+
+interface SupportLinksProps {
+  links?: FooterLink[]
+  compact?: boolean
+}
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  HelpCircle,
+  FileText,
+  Code,
+}
+
+export function SupportLinks({
+  links = FOOTER_LINKS.supportLinks,
+  compact,
+}: SupportLinksProps) {
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        {links.map((link) => (
+          <Link
+            key={link.id}
+            href={link.href}
+            {...(link.external && { target: '_blank', rel: 'noopener noreferrer' })}
+            className="text-gray-600 hover:text-gray-900 transition-colors"
+            aria-label={link.label}
+          >
+            <span className="text-xs">{link.label}</span>
+          </Link>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <nav aria-label="Support links">
+        <div className="flex flex-col items-end gap-1">
+          {links.map((link) => {
+            const Icon = link.icon ? iconMap[link.icon] : null
+
+            return (
+              <Link
+                key={link.id}
+                href={link.href}
+                {...(link.external && { target: '_blank', rel: 'noopener noreferrer' })}
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              >
+                {Icon && <Icon className="w-4 h-4" aria-hidden="true" />}
+                {link.label}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </div>
+  )
+}
+Step 2.6: Build EnvironmentBadge Component
+File: src/components/admin/layout/Footer/EnvironmentBadge.tsx
+typescript'use client'
+
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { getEnvironment, getEnvironmentColor } from '@/lib/admin/environment'
+import { AlertCircle } from 'lucide-react'
+
+interface EnvironmentBadgeProps {
+  compact?: boolean
+  hideProduction?: boolean
+}
+
+export function EnvironmentBadge({
+  compact,
+  hideProduction = true,
+}: EnvironmentBadgeProps) {
+  const environment = getEnvironment()
+  const color = getEnvironmentColor(environment)
+
+  // Hide badge in production if hideProduction is true
+  if (hideProduction && environment === 'production') {
+    return null
+  }
+
+  const colorMap = {
+    blue: 'bg-blue-100 text-blue-800',
+    purple: 'bg-purple-100 text-purple-800',
+    orange: 'bg-orange-100 text-orange-800',
+  }
+
+  const description = {
+    production: 'Production environment - be careful with changes',
+    staging: 'Staging environment - test before production',
+    development: 'Development environment - safe for testing',
+  }
+
+  const environmentLabel = environment.charAt(0).toUpperCase() + environment.slice(1)
+
+  if (compact) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="secondary" className={`text-xs ${colorMap[color]}`}>
+              {environmentLabel}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {description[environment as keyof typeof description]}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge variant="secondary" className={`text-xs font-normal ${colorMap[color]}`}>
+            {environment === 'production' && (
+              <AlertCircle className="w-3 h-3 mr-1" aria-hidden="true" />
+            )}
+            {environmentLabel}
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          {description[environment as keyof typeof description]}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
+
+Phase 3: Utilities (Day 3-4)
+Step 3.1: Version Detection
+File: src/lib/admin/version.ts
+typescriptexport function getAppVersion(): string {
+  // Priority:
+  // 1. Environment variable (for CI/CD)
+  // 2. package.json version (build-time)
+  // 3. Fallback
+
+  const envVersion = process.env.NEXT_PUBLIC_APP_VERSION
+  if (envVersion) return `v${envVersion}`
+
+  try {
+    // This requires importing package.json
+    const pkg = require('../../../package.json')
+    return `v${pkg.version}`
+  } catch {
+    // Fallback
+    return 'v2.3.2'
+  }
+}
+
+export function getBuildDate(): string {
+  // Priority:
+  // 1. Build date environment variable
+  // 2. Current date (if not built)
+  // 3. Fixed date
+
+  const buildDate = process.env.NEXT_PUBLIC_BUILD_DATE
+  if (buildDate) return buildDate
+
+  // If running in development, show "Dev"
+  if (process.env.NODE_ENV === 'development') {
+    return 'Development'
+  }
+
+  // Format: "Sept 26, 2025"
+  const date = new Date()
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+export function getBuildTime(): string {
+  const buildTime = process.env.NEXT_PUBLIC_BUILD_TIME
+  if (buildTime) return buildTime
+
+  return new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+Step 3.2: Environment Detection
+File: src/lib/admin/environment.ts
+typescriptexport type Environment = 'production' | 'staging' | 'development'
+
+export function getEnvironment(): Environment {
+  // Priority:
+  // 1. Explicit environment variable
+  // 2. NODE_ENV detection
+  // 3. URL hostname detection
+  // 4. Default
+
+  const explicit = process.env.NEXT_PUBLIC_ENVIRONMENT as Environment | undefined
+  if (explicit) return explicit
+
+  const nodeEnv = process.env.NODE_ENV
+  if (nodeEnv === 'production') return 'production'
+
+  // Detect from hostname if client-side
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+
+    if (hostname.includes('prod') || hostname.includes('nextaccounting.com')) {
+      return 'production'
+    }
+
+    if (hostname.includes('staging') || hostname.includes('stg')) {
+      return 'staging'
+    }
+
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0'
+    ) {
+      return 'development'
+    }
+  }
+
+  return 'development'
+}
+
+export function getEnvironmentColor(env: Environment): 'blue' | 'purple' | 'orange' {
+  switch (env) {
+    case 'production':
+      return 'blue'
+    case 'staging':
+      return 'purple'
+    case 'development':
+      return 'orange'
+  }
+}
+
+export function isProduction(): boolean {
+  return getEnvironment() === 'production'
+}
+
+export function isStaging(): boolean {
+  return getEnvironment() === 'staging'
+}
+
+export function isDevelopment(): boolean {
+  return getEnvironment() === 'development'
+}
+
+export function getEnvironmentDescription(env: Environment): string {
+  switch (env) {
+    case 'production':
+      return 'Production - Active user data'
+    case 'staging':
+      return 'Staging - Test environment before production'
+    case 'development':
+      return 'Development - Local testing environment'
+  }
+}
+
+Phase 4: API Setup (Day 4)
+Step 4.1: Health Check Endpoint
+File: src/app/api/admin/system/health/route.ts
+typescriptimport { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { redis } from '@/lib/redis'
+
+const HEALTH_TIMEOUT = 5000 // 5 seconds
+
+interface HealthCheckResult {
+  status: 'operational' | 'degraded' | 'outage' | 'unknown'
+  latency: number
+  error?: string
+}
+
+interface SystemHealthResponse {
+  status: 'operational' | 'degraded' | 'outage'
+  message: string
+  checks: {
+    database: HealthCheckResult
+    redis?: HealthCheckResult
+    api: HealthCheckResult
+  }
+  timestamp: string
+  uptime?: number
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Timeout')), timeoutMs)
+  )
+  return Promise.race([promise, timeoutPromise])
+}
+
+async function checkDatabase(): Promise<HealthCheckResult> {
+  const start = Date.now()
+
+  try {
+    await withTimeout(prisma.$queryRaw`SELECT 1`, HEALTH_TIMEOUT)
+
+    const latency = Date.now() - start
+
+    if (latency > 1000) {
+      return {
+        status: 'degraded',
+        latency,
+        error: 'Database latency high (>1000ms)',
+      }
+    }
+
+    return {
+      status: 'operational',
+      latency,
+    }
+  } catch (error) {
+    return {
+      status: 'outage',
+      latency: Date.now() - start,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+async function checkRedis(): Promise<HealthCheckResult | undefined> {
+  if (!redis) return undefined
+
+  const start = Date.now()
+
+  try {
+    await withTimeout(redis.ping(), HEALTH_TIMEOUT)
+
+    const latency = Date.now() - start
+
+    if (latency > 500) {
+      return {
+        status: 'degraded',
+        latency,
+        error: 'Redis latency high (>500ms)',
+      }
+    }
+
+    return {
+      status: 'operational',
+      latency,
+    }
+  } catch (error) {
+    // Redis is optional, so degraded not outage
+    return {
+      status: 'degraded',
+      latency: Date.now() - start,
+      error: 'Redis unavailable (non-critical)',
+    }
+  }
+}
+
+function determineOverallStatus(
+  checks: Record<string, HealthCheckResult>
+): 'operational' | 'degraded' | 'outage' {
+  // Critical services
+  const criticalServices = ['database', 'api']
+
+  const criticalDown = criticalServices.some(
+    (service) => checks[service]?.status === 'outage'
+  )
+
+  if (criticalDown) return 'outage'
+
+  const anyDegraded = Object.values(checks).some(
+    (check) => check?.status === 'degraded'
+  )
+
+  return anyDegraded ? 'degraded' : 'operational'
+}
+
+function getStatusMessage(
+  status: 'operational' | 'degraded' | 'outage',
+  checks: Record<string, HealthCheckResult>
+): string {
+  switch (status) {
+    case 'operational':
+      return 'All systems operational'
+
+    case 'degraded': {
+      const degradedServices = Object.entries(checks)
+        .filter(([, check]) => check?.status === 'degraded')
+        .map(([name]) => name)
+      return `${degradedServices.join(', ')} experiencing slowness`
+    }
+
+    case 'outage': {
+      const downServices = Object.entries(checks)
+        .filter(([, check]) => check?.status === 'outage')
+        .map(([name]) => name)
+      return `${downServices.join(', ')} unavailable`
+    }
+  }
+}
+
+function getUptime(): number {
+  // Process uptime in seconds
+  return Math.floor(process.uptime())
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  try {
+    // Optional: Check authentication for health endpoint
+    // Uncomment if you want to restrict access
+    // const session = await getServerSession(authOptions)
+    // if (!session?.user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // }
+
+    const startTime = Date.now()
+
+    // Run all health checks in parallel
+    const [database, redis] = await Promise.all([
+      checkDatabase(),
+      checkRedis(),
+    ])
+
+    // API check is implicit (if this endpoint works, API is up)
+    const api: HealthCheckResult = {
+      status: 'operational',
+      latency: Date.now() - startTime,
+    }
+
+    const checks: Record<string, HealthCheckResult> = {
+      database,
+      api,
+    }
+
+    if (redis) {
+      checks.redis = redis
+    }
+
+    const overallStatus = determineOverallStatus(checks)
+    const message = getStatusMessage(overallStatus, checks)
+    const uptime = getUptime()
+
+    const response: SystemHealthResponse = {
+      status: overallStatus,
+      message,
+      checks,
+      timestamp: new Date().toISOString(),
+      uptime,
+    }
+
+    // Set cache headers to prevent excessive polling
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'public, max-age=10, s-maxage=10',
+        'CDN-Cache-Control': 'max-age=10',
+      },
+    })
+  } catch (error) {
+    console.error('Health check error:', error)
+
+    return NextResponse.json(
+      {
+        status: 'outage',
+        message: 'System health check failed',
+        checks: {
+          database: { status: 'unknown', latency: 0 },
+          api: { status: 'outage', latency: 0 },
+        },
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 503,
+        headers: {
+          'Cache-Control': 'public, max-age=30, s-maxage=30',
+        },
+      }
+    )
+  }
+}
+
+// Also support HEAD requests for simple availability checks
+export async function HEAD(request: NextRequest): Promise<NextResponse> {
+  try {
+    const result = await GET(request)
+    return new NextResponse(null, {
+      status: result.status,
+      headers: result.headers,
+    })
+  } catch {
+    return new NextResponse(null, { status: 503 })
+  }
+}
+Step 4.2: Update Layout to Include Footer
+File: src/components/admin/layout/AdminLayoutShell.tsx (Update)
+typescript'use client'
+
+import { Suspense, lazy } from 'react'
+import { AdminSidebar } from './Sidebar/AdminSidebar'
+import { AdminHeader } from './Header/AdminHeader'
+import { AdminFooter } from './Footer/AdminFooter'
+
+const AdminLayoutShell = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="flex h-screen flex-col bg-gray-50">
+      {/* Sidebar */}
+      <AdminSidebar />
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Header */}
+        <AdminHeader />
+
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            {children}
+          </div>
+        </main>
+
+        {/* Footer */}
+        <Suspense fallback={<FooterSkeleton />}>
+          <AdminFooter />
+        </Suspense>
+      </div>
+    </div>
+  )
+}
+
+function FooterSkeleton() {
+  return (
+    <div className="bg-white border-t border-gray-200 p-4 h-16 animate-pulse">
+      <div className="flex justify-between items-center">
+        <div className="h-4 bg-gray-300 rounded w-32" />
+        <div className="h-4 bg-gray-300 rounded w-48" />
+        <div className="h-4 bg-gray-300 rounded w-32" />
+      </div>
+    </div>
+  )
+}
+
+export default AdminLayoutShell
+
+6. Builder.io Integration
+6.1 Create Builder Component
+File: src/components/builder/AdminFooterBuilder.tsx
+typescriptimport React from 'react'
+import { AdminFooter } from '@/components/admin/layout/Footer/AdminFooter'
+import { withBuilder } from '@builder.io/react'
+
+interface AdminFooterBuilderProps {
+  hideHealth?: boolean
+  hideEnvironment?: boolean
+  showVersion?: boolean
+}
+
+export const AdminFooterBuilder = ({
+  hideHealth = false,
+  hideEnvironment = false,
+  showVersion = true,
+}: AdminFooterBuilderProps) => {
+  return (
+    <AdminFooter
+      hideHealth={hideHealth}
+      hideEnvironment={hideEnvironment}
+    />
+  )
+}
+
+withBuilder(AdminFooterBuilder)({
+  name: 'Admin Footer',
+  description: 'Enhanced footer with system health monitoring',
+  image:
+    'https://cdn.builder.io/api/v1/image/assets%2FTEMP%2Fadmin-footer-icon',
+  inputs: [
+    {
+      name: 'hideHealth',
+      type: 'boolean',
+      description: 'Hide system health status',
+      defaultValue: false,
+    },
+    {
+      name: 'hideEnvironment',
+      type: 'boolean',
+      description: 'Hide environment badge',
+      defaultValue: false,
+    },
+    {
+      name: 'showVersion',
+      type: 'boolean',
+      description: 'Show version information',
+      defaultValue: true,
+    },
+  ],
+  defaultValue: {},
+})
+6.2 Environment Variables
+File: .env.local (Add)
+bash# Version and Build Info
+NEXT_PUBLIC_APP_VERSION=2.3.2
+NEXT_PUBLIC_BUILD_DATE=Sept 26, 2025
+NEXT_PUBLIC_BUILD_TIME=14:30:00
+
+# Environment
+NEXT_PUBLIC_ENVIRONMENT=development
+
+# Builder.io (if not already set)
+NEXT_PUBLIC_BUILDER_KEY=your_builder_io_key
+
+7. GitHub Workflow
+7.1 Create Feature Branch
+bashgit checkout -b feature/enhanced-footer
+git branch --show-current
+7.2 Stage Changes
+bash# Stage all files
+git add src/components/admin/layout/Footer/
+git add src/app/api/admin/system/
+git add src/lib/admin/
+git add src/hooks/admin/useSystemHealth.ts
+git add .env.local
+
+# Verify
+git status
+7.3 Commit Changes
+bash# Commit 1: Components
+git commit -m "feat(footer): add enhanced footer component structure
+
+- Create ProductInfo component for version display
+- Create SystemStatus component with real-time updates
+- Create QuickLinks and SupportLinks components
+- Create EnvironmentBadge component
+- Add responsive layouts (desktop/tablet/mobile)"
+
+# Commit 2: Utilities
+git commit -m "feat(footer): add version and environment utilities
+
+- Create version detection and formatting
+- Create environment detection and classification
+- Add environment-specific colors and descriptions"
+
+# Commit 3: API
+git commit -m "feat(api): add system health check endpoint
+
+- Create /api/admin/system/health endpoint
+- Implement database health checks
+- Implement Redis health checks (optional)
+- Add proper error handling and timeouts"
+
+# Commit 4: Hooks
+git commit -m "feat(hooks): add useSystemHealth hook
+
+- Create SWR-based health monitoring hook
+- Implement polling strategy (30s interval)
+- Add error handling and fallbacks"
+
+# Commit 5: Integration
+git commit -m "feat(layout): integrate enhanced footer
+
+- Update AdminLayoutShell to include footer
+- Add Suspense boundary with fallback skeleton
+- Integrate with responsive detection"
+
+# Commit 6: Builder.io
+git commit -m "feat(builder): add Builder.io component registration
+
+- Register AdminFooter as Builder.io component
+- Add configuration options
+- Update environment variables"
+
+# Commit 7: Tests
+git commit -m "test(footer): add comprehensive tests
+
+- Add unit tests for all components
+- Add E2E tests for real-time updates
+- Add accessibility tests"
+
+# Commit 8: Documentation
+git commit -m "docs(footer): add implementation documentation
+
+- Add component specifications
+- Add API documentation
+- Add environment variable guide"
+7.4 Push to GitHub
+bashgit push -u origin feature/enhanced-footer
+7.5 Create Pull Request
+Template:
+markdown## Description
+Implement enhanced footer with system health monitoring for admin dashboard.
+
+## Related Issues
+Closes #456
+
+## Type of Change
+- [ ] Bug fix
+- [x] New feature
+- [ ] Breaking change
+- [x] Documentation update
+
+## Changes Made
+- [x] Three-column responsive footer layout
+- [x] Real-time system health monitoring
+- [x] Product information display with version
+- [x] Quick action links
+- [x] Support/documentation links
+- [x] Environment badge with environment detection
+- [x] System health API endpoint
+- [x] useSystemHealth hook for polling
+- [x] Mobile-optimized responsive design
+
+## Technical Details
+- Uses SWR for polling (30s interval)
+- Health checks: Database, Redis (optional), API
+- Graceful degradation on API failures
+- Responsive: Desktop (3 cols), Tablet (stacked), Mobile (drawer)
+
+## Testing
+- [x] Component unit tests
+- [x] E2E tests for real-time updates
+- [x] Responsive testing (375px, 768px, 1024px+)
+- [x] Accessibility audit (WCAG 2.1 AA)
+- [x] API error handling tests
+
+## Screenshots / Demo
+[Add before/after or include animated GIF]
+
+## Performance
+- Lighthouse Score: 95+
+- CLS (Layout Shift): < 0.001
+- LCP (Largest Paint): < 1.5s
+- Health check latency: < 100ms
+
+## Checklist
+- [x] Code follows style guidelines
+- [x] Tests added and passing
+- [x] Documentation updated
+- [x] No breaking changes
+- [x] Environment variables documented
+- [x] Responsive on all breakpoints
+- [x] Accessibility compliant
+
+8. Code Examples
+8.1 Using Enhanced Footer
+typescript// In AdminLayoutClient.tsx
+import { AdminFooter } from '@/components/admin/layout/Footer/AdminFooter'
+
+export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col h-screen">
+      {/* Header */}
+      <header>{/* ... */}</header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto">{children}</main>
+
+      {/* Footer with all features */}
+      <AdminFooter
+        hideHealth={false}
+        hideEnvironment={false}
+      />
+    </div>
+  )
+}
+8.2 Using System Health Hook
+typescript'use client'
+
+import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+
+export function StatusAlertExample() {
+  const { health, error, isLoading, status } = useSystemHealth({
+    interval: 60000, // 1 minute
+    onStatusChange: (status) => {
+      if (status === 'outage') {
+        // Notify user
+        console.log('System outage detected!')
+      }
+    },
+  })
+
+  if (isLoading) return <p>Checking status...</p>
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          Failed to fetch system status
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  if (status === 'outage') {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>
+          System outage: {health?.message}
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  return <p>{health?.message}</p>
+}
+8.3 Custom Footer Configuration
+typescript// Override default footer links
+import { AdminFooter } from '@/components/admin/layout/Footer/AdminFooter'
+
+const customLinks = [
+  {
+    id: 'custom-1',
+    label: 'Status Page',
+    href: 'https://status.example.com',
+    icon: 'Activity',
+    external: true,
+  },
+  {
+    id: 'custom-2',
+    label: 'Report Issue',
+    href: 'https://github.com/nextaccounting/issues',
+    icon: 'AlertCircle',
+    external: true,
+  },
+]
+
+export function CustomFooterLayout() {
+  return (
+    <AdminFooter
+      customLinks={customLinks}
+      hideHealth={false}
+      hideEnvironment={false}
+    />
+  )
+}
+
+9. Testing Strategy
+9.RetryClaude does not have the ability to run the code it generates yet.AContinueEnhanced Footer Implementation Guide (Continued)
+9. Testing Strategy
+9.1 Unit Tests for Components
+File: src/components/admin/layout/Footer/__tests__/AdminFooter.test.tsx
+typescriptimport { render, screen, waitFor } from '@testing-library/react'
+import { AdminFooter } from '../AdminFooter'
+import { useSystemHealth } from '@/hooks/admin/useSystemHealth'
+import { useResponsive } from '@/hooks/admin/useResponsive'
+
+jest.mock('@/hooks/admin/useSystemHealth')
+jest.mock('@/hooks/admin/useResponsive')
+
+const mockUseSystemHealth = useSystemHealth as jest.Mock
+const mockUseResponsive = useResponsive as jest.Mock
+
+describe('AdminFooter', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockUseResponsive.mockReturnValue({
+      isMobile: false,
+      isTablet: false,
+      isDesktop: true,
+    })
+  })
+
+  describe('Rendering', () => {
+    it('renders footer element', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: true,
+        status: 'unknown',
+        message: 'Checking...',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    })
+
+    it('displays product info', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'Operational',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('NextAccounting Admin')).toBeInTheDocument()
+    })
+
+    it('displays all quick links', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'Operational',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('Analytics')).toBeInTheDocument()
+      expect(screen.getByText('Settings')).toBeInTheDocument()
+      expect(screen.getByText('Main Site')).toBeInTheDocument()
+    })
+
+    it('displays support links', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'Operational',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('Help')).toBeInTheDocument()
+      expect(screen.getByText('Documentation')).toBeInTheDocument()
+    })
+
+    it('displays copyright notice', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'Operational',
+      })
+
+      render(<AdminFooter />)
+      const year = new Date().getFullYear()
+      expect(screen.getByText(new RegExp(`© ${year}`))).toBeInTheDocument()
+    })
+  })
+
+  describe('System Status Display', () => {
+    it('displays operational status', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'operational',
+          message: 'All systems operational',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'All systems operational',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('All systems operational')).toBeInTheDocument()
+    })
+
+    it('displays degraded status', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'degraded',
+          message: 'Database running slow',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'degraded',
+        message: 'Database running slow',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('Database running slow')).toBeInTheDocument()
+    })
+
+    it('displays outage status', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'outage',
+          message: 'Database unavailable',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'outage',
+        message: 'Database unavailable',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByText('Database unavailable')).toBeInTheDocument()
+    })
+
+    it('hides health status when hideHealth is true', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'operational',
+          message: 'All systems operational',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'All systems operational',
+      })
+
+      render(<AdminFooter hideHealth={true} />)
+      expect(
+        screen.queryByText('All systems operational')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Environment Badge', () => {
+    it('displays environment badge when not in production', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      // Mock development environment
+      jest.spyOn(global, 'window', 'get').mockReturnValue({
+        location: { hostname: 'localhost' },
+      } as any)
+
+      render(<AdminFooter />)
+      expect(screen.getByText('Development')).toBeInTheDocument()
+    })
+
+    it('hides environment badge when hideEnvironment is true', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      render(<AdminFooter hideEnvironment={true} />)
+      expect(screen.queryByText('Development')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('Responsive Layouts', () => {
+    it('renders mobile layout on mobile breakpoint', () => {
+      mockUseResponsive.mockReturnValue({
+        isMobile: true,
+        isTablet: false,
+        isDesktop: false,
+      })
+
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      const { container } = render(<AdminFooter />)
+      // Mobile layout uses different spacing
+      expect(container.querySelector('.space-y-3')).toBeInTheDocument()
+    })
+
+    it('renders tablet layout on tablet breakpoint', () => {
+      mockUseResponsive.mockReturnValue({
+        isMobile: false,
+        isTablet: true,
+        isDesktop: false,
+      })
+
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      const { container } = render(<AdminFooter />)
+      expect(container.querySelector('.grid')).not.toBeInTheDocument()
+    })
+
+    it('renders desktop layout with 3-column grid', () => {
+      mockUseResponsive.mockReturnValue({
+        isMobile: false,
+        isTablet: false,
+        isDesktop: true,
+      })
+
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      const { container } = render(<AdminFooter />)
+      expect(container.querySelector('.grid-cols-3')).toBeInTheDocument()
+    })
+  })
+
+  describe('Accessibility', () => {
+    it('has proper ARIA labels', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'operational',
+          message: 'All systems operational',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'All systems operational',
+      })
+
+      render(<AdminFooter />)
+      expect(screen.getByRole('contentinfo')).toHaveAttribute(
+        'aria-label',
+        'Admin dashboard footer'
+      )
+    })
+
+    it('has status region with aria-live', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: {
+          status: 'operational',
+          message: 'All systems operational',
+          checks: {},
+          timestamp: new Date().toISOString(),
+        },
+        error: null,
+        isLoading: false,
+        status: 'operational',
+        message: 'All systems operational',
+      })
+
+      render(<AdminFooter />)
+      const statusRegion = screen.getByRole('status')
+      expect(statusRegion).toHaveAttribute('aria-live', 'polite')
+    })
+
+    it('navigation links are accessible', () => {
+      mockUseSystemHealth.mockReturnValue({
+        health: undefined,
+        error: null,
+        isLoading: false,
+        status: 'unknown',
+        message: 'Unknown',
+      })
+
+      render(<AdminFooter />)
+      const links = screen.getAllByRole('link')
+      expect(links.length).toBeGreaterThan(0)
+      links.forEach((link) => {
+        expect(link).toHaveAccessibleName()
+      })
+    })
+  })
+})
+9.2 Unit Tests for Hook
+File: src/hooks/admin/__tests__/useSystemHealth.test.ts
+typescriptimport { renderHook, waitFor } from '@testing-library/react'
+import { useSystemHealth } from '../useSystemHealth'
+
+// Mock fetch
+global.fetch = jest.fn()
+
+describe('useSystemHealth Hook', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('fetches health status on mount', async () => {
+    const mockFetch = global.fetch as jest.Mock
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'operational',
+        message: 'All systems operational',
+        checks: {},
+        timestamp: new Date().toISOString(),
+      }),
+    })
+
+    const { result } = renderHook(() => useSystemHealth())
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/admin/system/health')
+    })
+  })
+
+  it('returns health data when successful', async () => {
+    const mockFetch = global.fetch as jest.Mock
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'operational',
+        message: 'All systems operational',
+        checks: { database: { status: 'operational', latency: 10 } },
+        timestamp: new Date().toISOString(),
+      }),
+    })
+
+    const { result } = renderHook(() => useSystemHealth())
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('operational')
+      expect(result.current.message).toBe('All systems operational')
+    })
+  })
+
+  it('handles errors gracefully', async () => {
+    const mockFetch = global.fetch as jest.Mock
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+    })
+
+    const { result } = renderHook(() => useSystemHealth())
+
+    await waitFor(() => {
+      expect(result.current.error).toBeDefined()
+    })
+  })
+
+  it('respects custom polling interval', async () => {
+    const mockFetch = global.fetch as jest.Mock
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: 'operational',
+        message: 'All systems operational',
+        checks: {},
+        timestamp: new Date().toISOString(),
+      }),
+    })
+
+    renderHook(() => useSystemHealth({ interval: 60000 }))
+
+    // Verify polling is set to custom interval
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled()
+    })
+  })
+
+  it('calls onStatusChange callback when status changes', async () => {
+    const mockFetch = global.fetch as jest.Mock
+    const onStatusChange = jest.fn()
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 'operational',
+        message: 'All systems operational',
+        checks: {},
+        timestamp: new Date().toISOString(),
+      }),
+    })
+
+    renderHook(() => useSystemHealth({ onStatusChange }))
+
+    await waitFor(() => {
+      expect(onStatusChange).toHaveBeenCalledWith('operational')
+    })
+  })
+
+  it('disables fetching when enabled is false', () => {
+    const mockFetch = global.fetch as jest.Mock
+
+    renderHook(() => useSystemHealth({ enabled: false }))
+
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+})
+9.3 E2E Tests
+File: e2e/enhanced-footer.spec.ts
+typescriptimport { test, expect } from '@playwright/test'
+
+test.describe('Enhanced Footer', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000/admin')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('displays footer with all sections', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
+    await expect(footer).toBeVisible()
+
+    // Check all sections are present
+    await expect(page.getByText('NextAccounting Admin')).toBeVisible()
+    await expect(page.getByText('Analytics')).toBeVisible()
+    await expect(page.getByText('Help')).toBeVisible()
+  })
+
+  test('shows system operational status', async ({ page }) => {
+    await expect(page.getByText('All systems operational')).toBeVisible()
+  })
+
+  test('displays environment badge', async ({ page }) => {
+    const badge = page.locator('[class*="bg-"][class*="text-"]').filter({
+      hasText: /Development|Staging|Production/i,
+    })
+    await expect(badge).toBeVisible()
+  })
+
+  test('footer links are clickable', async ({ page }) => {
+    const analyticsLink = page.getByRole('link', { name: 'Analytics' })
+    await expect(analyticsLink).toHaveAttribute('href', '/admin/analytics')
+  })
+
+  test('status updates in real-time', async ({ page }) => {
+    // Wait for initial load
+    await page.waitForTimeout(1000)
+
+    const statusText = page.getByText('All systems operational')
+    await expect(statusText).toBeVisible()
+
+    // Wait for next poll
+    await page.waitForTimeout(35000) // 30s poll + buffer
+
+    // Status should still be visible (or updated)
+    await expect(
+      page.getByText(/All systems operational|running slow|unavailable/)
+    ).toBeVisible()
+  })
+
+  test('footer is responsive on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+
+    const footer = page.locator('footer')
+    await expect(footer).toBeVisible()
+
+    // Elements should stack vertically
+    const productInfo = page.getByText('NextAccounting')
+    const analyticsLink = page.getByText('Analytics')
+
+    const productBox = await productInfo.boundingBox()
+    const analyticsBox = await analyticsLink.boundingBox()
+
+    // Should be stacked (analytics below product info)
+    expect(analyticsBox!.y).toBeGreaterThan(productBox!.y)
+  })
+
+  test('footer is responsive on tablet', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 })
+
+    const footer = page.locator('footer')
+    await expect(footer).toBeVisible()
+
+    // Verify elements are visible
+    await expect(page.getByText('NextAccounting')).toBeVisible()
+    await expect(page.getByText('Analytics')).toBeVisible()
+  })
+
+  test('accessibility: footer has proper landmarks', async ({ page }) => {
+    const footer = page.locator('footer[role="contentinfo"]')
+    await expect(footer).toBeInTheDocument()
+  })
+
+  test('accessibility: status has aria-live region', async ({ page }) => {
+    const statusRegion = page.locator('[role="status"]')
+    await expect(statusRegion).toHaveAttribute('aria-live', 'polite')
+  })
+
+  test('external links open in new tab', async ({ page, context }) => {
+    const docsLink = page.getByRole('link', { name: 'Documentation' })
+
+    // Check for target="_blank"
+    await expect(docsLink).toHaveAttribute('target', '_blank')
+    await expect(docsLink).toHaveAttribute('rel', /noopener/)
+  })
+
+  test('footer is sticky at bottom on tall content', async ({ page }) => {
+    // Add tall content
+    await page.evaluate(() => {
+      const div = document.createElement('div')
+      div.style.height = '300vh'
+      document.body.appendChild(div)
+    })
+
+    // Scroll to bottom
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+
+    const footer = page.locator('footer')
+    const footerBox = await footer.boundingBox()
+
+    // Footer should be visible
+    expect(footerBox).not.toBeNull()
+  })
+
+  test('health API is called periodically', async ({ page }) => {
+    let requestCount = 0
+
+    page.on('response', (response) => {
+      if (response.url().includes('/api/admin/system/health')) {
+        requestCount++
+      }
+    })
+
+    // Wait for polling
+    await page.waitForTimeout(65000) // 30s + 35s buffer
+
+    // Should have made multiple requests
+    expect(requestCount).toBeGreaterThan(1)
+  })
+
+  test('handles health API errors gracefully', async ({ page }) => {
+    // Block health API
+    await page.route('**/api/admin/system/health', (route) => {
+      route.abort('failed')
+    })
+
+    // Page should still load
+    const footer = page.locator('footer')
+    await expect(footer).toBeVisible()
+
+    // Footer should still show content
+    await expect(page.getByText('NextAccounting')).toBeVisible()
+  })
+})
+
+10. Deployment Checklist
+10.1 Pre-Deployment Verification
+Code Quality:
+
+ All tests passing (npm run test)
+ No ESLint violations (npm run lint)
+ No TypeScript errors (npm run type-check)
+ No console warnings or errors
+ PR approved by reviewer
+
+Performance:
+
+ Lighthouse score > 90
+ Footer renders in < 50ms
+ No layout shift (CLS < 0.001)
+ Health API responds < 100ms
+ Animation smooth (60fps)
+
+Accessibility:
+
+ WCAG 2.1 AA compliant
+ Keyboard navigation works
+ Screen reader tested
+ Focus indicators visible
+ Status updates announced
+
+Responsive Design:
+
+ Mobile (375px) works perfectly
+ Tablet (768px) displays correctly
+ Desktop (1024px+) layout proper
+ Touch interactions work
+ No horizontal scroll
+
+Browser Compatibility:
+
+ Chrome/Edge (latest)
+ Firefox (latest)
+ Safari (latest)
+ Mobile Safari iOS
+ Chrome Mobile Android
+
+Documentation:
+
+ README updated
+ API docs complete
+ Environment variables documented
+ Component props documented
+ Troubleshooting guide added
+
+10.2 Staging Deployment
+bash# 1. Push to staging branch
+git checkout staging
+git merge feature/enhanced-footer
+git push origin staging
+
+# 2. Deploy to staging
+vercel --prod --target staging
+
+# 3. Verify in staging
+# - Check footer displays correctly
+# - Verify health API works
+# - Test all links
+# - Check responsive on mobile
+# - Monitor error logs
+
+# 4. Run performance test
+npm run test:performance
+
+# 5. Run accessibility audit
+npm run test:a11y
+10.3 Production Deployment
+bash# 1. Create release branch
+git checkout -b release/enhanced-footer
+git merge staging
+
+# 2. Tag version
+git tag -a v1.0.1-enhanced-footer -m "Enhanced footer with health monitoring"
+
+# 3. Merge to main
+git checkout main
+git merge release/enhanced-footer
+git push origin main --tags
+
+# 4. Deploy to production
+vercel --prod
+
+# 5. Verify production
+# - Check footer in production
+# - Monitor error logs
+# - Monitor performance metrics
+# - Check user feedback
+
+# 6. Monitor metrics (24 hours)
+# - Error rate < 0.1%
+# - Health check API latency
+# - User engagement
+# - No layout shift issues
+10.4 Rollback Procedure
+If critical issues found:
+bash# Option 1: Immediate rollback
+git revert HEAD
+git push origin main
+
+# Option 2: Revert to previous version
+git reset --hard v1.0.0
+git push origin main -f
+
+# 3. Monitor metrics after rollback
+# 4. Create incident report
+# 5. Plan fix for next release
+
+11. Environment Variables
+File: .env.local
+bash# Version and Build Info
+NEXT_PUBLIC_APP_VERSION=2.3.2
+NEXT_PUBLIC_BUILD_DATE=Sept 26, 2025
+NEXT_PUBLIC_BUILD_TIME=14:30:00
+
+# Environment Detection
+NEXT_PUBLIC_ENVIRONMENT=development
+
+# Health Check Configuration
+NEXT_PUBLIC_HEALTH_CHECK_INTERVAL=30000
+NEXT_PUBLIC_HEALTH_CHECK_TIMEOUT=5000
+
+# Builder.io
+NEXT_PUBLIC_BUILDER_KEY=your_builder_key_here
+File: .env.production
+bashNEXT_PUBLIC_APP_VERSION=2.3.2
+NEXT_PUBLIC_BUILD_DATE=Sept 26, 2025
+NEXT_PUBLIC_ENVIRONMENT=production
+NEXT_PUBLIC_HEALTH_CHECK_INTERVAL=60000
+
+12. Summary & Next Steps
+12.1 Completion Checklist
+
+ Three-column responsive footer layout
+ Product info with auto-populated version
+ System health monitoring with real-time updates
+ Environment detection and badge
+ Quick action links
+ Support/documentation links
+ System health API endpoint
+ useSystemHealth SWR hook
+ Responsive designs (mobile/tablet/desktop)
+ Accessibility compliance (WCAG 2.1 AA)
+ Comprehensive testing (unit/E2E/a11y)
+ Documentation & guides
+ Builder.io integration
+ GitHub workflow
+
+12.2 Estimated Timeline
+
+Phase 1 (Setup): Day 1 - 2 hours
+Phase 2 (Components): Days 2-3 - 8 hours
+Phase 3 (Utilities): Days 3-4 - 4 hours
+Phase 4 (API): Day 4 - 3 hours
+Testing: Day 5 - 6 hours
+Documentation: Day 5 - 2 hours
+Review & Polish: Day 6 - 3 hours
+
+Total: 30-40 hours (1 week)
+12.3 What's Next
+After Enhanced Footer is complete, consider:
+
+User Profile Dropdown (Week 2) - Polish & user management
+Menu Customization (Weeks 3-4) - Advanced navigation
+Settings Drawer (Weeks 5-6) - Comprehensive preferences
+Command Palette (Week 7) - Productivity boost

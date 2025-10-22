@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma'
+const getPrisma = async () => (await import('@/lib/prisma')).default as any
 import { tenantContext } from '@/lib/tenant-context'
 
 /**
@@ -21,7 +21,7 @@ export async function withTenantRLS<T>(fn: (tx: any) => Promise<T>, tenantId?: s
   const ctxTenant = tenantId || tenantContext.getContextOrNull()?.tenantId || null
   if (!ctxTenant) throw new Error('withTenantRLS: tenantId missing and no tenant context available')
 
-  return prisma.$transaction(async (tx: any) => {
+  return (await getPrisma()).$transaction(async (tx: any) => {
     await setTenantRLSOnTx(tx, ctxTenant)
     return fn(tx)
   })
@@ -36,7 +36,7 @@ export async function withTenantRLSRead<T>(
   if (!ctxTenant) throw new Error('withTenantRLSRead: tenantId missing and no tenant context available')
   const maxWait = options?.maxWaitMs ?? 5000
   const timeout = options?.timeoutMs ?? 15000
-  return prisma.$transaction(async (tx: any) => {
+  return (await getPrisma()).$transaction(async (tx: any) => {
     await setTenantRLSOnTx(tx, ctxTenant)
     return fn(tx)
   }, { maxWait, timeout } as any)

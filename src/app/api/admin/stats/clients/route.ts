@@ -28,22 +28,22 @@ export const GET = withTenantContext(async () => {
       revenueStats
     ] = await Promise.all([
       // Total clients
-      prisma.user.count({ where: { role: 'CLIENT', tenantId } }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId: tenantId ?? undefined } }),
 
       // Active clients (simplified count - TODO: add proper booking relationship)
-      prisma.user.count({ where: { role: 'CLIENT', tenantId } }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId: tenantId ?? undefined } }),
 
       // New clients this month
-      prisma.user.count({ where: { role: 'CLIENT', tenantId, createdAt: { gte: firstDayOfMonth } } }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId: tenantId ?? undefined, createdAt: { gte: firstDayOfMonth } } }),
 
       // New clients last month (for growth calculation)
-      prisma.user.count({ where: { role: 'CLIENT', tenantId, createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth } } }),
+      prisma.user.count({ where: { role: 'CLIENT', tenantId: tenantId ?? undefined, createdAt: { gte: firstDayOfLastMonth, lt: firstDayOfMonth } } }),
 
       // Booking statistics
-      prisma.booking.aggregate({ _count: true, where: { client: { tenantId } } }),
+      prisma.booking.aggregate({ _count: true, where: { client: { tenantId: tenantId ?? undefined } } }),
 
       // Revenue statistics (using duration as placeholder for totalAmount)
-      prisma.booking.aggregate({ _sum: { duration: true }, where: { client: { tenantId }, status: 'COMPLETED' } })
+      prisma.booking.aggregate({ _sum: { duration: true }, where: { client: { tenantId: tenantId ?? undefined }, status: 'COMPLETED' } })
     ])
 
     // Calculate growth percentage

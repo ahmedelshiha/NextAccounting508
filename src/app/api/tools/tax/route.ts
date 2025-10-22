@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 import { z } from 'zod'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const payload = z.object({
   income: z.number().min(0).max(100_000_000),
@@ -9,7 +10,7 @@ const payload = z.object({
   rate: z.number().min(0).max(100),
 })
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   let body: unknown
   try {
     body = await req.json()
@@ -24,8 +25,8 @@ export async function POST(req: Request) {
   const taxable = Math.max(0, income - deductions)
   const estTax = Math.max(0, taxable * (rate / 100))
   return NextResponse.json({ taxable, estTax })
-}
+}, { requireAuth: false })
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   return NextResponse.json({ schema: 'POST { income:number>=0, deductions?:number>=0, rate:number 0..100 } -> { taxable:number, estTax:number }' })
-}
+}, { requireAuth: false })

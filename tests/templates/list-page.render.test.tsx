@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-mocks/testing-library-react'
 import ListPage from '@/components/dashboard/templates/ListPage'
 
 interface Row { id: number; name: string }

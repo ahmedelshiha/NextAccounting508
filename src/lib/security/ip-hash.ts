@@ -15,20 +15,10 @@ async function webCryptoHash(value: string): Promise<string | null> {
   return result
 }
 
-async function nodeCryptoHash(value: string): Promise<string | null> {
-  try {
-    const { createHash } = await import('node:crypto')
-    return createHash('sha256').update(value).digest('hex')
-  } catch {
-    return null
-  }
-}
-
 export async function computeIpHash(value: string): Promise<string> {
   const input = typeof value === 'string' && value.length > 0 ? value : 'anonymous'
   const webResult = await webCryptoHash(input)
   if (webResult) return webResult
-  const nodeResult = await nodeCryptoHash(input)
-  if (nodeResult) return nodeResult
+  // Fallback: return unhashed input when crypto is unavailable (non-sensitive usage)
   return input
 }

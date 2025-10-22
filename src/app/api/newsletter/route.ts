@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { applyRateLimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit } from '@/lib/audit'
 import { requireAuth, isResponse } from '@/lib/auth-middleware'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -13,7 +14,7 @@ const subscribeSchema = z.object({
 })
 
 // POST /api/newsletter - Subscribe to newsletter
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   try {
     // Basic IP rate limiting for subscribe to prevent abuse: 10 requests / minute per IP
     const ip = getClientIp(request as unknown as Request)
@@ -115,27 +116,19 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if email fails
     }
 
-    return NextResponse.json({
-      message: 'Successfully subscribed to newsletter'
-    }, { status: 201 })
+    return NextResponse.json({ message: 'Successfully subscribed to newsletter' }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
     }
 
     console.error('Newsletter subscription error:', error)
-    return NextResponse.json(
-      { error: 'Failed to subscribe to newsletter' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to subscribe to newsletter' }, { status: 500 })
   }
 }
 
 // GET /api/newsletter - Get newsletter subscriptions (admin only)
-export async function GET(request: NextRequest) {
+const _api_GET = async (request: NextRequest) => {
   // Admin-only access with IP-based rate limiting
   const ip = getClientIp(request as unknown as Request)
   const key = `newsletter:list:${ip}`
@@ -160,9 +153,7 @@ export async function GET(request: NextRequest) {
 
     const subscriptions = await prisma.newsletter.findMany({
       where,
-      orderBy: {
-        createdAt: 'desc'
-      },
+      orderBy: { createdAt: 'desc' },
       take: limit ? parseInt(limit) : undefined,
       skip: skip ? parseInt(skip) : undefined
     })
@@ -172,15 +163,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       subscriptions,
       total,
-      subscribed: await prisma.newsletter.count({
-        where: { subscribed: true }
-      })
+      subscribed: await prisma.newsletter.count({ where: { subscribed: true } })
     })
   } catch (error) {
     console.error('Error fetching newsletter subscriptions:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch newsletter subscriptions' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to fetch newsletter subscriptions' }, { status: 500 })
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

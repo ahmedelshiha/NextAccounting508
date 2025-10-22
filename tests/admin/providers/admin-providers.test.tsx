@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@/test-mocks/testing-library-react'
 import { AdminProviders } from '@/components/admin/providers/AdminProviders'
 
 describe('AdminProviders', () => {

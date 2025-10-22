@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable } from '@/lib/observability-helpers'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 
 // GET /api/cron/telemetry
 // Protected endpoint that returns recent telemetry for reminder runs.
 // Auth: requires Authorization: Bearer <CRON_SECRET> (or NEXT_CRON_SECRET)
-export async function GET(req: Request) {
+const _api_GET = async (req: Request) => {
   try {
     const authHeader = req.headers.get('authorization') || ''
     const cronSecret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET || ''
@@ -100,3 +101,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

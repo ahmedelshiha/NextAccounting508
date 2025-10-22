@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { getResolvedTenantId, userByTenantEmail } from '@/lib/tenant'
 import { logAudit } from '@/lib/audit'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,13 +23,10 @@ function hasDatabase(): boolean {
  * Creates a new user in the resolved tenant and assigns CLIENT role by default.
  * Requires a configured database. When DB is absent, returns 503 to signal disabled registration.
  */
-export async function POST(request: NextRequest) {
+const _api_POST = async (request: NextRequest) => {
   // Refuse in environments without DB
   if (!hasDatabase()) {
-    return NextResponse.json(
-      { success: false, error: 'Registration is disabled (no database configured)' },
-      { status: 503 }
-    )
+    return NextResponse.json({ success: false, error: 'Registration is disabled (no database configured)' }, { status: 503 })
   }
 
   let body: RegisterPayload = {}
@@ -43,10 +41,7 @@ export async function POST(request: NextRequest) {
   const password = typeof body.password === 'string' ? body.password : ''
 
   if (!email || !password || password.length < 6) {
-    return NextResponse.json(
-      { success: false, error: 'Invalid input: email and password (>= 6 chars) are required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: 'Invalid input: email and password (>= 6 chars) are required' }, { status: 400 })
   }
 
   try {
@@ -73,21 +68,18 @@ export async function POST(request: NextRequest) {
   } catch (err: any) {
     const code = String(err?.code || '')
     if (code === 'P2002') {
-      return NextResponse.json(
-        { success: false, error: 'An account with this email already exists' },
-        { status: 409 }
-      )
+      return NextResponse.json({ success: false, error: 'An account with this email already exists' }, { status: 409 })
     }
-    return NextResponse.json(
-      { success: false, error: 'Registration failed' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Registration failed' }, { status: 500 })
   }
 }
 
 /**
  * Optional: document the expected payload.
  */
-export async function GET() {
+const _api_GET = async () => {
   return NextResponse.json({ schema: 'POST { name?:string, email:string, password:string(min 6) }' })
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })
+export const GET = withTenantContext(_api_GET, { requireAuth: false })

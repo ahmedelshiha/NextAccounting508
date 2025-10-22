@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from 'react'
 import { useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,10 @@ export function ROICalculator() {
 
   const fmt = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'USD' })
 
+  const idCost = React.useId()
+  const idMonthly = React.useId()
+  const idMonths = React.useId()
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -32,16 +37,16 @@ export function ROICalculator() {
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           <div>
-            <label className="text-sm text-gray-700">Service Cost</label>
-            <Input value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" />
+            <label htmlFor={idCost} className="text-sm text-gray-700">Service Cost</label>
+            <Input id={idCost} value={cost} onChange={(e) => setCost(e.target.value)} inputMode="decimal" />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Monthly Benefit</label>
-            <Input value={monthlyBenefit} onChange={(e) => setMonthlyBenefit(e.target.value)} inputMode="decimal" />
+            <label htmlFor={idMonthly} className="text-sm text-gray-700">Monthly Benefit</label>
+            <Input id={idMonthly} value={monthlyBenefit} onChange={(e) => setMonthlyBenefit(e.target.value)} inputMode="decimal" />
           </div>
           <div>
-            <label className="text-sm text-gray-700">Months</label>
-            <Input value={months} onChange={(e) => setMonths(e.target.value)} inputMode="numeric" />
+            <label htmlFor={idMonths} className="text-sm text-gray-700">Months</label>
+            <Input id={idMonths} value={months} onChange={(e) => setMonths(e.target.value)} inputMode="numeric" />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

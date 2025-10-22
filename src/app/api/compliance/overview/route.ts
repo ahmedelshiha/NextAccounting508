@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   return NextResponse.json({
     success: true,
     data: {
@@ -22,4 +23,4 @@ export async function GET() {
       ]
     }
   })
-}
+}, { requireAuth: false })

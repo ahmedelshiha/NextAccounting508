@@ -5,6 +5,7 @@ import PermissionGate from '@/components/PermissionGate'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { PERMISSIONS } from '@/lib/permissions'
 import { TextField, Toggle, NumberField, SelectField } from '@/components/admin/settings/FormField'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 const tabs = [
   { key: 'templates', label: 'Templates' },
@@ -133,6 +134,7 @@ export default function TaskWorkflowSettingsPage(){
           <PermissionGate permission={PERMISSIONS.TASK_WORKFLOW_SETTINGS_EDIT}>
             <button onClick={onSave} disabled={saving || Object.keys(pending).length===0} className="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400">Save Changes</button>
           </PermissionGate>
+          <FavoriteToggle settingKey="taskWorkflow" route="/admin/settings/tasks" label="Task & Workflow" />
         </div>
       )}>
         <div className="px-4">

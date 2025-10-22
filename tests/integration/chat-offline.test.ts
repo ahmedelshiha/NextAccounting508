@@ -38,8 +38,8 @@ describe('chat offline enqueue/flush', () => {
       expect(json?.ok).toBe(true)
     }
 
-    // Verify backlog contains the messages
-    const list = chatBacklog.list(undefined, 50)
+    // Verify backlog contains the messages for tenant (test environment uses tenant from context)
+    const list = chatBacklog.list('test-tenant', 50)
     const texts = list.map((m: any) => m.text)
     expect(texts).toEqual(expect.arrayContaining(messages))
 

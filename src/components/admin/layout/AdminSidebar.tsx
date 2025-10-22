@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { 
+import {
   BarChart3,
   Calendar,
   Users,
@@ -14,7 +14,6 @@ import {
   Receipt,
   CheckSquare,
   TrendingUp,
-  Settings,
   UserCog,
   Shield,
   Upload,
@@ -27,14 +26,16 @@ import {
   DollarSign,
   Clock,
   Target,
-  Building,
-  Zap
+  Building
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useUnifiedData } from '@/hooks/useUnifiedData'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import SETTINGS_REGISTRY from '@/lib/settings/registry'
 import useRovingTabIndex from '@/hooks/useRovingTabIndex'
+import SidebarHeader from './SidebarHeader'
+import SidebarFooter from './SidebarFooter'
+import { useSidebarCollapsed, useSidebarActions } from '@/stores/admin/layout.store.selectors'
 
 interface NavigationItem {
   name: string
@@ -60,125 +61,15 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  const collapsedEffective = typeof isCollapsedProp === 'boolean' ? isCollapsedProp : (typeof collapsed === 'boolean' ? collapsed : false)
-
-  // Persisted sidebar width (desktop)
+  // Fixed sidebar width (desktop) - resizing disabled
   const DEFAULT_WIDTH = 256
   const COLLAPSED_WIDTH = 64
-  const MIN_WIDTH = 160
-  const MAX_WIDTH = 420
 
-  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-    try {
-      if (typeof window === 'undefined') return DEFAULT_WIDTH
-      const raw = window.localStorage.getItem('admin:sidebar:width')
-      if (raw) {
-        const parsed = parseInt(raw, 10)
-        if (!Number.isNaN(parsed)) return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, parsed))
-      }
-    } catch (e) {}
-    return DEFAULT_WIDTH
-  })
-
-  const [isDragging, setIsDragging] = useState(false)
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null)
-  const resizerRef = useRef<HTMLDivElement | null>(null)
-
-  // Save width
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:width', String(sidebarWidth))
-    } catch (e) {}
-  }, [sidebarWidth])
-
-  useEffect(() => {
-    function onMouseMove(e: MouseEvent) {
-      if (!dragRef.current) return
-      const dx = e.clientX - dragRef.current.startX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
-    }
-    function onMouseUp() {
-      if (isDragging) setIsDragging(false)
-      dragRef.current = null
-      document.body.style.cursor = ''
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-    }
-    if (isDragging) {
-      document.addEventListener('mousemove', onMouseMove)
-      document.addEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = 'col-resize'
-    }
-    return () => {
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-      document.body.style.cursor = ''
-    }
-  }, [isDragging])
-
-  // Touch support
-  useEffect(() => {
-    function onTouchMove(e: TouchEvent) {
-      if (!dragRef.current) return
-      const touch = e.touches[0]
-      const dx = touch.clientX - dragRef.current.startX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragRef.current.startWidth + dx))
-      setSidebarWidth(newWidth)
-    }
-    function onTouchEnd() {
-      if (isDragging) setIsDragging(false)
-      dragRef.current = null
-      document.removeEventListener('touchmove', onTouchMove)
-      document.removeEventListener('touchend', onTouchEnd)
-    }
-    if (isDragging) {
-      document.addEventListener('touchmove', onTouchMove)
-      document.addEventListener('touchend', onTouchEnd)
-    }
-    return () => {
-      document.removeEventListener('touchmove', onTouchMove)
-      document.removeEventListener('touchend', onTouchEnd)
-    }
-  }, [isDragging])
-
-  const startDrag = (clientX: number) => {
-    if (collapsedEffective) return
-    dragRef.current = { startX: clientX, startWidth: sidebarWidth }
-    setIsDragging(true)
-  }
-
-  const onResizerMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    startDrag(e.clientX)
-  }
-  const onResizerTouchStart = (e: React.TouchEvent) => {
-    startDrag(e.touches[0].clientX)
-  }
-
-  const onResizerKeyDown = (e: React.KeyboardEvent) => {
-    if (collapsedEffective) return
-    if (e.key === 'ArrowLeft') {
-      setSidebarWidth(w => Math.max(MIN_WIDTH, w - 16))
-    } else if (e.key === 'ArrowRight') {
-      setSidebarWidth(w => Math.min(MAX_WIDTH, w + 16))
-    } else if (e.key === 'Home') {
-      setSidebarWidth(MIN_WIDTH)
-    } else if (e.key === 'End') {
-      setSidebarWidth(MAX_WIDTH)
-    }
-  }
-
-  // Expand/collapse based on width threshold
-  useEffect(() => {
-    try {
-      if (sidebarWidth <= 80) {
-        if (typeof window !== 'undefined') window.localStorage.setItem('admin:sidebar:collapsed', '1')
-      } else {
-        if (typeof window !== 'undefined') window.localStorage.removeItem('admin:sidebar:collapsed')
-      }
-    } catch (e) {}
-  }, [sidebarWidth])
+  // Integrate with centralized Zustand store where available. Fall back to legacy localStorage keys for migration.
+  // Use selectors to read/write collapsed state.
+  // Always use store values for state; props are legacy compatibility only
+  const storeCollapsed = useSidebarCollapsed()
+  const { setCollapsed: storeSetCollapsed } = useSidebarActions()
 
   // Fetch notification counts for badges
   const { data: counts } = useUnifiedData({
@@ -242,13 +133,6 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         { name: 'Chat', href: '/admin/chat', icon: Mail },
         { name: 'Reminders', href: '/admin/reminders', icon: Bell },
       ]
-    },
-    {
-      section: 'system',
-      items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, children: [] },
-        { name: 'Cron Telemetry', href: '/admin/cron-telemetry', icon: Zap },
-      ]
     }
   ]
 
@@ -291,85 +175,70 @@ export default function AdminSidebar(props: AdminSidebarProps) {
     const isActive = isActiveRoute(item.href)
     const hasChildren = item.children && item.children.length > 0
     const isExpanded = expandedSections.includes(item.href.split('/').pop() || '')
-    const isSettingsParent = item.href === '/admin/settings'
+
+    const baseStyles = `
+      transition-all duration-200 flex items-center rounded-lg font-medium relative
+      group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
+    `
+
+    const expandedItemStyles = `
+      w-full px-3 py-1.5 text-sm
+      ${isActive
+        ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
+        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200'
+      }
+    `
+
+    const collapsedItemStyles = `
+      w-10 h-10 flex items-center justify-center flex-shrink-0
+      ${isActive
+        ? 'bg-blue-100 text-blue-600'
+        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+      }
+    `
 
     return (
       <li key={item.href}>
         <div className="relative">
           {hasChildren ? (
-            isSettingsParent ? (
-              <div
-                aria-expanded={true}
-                data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => toggleSection(item.href.split('/').pop() || '')}
-                aria-expanded={isExpanded}
-                aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
-                data-roving
-                {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-                className={`
-                  w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                  }
-                  ${depth > 0 ? 'ml-4' : ''}
-                `}
-              >
-                <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                {!collapsedEffective && (
-                  <>
-                    <span className="flex-1 text-left">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-2">
-                        {item.badge}
-                      </Badge>
-                    )}
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    )}
-                  </>
-                )}
-              </button>
-            )
+            <button
+              onClick={() => toggleSection(item.href.split('/').pop() || '')}
+              aria-expanded={isExpanded}
+              aria-controls={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`}
+              data-roving
+              {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+              className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
+            >
+              <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+              {!storeCollapsed && (
+                <>
+                  <span className="flex-1 text-left">{item.name}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="ml-2">
+                      {item.badge}
+                    </Badge>
+                  )}
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  )}
+                </>
+              )}
+            </button>
           ) : (
             <Link
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               onClick={isMobile ? onClose : undefined}
               data-roving
-              {...(collapsedEffective ? { 'aria-label': item.name, title: item.name } : {})}
-              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg group transition-colors ${isActive ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-500' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'} ${depth > 0 ? 'ml-4' : ''}`}
+              {...(storeCollapsed ? { 'aria-label': item.name, title: item.name } : {})}
+              className={`${baseStyles} ${storeCollapsed ? collapsedItemStyles : expandedItemStyles} ${depth > 0 ? 'ml-4' : ''}`}
             >
-              <item.icon className={`flex-shrink-0 h-5 w-5 mr-3 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-              {!collapsedEffective && (
+              <item.icon className={`flex-shrink-0 h-5 w-5 ${storeCollapsed ? '' : 'mr-3'} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+              {!storeCollapsed && (
                 <>
-                  <span className="flex-1">{item.name}</span>
+                  <span className="flex-1 text-left">{item.name}</span>
                   {item.badge && (
                     <Badge variant="secondary" className="ml-2">{item.badge}</Badge>
                   )}
@@ -379,7 +248,7 @@ export default function AdminSidebar(props: AdminSidebarProps) {
           )}
         </div>
 
-        {hasChildren && (isSettingsParent || isExpanded) && !collapsedEffective && (
+        {hasChildren && isExpanded && !storeCollapsed && (
           <ul id={`nav-${(item.href.split('/').pop() || '').replace(/[^a-zA-Z0-9_-]/g, '')}`} className="mt-1 space-y-1" role="group" aria-label={`${item.name} submenu`}>
             {item.children!.map(child => renderNavigationItem(child, depth + 1))}
           </ul>
@@ -391,11 +260,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
   const roving = useRovingTabIndex()
 
   // Sidebar positioning classes preserved
-  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-150 flex`
+  const baseSidebarClasses = `fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col`
 
-  const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-transform' : ''
+  const mobileSidebarClasses = isMobile ? 'fixed inset-y-0 left-0 z-50 bg-white shadow-xl transform transition-transform duration-300 ease-in-out' : ''
 
-  const effectiveWidth = collapsedEffective ? COLLAPSED_WIDTH : sidebarWidth
+  const effectiveWidth = storeCollapsed ? COLLAPSED_WIDTH : DEFAULT_WIDTH
 
   return (
     <>
@@ -408,30 +277,22 @@ export default function AdminSidebar(props: AdminSidebarProps) {
         role="navigation"
         aria-label="Admin sidebar"
         className={`${baseSidebarClasses} ${isMobile ? mobileSidebarClasses : ''}`}
-        style={{ width: `${effectiveWidth}px` }}
+        style={{ width: `${effectiveWidth}px`, transition: 'width 300ms ease-in-out' }}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="flex items-center h-16 px-4 border-b border-gray-200">
-            <Building className="h-8 w-8 text-blue-600" />
-            {!collapsedEffective && (
-              <div className="ml-3">
-                <h1 className="text-lg font-semibold text-gray-900">NextAccounting</h1>
-                <p className="text-xs text-gray-500">Admin Portal</p>
-              </div>
-            )}
-          </div>
+          <SidebarHeader collapsed={storeCollapsed} />
 
-          <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto" role="navigation" aria-label="Admin sidebar">
+          <nav className={`flex-1 overflow-y-auto transition-all duration-300 ${storeCollapsed ? 'px-2 py-3 space-y-2' : 'px-4 py-4 space-y-4'}`} role="navigation" aria-label="Admin sidebar">
             {navigation.map(section => {
               const sectionItems = section.items.filter(item => hasAccess(item.permission))
               if (sectionItems.length === 0) return null
 
               return (
                 <div key={section.section}>
-                  {!collapsedEffective && (
-                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.section}</h3>
+                  {!storeCollapsed && (
+                    <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{section.section}</h3>
                   )}
-                  <ul className="space-y-1" ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
+                  <ul className={`${storeCollapsed ? 'space-y-1' : 'space-y-1'}`} ref={(el) => { try { if (el) (roving.setContainer as any)(el as any); } catch{} }} onKeyDown={(e:any) => { try { (roving.handleKeyDown as any)(e.nativeEvent || e); } catch{} }}>
                     {sectionItems.map(item => renderNavigationItem(item))}
                   </ul>
                 </div>
@@ -439,31 +300,11 @@ export default function AdminSidebar(props: AdminSidebarProps) {
             })}
           </nav>
 
-          {!collapsedEffective && (
-            <div className="p-4 border-t border-gray-200">
-              <Link href="/admin/help" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100" onClick={isMobile ? onClose : undefined}>
-                <HelpCircle className="h-5 w-5 mr-3 text-gray-400" />
-                Help & Support
-              </Link>
-            </div>
-          )}
+          <SidebarFooter collapsed={storeCollapsed} isMobile={isMobile} onClose={onClose} />
         </div>
 
         {/* Resizer - only on desktop and when not collapsed */}
-        {!isMobile && !collapsedEffective && (
-          <div
-            ref={resizerRef}
-            role="separator"
-            aria-orientation="vertical"
-            tabIndex={0}
-            aria-valuenow={Math.round(sidebarWidth)}
-            onKeyDown={onResizerKeyDown}
-            onMouseDown={onResizerMouseDown}
-            onTouchStart={onResizerTouchStart}
-            className={`absolute top-0 right-0 h-full w-2 -mr-1 cursor-col-resize z-40`}>
-            <div className={`h-full w-0.5 mx-auto bg-transparent hover:bg-gray-200`}></div>
-          </div>
-        )}
+        {/* Resizer disabled - fixed width sidebar */}
       </div>
     </>
   )

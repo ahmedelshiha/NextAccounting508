@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { captureErrorIfAvailable, logAuditSafe } from '@/lib/observability-helpers'
 import { sendBookingReminders } from '@/lib/cron'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 export const runtime = 'nodejs'
 
 // POST /api/cron/reminders
 // Protected cron endpoint that scans upcoming confirmed appointments and sends reminders.
-export async function POST(req: Request) {
+const _api_POST = async (req: Request) => {
   try {
     const secret = process.env.CRON_SECRET || process.env.NEXT_CRON_SECRET
     const header = req.headers.get('x-cron-secret') || ''
@@ -37,3 +38,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+export const POST = withTenantContext(_api_POST, { requireAuth: false })

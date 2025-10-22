@@ -34,6 +34,10 @@ vi.mock('@/lib/rate-limit', async () => {
 })
 vi.mock('@/lib/tenant', () => ({ getTenantFromRequest: () => null, tenantFilter: () => ({}) }))
 
+// Apply service-requests bootstrap
+import setupServiceRequests from './setup/serviceRequests.setup'
+setupServiceRequests()
+
 const calls: any[] = []
 
 const mkItem = (id: string, createdAt: string, scheduledAt?: string) => ({

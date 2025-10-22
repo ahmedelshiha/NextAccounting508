@@ -5,6 +5,12 @@ import Link from 'next/link'
 import type { ActionItem, IconType } from '@/types/dashboard'
 import { validateActionItem, devValidateProps } from '@/utils/actionItemValidator'
 
+const ICON_CLASS = 'w-4 h-4'
+const REACT_FORWARD_REF = typeof Symbol === 'function' ? Symbol.for('react.forward_ref') : null
+const REACT_MEMO = typeof Symbol === 'function' ? Symbol.for('react.memo') : null
+
+const mergeIconClass = (existing?: string) => [ICON_CLASS, existing].filter(Boolean).join(' ')
+
 // Helper to render icon (handles both IconType and ReactNode)
 const renderIcon = (icon?: IconType | React.ReactNode) => {
   if (!icon) return null
@@ -13,27 +19,24 @@ const renderIcon = (icon?: IconType | React.ReactNode) => {
     // If it's a function (IconType), render it as a component
     if (typeof icon === 'function') {
       const Icon = icon as IconType
-      // Validate that it's a proper React component
       if (Icon && typeof Icon === 'function') {
-        return <Icon className="w-4 h-4" />
+        return <Icon className={ICON_CLASS} />
       }
     }
-    
-    // If it's a valid React element, render it
+
+    // If it's a valid React element, clone to ensure we apply sizing styles consistently
     if (React.isValidElement(icon)) {
-      return icon
+      const element = icon as React.ReactElement<{ className?: string }>
+      return React.cloneElement(element, { className: mergeIconClass(element.props.className) })
     }
-    
-    // Enhanced validation: detect React element objects (common error #31 cause)
+
+    // Handle forwardRef/memo exotic component wrappers
     if (icon && typeof icon === 'object' && '$$typeof' in (icon as any)) {
-      console.error('PageHeader: React element object passed as icon instead of component reference', {
-        iconType: typeof icon,
-        iconKeys: Object.keys(icon as any),
-        hasRender: 'render' in (icon as any),
-        hasDisplayName: 'displayName' in (icon as any),
-        icon
-      })
-      return null
+      const marker = (icon as any).$$typeof
+      if ((marker === REACT_FORWARD_REF || marker === REACT_MEMO) && typeof (icon as any).render === 'function') {
+        const ExoticIcon = icon as unknown as React.ComponentType<{ className?: string }>
+        return React.createElement(ExoticIcon, { className: ICON_CLASS })
+      }
     }
 
     // If it's a string or number, don't render it as an icon

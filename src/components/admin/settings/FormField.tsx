@@ -65,6 +65,7 @@ export function SelectField({
 }
 
 export function Toggle({ label, value, onChange, disabled = false }: { label: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean }){
+  const id = React.useId()
   const handleClick = () => {
     if (disabled) return
     onChange(!value)
@@ -73,10 +74,11 @@ export function Toggle({ label, value, onChange, disabled = false }: { label: st
   return (
     <div className="mb-4 flex items-center justify-between">
       <div>
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">{label}</label>
       </div>
       <div>
         <button
+          id={id}
           type="button"
           onClick={handleClick}
           aria-pressed={value}

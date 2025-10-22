@@ -9,6 +9,7 @@ import { useSearchParams } from 'next/navigation'
 import Tabs from '@/components/admin/settings/Tabs'
 import PermissionGate from '@/components/PermissionGate'
 import { PERMISSIONS } from '@/lib/permissions'
+import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
 
 const GeneralTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/GeneralTab'))
 const ContactTab = nextDynamic(() => import('@/components/admin/settings/groups/Organization/ContactTab'))
@@ -30,7 +31,7 @@ function CompanySettingsContent(){
   useEffect(()=>{
     const t = searchParams.get('tab')
     if (t && tabList.some(tab=>tab.key===t)) setActiveTab(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   },[])
   const [showImport, setShowImport] = useState(false)
   const [importData, setImportData] = useState<any>(null)
@@ -65,6 +66,7 @@ function CompanySettingsContent(){
           <PermissionGate permission={PERMISSIONS.ORG_SETTINGS_IMPORT}>
             <button onClick={()=>{ setImportData(null); setShowImport(true) }} className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Import</button>
           </PermissionGate>
+          <FavoriteToggle settingKey="organization" route="/admin/settings/company" label="Organization Settings" />
         </div>
       )}
     >

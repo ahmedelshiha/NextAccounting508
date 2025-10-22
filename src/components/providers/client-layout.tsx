@@ -12,6 +12,9 @@ const LiveChatWidget = dynamic(() => import('@/components/portal/LiveChatWidget'
 import AccessibleRouteAnnouncer from './RouteAnnouncer'
 import PerfMetricsReporter from '@/components/dashboard/PerfMetricsReporter'
 import { useOrgSettings } from '@/components/providers/SettingsProvider'
+import { useSidebarKeyboardShortcuts } from '@/hooks/admin/useSidebarKeyboardShortcuts'
+import { useSidebarState, useSidebarActions } from '@/stores/admin/layout.store.selectors'
+import SidebarLiveRegion from '@/components/admin/layout/SidebarLiveRegion'
 
 interface ClientLayoutProps {
   children: React.ReactNode
@@ -229,9 +232,63 @@ export function ClientLayout({ children, session, orgName, orgLogoUrl, contactEm
   const showPortalChat = pathname?.startsWith('/portal') || false
   const isAdminRoute = pathname?.startsWith('/admin') || false
 
+  // Ensure dark theme is only applied within admin dashboard
+  useEffect(() => {
+    try {
+      if (!isAdminRoute && typeof document !== 'undefined') {
+        document.documentElement.classList.remove('dark')
+      }
+    } catch {}
+  }, [isAdminRoute])
+
+  // Global sidebar keyboard shortcuts
+  useSidebarKeyboardShortcuts()
+
+  // Sidebar persistence: load from server on auth and sync updates
+  const { collapsed: storeCollapsed, width: storeWidth, expandedGroups: storeExpanded } = useSidebarState()
+  const { setCollapsed: storeSetCollapsed, setWidth: storeSetWidth, setExpandedGroups: storeSetExpanded } = useSidebarActions()
+
+  // Load preferences from server on session available
+  React.useEffect(() => {
+    let mounted = true
+    if (!session?.user) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/admin/sidebar-preferences')
+        if (!mounted) return
+        if (!res.ok) return
+        const json = await res.json()
+        const data = json?.data || json
+        if (!data) return
+        if (typeof data.collapsed === 'boolean') storeSetCollapsed(Boolean(data.collapsed))
+        if (typeof data.width === 'number') storeSetWidth(Number(data.width))
+        if (Array.isArray(data.expandedGroups)) storeSetExpanded(data.expandedGroups)
+      } catch (e) {
+        // ignore - fallback to localStorage is already handled by store migration
+      }
+    })()
+    return () => { mounted = false }
+  }, [session?.user, storeSetCollapsed, storeSetWidth, storeSetExpanded])
+
+  // Persist changes to server when authenticated
+  React.useEffect(() => {
+    if (!session?.user) return
+    const payload = { collapsed: storeCollapsed, width: storeWidth, expandedGroups: storeExpanded }
+    const t = setTimeout(() => {
+      fetch('/api/admin/sidebar-preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {})
+    }, 250)
+    return () => clearTimeout(t)
+  }, [session?.user, storeCollapsed, storeWidth, storeExpanded,])
+
   return (
     <SessionProvider session={session as any} refetchOnWindowFocus={false} refetchInterval={0}>
       <AccessibleRouteAnnouncer />
+      {/* Announce sidebar collapse/expand changes for screen reader users */}
+      <SidebarLiveRegion />
       <div className="min-h-screen flex flex-col">
         {/* 
           CRITICAL NAVIGATION CONFLICT RESOLUTION:

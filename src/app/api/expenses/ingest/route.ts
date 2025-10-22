@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const Fields = z.object({
   merchant: z.string().min(1).max(120),
@@ -20,7 +21,7 @@ const Payload = z.object({
   fields: Fields
 })
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   let body: unknown
   try {
     body = await req.json()
@@ -45,8 +46,8 @@ export async function POST(req: Request) {
       file: { name: fileName, contentType, size }
     }
   })
-}
+}, { requireAuth: false })
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   return NextResponse.json({ schema: 'POST { fileName:string, contentType:string, size:number<=8MB, fields:{ merchant,date, total, tax, currency, category, notes? } } -> { success, data:{ id, fields, file } }' })
-}
+}, { requireAuth: false })

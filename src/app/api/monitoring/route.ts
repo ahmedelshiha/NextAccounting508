@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withTenantContext } from '@/lib/api-wrapper'
 
 // Proxy incoming requests from client SDK to Sentry ingest endpoint.
 // This allows using a relative tunnel path (/monitoring) from the browser
@@ -20,7 +21,7 @@ function buildSentryEndpointFromDsn(dsn: string | undefined) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withTenantContext(async (request: NextRequest) => {
   const dsn = process.env.SENTRY_DSN
   const endpoint = buildSentryEndpointFromDsn(dsn)
   if (!endpoint) {
@@ -44,9 +45,9 @@ export async function POST(request: NextRequest) {
     console.error('Error proxying to Sentry:', err)
     return NextResponse.json({ error: 'Failed to proxy to Sentry' }, { status: 502 })
   }
-}
+}, { requireAuth: false })
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   // Health check
   return NextResponse.json({ ok: true })
-}
+}, { requireAuth: false })

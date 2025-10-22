@@ -5,6 +5,10 @@ vi.mock('@/lib/auth', () => ({ authOptions: {} }))
 vi.mock('@/lib/permissions', () => ({ hasPermission: () => true, PERMISSIONS: {} }))
 vi.mock('@/lib/tenant', () => ({ getTenantFromRequest: () => 't1', tenantFilter: () => ({ tenantId: 't1' }) }))
 
+// Apply service-requests bootstrap
+import setupServiceRequests from '../setup/serviceRequests.setup'
+setupServiceRequests()
+
 const db: any = { srs: [] as any[] }
 
 vi.mock('@/lib/prisma', () => ({
