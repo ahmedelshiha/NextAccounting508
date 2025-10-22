@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getTenantIdFromRequest } from '@/lib/auth/tenant'
-import { requirePermission } from '@/lib/permissions'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 
 /**
  * GET /api/admin/translations/status
@@ -13,15 +13,14 @@ import { requirePermission } from '@/lib/permissions'
  * - Recently added keys
  * - User distribution by language
  */
-export async function GET(request: NextRequest) {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = await getTenantIdFromRequest(request)
-    if (!tenantId) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !ctx.tenantId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check permission
-    await requirePermission('SETTINGS_LANGUAGES_MANAGE', request)
+    const tenantId = ctx.tenantId
 
     // Get all translation keys for this tenant
     const allKeys = await prisma.translationKey.findMany({
@@ -88,4 +87,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
