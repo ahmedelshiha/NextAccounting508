@@ -110,6 +110,22 @@ export default function TranslationDashboardPage() {
         </Card>
       )}
 
+      {/* Analytics Trends */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Translation Coverage Trends
+          </CardTitle>
+          <CardDescription>
+            Historical coverage trends over time
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TranslationAnalyticsChart />
+        </CardContent>
+      </Card>
+
       {/* User Distribution */}
       {status && (
         <Card>
