@@ -277,6 +277,21 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       })
     } catch {}
 
+    // Add Sentry breadcrumb for monitoring preference updates
+    try {
+      Sentry.addBreadcrumb({
+        category: 'user.preferences',
+        message: 'User preferences updated',
+        level: 'info',
+        data: {
+          userId: user.id,
+          tenantId: tid,
+          fieldsUpdated: Object.keys(validationResult.data),
+          success: true,
+        },
+      })
+    } catch {}
+
     const reminderHoursArray = Array.isArray(updatedProfile.reminderHours)
       ? (updatedProfile.reminderHours as number[])
       : [24, 2]
