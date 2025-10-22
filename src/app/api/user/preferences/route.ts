@@ -155,12 +155,30 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       // Check per-IP rate limit
       const ipRateLimit = await applyRateLimit(`user:preferences:put:ip:${ip}`, 20, 60_000)
       if (ipRateLimit && ipRateLimit.allowed === false) {
+        // Add breadcrumb for rate limit hit
+        try {
+          Sentry.addBreadcrumb({
+            category: 'rate_limit',
+            message: 'User preferences rate limit exceeded (IP)',
+            level: 'warning',
+            data: { ip, userId, tenantId: tid },
+          })
+        } catch {}
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
 
       // Check per-user rate limit (more lenient to avoid blocking legitimate users on shared IPs)
       const userRateLimit = await applyRateLimit(`user:preferences:put:user:${userId}`, 40, 60_000)
       if (userRateLimit && userRateLimit.allowed === false) {
+        // Add breadcrumb for rate limit hit
+        try {
+          Sentry.addBreadcrumb({
+            category: 'rate_limit',
+            message: 'User preferences rate limit exceeded (user)',
+            level: 'warning',
+            data: { userId, tenantId: tid },
+          })
+        } catch {}
         return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
       }
     } catch {}
