@@ -724,18 +724,20 @@ export default function LocalizationContent() {
                       {lang.name}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <TextField
-                        label="Date Format"
-                        value={regionalFormats[lang.code]?.dateFormat || 'MM/DD/YYYY'}
-                        onChange={v => {
-                          setRegionalFormats(p => ({
-                            ...p,
-                            [lang.code]: { ...p[lang.code], dateFormat: v },
-                          }))
-                        }}
-                        placeholder="MM/DD/YYYY"
-                        description="e.g., DD/MM/YYYY, YYYY-MM-DD"
-                      />
+                      <div>
+                        <TextField
+                          label="Date Format"
+                          value={regionalFormats[lang.code]?.dateFormat || 'MM/DD/YYYY'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: { ...p[lang.code], dateFormat: v },
+                            }))
+                          }}
+                          placeholder="MM/DD/YYYY"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">e.g., DD/MM/YYYY, YYYY-MM-DD</p>
+                      </div>
                       <TextField
                         label="Time Format"
                         value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
@@ -747,19 +749,20 @@ export default function LocalizationContent() {
                         }}
                         placeholder="HH:MM AM"
                       />
-                      <TextField
-                        label="Currency Code"
-                        value={regionalFormats[lang.code]?.currencyCode || 'USD'}
-                        onChange={v => {
-                          setRegionalFormats(p => ({
-                            ...p,
-                            [lang.code]: { ...p[lang.code], currencyCode: v },
-                          }))
-                        }}
-                        placeholder="USD"
-                        maxLength={3}
-                        description="ISO 4217 code"
-                      />
+                      <div>
+                        <TextField
+                          label="Currency Code"
+                          value={regionalFormats[lang.code]?.currencyCode || 'USD'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: { ...p[lang.code], currencyCode: v },
+                            }))
+                          }}
+                          placeholder="USD"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">ISO 4217 code (max 3 chars)</p>
+                      </div>
                     </div>
                   </div>
                 ))}
