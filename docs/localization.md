@@ -674,4 +674,871 @@ All critical security controls, validation, and error handling are in place. Sys
 
 ---
 
-**End of Audit Document**
+## 14. Comprehensive Enhancement Plan (2025-2026)
+
+### Overview
+
+Based on the audit findings, this section outlines a strategic enhancement plan to evolve the localization system from a working Phase 1 implementation to a scalable, feature-rich, enterprise-grade i18n solution. The plan is organized into 5 phases spanning 6-12 months, with clear dependencies, success metrics, and implementation guides.
+
+**Goals:**
+- ✅ Support 10+ languages with data-driven configuration
+- ✅ Enable collaborative translation workflows
+- ✅ Improve UX for timezone selection
+- ✅ Add advanced i18n features (pluralization, gender agreement)
+- ✅ Implement server-side translation rendering
+- ✅ Build translation analytics and monitoring
+- ✅ Automate translation key discovery
+
+---
+
+### 14.1 Phase 1→2 Transition (Immediate: Weeks 1-4)
+
+**Goal:** Make language expansion easier; reduce barriers to adding new languages.
+
+#### 14.1.1 Task: Data-Driven Language Configuration
+
+**Current State:** Languages hardcoded in 5 files (tedious to add new languages).
+
+**Implementation:**
+
+1. **Create Language Registry Database Table**
+   ```sql
+   CREATE TABLE languages (
+     code VARCHAR(10) PRIMARY KEY,
+     name VARCHAR(100) NOT NULL,
+     nativeName VARCHAR(100) NOT NULL,
+     direction VARCHAR(3) DEFAULT 'ltr',
+     flag VARCHAR(5),
+     enabled BOOLEAN DEFAULT true,
+     bcp47Locale VARCHAR(10) NOT NULL,
+     createdAt TIMESTAMP DEFAULT NOW(),
+     updatedAt TIMESTAMP DEFAULT NOW()
+   );
+   ```
+
+2. **Prisma Migration**
+   - Create migration in `prisma/migrations/`
+   - Add Language model to schema
+
+3. **Create Language Configuration Service**
+   - File: `src/lib/language-registry.ts`
+   - Export: `getLanguages()`, `getLanguageByCode()`, `isLanguageEnabled()`
+   - Caching: Use Redis or in-memory cache with 1-hour TTL
+   - Fallback: If DB unavailable, use hardcoded config from JSON file
+
+4. **Update Validation Schema**
+   - File: `src/schemas/user-profile.ts`
+   - Replace hardcoded enum with dynamic validation:
+     ```typescript
+     export function createLanguageValidator(enabledLanguages: string[]) {
+       return z.enum(enabledLanguages as [string, ...string[]])
+     }
+     ```
+
+5. **Update Components**
+   - `src/lib/i18n.ts`: Load locales from registry instead of hardcoded array
+   - `src/components/admin/profile/constants.ts`: Fetch LANGUAGES from service
+   - `src/components/ui/language-switcher.tsx`: Use dynamic locale config
+
+**Success Metrics:**
+- ✅ Adding a new language requires only creating translation JSON + 1 DB insert
+- ✅ No code changes needed to enable/disable languages
+- ✅ Admin interface allows non-developers to manage languages
+- ✅ All tests pass with dynamic config
+
+**Dependencies:** None (standalone refactor)
+**Estimated Effort:** 8-12 hours
+**Blockers:** None
+
+---
+
+#### 14.1.2 Task: Admin Language Management UI
+
+**Current State:** No admin interface for language management; manual DB updates required.
+
+**Implementation:**
+
+1. **Create Admin Page**
+   - File: `src/app/admin/settings/languages/page.tsx`
+   - Features:
+     - List all languages with status (enabled/disabled)
+     - Toggle enable/disable per language
+     - Add new language form (code, name, native name, direction, BCP47 locale)
+     - Delete language (with validation: prevent deletion if users have it set)
+     - Edit language details
+
+2. **API Endpoints**
+   - `GET /api/admin/languages` - List all languages
+   - `POST /api/admin/languages` - Create language
+   - `PUT /api/admin/languages/[code]` - Update language
+   - `DELETE /api/admin/languages/[code]` - Delete language
+   - `PATCH /api/admin/languages/[code]/toggle` - Enable/disable
+
+3. **Permission Gating**
+   - Require `SETTINGS_LANGUAGES_MANAGE` permission
+   - Add permission to admin roles via `src/lib/permissions.ts`
+
+4. **Validation & Safety**
+   - Prevent deletion of default language (`en`)
+   - Warn if deleting language with active users
+   - Validate BCP47 locale format
+   - Check translation file exists before enabling
+
+5. **Database Triggers**
+   - On language disable: Log to audit trail
+   - On language add: Create notification for translation team
+
+**Success Metrics:**
+- ✅ Admin can manage languages via UI (no direct DB access)
+- ✅ Audit trail shows all language changes
+- ✅ Proper permission checks prevent unauthorized changes
+- ✅ Users cannot be left with orphaned language choice
+
+**Dependencies:** 14.1.1 (Language Registry)
+**Estimated Effort:** 12-16 hours
+**Blockers:** None
+
+---
+
+#### 14.1.3 Task: Enhanced Timezone Selector UX
+
+**Current State:** Dropdown shows 400+ raw IANA codes (confusing for users).
+
+**Implementation:**
+
+1. **Choose Library**
+   - Option A: `date-fns-tz` (lightweight, treeshakeable) — **RECOMMENDED**
+   - Option B: `moment-timezone` (heavier, more features)
+   - Decision: Use `date-fns-tz` + custom helpers for offset display
+
+2. **Create Timezone Utility**
+   - File: `src/lib/timezone-helper.ts`
+   - Export:
+     ```typescript
+     interface TimezoneOption {
+       code: string
+       label: string
+       offset: string
+       cities: string[]
+       abbreviation: string
+     }
+
+     getTimezonesWithOffsets(): TimezoneOption[]
+     getTimezoneOffset(code: string): string
+     getTimezonesByRegion(region: string): TimezoneOption[]
+     searchTimezones(query: string): TimezoneOption[] // Fuzzy search
+     ```
+
+3. **Update Timezone Selector Component**
+   - File: `src/components/admin/profile/LocalizationTab.tsx`
+   - Features:
+     - Searchable/filterable dropdown (Combobox)
+     - Display: `[UTC+5:30] Asia/Kolkata (India Standard Time)`
+     - Group by region (Americas, Europe, Asia, etc.)
+     - Keyboard navigation
+     - Recently used timezones at top
+
+4. **API Endpoint**
+   - `GET /api/admin/timezones` - Returns all timezones with offsets
+   - Cached for 24 hours
+   - Includes abbreviations (EST, IST, etc.)
+
+5. **Testing**
+   - Test timezone search with various queries
+   - Test offset calculation for DST edge cases
+   - Performance test with 400+ options
+
+**Success Metrics:**
+- ✅ Users can find correct timezone within 3 keystrokes
+- ✅ Offset displayed clearly (e.g., UTC+5:30)
+- ✅ Load time <500ms even with 400+ options
+- ✅ Mobile-friendly layout
+
+**Dependencies:** None
+**Estimated Effort:** 10-14 hours
+**Blockers:** None
+
+---
+
+### 14.2 Phase 2: Advanced i18n Features (Weeks 5-8)
+
+**Goal:** Support complex translation patterns (pluralization, gender, context).
+
+#### 14.2.1 Task: Pluralization Support
+
+**Current State:** No pluralization; message templates don't vary by count.
+
+**Implementation Options:**
+
+**Option A: Lightweight Custom Implementation** (Recommended for Phase 2.1)
+```typescript
+// Translation file structure
+{
+  "messages.items": {
+    "one": "You have {{count}} item",
+    "other": "You have {{count}} items"
+  }
+}
+
+// Hook usage
+t('messages.items', { count: 5 }) // "You have 5 items"
+t('messages.items', { count: 1 }) // "You have 1 item"
+```
+
+**Option B: i18next Integration** (Phase 3 after stabilizing Phase 2)
+
+1. **Implement Custom Pluralization Logic**
+   - File: `src/lib/i18n-plural.ts`
+   - Export: `getPluralForm(count, locale)` → returns `'one' | 'other' | 'few'`
+   - Use CLDR plural rules: English (one/other), Arabic (zero/one/two/few/many/other), Hindi (one/other)
+
+2. **Update Translation Structure**
+   - Refactor JSON keys to support plurals:
+     ```json
+     {
+       "cart.items.one": "1 item in cart",
+       "cart.items.other": "{{count}} items in cart"
+     }
+     ```
+   - Maintain backward compatibility with non-plural keys
+
+3. **Update useTranslations Hook**
+   - Enhance `t(key, params)` to detect plural forms
+   - Auto-select correct form based on `count` param
+
+4. **Update All Locale Files**
+   - Add plural variants for keys with counts
+   - Example: `hero.stats.clients.one`, `hero.stats.clients.other`
+
+**Success Metrics:**
+- ✅ Pluralization works for all 3 supported locales
+- ✅ CLDR plural rules correctly applied
+- ✅ Backward compatible with existing keys
+- ✅ Test coverage for pluralization
+
+**Dependencies:** None
+**Estimated Effort:** 12-16 hours
+**Blockers:** None
+
+---
+
+#### 14.2.2 Task: Gender-Aware Translations
+
+**Current State:** No gender agreement (important for Arabic where adjectives change).
+
+**Implementation:**
+
+1. **Support Gender Parameter**
+   - Update `t(key, params)` to accept `gender` in params
+   - Structure: `message.greeting.male`, `message.greeting.female`, `message.greeting.neutral`
+
+2. **Locale-Specific Rules**
+   - Arabic (ar): Support masculine, feminine, dual
+   - Hindi (hi): Support masculine, feminine, neuter
+   - English (en): Single form (no gender)
+
+3. **Update Hooks & Components**
+   ```typescript
+   const t = (key: string, params?: { count?: number; gender?: 'male' | 'female' | 'neutral' }) => {
+     // Auto-select form based on gender and locale pluralization rules
+   }
+   ```
+
+4. **Translation File Structure**
+   ```json
+   {
+     "greeting.welcome.male": "Welcome, Mr. {{name}}",
+     "greeting.welcome.female": "Welcome, Ms. {{name}}",
+     "greeting.welcome": "Welcome, {{name}}" // fallback for neutral
+   }
+   ```
+
+**Success Metrics:**
+- ✅ Arabic translations use gender-aware forms
+- ✅ Hindi translations use gender-aware forms
+- ✅ Graceful fallback for unsupported genders
+
+**Dependencies:** None
+**Estimated Effort:** 10-12 hours
+**Blockers:** None
+
+---
+
+#### 14.2.3 Task: Namespace/Grouping Support
+
+**Current State:** All 1000+ keys in single flat object (difficult to navigate).
+
+**Implementation:**
+
+1. **Refactor Translation File Structure**
+   - Current: `{ "nav.home": "Home", "nav.about": "About" }`
+   - New: `{ "nav": { "home": "Home", "about": "About" } }`
+   - Use dot notation in keys: `nav.home`
+
+2. **Update Loader**
+   - File: `src/lib/i18n.ts`
+   - Flatten nested objects on load for backward compatibility
+   - Support both nested and flat key access
+
+3. **Update Linter/Validator**
+   - Script to validate namespace structure consistency
+   - Ensure all translation files follow same namespace hierarchy
+
+**Success Metrics:**
+- ✅ Translation files organized by feature/section
+- ✅ Backward compatible with existing key access
+- ✅ Easier to find and manage related translations
+
+**Dependencies:** None (can be parallel with Phase 2.1-2.2)
+**Estimated Effort:** 8-10 hours
+**Blockers:** None
+
+---
+
+### 14.3 Phase 3: Server-Side & Performance (Weeks 9-12)
+
+**Goal:** Optimize translation delivery, server-side rendering, and caching.
+
+#### 14.3.1 Task: Server-Side Translation Loading
+
+**Current State:** Translations loaded client-side; flash of untranslated content for slow clients.
+
+**Implementation:**
+
+1. **Create Server-Side Translation Loader**
+   - File: `src/lib/server/translations.ts` (server-only module)
+   - Export: `getServerTranslations(locale: Locale): Promise<Record<string, string>>`
+   - Load from JSON on server during render
+
+2. **Update App Layout**
+   - File: `src/app/layout.tsx`
+   - Load translations server-side before rendering children
+   - Pass to client via context/props to avoid duplicate fetches
+
+3. **Update TranslationProvider**
+   - Check if translations already loaded on server
+   - Skip loading if already present in props
+   - Prevents double-loading
+
+4. **Server Component Support**
+   - Create `useServerTranslations()` utility for server components
+   - Allows server-side JSX to use translations
+
+**Success Metrics:**
+- ✅ No flash of untranslated content (FOUC)
+- ✅ Faster Time to Interactive (TTI)
+- ✅ Client-side translation loading only used as fallback
+
+**Dependencies:** React 19+ with server components (or continue with current async approach)
+**Estimated Effort:** 10-14 hours
+**Blockers:** May require Next.js version consideration
+
+---
+
+#### 14.3.2 Task: Translation Caching Strategy
+
+**Current State:** No caching headers; browsers fetch JSON on every load.
+
+**Implementation:**
+
+1. **Add Cache Headers to Translation Endpoints**
+   - Create API route: `GET /api/translations/[locale].json`
+   - Set headers: `Cache-Control: public, max-age=86400, immutable` (24 hours)
+   - Versioning: Add version hash in URL: `/api/translations/en@v1.0.0.json`
+
+2. **CDN Integration**
+   - Upload static translation JSON to CDN (Vercel Edge, Cloudflare Workers)
+   - Serve from closest edge location
+   - Invalidate on translation updates
+
+3. **Service Worker Caching**
+   - Precache translation files in service worker
+   - Fallback to cache-first strategy
+   - Background update on app open
+
+4. **Browser Cache**
+   - Use localStorage as backup cache layer
+   - Store hash of current translation version
+   - Revalidate on app update
+
+**Success Metrics:**
+- ✅ Translation JSON cached for 24 hours
+- ✅ Repeat visits serve from cache/edge
+- ✅ <100ms load time after first visit
+
+**Dependencies:** None (works with current setup)
+**Estimated Effort:** 8-10 hours
+**Blockers:** None
+
+---
+
+#### 14.3.3 Task: Integrate Translation Platform API
+
+**Current State:** Manual translation updates; no collaborative workflow.
+
+**Implementation (Crowdin Example):**
+
+1. **Choose Platform**
+   - Recommended: **Crowdin** (best-in-class, generous free tier, great CI/CD)
+   - Alternative: Lokalise, Phrase, Transifex
+
+2. **Create Crowdin Project**
+   - Upload `en.json` as source language
+   - Add ar.json, hi.json as target languages
+   - Invite translators/reviewers
+
+3. **Build CI/CD Pipeline**
+   - On `src/app/locales/en.json` change: Upload to Crowdin
+   - On translation completion: Pull updated JSON to repo
+   - Automated PR with translation updates
+
+4. **API Integration**
+   - File: `src/lib/crowdin-sync.ts`
+   - Export: `syncTranslations()` - Fetch updated translations from Crowdin
+   - Export: `uploadSourceLanguage()` - Upload new/changed keys
+   - Scheduled daily sync via cron
+
+5. **Create Admin Dashboard**
+   - Show translation progress per language
+   - List missing/untranslated keys
+   - Allow admin to kick off manual sync
+
+**Success Metrics:**
+- ✅ Translators can work in Crowdin UI
+- ✅ Translations auto-synced to repo
+- ✅ Translation progress tracked centrally
+- ✅ No manual JSON editing required
+
+**Dependencies:** Crowdin account (free tier available)
+**Estimated Effort:** 16-20 hours
+**Blockers:** None
+
+---
+
+### 14.4 Phase 4: Analytics & Automation (Weeks 13-16)
+
+**Goal:** Gain visibility into translation completeness and automatically discover missing keys.
+
+#### 14.4.1 Task: Translation Management Dashboard
+
+**Current State:** No central view of translation status; hard to track coverage.
+
+**Implementation:**
+
+1. **Create Admin Dashboard Page**
+   - File: `src/app/admin/translations/dashboard/page.tsx`
+   - Displays:
+     - Overall translation coverage % per language
+     - List of incomplete languages with % complete
+     - Recently added translation keys (last 7 days)
+     - Untranslated keys count
+     - Translation velocity (keys translated per week)
+     - Sync status with Crowdin (if integrated)
+
+2. **Database Table: TranslationKey**
+   ```sql
+   CREATE TABLE translation_keys (
+     id SERIAL PRIMARY KEY,
+     key VARCHAR(255) UNIQUE NOT NULL,
+     namespace VARCHAR(100),
+     en_translated BOOLEAN DEFAULT true,
+     ar_translated BOOLEAN DEFAULT false,
+     hi_translated BOOLEAN DEFAULT false,
+     last_updated TIMESTAMP,
+     added_at TIMESTAMP DEFAULT NOW()
+   );
+   ```
+
+3. **API Endpoints**
+   - `GET /api/admin/translations/status` - Coverage stats per language
+   - `GET /api/admin/translations/missing` - List untranslated keys
+   - `GET /api/admin/translations/recent` - Recently added keys
+
+4. **Charts & Visualizations**
+   - Translation progress bar per language
+   - Trend line: coverage over time
+   - Heatmap: which sections have lowest coverage
+
+**Success Metrics:**
+- ✅ Admin can see translation status at a glance
+- ✅ Identify which languages are lagging
+- ✅ Track progress trends over weeks/months
+
+**Dependencies:** 14.1.1 (Language Registry)
+**Estimated Effort:** 12-16 hours
+**Blockers:** None
+
+---
+
+#### 14.4.2 Task: Automated Translation Key Discovery
+
+**Current State:** Manual process to find missing translation keys in code.
+
+**Implementation:**
+
+1. **Create AST Scanner**
+   - File: `scripts/discover-translation-keys.ts`
+   - Scan codebase for patterns:
+     ```typescript
+     t('nav.home')
+     t("nav.about")
+     useTranslations() -> t(...)
+     ```
+   - Use regex + simple parser
+
+2. **Extract Keys**
+   - Parse React components, utils, API routes
+   - Find all `t('key')` calls
+   - Extract key names
+
+3. **Compare with Translation Files**
+   - Load all translation keys from JSON files
+   - Identify missing keys (in code but not in JSON)
+   - Identify orphaned keys (in JSON but not in code)
+
+4. **Generate Reports**
+   - File: `translation-key-audit.json`
+   - Lists:
+     - Missing keys needing translation entries
+     - Orphaned keys that can be removed
+     - New keys not yet translated to ar, hi
+
+5. **CI/CD Integration**
+   - Run on every PR
+   - Fail build if new keys added without translations
+   - Comment on PR with audit results
+
+**Success Metrics:**
+- ✅ No translation keys missed
+- ✅ Orphaned keys automatically identified
+- ✅ Build prevents incomplete translations
+
+**Dependencies:** None
+**Estimated Effort:** 10-14 hours
+**Blockers:** None
+
+---
+
+#### 14.4.3 Task: Translation Analytics
+
+**Current State:** No metrics on language usage, untranslated key rates.
+
+**Implementation:**
+
+1. **Database Table: TranslationMetrics**
+   ```sql
+   CREATE TABLE translation_metrics (
+     id SERIAL PRIMARY KEY,
+     date DATE,
+     language VARCHAR(10),
+     total_keys INT,
+     translated_keys INT,
+     users_with_locale INT,
+     avg_key_coverage DECIMAL(5,2),
+     created_at TIMESTAMP DEFAULT NOW()
+   );
+   ```
+
+2. **Collect Metrics (Cron Job)**
+   - Daily cron: Calculate coverage % per language
+   - Count users per language from UserProfile
+   - Store trends in database
+
+3. **API Endpoints**
+   - `GET /api/admin/translations/analytics` - Metrics dashboard data
+   - `GET /api/admin/translations/analytics/trends` - Historical data
+
+4. **Visualizations**
+   - Coverage trend line (week/month view)
+   - User distribution pie chart (which languages used most)
+   - Untranslated key heatmap (by section)
+   - Daily new keys rate
+
+5. **Alerts**
+   - Email alert if coverage drops below 80%
+   - Alert if new keys added but not translated
+
+**Success Metrics:**
+- ✅ Track translation quality trends
+- ✅ Identify languages needing attention
+- ✅ Show ROI of translation efforts
+
+**Dependencies:** 14.4.1 (Dashboard)
+**Estimated Effort:** 12-16 hours
+**Blockers:** None
+
+---
+
+### 14.5 Phase 5: Quality & Testing (Weeks 17-20)
+
+**Goal:** Ensure translation quality and prevent regressions.
+
+#### 14.5.1 Task: Comprehensive Test Coverage
+
+**Current State:** Basic tests exist; gaps in coverage for complex scenarios.
+
+**Implementation:**
+
+1. **Expand Unit Tests**
+   - File: `tests/lib/i18n.test.ts`
+   - Test cases:
+     - Locale switching and persistence
+     - Parameter substitution with edge cases
+     - Fallback to key when translation missing
+     - RTL/LTR direction changes
+     - Browser language detection
+     - Timezone validation
+     - Language enum validation
+
+2. **Integration Tests**
+   - Test full preference update flow (UI → API → DB)
+   - Test pluralization with various counts
+   - Test gender-aware translations
+   - Test namespace access patterns
+
+3. **E2E Tests**
+   - Language switcher updates document.dir
+   - Language preference persists across page reloads
+   - Timezone selector works with 400+ options
+   - Admin language management create/delete/toggle
+
+4. **Performance Tests**
+   - Translation loading time (<500ms)
+   - Timezone search with 400+ options (<100ms)
+   - Re-render on locale change is not excessive
+
+5. **Accessibility Tests**
+   - RTL layout properly rendered
+   - Language selector keyboard navigable
+   - ARIA labels present for language choice
+
+**Success Metrics:**
+- ✅ >95% code coverage for i18n library
+- ✅ All critical user flows tested
+- ✅ Performance benchmarks met
+
+**Dependencies:** All previous phases
+**Estimated Effort:** 16-20 hours
+**Blockers:** None
+
+---
+
+#### 14.5.2 Task: Translation Quality Assurance
+
+**Current State:** No automated QA for translation quality (typos, length, context).
+
+**Implementation:**
+
+1. **Create QA Rules Engine**
+   - File: `scripts/validate-translations.ts`
+   - Rules:
+     - No key appears in its own translation
+     - Parameter placeholders present in both EN and translated versions
+     - Character length within ±30% of English version
+     - No HTML entities in translations
+     - No dangling quotes or brackets
+     - RTL markers present in Arabic text if needed
+
+2. **Integration with CI/CD**
+   - Run on PR to validate translation changes
+   - Fail build if quality issues found
+   - List violations with locations
+
+3. **Translation Style Guide**
+   - Document translation conventions
+   - Example: How to format numbers, dates
+   - Tone/voice guidelines per language
+   - Context examples for ambiguous keys
+
+4. **Translator Tools**
+   - Export context alongside keys (usage examples)
+   - Highlight dependencies (other keys that must match)
+   - Provide glossary of technical terms
+
+**Success Metrics:**
+- ✅ Zero typos in committed translations
+- ✅ Consistent terminology across keys
+- ✅ Translations fit in UI (length validated)
+
+**Dependencies:** 14.4.2 (Key Discovery)
+**Estimated Effort:** 12-16 hours
+**Blockers:** None
+
+---
+
+#### 14.5.3 Task: Regression Testing for Localization
+
+**Current State:** Localization not tested as part of regular CI pipeline.
+
+**Implementation:**
+
+1. **Add Localization Test Matrix**
+   - Test all features with all 3+ supported languages
+   - Example tests:
+     - Booking flow in Arabic (RTL)
+     - Invoice generation in Hindi (date/number formatting)
+     - Email preview in all locales
+     - Admin dashboard in all languages
+
+2. **Visual Regression Testing**
+   - Screenshot comparison for each locale
+   - Detect broken layouts in RTL
+   - Verify text doesn't overflow
+
+3. **Automated Language Switching**
+   - E2E test that switches languages mid-session
+   - Verify UI updates without reload
+   - Check localStorage persistence
+
+4. **Missing Key Detection**
+   - Test that missing keys don't break app
+   - Verify fallback behavior
+   - Alert on missing keys in production
+
+**Success Metrics:**
+- ✅ All features work in all supported languages
+- ✅ No layout breakage in RTL
+- ✅ Missing keys don't crash app
+
+**Dependencies:** All previous phases
+**Estimated Effort:** 14-18 hours
+**Blockers:** None
+
+---
+
+### 14.6 Implementation Roadmap Timeline
+
+```
+Q4 2025 (Weeks 1-4)
+├── Phase 1→2 Transition
+│   ├── 14.1.1 Data-Driven Language Config (Week 1-2)
+│   ├── 14.1.2 Admin Language Management UI (Week 2-3)
+│   └── 14.1.3 Enhanced Timezone Selector (Week 3-4)
+│
+Q1 2026 (Weeks 5-12)
+├── Phase 2: Advanced i18n Features
+│   ├── 14.2.1 Pluralization Support (Week 5-6)
+│   ├── 14.2.2 Gender-Aware Translations (Week 6-7)
+│   └── 14.2.3 Namespace Support (Week 7-8)
+│
+├── Phase 3: Server-Side & Performance (Weeks 9-12)
+│   ├── 14.3.1 Server-Side Translation Loading (Week 9-10)
+│   ├── 14.3.2 Translation Caching Strategy (Week 10-11)
+│   └── 14.3.3 Translation Platform Integration (Week 11-12)
+│
+Q2 2026 (Weeks 13-20)
+├── Phase 4: Analytics & Automation (Weeks 13-16)
+│   ├── 14.4.1 Translation Management Dashboard (Week 13-14)
+│   ├── 14.4.2 Automated Key Discovery (Week 14-15)
+│   └── 14.4.3 Translation Analytics (Week 15-16)
+│
+└── Phase 5: Quality & Testing (Weeks 17-20)
+    ├── 14.5.1 Comprehensive Test Coverage (Week 17-18)
+    ├── 14.5.2 Translation QA Engine (Week 18-19)
+    └── 14.5.3 Regression Testing (Week 19-20)
+```
+
+---
+
+### 14.7 Dependencies & Prerequisites
+
+**Before Starting Phase 1→2:**
+- ✅ Current localization system working and tested
+- ✅ Team familiar with i18n architecture
+- ✅ Database write access (for Prisma migrations)
+
+**Before Starting Phase 2:**
+- ✅ Phase 1→2 complete and deployed
+- ✅ Team feedback on new admin UI
+
+**Before Starting Phase 3:**
+- ✅ Phases 1→2 deployed to production
+- ✅ Crowdin or alternative translation platform account created
+- ✅ Translation team onboarded
+
+**Before Starting Phase 4:**
+- ✅ Phase 3 deployed to production
+- ✅ Cron jobs running reliably
+
+**Before Starting Phase 5:**
+- ✅ Phases 1-4 deployed
+- ✅ CI/CD pipeline configured
+
+---
+
+### 14.8 Risk Mitigation
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|-----------|
+| Breaking existing translations | Medium | High | Feature flag for new features; backward-compatible API |
+| Translation platform sync issues | Low | Medium | Manual fallback process; test sync in staging first |
+| Performance regression (timezone search) | Low | Medium | Benchmark before/after; lazy-load large datasets |
+| User disruption during migration | Medium | High | Phased rollout; feature flags; clear communication |
+| Translator workflow friction | Medium | Medium | Involve translation team early; provide training |
+
+---
+
+### 14.9 Success Metrics & KPIs
+
+**Phase 1→2:**
+- [ ] New languages can be added with 1 DB insert + 1 JSON file
+- [ ] Admin language management tested in staging
+- [ ] Timezone search <500ms with 400+ options
+
+**Phase 2:**
+- [ ] Pluralization working in production for all locales
+- [ ] Arabic translation quality score ≥90%
+- [ ] No regressions in existing translation keys
+
+**Phase 3:**
+- [ ] Translation JSON cached for 24 hours
+- [ ] Crowdin sync automated and reliable
+- [ ] Server-side translation loading implemented
+- [ ] FOUC eliminated
+
+**Phase 4:**
+- [ ] Translation coverage dashboard live
+- [ ] Key discovery automation preventing missed keys
+- [ ] Analytics showing coverage trends
+
+**Phase 5:**
+- [ ] Test coverage >95% for i18n library
+- [ ] Zero critical bugs in localization flow
+- [ ] All languages tested in main user flows
+
+---
+
+### 14.10 Resource Requirements
+
+**Team Composition:**
+- 1 Lead Frontend Engineer (oversee all phases, code review)
+- 1-2 Full-Stack Engineers (implementation, testing)
+- 1 QA Engineer (test automation, regression testing)
+- 1 Translation Manager (Crowdin integration, team coordination) — part-time
+
+**Tools & Services:**
+- Crowdin (or alternative) - Translation platform
+- Sentry - Error monitoring (already in use)
+- DataDog or similar - Performance monitoring
+- GitHub Actions - CI/CD pipeline
+
+**Estimated Total Effort:** 180-240 hours (6-8 weeks at full capacity)
+
+---
+
+### 14.11 Post-Implementation Maintenance
+
+**Ongoing Tasks:**
+- Weekly translation key parity checks
+- Monthly translation coverage reports
+- Quarterly review of untranslated keys
+- Annual audit of language list and BCP47 locale mappings
+- Continuous monitoring of translation platform sync
+
+**Staffing:**
+- 1 FTE for translation platform management
+- 5-10% FTE for QA/testing localization in new features
+
+---
+
+**End of Enhancement Plan**
