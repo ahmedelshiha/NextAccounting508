@@ -209,11 +209,13 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       user = await prisma.user.findFirst({ where: { email: email, tenantId: tid } })
     } catch (dbError) {
       const dbMsg = dbError instanceof Error ? dbError.message : String(dbError)
+      const sanitizedPayload = sanitizePayloadForLogging(validationResult.data)
       console.error('Preferences PUT: Database query failed', {
         tenantId: tid,
         error: dbMsg,
+        payloadKeys: Object.keys(sanitizedPayload),
       })
-      Sentry.captureException(dbError as any, { extra: { tenantId: tid, payloadKeys: Object.keys(validationResult.data) } })
+      Sentry.captureException(dbError as any, { extra: { tenantId: tid, payloadKeys: Object.keys(sanitizedPayload) } })
       if (dbMsg.includes('Database is not configured')) {
         return NextResponse.json({ error: 'Database is not configured' }, { status: 503 })
       }
