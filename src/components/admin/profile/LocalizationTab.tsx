@@ -9,6 +9,8 @@ import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
+interface TimezoneOption { code: string; label: string }
+
 interface LocalizationData {
   timezone: string
   preferredLanguage: 'en' | 'ar' | 'hi'
