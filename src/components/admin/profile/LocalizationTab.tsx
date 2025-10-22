@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { useTranslations } from '@/lib/i18n'
+import { getDefaultTimezone } from '@/lib/timezone-helper'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
 interface TimezoneOption { code: string; label: string }
@@ -22,7 +23,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
   const { setLocale } = useTranslations()
   const [saving, setSaving] = useState(false)
   const [data, setData] = useState<LocalizationData>({
-    timezone: 'UTC',
+    timezone: getDefaultTimezone(),
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})

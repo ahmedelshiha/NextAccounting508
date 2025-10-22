@@ -41,7 +41,7 @@ function getOffsetMinutes(tz: string, date = new Date()): number {
   const map: Record<string,string> = {}
   for (const p of parts) if (p.type !== 'literal') map[p.type] = p.value
   const zoned = Date.UTC(Number(map.year), Number(map.month)-1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second))
-  return (zoned - utc) / 60000
+  return Math.round((zoned - utc) / 60000)
 }
 
 function formatOffset(mins: number): string {

@@ -553,7 +553,7 @@ export default function LocalizationContent() {
               <div className="rounded-lg border bg-blue-50 p-4">
                 <h4 className="font-semibold text-blue-900 mb-2">Run Key Discovery Audit</h4>
                 <p className="text-sm text-blue-800 mb-4">
-                  Scan your codebase for all <code className="bg-blue-100 px-1 rounded">t('key')</code> calls and identify:
+                  Scan your codebase for all <code className="bg-blue-100 px-1 rounded">t(&apos;key&apos;)</code> calls and identify:
                 </p>
                 <ul className="list-disc list-inside text-sm text-blue-800 space-y-1 ml-2">
                   <li>Keys in code but missing from translation files</li>
@@ -597,7 +597,7 @@ export default function LocalizationContent() {
                   <label className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900">Persist Language Choice</p>
-                      <p className="text-sm text-gray-500">Save user's language preference to localStorage</p>
+                      <p className="text-sm text-gray-500">Save user&apos;s language preference to localStorage</p>
                     </div>
                     <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
                   </label>
