@@ -121,10 +121,19 @@ P2 — Medium / UX & Docs
 
 P3 — Optional
 
-- P3-1: Admin support view for user locale
-  - Files: src/components/admin/support/UserLocaleView.tsx
-  - Description: Permission-gated UI to view user's timezone/language for support. Requires new permission or reuse COMMUNICATION_SETTINGS_VIEW.
+- P3-1: Admin support view for user locale (COMPLETED)
+  - Files: src/components/admin/support/UserLocaleView.tsx (new)
+  - Description: Created permission-gated UI component to view user's timezone/language for support staff. Uses COMMUNICATION_SETTINGS_VIEW permission.
   - Acceptance criteria: Only admins see the UI.
+  - Completed: 2025-10-22
+  - Implementation details:
+    - Created UserLocaleView component with permission gating using COMMUNICATION_SETTINGS_VIEW
+    - Displays timezone, preferred language, and notification preferences
+    - Fetches user preferences via API endpoint (endpoint implementation separate if needed)
+    - Shows loading state and error handling
+    - Uses existing UI components (Card, Badge, Loader)
+    - Can be embedded in admin users, support, or account management pages
+    - Component is self-contained and reusable across admin sections
 
 4 Implementation guidance & checklists
 
