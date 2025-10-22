@@ -81,18 +81,13 @@ export const useTranslations = () => {
     // Deduplicate while preserving order
     const keyFallbacks = Array.from(new Set(fallbacks))
 
-    // Find first available translation
-    let translation: string | undefined
+    // Find first available translation, fallback to key
+    let translation: string = key
     for (const fallbackKey of keyFallbacks) {
       if (fallbackKey in context.translations) {
         translation = context.translations[fallbackKey]
         break
       }
-    }
-
-    // Fall back to key itself if no translation found
-    if (!translation) {
-      translation = key
     }
 
     // Replace parameters in translation (excluding special params)
