@@ -41,31 +41,55 @@ export const TranslationContext = createContext<TranslationContextValue>({
   setGender: () => {}
 })
 
-// Hook to use translations
+// Hook to use translations with gender support
 export const useTranslations = () => {
   const context = useContext(TranslationContext)
   if (!context) {
     throw new Error('useTranslations must be used within a TranslationProvider')
   }
-  
-  const t = (key: string, params?: Record<string, string | number>) => {
-    let translation = context.translations[key] || key
-    
-    // Replace parameters in translation
+
+  const t = (key: string, params?: TranslationParams) => {
+    // Extract gender from params (if provided) or use context gender
+    const gender = params?.gender ?? context.currentGender
+
+    // Build fallback key chain for gender-aware lookup
+    const keyFallbacks = buildGenderKeyFallbacks(key, gender, context.locale as Locale)
+
+    // Find first available translation
+    let translation: string | undefined
+    for (const fallbackKey of keyFallbacks) {
+      if (fallbackKey in context.translations) {
+        translation = context.translations[fallbackKey]
+        break
+      }
+    }
+
+    // Fall back to key itself if no translation found
+    if (!translation) {
+      translation = key
+    }
+
+    // Replace parameters in translation (excluding special params)
     if (params) {
       Object.entries(params).forEach(([param, value]) => {
+        // Skip special parameters (gender, count)
+        if (param === 'gender' || param === 'count' || value === undefined) {
+          return
+        }
         translation = translation.replace(`{{${param}}}`, String(value))
       })
     }
-    
+
     return translation
   }
-  
+
   return {
     t,
     locale: context.locale,
     setLocale: context.setLocale,
-    dir: localeConfig[context.locale].dir
+    dir: localeConfig[context.locale].dir,
+    currentGender: context.currentGender,
+    setGender: context.setGender
   }
 }
 
