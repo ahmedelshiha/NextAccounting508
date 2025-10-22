@@ -13,7 +13,7 @@ import { Loader2, ShieldCheck, User as UserIcon } from "lucide-react"
 export interface ProfileManagementPanelProps {
   isOpen: boolean
   onClose?: () => void
-  defaultTab?: "profile" | "security" | "communication" | "notifications" | "booking" | "localization"
+  defaultTab?: "profile" | "security" | "notifications" | "booking" | "localization"
   inline?: boolean
   fullPage?: boolean
 }
@@ -52,13 +52,10 @@ function ProfileTab({ loading, profile, onSave }: { loading: boolean; profile: a
 }
 
 import AccountActivity from './AccountActivity'
-import CommunicationTab from './CommunicationTab'
 import NotificationsTab from './NotificationsTab'
 import BookingNotificationsTab from './BookingNotificationsTab'
 import LocalizationTab from './LocalizationTab'
-import PermissionGate from '@/components/PermissionGate'
 import { useSession } from 'next-auth/react'
-import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 function SecurityTab({ loading, profile, onPasswordSave, onMfaSetup }: { loading: boolean; profile: any; onPasswordSave: (val: string) => Promise<void>; onMfaSetup: () => Promise<void> }) {
   return (
@@ -124,14 +121,13 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
   const [showMfaSetup, setShowMfaSetup] = useState(false)
   const { data: session } = useSession()
   const role = (session?.user as any)?.role as string | undefined
-  const canSeeCommunication = hasPermission(role, PERMISSIONS.COMMUNICATION_SETTINGS_VIEW)
 
   useEffect(() => setTab(defaultTab), [defaultTab])
   useEffect(() => {
     if (!isOpen && !fullPage) return
     try {
       const saved = window.localStorage.getItem('profile-panel-last-tab')
-      const validTabs = ['profile', 'security', 'booking', 'localization', 'communication', 'notifications']
+      const validTabs = ['profile', 'security', 'booking', 'localization', 'notifications']
       if (!defaultTab && saved && validTabs.includes(saved)) setTab(saved as any)
     } catch {}
   }, [isOpen, defaultTab, fullPage])
@@ -164,9 +160,6 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
           <TabsTrigger value="security">Sign in & security</TabsTrigger>
           <TabsTrigger value="booking">Booking Notifications</TabsTrigger>
           <TabsTrigger value="localization">Localization</TabsTrigger>
-          {canSeeCommunication && (
-            <TabsTrigger value="communication">Communication</TabsTrigger>
-          )}
         </TabsList>
       </div>
 
@@ -183,13 +176,6 @@ export default function ProfileManagementPanel({ isOpen, onClose, defaultTab = "
       <TabsContent value="localization" className="mt-4">
         <LocalizationTab loading={loading} />
       </TabsContent>
-      {canSeeCommunication && (
-        <TabsContent value="communication" className="mt-4">
-          <PermissionGate permission={PERMISSIONS.COMMUNICATION_SETTINGS_VIEW}>
-            <CommunicationTab />
-          </PermissionGate>
-        </TabsContent>
-      )}
     </Tabs>
   )
 
