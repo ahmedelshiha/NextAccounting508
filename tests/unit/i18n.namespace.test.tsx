@@ -21,7 +21,7 @@ describe('i18n namespace access', () => {
     const flat = flattenTranslations({
       nav: { home: 'Home', about: 'About' },
       greeting: { welcome: 'Welcome' },
-    })
+    } as any)
     expect(flat['nav.home']).toBe('Home')
     expect(flat['nav.about']).toBe('About')
     expect(flat['greeting.welcome']).toBe('Welcome')
@@ -59,9 +59,7 @@ describe('i18n namespace access', () => {
         <TestComponent k="greeting.welcome" params={{ name: 'अनिता' }} />
       </TranslationContext.Provider>
     )
-    // Basic nested access
     expect(screen.getByText('होम').textContent).toContain('होम')
-    // Gender-aware nested access uses female variant when available
     expect(screen.getByText(/श्रीमती/).textContent).toMatch(/श्रीमती/)
   })
 
@@ -79,7 +77,6 @@ describe('i18n namespace access', () => {
         <TestComponent k="email.greeting" params={{ name: 'अनिता' }} />
       </TranslationContext.Provider>
     )
-    // email.greeting.neuter does not exist; should fall back to email.greeting
     expect(screen.getByText('नमस्ते').textContent).toContain('नमस्ते')
   })
 })
