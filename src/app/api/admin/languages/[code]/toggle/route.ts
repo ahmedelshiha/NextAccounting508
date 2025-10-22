@@ -23,17 +23,10 @@ export const POST = withTenantContext(async (request: NextRequest, { params }: {
     // Log audit event
     try {
       await logAudit({
-        userId: ctx.userId,
-        tenantId: ctx.tenantId,
         action: 'LANGUAGE_TOGGLED',
-        resourceType: 'LANGUAGE',
-        resourceId: code,
-        changes: {
-          before: { enabled: !updated.enabled },
-          after: { enabled: updated.enabled }
-        },
-        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown'
+        actorId: ctx.userId,
+        targetId: code,
+        details: { enabled: updated.enabled }
       })
     } catch (auditError) {
       console.warn('Failed to log audit event:', auditError)
