@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
+import { useTranslations } from '@/lib/i18n'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
 interface TimezoneOption { code: string; label: string }
@@ -18,6 +19,7 @@ interface LocalizationData {
 
 export default function LocalizationTab({ loading }: { loading: boolean }) {
   const { preferences, loading: preferencesLoading, error: preferencesError, updatePreferences, refetch } = useUserPreferences()
+  const { setLocale } = useTranslations()
   const [saving, setSaving] = useState(false)
   const [data, setData] = useState<LocalizationData>({
     timezone: 'UTC',
@@ -73,6 +75,10 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         preferredLanguage: String(data.preferredLanguage || 'en') as 'en' | 'ar' | 'hi',
       }
       await updatePreferences(payload)
+
+      // Update the UI locale immediately to reflect the language change
+      setLocale(payload.preferredLanguage as 'en' | 'ar' | 'hi')
+
       toast.success('Localization settings saved')
       setErrors({})
     } catch (err) {

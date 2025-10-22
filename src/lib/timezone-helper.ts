@@ -49,7 +49,7 @@ function formatOffset(mins: number): string {
   const sign = mins >= 0 ? '+' : '-'
   const abs = Math.abs(mins)
   const h = Math.floor(abs / 60)
-  const m = abs % 60
+  const m = Math.round(abs % 60) // Round to nearest minute to avoid floating-point precision errors
   if (abs === 0) return 'UTC'
   return `UTC${sign}${pad(h)}:${pad(m)}`
 }
@@ -82,4 +82,16 @@ export function getTimezonesWithOffsets(now = new Date()): TimezoneOption[] {
     return parse(a.offset) - parse(b.offset)
   })
   return items
+}
+
+/**
+ * Get the user's default timezone based on their browser/system timezone
+ * Falls back to UTC if unavailable
+ */
+export function getDefaultTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return 'UTC'
+  }
 }
