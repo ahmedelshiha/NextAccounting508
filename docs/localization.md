@@ -1351,6 +1351,161 @@ t('messages.items', { count: 1 }) // "You have 1 item"
 
 **Goal:** Gain visibility into translation completeness and automatically discover missing keys.
 
+**Status:** ✅ PHASE 4 IMPLEMENTATION COMPLETE (2025-01-20)
+
+#### Phase 4 Implementation Summary
+
+| Component | Status | File(s) | Lines |
+|-----------|--------|---------|-------|
+| Database Schema | ✅ Complete | `prisma/schema.prisma` + migration | 70 |
+| Key Discovery Script | ✅ Complete | `scripts/discover-translation-keys.ts` | 295 |
+| Dashboard Page | ✅ Complete | `src/app/admin/translations/dashboard/page.tsx` | 222 |
+| Status Cards Component | ✅ Complete | `src/components/admin/translations/TranslationStatusCards.tsx` | 102 |
+| Coverage Chart | ✅ Complete | `src/components/admin/translations/TranslationCoverageChart.tsx` | 66 |
+| Missing Keys Component | ✅ Complete | `src/components/admin/translations/TranslationMissingKeys.tsx` | 158 |
+| Recent Keys Component | ✅ Complete | `src/components/admin/translations/TranslationRecentKeys.tsx` | 146 |
+| Analytics Chart | ✅ Complete | `src/components/admin/translations/TranslationAnalyticsChart.tsx` | 198 |
+| Status API | ✅ Complete | `src/app/api/admin/translations/status/route.ts` | 92 |
+| Missing Keys API | ✅ Complete | `src/app/api/admin/translations/missing/route.ts` | 93 |
+| Recent Keys API | ✅ Complete | `src/app/api/admin/translations/recent/route.ts` | 75 |
+| Analytics API | ✅ Complete | `src/app/api/admin/translations/analytics/route.ts` | 87 |
+| Metrics Cron Job | ✅ Complete | `netlify/functions/cron-translation-metrics.ts` | 185 |
+| **Total Phase 4 Code** | | | **1,789 lines** |
+
+#### How Phase 4 Works
+
+1. **Translation Key Discovery** (`npm run discover:keys`)
+   - Scans codebase for all `t('key')` calls using regex patterns
+   - Compares with translation JSON files (en.json, ar.json, hi.json)
+   - Generates audit report with missing/orphaned keys
+   - Output: `translation-key-audit.json` with actionable insights
+
+2. **Dashboard** (Admin → Settings → Translations)
+   - Real-time translation coverage by language (EN, AR, HI)
+   - User distribution by language preference
+   - Recent keys added (last 7 days)
+   - Missing translations for Arabic & Hindi
+   - Historical trends chart (7/14/30/90 day views)
+   - Recommended actions guide
+
+3. **Metrics Collection** (Daily cron job)
+   - Runs at midnight UTC via Netlify scheduled functions
+   - Calculates coverage % per language
+   - Counts users per language preference
+   - Stores daily snapshots in `translation_metrics` table
+   - Enables trending analysis over time
+
+4. **API Endpoints** (All behind admin permission gate)
+   - `GET /api/admin/translations/status` - Current coverage stats
+   - `GET /api/admin/translations/missing?language=ar&limit=50` - Untranslated keys
+   - `GET /api/admin/translations/recent?days=7&limit=50` - Recently added keys
+   - `GET /api/admin/translations/analytics?days=30` - Historical trends
+
+#### Permission Requirements
+
+All Phase 4 APIs require the `SETTINGS_LANGUAGES_MANAGE` permission. Add to admin roles:
+
+```typescript
+// In src/lib/permissions.ts
+export const ADMIN_PERMISSIONS = {
+  // ... existing permissions
+  SETTINGS_LANGUAGES_MANAGE: {
+    description: 'Manage language settings and view translation analytics',
+    category: 'localization',
+  },
+}
+```
+
+#### Database Tables Created
+
+**TranslationKey** - Registry of all discovered translation keys
+```prisma
+model TranslationKey {
+  id String @id @default(cuid())
+  tenantId String
+  key String // e.g., "nav.home", "hero.headline"
+  namespace String? // e.g., "nav", "hero"
+  enTranslated Boolean @default(true) // English baseline
+  arTranslated Boolean @default(false) // Arabic status
+  hiTranslated Boolean @default(false) // Hindi status
+  lastUpdated DateTime @updatedAt
+  addedAt DateTime @default(now())
+
+  @@unique([tenantId, key])
+  @@index([tenantId, namespace])
+  @@map("translation_keys")
+}
+```
+
+**TranslationMetrics** - Daily coverage snapshots
+```prisma
+model TranslationMetrics {
+  id String @id @default(cuid())
+  tenantId String
+  date DateTime @db.Date // YYYY-MM-DD
+
+  enTotal Int @default(0)
+  enTranslated Int @default(0)
+  arTotal Int @default(0)
+  arTranslated Int @default(0)
+  hiTotal Int @default(0)
+  hiTranslated Int @default(0)
+
+  totalUniqueKeys Int @default(0)
+  usersWithEnglish Int @default(0)
+  usersWithArabic Int @default(0)
+  usersWithHindi Int @default(0)
+
+  enCoveragePct Decimal @default(0) @db.Decimal(5, 2)
+  arCoveragePct Decimal @default(0) @db.Decimal(5, 2)
+  hiCoveragePct Decimal @default(0) @db.Decimal(5, 2)
+
+  @@unique([tenantId, date])
+  @@index([tenantId, date])
+  @@map("translation_metrics")
+}
+```
+
+#### Usage Examples
+
+**Run Key Discovery Audit:**
+```bash
+npm run discover:keys
+# Output: translation-key-audit.json
+# Contains:
+# - missingTranslations: Keys in code but not in en.json
+# - orphanedKeys: Keys in JSON but not used in code
+# - untranslatedToAr: Keys needing Arabic translation
+# - untranslatedToHi: Keys needing Hindi translation
+```
+
+**Access Dashboard:**
+1. Log in as admin
+2. Navigate to: Settings → Languages → Translation Management
+3. View coverage %, recent keys, missing translations
+4. Review trends over 7/14/30/90 days
+
+**Query Translation Status via API:**
+```bash
+# Get current coverage stats
+curl -H "Authorization: Bearer $TOKEN" \
+  https://your-app.com/api/admin/translations/status
+
+# Get missing Arabic translations (limit 50)
+curl -H "Authorization: Bearer $TOKEN" \
+  https://your-app.com/api/admin/translations/missing?language=ar&limit=50
+
+# Get recent keys from last 7 days
+curl -H "Authorization: Bearer $TOKEN" \
+  https://your-app.com/api/admin/translations/recent?days=7
+
+# Get 30-day trend data
+curl -H "Authorization: Bearer $TOKEN" \
+  https://your-app.com/api/admin/translations/analytics?days=30
+```
+
+---
+
 #### 14.4.1 Task: Translation Management Dashboard
 
 **Current State:** No central view of translation status; hard to track coverage.
@@ -1756,7 +1911,7 @@ Q2 2026 (Weeks 13-20)
   - ✅ Production-safe error handling and validation
   - ✅ Performance optimization (caching, fallbacks)
   - ✅ Security measures (rate limiting, payload sanitization, audit logs)
-  - ✅ Documentation complete and up-to-date
+  - ��� Documentation complete and up-to-date
 
 - Next Steps (Future Phases):
   - Phase 4: Translation management dashboard and analytics
