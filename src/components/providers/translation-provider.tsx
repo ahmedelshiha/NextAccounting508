@@ -4,6 +4,7 @@ import { useEffect, useState, ReactNode } from 'react'
 import { Locale, defaultLocale, loadTranslations, detectLocale, TranslationContext } from '@/lib/i18n'
 import { GenderType } from '@/lib/gender-rules'
 import enTranslations from '@/app/locales/en.json'
+import { flattenTranslations } from '@/lib/translation-utils'
 
 interface TranslationProviderProps {
   children: ReactNode
