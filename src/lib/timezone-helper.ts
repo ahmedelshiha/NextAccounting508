@@ -26,61 +26,147 @@ function getAllTimezones(): string[] {
 
 function pad(n: number): string { return n < 10 ? `0${n}` : `${n}` }
 
+/**
+ * Get timezone offset in minutes using a more reliable approach.
+ * Uses reference dates to calculate the offset and reduce floating-point errors.
+ */
 function getOffsetMinutes(tz: string, date = new Date()): number {
-  const utc = Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    date.getUTCHours(),
-    date.getUTCMinutes(),
-    date.getUTCSeconds(),
-    date.getUTCMilliseconds()
-  )
-  const f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' })
-  const parts = f.formatToParts(date)
-  const map: Record<string,string> = {}
-  for (const p of parts) if (p.type !== 'literal') map[p.type] = p.value
-  const zoned = Date.UTC(Number(map.year), Number(map.month)-1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second))
-  return Math.round((zoned - utc) / 60000)
+  try {
+    // Get the offset using Intl.DateTimeFormat with numeric format
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+
+    const parts = formatter.formatToParts(date)
+    const values: Record<string, number> = {}
+    
+    for (const part of parts) {
+      if (part.type !== 'literal') {
+        values[part.type] = parseInt(part.value, 10)
+      }
+    }
+
+    // Reconstruct the local date/time components
+    const year = values.year
+    const month = values.month - 1 // JS months are 0-indexed
+    const day = values.day
+    const hours = values.hour
+    const minutes = values.minute
+    const seconds = values.second
+
+    // Create UTC date from the original date components
+    const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()))
+    
+    // Create local date from the formatted components
+    const localDate = new Date(Date.UTC(year, month, day, hours, minutes, seconds))
+
+    // Calculate the difference in milliseconds and convert to minutes
+    const diffMs = localDate.getTime() - utcDate.getTime()
+    const diffMinutes = Math.round(diffMs / 60000)
+
+    return diffMinutes
+  } catch {
+    return 0
+  }
 }
 
 function formatOffset(mins: number): string {
-  if (!isFinite(mins)) return 'UTC'
+  if (!isFinite(mins) || mins === 0) return 'UTC'
+  
   const sign = mins >= 0 ? '+' : '-'
   const abs = Math.abs(mins)
   const h = Math.floor(abs / 60)
-  const m = Math.round(abs % 60) // Round to nearest minute to avoid floating-point precision errors
-  if (abs === 0) return 'UTC'
-  return `UTC${sign}${pad(h)}:${pad(m)}`
+  const m = abs % 60
+
+  // Format with zero-padding
+  const formattedHours = pad(h)
+  const formattedMinutes = pad(m)
+
+  if (m === 0) {
+    return `UTC${sign}${formattedHours}`
+  }
+  
+  return `UTC${sign}${formattedHours}:${formattedMinutes}`
 }
 
 function getAbbreviation(tz: string, date = new Date()): string {
   try {
     const f = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' })
-    const s = f.format(date)
-    const abbr = s.split(' ').pop() || ''
-    return abbr.replace(/[0-9:+-]/g, '').trim() || 'UTC'
-  } catch { return 'UTC' }
+    const parts = f.formatToParts(date)
+    
+    // Find the timeZoneName part
+    const timeZoneNamePart = parts.find(p => p.type === 'timeZoneName')
+    if (timeZoneNamePart) {
+      const abbr = timeZoneNamePart.value
+      // Clean up any unwanted characters (numbers, colons, plus/minus signs)
+      return abbr.replace(/[0-9:+-]/g, '').trim() || 'UTC'
+    }
+    
+    return 'UTC'
+  } catch { 
+    return 'UTC' 
+  }
 }
 
 export function getTimezonesWithOffsets(now = new Date()): TimezoneOption[] {
   const zones = getAllTimezones()
   const items: TimezoneOption[] = []
+  const processed = new Set<string>()
+
   for (const tz of zones) {
+    // Skip duplicates and invalid timezones
+    if (processed.has(tz)) continue
+    
     try {
       const mins = getOffsetMinutes(tz, now)
       const offset = formatOffset(mins)
       const abbr = getAbbreviation(tz, now)
-      const label = `[${offset}] ${tz} (${abbr})`
-      items.push({ code: tz, label, offset, abbreviation: abbr })
-    } catch {}
+      
+      // Format: "Pacific/Marquesas (GMT-9:30)"
+      const label = `${tz} (${offset})`
+      
+      items.push({ 
+        code: tz, 
+        label, 
+        offset, 
+        abbreviation: abbr 
+      })
+      
+      processed.add(tz)
+    } catch {
+      // Skip invalid timezones
+    }
   }
-  // Sort by absolute offset, then by code
-  items.sort((a,b)=>{
-    if (a.offset === b.offset) return a.code.localeCompare(b.code)
-    const parse = (s:string)=>{ if (s==='UTC') return 0; const m = s.match(/UTC([+-])(\d{2}):(\d{2})/); if (!m) return 0; const sign = m[1]==='+'?1:-1; return sign*(Number(m[2])*60+Number(m[3])) }
-    return parse(a.offset) - parse(b.offset)
+
+  // Sort by offset first, then by timezone code
+  items.sort((a, b) => {
+    const parseOffset = (s: string): number => {
+      if (s === 'UTC') return 0
+      const match = s.match(/UTC([+-])(\d{1,2}):?(\d{2})?/)
+      if (!match) return 0
+      const sign = match[1] === '+' ? 1 : -1
+      const hours = parseInt(match[2], 10)
+      const minutes = match[3] ? parseInt(match[3], 10) : 0
+      return sign * (hours * 60 + minutes)
+    }
+    
+    const offsetA = parseOffset(a.offset)
+    const offsetB = parseOffset(b.offset)
+    
+    if (offsetA !== offsetB) {
+      return offsetA - offsetB
+    }
+    
+    return a.code.localeCompare(b.code)
   })
+
   return items
 }
 

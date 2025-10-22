@@ -8,10 +8,8 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { useTranslations } from '@/lib/i18n'
-import { getDefaultTimezone } from '@/lib/timezone-helper'
+import { getDefaultTimezone, TimezoneOption } from '@/lib/timezone-helper'
 import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
-
-interface TimezoneOption { code: string; label: string }
 
 interface LocalizationData {
   timezone: string
@@ -27,7 +25,7 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
     preferredLanguage: 'en',
   })
   const [errors, setErrors] = useState<{ timezone?: string; preferredLanguage?: string }>({})
-  const [timezones, setTimezones] = useState<TimezoneOption[]>(COMMON_TIMEZONES.map(tz=>({ code: tz, label: tz })))
+  const [timezones, setTimezones] = useState<TimezoneOption[]>(COMMON_TIMEZONES.map(tz => ({ code: tz, label: tz, offset: '', abbreviation: '' })))
 
   // Sync hook data to component state
   useEffect(() => {
@@ -48,7 +46,14 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
         if (!r.ok) throw new Error('failed')
         const d = await r.json()
         const list: TimezoneOption[] = Array.isArray(d?.data) ? d.data : []
-        if (!cancelled && list.length) setTimezones(list.map((t: any)=>({ code: String(t.code), label: String(t.label||t.code) })))
+        if (!cancelled && list.length) {
+          setTimezones(list.map((t: any) => ({
+            code: String(t.code),
+            label: String(t.label || t.code),
+            offset: String(t.offset || ''),
+            abbreviation: String(t.abbreviation || 'UTC'),
+          })))
+        }
       } catch {
         // fallback already set
       }
@@ -137,10 +142,13 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
           <SelectTrigger id="timezone" className={`mt-2 ${errors.timezone ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-64">
             {timezones.map((tz) => (
               <SelectItem key={tz.code} value={tz.code}>
-                {tz.label}
+                <span className="flex items-center gap-2">
+                  <span>{tz.label}</span>
+                  {tz.offset && <span className="text-xs text-gray-500">({tz.abbreviation})</span>}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
