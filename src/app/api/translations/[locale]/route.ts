@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server'
 import { getServerTranslations } from '@/lib/server/translations'
+import { NextResponse, NextRequest } from 'next/server'
 
-export async function GET(request: Request, { params }: { params: { locale: string } }) {
-  const { locale } = params
+export async function GET(request: NextRequest, context: any) {
+  // Next.js sometimes provides params as a Promise in the context; handle both
+  let params = context?.params
+  if (params && typeof params.then === 'function') {
+    try {
+      params = await params
+    } catch {
+      params = undefined
+    }
+  }
+
+  const locale = (params && params.locale) || 'en'
   const translations = await getServerTranslations(locale)
 
   const res = NextResponse.json(translations)
