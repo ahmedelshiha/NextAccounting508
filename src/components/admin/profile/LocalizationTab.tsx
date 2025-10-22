@@ -131,9 +131,9 @@ export default function LocalizationTab({ loading }: { loading: boolean }) {
             <SelectValue placeholder="Select timezone" />
           </SelectTrigger>
           <SelectContent>
-            {COMMON_TIMEZONES.map((tz) => (
-              <SelectItem key={tz} value={tz}>
-                {tz}
+            {timezones.map((tz) => (
+              <SelectItem key={tz.code} value={tz.code}>
+                {tz.label}
               </SelectItem>
             ))}
           </SelectContent>
