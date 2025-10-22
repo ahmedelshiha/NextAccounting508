@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUserPreferences } from '@/hooks/useUserPreferences'
-import { COMMON_TIMEZONES, LANGUAGES, isValidTimezone } from './constants'
+import { COMMON_TIMEZONES, LANGUAGES, VALID_LANGUAGES, isValidTimezone } from './constants'
 
 interface LocalizationData {
   timezone: string
