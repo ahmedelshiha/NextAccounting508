@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server'
-import { getServerTranslations } from '@/lib/server/translations'
 import { NextResponse, NextRequest } from 'next/server'
+import { getServerTranslations } from '@/lib/server/translations'
 
 export async function GET(request: NextRequest, context: any) {
   // Next.js sometimes provides params as a Promise in the context; handle both
