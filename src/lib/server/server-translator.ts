@@ -32,15 +32,13 @@ export function createServerTranslator(
 
     const keyFallbacks = Array.from(new Set(fallbacks))
 
-    let translation: string | undefined
+    let translation: string = key
     for (const fk of keyFallbacks) {
       if (fk in translations) {
         translation = translations[fk]
         break
       }
     }
-
-    if (!translation) translation = key
 
     if (params) {
       Object.entries(params).forEach(([param, value]) => {
