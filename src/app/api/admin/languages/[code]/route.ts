@@ -1,51 +1,245 @@
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { withTenantContext } from '@/lib/api-wrapper'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireTenantContext } from '@/lib/tenant-utils'
-import { PERMISSIONS, hasPermission } from '@/lib/permissions'
-import { upsertLanguage, deleteLanguage } from '@/lib/language-registry'
+import { withTenantContext } from '@/lib/api-wrapper'
+import {
+  getLanguageByCode,
+  deleteLanguage,
+  upsertLanguage,
+  toggleLanguageStatus
+} from '@/lib/language-registry'
+import { logAudit } from '@/lib/audit'
+import * as Sentry from '@sentry/nextjs'
+import { z } from 'zod'
 
-function json(payload: any, status = 200) { return NextResponse.json(payload, { status }) }
-
-const UpdateSchema = z.object({
-  name: z.string().min(1).max(64).optional(),
-  nativeName: z.string().min(1).max(64).optional(),
-  direction: z.enum(['ltr','rtl']).optional(),
-  flag: z.string().min(1).max(8).optional(),
-  bcp47Locale: z.string().min(2).max(32).optional(),
-  enabled: z.boolean().optional(),
+const UpdateLanguageSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  nativeName: z.string().min(1).max(100).optional(),
+  direction: z.enum(['ltr', 'rtl']).optional(),
+  flag: z.string().max(5).optional(),
+  bcp47Locale: z.string().min(2).max(10).optional(),
+  enabled: z.boolean().optional()
 })
 
-export const PUT = withTenantContext(async (request: Request, { params }: { params: { code: string } }) => {
-  const ctx = requireTenantContext()
-  if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
-    return json({ ok: false, error: 'Forbidden' }, 403)
-  }
-  const code = String(params?.code || '').toLowerCase()
-  if (!code || !/^[a-z]{2}(-[a-z0-9-]+)?$/.test(code)) return json({ ok:false, error:'Invalid language code' }, 400)
-  let body: unknown
-  try { body = await request.json() } catch { return json({ ok:false, error:'Invalid JSON body' }, 400) }
-  const parsed = UpdateSchema.safeParse(body)
-  if (!parsed.success) return json({ ok:false, error:'Validation failed', issues: parsed.error.format() }, 400)
+/**
+ * PUT /api/admin/languages/[code]
+ * Update a language configuration (admin only)
+ */
+export const PUT = withTenantContext(async (request: NextRequest, { params }: { params: { code: string } }) => {
   try {
-    const saved = await upsertLanguage(code, parsed.data)
-    return json({ ok:true, data: saved })
-  } catch (err:any) {
-    return json({ ok:false, error: String(err?.message || 'Failed to update language') }, 500)
+    const ctx = requireTenantContext()
+    if (!ctx.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const code = params.code
+
+    // Get current language
+    const current = await getLanguageByCode(code)
+    if (!current) {
+      return NextResponse.json(
+        { error: `Language ${code} not found` },
+        { status: 404 }
+      )
+    }
+
+    const body = await request.json()
+    const validation = UpdateLanguageSchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', issues: validation.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const data = validation.data
+    const updated = await upsertLanguage(code, data)
+
+    // Log audit event
+    try {
+      await logAudit({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        action: 'LANGUAGE_UPDATED',
+        resourceType: 'LANGUAGE',
+        resourceId: code,
+        changes: {
+          before: current,
+          after: updated
+        },
+        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown'
+      })
+    } catch (auditError) {
+      console.warn('Failed to log audit event:', auditError)
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'admin.languages',
+      message: 'Language updated',
+      level: 'info',
+      data: { code, fields: Object.keys(data) }
+    })
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    console.error('Failed to update language:', error)
+    Sentry.captureException(error, {
+      tags: { endpoint: 'admin.languages.put', code: params.code }
+    })
+    return NextResponse.json(
+      { error: 'Failed to update language' },
+      { status: 500 }
+    )
   }
 })
 
-export const DELETE = withTenantContext(async (_req: Request, { params }: { params: { code: string } }) => {
-  const ctx = requireTenantContext()
-  if (!ctx || !ctx.role || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
-    return json({ ok: false, error: 'Forbidden' }, 403)
-  }
-  const code = String(params?.code || '').toLowerCase()
-  if (!code || !/^[a-z]{2}(-[a-z0-9-]+)?$/.test(code)) return json({ ok:false, error:'Invalid language code' }, 400)
+/**
+ * DELETE /api/admin/languages/[code]
+ * Delete a language (admin only)
+ */
+export const DELETE = withTenantContext(async (request: NextRequest, { params }: { params: { code: string } }) => {
   try {
+    const ctx = requireTenantContext()
+    if (!ctx.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const code = params.code
+
+    // Get current language
+    const current = await getLanguageByCode(code)
+    if (!current) {
+      return NextResponse.json(
+        { error: `Language ${code} not found` },
+        { status: 404 }
+      )
+    }
+
     await deleteLanguage(code)
-    return json({ ok:true })
-  } catch (err:any) {
-    return json({ ok:false, error: String(err?.message || 'Failed to delete language') }, 400)
+
+    // Log audit event
+    try {
+      await logAudit({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        action: 'LANGUAGE_DELETED',
+        resourceType: 'LANGUAGE',
+        resourceId: code,
+        changes: {
+          before: current,
+          after: null
+        },
+        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown'
+      })
+    } catch (auditError) {
+      console.warn('Failed to log audit event:', auditError)
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'admin.languages',
+      message: 'Language deleted',
+      level: 'info',
+      data: { code }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+
+    // Handle specific error cases
+    if (errorMsg.includes('Cannot delete default language')) {
+      return NextResponse.json(
+        { error: 'Cannot delete default language (en)' },
+        { status: 400 }
+      )
+    }
+
+    if (errorMsg.includes('Cannot delete language')) {
+      return NextResponse.json(
+        { error: errorMsg },
+        { status: 400 }
+      )
+    }
+
+    console.error('Failed to delete language:', error)
+    Sentry.captureException(error, {
+      tags: { endpoint: 'admin.languages.delete', code: params.code }
+    })
+    return NextResponse.json(
+      { error: 'Failed to delete language' },
+      { status: 500 }
+    )
+  }
+})
+
+/**
+ * PATCH /api/admin/languages/[code]/toggle
+ * Toggle language enabled/disabled status (admin only)
+ */
+export const PATCH = withTenantContext(async (request: NextRequest, { params }: { params: { code: string } }) => {
+  try {
+    const ctx = requireTenantContext()
+    if (!ctx.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const code = params.code
+
+    const updated = await toggleLanguageStatus(code)
+
+    // Log audit event
+    try {
+      await logAudit({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        action: 'LANGUAGE_TOGGLED',
+        resourceType: 'LANGUAGE',
+        resourceId: code,
+        changes: {
+          before: { enabled: !updated.enabled },
+          after: { enabled: updated.enabled }
+        },
+        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown'
+      })
+    } catch (auditError) {
+      console.warn('Failed to log audit event:', auditError)
+    }
+
+    Sentry.addBreadcrumb({
+      category: 'admin.languages',
+      message: 'Language toggled',
+      level: 'info',
+      data: { code, enabled: updated.enabled }
+    })
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+
+    if (errorMsg.includes('Cannot disable default language')) {
+      return NextResponse.json(
+        { error: 'Cannot disable default language (en)' },
+        { status: 400 }
+      )
+    }
+
+    if (errorMsg.includes('not found')) {
+      return NextResponse.json(
+        { error: `Language ${params.code} not found` },
+        { status: 404 }
+      )
+    }
+
+    console.error('Failed to toggle language:', error)
+    Sentry.captureException(error, {
+      tags: { endpoint: 'admin.languages.patch', code: params.code }
+    })
+    return NextResponse.json(
+      { error: 'Failed to toggle language' },
+      { status: 500 }
+    )
   }
 })
