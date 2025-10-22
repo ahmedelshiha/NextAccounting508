@@ -17,12 +17,15 @@ describe('getPluralForm', () => {
     })
 
     it('should handle negative numbers', () => {
-      expect(getPluralForm('en', -1)).toBe('other')
+      // Negative numbers are treated as their absolute value for CLDR rules
+      // So -1 becomes 1, which is singular (one)
+      expect(getPluralForm('en', -1)).toBe('one')
       expect(getPluralForm('en', -5)).toBe('other')
     })
 
     it('should handle decimals by flooring', () => {
-      expect(getPluralForm('en', 1.9)).toBe('other')
+      // Decimals are floored, so 1.9 becomes 1 (singular), and 1.1 also becomes 1 (singular)
+      expect(getPluralForm('en', 1.9)).toBe('one')
       expect(getPluralForm('en', 1.1)).toBe('one')
     })
   })
