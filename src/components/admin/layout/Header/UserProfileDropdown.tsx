@@ -1,0 +1,169 @@
+"use client"
+
+import { useMemo, type Ref, memo } from "react"
+import { useSession } from "next-auth/react"
+import { ChevronDown, User as UserIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { hasPermission } from "@/lib/permissions"
+import Avatar from "./UserProfileDropdown/Avatar"
+import UserInfo from "./UserProfileDropdown/UserInfo"
+import ThemeSubmenu from "./UserProfileDropdown/ThemeSubmenu"
+import type { UserMenuLink } from "./UserProfileDropdown/types"
+import { MENU_LINKS, HELP_LINKS } from "./UserProfileDropdown/constants"
+import { useUserStatus } from "@/hooks/useUserStatus"
+
+export interface UserProfileDropdownProps {
+  className?: string
+  showStatus?: boolean
+  onSignOut?: () => Promise<void> | void
+  onOpenProfilePanel?: () => void
+  triggerRef?: Ref<HTMLButtonElement>
+  customLinks?: UserMenuLink[]
+}
+
+function StatusSelector() {
+  const { status, setStatus } = useUserStatus()
+  const opts = [
+    { v: "online" as const, label: "Online", dot: "bg-green-500" },
+    { v: "away" as const, label: "Away", dot: "bg-amber-400" },
+    { v: "busy" as const, label: "Busy", dot: "bg-red-500" },
+  ]
+  return (
+    <div role="group" aria-label="Status" className="px-3 py-2 border-t border-gray-100">
+      <div className="flex flex-col gap-2">
+        {opts.map(o => {
+          const checked = status === o.v
+          return (
+            <button
+              key={o.v}
+              role="menuitemradio"
+              aria-checked={checked}
+              onClick={() => setStatus(o.v)}
+              className={cn(
+                "flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md transition-all text-sm",
+                checked
+                  ? "bg-gradient-to-r from-slate-50 to-white text-gray-900 ring-1 ring-slate-200 shadow-sm"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`inline-block h-3 w-3 rounded-full ${o.dot}`} />
+                <span className="font-medium">{o.label}</span>
+              </div>
+
+              <div className="flex items-center">
+                {checked ? <svg className="h-4 w-4 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : null}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function UserProfileDropdownComponent({
+  className,
+  showStatus = true,
+  onSignOut,
+  onOpenProfilePanel,
+  triggerRef,
+  customLinks,
+}: UserProfileDropdownProps) {
+  const { data: session } = useSession()
+  const name = session?.user?.name || "User"
+  const email = session?.user?.email || undefined
+  const image = (session?.user as any)?.image as string | undefined
+  const role = (session?.user as any)?.role as string | undefined
+  const organization = (session?.user as any)?.organization as string | undefined
+
+  const links = useMemo<UserMenuLink[]>(() => {
+    const raw = customLinks && customLinks.length ? customLinks : MENU_LINKS
+    const roleStr = role || undefined
+    return raw.filter(l => {
+      if (!l.permission) return true
+      const perms = Array.isArray(l.permission) ? l.permission : [l.permission]
+      try { return perms.some((p:any) => hasPermission(roleStr, p)) } catch { return true }
+    })
+  }, [customLinks, role])
+
+  const { status: userStatus } = useUserStatus()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          ref={triggerRef as any}
+          variant="ghost"
+          className={cn("flex items-center gap-2 px-3", className)}
+          aria-label="Open user menu"
+        >
+          <div className="relative h-8 w-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+            {image ? (
+               
+              <img src={image} alt={name} className="h-full w-full object-cover" />
+            ) : (
+              <UserIcon className="h-4 w-4 text-gray-600" />
+            )}
+          </div>
+          <div className="hidden md:block text-left">
+            <div className="text-sm font-medium text-gray-900">{name}</div>
+            <div className="text-xs text-gray-500">{role || ""}</div>
+          </div>
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <div className="p-3">
+          <div className="flex items-center gap-3">
+            <Avatar name={name} src={image} size="md" showStatus={showStatus} status={userStatus} />
+            <UserInfo name={name} email={email} role={role} organization={organization} variant="full" />
+          </div>
+        </div>
+        {onOpenProfilePanel ? (
+          <div className="py-1 border-t border-gray-100">
+            <button type="button" role="menuitem" onClick={() => onOpenProfilePanel()} className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              Manage Profile
+            </button>
+          </div>
+        ) : null}
+        <ThemeSubmenu />
+        {/* Status selector */}
+        {showStatus ? <StatusSelector /> : null}
+        <div className="py-1">
+          {links.map((l) => (
+            <a key={l.href} href={l.href} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              {l.icon ? <l.icon className="mr-2 h-4 w-4" /> : null}
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+        <div className="py-1 border-t border-gray-100">
+          {HELP_LINKS.map((l) => (
+            <a key={l.href} href={l.href} target={l.external ? "_blank" : undefined} rel={l.external ? "noreferrer" : undefined} className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+              {l.icon ? <l.icon className="mr-2 h-4 w-4" /> : null}
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+        <div className="py-1 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={() => { if (!onSignOut) return; const ok = typeof window !== 'undefined' ? window.confirm('Are you sure you want to sign out?') : true; if (ok) onSignOut(); }}
+            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            Sign out
+          </button>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+export default memo(UserProfileDropdownComponent)

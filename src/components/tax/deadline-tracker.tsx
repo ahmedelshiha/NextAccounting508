@@ -64,7 +64,7 @@ export function DeadlineTracker() {
         </ul>
         <div className="mt-4 flex flex-col sm:flex-row gap-2">
           <Button asChild>
-            <Link href="/portal/settings">
+            <Link href="/admin/profile?tab=booking">
               <Bell className="h-4 w-4 mr-2" /> Enable Email Reminders
             </Link>
           </Button>

@@ -27,7 +27,7 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
     setLoading(true)
     ;(async () => {
       try {
-        let r = await fetch('/api/admin/security-settings', { cache: 'no-store' })
+        const r = await fetch('/api/admin/security-settings', { cache: 'no-store' })
         if (r.status === 401 && r.headers.get('x-step-up-required')) {
           setOtpNeeded(true)
           setLoading(false)
@@ -57,9 +57,9 @@ export default function SuperAdminSecurityModal({ open, onClose, onSaved }: Prop
     setError('')
     try {
       const body = { ...pending }
-      let headers: any = { 'Content-Type': 'application/json' }
+      const headers: any = { 'Content-Type': 'application/json' }
       if (withOtp) headers['x-mfa-otp'] = withOtp
-      let r = await fetch('/api/admin/security-settings', { method: 'PUT', headers, body: JSON.stringify(body) })
+      const r = await fetch('/api/admin/security-settings', { method: 'PUT', headers, body: JSON.stringify(body) })
       if (r.status === 401 && r.headers.get('x-step-up-required')) {
         setOtpNeeded(true)
         return

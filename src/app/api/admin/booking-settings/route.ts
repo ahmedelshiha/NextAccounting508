@@ -5,6 +5,7 @@ import { logAudit } from '@/lib/audit'
 import { withTenantContext } from '@/lib/api-wrapper'
 import { requireTenantContext } from '@/lib/tenant-utils'
 import { respond } from '@/lib/api-response'
+import { persistSettingChangeDiff } from '@/lib/settings-diff-helper'
 
 export const GET = withTenantContext(async (req: NextRequest) => {
   const ctx = requireTenantContext()
@@ -35,8 +36,23 @@ export const PUT = withTenantContext(async (req: NextRequest) => {
     const validated = await service.validateSettingsUpdate(tenantId, updates)
     if (!validated.isValid) return NextResponse.json({ error: 'Settings validation failed', errors: validated.errors, warnings: validated.warnings }, { status: 400 })
 
+    const before = await service.getBookingSettings(tenantId).catch(() => null)
     const settings = await service.updateBookingSettings(tenantId, updates)
+
     try { await logAudit({ action: 'booking-settings:update', actorId: ctx.userId, details: { tenantId, updates } }) } catch {}
+
+    // Persist change diff and audit event
+    if (tenantId) {
+      await persistSettingChangeDiff({
+        tenantId,
+        category: 'booking',
+        resource: 'booking-settings',
+        userId: ctx.userId,
+        before,
+        after: settings,
+      })
+    }
+
     return NextResponse.json({ settings, warnings: validated.warnings })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed to update booking settings' }, { status: 500 })

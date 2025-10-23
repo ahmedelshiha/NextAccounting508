@@ -26,7 +26,7 @@ export function OptimizedFooter({ orgName = 'Accounting Firm', orgLogoUrl, conta
             <Link href="/" className="flex items-center mb-4">
               <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
                 {orgLogoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
+                   
                   <img src={orgLogoUrl} alt={`${orgName} logo`} className="h-8 w-8 object-cover" />
                 ) : (
                   <span className="text-white font-bold">{initials}</span>

@@ -241,7 +241,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={100}
-                    value={pending.performance?.globalConcurrency ?? settings.performance.globalConcurrency ?? 10}
+                    value={pending.performance?.globalConcurrency ?? settings.performance?.globalConcurrency ?? 10}
                     onChange={(e) => updateSetting('performance', 'globalConcurrency', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -256,7 +256,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={50}
-                    value={pending.performance?.tenantConcurrency ?? settings.performance.tenantConcurrency ?? 3}
+                    value={pending.performance?.tenantConcurrency ?? settings.performance?.tenantConcurrency ?? 3}
                     onChange={(e) => updateSetting('performance', 'tenantConcurrency', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -271,7 +271,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={10}
                     max={1000}
-                    value={pending.performance?.batchSize ?? settings.performance.batchSize ?? 100}
+                    value={pending.performance?.batchSize ?? settings.performance?.batchSize ?? 100}
                     onChange={(e) => updateSetting('performance', 'batchSize', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -287,7 +287,7 @@ export default function CronTelemetryContent() {
                     min={5000}
                     max={300000}
                     step={5000}
-                    value={pending.performance?.processingTimeoutMs ?? settings.performance.processingTimeoutMs ?? 60000}
+                    value={pending.performance?.processingTimeoutMs ?? settings.performance?.processingTimeoutMs ?? 60000}
                     onChange={(e) => updateSetting('performance', 'processingTimeoutMs', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -313,7 +313,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={10}
-                    value={pending.reliability?.maxRetries ?? settings.reliability.maxRetries ?? 3}
+                    value={pending.reliability?.maxRetries ?? settings.reliability?.maxRetries ?? 3}
                     onChange={(e) => updateSetting('reliability', 'maxRetries', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -329,7 +329,7 @@ export default function CronTelemetryContent() {
                     min={0.1}
                     max={100}
                     step={0.1}
-                    value={pending.reliability?.backoffThresholdPercent ?? settings.reliability.backoffThresholdPercent ?? 10}
+                    value={pending.reliability?.backoffThresholdPercent ?? settings.reliability?.backoffThresholdPercent ?? 10}
                     onChange={(e) => updateSetting('reliability', 'backoffThresholdPercent', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -345,7 +345,7 @@ export default function CronTelemetryContent() {
                     min={1.0}
                     max={10.0}
                     step={0.1}
-                    value={pending.reliability?.backoffMultiplier ?? settings.reliability.backoffMultiplier ?? 2.0}
+                    value={pending.reliability?.backoffMultiplier ?? settings.reliability?.backoffMultiplier ?? 2.0}
                     onChange={(e) => updateSetting('reliability', 'backoffMultiplier', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -361,7 +361,7 @@ export default function CronTelemetryContent() {
                     min={1000}
                     max={300000}
                     step={1000}
-                    value={pending.reliability?.maxBackoffMs ?? settings.reliability.maxBackoffMs ?? 60000}
+                    value={pending.reliability?.maxBackoffMs ?? settings.reliability?.maxBackoffMs ?? 60000}
                     onChange={(e) => updateSetting('reliability', 'maxBackoffMs', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -382,20 +382,20 @@ export default function CronTelemetryContent() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700">Enable Detailed Logging</span>
                   <button
-                    onClick={() => updateSetting('monitoring', 'enableDetailedLogging', !(pending.monitoring?.enableDetailedLogging ?? settings.monitoring.enableDetailedLogging))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.monitoring?.enableDetailedLogging ?? settings.monitoring.enableDetailedLogging) ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    onClick={() => updateSetting('monitoring', 'enableDetailedLogging', !(pending.monitoring?.enableDetailedLogging ?? settings.monitoring?.enableDetailedLogging))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.monitoring?.enableDetailedLogging ?? settings.monitoring?.enableDetailedLogging) ? 'bg-blue-600' : 'bg-gray-200'}`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.monitoring?.enableDetailedLogging ?? settings.monitoring.enableDetailedLogging) ? 'translate-x-6' : 'translate-x-1'}`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.monitoring?.enableDetailedLogging ?? settings.monitoring?.enableDetailedLogging) ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700">Enable Metrics Collection</span>
                   <button
-                    onClick={() => updateSetting('monitoring', 'enableMetricsCollection', !(pending.monitoring?.enableMetricsCollection ?? settings.monitoring.enableMetricsCollection))}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.monitoring?.enableMetricsCollection ?? settings.monitoring.enableMetricsCollection) ? 'bg-blue-600' : 'bg-gray-200'}`}
+                    onClick={() => updateSetting('monitoring', 'enableMetricsCollection', !(pending.monitoring?.enableMetricsCollection ?? settings.monitoring?.enableMetricsCollection))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.monitoring?.enableMetricsCollection ?? settings.monitoring?.enableMetricsCollection) ? 'bg-blue-600' : 'bg-gray-200'}`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.monitoring?.enableMetricsCollection ?? settings.monitoring.enableMetricsCollection) ? 'translate-x-6' : 'translate-x-1'}`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.monitoring?.enableMetricsCollection ?? settings.monitoring?.enableMetricsCollection) ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </div>
 
@@ -408,7 +408,7 @@ export default function CronTelemetryContent() {
                     min={0.1}
                     max={50}
                     step={0.1}
-                    value={pending.monitoring?.errorRateAlertThreshold ?? settings.monitoring.errorRateAlertThreshold ?? 5}
+                    value={pending.monitoring?.errorRateAlertThreshold ?? settings.monitoring?.errorRateAlertThreshold ?? 5}
                     onChange={(e) => updateSetting('monitoring', 'errorRateAlertThreshold', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -423,7 +423,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={1}
                     max={10000}
-                    value={pending.monitoring?.failedCountAlertThreshold ?? settings.monitoring.failedCountAlertThreshold ?? 100}
+                    value={pending.monitoring?.failedCountAlertThreshold ?? settings.monitoring?.failedCountAlertThreshold ?? 100}
                     onChange={(e) => updateSetting('monitoring', 'failedCountAlertThreshold', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -438,7 +438,7 @@ export default function CronTelemetryContent() {
                     type="number"
                     min={7}
                     max={365}
-                    value={pending.monitoring?.metricsRetentionDays ?? settings.monitoring.metricsRetentionDays ?? 30}
+                    value={pending.monitoring?.metricsRetentionDays ?? settings.monitoring?.metricsRetentionDays ?? 30}
                     onChange={(e) => updateSetting('monitoring', 'metricsRetentionDays', Number(e.target.value))}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -458,30 +458,30 @@ export default function CronTelemetryContent() {
               <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <span className="text-sm font-medium text-blue-900">Reminders Enabled</span>
                 <button
-                  onClick={() => updateSetting('status', 'remindersEnabled', !(pending.status?.remindersEnabled ?? settings.status.remindersEnabled))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.remindersEnabled ?? settings.status.remindersEnabled) ? 'bg-green-600' : 'bg-red-600'}`}
+                  onClick={() => updateSetting('status', 'remindersEnabled', !(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled) ? 'bg-green-600' : 'bg-red-600'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.remindersEnabled ?? settings.status.remindersEnabled) ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.remindersEnabled ?? settings.status?.remindersEnabled) ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <span className="text-sm font-medium text-yellow-900">Maintenance Mode</span>
                 <button
-                  onClick={() => updateSetting('status', 'maintenanceMode', !(pending.status?.maintenanceMode ?? settings.status.maintenanceMode))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) ? 'bg-yellow-600' : 'bg-gray-200'}`}
+                  onClick={() => updateSetting('status', 'maintenanceMode', !(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) ? 'bg-yellow-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 
-              {(pending.status?.maintenanceMode ?? settings.status.maintenanceMode) && (
+              {(pending.status?.maintenanceMode ?? settings.status?.maintenanceMode) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Maintenance Mode Message
                   </label>
                   <textarea
-                    value={pending.status?.maintenanceModeMessage ?? settings.status.maintenanceModeMessage ?? ''}
+                    value={pending.status?.maintenanceModeMessage ?? settings.status?.maintenanceModeMessage ?? ''}
                     onChange={(e) => updateSetting('status', 'maintenanceModeMessage', e.target.value)}
                     className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                     rows={3}

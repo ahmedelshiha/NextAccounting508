@@ -31,7 +31,7 @@ function CompanySettingsContent(){
   useEffect(()=>{
     const t = searchParams.get('tab')
     if (t && tabList.some(tab=>tab.key===t)) setActiveTab(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   },[])
   const [showImport, setShowImport] = useState(false)
   const [importData, setImportData] = useState<any>(null)
