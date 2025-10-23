@@ -382,7 +382,7 @@ export default function LocalizationContent() {
                         label="Native Name"
                         value={newLang.nativeName}
                         onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
-                        placeholder="e.g. Français"
+                        placeholder="e.g. Fran��ais"
                       />
                       <p className="text-xs text-gray-600 mt-1">Language name in its native script</p>
                     </div>
@@ -1087,6 +1087,8 @@ export default function LocalizationContent() {
     orgSettings,
     regionalFormats,
     showAddLanguageForm,
+    analyticsData,
+    analyticsLoading,
   ])
 
   return (
