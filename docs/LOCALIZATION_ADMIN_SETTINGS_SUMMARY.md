@@ -91,11 +91,11 @@ src/app/admin/settings/localization/
 │ [Add Language] [Import] [Export]    │
 ├─────────────────────────────────────┤
 │ Code │ Name      │ Status│ Featured│
-├─��───┼──────────┼────────┼─────────┤
+├─────┼──────────┼────────┼─────────┤
 │ en   │ English   │ ✓ On  │ ⭐      │
 │ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
-└─────┴──────────┴────────┴─────────┘
+└─────┴──────────┴────���───┴─────────┘
 
 Heatmap: [Language usage over last 30 days]
 ```
@@ -216,7 +216,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────┐
+┌─────────────────────────────────────��
 │ Regional Formats                    │
 ├───────────────────────���─────────────┤
 │ English (en-US)                    │
@@ -236,7 +236,7 @@ Heatmap: [Language usage over last 30 days]
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
 │ [Copy from en-US] [Save]          │
-└───────────────��─────────────────────┘
+└─────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -268,7 +268,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Translation Platforms - Crowdin       │
-├──────���───────────────────────────────┤
+├──────────────────────────────────────┤
 │ Project ID: [__________________]    │
 │ API Token:  [__________________]    │
 │ [Test Connection] ✓ Connected       │
@@ -404,7 +404,7 @@ Heatmap: [Language usage over last 30 days]
 │ Hindi: 12% (↓ from 15%)            │
 │                                     │
 │ [Export Data] [Compare Periods]     │
-└────────────────────────────────────��┘
+└─────────────────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -435,7 +435,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌────────────────��────────────────────┐
+┌─────────────────────────────────────┐
 │ Key Discovery                       │
 ├───────────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
@@ -702,6 +702,12 @@ CREATE TABLE LanguageAnalytics (
   - Files Modified:
     - src/app/admin/settings/localization/LocalizationContent.new.tsx
   - Testing: Re-run CI build to validate. If further type narrowing issues appear, consider generalizing Tabs/SettingsShell prop types to accept TabKey instead of string.
+
+- ✅ 2025-10-23T02:26:19Z: Fixed duplicate key issue in perf-metrics API payload normalization.
+  - Summary: The normalizedPayload object previously declared default fields before spreading the incoming payload, which could introduce duplicate keys (TypeScript error). Reordered to spread payload first and then set defaults using nullish coalescing so explicit payload values are preserved and defaults apply only when fields are missing.
+  - Files Modified:
+    - src/app/api/admin/perf-metrics/route.ts
+  - Testing: Re-run CI/build to confirm no further compile-time errors.
 
 ## 📝 Notes
 
