@@ -1,160 +1,85 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withTenantContext } from '@/lib/api-wrapper'
-import { requireTenantContext } from '@/lib/tenant-utils'
-import prisma from '@/lib/prisma'
-import * as Sentry from '@sentry/nextjs'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { prisma } from '@/lib/prisma'
+import { tenantFilter } from '@/lib/tenant'
 
-interface LocalizationSettings {
-  defaultLanguage: string
-  fallbackLanguage: string
-  showLanguageSwitcher: boolean
-  persistLanguagePreference: boolean
-  autoDetectBrowserLanguage: boolean
-  allowUserLanguageOverride: boolean
-  enableRtlSupport: boolean
-  missingTranslationBehavior: 'show-key' | 'show-fallback' | 'show-empty'
-}
+export const dynamic = 'force-dynamic'
 
-const DEFAULT_SETTINGS: LocalizationSettings = {
-  defaultLanguage: 'en',
-  fallbackLanguage: 'en',
-  showLanguageSwitcher: true,
-  persistLanguagePreference: true,
-  autoDetectBrowserLanguage: true,
-  allowUserLanguageOverride: true,
-  enableRtlSupport: true,
-  missingTranslationBehavior: 'show-fallback',
-}
-
-/**
- * GET /api/admin/org-settings/localization
- * Fetch organization-wide localization settings
- */
-export const GET = withTenantContext(async () => {
+export async function GET() {
   try {
-    const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant context missing' },
-        { status: 400 }
-      )
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.ORG_SETTINGS_VIEW)) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let settings = await prisma.organizationLocalizationSettings.findUnique({
+    const tenantId = tenantFilter()
+
+    const settings = await prisma.organizationLocalizationSettings.findUnique({
       where: { tenantId },
     })
 
     if (!settings) {
-      settings = await prisma.organizationLocalizationSettings.create({
+      return Response.json({
+        success: true,
         data: {
-          tenantId,
-          ...DEFAULT_SETTINGS,
+          defaultLanguage: 'en',
+          fallbackLanguage: 'en',
+          showLanguageSwitcher: true,
+          persistLanguagePreference: true,
+          autoDetectBrowserLanguage: true,
+          allowUserLanguageOverride: true,
+          enableRtlSupport: true,
+          missingTranslationBehavior: 'show-fallback',
         },
       })
     }
 
-    const response: LocalizationSettings = {
-      defaultLanguage: settings.defaultLanguage,
-      fallbackLanguage: settings.fallbackLanguage,
-      showLanguageSwitcher: settings.showLanguageSwitcher,
-      persistLanguagePreference: settings.persistLanguagePreference,
-      autoDetectBrowserLanguage: settings.autoDetectBrowserLanguage,
-      allowUserLanguageOverride: settings.allowUserLanguageOverride,
-      enableRtlSupport: settings.enableRtlSupport,
-      missingTranslationBehavior: settings.missingTranslationBehavior as 'show-key' | 'show-fallback' | 'show-empty',
-    }
-
-    return NextResponse.json({ data: response })
-  } catch (error) {
-    console.error('Failed to fetch localization settings:', error)
-    Sentry.captureException(error)
-    return NextResponse.json(
-      { error: 'Failed to fetch localization settings' },
-      { status: 500 }
-    )
+    return Response.json({ success: true, data: settings })
+  } catch (error: any) {
+    console.error('Failed to get localization settings:', error)
+    return Response.json({ error: error.message || 'Failed to get localization settings' }, { status: 500 })
   }
-})
+}
 
-/**
- * PUT /api/admin/org-settings/localization
- * Update organization-wide localization settings
- */
-export const PUT = withTenantContext(async (request: NextRequest) => {
+export async function PUT(req: Request) {
   try {
-    const ctx = requireTenantContext()
-    const tenantId = ctx.tenantId
-
-    if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant context missing' },
-        { status: 400 }
-      )
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.ORG_SETTINGS_MANAGE)) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
-
-    if (!body.defaultLanguage || !body.fallbackLanguage) {
-      return NextResponse.json(
-        { error: 'defaultLanguage and fallbackLanguage are required' },
-        { status: 400 }
-      )
-    }
+    const tenantId = tenantFilter()
+    const body = await req.json()
 
     const settings = await prisma.organizationLocalizationSettings.upsert({
       where: { tenantId },
       create: {
         tenantId,
-        defaultLanguage: body.defaultLanguage,
-        fallbackLanguage: body.fallbackLanguage,
+        defaultLanguage: body.defaultLanguage || 'en',
+        fallbackLanguage: body.fallbackLanguage || 'en',
         showLanguageSwitcher: body.showLanguageSwitcher ?? true,
         persistLanguagePreference: body.persistLanguagePreference ?? true,
         autoDetectBrowserLanguage: body.autoDetectBrowserLanguage ?? true,
         allowUserLanguageOverride: body.allowUserLanguageOverride ?? true,
         enableRtlSupport: body.enableRtlSupport ?? true,
-        missingTranslationBehavior: body.missingTranslationBehavior ?? 'show-fallback',
+        missingTranslationBehavior: body.missingTranslationBehavior || 'show-fallback',
       },
       update: {
-        defaultLanguage: body.defaultLanguage,
-        fallbackLanguage: body.fallbackLanguage,
-        showLanguageSwitcher: body.showLanguageSwitcher ?? true,
-        persistLanguagePreference: body.persistLanguagePreference ?? true,
-        autoDetectBrowserLanguage: body.autoDetectBrowserLanguage ?? true,
-        allowUserLanguageOverride: body.allowUserLanguageOverride ?? true,
-        enableRtlSupport: body.enableRtlSupport ?? true,
-        missingTranslationBehavior: body.missingTranslationBehavior ?? 'show-fallback',
+        defaultLanguage: body.defaultLanguage || undefined,
+        fallbackLanguage: body.fallbackLanguage || undefined,
+        showLanguageSwitcher: body.showLanguageSwitcher !== undefined ? body.showLanguageSwitcher : undefined,
+        persistLanguagePreference: body.persistLanguagePreference !== undefined ? body.persistLanguagePreference : undefined,
+        autoDetectBrowserLanguage: body.autoDetectBrowserLanguage !== undefined ? body.autoDetectBrowserLanguage : undefined,
+        allowUserLanguageOverride: body.allowUserLanguageOverride !== undefined ? body.allowUserLanguageOverride : undefined,
+        enableRtlSupport: body.enableRtlSupport !== undefined ? body.enableRtlSupport : undefined,
+        missingTranslationBehavior: body.missingTranslationBehavior || undefined,
       },
     })
 
-    Sentry.addBreadcrumb({
-      category: 'localization.settings',
-      message: 'Organization localization settings updated',
-      level: 'info',
-      data: {
-        defaultLanguage: settings.defaultLanguage,
-        fallbackLanguage: settings.fallbackLanguage,
-      },
-    })
-
-    const response: LocalizationSettings = {
-      defaultLanguage: settings.defaultLanguage,
-      fallbackLanguage: settings.fallbackLanguage,
-      showLanguageSwitcher: settings.showLanguageSwitcher,
-      persistLanguagePreference: settings.persistLanguagePreference,
-      autoDetectBrowserLanguage: settings.autoDetectBrowserLanguage,
-      allowUserLanguageOverride: settings.allowUserLanguageOverride,
-      enableRtlSupport: settings.enableRtlSupport,
-      missingTranslationBehavior: settings.missingTranslationBehavior as 'show-key' | 'show-fallback' | 'show-empty',
-    }
-
-    return NextResponse.json({ data: response })
-  } catch (error) {
-    console.error('Failed to update localization settings:', error)
-    Sentry.captureException(error)
-    return NextResponse.json(
-      { error: 'Failed to update localization settings' },
-      { status: 500 }
-    )
+    return Response.json({ success: true, data: settings })
+  } catch (error: any) {
+    console.error('Failed to save localization settings:', error)
+    return Response.json({ error: error.message || 'Failed to save localization settings' }, { status: 500 })
   }
-})
+}
