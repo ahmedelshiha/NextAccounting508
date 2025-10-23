@@ -203,6 +203,8 @@ model Tenant {
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
   cronTelemetrySettings CronTelemetrySettings?
+  localizationSettings OrganizationLocalizationSettings?
+  regionalFormats      RegionalFormat[]
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
   settingChangeDiffs   SettingChangeDiff[]
