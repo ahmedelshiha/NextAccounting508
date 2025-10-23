@@ -130,7 +130,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Organization Settings                │
-├─────────────────────────��────────────┤
+├─────��───────────────────��────────────┤
 │ Default Language: [English ▼]         │
 │ Fallback Language: [English ▼]        │
 │                                      │
@@ -187,7 +187,7 @@ Heatmap: [Language usage over last 30 days]
 │ [Line chart showing user growth]      │
 │                                       │
 │ [Export User Preferences] [Analyze]    │
-└────────────────────────��───────────────┘
+└───��────────────────────��───────────────┘
 ```
 
 **API Endpoints:**
@@ -218,7 +218,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌─────────────────────────────────────┐
 │ Regional Formats                    │
-├───────────────────────���─────────────┤
+├─���─────────────────────���─────────────┤
 │ English (en-US)                    │
 │ ├─ Date: MM/DD/YYYY               │
 │ ├─ Time: 12:34 PM                 │
@@ -279,7 +279,7 @@ Heatmap: [Language usage over last 30 days]
 │ ● Weekly auto-sync (Monday 2 AM)    │
 │ ○ Real-time (webhook)              │
 │                                     │
-│ [Sync Now] [View Last Sync: 2h ago] │
+│ [Sync Now] [View Last Sync: 2h ago] ��
 │                                     │
 │ Project Health:                     │
 │ English (base):    100%             │
@@ -670,6 +670,25 @@ CREATE TABLE LanguageAnalytics (
     - src/app/admin/settings/localization/tabs/AnalyticsTab.tsx (enhanced with trends UI)
     - src/app/admin/settings/localization/types.ts (CrowdinIntegration optional status fields)
   - Testing: Verified API returns data when TranslationMetrics exist; UI gracefully shows "Insufficient data" when empty. Checked permissions and error handling.
+
+- ✅ 2025-10-23T02:01:48Z: Fixed build lint errors blocking deployment.
+  - Summary: Escaped unescaped apostrophes in localization tab UI and replaced usages of getServerSession/authOptions in admin API routes with the standardized withTenantContext + requireTenantContext pattern and role-based permission checks. This resolves ESLint no-restricted-imports and react/no-unescaped-entities errors observed during CI build.
+  - Files Modified:
+    - src/app/admin/settings/localization/tabs/DiscoveryTab.tsx
+    - src/app/admin/settings/localization/tabs/OrganizationTab.tsx
+    - src/app/api/admin/crowdin-integration/route.ts
+    - src/app/api/admin/languages/route.ts
+    - src/app/api/admin/languages/import/route.ts
+    - src/app/api/admin/languages/export/route.ts
+    - src/app/api/admin/languages/[code]/route.ts
+    - src/app/api/admin/languages/[code]/toggle/route.ts
+    - src/app/api/admin/org-settings/localization/route.ts
+    - src/app/api/admin/regional-formats/route.ts
+    - src/app/api/admin/translations/discover/route.ts
+    - src/app/api/admin/translations/discover/schedule/route.ts
+    - src/app/api/admin/translations/status/route.ts
+    - src/app/api/admin/user-language-analytics/route.ts
+  - Testing: Static lint errors addressed locally. Please re-run CI/Build to confirm and report any remaining issues.
 
 ## 📝 Notes
 
