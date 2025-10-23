@@ -98,6 +98,11 @@ export default function LocalizationContent() {
   const [missingKeys, setMissingKeys] = useState<any[]>([])
   const [recentKeys, setRecentKeys] = useState<any[]>([])
 
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [analyticsTrends, setAnalyticsTrends] = useState<any[]>([])
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+
   // UI state
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
