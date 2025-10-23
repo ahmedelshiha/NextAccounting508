@@ -13,6 +13,9 @@ export const GET = withTenantContext(async () => {
     }
 
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      return Response.json({ error: 'Tenant context required' }, { status: 400 })
+    }
 
     const users = await prisma.userProfile.findMany({
       where: {
