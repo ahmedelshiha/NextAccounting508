@@ -52,9 +52,14 @@ function maskToken(token: string): string {
  * GET /api/admin/crowdin-integration
  * Fetch Crowdin integration settings
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json({ data: null })
+    }
 
     const integration = await prisma.crowdinIntegration.findUnique({
       where: { tenantId },
