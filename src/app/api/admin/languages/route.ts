@@ -2,8 +2,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
-import { tenantFilter } from '@/lib/tenant'
-import type { Language } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,9 +12,7 @@ export async function GET() {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
     const languages = await prisma.language.findMany({
-      where: { tenantId },
       orderBy: { code: 'asc' },
     })
 
@@ -30,7 +26,6 @@ export async function GET() {
         flag: lang.flag,
         bcp47Locale: lang.bcp47Locale,
         enabled: lang.enabled,
-        featured: lang.featured,
       })),
     })
   } catch (error: any) {
@@ -47,16 +42,14 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { code, name, nativeName, direction, flag, bcp47Locale, enabled = true, featured = false } = body
+    const { code, name, nativeName, direction, flag, bcp47Locale, enabled = true } = body
 
     if (!code || !name || !nativeName || !bcp47Locale) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const tenantId = tenantFilter()
-
     const existing = await prisma.language.findUnique({
-      where: { tenantId_code: { tenantId, code: code.toLowerCase() } },
+      where: { code: code.toLowerCase() },
     })
 
     if (existing) {
@@ -65,7 +58,6 @@ export async function POST(req: Request) {
 
     const language = await prisma.language.create({
       data: {
-        tenantId,
         code: code.toLowerCase(),
         name,
         nativeName,
@@ -73,7 +65,6 @@ export async function POST(req: Request) {
         flag: flag || '🌐',
         bcp47Locale,
         enabled,
-        featured,
       },
     })
 
