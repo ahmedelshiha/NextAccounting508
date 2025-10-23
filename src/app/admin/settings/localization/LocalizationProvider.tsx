@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useState, useCallback, ReactNode } from 'react'
+import React, { createContext, useState, useCallback, ReactNode, useMemo } from 'react'
 import type {
   LocalizationContextType,
   LanguageRow,
@@ -34,32 +34,95 @@ export const LocalizationProvider: React.FC<LocalizationProviderProps> = ({ chil
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const value: LocalizationContextType = {
+  // Memoize setter callbacks to prevent unnecessary re-renders in child components
+  const memoizedSetActiveTab = useCallback((tab: TabKey | ((prev: TabKey) => TabKey)) => {
+    setActiveTab(typeof tab === 'function' ? tab : tab)
+  }, [])
+
+  const memoizedSetLanguages = useCallback((langs: LanguageRow[] | ((prev: LanguageRow[]) => LanguageRow[])) => {
+    setLanguages(langs)
+  }, [])
+
+  const memoizedSetOrgSettings = useCallback((settings: OrganizationLocalizationSettings | ((prev: OrganizationLocalizationSettings) => OrganizationLocalizationSettings)) => {
+    setOrgSettings(settings)
+  }, [])
+
+  const memoizedSetRegionalFormats = useCallback((formats: Record<string, RegionalFormat> | ((prev: Record<string, RegionalFormat>) => Record<string, RegionalFormat>)) => {
+    setRegionalFormats(formats)
+  }, [])
+
+  const memoizedSetCrowdinIntegration = useCallback((integration: CrowdinIntegration | ((prev: CrowdinIntegration) => CrowdinIntegration)) => {
+    setCrowdinIntegration(integration)
+  }, [])
+
+  const memoizedSetTranslationStatus = useCallback((status: TranslationStatus | null | ((prev: TranslationStatus | null) => TranslationStatus | null)) => {
+    setTranslationStatus(status)
+  }, [])
+
+  const memoizedSetMissingKeys = useCallback((keys: MissingKey[] | ((prev: MissingKey[]) => MissingKey[])) => {
+    setMissingKeys(keys)
+  }, [])
+
+  const memoizedSetAnalyticsData = useCallback((data: AnalyticsData | null | ((prev: AnalyticsData | null) => AnalyticsData | null)) => {
+    setAnalyticsData(data)
+  }, [])
+
+  const memoizedSetLoading = useCallback((isLoading: boolean | ((prev: boolean) => boolean)) => {
+    setLoading(isLoading)
+  }, [])
+
+  const memoizedSetSaving = useCallback((isSaving: boolean | ((prev: boolean) => boolean)) => {
+    setSaving(isSaving)
+  }, [])
+
+  const memoizedSetSaved = useCallback((isSaved: boolean | ((prev: boolean) => boolean)) => {
+    setSaved(isSaved)
+  }, [])
+
+  const memoizedSetError = useCallback((err: string | null | ((prev: string | null) => string | null)) => {
+    setError(err)
+  }, [])
+
+  // Memoize context value to prevent unnecessary provider updates
+  const value: LocalizationContextType = useMemo(() => ({
     activeTab,
-    setActiveTab,
+    setActiveTab: memoizedSetActiveTab,
     languages,
-    setLanguages,
+    setLanguages: memoizedSetLanguages,
     orgSettings,
-    setOrgSettings,
+    setOrgSettings: memoizedSetOrgSettings,
     regionalFormats,
-    setRegionalFormats,
+    setRegionalFormats: memoizedSetRegionalFormats,
     crowdinIntegration,
-    setCrowdinIntegration,
+    setCrowdinIntegration: memoizedSetCrowdinIntegration,
     translationStatus,
-    setTranslationStatus,
+    setTranslationStatus: memoizedSetTranslationStatus,
     missingKeys,
-    setMissingKeys,
+    setMissingKeys: memoizedSetMissingKeys,
     analyticsData,
-    setAnalyticsData,
+    setAnalyticsData: memoizedSetAnalyticsData,
     loading,
-    setLoading,
+    setLoading: memoizedSetLoading,
     saving,
-    setSaving,
+    setSaving: memoizedSetSaving,
     saved,
-    setSaved,
+    setSaved: memoizedSetSaved,
     error,
-    setError,
-  }
+    setError: memoizedSetError,
+  }), [
+    activeTab, memoizedSetActiveTab,
+    languages, memoizedSetLanguages,
+    orgSettings, memoizedSetOrgSettings,
+    regionalFormats, memoizedSetRegionalFormats,
+    crowdinIntegration, memoizedSetCrowdinIntegration,
+    translationStatus, memoizedSetTranslationStatus,
+    missingKeys, memoizedSetMissingKeys,
+    analyticsData, memoizedSetAnalyticsData,
+    loading, memoizedSetLoading,
+    saving, memoizedSetSaving,
+    saved, memoizedSetSaved,
+    error, memoizedSetError,
+  ])
 
   return (
     <LocalizationContext.Provider value={value}>
