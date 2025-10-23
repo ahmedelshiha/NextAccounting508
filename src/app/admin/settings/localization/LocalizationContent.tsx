@@ -137,8 +137,14 @@ export default function LocalizationContent() {
   }, [searchParams])
 
   useEffect(() => {
-    loadAll()
+    // Load only essential data initially
+    loadEssential()
   }, [])
+
+  useEffect(() => {
+    // Load tab-specific data when tab changes
+    loadTabData()
+  }, [activeTab])
 
   const loadAll = useCallback(async () => {
     setLoading(true)
