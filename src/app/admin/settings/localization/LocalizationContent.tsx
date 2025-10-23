@@ -146,25 +146,52 @@ export default function LocalizationContent() {
     loadTabData()
   }, [activeTab])
 
-  const loadAll = useCallback(async () => {
+  const loadEssential = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
+      // Load only essential data for initial page load
       await Promise.all([
         loadLanguages(),
         loadOrgSettings(),
-        loadRegionalFormats(),
-        loadCrowdinIntegration(),
-        loadTranslationStatus(),
-        loadAnalytics(),
       ])
     } catch (e) {
-      console.error('Failed to load data:', e)
+      console.error('Failed to load essential data:', e)
       setError('Failed to load localization settings')
     } finally {
       setLoading(false)
     }
   }, [])
+
+  const loadTabData = useCallback(async () => {
+    try {
+      // Load tab-specific data on demand
+      switch (activeTab) {
+        case 'regional':
+          if (Object.keys(regionalFormats).length === 0) {
+            await loadRegionalFormats()
+          }
+          break
+        case 'integration':
+          if (!crowdinLoaded) {
+            await loadCrowdinIntegration()
+          }
+          break
+        case 'translations':
+          if (!status) {
+            await loadTranslationStatus()
+          }
+          break
+        case 'analytics':
+          if (!analyticsData) {
+            await loadAnalytics()
+          }
+          break
+      }
+    } catch (e) {
+      console.error('Failed to load tab data:', e)
+    }
+  }, [activeTab, regionalFormats, crowdinLoaded, status, analyticsData])
 
   async function loadLanguages() {
     try {
