@@ -187,9 +187,17 @@ export const POST = withTenantContext(async (request: NextRequest) => {
  * DELETE /api/admin/crowdin-integration
  * Delete Crowdin integration settings
  */
-export const DELETE = withTenantContext(async (request: NextRequest, context: any) => {
+export const DELETE = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     await prisma.crowdinIntegration.delete({
       where: { tenantId },
