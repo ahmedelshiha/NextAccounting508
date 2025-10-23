@@ -1,19 +1,19 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { tenantFilter } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_VIEW)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
+    const tenantId = ctx.tenantId as string
 
     const integration = await prisma.crowdinIntegration.findUnique({
       where: { tenantId },
@@ -52,16 +52,16 @@ export async function GET() {
     console.error('Failed to get Crowdin integration:', error)
     return Response.json({ error: error.message || 'Failed to get Crowdin integration' }, { status: 500 })
   }
-}
+})
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
+    const tenantId = ctx.tenantId as string
     const body = await req.json()
     const { projectId, apiToken, autoSyncDaily, syncOnDeploy, createPrs } = body
 
@@ -105,12 +105,12 @@ export async function POST(req: Request) {
     console.error('Failed to save Crowdin integration:', error)
     return Response.json({ error: error.message || 'Failed to save Crowdin integration' }, { status: 500 })
   }
-}
+})
 
-export async function PUT(req: Request) {
+export const PUT = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -150,4 +150,4 @@ export async function PUT(req: Request) {
     console.error('Failed to test Crowdin connection:', error)
     return Response.json({ error: error.message || 'Failed to test connection' }, { status: 500 })
   }
-}
+})
