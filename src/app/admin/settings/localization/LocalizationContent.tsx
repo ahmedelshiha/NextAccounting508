@@ -10,6 +10,10 @@ import Tabs from '@/components/admin/settings/Tabs'
 import { AlertCircle, Globe, Zap, BarChart3, Lightbulb, Plus, Trash2, Edit2, Check, X, Eye, EyeOff, Star, Code2 } from 'lucide-react'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { Bar, Line, Doughnut } from 'react-chartjs-2'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
 const tabs = [
   { key: 'languages', label: 'Languages & Availability' },
@@ -94,6 +98,11 @@ export default function LocalizationContent() {
   const [missingKeys, setMissingKeys] = useState<any[]>([])
   const [recentKeys, setRecentKeys] = useState<any[]>([])
 
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [analyticsTrends, setAnalyticsTrends] = useState<any[]>([])
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+
   // UI state
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -119,6 +128,7 @@ export default function LocalizationContent() {
         loadOrgSettings(),
         loadRegionalFormats(),
         loadTranslationStatus(),
+        loadAnalytics(),
       ])
     } catch (e) {
       console.error('Failed to load data:', e)
@@ -177,6 +187,21 @@ export default function LocalizationContent() {
       }
     } catch (e) {
       console.error('Failed to load translation status:', e)
+    }
+  }
+
+  async function loadAnalytics() {
+    try {
+      setAnalyticsLoading(true)
+      const r = await fetch('/api/admin/user-language-analytics', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        setAnalyticsData(d.data)
+      }
+    } catch (e) {
+      console.error('Failed to load analytics:', e)
+    } finally {
+      setAnalyticsLoading(false)
     }
   }
 
@@ -357,7 +382,7 @@ export default function LocalizationContent() {
                         label="Native Name"
                         value={newLang.nativeName}
                         onChange={v => setNewLang(s => ({ ...s, nativeName: v }))}
-                        placeholder="e.g. Français"
+                        placeholder="e.g. Fran��ais"
                       />
                       <p className="text-xs text-gray-600 mt-1">Language name in its native script</p>
                     </div>
@@ -907,13 +932,103 @@ export default function LocalizationContent() {
 
         {/* ============ ANALYTICS TAB ============ */}
         {activeTab === 'analytics' && (
-          <SettingsSection title="Translation Analytics" description="Coming soon">
-            <div className="rounded-lg border bg-white p-12 text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">Analytics dashboard will be available soon</p>
-              <p className="text-sm text-gray-500 mt-2">Track translation progress and coverage trends</p>
-            </div>
-          </SettingsSection>
+          <>
+            <SettingsSection title="User Language Distribution" description="Current language preferences across your users">
+              {analyticsLoading ? (
+                <div className="rounded-lg border bg-white p-12 text-center">
+                  <p className="text-gray-600">Loading analytics...</p>
+                </div>
+              ) : analyticsData ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Total Users</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalUsers}</p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Languages in Use</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.languagesInUse.length}</p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Most Used Language</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.mostUsedLanguage?.toUpperCase() || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  {analyticsData.distribution && analyticsData.distribution.length > 0 && (
+                    <div className="rounded-lg border bg-white p-6">
+                      <h4 className="font-semibold text-gray-900 mb-4">Language Distribution</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="flex justify-center">
+                          <div style={{ width: '300px', height: '300px' }}>
+                            <Doughnut
+                              data={{
+                                labels: analyticsData.distribution.map((d: any) => {
+                                  const lang = languages.find(l => l.code === d.language)
+                                  return `${lang?.name || d.language} (${d.count})`
+                                }),
+                                datasets: [
+                                  {
+                                    data: analyticsData.distribution.map((d: any) => d.count),
+                                    backgroundColor: [
+                                      '#3b82f6',
+                                      '#ef4444',
+                                      '#10b981',
+                                      '#f59e0b',
+                                      '#8b5cf6',
+                                      '#ec4899',
+                                    ],
+                                    borderColor: ['#ffffff'],
+                                    borderWidth: 2,
+                                  },
+                                ],
+                              }}
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                  legend: {
+                                    position: 'bottom' as const,
+                                  },
+                                },
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {analyticsData.distribution.map((item: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'][idx % 6],
+                                  }}
+                                />
+                                <span className="font-medium text-gray-900">
+                                  {languages.find(l => l.code === item.language)?.name || item.language}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-gray-600">{item.count} users</span>
+                                <span className="text-sm font-medium text-gray-900 w-12 text-right">{item.percentage}%</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border bg-white p-12 text-center">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600">No analytics data available</p>
+                </div>
+              )}
+            </SettingsSection>
+          </>
         )}
 
         {/* ============ DISCOVERY TAB ============ */}
@@ -972,6 +1087,8 @@ export default function LocalizationContent() {
     orgSettings,
     regionalFormats,
     showAddLanguageForm,
+    analyticsData,
+    analyticsLoading,
   ])
 
   return (

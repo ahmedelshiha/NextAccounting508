@@ -203,6 +203,9 @@ model Tenant {
   communicationSettings CommunicationSettings?
   securitySettings     SecuritySettings?
   cronTelemetrySettings CronTelemetrySettings?
+  localizationSettings OrganizationLocalizationSettings?
+  regionalFormats      RegionalFormat[]
+  crowdinIntegration   CrowdinIntegration?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
   settingChangeDiffs   SettingChangeDiff[]
@@ -1539,4 +1542,73 @@ model CronTelemetrySettings {
 
   @@index([tenantId])
   @@map("cron_telemetry_settings")
+}
+
+// Organization-wide localization settings per-tenant
+model OrganizationLocalizationSettings {
+  id                          String   @id @default(cuid())
+  tenantId                    String   @unique
+  tenant                      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  defaultLanguage             String   @default("en") @db.VarChar(10)
+  fallbackLanguage            String   @default("en") @db.VarChar(10)
+  showLanguageSwitcher        Boolean  @default(true)
+  persistLanguagePreference   Boolean  @default(true)
+  autoDetectBrowserLanguage   Boolean  @default(true)
+  allowUserLanguageOverride   Boolean  @default(true)
+  enableRtlSupport            Boolean  @default(true)
+  missingTranslationBehavior  String   @default("show-fallback") @db.VarChar(20) // show-key | show-fallback | show-empty
+
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("org_localization_settings")
+}
+
+// Regional format settings per language per-tenant
+model RegionalFormat {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  languageCode        String   @db.VarChar(10)
+  dateFormat          String   @db.VarChar(50)
+  timeFormat          String   @db.VarChar(50)
+  currencyCode        String   @db.VarChar(3)
+  currencySymbol      String   @db.VarChar(10)
+  numberFormat        String   @db.VarChar(50)
+  decimalSeparator    String   @db.VarChar(1)
+  thousandsSeparator  String   @db.VarChar(1)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([tenantId, languageCode])
+  @@index([tenantId])
+  @@index([languageCode])
+  @@map("regional_formats")
+}
+
+// Crowdin integration settings per-tenant
+model CrowdinIntegration {
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  projectId           String   @db.VarChar(100)
+  apiTokenMasked      String   @db.VarChar(20)  // Last 20 chars of token for display
+  apiTokenEncrypted   String   @db.Text         // Encrypted full token
+  autoSyncDaily       Boolean  @default(true)
+  syncOnDeploy        Boolean  @default(false)
+  createPrs           Boolean  @default(true)
+  lastSyncAt          DateTime?
+  lastSyncStatus      String?  @db.VarChar(50)  // success | failed | pending
+  testConnectionOk    Boolean  @default(false)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("crowdin_integrations")
 }
