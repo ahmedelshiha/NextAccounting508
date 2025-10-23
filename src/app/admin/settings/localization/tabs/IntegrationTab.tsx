@@ -169,10 +169,46 @@ export const IntegrationTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900">
-            💡 <strong>Coming soon:</strong> Manual sync controls, project health dashboard, and sync audit logs
-          </p>
+        {/* Sync Status Dashboard */}
+        <div className="rounded-lg border bg-white p-6">
+          <h4 className="font-semibold text-gray-900 mb-4">Sync Status</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg border bg-gray-50 p-4">
+              <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Last Sync</p>
+              <p className="text-lg font-medium text-gray-900">
+                {crowdinIntegration.lastSyncAt ? new Date(crowdinIntegration.lastSyncAt).toLocaleString() : 'Never'}
+              </p>
+              {crowdinIntegration.lastSyncStatus && (
+                <p className={`text-sm mt-1 ${crowdinIntegration.lastSyncStatus === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                  Status: {crowdinIntegration.lastSyncStatus}
+                </p>
+              )}
+            </div>
+            <div className="rounded-lg border bg-gray-50 p-4">
+              <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Connection</p>
+              <p className={`text-lg font-medium ${crowdinIntegration.testConnectionOk ? 'text-green-600' : 'text-gray-500'}`}>
+                {crowdinIntegration.testConnectionOk ? '✓ Connected' : '○ Not Connected'}
+              </p>
+              <button
+                onClick={testCrowdinConnection}
+                disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || crowdinTestLoading || saving}
+                className="text-xs text-blue-600 hover:text-blue-700 mt-2 underline"
+              >
+                Test now
+              </button>
+            </div>
+          </div>
+
+          {/* Manual Sync Button */}
+          <div className="mt-4">
+            <button
+              onClick={testCrowdinConnection}
+              disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || crowdinTestLoading || saving}
+              className="w-full px-4 py-2 rounded-md text-sm text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 font-medium"
+            >
+              {crowdinTestLoading ? 'Syncing...' : '⚡ Sync Now'}
+            </button>
+          </div>
         </div>
       </PermissionGate>
     </div>

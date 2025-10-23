@@ -1,69 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireTenantContext } from '@/lib/tenant-utils'
-import { withTenantContext } from '@/lib/api-wrapper'
-import { toggleLanguageStatus } from '@/lib/language-registry'
-import { logAudit } from '@/lib/audit'
-import * as Sentry from '@sentry/nextjs'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
+import { prisma } from '@/lib/prisma'
 
-/**
- * POST /api/admin/languages/[code]/toggle
- * Toggle language enabled/disabled status (admin only)
- */
-export const POST = withTenantContext(async (request: NextRequest, { params }: { params: { code: string } }) => {
+export const dynamic = 'force-dynamic'
+
+export async function PATCH(req: Request, { params }: { params: { code: string } }) {
   try {
-    const ctx = requireTenantContext()
-    if (!ctx.userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const code = params.code
+    const code = params.code.toLowerCase()
 
-    const updated = await toggleLanguageStatus(code)
-
-    // Log audit event
-    try {
-      await logAudit({
-        action: 'LANGUAGE_TOGGLED',
-        actorId: ctx.userId,
-        targetId: code,
-        details: { enabled: updated.enabled }
-      })
-    } catch (auditError) {
-      console.warn('Failed to log audit event:', auditError)
-    }
-
-    Sentry.addBreadcrumb({
-      category: 'admin.languages',
-      message: 'Language toggled',
-      level: 'info',
-      data: { code, enabled: updated.enabled }
+    const language = await prisma.language.findUnique({
+      where: { code },
     })
 
-    return NextResponse.json(updated)
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error)
-
-    if (errorMsg.includes('Cannot disable default language')) {
-      return NextResponse.json(
-        { error: 'Cannot disable default language (en)' },
-        { status: 400 }
-      )
+    if (!language) {
+      return Response.json({ error: 'Language not found' }, { status: 404 })
     }
 
-    if (errorMsg.includes('not found')) {
-      return NextResponse.json(
-        { error: `Language ${params.code} not found` },
-        { status: 404 }
-      )
-    }
+    const updated = await prisma.language.update({
+      where: { code },
+      data: { enabled: !language.enabled },
+    })
 
+    return Response.json({ success: true, data: updated })
+  } catch (error: any) {
     console.error('Failed to toggle language:', error)
-    Sentry.captureException(error, {
-      tags: { endpoint: 'admin.languages.toggle', code: params.code }
-    })
-    return NextResponse.json(
-      { error: 'Failed to toggle language' },
-      { status: 500 }
-    )
+    return Response.json({ error: error.message || 'Failed to toggle language' }, { status: 500 })
   }
-})
+}

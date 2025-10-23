@@ -1,12 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useLocalizationContext } from '../LocalizationProvider'
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, TrendingUp } from 'lucide-react'
 
 export const AnalyticsTab: React.FC = () => {
-  const { analyticsData, loading, setLoading } = useLocalizationContext()
-  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const { analyticsData, setAnalyticsData, loading, setLoading } = useLocalizationContext()
 
   useEffect(() => {
     loadAnalytics()
@@ -14,75 +13,168 @@ export const AnalyticsTab: React.FC = () => {
 
   async function loadAnalytics() {
     try {
-      setAnalyticsLoading(true)
+      setLoading(true)
       const r = await fetch('/api/admin/user-language-analytics')
       if (r.ok) {
         const d = await r.json()
-        // State would be updated via context
+        setAnalyticsData(d.data)
       }
     } catch (e) {
       console.error('Failed to load analytics:', e)
     } finally {
-      setAnalyticsLoading(false)
+      setLoading(false)
     }
   }
 
+  if (loading) {
+    return <div className="text-gray-600 py-8 text-center">Loading analytics...</div>
+  }
+
+  const data = analyticsData
+  const distribution = data?.distribution || []
+
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border bg-white p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">User Language Distribution</h3>
-        <p className="text-sm text-gray-600 mb-6">Current language preferences across your users</p>
-
-        {analyticsLoading || loading ? (
-          <div className="rounded-lg border bg-white p-12 text-center">
-            <p className="text-gray-600">Loading analytics...</p>
-          </div>
-        ) : analyticsData ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="rounded-lg border bg-white p-4">
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalUsers}</p>
-              </div>
-              <div className="rounded-lg border bg-white p-4">
-                <p className="text-sm font-medium text-gray-600">Languages in Use</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.languagesInUse.length}</p>
-              </div>
-              <div className="rounded-lg border bg-white p-4">
-                <p className="text-sm font-medium text-gray-600">Most Used Language</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.mostUsedLanguage?.toUpperCase() || 'N/A'}</p>
-              </div>
+      {/* Summary Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-lg border bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{data?.totalUsers || 0}</p>
+              <p className="text-xs text-gray-600 mt-2">Active users</p>
             </div>
+            <div className="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
 
-            {analyticsData.distribution && analyticsData.distribution.length > 0 && (
-              <div className="rounded-lg border bg-white p-6">
-                <h4 className="font-semibold text-gray-900 mb-4">Language Distribution</h4>
-                <div className="space-y-3">
-                  {analyticsData.distribution.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                      <span className="font-medium text-gray-900">{item.language}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600">{item.count} users</span>
-                        <span className="text-sm font-medium text-gray-900 w-12 text-right">{item.percentage}%</span>
-                      </div>
+        <div className="rounded-lg border bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Languages Tracked</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{data?.languagesInUse?.length || 0}</p>
+              <p className="text-xs text-gray-600 mt-2">Active languages</p>
+            </div>
+            <div className="h-12 w-12 rounded-lg bg-green-50 flex items-center justify-center">
+              <span className="text-xl">🌍</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Most Used</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {distribution[0]?.language?.toUpperCase() || 'N/A'}
+              </p>
+              <p className="text-xs text-gray-600 mt-2">{distribution[0]?.count} users</p>
+            </div>
+            <div className="h-12 w-12 rounded-lg bg-purple-50 flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Language Distribution Pie Chart (Text-based) */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Language Distribution</h3>
+
+        {distribution.length > 0 ? (
+          <div className="space-y-4">
+            {/* Distribution List */}
+            {distribution.map((item, idx) => {
+              const colors = [
+                'bg-blue-500',
+                'bg-purple-500',
+                'bg-green-500',
+                'bg-orange-500',
+                'bg-red-500',
+                'bg-pink-500',
+              ]
+              const colorClass = colors[idx % colors.length]
+
+              return (
+                <div key={item.language} className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${colorClass}`} />
+                      <span className="text-sm font-medium text-gray-900">{item.language.toUpperCase()}</span>
                     </div>
-                  ))}
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">{item.count}</p>
+                      <p className="text-xs text-gray-600">{parseFloat(item.percentage).toFixed(1)}%</p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`${colorClass} h-full rounded-full transition-all duration-300`}
+                      style={{
+                        width: `${parseFloat(item.percentage)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })}
           </div>
         ) : (
-          <div className="rounded-lg border bg-white p-12 text-center">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600">No analytics data available</p>
+          <div className="text-center py-8 text-gray-600">
+            <p>No language distribution data available</p>
           </div>
         )}
+      </div>
 
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900">
-            💡 <strong>Coming soon:</strong> Adoption trends, cohort analysis, feature usage breakdown, and regional heatmaps
-          </p>
+      {/* Adoption Insights */}
+      <div className="rounded-lg border bg-white p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
+        <div className="space-y-4">
+          {distribution.length > 0 && (
+            <>
+              <div className="flex items-start gap-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="text-2xl">📈</div>
+                <div>
+                  <p className="font-medium text-gray-900">Primary Language</p>
+                  <p className="text-sm text-gray-700">
+                    {distribution[0]?.language?.toUpperCase()} is used by {distribution[0]?.count} users ({parseFloat(distribution[0]?.percentage).toFixed(1)}% of total)
+                  </p>
+                </div>
+              </div>
+
+              {distribution.length > 1 && (
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-green-50 border border-green-200">
+                  <div className="text-2xl">🌐</div>
+                  <div>
+                    <p className="font-medium text-gray-900">Multi-Language Adoption</p>
+                    <p className="text-sm text-gray-700">
+                      Your platform is actively used in {distribution.length} languages
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-start gap-4 p-4 rounded-lg bg-purple-50 border border-purple-200">
+                <div className="text-2xl">👥</div>
+                <div>
+                  <p className="font-medium text-gray-900">User Base</p>
+                  <p className="text-sm text-gray-700">
+                    {data?.totalUsers || 0} users have set their language preference
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
+      </div>
+
+      {/* Coming Soon Features */}
+      <div className="rounded-lg border bg-blue-50 p-4">
+        <p className="text-sm text-blue-900">
+          💡 <strong>Coming soon:</strong> Adoption trends over time, new user preferences, device/OS breakdown, geographic heatmaps, and data export for BI tools
+        </p>
       </div>
     </div>
   )
