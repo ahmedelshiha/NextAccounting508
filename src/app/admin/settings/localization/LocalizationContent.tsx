@@ -883,24 +883,47 @@ export default function LocalizationContent() {
                           onChange={v => {
                             setRegionalFormats(p => ({
                               ...p,
-                              [lang.code]: { ...p[lang.code], dateFormat: v },
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: v,
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
                             }))
+                            setRegionalFormatsEdited(true)
                           }}
                           placeholder="MM/DD/YYYY"
                         />
                         <p className="text-xs text-gray-600 mt-1">e.g., DD/MM/YYYY, YYYY-MM-DD</p>
                       </div>
-                      <TextField
-                        label="Time Format"
-                        value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
-                        onChange={v => {
-                          setRegionalFormats(p => ({
-                            ...p,
-                            [lang.code]: { ...p[lang.code], timeFormat: v },
-                          }))
-                        }}
-                        placeholder="HH:MM AM"
-                      />
+                      <div>
+                        <TextField
+                          label="Time Format"
+                          value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: v,
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="HH:MM AM"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">e.g., HH:MM, HH:MM AM</p>
+                      </div>
                       <div>
                         <TextField
                           label="Currency Code"
@@ -908,17 +931,110 @@ export default function LocalizationContent() {
                           onChange={v => {
                             setRegionalFormats(p => ({
                               ...p,
-                              [lang.code]: { ...p[lang.code], currencyCode: v },
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: v,
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
                             }))
+                            setRegionalFormatsEdited(true)
                           }}
                           placeholder="USD"
                         />
                         <p className="text-xs text-gray-600 mt-1">ISO 4217 code (max 3 chars)</p>
                       </div>
+                      <div>
+                        <TextField
+                          label="Currency Symbol"
+                          value={regionalFormats[lang.code]?.currencySymbol || '$'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: v,
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="$"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">e.g., $, €, ₹, ﷼</p>
+                      </div>
+                      <div>
+                        <TextField
+                          label="Decimal Separator"
+                          value={regionalFormats[lang.code]?.decimalSeparator || '.'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: v,
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="."
+                        />
+                        <p className="text-xs text-gray-600 mt-1">Usually . or ,</p>
+                      </div>
+                      <div>
+                        <TextField
+                          label="Thousands Separator"
+                          value={regionalFormats[lang.code]?.thousandsSeparator || ','}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: v,
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder=","
+                        />
+                        <p className="text-xs text-gray-600 mt-1">Usually , or .</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+              {regionalFormatsEdited && (
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={saveRegionalFormats}
+                    disabled={saving}
+                    className="px-6 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                  >
+                    {saving ? 'Saving...' : 'Save Regional Formats'}
+                  </button>
+                </div>
+              )}
             </SettingsSection>
           </>
         )}
