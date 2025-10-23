@@ -10,6 +10,10 @@ import Tabs from '@/components/admin/settings/Tabs'
 import { AlertCircle, Globe, Zap, BarChart3, Lightbulb, Plus, Trash2, Edit2, Check, X, Eye, EyeOff, Star, Code2 } from 'lucide-react'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { Bar, Line, Doughnut } from 'react-chartjs-2'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
 const tabs = [
   { key: 'languages', label: 'Languages & Availability' },
