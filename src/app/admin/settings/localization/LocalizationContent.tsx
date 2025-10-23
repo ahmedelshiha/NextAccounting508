@@ -148,6 +148,7 @@ export default function LocalizationContent() {
         loadLanguages(),
         loadOrgSettings(),
         loadRegionalFormats(),
+        loadCrowdinIntegration(),
         loadTranslationStatus(),
         loadAnalytics(),
       ])
