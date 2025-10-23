@@ -251,7 +251,7 @@ export const DiscoveryTab: React.FC = () => {
       {/* Info Box */}
       <div className="rounded-lg border bg-blue-50 p-4">
         <p className="text-sm text-blue-900">
-          💡 Discovery audits scan your codebase for <code className="bg-blue-100 px-1">t('key')</code> patterns and compare them with your translation JSON files to identify gaps and orphaned keys.
+          💡 Discovery audits scan your codebase for <code className="bg-blue-100 px-1">t(&apos;key&apos;)</code> patterns and compare them with your translation JSON files to identify gaps and orphaned keys.
         </p>
       </div>
     </div>
