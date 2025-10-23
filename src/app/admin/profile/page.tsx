@@ -2,7 +2,7 @@ import ProfileManagementPanel from '@/components/admin/profile/ProfileManagement
 
 export default function AdminProfilePage({ searchParams }: { searchParams?: { tab?: string } }) {
   const tabParam = (searchParams?.tab || '').toLowerCase()
-  const allowed = ['profile', 'security', 'preferences', 'communication', 'notifications'] as const
+  const allowed = ['profile', 'security', 'booking', 'localization', 'notifications'] as const
   const isAllowed = (allowed as readonly string[]).includes(tabParam)
   const defaultTab = (isAllowed ? (tabParam as typeof allowed[number]) : 'profile')
   return (

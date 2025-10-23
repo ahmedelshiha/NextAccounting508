@@ -18,5 +18,5 @@ export default async function PortalSettingsPage() {
   // Permanently redirect all portal/settings traffic to admin/profile
   // Using dynamic import ensures test mocks for next/navigation are used
   const nav = await import('next/navigation') as any
-  nav.redirect('/admin/profile?tab=preferences')
+  nav.redirect('/admin/profile?tab=booking')
 }

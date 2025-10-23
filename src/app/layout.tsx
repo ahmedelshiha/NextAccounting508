@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth'
 import { SchemaMarkup } from '@/components/seo/SchemaMarkup'
 import { getEffectiveOrgSettingsFromHeaders } from '@/lib/org-settings'
 import { SettingsProvider } from '@/components/providers/SettingsProvider'
+import { locales, type Locale } from '@/lib/i18n'
 import '@/styles/dark-mode.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -42,7 +43,7 @@ export default async function RootLayout({
   }
 
   // Load organization defaults with tenant scoping (server-side, no auth required for read)
-  let orgLocale = 'en'
+  let orgLocale: Locale = 'en'
   let orgName = 'Accounting Firm'
   let orgLogoUrl: string | null | undefined = null
   let contactEmail: string | null | undefined = null
@@ -50,7 +51,9 @@ export default async function RootLayout({
   let legalLinks: Record<string, string> | null | undefined = null
   try {
     const eff = await getEffectiveOrgSettingsFromHeaders()
-    orgLocale = eff.locale || 'en'
+    const locale = eff.locale || 'en'
+    // Validate locale is supported
+    orgLocale = locales.includes(locale as Locale) ? (locale as Locale) : 'en'
     orgName = eff.name || orgName
     orgLogoUrl = eff.logoUrl ?? null
     contactEmail = eff.contactEmail ?? null
@@ -58,8 +61,30 @@ export default async function RootLayout({
     legalLinks = eff.legalLinks ?? null
   } catch {}
 
+  // Load user's preferred locale if authenticated
+  let userLocale: Locale = orgLocale
+  if (session?.user?.email && session?.user?.tenantId) {
+    try {
+      const { getUserPreferredLocale } = await import('@/lib/server/get-user-preferred-locale')
+      userLocale = await getUserPreferredLocale(session.user.email, session.user.tenantId, orgLocale)
+    } catch {
+      // Silently fall back to organization locale on any error
+      userLocale = orgLocale
+    }
+  }
+
+  // Load server-side translations to avoid client double-fetch and FOUC
+  let serverTranslations: Record<string, string> | undefined = undefined
+  try {
+    const { getServerTranslations } = await import('@/lib/server/translations')
+    serverTranslations = await getServerTranslations(userLocale)
+  } catch (err) {
+    // If server-side loader fails, we fall back to client-side loading
+    serverTranslations = undefined
+  }
+
   return (
-    <html lang={orgLocale}>
+    <html lang={userLocale}>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/next.svg" />
@@ -75,7 +100,7 @@ export default async function RootLayout({
         >
           Skip to main content
         </a>
-        <TranslationProvider initialLocale={orgLocale as any}>
+        <TranslationProvider initialLocale={userLocale as any} initialTranslations={serverTranslations}>
           <SettingsProvider initialSettings={{ name: orgName, logoUrl: orgLogoUrl ?? null, contactEmail: contactEmail ?? null, contactPhone: contactPhone ?? null, legalLinks: legalLinks ?? null, defaultLocale: orgLocale }}>
               <ClientLayout session={session} orgName={orgName} orgLogoUrl={orgLogoUrl || undefined} contactEmail={contactEmail || undefined} contactPhone={contactPhone || undefined} legalLinks={legalLinks || undefined}>
                 {children}

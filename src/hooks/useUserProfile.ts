@@ -55,7 +55,9 @@ export function useUserProfile() {
     }
   }, [])
 
-  useEffect(() => { refresh() }, [refresh])
+  useEffect(() => {
+    refresh()
+  }, [])
 
   return { profile, loading, error, refresh, update }
 }

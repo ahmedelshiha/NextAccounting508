@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+# Pre-commit hook: Fast TypeScript type checking before linting
+# This ensures type safety issues are caught immediately before other checks
+
+echo "🔍 Running TypeScript type check..."
+
+if ! pnpm typecheck > /dev/null 2>&1; then
+  echo "❌ TypeScript errors found. Fix them before committing:"
+  pnpm typecheck
+  exit 1
+fi
+
+echo "✅ Type check passed"
+
+# Continue with eslint and lint-staged for staged files
+pnpm dlx lint-staged
