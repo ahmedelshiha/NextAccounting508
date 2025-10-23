@@ -1,14 +1,14 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-export async function PUT(req: Request, { params }: { params: { code: string } }) {
+export const PUT = withTenantContext(async (req: Request, { params }: { params: { code: string } }) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -36,12 +36,12 @@ export async function PUT(req: Request, { params }: { params: { code: string } }
     console.error('Failed to update language:', error)
     return Response.json({ error: error.message || 'Failed to update language' }, { status: 500 })
   }
-}
+})
 
-export async function DELETE(req: Request, { params }: { params: { code: string } }) {
+export const DELETE = withTenantContext(async (req: Request, { params }: { params: { code: string } }) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -51,9 +51,7 @@ export async function DELETE(req: Request, { params }: { params: { code: string 
       return Response.json({ error: 'Cannot delete the default language (en)' }, { status: 400 })
     }
 
-    await prisma.language.delete({
-      where: { code },
-    })
+    await prisma.language.delete({ where: { code } })
 
     return Response.json({ success: true })
   } catch (error: any) {
@@ -63,4 +61,4 @@ export async function DELETE(req: Request, { params }: { params: { code: string 
     console.error('Failed to delete language:', error)
     return Response.json({ error: error.message || 'Failed to delete language' }, { status: 500 })
   }
-}
+})
