@@ -1,0 +1,8 @@
+export { LanguagesTab } from './LanguagesTab'
+export { OrganizationTab } from './OrganizationTab'
+export { UserPreferencesTab } from './UserPreferencesTab'
+export { RegionalFormatsTab } from './RegionalFormatsTab'
+export { IntegrationTab } from './IntegrationTab'
+export { TranslationsTab } from './TranslationsTab'
+export { AnalyticsTab } from './AnalyticsTab'
+export { DiscoveryTab } from './DiscoveryTab'
