@@ -196,6 +196,28 @@ export default function LocalizationContent() {
     }
   }
 
+  async function loadCrowdinIntegration() {
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        if (d.data) {
+          setCrowdinIntegration({
+            projectId: d.data.projectId || '',
+            apiToken: d.data.apiTokenMasked || '',
+            autoSyncDaily: d.data.autoSyncDaily ?? true,
+            syncOnDeploy: d.data.syncOnDeploy ?? false,
+            createPrs: d.data.createPrs ?? true,
+          })
+        }
+        setCrowdinLoaded(true)
+      }
+    } catch (e) {
+      console.error('Failed to load Crowdin integration:', e)
+      setCrowdinLoaded(true)
+    }
+  }
+
   async function loadTranslationStatus() {
     try {
       const r = await fetch('/api/admin/translations/status', { cache: 'no-store' })
