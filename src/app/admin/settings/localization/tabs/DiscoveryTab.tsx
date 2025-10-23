@@ -75,7 +75,7 @@ export const DiscoveryTab: React.FC = () => {
             <div className="flex-1">
               <h4 className="font-semibold text-blue-900 mb-2">Automated Key Discovery</h4>
               <p className="text-sm text-blue-800 mb-4">
-                Scan your codebase for all <code className="bg-blue-100 px-2 py-1 rounded text-xs">t('key')</code> calls to identify translation gaps and optimize your i18n setup.
+                Scan your codebase for all <code className="bg-blue-100 px-2 py-1 rounded text-xs">t(&apos;key&apos;)</code> calls to identify translation gaps and optimize your i18n setup.
               </p>
               <ul className="list-disc list-inside text-sm text-blue-800 space-y-1 mb-4">
                 <li>Keys in code but missing from translation files</li>
