@@ -1,19 +1,18 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/prisma'
-import { tenantFilter } from '@/lib/tenant'
+import prisma from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_VIEW)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
+    const tenantId = ctx.tenantId
 
     const users = await prisma.userProfile.findMany({
       where: {
@@ -56,4 +55,4 @@ export async function GET() {
     console.error('Failed to get user language analytics:', error)
     return Response.json({ error: error.message || 'Failed to get analytics' }, { status: 500 })
   }
-}
+})

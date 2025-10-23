@@ -60,7 +60,7 @@ export default function LocalizationContent() {
       }
       tabs={TABS}
       activeTab={activeTab}
-      onChangeTab={setActiveTab}
+      onChangeTab={(k: string) => setActiveTab(k as TabKey)}
       loading={loading}
     >
       {!loading && TabComponent && <TabComponent />}

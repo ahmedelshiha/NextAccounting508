@@ -38,6 +38,9 @@ export interface CrowdinIntegration {
   autoSyncDaily: boolean
   syncOnDeploy: boolean
   createPrs: boolean
+  lastSyncAt?: string | null
+  lastSyncStatus?: 'success' | 'failed' | 'pending' | null
+  testConnectionOk?: boolean
 }
 
 export interface TranslationStatus {
@@ -73,29 +76,31 @@ export interface TabDefinition {
   label: string
 }
 
+import React from 'react'
+
 export interface LocalizationContextType {
   activeTab: TabKey
   setActiveTab: (tab: TabKey) => void
   languages: LanguageRow[]
-  setLanguages: (langs: LanguageRow[]) => void
+  setLanguages: React.Dispatch<React.SetStateAction<LanguageRow[]>>
   orgSettings: OrganizationLocalizationSettings
-  setOrgSettings: (settings: OrganizationLocalizationSettings) => void
+  setOrgSettings: React.Dispatch<React.SetStateAction<OrganizationLocalizationSettings>>
   regionalFormats: Record<string, RegionalFormat>
-  setRegionalFormats: (formats: Record<string, RegionalFormat>) => void
+  setRegionalFormats: React.Dispatch<React.SetStateAction<Record<string, RegionalFormat>>>
   crowdinIntegration: CrowdinIntegration
-  setCrowdinIntegration: (integration: CrowdinIntegration) => void
+  setCrowdinIntegration: React.Dispatch<React.SetStateAction<CrowdinIntegration>>
   translationStatus: TranslationStatus | null
-  setTranslationStatus: (status: TranslationStatus | null) => void
+  setTranslationStatus: React.Dispatch<React.SetStateAction<TranslationStatus | null>>
   missingKeys: MissingKey[]
-  setMissingKeys: (keys: MissingKey[]) => void
+  setMissingKeys: React.Dispatch<React.SetStateAction<MissingKey[]>>
   analyticsData: AnalyticsData | null
-  setAnalyticsData: (data: AnalyticsData | null) => void
+  setAnalyticsData: React.Dispatch<React.SetStateAction<AnalyticsData | null>>
   loading: boolean
-  setLoading: (loading: boolean) => void
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
   saving: boolean
-  setSaving: (saving: boolean) => void
+  setSaving: React.Dispatch<React.SetStateAction<boolean>>
   saved: boolean
-  setSaved: (saved: boolean) => void
+  setSaved: React.Dispatch<React.SetStateAction<boolean>>
   error: string | null
-  setError: (error: string | null) => void
+  setError: React.Dispatch<React.SetStateAction<string | null>>
 }

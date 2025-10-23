@@ -1,14 +1,13 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { tenantFilter } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(req: Request) {
+export const POST = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -30,4 +29,4 @@ export async function POST(req: Request) {
     console.error('Failed to schedule audit:', error)
     return Response.json({ error: error.message || 'Failed to schedule audit' }, { status: 500 })
   }
-}
+})

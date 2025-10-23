@@ -1,13 +1,13 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST() {
+export const POST = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.LANGUAGES_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.LANGUAGES_MANAGE)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -31,4 +31,4 @@ export async function POST() {
     console.error('Failed to run discovery audit:', error)
     return Response.json({ error: error.message || 'Failed to run discovery audit' }, { status: 500 })
   }
-}
+})

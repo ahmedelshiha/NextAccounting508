@@ -1,23 +1,21 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { tenantFilter } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export const GET = withTenantContext(async () => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.ORG_SETTINGS_VIEW)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ORG_SETTINGS_VIEW)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
+    const tenantId = ctx.tenantId as string
 
-    const settings = await prisma.organizationLocalizationSettings.findUnique({
-      where: { tenantId },
-    })
+    const settings = await prisma.organizationLocalizationSettings.findUnique({ where: { tenantId } })
 
     if (!settings) {
       return Response.json({
@@ -40,16 +38,16 @@ export async function GET() {
     console.error('Failed to get localization settings:', error)
     return Response.json({ error: error.message || 'Failed to get localization settings' }, { status: 500 })
   }
-}
+})
 
-export async function PUT(req: Request) {
+export const PUT = withTenantContext(async (req: Request) => {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !hasPermission((session.user as any)?.role, PERMISSIONS.ORG_SETTINGS_MANAGE)) {
+    const ctx = requireTenantContext()
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ORG_SETTINGS_EDIT)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenantId = tenantFilter()
+    const tenantId = ctx.tenantId as string
     const body = await req.json()
 
     const settings = await prisma.organizationLocalizationSettings.upsert({
@@ -82,4 +80,4 @@ export async function PUT(req: Request) {
     console.error('Failed to save localization settings:', error)
     return Response.json({ error: error.message || 'Failed to save localization settings' }, { status: 500 })
   }
-}
+})

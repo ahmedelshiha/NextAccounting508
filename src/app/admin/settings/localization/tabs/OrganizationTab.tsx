@@ -127,7 +127,7 @@ export const OrganizationTab: React.FC = () => {
               <label className="flex items-start justify-between gap-4 p-4 border rounded-lg hover:bg-gray-50">
                 <div>
                   <p className="font-medium text-gray-900">Persist Language Preference</p>
-                  <p className="text-sm text-gray-600">Save user's language choice to database</p>
+                  <p className="text-sm text-gray-600">Save user&apos;s language choice to database</p>
                 </div>
                 <Toggle
                   label=""
