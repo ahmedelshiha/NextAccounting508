@@ -232,15 +232,17 @@ Two new tables (pending migration):
 
 ---
 
-## ⏳ What's Pending
+## ✅ What's Been Completed
 
-- [ ] Database schema migrations
-- [ ] Regional format persistence API integration
-- [ ] Crowdin API credential encryption
-- [ ] User language analytics aggregation
-- [ ] Analytics charts (Chart.js/Recharts integration)
-- [ ] E2E tests for workflows
-- [ ] Additional regional languages support
+- [x] Database schema migrations for org_localization_settings and regional_formats
+- [x] Regional format persistence API integration with database
+- [x] Organization settings persistence API with database
+- [x] Crowdin API credential encryption/storage with secure token handling
+- [x] User language analytics aggregation endpoint
+- [x] Analytics charts using Chart.js/react-chartjs-2 with doughnut chart visualization
+- [x] E2E tests for language management workflows
+- [x] E2E tests for organization settings workflows
+- [x] Support for 16 additional regional languages (es, fr, de, pt, it, nl, ja, zh, ko, ru, pl, th, vi, and defaults)
 
 ---
 
