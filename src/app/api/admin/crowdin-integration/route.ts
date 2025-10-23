@@ -105,9 +105,18 @@ export const GET = withTenantContext(async () => {
  * POST /api/admin/crowdin-integration
  * Create or update Crowdin integration settings
  */
-export const POST = withTenantContext(async (request: NextRequest, context: any) => {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json() as CrowdinConfig
 
     if (!body.projectId || !body.apiToken) {
