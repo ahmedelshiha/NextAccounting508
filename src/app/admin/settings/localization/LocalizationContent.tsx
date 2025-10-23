@@ -137,32 +137,65 @@ export default function LocalizationContent() {
   }, [searchParams])
 
   useEffect(() => {
-    loadAll()
+    // Load only essential data initially
+    loadEssential()
   }, [])
 
-  const loadAll = useCallback(async () => {
+  useEffect(() => {
+    // Load tab-specific data when tab changes
+    loadTabData()
+  }, [activeTab])
+
+  const loadEssential = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
+      // Load only essential data for initial page load
       await Promise.all([
         loadLanguages(),
         loadOrgSettings(),
-        loadRegionalFormats(),
-        loadCrowdinIntegration(),
-        loadTranslationStatus(),
-        loadAnalytics(),
       ])
     } catch (e) {
-      console.error('Failed to load data:', e)
+      console.error('Failed to load essential data:', e)
       setError('Failed to load localization settings')
     } finally {
       setLoading(false)
     }
   }, [])
 
+  const loadTabData = useCallback(async () => {
+    try {
+      // Load tab-specific data on demand
+      switch (activeTab) {
+        case 'regional':
+          if (Object.keys(regionalFormats).length === 0) {
+            await loadRegionalFormats()
+          }
+          break
+        case 'integration':
+          if (!crowdinLoaded) {
+            await loadCrowdinIntegration()
+          }
+          break
+        case 'translations':
+          if (!status) {
+            await loadTranslationStatus()
+          }
+          break
+        case 'analytics':
+          if (!analyticsData) {
+            await loadAnalytics()
+          }
+          break
+      }
+    } catch (e) {
+      console.error('Failed to load tab data:', e)
+    }
+  }, [activeTab, regionalFormats, crowdinLoaded, status, analyticsData])
+
   async function loadLanguages() {
     try {
-      const r = await fetch('/api/admin/languages', { cache: 'no-store' })
+      const r = await fetch('/api/admin/languages')
       const d = await r.json()
       if (!r.ok) throw new Error(d?.error || 'Failed to load languages')
       setLanguages(d.data || [])
@@ -174,7 +207,7 @@ export default function LocalizationContent() {
 
   async function loadOrgSettings() {
     try {
-      const r = await fetch('/api/admin/org-settings/localization', { cache: 'no-store' })
+      const r = await fetch('/api/admin/org-settings/localization')
       if (r.ok) {
         const d = await r.json()
         setOrgSettings(prev => ({ ...prev, ...d.data }))
@@ -186,7 +219,7 @@ export default function LocalizationContent() {
 
   async function loadRegionalFormats() {
     try {
-      const r = await fetch('/api/admin/regional-formats', { cache: 'no-store' })
+      const r = await fetch('/api/admin/regional-formats')
       if (r.ok) {
         const d = await r.json()
         setRegionalFormats(d.data || {})
@@ -198,7 +231,7 @@ export default function LocalizationContent() {
 
   async function loadCrowdinIntegration() {
     try {
-      const r = await fetch('/api/admin/crowdin-integration', { cache: 'no-store' })
+      const r = await fetch('/api/admin/crowdin-integration')
       if (r.ok) {
         const d = await r.json()
         if (d.data) {
@@ -220,13 +253,13 @@ export default function LocalizationContent() {
 
   async function loadTranslationStatus() {
     try {
-      const r = await fetch('/api/admin/translations/status', { cache: 'no-store' })
+      const r = await fetch('/api/admin/translations/status')
       if (r.ok) {
         const d = await r.json()
         setStatus(d)
-        const rMissing = await fetch('/api/admin/translations/missing?limit=10', { cache: 'no-store' })
+        const rMissing = await fetch('/api/admin/translations/missing?limit=10')
         if (rMissing.ok) setMissingKeys((await rMissing.json()).data || [])
-        const rRecent = await fetch('/api/admin/translations/recent?days=7&limit=10', { cache: 'no-store' })
+        const rRecent = await fetch('/api/admin/translations/recent?days=7&limit=10')
         if (rRecent.ok) setRecentKeys((await rRecent.json()).data || [])
       }
     } catch (e) {
@@ -237,7 +270,7 @@ export default function LocalizationContent() {
   async function loadAnalytics() {
     try {
       setAnalyticsLoading(true)
-      const r = await fetch('/api/admin/user-language-analytics', { cache: 'no-store' })
+      const r = await fetch('/api/admin/user-language-analytics')
       if (r.ok) {
         const d = await r.json()
         setAnalyticsData(d.data)

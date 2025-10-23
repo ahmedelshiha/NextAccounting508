@@ -1,819 +1,664 @@
-# Admin Localization Settings - Enhancement Summary
+# Localization Admin Settings - Comprehensive Enhancement Plan
 
-## 🎯 What Was Enhanced
-
-The `/admin/settings/localization` page has been **completely redesigned** as a professional, enterprise-grade language management interface.
-
----
-
-## 📊 Before vs After
-
-| Aspect | Before | After |
-|--------|--------|-------|
-| Tabs | 5 basic tabs | **8 professional tabs** |
-| Language Management | Basic CRUD | Full lifecycle with featured languages |
-| Organization Settings | None | **8 configurable settings** |
-| Regional Formats | Not supported | **Full date/time/currency config per language** |
-| User Analytics | Placeholder | **Infrastructure ready** |
-| Translation Platform | Placeholder | **Crowdin integration ready** |
-| UI/UX | Functional | **Professional with modals, toasts, feedback** |
-| Error Handling | Basic | **Comprehensive with Sentry integration** |
-| Permissions | Simple | **Granular with view/manage permissions** |
+**Status:** Enhancement Phase  
+**Last Updated:** October 2025  
+**Owner:** Admin Settings Team  
 
 ---
 
-## 🎨 UI/UX Improvements
+## 📋 Executive Summary
 
-✅ **Modal-based Add Language form** (cleaner than inline table)  
-✅ **Toast notifications** for all operations (success/error/info)  
-✅ **Loading indicators** on all async operations  
-✅ **Color-coded badges** for status (enabled/disabled, RTL/LTR)  
-✅ **Icon indicators** for featured languages (⭐)  
-✅ **Responsive grid layouts** on all configuration sections  
-✅ **Form field descriptions** for clarity  
-✅ **Protection for default language** (English can't be deleted)  
-✅ **Confirmation dialogs** for destructive actions  
+The Localization Admin Settings module is being refactored from a **single 700+ line mega-component** into **8 modular, focused tabs** with enhanced functionality. Each tab will provide real, actionable controls for admins to manage multi-language deployments, regional configurations, and translation workflows.
 
----
+### Current State → Target State
 
-## 🔧 New Features by Tab
-
-### 1️⃣ Languages & Availability
-- Add/edit/enable/disable/delete languages
-- Mark languages as "Featured"
-- Configure text direction (LTR/RTL)
-- Set BCP47 locale for formatting
-- Add language flag emoji
-
-### 2️⃣ Organization Settings ⭐ NEW
-- **Default Language** - What new users see
-- **Fallback Language** - When translation missing
-- **Show Language Switcher** - Control UI visibility
-- **Persist Preference** - Save to database
-- **Auto-Detect Browser Language** - On first visit
-- **Allow User Override** - Let users change language
-- **Enable RTL Support** - For Arabic/Hebrew
-- **Missing Translation Behavior** - show-key | show-fallback | show-empty
-
-### 3️⃣ User Language Control ⭐ NEW
-- View user language distribution
-- Track adoption rates per language
-- Monitor which languages are actively used
-- Plan for future language additions
-
-### 4️⃣ Regional Formats ⭐ NEW
-Per-language configuration:
-- 📅 Date format (MM/DD/YYYY, DD/MM/YYYY, etc.)
-- ���� Time format (12h/24h variants)
-- 💱 Currency code (USD, EUR, INR, SAR)
-- 💲 Currency symbol ($, €, ₹, ﷼)
-- 🔢 Number formats (decimal/thousands separators)
-
-### 5️⃣ Translation Platforms ⭐ NEW
-- **Crowdin Integration:** Project ID, API token
-- **Sync Options:** Auto-sync daily, on deployment, create PRs
-- **Secure credential storage** (password fields)
-- Test connection capability
-
-### 6️⃣ Translation Dashboard
-- Enhanced coverage cards (total, EN%, AR%, HI%)
-- Missing translations table with status indicators
-- Recently added keys (last 7 days)
-- Improved visual design
-
-### 7️⃣ Analytics
-- Placeholder ready for chart implementation
-- Infrastructure in place for metrics
-
-### 8️⃣ Key Discovery
-- Run automated audit button
-- Manual CLI command option
-- Detailed output structure
+| Aspect | Current | Target |
+|--------|---------|--------|
+| **Architecture** | Single `LocalizationContent.tsx` | Modular tab structure with Provider |
+| **File Size** | 700+ lines in one file | ~150 lines per tab component |
+| **Data Loading** | All tabs loaded upfront | Lazy load per active tab |
+| **State Management** | Scattered useState | Centralized Provider context |
+| **Functionality** | Basic CRUD operations | Advanced controls + automation |
+| **Testing** | Hard to test monolith | Easy unit tests per tab |
+| **Maintenance** | High friction | Low friction, modular |
 
 ---
 
-## 🔐 Security & Permissions
+## 🏗️ Architecture Overview
 
-Two-level permission model:
+### Directory Structure
 
-**LANGUAGES_VIEW** - Read-only access
-- View all tabs
-- See current configuration
-- Cannot make changes
-
-**LANGUAGES_MANAGE** - Full access
-- CRUD on languages
-- Organization settings
-- Regional formats
-- Integration setup
-- Run discovery audits
-
----
-
-## 🚀 New API Endpoints
-
-### Organization Settings
 ```
-GET  /api/admin/org-settings/localization
-PUT  /api/admin/org-settings/localization
-```
-
-### Regional Formats
-```
-GET  /api/admin/regional-formats
-PUT  /api/admin/regional-formats
-```
-
-All existing language endpoints enhanced:
-```
-GET  /api/admin/languages
-POST /api/admin/languages
-PUT  /api/admin/languages/[code]
-DELETE /api/admin/languages/[code]
-PATCH /api/admin/languages/[code]/toggle
+src/app/admin/settings/localization/
+├── page.tsx                              # Route entry point (clean)
+├── LocalizationProvider.tsx              # Centralized state & API
+├── useLocalizationContext.ts             # Custom hook for state
+├── types.ts                              # Shared TypeScript interfaces
+├── constants.ts                          # Tab definitions & defaults
+│
+├── tabs/
+│   ├── LanguagesTab.tsx                  # Language management (bulk ops)
+│   ├── OrganizationTab.tsx               # Global settings & RTL
+│   ├── UserPreferencesTab.tsx            # User adoption metrics
+│   ├── RegionalFormatsTab.tsx            # Format templates & presets
+│   ├── IntegrationTab.tsx                # Crowdin sync + webhooks
+│   ├── TranslationsTab.tsx               # Coverage dashboard
+│   ├── AnalyticsTab.tsx                  # Language trends & adoption
+│   └── DiscoveryTab.tsx                  # Auto-audit translation keys
+│
+├── components/
+│   ├── LanguageTable.tsx                 # Shared language table
+│   ├── LanguageImportModal.tsx           # Bulk language import
+│   ├── LanguageExportModal.tsx           # Bulk language export
+│   ├── RegionalFormatForm.tsx            # Format template editor
+│   ├── CrowdinSyncPanel.tsx              # Sync controls
+│   ├── TranslationCoverageChart.tsx      # Visual coverage stats
+│   ├── KeyAuditResults.tsx               # Audit findings UI
+│   └── LanguageUsageChart.tsx            # Adoption trends
+│
+└── hooks/
+    ├── useLanguages.ts                   # Language CRUD operations
+    ├── useRegionalFormats.ts             # Format operations
+    ├── useCrowdinIntegration.ts          # Crowdin API wrapper
+    ├── useTranslationStatus.ts           # Coverage & metrics
+    └── useLanguageAnalytics.ts           # Usage data & trends
 ```
 
 ---
 
-## 💾 Database Integration Ready
+## 📑 Tab Specifications
 
-Two new tables (pending migration):
+### 1. **Languages & Availability Tab**
 
-**org_localization_settings**
-- Default/fallback language
-- User control flags
-- RTL support toggle
-- Missing translation behavior
+**Purpose:** Manage which languages are available on the platform
 
-**regional_formats**
-- Per-language date/time formats
-- Currency settings
-- Number format patterns
-- Decimal/thousands separators
+**Real Functions:**
+- ✅ Add/Edit/Delete languages with validation
+- ✅ **NEW: Bulk import languages from JSON/CSV file**
+- ✅ **NEW: Bulk export current languages for backup**
+- ✅ **NEW: Set language as "featured" (appears in switcher)**
+- ✅ **NEW: Enable/disable languages without deletion**
+- ✅ **NEW: Language activity heatmap** (shows usage over time)
+- ✅ **NEW: Duplicate language config** (copy from another language)
+- ✅ **NEW: Auto-detect from browser header** (test feature)
+- ✅ Permission-based access (LANGUAGES_MANAGE)
 
----
+**Admin Controls:**
+```
+┌─────────────────────────────────────┐
+│ Languages & Availability            │
+├─────────────────────────────────────┤
+│ [Add Language] [Import] [Export]    │
+├─────────────────────────────────────┤
+│ Code │ Name      │ Status│ Featured│
+├─────┼──────────┼────────┼─────────┤
+│ en   │ English   │ ✓ On  │ ⭐      │
+│ ar   │ العربي��   │ ✓ On  │ ⭐      │
+│ fr   │ Français  │ ✗ Off │         │
+└─────┴──────────┴────────┴─────────┘
 
-## 📝 Files Modified/Created
-
-### Modified
-- `src/app/admin/settings/localization/LocalizationContent.tsx` (688→974 lines)
-  - Enhanced with 8 full-featured tabs
-  - Professional UI/UX
-  - Complete state management
-  - Comprehensive error handling
-
-### Created
-- `src/app/api/admin/org-settings/localization/route.ts` (96 lines)
-  - GET/PUT organization localization settings
-  - Validation and Sentry integration
-
-- `src/app/api/admin/regional-formats/route.ts` (118 lines)
-  - GET/PUT regional format settings
-  - Defaults for EN/AR/HI
-  - Audit logging
-
-- `docs/localization-admin-settings-audit.md` (543 lines)
-  - Comprehensive documentation
-  - Implementation details
-  - Future roadmap
-  - Testing recommendations
-
-- `docs/LOCALIZATION_ADMIN_SETTINGS_SUMMARY.md` (this file)
-  - Quick reference
-  - Feature overview
-
----
-
-## 🎯 User Workflows
-
-### Adding a New Language
-1. Click "Add Language" button
-2. Fill in language details (code, names, direction, BCP47)
-3. Submit form
-4. Language appears in list
-5. Optionally configure regional formats
-
-### Configuring Organization Defaults
-1. Go to "Organization Settings" tab
-2. Select default language (new users see this)
-3. Select fallback language (for missing translations)
-4. Toggle user control options (switcher, persistence, override)
-5. Click "Save Settings"
-
-### Setting Up Regional Formats
-1. Go to "Regional Formats" tab
-2. For each language, configure:
-   - Date/time format
-   - Currency code & symbol
-   - Number separators
-3. Save automatically (future: explicit save button)
-
-### Integrating Crowdin
-1. Go to "Translation Platforms" tab
-2. Enter Crowdin Project ID
-3. Enter API Token
-4. Click "Test Connection"
-5. Select sync options
-6. Save integration
-
----
-
-## ✅ What's Working Now
-
-✅ Complete language CRUD with UI polish  
-✅ Organization settings with 8 options  
-✅ Regional format structure and UI  
-✅ Translation platform UI (backend ready)  
-✅ Professional error handling  
-✅ Toast notifications  
-✅ Permission gating  
-✅ Responsive design  
-✅ Accessibility basics  
-
----
-
-## ✅ What's Been Completed
-
-- [x] Database schema migrations for org_localization_settings and regional_formats
-- [x] Regional format persistence API integration with database
-- [x] Organization settings persistence API with database
-- [x] Crowdin API credential encryption/storage with secure token handling
-- [x] User language analytics aggregation endpoint
-- [x] Analytics charts using Chart.js/react-chartjs-2 with doughnut chart visualization
-- [x] E2E tests for language management workflows
-- [x] E2E tests for organization settings workflows
-- [x] Support for 16 additional regional languages (es, fr, de, pt, it, nl, ja, zh, ko, ru, pl, th, vi, and defaults)
-
----
-
-## 🎓 For Admins
-
-### Quick Start
-1. Navigate to **Admin → Settings → Localization**
-2. Check current languages in **Languages & Availability** tab
-3. Configure defaults in **Organization Settings** tab
-4. (Optional) Set regional formats in **Regional Formats** tab
-5. (Optional) Connect Crowdin in **Translation Platforms** tab
-
-### Best Practices
-- Always have English as fallback language
-- Mark frequently-used languages as "Featured"
-- Configure regional formats matching actual user regions
-- Enable user override to improve satisfaction
-- Use auto-detect for better first-time experience
-
-### Troubleshooting
-- **Language not showing:** Check if enabled in Languages tab
-- **Wrong format:** Verify regional format configuration
-- **User can't change language:** Check "Allow User Override" setting
-
----
-
-## 📊 Architecture Highlights
-
-**Component Pattern:**
-- Single large component (LocalizationContent) for all functionality
-- Could be split into smaller components if needed
-- Uses React hooks for state management
-- Memoized render for performance
-
-**API Design:**
-- RESTful endpoints following naming conventions
-- Proper HTTP status codes
-- JSON request/response
-- Sentry integration for monitoring
-
-**UX Patterns:**
-- Modal for add language (vs inline editing)
-- Toast feedback for all operations
-- Loading states on buttons
-- Confirmation for destructive actions
-- Permission-based UI hiding (not just disabling)
-
----
-
-## 🔮 Recommended Next Steps
-
-1. **Create database migrations** for the two new tables
-2. **Integrate regional format API** with database persistence
-3. **Implement user analytics** aggregation
-4. **Add chart library** for analytics tab
-5. **Set up Crowdin API** integration
-6. **Create E2E tests** for workflows
-7. **Add audit logging** for all changes
-
----
-
-## 🚀 Implementation Completion Status
-
-### Database & Persistence ✅
-- **org_localization_settings table**: Migration created, API endpoints integrated
-- **regional_formats table**: Migration created, API endpoints with database persistence
-- **crowdin_integrations table**: Secure encrypted token storage with AES-256-CBC
-- All tables support multi-tenant isolation via tenantId foreign keys
-
-### API Endpoints ✅
-- GET/PUT `/api/admin/org-settings/localization` - Organization settings with upsert
-- GET/PUT `/api/admin/regional-formats` - Regional format management for all languages
-- GET/POST/DELETE `/api/admin/crowdin-integration` - Crowdin integration with encryption
-- GET/POST `/api/admin/user-language-analytics` - Analytics data aggregation
-
-### Security ✅
-- Crowdin API tokens encrypted with AES-256-CBC cipher
-- Only masked tokens (last 20 chars) stored unencrypted for UI display
-- Full tokens decrypted before API calls
-- Sentry integration for audit trails (masked data only)
-- Environment variable ENCRYPTION_KEY for production use
-
-### Frontend Features ✅
-- Analytics charts using Chart.js with responsive doughnut visualization
-- User language distribution metrics
-- Real-time data loading with Sentry error tracking
-- Responsive grid layouts for all tabs
-- Toast notifications for all operations
-
-### Testing ✅
-- 10 E2E tests for language management workflows
-- 13 E2E tests for organization settings workflows
-- Tests cover CRUD operations, validations, and UI interactions
-- Tests use dev login helper for authentication
-
-### Languages Supported ✅
-Enhanced regional format defaults for:
-- English (USD, MM/DD/YYYY format)
-- Arabic (SAR, DD/MM/YYYY, RTL support)
-- Hindi (INR, DD/MM/YYYY, Indian numbering)
-- Spanish (EUR, DD/MM/YYYY)
-- French (EUR, DD/MM/YYYY)
-- German (EUR, DD.MM.YYYY)
-- Portuguese (BRL, DD/MM/YYYY)
-- Italian (EUR, DD/MM/YYYY)
-- Dutch (EUR, DD-MM-YYYY)
-- Japanese (JPY, YYYY/MM/DD)
-- Chinese (CNY, YYYY/MM/DD)
-- Korean (KRW, YYYY.MM.DD)
-- Russian (RUB, DD.MM.YYYY)
-- Polish (PLN, DD.MM.YYYY)
-- Thai (THB, DD/MM/YYYY)
-- Vietnamese (VND, DD/MM/YYYY)
-
-### Files Modified/Created
-
-**Migrations:**
-- `prisma/migrations/20250228_localization_admin_settings/` - Org settings & regional formats tables
-- `prisma/migrations/20250228_crowdin_integration/` - Crowdin integration table
+Heatmap: [Language usage over last 30 days]
+```
 
 **API Endpoints:**
-- `src/app/api/admin/org-settings/localization/route.ts` - Org settings with database persistence
-- `src/app/api/admin/regional-formats/route.ts` - Regional formats with 16+ language defaults
-- `src/app/api/admin/crowdin-integration/route.ts` - Crowdin with encryption (GET/POST/DELETE)
-- `src/app/api/admin/user-language-analytics/route.ts` - Analytics aggregation
-
-**Frontend:**
-- `src/app/admin/settings/localization/LocalizationContent.tsx` - Added analytics charts and data loading
-
-**Tests:**
-- `e2e/tests/admin-localization-languages.spec.ts` - Language management workflows
-- `e2e/tests/admin-localization-org-settings.spec.ts` - Organization settings workflows
-
-**Schema:**
-- `prisma/schema.prisma` - Added OrganizationLocalizationSettings, RegionalFormat, and CrowdinIntegration models
+- `GET /api/admin/languages` - list all
+- `POST /api/admin/languages` - create
+- `PUT /api/admin/languages/:code` - update
+- `DELETE /api/admin/languages/:code` - delete
+- `PATCH /api/admin/languages/:code/toggle` - enable/disable
+- **NEW: `POST /api/admin/languages/import`** - bulk import
+- **NEW: `GET /api/admin/languages/export`** - bulk export
+- **NEW: `GET /api/admin/languages/:code/activity`** - usage heatmap
 
 ---
 
-## 🔍 INDEPENDENT VERIFICATION REPORT
+### 2. **Organization Settings Tab**
 
-All components have been systematically verified and confirmed to be fully implemented:
+**Purpose:** Configure organization-wide language behavior
 
-### ✅ Database & Schema (VERIFIED)
-- OrganizationLocalizationSettings table present with 8 configuration fields
-- RegionalFormat table present with support for 16+ languages
-- CrowdinIntegration table present with AES-256-CBC encryption fields
-- Migrations exist: 20250228_localization_admin_settings + 20250228_crowdin_integration
+**Real Functions:**
+- ✅ Set default language (for new users)
+- ✅ Set fallback language (when translation missing)
+- ✅ **NEW: Language switcher visibility toggle** (show/hide for clients)
+- ✅ **NEW: Persist language preference** (remember user's choice)
+- ✅ **NEW: Auto-detect browser language** (smart default)
+- ✅ **NEW: RTL mode enforcement** (auto-apply for ar, he)
+- ✅ **NEW: Missing translation behavior** (show key / fallback / empty)
+- ✅ **NEW: Preview settings in real-time** (live demo)
 
-### ✅ API Endpoints (4/4 VERIFIED)
-- GET/PUT `/api/admin/org-settings/localization` - Full CRUD with upsert
-- GET/PUT `/api/admin/regional-formats` - Format management with 16 defaults
-- GET/POST/DELETE `/api/admin/crowdin-integration` - Encryption + test connection
-- GET `/api/admin/user-language-analytics` - Distribution aggregation
-
-### ✅ Frontend Component (8/8 TABS VERIFIED)
-- Languages & Availability tab with add/edit/delete/toggle
-- Organization Settings tab with 8 configurable options
-- User Language Control tab with analytics data
-- Regional Formats tab with per-language configuration
-- Translation Platforms tab with Crowdin integration
-- Translation Dashboard tab with coverage metrics
-- Analytics tab with doughnut chart visualization
-- Key Discovery tab with audit functionality
-
-### ✅ E2E Tests (2 SUITES VERIFIED)
-- admin-localization-languages.spec.ts - 10+ tests for language CRUD
-- admin-localization-org-settings.spec.ts - 13+ tests for settings workflows
-
-### ✅ Security & Encryption (VERIFIED)
-- Crowdin tokens encrypted with AES-256-CBC + random IV
-- Token masking for display (last 20 chars shown, rest masked)
-- Sentry integration for error logging with masked data
-- Permission gating: LANGUAGES_VIEW and LANGUAGES_MANAGE enforced
-
-### ✅ Analytics (VERIFIED)
-- Data loading from UserProfile.preferredLanguage
-- Summary metrics: Total users, languages in use, most used language
-- Doughnut chart with color coding and percentages
-- Proper null handling for undefined language preferences
-
----
-
-## 🔄 CRITICAL BUG FIXES - 2025-10-23 (10:47 UTC)
-
-### ❌ Issues Discovered & Fixed
-
-**Issue 1: Chart.js Error - "arc" is not a registered element**
-- **Timestamp:** 2025-10-23 10:47:38 UTC
-- **Severity:** Critical - Page crashes on Analytics tab load
-- **Cause:** Doughnut chart component required `ArcElement` plugin but it wasn't registered
-- **File Modified:** `src/app/admin/settings/localization/LocalizationContent.tsx`
-  - **Line 13:** Added `ArcElement` to Chart.js imports
-  - **Line 16:** Added `ArcElement` to `ChartJS.register()` call
-- **Solution:**
-  ```typescript
-  // BEFORE
-  import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js'
-  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
-
-  // AFTER
-  import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
-  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
-  ```
-- **Testing:** Analytics tab now renders Doughnut chart without errors
-
-**Issue 2: 500 Errors on Multiple API Endpoints**
-- **Timestamp:** 2025-10-23 10:47:38 UTC
-- **Severity:** Critical - Page cannot load localization settings
-- **Affected Endpoints:**
-  - `GET /api/admin/org-settings/localization` → 500 error
-  - `PUT /api/admin/org-settings/localization` → 500 error
-  - `GET /api/admin/regional-formats` → 500 error
-  - `PUT /api/admin/regional-formats` → 500 error
-- **Root Cause:** Tenant context not properly extracted; endpoints were using `context.tenantId` directly instead of `requireTenantContext()` function
-- **Files Modified (5 files, 11 handlers):**
-
-  **1. `src/app/api/admin/org-settings/localization/route.ts`**
-  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
-  - GET handler: Changed from `async (request, context)` to `async ()` with `requireTenantContext()`
-  - PUT handler: Same pattern, added tenant validation
-  - Both handlers now check for missing tenantId before querying database
-
-  **2. `src/app/api/admin/regional-formats/route.ts`**
-  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
-  - GET handler: Fixed tenant context extraction
-  - PUT handler: Fixed tenant context extraction
-  - Added null checks for tenantId
-
-  **3. `src/app/api/admin/crowdin-integration/route.ts`**
-  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
-  - GET handler: Fixed context extraction
-  - POST handler: Fixed context extraction
-  - DELETE handler: Fixed context extraction
-  - PUT handler (test connection): Fixed context extraction
-
-  **4. `src/app/api/admin/user-language-analytics/route.ts`**
-  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
-  - GET handler: Fixed context extraction
-  - POST handler: Fixed context extraction
-
-- **Pattern Applied (Consistent across all endpoints):**
-  ```typescript
-  // BEFORE
-  export const GET = withTenantContext(async (request: NextRequest, context: any) => {
-    try {
-      const tenantId = context.tenantId
-      // ... query database
-    }
-  })
-
-  // AFTER
-  export const GET = withTenantContext(async () => {
-    try {
-      const ctx = requireTenantContext()
-      const tenantId = ctx.tenantId
-
-      if (!tenantId) {
-        return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
-      }
-      // ... query database with validated tenantId
-    }
-  })
-  ```
-
-- **Testing:** All endpoints now return proper responses
-  - Organization settings load correctly
-  - Regional formats can be saved
-  - Crowdin integration settings persist
-  - Analytics data aggregates properly
-
-### Dev Server Status
-- **Restart:** Performed at 2025-10-23 10:50 UTC
-- **Status:** ✅ Running without errors
-- **Next Step:** User to navigate to `/admin/settings/localization` and verify functionality
-
----
-
-## 🔄 FINAL IMPLEMENTATION UPDATE - 2025-02-28
-
-### ✅ Complete Implementation Status
-
-**Status:** ✅ PRODUCTION READY - All Components Implemented and Verified
-
-### Components Verified ✓
-
-#### 1. **Frontend Component (LocalizationContent.tsx)**
-- ✅ All 8 tabs fully implemented with proper state management
-- ✅ Languages & Availability tab with CRUD operations
-- ✅ Organization Settings tab with 8 configurable options
-- ✅ User Language Control tab with analytics display
-- ✅ Regional Formats tab with complete save functionality
-- ✅ Translation Platforms tab (Crowdin integration)
-- ✅ Translation Dashboard with coverage metrics
-- ✅ Key Discovery audit tool
-- ✅ Analytics tab with doughnut chart visualization
-
-#### 2. **API Endpoints (4 Complete)**
-- ✅ `GET/PUT /api/admin/org-settings/localization` - Organization settings
-- ✅ `GET/PUT /api/admin/regional-formats` - Regional format management
-- ✅ `GET/POST/PUT/DELETE /api/admin/crowdin-integration` - Crowdin integration with encryption
-- ✅ `GET/POST /api/admin/user-language-analytics` - User language distribution analytics
-
-#### 3. **Database Schema (3 Tables)**
-- ✅ `org_localization_settings` - Organizational localization settings with 8 configurable fields
-- ✅ `regional_formats` - Per-language regional formatting (date, time, currency, numbers)
-- ✅ `crowdin_integrations` - Crowdin integration with AES-256-CBC encrypted tokens
-
-#### 4. **State Management & Handlers**
-- ✅ `loadOrgSettings()` - Load organization-wide settings
-- ✅ `loadRegionalFormats()` - Load regional format configurations
-- ✅ `loadCrowdinIntegration()` - Load Crowdin integration settings
-- ✅ `saveOrgSettings()` - Save organization settings with API call
-- ✅ `saveRegionalFormats()` - Save regional formats for all languages
-- ✅ `saveCrowdinIntegration()` - Save Crowdin credentials securely
-- ✅ `testCrowdinConnection()` - Test Crowdin API connectivity
-
-#### 5. **Security & Data Protection**
-- ✅ AES-256-CBC encryption for Crowdin API tokens
-- ✅ Token masking (last 20 chars visible, rest masked)
-- ✅ Random IV generation for each encryption
-- ✅ Permission gating with LANGUAGES_VIEW/LANGUAGES_MANAGE
-- ✅ Sentry integration for audit logging (with masked data)
-- ✅ Multi-tenant isolation via tenantId foreign keys
-
-#### 6. **UI/UX Features**
-- ✅ Toast notifications for all operations (success/error/info)
-- ✅ Loading states on all async operations
-- ✅ Save buttons with loading indicators
-- ✅ Form validation on required fields
-- ✅ Test connection button with result feedback
-- ✅ Proper error display with user-friendly messages
-- ✅ Responsive grid layouts
-- ✅ Disabled state for invalid/protected actions
-
-### Verification Date:** 2025-02-28
-**Verification Status:** ✅ All 7 system components verified
-
-For detailed implementation information, see: `docs/localization-admin-settings-audit.md`
-
----
-
-**Final Completion Date:** 2025-02-28
-**Implementation Status:** ✅ COMPLETE
-**Quality Level:** Enterprise-grade with encryption, monitoring, and error handling
-**Deployment Status:** ✅ Ready for production
-**Total Additions:** 1000+ lines of code and handlers
-**Database Tables:** 3 (all implemented and synced)
-**API Endpoints:** 4 (all fully functional)
-**Languages Supported:** 16+ with regional format defaults
-**Test Coverage:** E2E tests available in e2e/tests/admin-localization-*.spec.ts
-
----
-
-## 🔧 BUILD FIX & FINAL VERIFICATION - 2025-10-23
-
-### ✅ TypeScript Build Error Fixed
-
-**Issue:** Type error in LocalizationContent.tsx line 1073
+**Admin Controls:**
 ```
-Property 'type' does not exist on type 'FieldBaseProps'
+┌──────────────────────────────────────┐
+│ Organization Settings                │
+├──────────────────────────────────────┤
+│ Default Language: [English ▼]         │
+│ Fallback Language: [English ▼]        │
+│                                      │
+│ ☑ Show language switcher to clients  │
+│ ☑ Auto-detect browser language       │
+│ ☑ Persist user language preference   │
+│ ☑ Auto-apply RTL for RTL languages   │
+│                                      │
+│ Missing Translation Behavior:         │
+│ ○ Show key (hero.headline)            │
+│ ○ Show fallback translation           │
+│ ● Show empty string                   │
+│                                      │
+│ [Preview Settings] [Save]             │
+└──────────────────────────────────────┘
 ```
 
-**Root Cause:** TextField component in FormField.tsx didn't support the `type` prop for password fields
+**API Endpoints:**
+- `GET /api/admin/org-settings/localization` - read
+- `PUT /api/admin/org-settings/localization` - update
+- **NEW: `POST /api/admin/org-settings/localization/preview`** - test settings
 
-**Solution Applied:**
-```typescript
-// Updated FormField.tsx TextField component to accept type prop
-export function TextField({
-  label,
-  value,
-  onChange,
-  placeholder,
-  disabled = false,
-  error,
-  labelHidden = false,
-  containerClassName,
-  type = 'text',  // Added this parameter
-}: FieldBaseProps & { value: string; onChange: (v: string) => void; placeholder?: string; disabled?: boolean; type?: string }){
-  // Implementation uses type prop on input element
-  <input type={type} ... />
-}
+---
+
+### 3. **User Language Control Tab**
+
+**Purpose:** Monitor language adoption and user preferences
+
+**Real Functions:**
+- ✅ Show total users per language
+- ✅ **NEW: Percentage breakdown chart** (pie/bar chart)
+- ✅ **NEW: Language adoption trends** (line chart over time)
+- ✅ **NEW: User cohort analysis** (new vs returning users)
+- ✅ **NEW: Device/OS breakdown** (mobile vs desktop language choice)
+- ✅ **NEW: Geographic heatmap** (which regions use which language)
+- ✅ **NEW: Bulk user language assignment** (admin override)
+- ✅ **NEW: Language preference export for analytics**
+
+**Admin Controls:**
+```
+┌────────────────────────────────────────┐
+│ User Language Control                  │
+├────────────────────────────────────────┤
+│ Total Users: 5,432                     │
+│ Languages in Use: 7                    │
+│                                       │
+│ [Language Distribution Chart]          │
+│ English:  45% (2,443 users)           │
+│ Arabic:   35% (1,901 users)           │
+│ Hindi:    15% (815 users)             │
+│ Other:    5% (273 users)              │
+│                                       │
+│ 30-Day Adoption Trend:                │
+│ [Line chart showing user growth]      │
+│                                       │
+│ [Export User Preferences] [Analyze]    │
+└────────────────────────────────────────┘
 ```
 
-**Additional CSS Fixes:**
-- Added missing `border` class to TextField input styling
-- Added missing `border` class to SelectField select styling
-- Added missing `border` class to NumberField input styling
-
-**Verification:**
-- ✅ TypeScript compilation passes without errors
-- ✅ Dev server running successfully
-- ✅ All 8 localization tabs rendering correctly
-- ✅ Password fields in Crowdin integration working as expected
-
-### ✅ Comprehensive System Verification Complete
-
-**All Components Operational:**
-- ✅ Frontend: LocalizationContent.tsx with 8 fully functional tabs
-- ✅ API Endpoints: All 4 endpoints responding correctly
-  - Organization localization settings (GET/PUT)
-  - Regional formats management (GET/PUT)
-  - Crowdin integration with encryption (GET/POST/PUT/DELETE)
-  - User language analytics (GET/POST)
-- ✅ Database: All 3 tables accessible with proper tenant isolation
-- ✅ Security: AES-256-CBC encryption for sensitive credentials
-- ✅ UI/UX: Toast notifications, loading states, form validation all working
-- ✅ E2E Tests: 2 complete test suites
-  - admin-localization-languages.spec.ts (10+ tests for language CRUD)
-  - admin-localization-org-settings.spec.ts (13+ tests for org settings)
-
-### System Health Status
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| Frontend Component | ✅ Working | All 8 tabs operational, no console errors |
-| API Endpoints | ✅ Working | Tenant context properly implemented |
-| Database Schema | ✅ Working | 3 tables with proper indexes and constraints |
-| Encryption | ✅ Working | AES-256-CBC for Crowdin tokens |
-| E2E Tests | ✅ Ready | 23+ tests covering all workflows |
-| Build System | ✅ Passing | TypeScript, ESLint, type checking all passing |
-
-### Final Status Summary
-
-**Overall Status:** ✅ **PRODUCTION READY**
-
-**Latest Update Date:** 2025-10-23
-**Build Status:** ✅ Passing
-**Deployment Readiness:** ✅ Ready for production
-**Security Audit:** ✅ Complete with encryption and permission gating
-**Performance:** ✅ Optimized with memoized components and efficient queries
-**Documentation:** ✅ Complete with implementation guides and troubleshooting
-
-**Key Metrics:**
-- **Code Quality:** Enterprise-grade with proper error handling and Sentry integration
-- **Test Coverage:** 23+ E2E tests covering all major workflows
-- **Security:** AES-256-CBC encryption, permission-based access control
-- **Localization:** Support for 16+ languages with regional format defaults
-- **User Experience:** Professional UI with modals, toasts, and real-time feedback
-
-All systems operational. Implementation is complete and verified as production-ready.
+**API Endpoints:**
+- `GET /api/admin/user-language-analytics` - overall stats
+- **NEW: `GET /api/admin/user-language-analytics/trends`** - adoption over time
+- **NEW: `GET /api/admin/user-language-analytics/cohorts`** - user segments
+- **NEW: `GET /api/admin/user-language-analytics/geographic`** - regional breakdown
+- **NEW: `POST /api/admin/users/bulk-language-assign`** - bulk update
 
 ---
 
-## 🔬 **LIVE SYSTEM VERIFICATION TEST** - 2025-10-23 (Final Validation)
+### 4. **Regional Formats Tab**
 
-### ✅ **Verification Checklist - All Tests Passed**
+**Purpose:** Manage how dates, numbers, and currencies display by language
 
-#### 1. **Frontend Component Verification** ✅
-- **File:** `src/app/admin/settings/localization/LocalizationContent.tsx`
-- **Tabs Verified:** All 8 tabs properly defined
-  - ✅ Languages & Availability
-  - ✅ Organization Settings
-  - ✅ User Language Control
-  - ✅ Regional Formats
-  - ✅ Translation Platforms
-  - ✅ Translation Dashboard
-  - ✅ Analytics
-  - ✅ Key Discovery
-- **Chart.js Setup:** ✅ ArcElement registered for doughnut chart
-- **State Management:** ✅ All hooks and state handlers present
-- **Build Status:** ✅ No TypeScript errors after duplicate property fix
+**Real Functions:**
+- ✅ Configure date format per language
+- ✅ Configure time format per language
+- ✅ Configure currency symbol & code
+- ✅ Configure decimal & thousands separators
+- ✅ **NEW: Format template library** (presets for common locales)
+- ✅ **NEW: Live preview** (show sample dates/numbers/prices)
+- ✅ **NEW: Import from CLDR** (auto-populate from Unicode standard)
+- ✅ **NEW: Validate formats before save** (test parsing)
+- ✅ **NEW: Copy format from another language**
 
-#### 2. **API Endpoints Verification** ✅
-All 4 critical endpoints exist and respond appropriately:
+**Admin Controls:**
+```
+┌─────────────────────────────────────┐
+│ Regional Formats                    │
+├─────────────────────────────────────┤
+│ English (en-US)                    │
+│ ├─ Date: MM/DD/YYYY               │
+│ ├─ Time: 12:34 PM                 │
+│ ├─ Currency: $ USD                │
+│ ├─ Decimal: .                     │
+│ └─ Thousands: ,                   │
+│ Preview: $1,234.56 on 10/21/2025  │
+│ [Import CLDR] [Validate] [Save]   │
+│                                   │
+│ عربي (ar-AE)                       │
+│ ├─ Date: DD/MM/YYYY               │
+│ ├─ Time: 14:35                    │
+│ ├─ Currency: د.إ AED             │
+│ ├─ Decimal: ,                     │
+│ └─ Thousands: .                   │
+│ Preview: د.إ 1.234,56 في 21/10   │
+│ [Copy from en-US] [Save]          │
+└─────────────────────────────────────┘
+```
 
-**Endpoint 1: Organization Localization Settings**
-- ✅ File: `src/app/api/admin/org-settings/localization/route.ts`
-- ✅ Methods: GET, PUT
-- ✅ Authentication: Properly protected (verified - returns 401 when unauthenticated)
-- ✅ Functionality: Loads and saves org-wide settings
-
-**Endpoint 2: Regional Formats**
-- ✅ File: `src/app/api/admin/regional-formats/route.ts`
-- ✅ Methods: GET, PUT
-- ✅ Authentication: Properly protected
-- ✅ Functionality: Manages per-language regional format settings
-- ✅ Defaults: 16+ languages with proper regional configuration
-
-**Endpoint 3: Crowdin Integration**
-- ✅ File: `src/app/api/admin/crowdin-integration/route.ts`
-- ✅ Methods: GET, POST, PUT, DELETE
-- ✅ Authentication: Properly protected
-- ✅ Security: AES-256-CBC encryption implemented
-- ✅ Functionality: Full CRUD with test connection
-
-**Endpoint 4: User Language Analytics**
-- ✅ File: `src/app/api/admin/user-language-analytics/route.ts`
-- ✅ Methods: GET, POST
-- ✅ Authentication: Properly protected
-- ✅ Functionality: Aggregates user language distribution data
-
-#### 3. **Database Schema Verification** ✅
-All required tables defined in Prisma schema:
-
-| Table | Status | Fields | Purpose |
-|-------|--------|--------|---------|
-| **OrganizationLocalizationSettings** | ✅ Present | 8 config fields | Org-wide language behavior |
-| **RegionalFormat** | ✅ Present | 8 format fields | Per-language date/time/currency |
-| **CrowdinIntegration** | ✅ Present | 6 config fields | Translation platform integration |
-| **TranslationMetrics** | ✅ Present | Metrics fields | Analytics tracking |
-
-#### 4. **E2E Test Suite Verification** ✅
-Two complete test suites with comprehensive coverage:
-
-**Suite 1: Language Management**
-- ✅ File: `e2e/tests/admin-localization-languages.spec.ts`
-- ✅ Tests Covered:
-  - Page loads with Languages tab active
-  - View available languages
-  - Add new language via modal
-  - Toggle language status (enable/disable)
-  - Mark language as featured
-  - Delete language (with English protection)
-  - Edit language details
-  - View language table structure
-- ✅ Authentication: Dev login helper implemented
-- ✅ API Integration: Waits for API responses
-
-**Suite 2: Organization Settings**
-- ✅ File: `e2e/tests/admin-localization-org-settings.spec.ts`
-- ✅ Tests Covered:
-  - Tab loads correctly
-  - Select default language
-  - Select fallback language
-  - Toggle user language control options
-  - Configure RTL support
-  - Configure missing translation behavior
-  - Save settings with API calls
-  - Verify success notifications
-- ✅ Authentication: Dev login helper implemented
-- ✅ API Integration: Proper response waiting
-
-#### 5. **Security & Encryption Verification** ✅
-- ✅ AES-256-CBC cipher for Crowdin tokens
-- ✅ Random IV generation on each encryption
-- ✅ Token masking (last 20 chars visible)
-- ✅ Sentry integration for audit trails
-- ✅ Permission-based access control (LANGUAGES_VIEW / LANGUAGES_MANAGE)
-- ✅ Multi-tenant isolation via tenantId
-
-#### 6. **Build System Verification** ✅
-- ✅ TypeScript compilation: Passing
-- ✅ ESLint: Passing (auto-fixed)
-- ✅ Type checking: Passing
-- ✅ Dev server: Running without errors
-- ✅ Build artifacts: Generated successfully
+**API Endpoints:**
+- `GET /api/admin/regional-formats` - list all
+- `PUT /api/admin/regional-formats` - update format
+- **NEW: `GET /api/admin/regional-formats/templates`** - preset library
+- **NEW: `POST /api/admin/regional-formats/validate`** - verify format
+- **NEW: `POST /api/admin/regional-formats/import-cldr`** - auto-populate
 
 ---
 
-## 📋 **FINAL TEST RESULTS SUMMARY**
+### 5. **Translation Platforms Tab**
 
-| Component | Test Status | Details |
-|-----------|-------------|---------|
-| Frontend (8 tabs) | ✅ PASS | All tabs defined, ArcElement registered |
-| API Endpoints (4) | ✅ PASS | All files exist, auth properly implemented |
-| Database Tables (4) | ✅ PASS | All models in schema.prisma |
-| E2E Tests | ✅ PASS | 20+ tests covering critical workflows |
-| Security | ✅ PASS | AES-256-CBC, permission gating, multi-tenant |
-| Build System | ✅ PASS | TS, lint, type check all passing |
-| Dev Server | ✅ PASS | Running, responding to requests |
+**Purpose:** Integrate with Crowdin for professional translation management
+
+**Real Functions:**
+- ✅ Configure Crowdin project ID & API token
+- ✅ Test Crowdin connection
+- ✅ Save integration settings
+- ✅ **NEW: Manual sync trigger** (pull translations from Crowdin)
+- ✅ **NEW: Auto-sync schedule** (daily, weekly, etc.)
+- ✅ **NEW: Webhook setup** (Crowdin → website auto-push)
+- ✅ **NEW: Sync status dashboard** (last sync time, next scheduled)
+- ✅ **NEW: Crowdin project health** (% complete per language)
+- ✅ **NEW: Create review PRs** (auto-generate translation PRs)
+- ✅ **NEW: Sync log viewer** (audit trail of all syncs)
+
+**Admin Controls:**
+```
+┌──────────────────────────────────────┐
+│ Translation Platforms - Crowdin       │
+├──────────────────────────────────────┤
+│ Project ID: [__________________]    │
+│ API Token:  [__________________]    │
+│ [Test Connection] ✓ Connected       │
+│                                     │
+│ Sync Settings:                      │
+│ ○ Manual only                       │
+│ ○ Daily auto-sync                  │
+│ ● Weekly auto-sync (Monday 2 AM)    │
+│ ○ Real-time (webhook)              │
+│                                     │
+│ [Sync Now] [View Last Sync: 2h ago] │
+│                                     │
+│ Project Health:                     │
+│ English (base):    100%             │
+│ Arabic:             89% ████████░   │
+│ Hindi:              76% ███████░░░  │
+│                                     │
+│ ☑ Create PR for new translations    │
+│ ☑ Auto-merge translations           │
+│                                     │
+│ [View Sync Logs] [Setup Webhook]    │
+└──────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- `POST /api/admin/crowdin-integration` - save settings
+- `PUT /api/admin/crowdin-integration` - test connection
+- **NEW: `POST /api/admin/crowdin-integration/sync`** - trigger sync
+- **NEW: `GET /api/admin/crowdin-integration/status`** - sync status
+- **NEW: `GET /api/admin/crowdin-integration/project-health`** - completion %
+- **NEW: `GET /api/admin/crowdin-integration/logs`** - sync history
+- **NEW: `POST /api/admin/crowdin-integration/webhook`** - setup webhook
 
 ---
 
-## 🎯 **OVERALL STATUS: PRODUCTION READY** ✅
+### 6. **Translation Dashboard Tab**
 
-**System Health:** All green
-**Test Coverage:** Comprehensive (20+ E2E tests + API integration tests)
-**Security:** Enterprise-grade with encryption and permission controls
-**Performance:** Optimized with memoization and efficient queries
-**Documentation:** Complete with implementation guides
+**Purpose:** Monitor translation coverage and identify gaps
 
-**Recommendation:** System is fully operational and ready for production deployment.
+**Real Functions:**
+- ✅ Show translation coverage % per language
+- ✅ List missing translation keys
+- ✅ Show recently added keys
+- ✅ **NEW: Coverage timeline** (track progress over time)
+- ✅ **NEW: Missing keys by category** (grouped by feature)
+- ✅ **NEW: Untranslated keys alert** (highlight critical gaps)
+- ✅ **NEW: Translation velocity** (keys/day being translated)
+- ✅ **NEW: Assign translators to keys** (workflow tracking)
+- ✅ **NEW: Mark key as "priority"** (fast-track translation)
+- ✅ **NEW: Generate translation report** (PDF/CSV export)
+
+**Admin Controls:**
+```
+┌───────────────────────────────────────┐
+│ Translation Dashboard                 │
+├───────────────────────────────────────┤
+│ Coverage Summary:                     │
+│ Total Keys: 1,247                     │
+│                                      │
+│ English (base):    100% ███████████  │
+│ Arabic:             94% ██████████░  │
+│ Hindi:              87% █████████░░░ │
+│ French:             78% ████████░░░░ │
+│                                      │
+│ Last 7 Days:                         │
+│ Keys Added: 23                       │
+│ Keys Translated: 156                 │
+│ Velocity: 22 keys/day                │
+│                                      │
+│ Missing Keys (Critical):             │
+│ • payment.success.message (ar, hi)   │
+│ • invoice.due.date (ar)              │
+│ • booking.reminder.text (hi, fr)     │
+│                                      │
+│ [View All Missing] [Assign Tasks]    │
+│ [Generate Report] [Set Priorities]   │
+└───────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- `GET /api/admin/translations/status` - coverage summary
+- `GET /api/admin/translations/missing` - missing keys
+- **NEW: `GET /api/admin/translations/missing?category=payment`** - by category
+- **NEW: `GET /api/admin/translations/timeline`** - coverage history
+- **NEW: `POST /api/admin/translations/priority`** - mark as priority
+- **NEW: `GET /api/admin/translations/velocity`** - translation rate
+- **NEW: `POST /api/admin/translations/export-report`** - PDF/CSV export
 
 ---
+
+### 7. **Analytics Tab**
+
+**Purpose:** Visualize language adoption and usage patterns
+
+**Real Functions:**
+- ✅ Show language distribution pie chart
+- ✅ Show top languages by user count
+- ✅ **NEW: Language adoption over time** (trend line)
+- ✅ **NEW: New user language preference** (first-time users)
+- ✅ **NEW: Language switch frequency** (how often users change language)
+- ✅ **NEW: Language by feature usage** (which languages use which features)
+- ✅ **NEW: Engagement by language** (DAU/MAU per language)
+- ✅ **NEW: Regional breakdown** (heatmap by timezone/region)
+- ✅ **NEW: Export analytics data** (CSV for BI tools)
+- ✅ **NEW: Comparison view** (current vs previous period)**
+
+**Admin Controls:**
+```
+┌─────────────────────────────────────┐
+│ Analytics                           │
+├─────────────────────────────────────┤
+│ Time Period: [Last 30 Days ▼]       │
+│                                     │
+│ Language Distribution:              │
+│ ┌──────────────────────────────┐   │
+│ │ English: 45%                 │   │
+│ │ Arabic: 35%                  │   │
+│ │ Hindi: 15%                   │   │
+│ │ Other: 5%                    │   │
+│ └──────────────────────────────┘   │
+│                                     │
+│ Adoption Trend (Last 90 Days):      │
+│ ┌──────────────────────────────┐   │
+│ │         ╱╲      ╱╲          │   │
+│ │ English ╱  ╲    ╱  ╲         │   │
+│ │        ╱    ╲  ╱    ╲        │   │
+│ │      Arabic ╲╱ ╱ Hindi      │   │
+│ └──────────────────────────────┘   │
+│                                     │
+│ New User Preferences:               │
+│ English: 50% (↑ from 45%)          │
+│ Arabic: 33% (↓ from 35%)           │
+│ Hindi: 12% (↓ from 15%)            │
+│                                     │
+│ [Export Data] [Compare Periods]     │
+└─────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- `GET /api/admin/user-language-analytics` - summary
+- **NEW: `GET /api/admin/user-language-analytics/trends`** - adoption trend
+- **NEW: `GET /api/admin/user-language-analytics/new-users`** - new user prefs
+- **NEW: `GET /api/admin/user-language-analytics/engagement`** - DAU/MAU
+- **NEW: `GET /api/admin/user-language-analytics/feature-usage`** - feature breakdown
+- **NEW: `GET /api/admin/user-language-analytics/geographic`** - regional heatmap
+- **NEW: `POST /api/admin/user-language-analytics/export`** - CSV export
+
+---
+
+### 8. **Key Discovery Tab**
+
+**Purpose:** Audit codebase for all translation keys and identify gaps
+
+**Real Functions:**
+- ✅ Scan codebase for `t('key')` patterns
+- ✅ **NEW: Auto-discover new keys** (compare code vs JSON files)
+- ✅ **NEW: Identify unused keys** (orphaned strings)
+- ✅ **NEW: Detect missing translations** (keys in code but no translation)
+- ✅ **NEW: Validate key naming** (ensure consistent format)
+- ✅ **NEW: Generate audit report** (JSON/CSV with findings)
+- ✅ **NEW: Schedule periodic audits** (auto-scan on deploy)
+- ✅ **NEW: Approve/reject discovered keys** (workflow)
+- ✅ **NEW: Bulk add keys to translation system** (from audit results)
+
+**Admin Controls:**
+```
+┌─────────────────────────────────────┐
+│ Key Discovery                       │
+├───────────────────────────────��─────┤
+│ [Run Discovery Audit Now]           │
+│ Last Audit: 2 hours ago (1,247 keys)│
+│                                     │
+│ Audit Results:                      │
+│ ✓ Keys in Code: 1,245               │
+│ ✓ Keys in JSON: 1,247               │
+│ ✗ Orphaned Keys: 2                  │
+│   • legacy.old_feature              │
+│   • deprecated.button_text          │
+│                                     │
+│ ✗ Missing Translations (Arabic):    │
+│ • dashboard.new_metric              │
+│ • settings.privacy_notice           │
+│                                     │
+│ ✗ Missing Translations (Hindi):     │
+│ • payment.confirmation              │
+│                                     │
+│ Naming Issues:                      │
+│ • UseSnakeCase (not camelCase)      │
+│ • Violations: 3                     │
+│                                     │
+│ [View Detailed Report] [Export]     │
+│ [Approve Discovered Keys]           │
+│ [Schedule Weekly Audits]            │
+└─────────────────────────────────────┘
+```
+
+**API Endpoints:**
+- **NEW: `POST /api/admin/translations/discover`** - run audit
+- **NEW: `GET /api/admin/translations/discover/status`** - audit status
+- **NEW: `GET /api/admin/translations/discover/results`** - audit findings
+- **NEW: `POST /api/admin/translations/discover/approve`** - batch approve keys
+- **NEW: `POST /api/admin/translations/discover/schedule`** - schedule audits
+- **NEW: `GET /api/admin/translations/discover/export`** - report export
+
+---
+
+## 🎯 Implementation Roadmap
+
+### Phase 1: Architecture & Foundation (Week 1)
+- [ ] Create new directory structure
+- [ ] Create LocalizationProvider & context
+- [ ] Extract shared types & constants
+- [ ] Create custom hooks for each domain
+- [ ] Setup tab routing in page.tsx
+
+### Phase 2: Core Tabs (Week 2-3)
+- [ ] Implement LanguagesTab with bulk import/export
+- [ ] Implement OrganizationTab with preview
+- [ ] Implement UserPreferencesTab with analytics
+- [ ] Implement RegionalFormatsTab with templates
+
+### Phase 3: Advanced Features (Week 4)
+- [ ] Implement IntegrationTab with sync controls
+- [ ] Implement TranslationsTab with coverage dashboard
+- [ ] Implement AnalyticsTab with trends
+- [ ] Implement DiscoveryTab with auto-audit
+
+### Phase 4: Polish & Testing (Week 5)
+- [ ] Add comprehensive tests
+- [ ] Performance optimization
+- [ ] Accessibility audit
+- [ ] Documentation update
+- [ ] Deployment & monitoring
+
+---
+
+## 📊 Success Metrics
+
+| Metric | Target |
+|--------|--------|
+| **Page Load Time** | < 2s (down from 6.6s) |
+| **Component Size** | < 150 lines per tab |
+| **Test Coverage** | > 80% per tab |
+| **Admin Satisfaction** | 90%+ (survey) |
+| **Feature Adoption** | 70%+ using bulk import within 1 month |
+| **Maintenance Burden** | 50% reduction in code review time |
+
+---
+
+## 🔧 Key Enhancements Summary
+
+### By Tab:
+
+**Languages & Availability**
+- Bulk import/export from JSON/CSV
+- Featured language flag for switcher priority
+- Language activity heatmap
+- Duplicate language config
+
+**Organization Settings**
+- Language switcher visibility control
+- Real-time settings preview
+- Auto-RTL mode for RTL languages
+- Comprehensive fallback strategy
+
+**User Preferences**
+- Live adoption charts (pie, bar, line)
+- Cohort analysis (new vs returning)
+- Geographic heatmap
+- Device/OS breakdown
+
+**Regional Formats**
+- CLDR auto-population
+- Format template library (50+ presets)
+- Live format preview
+- Bulk copy between languages
+
+**Integrations**
+- Manual + scheduled sync controls
+- Crowdin project health dashboard
+- Webhook setup UI
+- Sync audit log viewer
+- Auto-PR generation for translations
+
+**Translations**
+- Visual coverage timeline
+- Critical gap highlighting
+- Key priority system
+- Translator assignment workflow
+- PDF/CSV report export
+
+**Analytics**
+- Multi-period comparison view
+- Feature usage breakdown
+- Engagement metrics (DAU/MAU)
+- Regional heatmap
+- Data export for BI tools
+
+**Key Discovery**
+- Automated codebase scanning
+- Orphaned key detection
+- Naming convention validation
+- Batch approval workflow
+- Scheduled audit setup
+
+---
+
+## 💾 Database Changes
+
+### New Tables (if needed):
+```sql
+-- Translation audit results
+CREATE TABLE TranslationAudit (
+  id UUID PRIMARY KEY,
+  createdAt TIMESTAMP,
+  discoveredKeys INT,
+  orphanedKeys TEXT[],
+  missingTranslations JSONB,
+  namingIssues JSONB
+);
+
+-- Crowdin sync logs
+CREATE TABLE CrowdinSyncLog (
+  id UUID PRIMARY KEY,
+  syncedAt TIMESTAMP,
+  status ENUM('success', 'failed', 'partial'),
+  keysAdded INT,
+  keysUpdated INT,
+  error TEXT
+);
+
+-- Language preferences analytics
+CREATE TABLE LanguageAnalytics (
+  id UUID PRIMARY KEY,
+  date DATE,
+  language TEXT,
+  userCount INT,
+  newUsers INT,
+  activeUsers INT,
+  switchCount INT
+);
+```
+
+---
+
+## 🚀 Deployment Checklist
+
+- [ ] Database migrations created & tested
+- [ ] API endpoints implemented & tested
+- [ ] All new tabs component tested
+- [ ] E2E tests written for critical paths
+- [ ] Performance benchmarks meet targets
+- [ ] Documentation updated
+- [ ] Admins trained on new features
+- [ ] Feature flags configured (if needed)
+- [ ] Monitoring alerts configured
+- [ ] Rollback plan documented
+
+---
+
+## 📞 Support & Maintenance
+
+### Runbooks
+
+**"How do I bulk import 10 new languages?"**
+1. Go to Languages & Availability tab
+2. Click Import button
+3. Upload JSON file with language definitions
+4. Review preview
+5. Confirm import
+
+**"How do I check translation coverage?"**
+1. Go to Translation Dashboard tab
+2. View coverage % per language
+3. Click "View All Missing" for gaps
+4. Assign to translator or mark as priority
+
+**"How do I sync with Crowdin?"**
+1. Go to Translation Platforms tab
+2. Click "Sync Now"
+3. Monitor sync progress
+4. Review results in sync log
+
+---
+
+## 📝 Notes
+
+- All API endpoints follow RESTful conventions
+- Permission gates ensure only authorized admins can make changes
+- All operations are logged for audit trail
+- Data exports support CSV + JSON formats
+- Charts use existing Chart.js library
+- Real-time updates use existing WebSocket infrastructure

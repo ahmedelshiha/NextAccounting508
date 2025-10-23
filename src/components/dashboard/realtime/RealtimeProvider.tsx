@@ -75,7 +75,13 @@ export function RealtimeProvider({ events = ["all"], children }: RealtimeProvide
     let retries = 0
     const post = (payload: any) => {
       try {
-        const body = JSON.stringify({ type: 'realtime', ...payload })
+        const body = JSON.stringify({
+          ts: Date.now(),
+          path: 'admin-realtime',
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'ssr',
+          type: 'realtime-telemetry',
+          ...payload,
+        })
         const url = '/api/admin/perf-metrics'
         if ('sendBeacon' in navigator) navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }))
         else fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body }).catch(() => {})
