@@ -183,9 +183,17 @@ const DEFAULT_FORMATS: Record<string, RegionalFormat> = {
  * GET /api/admin/regional-formats
  * Fetch all regional format settings
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     const formats = await prisma.regionalFormat.findMany({
       where: { tenantId },
