@@ -43,7 +43,7 @@ export const GET = withTenantContext(async () => {
 export const PUT = withTenantContext(async (req: Request) => {
   try {
     const ctx = requireTenantContext()
-    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ORG_SETTINGS_MANAGE)) {
+    if (!ctx.userId || !hasPermission(ctx.role, PERMISSIONS.ORG_SETTINGS_EDIT)) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
