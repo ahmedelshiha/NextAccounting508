@@ -1588,3 +1588,26 @@ model RegionalFormat {
   @@index([languageCode])
   @@map("regional_formats")
 }
+
+// Crowdin integration settings per-tenant
+model CrowdinIntegration {
+  id                  String   @id @default(cuid())
+  tenantId            String   @unique
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  projectId           String   @db.VarChar(100)
+  apiTokenMasked      String   @db.VarChar(20)  // Last 20 chars of token for display
+  apiTokenEncrypted   String   @db.Text         // Encrypted full token
+  autoSyncDaily       Boolean  @default(true)
+  syncOnDeploy        Boolean  @default(false)
+  createPrs           Boolean  @default(true)
+  lastSyncAt          DateTime?
+  lastSyncStatus      String?  @db.VarChar(50)  // success | failed | pending
+  testConnectionOk    Boolean  @default(false)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("crowdin_integrations")
+}
