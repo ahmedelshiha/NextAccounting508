@@ -16,6 +16,9 @@ export const GET = withTenantContext(async (req: Request) => {
     const days = Math.min(parseInt(searchParams.get('days') || '90'), 365)
 
     const tenantId = ctx.tenantId
+    if (!tenantId) {
+      return Response.json({ error: 'Tenant context required' }, { status: 400 })
+    }
 
     // Compute since date (UTC midnight)
     const since = new Date()
