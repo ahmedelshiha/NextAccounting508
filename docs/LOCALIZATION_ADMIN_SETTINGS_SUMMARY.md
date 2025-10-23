@@ -91,7 +91,7 @@ src/app/admin/settings/localization/
 │ [Add Language] [Import] [Export]    │
 ├─────────────────────────────────────┤
 │ Code │ Name      │ Status│ Featured│
-├─────┼──────────┼────────┼─────────┤
+├─��───┼──────────┼────────┼─────────┤
 │ en   │ English   │ ✓ On  │ ⭐      │
 │ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
@@ -236,7 +236,7 @@ Heatmap: [Language usage over last 30 days]
 │ └─ Thousands: .                   │
 │ Preview: د.إ 1.234,56 في 21/10   │
 │ [Copy from en-US] [Save]          │
-└─────────────────────────────────────┘
+└───────────────��─────────────────────┘
 ```
 
 **API Endpoints:**
@@ -268,7 +268,7 @@ Heatmap: [Language usage over last 30 days]
 ```
 ┌──────────────────────────────────────┐
 │ Translation Platforms - Crowdin       │
-├──────────────────────────────────────┤
+├──────���───────────────────────────────┤
 │ Project ID: [__________________]    │
 │ API Token:  [__________________]    │
 │ [Test Connection] ✓ Connected       │
@@ -404,7 +404,7 @@ Heatmap: [Language usage over last 30 days]
 │ Hindi: 12% (↓ from 15%)            │
 │                                     │
 │ [Export Data] [Compare Periods]     │
-└─────────────────────────────────────┘
+└────────────────────────────────────��┘
 ```
 
 **API Endpoints:**
@@ -435,7 +435,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────┐
+┌────────────────��────────────────────┐
 │ Key Discovery                       │
 ├───────────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
@@ -696,6 +696,12 @@ CREATE TABLE LanguageAnalytics (
     - src/app/admin/settings/localization/types.ts
     - src/app/api/admin/org-settings/localization/route.ts
   - Testing: Type errors fixed in source. Recommend re-running CI to verify full typecheck and build.
+
+- ✅ 2025-10-23T02:21:12Z: Fixed Tabs callback typing mismatch in LocalizationContent.new.tsx.
+  - Summary: The SettingsShell/Tabs components use a generic string key, while our context setActiveTab uses a TabKey union. To avoid type conflicts without changing the shared UI primitives, the onChangeTab handler now casts the incoming string to TabKey before calling setActiveTab. This resolves the TS2345 build error.
+  - Files Modified:
+    - src/app/admin/settings/localization/LocalizationContent.new.tsx
+  - Testing: Re-run CI build to validate. If further type narrowing issues appear, consider generalizing Tabs/SettingsShell prop types to accept TabKey instead of string.
 
 ## 📝 Notes
 
