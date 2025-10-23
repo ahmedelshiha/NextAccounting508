@@ -932,13 +932,103 @@ export default function LocalizationContent() {
 
         {/* ============ ANALYTICS TAB ============ */}
         {activeTab === 'analytics' && (
-          <SettingsSection title="Translation Analytics" description="Coming soon">
-            <div className="rounded-lg border bg-white p-12 text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">Analytics dashboard will be available soon</p>
-              <p className="text-sm text-gray-500 mt-2">Track translation progress and coverage trends</p>
-            </div>
-          </SettingsSection>
+          <>
+            <SettingsSection title="User Language Distribution" description="Current language preferences across your users">
+              {analyticsLoading ? (
+                <div className="rounded-lg border bg-white p-12 text-center">
+                  <p className="text-gray-600">Loading analytics...</p>
+                </div>
+              ) : analyticsData ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Total Users</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalUsers}</p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Languages in Use</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.languagesInUse.length}</p>
+                    </div>
+                    <div className="rounded-lg border bg-white p-4">
+                      <p className="text-sm font-medium text-gray-600">Most Used Language</p>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.mostUsedLanguage?.toUpperCase() || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  {analyticsData.distribution && analyticsData.distribution.length > 0 && (
+                    <div className="rounded-lg border bg-white p-6">
+                      <h4 className="font-semibold text-gray-900 mb-4">Language Distribution</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="flex justify-center">
+                          <div style={{ width: '300px', height: '300px' }}>
+                            <Doughnut
+                              data={{
+                                labels: analyticsData.distribution.map((d: any) => {
+                                  const lang = languages.find(l => l.code === d.language)
+                                  return `${lang?.name || d.language} (${d.count})`
+                                }),
+                                datasets: [
+                                  {
+                                    data: analyticsData.distribution.map((d: any) => d.count),
+                                    backgroundColor: [
+                                      '#3b82f6',
+                                      '#ef4444',
+                                      '#10b981',
+                                      '#f59e0b',
+                                      '#8b5cf6',
+                                      '#ec4899',
+                                    ],
+                                    borderColor: ['#ffffff'],
+                                    borderWidth: 2,
+                                  },
+                                ],
+                              }}
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                  legend: {
+                                    position: 'bottom' as const,
+                                  },
+                                },
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {analyticsData.distribution.map((item: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{
+                                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'][idx % 6],
+                                  }}
+                                />
+                                <span className="font-medium text-gray-900">
+                                  {languages.find(l => l.code === item.language)?.name || item.language}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-gray-600">{item.count} users</span>
+                                <span className="text-sm font-medium text-gray-900 w-12 text-right">{item.percentage}%</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-lg border bg-white p-12 text-center">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600">No analytics data available</p>
+                </div>
+              )}
+            </SettingsSection>
+          </>
         )}
 
         {/* ============ DISCOVERY TAB ============ */}
