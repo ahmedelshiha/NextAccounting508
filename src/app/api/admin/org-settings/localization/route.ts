@@ -81,9 +81,18 @@ export const GET = withTenantContext(async () => {
  * PUT /api/admin/org-settings/localization
  * Update organization-wide localization settings
  */
-export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
 
     if (!body.defaultLanguage || !body.fallbackLanguage) {
