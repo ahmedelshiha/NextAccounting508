@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense, lazy, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import FavoriteToggle from '@/components/admin/settings/FavoriteToggle'
@@ -8,17 +8,17 @@ import Tabs from '@/components/admin/settings/Tabs'
 import { Globe } from 'lucide-react'
 import { useLocalizationContext } from './LocalizationProvider'
 import { TABS } from './constants'
-import {
-  LanguagesTab,
-  OrganizationTab,
-  UserPreferencesTab,
-  RegionalFormatsTab,
-  IntegrationTab,
-  TranslationsTab,
-  AnalyticsTab,
-  DiscoveryTab,
-} from './tabs'
 import type { TabKey } from './types'
+
+// Lazy load tab components for better performance
+const LanguagesTab = lazy(() => import('./tabs/LanguagesTab').then(m => ({ default: m.LanguagesTab })))
+const OrganizationTab = lazy(() => import('./tabs/OrganizationTab').then(m => ({ default: m.OrganizationTab })))
+const UserPreferencesTab = lazy(() => import('./tabs/UserPreferencesTab').then(m => ({ default: m.UserPreferencesTab })))
+const RegionalFormatsTab = lazy(() => import('./tabs/RegionalFormatsTab').then(m => ({ default: m.RegionalFormatsTab })))
+const IntegrationTab = lazy(() => import('./tabs/IntegrationTab').then(m => ({ default: m.IntegrationTab })))
+const TranslationsTab = lazy(() => import('./tabs/TranslationsTab').then(m => ({ default: m.TranslationsTab })))
+const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
+const DiscoveryTab = lazy(() => import('./tabs/DiscoveryTab').then(m => ({ default: m.DiscoveryTab })))
 
 const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   languages: LanguagesTab,
@@ -31,10 +31,43 @@ const TAB_COMPONENTS: Record<TabKey, React.ComponentType> = {
   discovery: DiscoveryTab,
 }
 
+// Tab fallback component for better UX during lazy loading
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="text-center">
+      <div className="inline-flex h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+      <p className="mt-3 text-sm text-gray-600">Loading tab content...</p>
+    </div>
+  </div>
+)
+
+// Memoized tab renderer to prevent unnecessary re-renders
+const TabRenderer = React.memo(function TabRenderer({ TabComponent, loading }: { TabComponent: React.ComponentType | null; loading: boolean }) {
+  if (loading) {
+    return <TabFallback />
+  }
+
+  if (!TabComponent) {
+    return <div className="text-center py-8 text-gray-600">Tab content not found</div>
+  }
+
+  return (
+    <Suspense fallback={<TabFallback />}>
+      <TabComponent />
+    </Suspense>
+  )
+})
+
 export default function LocalizationContent() {
   const searchParams = useSearchParams()
-  const { activeTab, setActiveTab, loading, saving, error } = useLocalizationContext()
+  const { activeTab, setActiveTab, loading, saving } = useLocalizationContext()
 
+  // Memoize tab change handler
+  const handleTabChange = useCallback((k: string) => {
+    setActiveTab(k as TabKey)
+  }, [setActiveTab])
+
+  // Memoize tab change effect
   useEffect(() => {
     const t = searchParams.get('tab') as TabKey | null
     if (t && TABS.some(tab => tab.key === t)) {
@@ -42,7 +75,8 @@ export default function LocalizationContent() {
     }
   }, [searchParams, setActiveTab])
 
-  const TabComponent = TAB_COMPONENTS[activeTab]
+  // Memoize tab component selection
+  const TabComponent = useMemo(() => TAB_COMPONENTS[activeTab], [activeTab])
 
   return (
     <SettingsShell
@@ -60,10 +94,10 @@ export default function LocalizationContent() {
       }
       tabs={TABS}
       activeTab={activeTab}
-      onChangeTab={(k: string) => setActiveTab(k as TabKey)}
+      onChangeTab={handleTabChange}
       loading={loading}
     >
-      {!loading && TabComponent && <TabComponent />}
+      <TabRenderer TabComponent={TabComponent} loading={loading} />
     </SettingsShell>
   )
 }
