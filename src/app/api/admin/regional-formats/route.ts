@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
+import { prisma } from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 
 interface RegionalFormat {
@@ -51,12 +52,38 @@ const DEFAULT_FORMATS: Record<string, RegionalFormat> = {
  * GET /api/admin/regional-formats
  * Fetch all regional format settings
  */
-export const GET = withTenantContext(async (request: NextRequest) => {
+export const GET = withTenantContext(async (request: NextRequest, context: any) => {
   try {
-    // TODO: Fetch from database when regional_formats table is created
-    // For now, return defaults
+    const tenantId = context.tenantId
+
+    const formats = await prisma.regionalFormat.findMany({
+      where: { tenantId },
+    })
+
+    const result: Record<string, RegionalFormat> = {}
+
+    for (const format of formats) {
+      result[format.languageCode] = {
+        language: format.languageCode,
+        dateFormat: format.dateFormat,
+        timeFormat: format.timeFormat,
+        currencyCode: format.currencyCode,
+        currencySymbol: format.currencySymbol,
+        numberFormat: format.numberFormat,
+        decimalSeparator: format.decimalSeparator,
+        thousandsSeparator: format.thousandsSeparator,
+      }
+    }
+
+    // Fill in defaults for languages not in database
+    for (const [code, defaultFormat] of Object.entries(DEFAULT_FORMATS)) {
+      if (!result[code]) {
+        result[code] = defaultFormat
+      }
+    }
+
     return NextResponse.json({
-      data: DEFAULT_FORMATS,
+      data: result,
     })
   } catch (error) {
     console.error('Failed to fetch regional formats:', error)
@@ -72,8 +99,9 @@ export const GET = withTenantContext(async (request: NextRequest) => {
  * PUT /api/admin/regional-formats
  * Update regional format settings for a language
  */
-export const PUT = withTenantContext(async (request: NextRequest) => {
+export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
   try {
+    const tenantId = context.tenantId
     const body = await request.json()
 
     if (!body.language) {
@@ -83,17 +111,34 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       )
     }
 
-    // TODO: Save to database when regional_formats table is created
-    const format: RegionalFormat = {
-      language: body.language,
-      dateFormat: body.dateFormat || DEFAULT_FORMATS[body.language]?.dateFormat || 'MM/DD/YYYY',
-      timeFormat: body.timeFormat || DEFAULT_FORMATS[body.language]?.timeFormat || 'HH:MM AM',
-      currencyCode: body.currencyCode || DEFAULT_FORMATS[body.language]?.currencyCode || 'USD',
-      currencySymbol: body.currencySymbol || DEFAULT_FORMATS[body.language]?.currencySymbol || '$',
-      numberFormat: body.numberFormat || DEFAULT_FORMATS[body.language]?.numberFormat || '#,##0.00',
-      decimalSeparator: body.decimalSeparator || DEFAULT_FORMATS[body.language]?.decimalSeparator || '.',
-      thousandsSeparator: body.thousandsSeparator || DEFAULT_FORMATS[body.language]?.thousandsSeparator || ',',
-    }
+    const format = await prisma.regionalFormat.upsert({
+      where: {
+        tenantId_languageCode: {
+          tenantId,
+          languageCode: body.language,
+        },
+      },
+      create: {
+        tenantId,
+        languageCode: body.language,
+        dateFormat: body.dateFormat || DEFAULT_FORMATS[body.language]?.dateFormat || 'MM/DD/YYYY',
+        timeFormat: body.timeFormat || DEFAULT_FORMATS[body.language]?.timeFormat || 'HH:MM AM',
+        currencyCode: body.currencyCode || DEFAULT_FORMATS[body.language]?.currencyCode || 'USD',
+        currencySymbol: body.currencySymbol || DEFAULT_FORMATS[body.language]?.currencySymbol || '$',
+        numberFormat: body.numberFormat || DEFAULT_FORMATS[body.language]?.numberFormat || '#,##0.00',
+        decimalSeparator: body.decimalSeparator || DEFAULT_FORMATS[body.language]?.decimalSeparator || '.',
+        thousandsSeparator: body.thousandsSeparator || DEFAULT_FORMATS[body.language]?.thousandsSeparator || ',',
+      },
+      update: {
+        dateFormat: body.dateFormat || DEFAULT_FORMATS[body.language]?.dateFormat || 'MM/DD/YYYY',
+        timeFormat: body.timeFormat || DEFAULT_FORMATS[body.language]?.timeFormat || 'HH:MM AM',
+        currencyCode: body.currencyCode || DEFAULT_FORMATS[body.language]?.currencyCode || 'USD',
+        currencySymbol: body.currencySymbol || DEFAULT_FORMATS[body.language]?.currencySymbol || '$',
+        numberFormat: body.numberFormat || DEFAULT_FORMATS[body.language]?.numberFormat || '#,##0.00',
+        decimalSeparator: body.decimalSeparator || DEFAULT_FORMATS[body.language]?.decimalSeparator || '.',
+        thousandsSeparator: body.thousandsSeparator || DEFAULT_FORMATS[body.language]?.thousandsSeparator || ',',
+      },
+    })
 
     Sentry.addBreadcrumb({
       category: 'localization.formats',
@@ -105,7 +150,18 @@ export const PUT = withTenantContext(async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json({ data: format })
+    const response: RegionalFormat = {
+      language: format.languageCode,
+      dateFormat: format.dateFormat,
+      timeFormat: format.timeFormat,
+      currencyCode: format.currencyCode,
+      currencySymbol: format.currencySymbol,
+      numberFormat: format.numberFormat,
+      decimalSeparator: format.decimalSeparator,
+      thousandsSeparator: format.thousandsSeparator,
+    }
+
+    return NextResponse.json({ data: response })
   } catch (error) {
     console.error('Failed to update regional formats:', error)
     Sentry.captureException(error)
