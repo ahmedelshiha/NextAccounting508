@@ -205,6 +205,7 @@ model Tenant {
   cronTelemetrySettings CronTelemetrySettings?
   localizationSettings OrganizationLocalizationSettings?
   regionalFormats      RegionalFormat[]
+  crowdinIntegration   CrowdinIntegration?
   tenantMemberships    TenantMembership[]
   auditLogs            AuditLog[]
   settingChangeDiffs   SettingChangeDiff[]
