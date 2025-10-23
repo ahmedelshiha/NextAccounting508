@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 
@@ -29,9 +30,17 @@ const DEFAULT_SETTINGS: LocalizationSettings = {
  * GET /api/admin/org-settings/localization
  * Fetch organization-wide localization settings
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     let settings = await prisma.organizationLocalizationSettings.findUnique({
       where: { tenantId },
@@ -72,9 +81,18 @@ export const GET = withTenantContext(async (request: NextRequest, context: any) 
  * PUT /api/admin/org-settings/localization
  * Update organization-wide localization settings
  */
-export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
 
     if (!body.defaultLanguage || !body.fallbackLanguage) {

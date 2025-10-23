@@ -10,10 +10,10 @@ import Tabs from '@/components/admin/settings/Tabs'
 import { AlertCircle, Globe, Zap, BarChart3, Lightbulb, Plus, Trash2, Edit2, Check, X, Eye, EyeOff, Star, Code2 } from 'lucide-react'
 import { TextField, SelectField, Toggle } from '@/components/admin/settings/FormField'
 import { toast } from 'sonner'
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
 import { Bar, Line, Doughnut } from 'react-chartjs-2'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
 
 const tabs = [
   { key: 'languages', label: 'Languages & Availability' },
@@ -60,6 +60,14 @@ interface RegionalFormat {
   thousandsSeparator: string
 }
 
+interface CrowdinIntegration {
+  projectId: string
+  apiToken: string
+  autoSyncDaily: boolean
+  syncOnDeploy: boolean
+  createPrs: boolean
+}
+
 export default function LocalizationContent() {
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('languages')
@@ -92,6 +100,19 @@ export default function LocalizationContent() {
 
   // Regional formats state
   const [regionalFormats, setRegionalFormats] = useState<Record<string, RegionalFormat>>({})
+  const [regionalFormatsEdited, setRegionalFormatsEdited] = useState(false)
+
+  // Crowdin integration state
+  const [crowdinIntegration, setCrowdinIntegration] = useState<CrowdinIntegration>({
+    projectId: '',
+    apiToken: '',
+    autoSyncDaily: true,
+    syncOnDeploy: false,
+    createPrs: true,
+  })
+  const [crowdinLoaded, setCrowdinLoaded] = useState(false)
+  const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
+  const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
 
   // Translation dashboard state
   const [status, setStatus] = useState<any>(null)
@@ -127,6 +148,7 @@ export default function LocalizationContent() {
         loadLanguages(),
         loadOrgSettings(),
         loadRegionalFormats(),
+        loadCrowdinIntegration(),
         loadTranslationStatus(),
         loadAnalytics(),
       ])
@@ -171,6 +193,28 @@ export default function LocalizationContent() {
       }
     } catch (e) {
       console.error('Failed to load regional formats:', e)
+    }
+  }
+
+  async function loadCrowdinIntegration() {
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        if (d.data) {
+          setCrowdinIntegration({
+            projectId: d.data.projectId || '',
+            apiToken: d.data.apiTokenMasked || '',
+            autoSyncDaily: d.data.autoSyncDaily ?? true,
+            syncOnDeploy: d.data.syncOnDeploy ?? false,
+            createPrs: d.data.createPrs ?? true,
+          })
+        }
+        setCrowdinLoaded(true)
+      }
+    } catch (e) {
+      console.error('Failed to load Crowdin integration:', e)
+      setCrowdinLoaded(true)
     }
   }
 
@@ -224,6 +268,89 @@ export default function LocalizationContent() {
       toast.error(e?.message || 'Failed to save settings')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function saveRegionalFormats() {
+    setSaving(true)
+    setError(null)
+    try {
+      const promises = Object.entries(regionalFormats).map(([code, format]) =>
+        fetch('/api/admin/regional-formats', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            language: code,
+            ...format,
+          }),
+        })
+      )
+
+      const responses = await Promise.all(promises)
+      for (const r of responses) {
+        if (!r.ok) {
+          const d = await r.json()
+          throw new Error(d?.error || 'Failed to save regional formats')
+        }
+      }
+
+      toast.success('Regional formats saved')
+      setSaved(true)
+      setRegionalFormatsEdited(false)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save regional formats')
+      toast.error(e?.message || 'Failed to save formats')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveCrowdinIntegration() {
+    setSaving(true)
+    setError(null)
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(crowdinIntegration),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d?.error || 'Failed to save Crowdin integration')
+      toast.success('Crowdin integration saved')
+      setSaved(true)
+      await loadCrowdinIntegration()
+      setTimeout(() => setSaved(false), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to save Crowdin integration')
+      toast.error(e?.message || 'Failed to save integration')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function testCrowdinConnection() {
+    setCrowdinTestLoading(true)
+    setCrowdinTestResult(null)
+    try {
+      const r = await fetch('/api/admin/crowdin-integration', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: crowdinIntegration.projectId,
+          apiToken: crowdinIntegration.apiToken,
+        }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d?.error || 'Connection test failed')
+      setCrowdinTestResult({ success: true, message: 'Connection successful!' })
+      toast.success('Crowdin connection test passed')
+    } catch (e: any) {
+      const message = e?.message || 'Connection test failed'
+      setCrowdinTestResult({ success: false, message })
+      toast.error(message)
+    } finally {
+      setCrowdinTestLoading(false)
     }
   }
 
@@ -328,6 +455,14 @@ export default function LocalizationContent() {
       setSaving(false)
     }
   }
+
+  const handleRegionalFormatChange = useCallback((code: string, format: RegionalFormat) => {
+    setRegionalFormats(p => ({
+      ...p,
+      [code]: format,
+    }))
+    setRegionalFormatsEdited(true)
+  }, [])
 
   const body = useMemo(() => {
     if (loading) return <div className="text-gray-600 py-8 text-center">Loading...</div>
@@ -756,24 +891,47 @@ export default function LocalizationContent() {
                           onChange={v => {
                             setRegionalFormats(p => ({
                               ...p,
-                              [lang.code]: { ...p[lang.code], dateFormat: v },
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: v,
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
                             }))
+                            setRegionalFormatsEdited(true)
                           }}
                           placeholder="MM/DD/YYYY"
                         />
                         <p className="text-xs text-gray-600 mt-1">e.g., DD/MM/YYYY, YYYY-MM-DD</p>
                       </div>
-                      <TextField
-                        label="Time Format"
-                        value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
-                        onChange={v => {
-                          setRegionalFormats(p => ({
-                            ...p,
-                            [lang.code]: { ...p[lang.code], timeFormat: v },
-                          }))
-                        }}
-                        placeholder="HH:MM AM"
-                      />
+                      <div>
+                        <TextField
+                          label="Time Format"
+                          value={regionalFormats[lang.code]?.timeFormat || 'HH:MM AM'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: v,
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="HH:MM AM"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">e.g., HH:MM, HH:MM AM</p>
+                      </div>
                       <div>
                         <TextField
                           label="Currency Code"
@@ -781,17 +939,110 @@ export default function LocalizationContent() {
                           onChange={v => {
                             setRegionalFormats(p => ({
                               ...p,
-                              [lang.code]: { ...p[lang.code], currencyCode: v },
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: v,
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
                             }))
+                            setRegionalFormatsEdited(true)
                           }}
                           placeholder="USD"
                         />
                         <p className="text-xs text-gray-600 mt-1">ISO 4217 code (max 3 chars)</p>
                       </div>
+                      <div>
+                        <TextField
+                          label="Currency Symbol"
+                          value={regionalFormats[lang.code]?.currencySymbol || '$'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: v,
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="$"
+                        />
+                        <p className="text-xs text-gray-600 mt-1">e.g., $, €, ₹, ﷼</p>
+                      </div>
+                      <div>
+                        <TextField
+                          label="Decimal Separator"
+                          value={regionalFormats[lang.code]?.decimalSeparator || '.'}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: v,
+                                thousandsSeparator: p[lang.code]?.thousandsSeparator || ',',
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder="."
+                        />
+                        <p className="text-xs text-gray-600 mt-1">Usually . or ,</p>
+                      </div>
+                      <div>
+                        <TextField
+                          label="Thousands Separator"
+                          value={regionalFormats[lang.code]?.thousandsSeparator || ','}
+                          onChange={v => {
+                            setRegionalFormats(p => ({
+                              ...p,
+                              [lang.code]: {
+                                language: lang.code,
+                                dateFormat: p[lang.code]?.dateFormat || 'MM/DD/YYYY',
+                                timeFormat: p[lang.code]?.timeFormat || 'HH:MM AM',
+                                currencyCode: p[lang.code]?.currencyCode || 'USD',
+                                currencySymbol: p[lang.code]?.currencySymbol || '$',
+                                numberFormat: p[lang.code]?.numberFormat || '#,##0.00',
+                                decimalSeparator: p[lang.code]?.decimalSeparator || '.',
+                                thousandsSeparator: v,
+                              },
+                            }))
+                            setRegionalFormatsEdited(true)
+                          }}
+                          placeholder=","
+                        />
+                        <p className="text-xs text-gray-600 mt-1">Usually , or .</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
+              {regionalFormatsEdited && (
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={saveRegionalFormats}
+                    disabled={saving}
+                    className="px-6 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                  >
+                    {saving ? 'Saving...' : 'Save Regional Formats'}
+                  </button>
+                </div>
+              )}
             </SettingsSection>
           </>
         )}
@@ -803,12 +1054,12 @@ export default function LocalizationContent() {
               <SettingsSection title="Translation Platform Integration" description="Connect to translation services">
                 <div className="rounded-lg border bg-white p-4">
                   <h4 className="font-semibold text-gray-900 mb-4">Crowdin Integration</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <TextField
                         label="Project ID"
-                        value=""
-                        onChange={() => {}}
+                        value={crowdinIntegration.projectId}
+                        onChange={v => setCrowdinIntegration(s => ({ ...s, projectId: v }))}
                         placeholder="Your Crowdin project ID"
                       />
                       <p className="text-xs text-gray-600 mt-1">Found in Crowdin project settings</p>
@@ -816,19 +1067,33 @@ export default function LocalizationContent() {
                     <div>
                       <TextField
                         label="API Token"
-                        value=""
-                        onChange={() => {}}
+                        value={crowdinIntegration.apiToken}
+                        onChange={v => setCrowdinIntegration(s => ({ ...s, apiToken: v }))}
                         placeholder="Your Crowdin API token"
+                        type="password"
                       />
                       <p className="text-xs text-gray-600 mt-1">Generate from Crowdin account settings</p>
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-3">
-                    <button className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-                      Test Connection
+                  {crowdinTestResult && (
+                    <div className={`rounded-lg p-3 mb-4 ${crowdinTestResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+                      <p className="text-sm">{crowdinTestResult.message}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={testCrowdinConnection}
+                      disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || crowdinTestLoading || saving}
+                      className="px-4 py-2 rounded-md text-sm border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {crowdinTestLoading ? 'Testing...' : 'Test Connection'}
                     </button>
-                    <button className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
-                      Save Integration
+                    <button
+                      onClick={saveCrowdinIntegration}
+                      disabled={!crowdinIntegration.projectId || !crowdinIntegration.apiToken || saving}
+                      className="px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+                    >
+                      {saving ? 'Saving...' : 'Save Integration'}
                     </button>
                   </div>
                 </div>
@@ -837,15 +1102,30 @@ export default function LocalizationContent() {
                   <h4 className="font-semibold text-blue-900 mb-2">Sync Options</h4>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.autoSyncDaily}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, autoSyncDaily: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Auto-sync translations daily</span>
                     </label>
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.syncOnDeploy}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, syncOnDeploy: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Sync on code deployment</span>
                     </label>
                     <label className="flex items-center gap-3">
-                      <input type="checkbox" className="w-4 h-4 text-blue-600 rounded" defaultChecked />
+                      <input
+                        type="checkbox"
+                        checked={crowdinIntegration.createPrs}
+                        onChange={e => setCrowdinIntegration(s => ({ ...s, createPrs: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
                       <span className="text-sm text-blue-800">Create PRs for translations</span>
                     </label>
                   </div>
@@ -1086,6 +1366,10 @@ export default function LocalizationContent() {
     error,
     orgSettings,
     regionalFormats,
+    regionalFormatsEdited,
+    crowdinIntegration,
+    crowdinTestResult,
+    crowdinTestLoading,
     showAddLanguageForm,
     analyticsData,
     analyticsLoading,

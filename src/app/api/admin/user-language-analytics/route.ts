@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 
@@ -21,9 +22,17 @@ interface AnalyticsResponse {
  * GET /api/admin/user-language-analytics
  * Fetch user language distribution analytics
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     // Get all users for this tenant with their language preferences
     const users = await prisma.userProfile.findMany({
@@ -160,9 +169,17 @@ export async function GET_TRENDS(request: NextRequest, context: any) {
  * POST /api/admin/user-language-analytics/snapshot
  * Record a snapshot of current language distribution
  */
-export const POST = withTenantContext(async (request: NextRequest, context: any) => {
+export const POST = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     // Get current analytics
     const users = await prisma.userProfile.findMany({

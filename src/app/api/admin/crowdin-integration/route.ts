@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 import crypto from 'crypto'
@@ -51,9 +52,14 @@ function maskToken(token: string): string {
  * GET /api/admin/crowdin-integration
  * Fetch Crowdin integration settings
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json({ data: null })
+    }
 
     const integration = await prisma.crowdinIntegration.findUnique({
       where: { tenantId },
@@ -99,9 +105,18 @@ export const GET = withTenantContext(async (request: NextRequest, context: any) 
  * POST /api/admin/crowdin-integration
  * Create or update Crowdin integration settings
  */
-export const POST = withTenantContext(async (request: NextRequest, context: any) => {
+export const POST = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json() as CrowdinConfig
 
     if (!body.projectId || !body.apiToken) {
@@ -172,9 +187,17 @@ export const POST = withTenantContext(async (request: NextRequest, context: any)
  * DELETE /api/admin/crowdin-integration
  * Delete Crowdin integration settings
  */
-export const DELETE = withTenantContext(async (request: NextRequest, context: any) => {
+export const DELETE = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     await prisma.crowdinIntegration.delete({
       where: { tenantId },
@@ -198,19 +221,21 @@ export const DELETE = withTenantContext(async (request: NextRequest, context: an
 })
 
 /**
- * PUT /api/admin/crowdin-integration/test
+ * PUT /api/admin/crowdin-integration
  * Test Crowdin connection
  */
-export async function PUT(request: NextRequest, context: any) {
-  if (request.nextUrl.pathname.endsWith('/test')) {
-    return testCrowdinConnection(request, context)
-  }
-  return NextResponse.json({ error: 'Not found' }, { status: 404 })
-}
-
-async function testCrowdinConnection(request: NextRequest, context: any) {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json() as { projectId: string; apiToken: string }
 
     if (!body.projectId || !body.apiToken) {
@@ -253,6 +278,16 @@ async function testCrowdinConnection(request: NextRequest, context: any) {
       })
     }
 
+    Sentry.addBreadcrumb({
+      category: 'crowdin.test',
+      message: isValid ? 'Crowdin connection test succeeded' : 'Crowdin connection test failed',
+      level: isValid ? 'info' : 'warning',
+      data: {
+        projectId: body.projectId,
+        success: isValid,
+      },
+    })
+
     return NextResponse.json({
       data: {
         success: isValid,
@@ -267,4 +302,4 @@ async function testCrowdinConnection(request: NextRequest, context: any) {
       { status: 500 }
     )
   }
-}
+})

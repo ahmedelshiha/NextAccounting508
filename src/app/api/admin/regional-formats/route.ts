@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withTenantContext } from '@/lib/api-wrapper'
+import { requireTenantContext } from '@/lib/tenant-utils'
 import prisma from '@/lib/prisma'
 import * as Sentry from '@sentry/nextjs'
 
@@ -182,9 +183,17 @@ const DEFAULT_FORMATS: Record<string, RegionalFormat> = {
  * GET /api/admin/regional-formats
  * Fetch all regional format settings
  */
-export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+export const GET = withTenantContext(async () => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
 
     const formats = await prisma.regionalFormat.findMany({
       where: { tenantId },
@@ -229,9 +238,18 @@ export const GET = withTenantContext(async (request: NextRequest, context: any) 
  * PUT /api/admin/regional-formats
  * Update regional format settings for a language
  */
-export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
 
     if (!body.language) {
