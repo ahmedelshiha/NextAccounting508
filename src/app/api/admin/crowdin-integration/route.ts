@@ -224,9 +224,18 @@ export const DELETE = withTenantContext(async () => {
  * PUT /api/admin/crowdin-integration
  * Test Crowdin connection
  */
-export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
+export const PUT = withTenantContext(async (request: NextRequest) => {
   try {
-    const tenantId = context.tenantId
+    const ctx = requireTenantContext()
+    const tenantId = ctx.tenantId
+
+    if (!tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant context missing' },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json() as { projectId: string; apiToken: string }
 
     if (!body.projectId || !body.apiToken) {
