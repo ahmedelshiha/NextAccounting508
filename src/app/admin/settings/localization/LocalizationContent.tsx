@@ -60,6 +60,14 @@ interface RegionalFormat {
   thousandsSeparator: string
 }
 
+interface CrowdinIntegration {
+  projectId: string
+  apiToken: string
+  autoSyncDaily: boolean
+  syncOnDeploy: boolean
+  createPrs: boolean
+}
+
 export default function LocalizationContent() {
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState('languages')
@@ -92,6 +100,19 @@ export default function LocalizationContent() {
 
   // Regional formats state
   const [regionalFormats, setRegionalFormats] = useState<Record<string, RegionalFormat>>({})
+  const [regionalFormatsEdited, setRegionalFormatsEdited] = useState(false)
+
+  // Crowdin integration state
+  const [crowdinIntegration, setCrowdinIntegration] = useState<CrowdinIntegration>({
+    projectId: '',
+    apiToken: '',
+    autoSyncDaily: true,
+    syncOnDeploy: false,
+    createPrs: true,
+  })
+  const [crowdinLoaded, setCrowdinLoaded] = useState(false)
+  const [crowdinTestLoading, setCrowdinTestLoading] = useState(false)
+  const [crowdinTestResult, setCrowdinTestResult] = useState<{ success: boolean; message: string } | null>(null)
 
   // Translation dashboard state
   const [status, setStatus] = useState<any>(null)
