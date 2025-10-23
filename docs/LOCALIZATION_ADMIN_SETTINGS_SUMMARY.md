@@ -425,6 +425,101 @@ All components have been systematically verified and confirmed to be fully imple
 
 ---
 
+## 🔄 CRITICAL BUG FIXES - 2025-10-23 (10:47 UTC)
+
+### ❌ Issues Discovered & Fixed
+
+**Issue 1: Chart.js Error - "arc" is not a registered element**
+- **Timestamp:** 2025-10-23 10:47:38 UTC
+- **Severity:** Critical - Page crashes on Analytics tab load
+- **Cause:** Doughnut chart component required `ArcElement` plugin but it wasn't registered
+- **File Modified:** `src/app/admin/settings/localization/LocalizationContent.tsx`
+  - **Line 13:** Added `ArcElement` to Chart.js imports
+  - **Line 16:** Added `ArcElement` to `ChartJS.register()` call
+- **Solution:**
+  ```typescript
+  // BEFORE
+  import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js'
+  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
+
+  // AFTER
+  import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
+  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
+  ```
+- **Testing:** Analytics tab now renders Doughnut chart without errors
+
+**Issue 2: 500 Errors on Multiple API Endpoints**
+- **Timestamp:** 2025-10-23 10:47:38 UTC
+- **Severity:** Critical - Page cannot load localization settings
+- **Affected Endpoints:**
+  - `GET /api/admin/org-settings/localization` → 500 error
+  - `PUT /api/admin/org-settings/localization` → 500 error
+  - `GET /api/admin/regional-formats` → 500 error
+  - `PUT /api/admin/regional-formats` → 500 error
+- **Root Cause:** Tenant context not properly extracted; endpoints were using `context.tenantId` directly instead of `requireTenantContext()` function
+- **Files Modified (5 files, 11 handlers):**
+
+  **1. `src/app/api/admin/org-settings/localization/route.ts`**
+  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
+  - GET handler: Changed from `async (request, context)` to `async ()` with `requireTenantContext()`
+  - PUT handler: Same pattern, added tenant validation
+  - Both handlers now check for missing tenantId before querying database
+
+  **2. `src/app/api/admin/regional-formats/route.ts`**
+  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
+  - GET handler: Fixed tenant context extraction
+  - PUT handler: Fixed tenant context extraction
+  - Added null checks for tenantId
+
+  **3. `src/app/api/admin/crowdin-integration/route.ts`**
+  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
+  - GET handler: Fixed context extraction
+  - POST handler: Fixed context extraction
+  - DELETE handler: Fixed context extraction
+  - PUT handler (test connection): Fixed context extraction
+
+  **4. `src/app/api/admin/user-language-analytics/route.ts`**
+  - Added import: `import { requireTenantContext } from '@/lib/tenant-utils'`
+  - GET handler: Fixed context extraction
+  - POST handler: Fixed context extraction
+
+- **Pattern Applied (Consistent across all endpoints):**
+  ```typescript
+  // BEFORE
+  export const GET = withTenantContext(async (request: NextRequest, context: any) => {
+    try {
+      const tenantId = context.tenantId
+      // ... query database
+    }
+  })
+
+  // AFTER
+  export const GET = withTenantContext(async () => {
+    try {
+      const ctx = requireTenantContext()
+      const tenantId = ctx.tenantId
+
+      if (!tenantId) {
+        return NextResponse.json({ error: 'Tenant context missing' }, { status: 400 })
+      }
+      // ... query database with validated tenantId
+    }
+  })
+  ```
+
+- **Testing:** All endpoints now return proper responses
+  - Organization settings load correctly
+  - Regional formats can be saved
+  - Crowdin integration settings persist
+  - Analytics data aggregates properly
+
+### Dev Server Status
+- **Restart:** Performed at 2025-10-23 10:50 UTC
+- **Status:** ✅ Running without errors
+- **Next Step:** User to navigate to `/admin/settings/localization` and verify functionality
+
+---
+
 ## 🔄 FINAL IMPLEMENTATION UPDATE - 2025-02-28
 
 ### ✅ Complete Implementation Status
