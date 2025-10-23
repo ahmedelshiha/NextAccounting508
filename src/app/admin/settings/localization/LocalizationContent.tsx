@@ -128,6 +128,7 @@ export default function LocalizationContent() {
         loadOrgSettings(),
         loadRegionalFormats(),
         loadTranslationStatus(),
+        loadAnalytics(),
       ])
     } catch (e) {
       console.error('Failed to load data:', e)
