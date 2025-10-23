@@ -190,6 +190,21 @@ export default function LocalizationContent() {
     }
   }
 
+  async function loadAnalytics() {
+    try {
+      setAnalyticsLoading(true)
+      const r = await fetch('/api/admin/user-language-analytics', { cache: 'no-store' })
+      if (r.ok) {
+        const d = await r.json()
+        setAnalyticsData(d.data)
+      }
+    } catch (e) {
+      console.error('Failed to load analytics:', e)
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }
+
   async function saveOrgSettings() {
     setSaving(true)
     setError(null)
