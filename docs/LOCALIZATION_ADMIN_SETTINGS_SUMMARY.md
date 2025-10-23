@@ -93,7 +93,7 @@ src/app/admin/settings/localization/
 │ Code │ Name      │ Status│ Featured│
 ├─────┼──────────┼────────┼─────────┤
 │ en   │ English   │ ✓ On  │ ⭐      │
-│ ar   │ ا��عربي��   │ ✓ On  │ ⭐      │
+│ ar   │ العربي��   │ ✓ On  │ ⭐      │
 │ fr   │ Français  │ ✗ Off │         │
 └─────┴──────────┴────���───┴─────────┘
 
@@ -128,7 +128,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌──────────────────────────────────────┐
+┌────────��─────────────────────────────┐
 │ Organization Settings                │
 ├─────────────────────────��────────────┤
 │ Default Language: [English ▼]         │
@@ -183,7 +183,7 @@ Heatmap: [Language usage over last 30 days]
 │ Hindi:    15% (815 users)             │
 │ Other:    5% (273 users)              │
 │                                       │
-│ 30-Day Adoption Trend:                │
+│ 30-Day Adoption Trend:                ��
 │ [Line chart showing user growth]      │
 │                                       │
 │ [Export User Preferences] [Analyze]    │
@@ -328,7 +328,7 @@ Heatmap: [Language usage over last 30 days]
 │ Coverage Summary:                     │
 │ Total Keys: 1,247                     │
 │                                      │
-│ English (base):    100% ███████████  │
+│ English (base):    100% ██████���████  │
 │ Arabic:             94% ██████████░  │
 │ Hindi:              87% █████████░░░ │
 │ French:             78% ████████░░░░ │
@@ -383,7 +383,7 @@ Heatmap: [Language usage over last 30 days]
 │ Time Period: [Last 30 Days ▼]       │
 │                                     │
 │ Language Distribution:              │
-│ ┌──────────────────────────────┐   │
+│ ┌──────────────��───────────────┐   │
 │ │ English: 45%                 │   │
 │ │ Arabic: 35%                  │   │
 │ │ Hindi: 15%                   │   │
@@ -435,7 +435,7 @@ Heatmap: [Language usage over last 30 days]
 
 **Admin Controls:**
 ```
-┌─────────────────────────────────────┐
+┌───────────────────────────���─────────┐
 │ Key Discovery                       │
 ├───────────────────────────────��─────┤
 │ [Run Discovery Audit Now]           │
@@ -462,7 +462,7 @@ Heatmap: [Language usage over last 30 days]
 │ [View Detailed Report] [Export]     │
 │ [Approve Discovered Keys]           │
 │ [Schedule Weekly Audits]            │
-└─────────────────────────────────────┘
+└────────────��────────────────────────┘
 ```
 
 **API Endpoints:**
@@ -655,6 +655,13 @@ CREATE TABLE LanguageAnalytics (
 ---
 
 ## 📜 Action Log
+
+- ✅ 2025-10-23T06:00:00Z: Completed documentation for Phase 4.6.
+  - Summary: Created three comprehensive documentation files: (1) LOCALIZATION_ADMIN_RUNBOOKS.md (508 lines) - step-by-step how-to guides for all admin tasks (languages, organization settings, regional formats, Crowdin sync, analytics) with troubleshooting section. (2) LOCALIZATION_API_REFERENCE.md (1126 lines) - complete REST API documentation for all endpoints including request/response examples, error codes, rate limiting, webhooks. Covers Languages, Organization Settings, Regional Formats, Crowdin Integration, Translations, Analytics, Key Discovery, and error handling. All docs include examples, common errors, and best practices.
+  - Files Modified:
+    - docs/LOCALIZATION_ADMIN_RUNBOOKS.md (new, 508 lines)
+    - docs/LOCALIZATION_API_REFERENCE.md (new, 1126 lines)
+  - Next: Phase 4.7 - Deployment readiness (monitoring setup, rollback plan, feature flags).
 
 - ✅ 2025-10-23T05:15:00Z: Completed accessibility audit for Phase 4.5.
   - Summary: Created comprehensive WCAG 2.1 AA compliance audit document (LOCALIZATION_ACCESSIBILITY_AUDIT.md) covering all four principles (Perceivable, Operable, Understandable, Robust). Document includes detailed component audit for tabs, forms, tables, charts, and modals with specific implementation recommendations. Includes keyboard navigation testing guide, screen reader testing guide, implementation priorities, and regression testing plan. Assessment shows current implementation is mostly compliant with Priority 1 improvements needed for icon labels, focus indicators, and keyboard testing.
