@@ -2,7 +2,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 import { Suspense } from 'react'
-import LocalizationContent from './LocalizationContent'
+import LocalizationContent from './LocalizationContent.new'
+import { LocalizationProvider } from './LocalizationProvider'
 import SettingsShell from '@/components/admin/settings/SettingsShell'
 import { Globe } from 'lucide-react'
 
@@ -19,17 +20,19 @@ export default async function Page() {
   }
 
   return (
-    <Suspense fallback={
-      <SettingsShell
-        title="Localization & Languages"
-        description="Manage languages, translations, and localization settings"
-        icon={Globe}
-        loading={true}
-      >
-        <div />
-      </SettingsShell>
-    }>
-      <LocalizationContent />
-    </Suspense>
+    <LocalizationProvider>
+      <Suspense fallback={
+        <SettingsShell
+          title="Localization & Languages"
+          description="Manage languages, translations, and localization settings"
+          icon={Globe}
+          loading={true}
+        >
+          <div />
+        </SettingsShell>
+      }>
+        <LocalizationContent />
+      </Suspense>
+    </LocalizationProvider>
   )
 }
