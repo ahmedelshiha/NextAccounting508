@@ -1,6 +1,6 @@
 import { authOptions } from '@/lib/auth'
 import { hasPermission, PERMISSIONS } from '@/lib/permissions'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { tenantFilter } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
