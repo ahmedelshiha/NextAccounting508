@@ -198,17 +198,10 @@ export const DELETE = withTenantContext(async (request: NextRequest, context: an
 })
 
 /**
- * PUT /api/admin/crowdin-integration/test
+ * PUT /api/admin/crowdin-integration
  * Test Crowdin connection
  */
-export async function PUT(request: NextRequest, context: any) {
-  if (request.nextUrl.pathname.endsWith('/test')) {
-    return testCrowdinConnection(request, context)
-  }
-  return NextResponse.json({ error: 'Not found' }, { status: 404 })
-}
-
-async function testCrowdinConnection(request: NextRequest, context: any) {
+export const PUT = withTenantContext(async (request: NextRequest, context: any) => {
   try {
     const tenantId = context.tenantId
     const body = await request.json() as { projectId: string; apiToken: string }
@@ -253,6 +246,16 @@ async function testCrowdinConnection(request: NextRequest, context: any) {
       })
     }
 
+    Sentry.addBreadcrumb({
+      category: 'crowdin.test',
+      message: isValid ? 'Crowdin connection test succeeded' : 'Crowdin connection test failed',
+      level: isValid ? 'info' : 'warning',
+      data: {
+        projectId: body.projectId,
+        success: isValid,
+      },
+    })
+
     return NextResponse.json({
       data: {
         success: isValid,
@@ -267,4 +270,4 @@ async function testCrowdinConnection(request: NextRequest, context: any) {
       { status: 500 }
     )
   }
-}
+})
