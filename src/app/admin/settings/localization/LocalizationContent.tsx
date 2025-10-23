@@ -280,8 +280,8 @@ export default function LocalizationContent() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            language: code,
             ...format,
+            language: code,
           }),
         })
       )
